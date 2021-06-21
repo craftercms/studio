@@ -98,25 +98,6 @@ BEGIN
     END IF;
 END ;
 
-CREATE PROCEDURE update_parent_id(IN siteId BIGINT, IN rootPath VARCHAR(2000))
-BEGIN
-    DECLARE v_parent_id BIGINT;
-    DECLARE v_parent_path VARCHAR(2000);
-    DECLARE v_parent_item_path VARCHAR(2000);
-    DECLARE v_finished INTEGER DEFAULT 0;
-    DECLARE parent_cursor CURSOR FOR SELECT i.id as parent_id, REPLACE(i.path, '/index.xml','') AS parent_path, i.path
-        AS parent_item_path FROM item i WHERE i.site_id = siteId AND (path = rootPath OR path LIKE concat(rootPath, '/%'));
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
-    OPEN parent_cursor;
-    update_parent: LOOP
-        FETCH parent_cursor INTO v_parent_id, v_parent_path, v_parent_item_path;
-        IF v_finished = 1 THEN LEAVE update_parent;
-        END IF;
-        UPDATE item SET parent_id = v_parent_id WHERE site_id = siteId
-            AND path RLIKE (concat(v_parent_path, '/[^/]+/index\.xml|', v_parent_path,'/(?!index\.xml)[^/]+$'));
-    END LOOP update_parent;
-END ;
-
 CREATE PROCEDURE tryLockPublishingForSite(
     IN siteId VARCHAR(50),
     IN lockOwnerId VARCHAR(255),
@@ -216,7 +197,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.23', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.24', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,

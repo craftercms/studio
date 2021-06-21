@@ -24,11 +24,13 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DeadlockLoserDataAccessException;
 
 import java.lang.reflect.Method;
 
 @Aspect
+@Order(1)
 public class RetryingOperationAnnotationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RetryingOperationAnnotationHandler.class);
@@ -54,8 +56,8 @@ public class RetryingOperationAnnotationHandler {
         this.maxSleep = maxSleep;
     }
 
-    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingOperation) ||" +
-            " @annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
+    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingOperation) || " +
+            "@annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
         logger.debug("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());

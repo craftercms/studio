@@ -623,6 +623,8 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="contentService" ref="cstudioContentService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">

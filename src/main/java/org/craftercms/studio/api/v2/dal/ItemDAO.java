@@ -59,7 +59,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.POSSIBLE_PARENTS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PREVIOUS_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ROOT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCRIPT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT_STRATEGY;
@@ -108,7 +107,16 @@ public interface ItemDAO {
                                  @Param(EXCLUDES) List<String> excludes, @Param(SORT_STRATEGY) String sortStrategy,
                                  @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
+    /**
+     * Get all children for given path from database
+     *
+     * @param siteId site identifier
+     * @param path path to get children for
+     *
+     * @return list of items (parent, level descriptor, children)
+     */
 
+    List<Item> getAllChildrenByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
 
     /**
      * Get total number of children for given path
@@ -146,10 +154,11 @@ public interface ItemDAO {
                                @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
-     * Update parent ID for site
-     * @param siteId site identifier
+     * insert or update item
+     *
+     * @param item item to insert/update
      */
-    void updateParentIdForSite(@Param(SITE_ID) long siteId, @Param(ROOT_PATH) String rootPath);
+    void upsertEntry(Item item);
 
     /**
      * Insert or update items

@@ -141,7 +141,6 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
@@ -597,9 +596,9 @@ public class ContentServiceImpl implements ContentService {
         boolean toRet = false;
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
+            Item parentItem = itemServiceInternal.getItem(site, path, true);
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
-                    commitId);
-            itemServiceInternal.updateParentIds(site, path);
+                    commitId, parentItem.getId());
 
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();

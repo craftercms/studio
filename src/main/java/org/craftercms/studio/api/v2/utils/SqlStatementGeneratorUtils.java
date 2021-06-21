@@ -70,6 +70,9 @@ public final class SqlStatementGeneratorUtils {
                     "UPDATE item SET parent_id = @parentId WHERE id = @itemId ;\n\nSET @itemId = NULL ;\n\n" +
                     "SET @parentId = NULL ;" ;
 
+    public static final String ITEM_UPDATE_PARENT_ID_SIMPLE =
+            "UPDATE item SET parent_id = #{parentId} WHERE id = #{itemId} ;" ;
+
     public static final String DEPENDENCIES_INSERT =
             "INSERT INTO dependency (site, source_path, target_path, type) " +
                     "VALUES ('#{site}', '#{sourcePath}', '#{targetPath}', '#{type}') ;";
@@ -188,6 +191,12 @@ public final class SqlStatementGeneratorUtils {
         String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID, "#{siteId}", Long.toString(siteId));
         sql = StringUtils.replace(sql,"#{itemPath}", StringUtils.replace(itemPath, "'", "''"));
         sql = StringUtils.replace(sql,"#{parentPath}", StringUtils.replace(parentPath, "'", "''"));
+        return sql;
+    }
+
+    public static String updateParentIdSimple(long parentId, long itemId) {
+        String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID_SIMPLE, "#{parentId}", Long.toString(parentId));
+        sql = StringUtils.replace(sql,"#{itemId}", Long.toString(itemId));
         return sql;
     }
 

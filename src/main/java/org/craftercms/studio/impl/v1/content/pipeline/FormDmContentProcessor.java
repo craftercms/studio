@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -203,9 +204,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                 // Item
                 // TODO: get local code with API 2
+                Item pItem = itemServiceInternal.getItem(site, parentItem.getUri(), true);
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, result.getCommitId(),
-                        Optional.of(unlock));
-                itemServiceInternal.updateParentIds(site, ContentUtils.getParentUrl(parentItem.getUri()));
+                        Optional.of(unlock), pItem.getId());
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {

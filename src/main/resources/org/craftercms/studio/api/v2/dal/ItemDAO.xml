@@ -49,6 +49,38 @@
         <result property="ignoredAsInt" column="ignored" />
     </resultMap>
 
+    <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
+        INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
+        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
+        translation_source_id, size, parent_id, commit_id, previous_path, ignored) VALUES
+        (#{siteId}, #{path}, #{previewUrl}, #{state}, #{ownedBy}, #{createdBy}, #{createdOn}, #{lastModifiedBy},
+         #{lastModifiedOn}, #{lastPublishedOn}, #{label}, #{contentTypeId}, #{systemType}, #{mimeType},
+         #{disabledAsInt}, #{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{commitId}, #{previousPath},
+         #{ignoredAsInt})
+        ON DUPLICATE KEY
+        UPDATE
+        site_id = #{siteId},
+        path = #{path},
+        preview_url = #{previewUrl},
+        state = #{state},
+        owned_by = #{ownedBy},
+        last_modified_by = #{lastModifiedBy},
+        last_modified_on = #{lastModifiedOn},
+        last_published_on = #{lastPublishedOn},
+        label = #{label},
+        content_type_id = #{contentTypeId},
+        system_type = #{systemType},
+        mime_type = #{mimeType},
+        disabled = #{disabledAsInt},
+        locale_code = #{localeCode},
+        translation_source_id = #{translationSourceId},
+        size = #{size},
+        parent_id = #{parentId},
+        commit_id = #{commitId},
+        previous_path = #{previousPath},
+        ignored = #{ignoredAsInt}
+    </insert>
+
     <insert id="upsertEntries" parameterType="java.util.List">
         INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
         last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
@@ -119,6 +151,14 @@
         LIMIT #{offset},#{limit})
     </select>
 
+    <select id="getAllChildrenByPath" resultMap="ItemMap">
+        SELECT * FROM item WHERE site_id = #{siteId}
+        AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND CONCAT(path, '/index.xml') NOT IN
+        (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
+        AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+    </select>
+
     <select id="getChildrenByPathTotal" resultType="Integer">
         SELECT COUNT(1) FROM item WHERE site_id = #{siteId}
         AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
@@ -185,10 +225,6 @@
                 AND path NOT RLIKE('${exclude}')
             </foreach>
         </if>
-    </select>
-
-    <select id="updateParentIdForSite" >
-        call update_parent_id(#{siteId}, #{rootPath})
     </select>
     
     <select id="getItemById" resultMap="ItemMap">
