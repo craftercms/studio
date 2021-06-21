@@ -20,7 +20,6 @@ import org.apache.commons.configuration2.interpol.ConfigurationInterpolator;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.collections.MapUtils;
-import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.rest.RestTemplate;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -61,12 +60,12 @@ public abstract class AbstractDeployer implements Deployer {
         this.studioConfiguration = studioConfiguration;
     }
 
-    protected void doCreateTarget(String site, String environment, String searchEngine, String template,
+    protected void doCreateTarget(String site, String environment, String template,
                                   boolean replace, boolean disableDeployCron, String localRepoPath,
                                   String repoUrl, HierarchicalConfiguration<ImmutableNode> additionalParams)
             throws IllegalStateException, RestClientException {
         String requestUrl = getCreateTargetUrl();
-        Map<String, Object> requestBody = getCreateTargetRequestBody(site, environment, searchEngine, template,
+        Map<String, Object> requestBody = getCreateTargetRequestBody(site, environment, template,
                                                                      replace, disableDeployCron, localRepoPath,
                                                                      repoUrl, additionalParams);
         try {
@@ -98,7 +97,7 @@ public abstract class AbstractDeployer implements Deployer {
         }
     }
 
-    protected Map<String, Object> getCreateTargetRequestBody(String site, String environment, String searchEngine,
+    protected Map<String, Object> getCreateTargetRequestBody(String site, String environment,
                                                              String template, boolean replace, boolean disableDeployCron,
                                                              String localRepoPath, String repoUrl,
                                                              HierarchicalConfiguration<ImmutableNode> additionalParams) {
@@ -109,10 +108,7 @@ public abstract class AbstractDeployer implements Deployer {
         requestBody.put("template_name", template);
         requestBody.put("replace", replace);
         requestBody.put("disable_deploy_cron", disableDeployCron);
-
-        if (StringUtils.equals(SearchEngines.CRAFTER_SEARCH, searchEngine)) {
-            requestBody.put("use_crafter_search", true);
-        }
+        
         if (StringUtils.isNotEmpty(localRepoPath)) {
             requestBody.put("local_repo_path", localRepoPath);
         }

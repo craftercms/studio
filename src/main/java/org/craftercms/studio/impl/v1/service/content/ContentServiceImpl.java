@@ -1319,7 +1319,7 @@ public class ContentServiceImpl implements ContentService {
             pageIdNode.setText(params.get(DmConstants.KEY_PAGE_ID));
         }
 
-        if(modifier != null) {
+        if(StringUtils.isNotEmpty(modifier)) {
             Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
                 String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");

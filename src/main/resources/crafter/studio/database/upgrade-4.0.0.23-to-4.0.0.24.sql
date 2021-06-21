@@ -14,6 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-DROP PROCEDURE IF EXISTS update_parent_id ;
+ALTER TABLE `site` DROP COLUMN `search_engine` ;
+
+CALL dropColumnIfExists('crafter', 'site', 'search_engine') ;
 
 UPDATE _meta SET version = '4.0.0.24' ;

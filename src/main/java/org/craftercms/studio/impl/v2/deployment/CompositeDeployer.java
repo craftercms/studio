@@ -22,11 +22,10 @@ import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.web.client.RestClientException;
 
-import java.util.Iterator;
 import java.util.List;
 
 /**
- * Composite {@link Deployer} that calls {@link #createTargets(String, String)} and {@link #deleteTargets(String)}
+ * Composite {@link Deployer} that calls {@link #createTargets(String)} and {@link #deleteTargets(String)}
  * in multiple {@link Deployer}s.
  *
  * <p>On create, if one of the {@code Deployer} fails, the targets that were created successfully previously are
@@ -44,11 +43,11 @@ public class CompositeDeployer implements Deployer {
     }
 
     @Override
-    public void createTargets(String site, String searchEngine) throws RestClientException {
+    public void createTargets(String site) throws RestClientException {
         if (CollectionUtils.isNotEmpty(deployers)) {
             try {
                 for (Deployer deployer : deployers) {
-                    deployer.createTargets(site, searchEngine);
+                    deployer.createTargets(site);
                 }
             } catch (Exception e) {
                 // Rollback any created targets if one of them fails

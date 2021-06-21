@@ -308,7 +308,6 @@ CREATE TABLE IF NOT EXISTS `site` (
   `publishing_status_message`       VARCHAR(2000) NULL,
   `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
-  `search_engine`                   VARCHAR(20)   NOT NULL DEFAULT 'Elasticsearch',
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       TIMESTAMP      NULL,

@@ -52,6 +52,7 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -289,7 +290,7 @@ public class SiteServiceImpl implements SiteService {
         // Create the site in the preview deployer
         logger.info("Creating deployer targets.");
         try {
-            deployer.createTargets(siteId, searchEngine);
+            deployer.createTargets(siteId);
         } catch (Exception e) {
             success = false;
             String msg = "Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
@@ -320,7 +321,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
                 String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
@@ -713,11 +713,26 @@ public class SiteServiceImpl implements SiteService {
             logger.info("Missing descriptor, using default search engine {0}", searchEngine);
         }
 
+        if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
+            logger.error("Error creating site {0}, unsupported search engine CrafterSearch, please update your " +
+                "site to use Elasticsearch. For more information see " +
+                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
+                siteId);
+
+            // rollback ...
+            contentRepositoryV2.removeRemote(siteId, remoteName);
+            contentRepository.deleteSite(siteId);
+
+            throw new SiteCreationException("Unsupported search engine CrafterSearch, please update your site to use " +
+                "Elasticsearch. For more information see " +
+                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
+        }
+
         if (success) {
             // Create the site in the preview deployer
             try {
                 logger.info("Creating Deployer targets for site " + siteId);
-                deployer.createTargets(siteId, searchEngine);
+                deployer.createTargets(siteId);
             } catch (Exception e) {
                 logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
                         " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back...", e);
@@ -754,7 +769,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeed.setSearchEngine(searchEngine);
                 siteFeedMapper.createSite(siteFeed);
 
                 upgradeManager.upgrade(siteId);

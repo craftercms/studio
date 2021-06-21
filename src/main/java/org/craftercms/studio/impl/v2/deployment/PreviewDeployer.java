@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v2.deployment;
 
-import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.rest.RestServiceException;
 import org.craftercms.studio.api.v1.ebus.EventListener;
 import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
@@ -54,7 +53,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_TEM
  * <ul>
  *     <li>Creates both and authoring and preview target on create</li>
  *     <li>Deletes the authoring and preview target on delete</li>
- *     <li>Issues deployments to the authoirng and preview target on a preview sync event</li>
+ *     <li>Issues deployments to the authoring and preview target on a preview sync event</li>
  * </ul>
  *
  * @author avasquez
@@ -97,9 +96,9 @@ public class PreviewDeployer extends AbstractDeployer implements BeanNameAware {
     }
 
     @Override
-    public void createTargets(String site, String searchEngine) throws RestClientException {
+    public void createTargets(String site) throws RestClientException {
         doCreateAuthTarget(site);
-        doCreatePreviewTarget(site, searchEngine);
+        doCreatePreviewTarget(site);
     }
 
     @Override
@@ -133,18 +132,18 @@ public class PreviewDeployer extends AbstractDeployer implements BeanNameAware {
         boolean replace = studioConfiguration.getProperty(AUTHORING_REPLACE, Boolean.class, false);
         boolean disableCron = studioConfiguration.getProperty(AUTHORING_DISABLE_DEPLOY_CRON, Boolean.class, false);
 
-        doCreateTarget(site, ENV_AUTHORING, SearchEngines.ELASTICSEARCH, template, replace, disableCron,
+        doCreateTarget(site, ENV_AUTHORING, template, replace, disableCron,
                        null, repoUrl, null);
     }
 
-    protected void doCreatePreviewTarget(String site, String searchEngine) throws IllegalStateException,
+    protected void doCreatePreviewTarget(String site) throws IllegalStateException,
                                                                                      RestClientException  {
         String repoUrl = getRepoUrl(PREVIEW_REPO_URL, site);
         String template = studioConfiguration.getProperty(PREVIEW_TEMPLATE_NAME);
         boolean replace = studioConfiguration.getProperty(PREVIEW_REPLACE, Boolean.class, false);
         boolean disableCron = studioConfiguration.getProperty(PREVIEW_DISABLE_DEPLOY_CRON, Boolean.class, false);
 
-        doCreateTarget(site, ENV_PREVIEW, searchEngine, template, replace, disableCron, null, repoUrl, null);
+        doCreateTarget(site, ENV_PREVIEW, template, replace, disableCron, null, repoUrl, null);
     }
 
     protected String getDeployTargetUrl(String site, String environment) {
