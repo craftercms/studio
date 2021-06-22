@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
@@ -144,6 +145,7 @@ public class GitRepositoryHelper {
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -155,7 +157,8 @@ public class GitRepositoryHelper {
                                                 SecurityService securityService,
                                                 UserServiceInternal userServiceInternal,
                                                 TextEncryptor textEncryptor,
-                                                GeneralLockService generalLockService)
+                                                GeneralLockService generalLockService,
+                                                RetryingRepositoryOperationFacade retryingRepositoryOperationFacade)
             throws CryptoException {
         if (instance == null) {
             instance = new GitRepositoryHelper();
@@ -164,6 +167,7 @@ public class GitRepositoryHelper {
             instance.securityService = securityService;
             instance.userServiceInternal = userServiceInternal;
             instance.generalLockService = generalLockService;
+            instance.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
         }
         return instance;
     }
@@ -1180,11 +1184,11 @@ public class GitRepositoryHelper {
             // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 RevCommit commit;
-                commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
+                CommitCommand commitCommand =
+                        git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment);
+                commit = retryingRepositoryOperationFacade.call(commitCommand);
                 commitId = commit.getName();
             }
-
-            git.close();
         } catch (GitAPIException e) {
             logger.error("error adding and committing file to git: site: " + site + " path: " + path, e);
         } finally {

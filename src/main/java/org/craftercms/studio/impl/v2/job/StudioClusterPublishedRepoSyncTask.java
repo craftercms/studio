@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -91,6 +92,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private UserServiceInternal userServiceInternal;
     private TextEncryptor encryptor;
     private GeneralLockService generalLockService;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     public StudioClusterPublishedRepoSyncTask(int executeEveryNCycles,
                                               int offset,
@@ -103,7 +105,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                               SecurityService securityService,
                                               UserServiceInternal userServiceInternal,
                                               TextEncryptor encryptor,
-                                              GeneralLockService generalLockService) {
+                                              GeneralLockService generalLockService,
+                                              RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
 
         super(executeEveryNCycles, offset, studioConfiguration, siteService, contentRepository);
         this.studioClusterUtils = studioClusterUtils;
@@ -113,6 +116,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         this.userServiceInternal = userServiceInternal;
         this.encryptor = encryptor;
         this.generalLockService = generalLockService;
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 
     @Override
@@ -224,7 +228,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             try {
                 logger.debug("Create " + PUBLISHED.name() + " repository from remote for site " + siteId);
                 GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                        userServiceInternal, encryptor, generalLockService);
+                        userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
                 result = helper.createPublishedRepository(siteId, sandboxBranch);
                 if (result) {
                     clusterDao.setPublishedRepoCreated(localNodeId, sId);

@@ -439,6 +439,7 @@
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="contentRepositoryV2" ref="contentRepository" />
+        <constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <constructor-arg name="batchSizeGitLog"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
     </bean>
@@ -674,6 +675,7 @@
         <constructor-arg name="userServiceInternal" ref="userServiceInternal" />
         <constructor-arg name="encryptor" ref="internalTextEncryptor" />
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
@@ -827,6 +829,7 @@
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -843,6 +846,11 @@
         <property name="objectMetadataManager" ref="cstudioObjectMetadataManager" />
         <property name="studioUtils" ref="studio.utils" />
         <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+    </bean>
+
+    <bean id="studio.retryingRepositoryOperationFacade"
+          class="org.craftercms.studio.impl.v2.repository.RetryingRepositoryOperationFacadeImpl" >
     </bean>
 
     <!-- /////// -->

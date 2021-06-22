@@ -45,14 +45,17 @@ import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
+import org.eclipse.jgit.api.DiffCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -134,6 +137,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private GeneralLockService generalLockService;
     private SiteService siteService;
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private int batchSizeGitLog = 1000;
 
     public RepositoryManagementServiceInternalImpl(RemoteRepositoryDAO remoteRepositoryDao,
@@ -147,6 +151,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                                                    GeneralLockService generalLockService,
                                                    SiteService siteService,
                                                    org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                                   RetryingRepositoryOperationFacade retryingRepositoryOperationFacade,
                                                    int batchSizeGitLog) {
         this.remoteRepositoryDao = remoteRepositoryDao;
         this.studioConfiguration = studioConfiguration;
@@ -159,6 +164,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.generalLockService = generalLockService;
         this.siteService = siteService;
         this.contentRepositoryV2 = contentRepositoryV2;
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
         this.batchSizeGitLog = batchSizeGitLog;
     }
 
@@ -171,7 +177,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         try {
             logger.debug("Add remote " + remoteRepository.getRemoteName() + " to the sandbox repo for the site " + siteId);
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
 
@@ -185,7 +191,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(remoteRepository.getRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteRepository.getRemoteUrl()));
-                remoteAddCommand.call();
+                retryingRepositoryOperationFacade.call(remoteAddCommand);
 
                 try {
                     isValid = helper.isRemoteValid(git, remoteRepository.getRemoteName(),
@@ -196,7 +202,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     if (!isValid) {
                         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
                         remoteRemoveCommand.setRemoteName(remoteRepository.getRemoteName());
-                        remoteRemoveCommand.call();
+                        retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
                         List<Ref> resultRemoteBranches = git.branchList()
                                 .setListMode(ListBranchCommand.ListMode.REMOTE)
@@ -214,7 +220,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                             String[] array = new String[branchesToDelete.size()];
                             delBranch.setBranchNames(branchesToDelete.toArray(array));
                             delBranch.setForce(true);
-                            delBranch.call();
+                            retryingRepositoryOperationFacade.call(delBranch);
                         }
                     }
                 }
@@ -282,7 +288,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
         Map<String, String> unreachableRemotes = new HashMap<String, String>();
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration,securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
                 List<RemoteConfig> resultRemotes = git.remoteList().call();
@@ -312,7 +318,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private void fetchRemote(String siteId, Git git, RemoteConfig conf)
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, conf.getName());
         if (remoteRepository != null) {
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
@@ -321,7 +327,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     remoteRepository.getAuthenticationType(), remoteRepository.getRemoteUsername(),
                     remoteRepository.getRemotePassword(), remoteRepository.getRemoteToken(),
                     remoteRepository.getRemotePrivateKey(), tempKey, true);
-            fetchCommand.call();
+            retryingRepositoryOperationFacade.call(fetchCommand);
         }
     }
 
@@ -421,7 +427,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
         logger.debug("Prepare pull command");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
@@ -446,7 +452,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     break;
             }
             pullCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
-            pullResult = pullCommand.call();
+            pullResult = retryingRepositoryOperationFacade.call(pullCommand);
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
                 logger.info(pullResultMessage);
@@ -552,7 +558,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
         logger.debug("Prepare push command.");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             Iterable<PushResult> pushResultIterable = null;
@@ -569,7 +575,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
             pushCommand.setForce(force);
-            pushResultIterable = pushCommand.call();
+            pushResultIterable = retryingRepositoryOperationFacade.call(pushCommand);
             Files.delete(tempKey);
 
             boolean toRet = true;
@@ -624,14 +630,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
             remoteRemoveCommand.setRemoteName(remoteName);
-            remoteRemoveCommand.call();
+            retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
             List<Ref> resultRemoteBranches = git.branchList()
                     .setListMode(ListBranchCommand.ListMode.REMOTE)
@@ -648,7 +654,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 String[] array = new String[branchesToDelete.size()];
                 delBranch.setBranchNames(branchesToDelete.toArray(array));
                 delBranch.setForce(true);
-                delBranch.call();
+                retryingRepositoryOperationFacade.call(delBranch);
             }
         } catch (GitAPIException  e) {
             logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
@@ -685,7 +691,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     @Override
     public RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         RepositoryStatus repositoryStatus = new RepositoryStatus();
         logger.debug("Execute git status and return conflicting paths and uncommitted changes");
@@ -705,27 +711,34 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean resolveConflict(String siteId, String path, String resolution)
             throws CryptoException, ServiceLayerException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
+            ResetCommand resetCommand;
+            CheckoutCommand checkoutCommand;
             switch (resolution.toLowerCase()) {
                 case "ours" :
                     logger.debug("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
                     logger.debug("Reset merge conflict in git index");
-                    git.reset().addPath(helper.getGitPath(path)).call();
+                    resetCommand = git.reset().addPath(helper.getGitPath(path));
+                    retryingRepositoryOperationFacade.call(resetCommand);
                     logger.debug("Checkout content from HEAD of studio repository");
-                    git.checkout().addPath(helper.getGitPath(path)).setStartPoint(Constants.HEAD).call();
+                    checkoutCommand = git.checkout().addPath(helper.getGitPath(path)).setStartPoint(Constants.HEAD);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 case "theirs" :
                     logger.debug("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
                     logger.debug("Reset merge conflict in git index");
-                    git.reset().addPath(helper.getGitPath(path)).call();
+                    resetCommand = git.reset().addPath(helper.getGitPath(path));
+                    retryingRepositoryOperationFacade.call(resetCommand);
                     logger.debug("Checkout content from merge HEAD of remote repository");
                     List<ObjectId> mergeHeads = repo.readMergeHeads();
                     ObjectId mergeCommitId = mergeHeads.get(0);
-                    git.checkout().addPath(helper.getGitPath(path)).setStartPoint(mergeCommitId.getName()).call();
+                    checkoutCommand =
+                            git.checkout().addPath(helper.getGitPath(path)).setStartPoint(mergeCommitId.getName());
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 default:
                     throw new ServiceLayerException("Unsupported resolution strategy for repository conflicts");
@@ -739,11 +752,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     String userName = securityService.getCurrentUser();
                     User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
                     PersonIdent personIdent = helper.getAuthorIdent(user);
-                    git.commit()
+                    CommitCommand commitCommand = git.commit()
                             .setAllowEmpty(true)
                             .setMessage("Merge resolved. Repo is clean (no changes)")
-                            .setAuthor(personIdent)
-                            .call();
+                            .setAuthor(personIdent);
+                    retryingRepositoryOperationFacade.call(commitCommand);
                 }
             }
         } catch (GitAPIException | IOException | UserNotFoundException | ServiceLayerException e) {
@@ -762,7 +775,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             throws ServiceLayerException, CryptoException {
         DiffConflictedFile diffResult = new DiffConflictedFile();
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             List<ObjectId> mergeHeads = repo.readMergeHeads();
@@ -787,12 +800,12 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 remoteCommitTreeParser.reset(reader, remoteTree.getId());
 
                 // Diff the two commit Ids
-                git.diff()
+                DiffCommand diffCommand = git.diff()
                         .setPathFilter(PathFilter.create(helper.getGitPath(path)))
                         .setOldTree(headCommitTreeParser)
                         .setNewTree(remoteCommitTreeParser)
-                        .setOutputStream(baos)
-                        .call();
+                        .setOutputStream(baos);
+                retryingRepositoryOperationFacade.call(diffCommand);
                 diffResult.setDiff(baos.toString());
             }
 
@@ -807,7 +820,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     @Override
     public boolean commitResolution(String siteId, String commitMessage) throws CryptoException, ServiceLayerException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         logger.debug("Commit resolution for merge conflict for site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -820,7 +833,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             for (String uncommited : status.getUncommittedChanges()) {
                 addCommand.addFilepattern(uncommited);
             }
-            addCommand.call();
+            retryingRepositoryOperationFacade.call(addCommand);
             logger.debug("Commit changes");
             CommitCommand commitCommand = git.commit();
             String userName = securityService.getCurrentUser();
@@ -837,7 +850,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             if (StringUtils.isNotEmpty(postscript)) {
                 sbMessage.append("\n\n").append(postscript);
             }
-            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString()).call();
+            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString());
+            retryingRepositoryOperationFacade.call(commitCommand);
             return true;
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
             logger.error("Error while committing conflict resolution for site " + siteId, e);
@@ -851,12 +865,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean cancelFailedPull(String siteId) throws ServiceLayerException, CryptoException {
         logger.debug("To cancel failed pull, reset hard needs to be executed");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            git.reset().setMode(ResetCommand.ResetType.HARD).call();
+            ResetCommand resetCommand = git.reset().setMode(ResetCommand.ResetType.HARD);
+            retryingRepositoryOperationFacade.call(resetCommand);
         } catch (GitAPIException e) {
             logger.error("Error while canceling failed pull for site " + siteId, e);
             throw new ServiceLayerException("Reset hard failed for site " + siteId, e);
@@ -875,7 +890,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException {
         boolean toRet = false;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, repositoryType);
         if (Objects.nonNull(repo)) {
             toRet = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile());
