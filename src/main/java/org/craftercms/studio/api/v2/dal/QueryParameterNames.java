@@ -165,6 +165,8 @@ public final class  QueryParameterNames {
 
     public static final String TO_DATE = "toDate";
 
+    public static final String CONTENT_TYPE_CLASS = "contentTypeClass";
+
     /* Audit */
     public static final String ACTIONS = "actions";
 

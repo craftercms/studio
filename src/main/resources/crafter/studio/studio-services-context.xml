@@ -180,6 +180,7 @@
          <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
          <property name="userServiceInternal" ref="userServiceInternal" />
          <property name="publishingManager" ref="cstudioPublishingManager" />
+         <property name="publishRequestDAO" ref="publishRequestDao" />
      </bean>
 
     <bean id="cstudioNotificationService"

@@ -119,6 +119,9 @@
         FROM publish_request
         WHERE site = #{siteId}
         AND state = #{completedState}
+        <if test="contentTypeClass != null" >
+            AND contenttypeclass = #{contentTypeClass}
+        </if>
         AND DATE(IFNULL(published_on, scheduleddate)) &lt;= DATE(#{toDate})
         AND DATE(IFNULL(published_on, scheduleddate)) &gt;= DATE(#{fromDate})
         AND environment IN
@@ -127,5 +130,17 @@
         </foreach>
         ORDER BY IFNULL(published_on, scheduleddate) DESC
         LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="getScheduledItems" resultMap="PublishRequestMap" parameterType="java.util.Map">
+        SELECT *
+        FROM publish_request
+        WHERE site = #{siteId}
+        AND state = #{state}
+        <if test="contentTypeClass != null" >
+            AND contenttypeclass = #{contentTypeClass}
+        </if>
+        AND scheduleddate &gt; #{now}
+        ORDER BY scheduleddate ASC
     </select>
 </mapper>
