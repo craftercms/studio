@@ -501,8 +501,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         if (deployReports != null) {
             int count = 0;
-            String timezone = servicesConfig.getDefaultTimezone(site);
-            //Set<String> processedItems = new HashSet<String>();
             Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
             for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
                 DeploymentSyncHistory entry = deployReports.get(index);
@@ -615,7 +613,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected List<ContentItemTO> getScheduledItems(String site, DmContentItemComparator comparator,
                                                     DmContentItemComparator subComparator, String filterType) {
         List<ContentItemTO> results = new FastArrayList();
-        List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);;
+        List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
         List<org.craftercms.studio.api.v2.dal.PublishRequest> deploying = getScheduledItems(site, filterType);
         for (org.craftercms.studio.api.v2.dal.PublishRequest deploymentItem : deploying) {
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
