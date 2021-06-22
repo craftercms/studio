@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -35,15 +35,6 @@
         <result property="commitId" column="commit_id"/>
         <result property="packageId" column="package_id"/>
     </resultMap>
-
-    <select id="getScheduledItems" resultMap="PublishRequestMap" parameterType="java.util.Map">
-        SELECT *
-        FROM publish_request
-        WHERE site = #{site}
-        AND state = #{state}
-        AND scheduleddate &gt; #{now}
-        ORDER BY scheduleddate ASC
-    </select>
 
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
         INSERT INTO publish_request (site, environment, path, oldpath, username, scheduleddate, state, action,
