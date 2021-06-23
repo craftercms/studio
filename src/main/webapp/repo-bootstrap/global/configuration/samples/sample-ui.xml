@@ -425,4 +425,40 @@
             </widgets>
         </configuration>
     </widget>
+    <widget id="craftercms.components.PreviewToolbar">
+        <configuration>
+            <leftSection>
+                <widgets>
+                    <widget id="craftercms.components.SiteSwitcherSelect"/>
+                    <widget id="craftercms.components.QuickCreate"/>
+                </widgets>
+            </leftSection>
+            <middleSection>
+                <widgets>
+                    <widget id="craftercms.components.PreviewAddressBar"/>
+                </widgets>
+            </middleSection>
+            <rightSection>
+                <widgets>
+                    <widget id="craftercms.components.EditModeSwitch"/>
+                    <widget id="craftercms.components.PublishingStatusButton">
+                        <configuration>
+                            <variant>icon</variant>
+                        </configuration>
+                    </widget>
+                </widgets>
+            </rightSection>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.Dashboard">
+        <configuration>
+            <widgets>
+                <widget id="craftercms.components.AwaitingApprovalDashlet"/>
+                <widget id="craftercms.components.ApprovedScheduledDashlet"/>
+                <widget id="craftercms.components.RecentlyPublishedDashlet"/>
+                <widget id="craftercms.components.RecentActivityDashlet"/>
+                <widget id="craftercms.components.IconGuideDashlet"/>
+            </widgets>
+        </configuration>
+    </widget>
 </siteUi>
