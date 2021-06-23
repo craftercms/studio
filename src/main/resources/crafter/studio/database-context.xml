@@ -87,6 +87,14 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_SLEEP)}" />
     </bean>
 
+    <bean id="studio.retryingRepositoryOperation"
+          class="org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperationAspect" >
+        <property name="maxRetries"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
+        <property name="maxSleep"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_SLEEP)}" />
+    </bean>
+
     <!-- MyBatis Mappers -->
     <bean id="studio.retryingOperationFacade"
           class="org.craftercms.studio.impl.v2.dal.RetryingOperationFacadeImpl">

@@ -58,6 +58,8 @@ public interface StudioConfiguration {
     String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
             "studio.repo.pullFromRemote.conflict.notificationEnabled";
     String REPO_DEFAULT_IGNORE_FILE = "studio.repo.defaultIgnoreFile";
+    String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
+    String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";

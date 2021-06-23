@@ -69,6 +69,7 @@
         <property name="encryptor" ref="internalTextEncryptor" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="clusterSandboxRepoSyncTask" ref="studio.clockClusterSiteSandboxRepoSync" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="pipelineFactory" abstract="true">
@@ -146,6 +147,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="encryptor" ref="internalTextEncryptor" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"

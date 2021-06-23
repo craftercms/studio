@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -77,6 +78,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
     protected StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask;
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
         List<Ref> branches = git.branchList().call();
@@ -117,7 +119,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         try {
             clusterSandboxRepoSyncTask.execute(site);
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
 
             Repository repository = helper.getRepository(site, GitRepositories.SANDBOX);
             String sandboxBranch = siteSandboxBranch;
@@ -229,5 +231,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setClusterSandboxRepoSyncTask(StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask) {
         this.clusterSandboxRepoSyncTask = clusterSandboxRepoSyncTask;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }

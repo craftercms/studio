@@ -85,10 +85,16 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
+import org.eclipse.jgit.api.GarbageCollectCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
@@ -97,7 +103,9 @@ import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -203,13 +211,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ClusterDAO clusterDao;
     protected GeneralLockService generalLockService;
     protected RetryingOperationFacade retryingOperationFacade;
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
         try {
             GitRepositoryHelper helper =  GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repo != null ) {
 
@@ -240,7 +249,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public InputStream getContent(String site, String path) throws ContentNotFoundException, CryptoException {
         InputStream toReturn = null;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
         if (repo == null) {
             throw new ContentNotFoundException("Repository not found for site " + site);
@@ -271,7 +280,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public long getContentSize(final String site, final String path) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -296,7 +305,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Repository repo =
                         helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
@@ -333,7 +342,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
@@ -357,7 +366,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     } else {
                         // Add the file to git
                         try (Git git = new Git(repo)) {
-                            git.add().addFilepattern(helper.getGitPath(emptyFilePath.toString())).call();
+                            AddCommand addCommand =
+                                    git.add().addFilepattern(helper.getGitPath(emptyFilePath.toString()));
+                            retryingRepositoryOperationFacade.call(addCommand);
 
                             git.close();
                             result = true;
@@ -401,14 +412,15 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
                 try (Git git = new Git(repo)) {
                     String pathToDelete = helper.getGitPath(path);
                     Path parentToDelete = Paths.get(pathToDelete).getParent();
-                    git.rm().addFilepattern(pathToDelete).setCached(false).call();
+                    RmCommand rmCommand = git.rm().addFilepattern(pathToDelete).setCached(false);
+                    retryingRepositoryOperationFacade.call(rmCommand);
 
                     String pathToCommit = pathToDelete;
                     if (isPage) {
@@ -438,7 +450,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String parent = parentFolder.toString();
         String toRet = parent;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
         List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
@@ -452,10 +464,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 for (String child : dirs) {
                     Path childToDelete = Paths.get(folderToDelete, child);
                     deleteParentFolder(git, childToDelete, false);
-                    git.rm()
+                    RmCommand rmCommand = git.rm()
                             .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                            .setCached(false)
-                            .call();
+                            .setCached(false);
+                    retryingRepositoryOperationFacade.call(rmCommand);
 
                 }
             }
@@ -481,7 +493,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
@@ -532,14 +544,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
 
                     // The operation is done on disk, now it's time to commit
-                    git.add().addFilepattern(gitToPath).call();
+                    AddCommand addCommand = git.add().addFilepattern(gitToPath);
+                    retryingRepositoryOperationFacade.call(addCommand);
 
-                    Status gitStatus = git.status().addPath(gitToPath).call();
+                    StatusCommand statusCommand = git.status().addPath(gitToPath);
+                    Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
                     Set<String> changeSet = gitStatus.getAdded();
 
                     for (String pathToCommit : changeSet) {
                         String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-                        RevCommit commit = git.commit()
+                        CommitCommand commitCommand = git.commit()
                                 .setOnly(pathToCommit)
                                 .setOnly(pathRemoved)
                                 .setAuthor(helper.getCurrentUserIdent())
@@ -547,8 +561,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .setMessage(helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
                                         .replaceAll(PATTERN_FROM_PATH, fromPath)
                                         .replaceAll(PATTERN_TO_PATH, toPath +
-                                                (StringUtils.isNotEmpty(newName) ? newName : EMPTY)))
-                                .call();
+                                                (StringUtils.isNotEmpty(newName) ? newName : EMPTY)));
+                        RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
                         commitId = commit.getName();
                         toRet.put(pathToCommit, commitId);
                     }
@@ -570,7 +584,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
@@ -588,14 +602,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     // The operation is done on disk, now it's time to commit
                     git.add().addFilepattern(gitToPath).call();
-                    RevCommit commit = git.commit()
+                    CommitCommand commitCommand = git.commit()
                             .setOnly(gitFromPath)
                             .setOnly(gitToPath)
                             .setAuthor(helper.getCurrentUserIdent())
                             .setCommitter(helper.getCurrentUserIdent())
                             .setMessage(helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
-                                    .replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath))
-                            .call();
+                                    .replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath));
+                    RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
                     commitId = commit.getName();
 
                 }
@@ -616,7 +630,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -704,7 +718,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         List<VersionTO> versionHistory = new ArrayList<VersionTO>();
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
@@ -723,8 +737,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         versionTO.setComment(revCommit.getFullMessage());
                         versionHistory.add(versionTO);
                     }
-
-                    git.close();
                 } catch (IOException e) {
                     logger.error("error while getting history for content item " + path);
                 }
@@ -752,7 +764,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             if (majorVersion) {
                 synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED)) {
 
@@ -771,7 +783,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .setMessage(comment)
                                 .setTagger(currentUserIdent);
 
-                        tagCommand.call();
+                        retryingRepositoryOperationFacade.call(tagCommand);
 
                         toReturn = versionLabel;
 
@@ -815,7 +827,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         InputStream toReturn = null;
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             RevTree tree = helper.getTreeForCommit(repo, version);
@@ -844,7 +856,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void lockItem(String site, String path) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
@@ -863,9 +875,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     File file = new File(tw.getPathString());
                     LockFile lock = new LockFile(file);
                     lock.lock();
-
-                    tw.close();
-
                 }
             }
         } catch (IOException | CryptoException e) {
@@ -877,7 +886,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void lockItemForPublishing(String site, String path) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, PUBLISHED);
 
             synchronized (repo) {
@@ -896,9 +905,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     File file = new File(tw.getPathString());
                     LockFile lock = new LockFile(file);
                     lock.lock();
-
-                    tw.close();
-
                 }
             }
         } catch (IOException | CryptoException e) {
@@ -910,7 +916,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void unLockItem(String site, String path) {
         try {
             GitRepositoryHelper helper =  GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
@@ -929,9 +935,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     File file = new File(tw.getPathString());
                     LockFile lock = new LockFile(file);
                     lock.unlock();
-
-                    tw.close();
-
                 }
             }
         }  catch (IOException | CryptoException e) {
@@ -943,7 +946,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void unLockItemForPublishing(String site, String path) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, PUBLISHED);
 
             synchronized (repo) {
@@ -962,9 +965,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     File file = new File(tw.getPathString());
                     LockFile lock = new LockFile(file);
                     lock.unlock();
-
-                    tw.close();
-
                 }
             }
         } catch (IOException | CryptoException e) {
@@ -977,7 +977,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     public void bootstrap() throws Exception {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
 
         if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO)) && helper.createGlobalRepo()) {
             // Copy the global config defaults to the global site
@@ -1009,11 +1009,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (status.hasUncommittedChanges() || !status.isClean()) {
                     // Commit everything
                     // TODO: Consider what to do with the commitId in the future
-                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    git.commit().setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE)).call();
+                    AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+                    retryingRepositoryOperationFacade.call(addCommand);
+                    CommitCommand commitCommand =
+                            git.commit().setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE));
+                    retryingRepositoryOperationFacade.call(commitCommand);
                 }
-
-                git.close();
             } catch (GitAPIException err) {
                 logger.error("error creating initial commit for global configuration", err);
             }
@@ -1032,7 +1033,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 synchronized (repository) {
@@ -1071,7 +1072,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws DeploymentException, CryptoException {
         String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(site, PUBLISHED);
         String commitId = EMPTY;
 
@@ -1092,14 +1093,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.debug("Checkout published/master branch for site " + site);
                 try {
 
-                    git.checkout()
-                            .setName(sandboxBranchName)
-                            .call();
-                    git.pull()
+                    CheckoutCommand checkoutCommand = git.checkout().setName(sandboxBranchName);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
+                    PullCommand pullCommand = git.pull()
                             .setRemote(DEFAULT_REMOTE_NAME)
                             .setRemoteBranchName(sandboxBranchName)
-                            .setStrategy(THEIRS)
-                            .call();
+                            .setStrategy(THEIRS);
+                    retryingRepositoryOperationFacade.call(pullCommand);
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published master and to pull content from sandbox for site "
                             + site, e);
@@ -1110,10 +1110,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // checkout environment branch
                 logger.debug("Checkout environment branch " + environment + " for site " + site);
                 try {
-                    git.checkout().setCreateBranch(true).setForce(true).setStartPoint(sandboxBranchName)
+                    CheckoutCommand checkoutCommand =
+                            git.checkout().setCreateBranch(true).setForce(true).setStartPoint(sandboxBranchName)
                             .setUpstreamMode(TRACK)
-                            .setName(environment)
-                            .call();
+                            .setName(environment);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
                 } catch (RefNotFoundException e) {
                     logger.info("Not able to find branch " + environment + " for site " + site +
                             ". Creating new branch");
@@ -1124,8 +1125,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 ZonedDateTime publishDate = ZonedDateTime.now(UTC);
                 String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
                         "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
-                git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment).call();
-                git.close();
+                TagCommand tagCommand = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment);
+                retryingRepositoryOperationFacade.call(tagCommand);
             } catch (Exception e) {
                 logger.error("Error when publishing site " + site + " to environment " + environment, e);
                 throw new DeploymentException("Error when publishing site " + site + " to environment " +
@@ -1142,7 +1143,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String toReturn = EMPTY;
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repository =
                     helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
@@ -1165,7 +1166,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String toReturn = EMPTY;
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 synchronized (repository) {
@@ -1196,7 +1197,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         List<String> commitIds = new ArrayList<String>();
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, SANDBOX)) {
                 // Get the sandbox repo, and then get a reference to the commitId we received and another for head
                 Repository repo = helper.getRepository(site, SANDBOX);
@@ -1248,7 +1249,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         List<GitLog> gitLogs = new ArrayList<>();
         try {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(siteId, SANDBOX)) {
                 Repository repo = helper.getRepository(siteId, SANDBOX);
                 try (Git git = new Git(repo)) {
@@ -1293,7 +1294,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
                 try (Git git = new Git(repo)) {
                     boolean pkauth = false;
@@ -1330,10 +1331,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
 
                     logger.debug("Push site " + siteId + " to remote repository " + remoteName + "(" + remoteUrl + ")");
-                    Iterable<PushResult> result = pushCommand
-                            .setPushAll()
-                            .setRemote(remoteName)
-                            .call();
+                    pushCommand.setPushAll().setRemote(remoteName);
+                    Iterable<PushResult> result = retryingRepositoryOperationFacade.call(pushCommand);
                     if (pkauth) Files.delete(tempKey);
 
                     logger.debug("Check push result to verify it was success");
@@ -1396,7 +1395,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         try {
             logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
 
@@ -1410,7 +1409,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(remoteName);
                 remoteAddCommand.setUri(new URIish(remoteUrl));
-                remoteAddCommand.call();
+                retryingRepositoryOperationFacade.call(remoteAddCommand);
 
                 try {
                     isValid = isRemoteValid(git, remoteName, authenticationType, remoteUsername, remotePassword,
@@ -1419,7 +1418,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     if (!isValid) {
                         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
                         remoteRemoveCommand.setRemoteName(remoteName);
-                        remoteRemoveCommand.call();
+                        retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
                         List<Ref> resultRemoteBranches = git.branchList()
                                 .setListMode(ListBranchCommand.ListMode.REMOTE)
@@ -1436,7 +1435,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             String[] array = new String[branchesToDelete.size()];
                             delBranch.setBranchNames(branchesToDelete.toArray(array));
                             delBranch.setForce(true);
-                            delBranch.call();
+                            retryingRepositoryOperationFacade.call(delBranch);
                         }
                     }
                 }
@@ -1571,7 +1570,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws ServiceLayerException, CryptoException {
         List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
             try (Git git = new Git(repo)) {
@@ -1714,7 +1713,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         logger.debug("Prepare push command.");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             Iterable<PushResult> pushResultIterable = null;
@@ -1761,7 +1760,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    pushResultIterable = pushCommand.call();
+                    pushResultIterable = retryingRepositoryOperationFacade.call(pushCommand);
                     Files.delete(tempKey);
                     break;
                 default:
@@ -1803,7 +1802,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         logger.debug("Prepare pull command");
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
@@ -1849,7 +1848,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sshTransport.setSshSessionFactory(getSshSessionFactory(privateKey, tempKey));
                         }
                     });
-                    pullResult = pullCommand.call();
+                    pullResult = retryingRepositoryOperationFacade.call(pullCommand);
                     Files.delete(tempKey);
                     break;
                 default:
@@ -1901,7 +1900,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean isFolder(String siteId, String path) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Path p = Paths.get(helper.buildRepoPath(StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX, siteId)
                     .toAbsolutePath().toString(), path);
             File file = p.toFile();
@@ -1915,7 +1914,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException {
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService);
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         String stagingName = servicesConfig.getStagingEnvironment(siteId);
         String liveName = servicesConfig.getLiveEnvironment(siteId);
@@ -1924,15 +1923,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         synchronized (repo) {
             try (Git git = new Git(repo)) {
                 logger.debug("Checkout live first becuase it is not allowed to delete checkedout branch");
-                git.checkout().setName(liveName).call();
+                CheckoutCommand checkoutCommand = git.checkout().setName(liveName);
+                retryingRepositoryOperationFacade.call(checkoutCommand);
                 logger.debug("Delete staging branch in order to reset it for site: " + siteId);
-                git.branchDelete().setBranchNames(stagingName).setForce(true).call();
+                DeleteBranchCommand deleteBranchCommand =
+                        git.branchDelete().setBranchNames(stagingName).setForce(true);
+                retryingRepositoryOperationFacade.call(deleteBranchCommand);
 
                 logger.debug("Create new branch for staging with live HEAD as starting point");
-                git.branchCreate()
+                CreateBranchCommand createBranchCommand = git.branchCreate()
                         .setName(stagingName)
-                        .setStartPoint(liveName)
-                        .call();
+                        .setStartPoint(liveName);
+                retryingRepositoryOperationFacade.call(createBranchCommand);
             } catch (GitAPIException e) {
                 logger.error("Error while reseting staging environment for site: " + siteId);
                 throw new ServiceLayerException(e);
@@ -1946,7 +1948,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void reloadRepository(String siteId) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             helper.removeSandbox(siteId);
             helper.getRepository(siteId, SANDBOX);
         } catch (CryptoException e) {
@@ -1957,10 +1959,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected void cleanup(String siteId, GitRepositories repository) {
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository sandbox = helper.getRepository(siteId, repository);
             try (Git git = new Git(sandbox)) {
-                git.gc().call();
+                GarbageCollectCommand garbageCollectCommand = git.gc();
+                retryingRepositoryOperationFacade.call(garbageCollectCommand);
             }
         } catch (Exception e) {
             logger.warn("Error cleaning up repository for site " + siteId, e);
@@ -2082,5 +2085,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
         this.retryingOperationFacade = retryingOperationFacade;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }
