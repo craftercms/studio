@@ -45,11 +45,13 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -1149,7 +1151,8 @@ public class GitRepositoryHelper {
 
                 // Add the file to git
                 try (Git git = new Git(repo)) {
-                    git.add().addFilepattern(getGitPath(path)).call();
+                    AddCommand addCommand = git.add().addFilepattern(getGitPath(path));
+                    retryingRepositoryOperationFacade.call(addCommand);
 
                     git.close();
                     result = true;
@@ -1179,7 +1182,8 @@ public class GitRepositoryHelper {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            status = git.status().addPath(gitPath).call();
+            StatusCommand statusCommand = git.status().addPath(gitPath);
+            status = retryingRepositoryOperationFacade.call(statusCommand);
 
             // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
             if (status.hasUncommittedChanges() || !status.isClean()) {
