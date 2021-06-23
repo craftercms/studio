@@ -75,17 +75,18 @@ public class RetryingRepositoryOperationAspect {
                     if (numAttempts > maxRetries) {
                         //log failure information, and throw exception
                         // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
-                        throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " after " +
+                        throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to the Git repository being locked after " +
                                 numAttempts + " attempts", ex);
                     } else {
                         // If the maximum number of retries is not reached, it will be executed again
                         long sleep = (long) (Math.random() * maxSleep);
-                        logger.debug("Wait for " + sleep + " before next retry" + method.getName());
+                        logger.debug("Git operation failed due to the repository being locked. Will wait for " +
+				     sleep + " before next retry" + method.getName());
                         Thread.sleep(sleep);
                     }
                 } else {
                     throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to " +
-                            "error that does not cause retry attempts", ex);
+                            "a Git error that does not cause retry attempts", ex);
                 }
             }
         } while (numAttempts < this.maxRetries);
