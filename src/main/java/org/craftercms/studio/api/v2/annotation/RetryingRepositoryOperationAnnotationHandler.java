@@ -24,16 +24,17 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.LockFailedException;
 import org.springframework.core.annotation.Order;
-import org.springframework.dao.DeadlockLoserDataAccessException;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 @Aspect
 @Order(1)
-public class RetryingOperationAnnotationHandler {
+public class RetryingRepositoryOperationAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RetryingOperationAnnotationHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(RetryingRepositoryOperationAnnotationHandler.class);
 
     private static final int DEFAULT_MAX_RETRIES = 50;
 
@@ -56,32 +57,38 @@ public class RetryingOperationAnnotationHandler {
         this.maxSleep = maxSleep;
     }
 
-    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingOperation) || " +
-            "@annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
+    @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation) || " +
+            "@annotation(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
-        logger.debug("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());
+
         int numAttempts = 0;
         do {
             numAttempts++;
             try {
-				 // Execute the business code again
+                // Execute the business code again
                 if (numAttempts > 1) {
-                    logger.debug("Retrying operation attempt " + (numAttempts - 1));
+                    logger.debug("Retrying repository operation attempt " + (numAttempts - 1));
                 }
                 return pjp.proceed();
-            } catch (DeadlockLoserDataAccessException | JGitInternalException ex) {
-                logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
-                if (numAttempts > maxRetries) {
-                    //log failure information, and throw exception
-                    // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
-                    throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " after " +
-                            numAttempts + " attempts", ex);
+            } catch (JGitInternalException ex) {
+                if (Objects.nonNull(ex.getCause()) && ex.getCause() instanceof LockFailedException) {
+                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                    if (numAttempts > maxRetries) {
+                        //log failure information, and throw exception
+                        // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
+                        throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to the Git repository being locked after " +
+                                numAttempts + " attempts", ex);
+                    } else {
+                        // If the maximum number of retries is not reached, it will be executed again
+                        long sleep = (long) (Math.random() * maxSleep);
+                        logger.debug("Git operation failed due to the repository being locked. Will wait for " +
+                                sleep + " before next retry" + method.getName());
+                        Thread.sleep(sleep);
+                    }
                 } else {
-					 // If the maximum number of retries is not reached, it will be executed again
-                    long sleep = (long)(Math.random() * maxSleep);
-                    logger.debug("Wait for " + sleep + " before next retry" + method.getName());
-                    Thread.sleep(sleep);
+                    throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to " +
+                            "a Git error that does not cause retry attempts", ex);
                 }
             }
         } while (numAttempts < this.maxRetries);

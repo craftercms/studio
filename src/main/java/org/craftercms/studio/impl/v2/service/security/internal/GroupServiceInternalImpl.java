@@ -28,7 +28,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.User;
@@ -179,7 +179,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException {
         if (!groupExists(group.getId(), StringUtils.EMPTY)) {
@@ -201,7 +201,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
         for (Long groupId : groupIds) {

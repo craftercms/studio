@@ -67,6 +67,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="clusterSandboxRepoSyncTask" ref="studio.clockClusterSiteSandboxRepoSync" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="pipelineFactory" abstract="true">
@@ -158,6 +159,7 @@
           class="org.craftercms.studio.impl.v2.upgrade.operations.global.BlueprintsUpgradeOperation">
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
         <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
+        <constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="renameUpgrader" scope="prototype" parent="upgradeOperation"

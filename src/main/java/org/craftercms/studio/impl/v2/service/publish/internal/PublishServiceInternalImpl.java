@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
@@ -81,7 +81,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         return publishingPackageDetails;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void cancelPublishingPackages(String siteId, List<String> packageIds) {
         publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED);

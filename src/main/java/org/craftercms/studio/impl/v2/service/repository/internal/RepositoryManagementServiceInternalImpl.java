@@ -34,7 +34,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
@@ -45,14 +45,17 @@ import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
+import org.eclipse.jgit.api.DiffCommand;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -61,9 +64,11 @@ import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
+import org.eclipse.jgit.api.RemoteListCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -137,6 +142,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private GitRepositoryHelper gitRepositoryHelper;
     private ContentRepository contentRepositoryV2;
     private int batchSizeGitLog = 1000;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -159,7 +165,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(remoteRepository.getRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteRepository.getRemoteUrl()));
-                remoteAddCommand.call();
+                retryingRepositoryOperationFacade.call(remoteAddCommand);
 
                 try {
                     isValid = gitRepositoryHelper.isRemoteValid(git, remoteRepository.getRemoteName(),
@@ -170,11 +176,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     if (!isValid) {
                         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
                         remoteRemoveCommand.setRemoteName(remoteRepository.getRemoteName());
-                        remoteRemoveCommand.call();
+                        retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
-                        List<Ref> resultRemoteBranches = git.branchList()
-                                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                                .call();
+                        ListBranchCommand listBranchCommand = git.branchList()
+                                .setListMode(ListBranchCommand.ListMode.REMOTE);
+                        List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
                         List<String> branchesToDelete = new ArrayList<String>();
                         for (Ref remoteBranchRef : resultRemoteBranches) {
@@ -188,7 +194,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                             String[] array = new String[branchesToDelete.size()];
                             delBranch.setBranchNames(branchesToDelete.toArray(array));
                             delBranch.setForce(true);
-                            delBranch.call();
+                            retryingRepositoryOperationFacade.call(delBranch);
                         }
                     }
                 }
@@ -256,7 +262,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         Map<String, String> unreachableRemotes = new HashMap<String, String>();
         try (Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
-                List<RemoteConfig> resultRemotes = git.remoteList().call();
+                RemoteListCommand remoteListCommand = git.remoteList();
+                List<RemoteConfig> resultRemotes = retryingRepositoryOperationFacade.call(remoteListCommand);
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
                         try {
@@ -290,7 +297,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     remoteRepository.getAuthenticationType(), remoteRepository.getRemoteUsername(),
                     remoteRepository.getRemotePassword(), remoteRepository.getRemoteToken(),
                     remoteRepository.getRemotePrivateKey(), tempKey, true);
-            fetchCommand.call();
+            retryingRepositoryOperationFacade.call(fetchCommand);
         }
     }
 
@@ -302,9 +309,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     private Map<String, List<String>>  getRemoteBranches(Git git) throws GitAPIException {
-        List<Ref> resultRemoteBranches = git.branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                .call();
+        ListBranchCommand listBranchCommand = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE);
+        List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
         Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
         for (Ref remoteBranchRef : resultRemoteBranches) {
             String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
@@ -413,7 +420,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     break;
             }
             pullCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
-            pullResult = pullCommand.call();
+            pullResult = retryingRepositoryOperationFacade.call(pullCommand);
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
                 logger.info(pullResultMessage);
@@ -534,7 +541,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
             pushCommand.setForce(force);
-            pushResultIterable = pushCommand.call();
+            pushResultIterable = retryingRepositoryOperationFacade.call(pushCommand);
             Files.delete(tempKey);
 
             boolean toRet = true;
@@ -581,7 +588,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
         if (!isRemovableRemote(siteId, remoteName)) {
@@ -595,11 +602,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         try (Git git = new Git(repo)) {
             RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
             remoteRemoveCommand.setRemoteName(remoteName);
-            remoteRemoveCommand.call();
+            retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
-            List<Ref> resultRemoteBranches = git.branchList()
-                    .setListMode(ListBranchCommand.ListMode.REMOTE)
-                    .call();
+            ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE);
+            List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
             List<String> branchesToDelete = new ArrayList<String>();
             for (Ref remoteBranchRef : resultRemoteBranches) {
@@ -612,7 +618,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 String[] array = new String[branchesToDelete.size()];
                 delBranch.setBranchNames(branchesToDelete.toArray(array));
                 delBranch.setForce(true);
-                delBranch.call();
+                retryingRepositoryOperationFacade.call(delBranch);
             }
         } catch (GitAPIException e) {
             logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
@@ -653,7 +659,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         RepositoryStatus repositoryStatus = new RepositoryStatus();
         logger.debug("Execute git status and return conflicting paths and uncommitted changes");
         try (Git git = new Git(repo)) {
-            Status status = git.status().call();
+            StatusCommand statusCommand = git.status();
+            Status status = retryingRepositoryOperationFacade.call(statusCommand);
             repositoryStatus.setClean(status.isClean());
             repositoryStatus.setConflicting(status.getConflicting());
             repositoryStatus.setUncommittedChanges(status.getUncommittedChanges());
@@ -670,23 +677,31 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
+        ResetCommand resetCommand;
+        CheckoutCommand checkoutCommand;
         try (Git git = new Git(repo)) {
             switch (resolution.toLowerCase()) {
                 case "ours" :
                     logger.debug("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
                     logger.debug("Reset merge conflict in git index");
-                    git.reset().addPath(gitRepositoryHelper.getGitPath(path)).call();
+                    resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
+                    retryingRepositoryOperationFacade.call(resetCommand);
                     logger.debug("Checkout content from HEAD of studio repository");
-                    git.checkout().addPath(gitRepositoryHelper.getGitPath(path)).setStartPoint(Constants.HEAD).call();
+                    checkoutCommand =
+                            git.checkout().addPath(gitRepositoryHelper.getGitPath(path)).setStartPoint(Constants.HEAD);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 case "theirs" :
                     logger.debug("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
                     logger.debug("Reset merge conflict in git index");
-                    git.reset().addPath(gitRepositoryHelper.getGitPath(path)).call();
+                    resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
+                    retryingRepositoryOperationFacade.call(resetCommand);
                     logger.debug("Checkout content from merge HEAD of remote repository");
                     List<ObjectId> mergeHeads = repo.readMergeHeads();
                     ObjectId mergeCommitId = mergeHeads.get(0);
-                    git.checkout().addPath(gitRepositoryHelper.getGitPath(path)).setStartPoint(mergeCommitId.getName()).call();
+                    checkoutCommand = git.checkout().addPath(gitRepositoryHelper.getGitPath(path))
+                            .setStartPoint(mergeCommitId.getName());
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 default:
                     throw new ServiceLayerException("Unsupported resolution strategy for repository conflicts");
@@ -694,17 +709,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
             if (repo.getRepositoryState() == RepositoryState.MERGING_RESOLVED) {
                 logger.debug("Merge resolved. Check if there are no uncommitted changes (repo is clean)");
-                Status status = git.status().call();
+                StatusCommand statusCommand = git.status();
+                Status status = retryingRepositoryOperationFacade.call(statusCommand);
                 if (!status.hasUncommittedChanges()) {
                     logger.debug("Repository is clean. Committing to complete merge");
                     String userName = securityService.getCurrentUser();
                     User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
                     PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
-                    git.commit()
+                    CommitCommand commitCommand = git.commit()
                             .setAllowEmpty(true)
                             .setMessage("Merge resolved. Repo is clean (no changes)")
-                            .setAuthor(personIdent)
-                            .call();
+                            .setAuthor(personIdent);
+                    retryingRepositoryOperationFacade.call(commitCommand);
                 }
             }
         } catch (GitAPIException | IOException | UserNotFoundException | ServiceLayerException e) {
@@ -746,12 +762,12 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 remoteCommitTreeParser.reset(reader, remoteTree.getId());
 
                 // Diff the two commit Ids
-                git.diff()
+                DiffCommand diffCommand = git.diff()
                         .setPathFilter(PathFilter.create(gitRepositoryHelper.getGitPath(path)))
                         .setOldTree(headCommitTreeParser)
                         .setNewTree(remoteCommitTreeParser)
-                        .setOutputStream(baos)
-                        .call();
+                        .setOutputStream(baos);
+                retryingRepositoryOperationFacade.call(diffCommand);
                 diffResult.setDiff(baos.toString());
             }
 
@@ -771,14 +787,15 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            Status status = git.status().call();
+            StatusCommand statusCommand = git.status();
+            Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
             logger.debug("Add all uncommitted changes/files");
             AddCommand addCommand = git.add();
             for (String uncommited : status.getUncommittedChanges()) {
                 addCommand.addFilepattern(uncommited);
             }
-            addCommand.call();
+            retryingRepositoryOperationFacade.call(addCommand);
             logger.debug("Commit changes");
             CommitCommand commitCommand = git.commit();
             String userName = securityService.getCurrentUser();
@@ -795,7 +812,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             if (StringUtils.isNotEmpty(postscript)) {
                 sbMessage.append("\n\n").append(postscript);
             }
-            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString()).call();
+            commitCommand.setCommitter(personIdent).setAuthor(personIdent).setMessage(sbMessage.toString());
+            retryingRepositoryOperationFacade.call(commitCommand);
             return true;
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
             logger.error("Error while committing conflict resolution for site " + siteId, e);
@@ -812,7 +830,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            git.reset().setMode(ResetCommand.ResetType.HARD).call();
+            ResetCommand resetCommand = git.reset().setMode(ResetCommand.ResetType.HARD);
+            retryingRepositoryOperationFacade.call(resetCommand);
         } catch (GitAPIException e) {
             logger.error("Error while canceling failed pull for site " + siteId, e);
             throw new ServiceLayerException("Reset hard failed for site " + siteId, e);
@@ -939,5 +958,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setBatchSizeGitLog(int batchSizeGitLog) {
         this.batchSizeGitLog = batchSizeGitLog;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }

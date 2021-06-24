@@ -75,6 +75,10 @@ studio.repo.cleanup.cron: '0 0 3 ? * SUN'
 studio.repo.pullFromRemote.conflict.notificationEnabled: false
 # The location in the classpath of the default gitignore file to add to all repos
 studio.repo.defaultIgnoreFile: crafter/studio/utils/default-gitignore
+# Max number of retries for retrying repository operation
+studio.repo.retryingOperation.maxAttempts: 50
+# Max sleep time in milliseconds between retries for retrying repository operation
+studio.repo.retryingOperation.maxSleep: 1000
 
 ############################################################
 ##                       Blob Store                       ##

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -64,7 +64,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         return getNewNavOrder(site, path, -1);
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
@@ -155,7 +155,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         return docUpdated;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void deleteSequencesForSite(@ValidateStringParam(name = "site") String site) {

@@ -78,16 +78,24 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_SCRIPT_RUNNER_BUFFER_SIZE)}" />
     </bean>
 
-    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingOperationAnnotationHandler" >
+    <bean id="retryingOperation" class="org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler" >
         <property name="maxRetries"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
         <property name="maxSleep"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_RETRYING_OPERATION_MAX_SLEEP)}" />
     </bean>
 
+    <bean id="studio.retryingRepositoryOperation"
+          class="org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperationAnnotationHandler" >
+        <property name="maxRetries"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_ATTEMPTS)}" />
+        <property name="maxSleep"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).REPO_RETRYING_OPERATION_MAX_SLEEP)}" />
+    </bean>
+
     <!-- MyBatis Mappers -->
     <bean id="studio.retryingOperationFacade"
-          class="org.craftercms.studio.impl.v2.dal.RetryingOperationFacadeImpl">
+          class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
         <property name="itemDao" ref="itemDao" />
     </bean>
 

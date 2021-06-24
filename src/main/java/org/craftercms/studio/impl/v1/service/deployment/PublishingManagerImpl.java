@@ -42,7 +42,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.Workflow;
@@ -254,7 +254,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
@@ -268,7 +268,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsProcessing(@ValidateStringParam(name = "site") String site,
@@ -280,7 +280,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsReady(@ValidateStringParam(name = "site") String site,
@@ -292,7 +292,7 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsBlocked(@ValidateStringParam(name = "site") String site,
@@ -443,7 +443,7 @@ public class PublishingManagerImpl implements PublishingManager {
         return result < 1;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void resetProcessingQueue(@ValidateStringParam(name = "site") String site,

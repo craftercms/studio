@@ -266,14 +266,14 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                     RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
                     remoteSetUrlCommand.setName(member.getGitRemoteName());
                     remoteSetUrlCommand.setUri(new URIish(remoteUrl));
-                    remoteSetUrlCommand.call();
+                    retryingRepositoryOperationFacade.call(remoteSetUrlCommand);
                 }
             } else {
                 logger.debug("Add " + member.getLocalAddress() + " as remote to PUBLISHED");
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
-                remoteAddCommand.call();
+                retryingRepositoryOperationFacade.call(remoteAddCommand);
             }
 
         } catch (URISyntaxException e) {
@@ -315,7 +315,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                                 final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                                 FetchCommand fetch = git.fetch().setRemote(remoteNode.getGitRemoteName());
                                 fetch = studioClusterUtils.configureAuthenticationForCommand(remoteNode, fetch, tempKey);
-                                fetch.call();
+                                retryingRepositoryOperationFacade.call(fetch);
                                 Files.delete(tempKey);
                             } catch (GitAPIException e) {
                                 logger.error("Error while fetching published repo for site " + siteId + " from remote " +
@@ -374,13 +374,13 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         if (createBranch) {
             checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
         }
-        checkoutCommand.call();
+        retryingRepositoryOperationFacade.call(checkoutCommand);
 
         PullCommand pullCommand = git.pull();
         pullCommand.setRemote(remoteNode.getGitRemoteName());
         pullCommand.setRemoteBranchName(branch);
         pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-        pullCommand.call();
+        retryingRepositoryOperationFacade.call(pullCommand);
 
         Files.delete(tempKey);
     }

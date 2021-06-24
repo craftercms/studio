@@ -527,6 +527,7 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="batchSizeGitLog"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -761,6 +762,7 @@
         <property name="configurationService" ref="configurationService"/>
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.global.patterns', T(java.lang.String))}"/>
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <util:list id="studio.clockTasksSite" list-class="java.util.ArrayList"
@@ -790,6 +792,7 @@
         <property name="configurationService" ref="configurationService"/>
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="studio.clockClusterSitePublishedRepoSync"
@@ -806,6 +809,7 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
@@ -969,6 +973,7 @@
         <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -988,6 +993,7 @@
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioUtils" ref="studio.utils" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
@@ -996,6 +1002,11 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="encryptor" ref="internalTextEncryptor" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+    </bean>
+
+    <bean id="studio.retryingRepositoryOperationFacade"
+          class="org.craftercms.studio.impl.v2.repository.RetryingRepositoryOperationFacadeImpl" >
     </bean>
 
     <!-- /////// -->
@@ -1456,6 +1467,7 @@
         <property name="clusterDao" ref="clusterDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
@@ -1533,6 +1545,7 @@
                          value="#{studioConfiguration.getProperty('studio.marketplace.plugin.template.code')}"/>
         <constructor-arg name="templateComment"
                          value="#{studioConfiguration.getProperty('studio.marketplace.plugin.template.comment')}"/>
+        <constructor-arg name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="url" value="#{studioConfiguration.getProperty('studio.marketplace.url')}"/>
         <property name="pluginRegistryPath"
                   value="#{studioConfiguration.getProperty('studio.marketplace.plugin.registry.path')}"/>

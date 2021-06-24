@@ -56,12 +56,12 @@ public final class SqlStatementGeneratorUtils {
                     " and path = '#{path}' ;";
 
     public static final String ITEM_DELETE =
-            "DELETE FROM item WHERE site_id = #{siteId} and path = #{path} ;";
+            "DELETE FROM item WHERE site_id = #{siteId} and path = '#{path}' ;";
 
     public static final String ITEM_MOVE =
             "UPDATE item SET path = REPLACE(path, '#{oldPath}', '#{newPath}')," +
                     " state = state | #{onStatesBitMap} & ~#{offStatesBitMap}" +
-                    " WHERE site_id = #{siteId} AND (path = #{oldPath} OR path LIKE '#{oldPath}/%') ;";
+                    " WHERE site_id = #{siteId} AND (path = '#{oldPath}' OR path LIKE '#{oldPath}/%') ;";
 
     public static final String ITEM_UPDATE_PARENT_ID =
             "SELECT id, @itemId := id, path FROM item WHERE site_id = #{siteId} AND path = '#{itemPath}' ;\n\n" +

@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
@@ -232,7 +232,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
         long userId = user.getId();
@@ -258,7 +258,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void deleteUsers(List<Long> userIds, List<String> usernames)
             throws UserNotFoundException, ServiceLayerException {
@@ -278,7 +278,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException {
@@ -334,7 +334,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
@@ -366,7 +366,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {

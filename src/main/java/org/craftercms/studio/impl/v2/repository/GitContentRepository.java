@@ -45,7 +45,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -58,6 +58,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -68,11 +69,19 @@ import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
+import org.eclipse.jgit.api.DiffCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.LogCommand;
+import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.RmCommand;
+import org.eclipse.jgit.api.TagCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -177,6 +186,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private PublishRequestDAO publishRequestDao;
     private ItemServiceInternal itemServiceInternal;
     private StudioUtils studioUtils;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -272,10 +282,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                 firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
                                 // Diff the two commit Ids
                                 long startDiffMark1 = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-                                List<DiffEntry> diffEntries = git.diff()
+                                DiffCommand diffCommand = git.diff()
                                         .setOldTree(firstCommitTreeParser)
-                                        .setNewTree(null)
-                                        .call();
+                                        .setNewTree(null);
+                                List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
                                 if (logger.isDebugEnabled()) {
                                     logger.debug("Diff from " + objFirstCommitId.getName() + " to null " +
                                             " finished in " +
@@ -299,7 +309,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         // Get list of commits between commitId and HEAD in chronological order
 
                         // Get the log of all the commits between commitId and head
-                        Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
+                        LogCommand logCommand = git.log().addRange(objCommitIdFrom, objCommitIdTo);
+                        Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
 
                         // Loop through through the commits and diff one from the next util head
                         ObjectId prevCommitId = objCommitIdFrom;
@@ -354,10 +365,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                         // Diff the two commit Ids
                                         long startDiffMark2 = logger.isDebugEnabled() ?
                                                 System.currentTimeMillis() : 0;
-                                        List<DiffEntry> diffEntries = git.diff()
+                                        DiffCommand diffCommand = git.diff()
                                                 .setOldTree(prevCommitTreeParser)
-                                                .setNewTree(nextCommitTreeParser)
-                                                .call();
+                                                .setNewTree(nextCommitTreeParser);
+                                        List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
                                         if (logger.isDebugEnabled()) {
                                             logger.debug("Diff from " + objCommitIdFrom.getName() + " to " +
                                                     objCommitIdTo.getName() + " finished in " +
@@ -420,10 +431,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                     // Diff the two commit Ids
                                     long startDiffMark1 = logger.isDebugEnabled() ?
                                             System.currentTimeMillis() : 0;
-                                    List<DiffEntry> diffEntries = git.diff()
+                                    DiffCommand diffCommand = git.diff()
                                             .setOldTree(firstCommitTreeParser)
-                                            .setNewTree(null)
-                                            .call();
+                                            .setNewTree(null);
+                                    List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Diff from " + objFirstCommitId.getName() + " to null " +
                                                 "finished in " + ((System.currentTimeMillis() - startDiffMark1) / 1000)
@@ -458,10 +469,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                     // Diff the two commit Ids
                                     long startDiffMark2 = logger.isDebugEnabled() ?
                                             System.currentTimeMillis() : 0;
-                                    List<DiffEntry> diffEntries = git.diff()
+                                    DiffCommand diffCommand = git.diff()
                                             .setOldTree(fromCommitTreeParser)
-                                            .setNewTree(toCommitTreeParser)
-                                            .call();
+                                            .setNewTree(toCommitTreeParser);
+                                    List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Diff from " + objCommitIdFrom.getName() + " to " +
                                                 objCommitIdTo.getName() + " finished in " +
@@ -549,7 +560,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 }
             }
             if (revCommit == null) {
-                iterable = git.log().setMaxCount(1).call();
+                LogCommand logCommand = git.log().setMaxCount(1);
+                iterable = retryingRepositoryOperationFacade.call(logCommand);
                 revCommit = iterable.iterator().next();
             }
             commitTime = Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC);
@@ -602,7 +614,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return gitLogDao.getGitLog(params);
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -612,7 +624,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         gitLogDao.markGitLogProcessed(params);
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         if (CollectionUtils.isNotEmpty(commitIds)) {
@@ -627,7 +639,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed) {
         String lockKey = "GitLogLock:" + siteId;
@@ -639,7 +651,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed, int audited) {
         String lockKey = "GitLogLock";
@@ -682,7 +694,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             int counter = 0;
             try (Git git = new Git(publishedRepo)) {
                 // List all environments
-                List<Ref> environments = git.branchList().call();
+                ListBranchCommand listBranchCommand = git.branchList();;
+                List<Ref> environments = retryingRepositoryOperationFacade.call(listBranchCommand);
                 for (int i = 0; i < environments.size() && counter < limit; i++) {
                     Ref env = environments.get(i);
                     String environmentGit = env.getName();
@@ -703,10 +716,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                             User user = userServiceInternal.getUserByIdOrUsername(-1, publisher);
                             filters.add(AuthorRevFilter.create(helper.getAuthorIdent(user).getName()));
                         }
-                        Iterable<RevCommit> branchLog = git.log()
+                        LogCommand logCommand = git.log()
                                 .add(env.getObjectId())
-                                .setRevFilter(AndRevFilter.create(filters))
-                                .call();
+                                .setRevFilter(AndRevFilter.create(filters));
+                        Iterable<RevCommit> branchLog = retryingRepositoryOperationFacade.call(logCommand);
 
                         Iterator<RevCommit> iterator = branchLog.iterator();
                         while (iterator.hasNext() && counter < limit) {
@@ -802,7 +815,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 int counter = 0;
                 try (Git git = new Git(publishedRepo)) {
                     // List all environments
-                    List<Ref> environments = git.branchList().call();
+                    ListBranchCommand listBranchCommand = git.branchList();
+                    List<Ref> environments = retryingRepositoryOperationFacade.call(listBranchCommand);
                     for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
                         Ref env = environments.get(i);
                         String environment = env.getName();
@@ -813,10 +827,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                             filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
                             filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
 
-                            Iterable<RevCommit> branchLog = git.log()
+                            LogCommand logCommand = git.log()
                                     .add(env.getObjectId())
-                                    .setRevFilter(AndRevFilter.create(filters))
-                                    .call();
+                                    .setRevFilter(AndRevFilter.create(filters));
+                            Iterable<RevCommit> branchLog = retryingRepositoryOperationFacade.call(logCommand);
 
                             Iterator<RevCommit> iterator = branchLog.iterator();
                             while (iterator.hasNext() && counter < numberOfItems) {
@@ -853,7 +867,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toRet;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
@@ -883,7 +897,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                     // fetch "origin/master"
                     logger.debug("Fetch from sandbox for site " + site);
-                    git.fetch().call();
+                    FetchCommand fetchCommand = git.fetch();
+                    retryingRepositoryOperationFacade.call(fetchCommand);
 
                     // checkout master and pull from sandbox
                     logger.debug("Checkout published/master branch for site " + site);
@@ -891,27 +906,28 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         // First delete it in case it already exists (ignored if does not exist)
                         String currentBranch = repo.getBranch();
                         if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFFIX)) {
-                            git.reset()
-                                    .setMode(HARD)
-                                    .call();
+                            ResetCommand resetCommand = git.reset().setMode(HARD);
+                            retryingRepositoryOperationFacade.call(resetCommand);
                         }
 
                         Ref ref = repo.exactRef(R_HEADS + sandboxBranchName);
                         boolean createBranch = (ref == null);
 
-                        git.checkout()
+                        CheckoutCommand checkoutCommand = git.checkout()
                                 .setName(sandboxBranchName)
-                                .setCreateBranch(createBranch)
-                                .call();
+                                .setCreateBranch(createBranch);
+                        retryingRepositoryOperationFacade.call(checkoutCommand);
 
                         logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
-                        git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                        DeleteBranchCommand deleteBranchCommand =
+                                git.branchDelete().setBranchNames(inProgressBranchName).setForce(true);
+                        retryingRepositoryOperationFacade.call(deleteBranchCommand);
 
-                        git.pull().
+                        PullCommand pullCommand = git.pull().
                                 setRemote(DEFAULT_REMOTE_NAME)
                                 .setRemoteBranchName(sandboxBranchName)
-                                .setStrategy(THEIRS)
-                                .call();
+                                .setStrategy(THEIRS);
+                        retryingRepositoryOperationFacade.call(pullCommand);
                     } catch (RefNotFoundException e) {
                         logger.error("Failed to checkout published master and to pull content from sandbox for site "
                                 + site, e);
@@ -922,21 +938,21 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     // checkout environment branch
                     logger.debug("Checkout environment branch " + environment + " for site " + site);
                     try {
-                        git.checkout()
-                                .setName(environment)
-                                .call();
+                        CheckoutCommand checkoutCommand = git.checkout()
+                                .setName(environment);
+                        retryingRepositoryOperationFacade.call(checkoutCommand);
                     } catch (RefNotFoundException e) {
                         logger.info("Not able to find branch " + environment + " for site " + site +
                                 ". Creating new branch");
                         // create new environment branch
                         // it will start as empty orphan branch
-                        git.checkout()
+                        CheckoutCommand checkoutCommand = git.checkout()
                                 .setOrphan(true)
                                 .setForceRefUpdate(true)
                                 .setStartPoint(sandboxBranchName)
                                 .setUpstreamMode(TRACK)
-                                .setName(environment)
-                                .call();
+                                .setName(environment);
+                        retryingRepositoryOperationFacade.call(checkoutCommand);
 
                         // remove any content to create empty branch
                         RmCommand rmcmd = git.rm();
@@ -947,11 +963,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                 rmcmd.addFilepattern(toDel.getName());
                             }
                         }
-                        rmcmd.call();
-                        git.commit()
+                        retryingRepositoryOperationFacade.call(rmcmd);
+                        CommitCommand commitCommand = git.commit()
                                 .setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
-                                .setAllowEmpty(true)
-                                .call();
+                                .setAllowEmpty(true);
+                        retryingRepositoryOperationFacade.call(commitCommand);
                     }
 
                     // Create in progress branch
@@ -959,13 +975,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                         // Create in progress branch
                         logger.debug("Create in-progress branch for site " + site);
-                        git.checkout()
+                        CheckoutCommand checkoutCommand = git.checkout()
                                 .setCreateBranch(true)
                                 .setForceRefUpdate(true)
                                 .setStartPoint(environment)
                                 .setUpstreamMode(TRACK)
-                                .setName(inProgressBranchName)
-                                .call();
+                                .setName(inProgressBranchName);
+                        retryingRepositoryOperationFacade.call(checkoutCommand);
                     } catch (GitAPIException e) {
                         // TODO: DB: Error ?
                         logger.error("Failed to create in-progress published branch for site " + site);
@@ -998,12 +1014,14 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                 " for site " + site);
 
                         CheckoutCommand checkout = git.checkout();
-                        checkout.setStartPoint(commitId).addPath(path).call();
+                        checkout.setStartPoint(commitId).addPath(path);
+                        retryingRepositoryOperationFacade.call(checkout);
 
                         if (deploymentItem.isMove()) {
                             if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
                                 String oldPath = helper.getGitPath(deploymentItem.getOldPath());
-                                git.rm().addFilepattern(oldPath).setCached(false).call();
+                                RmCommand rmCommand = git.rm().addFilepattern(oldPath).setCached(false);
+                                retryingRepositoryOperationFacade.call(rmCommand);
                                 cleanUpMoveFolders(git, oldPath);
                             }
                         }
@@ -1011,7 +1029,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         if (deploymentItem.isDelete()) {
                             String deletePath = helper.getGitPath(deploymentItem.getPath());
                             boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
-                            git.rm().addFilepattern(deletePath).setCached(false).call();
+                            RmCommand rmCommand = git.rm().addFilepattern(deletePath).setCached(false);
+                            retryingRepositoryOperationFacade.call(rmCommand);
                             Path parentToDelete = Paths.get(path).getParent();
                             deleteParentFolder(git, parentToDelete, isPage);
                         }
@@ -1036,7 +1055,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     logger.debug("Get Author Ident completed.");
 
                     logger.debug("Git add all published items started.");
-                    addCommand.call();
+                    retryingRepositoryOperationFacade.call(addCommand);
                     logger.debug("Git add all published items completed.");
 
                     commitMessage = commitMessage.replace("{username}", author);
@@ -1067,8 +1086,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     if (StringUtils.isNotEmpty(postscript)) {
                         sbCommitMessage.append("\n\n").append(postscript);
                     }
-                    RevCommit revCommit = git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent)
-                            .call();
+                    CommitCommand commitCommand =
+                            git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent);
+                    RevCommit revCommit = retryingRepositoryOperationFacade.call(commitCommand);
                     logger.debug("Git commit all published items completed.");
                     int commitTime = revCommit.getCommitTime();
 
@@ -1083,25 +1103,30 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     logger.debug("Get Author Ident completed.");
 
                     logger.debug("Git tag started.");
-                    git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage).call();
+                    TagCommand tagCommand =
+                            git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage);
+                    retryingRepositoryOperationFacade.call(tagCommand);
                     logger.debug("Git tag completed.");
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
-                    git.checkout()
-                            .setName(environment)
-                            .call();
+                    CheckoutCommand checkoutCommand = git.checkout()
+                            .setName(environment);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
 
                     Ref branchRef = repo.findRef(inProgressBranchName);
 
                     // merge in-progress branch
                     logger.debug("Merge in-progress branch into environment " + environment + " for site " +
                             site);
-                    git.merge().setCommit(true).include(branchRef).call();
+                    MergeCommand mergeCommand = git.merge().setCommit(true).include(branchRef);
+                    retryingRepositoryOperationFacade.call(mergeCommand);
 
                     // clean up
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
-                    git.branchDelete().setBranchNames(inProgressBranchName).setForce(true).call();
+                    DeleteBranchCommand deleteBranchCommand =
+                            git.branchDelete().setBranchNames(inProgressBranchName).setForce(true);
+                    retryingRepositoryOperationFacade.call(deleteBranchCommand);
                     git.close();
                     if (repoCreated) {
                         siteService.setPublishedRepoCreated(site);
@@ -1145,20 +1170,18 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     for (String child : dirs) {
                         Path childToDelete = Paths.get(folderToDelete, child);
                         deleteParentFolder(git, childToDelete, false);
-                        git.rm()
+                        RmCommand rmCommand = git.rm()
                                 .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                                .setCached(false)
-                                .call();
-
+                                .setCached(false);
+                        retryingRepositoryOperationFacade.call(rmCommand);
                     }
                 }
                 if (CollectionUtils.isNotEmpty(files)) {
                     for (String child : files) {
-                        git.rm()
+                        RmCommand rmCommand = git.rm()
                                 .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                                .setCached(false)
-                                .call();
-
+                                .setCached(false);
+                        retryingRepositoryOperationFacade.call(rmCommand);
                     }
                 }
             }
@@ -1251,7 +1274,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) {
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
@@ -1259,11 +1282,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         try (Git git = new Git(repo)) {
             RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
             remoteRemoveCommand.setRemoteName(remoteName);
-            remoteRemoveCommand.call();
+            retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
-            List<Ref> resultRemoteBranches = git.branchList()
-                    .setListMode(ListBranchCommand.ListMode.REMOTE)
-                    .call();
+            ListBranchCommand listBranchCommand = git.branchList()
+                    .setListMode(ListBranchCommand.ListMode.REMOTE);
+            List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
             List<String> branchesToDelete = new ArrayList<String>();
             for (Ref remoteBranchRef : resultRemoteBranches) {
@@ -1276,7 +1299,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                 String[] array = new String[branchesToDelete.size()];
                 delBranch.setBranchNames(branchesToDelete.toArray(array));
                 delBranch.setForce(true);
-                delBranch.call();
+                retryingRepositoryOperationFacade.call(delBranch);
             }
 
         } catch (GitAPIException e) {
@@ -1338,7 +1361,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
         HierarchicalConfiguration<ImmutableNode> registrationData =
                 studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
@@ -1435,7 +1458,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     ObjectId head = repository.resolve(HEAD);
                     String gitPath = helper.getGitPath(path);
                     try (Git git = new Git(repository)) {
-                        Iterable<RevCommit> commits = git.log().add(head).addPath(gitPath).call();
+                        LogCommand logCommand =  git.log().add(head).addPath(gitPath);
+                        Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
                         Iterator<RevCommit> iterator = commits.iterator();
                         if (iterator.hasNext()) {
                             RevCommit revCommit = iterator.next();
@@ -1475,11 +1499,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                             CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
                             firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
                             // Diff the two commit Ids
-                            List<DiffEntry> diffEntries = git.diff()
+                            DiffCommand diffCommand = git.diff()
                                     .setOldTree(firstCommitTreeParser)
-                                    .setNewTree(null)
-                                    .call();
-
+                                    .setNewTree(null);
+                            List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
 
                             // Now that we have a diff, let's itemize the file changes, pack them into a TO
                             // and add them to the list of RepoOperations to return to the caller
@@ -1504,11 +1527,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                     toCommitTreeParser.reset(reader, toTree.getId());
 
                                     // Diff the two commit Ids
-                                    List<DiffEntry> diffEntries = git.diff()
+                                    DiffCommand diffCommand = git.diff()
                                             .setOldTree(fromCommitTreeParser)
-                                            .setNewTree(toCommitTreeParser)
-                                            .call();
-
+                                            .setNewTree(toCommitTreeParser);
+                                    List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
 
                                     // Now that we have a diff, let's itemize the file changes, pack them into a TO
                                     // and add them to the list of RepoOperations to return to the caller
@@ -1566,7 +1588,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         return toReturn;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void markGitLogAudited(String siteId, String commitId) {
         String lockKey = "GitLogLock:" + siteId;
@@ -1599,7 +1621,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     if (!objCommitIdFrom.equals(objCommitIdTo)) {
 
                         // Get the log of all the commits between commitId and head
-                        Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
+                        LogCommand logCommand = git.log().addRange(objCommitIdFrom, objCommitIdTo);
+                        Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
                         ObjectId nextCommitId;
                         String commitId = EMPTY;
 
@@ -1698,7 +1721,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             ObjectId head = repository.resolve(R_HEADS + branch);
             String gitPath = helper.getGitPath(path);
             try (Git git = new Git(repository)) {
-                Iterable<RevCommit> commits = git.log().add(head).addPath(gitPath).call();
+                LogCommand logCommand = git.log().add(head).addPath(gitPath);
+                Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
                 Iterator<RevCommit> iterator = commits.iterator();
                 if (iterator.hasNext()) {
                     RevCommit revCommit = iterator.next();
@@ -1735,7 +1759,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             if (repository != null) {
                 ObjectId head = repository.resolve(HEAD);
                 try (Git git = new Git(repository)) {
-                    Iterable<RevCommit> commits = git.log().add(head).call();
+                    LogCommand logCommand = git.log().add(head);
+                    Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
                     Iterator<RevCommit> iterator = commits.iterator();
                     boolean found = false;
                     while (!found || iterator.hasNext()) {
@@ -1911,5 +1936,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setStudioUtils(StudioUtils studioUtils) {
         this.studioUtils = studioUtils;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }
