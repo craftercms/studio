@@ -70,6 +70,11 @@ public class SiteConfigTO implements Serializable {
     protected String sandboxBranch = null;
 
     /**
+     * Map of fields & boosting to use in search
+     */
+    protected Map<String, Float> searchFields;
+
+    /**
      * Configuration for the range facets in search
      */
     protected Map<String, FacetTO> facets;
@@ -180,6 +185,14 @@ public class SiteConfigTO implements Serializable {
 
     public void setStagingEnvironmentEnabled(boolean stagingEnvironmentEnabled) {
         this.stagingEnvironmentEnabled = stagingEnvironmentEnabled;
+    }
+
+    public Map<String, Float> getSearchFields() {
+        return searchFields;
+    }
+
+    public void setSearchFields(Map<String, Float> searchFields) {
+        this.searchFields = searchFields;
     }
 
     public Map<String, FacetTO> getFacets() {

@@ -181,6 +181,13 @@ public interface ServicesConfig {
     boolean isStagingEnvironmentEnabled(String site);
 
 	/**
+	 * Returns the search field configuration for the given site
+	 * @param site the site
+	 * @return the search fields
+	 */
+	Map<String, Float> getSearchFields(String site);
+
+	/**
 	 * Returns the search facets configuration for the given site
 	 * @param site the site
 	 * @return the facets
