@@ -7,9 +7,9 @@
     <@crafter.h3 $field="title_t">
       ${contentModel.title_t}
     </@crafter.h3>
-    <@crafter.span $field="body_html">
+    <@crafter.div $field="body_html">
       ${contentModel.body_html}
-    </@crafter.span>
+    </@crafter.div>
   </div>
 </@crafter.componentRootTag>
 <!-- /Feature Component -->

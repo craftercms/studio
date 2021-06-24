@@ -26,12 +26,12 @@
 			<!-- Content -->
 			<section>
 				<header class="main">
-          <@crafter.tag $tag="h1" $field="subject_t">
+          <@crafter.h1 $field="subject_t">
             ${contentModel.subject_t!""}
-          </@crafter.tag>
-          <@crafter.tag $tag="h2" $field="author_s">
+          </@crafter.h1>
+          <@crafter.h2 $field="author_s">
             by ${contentModel.author_s!""}
-          </@crafter.tag>
+          </@crafter.h2>
 				</header>
 				<#if contentModel.image_s??>
 					<#assign image = contentModel.image_s/>
@@ -47,12 +47,12 @@
           $containerAttributes={'style': 'list-style: none; padding-left: 0;'};
           item, index
         >
-          <@crafter.tag
+          <@crafter.div
             $field="sections_o.section_html"
             $index=index
           >
             ${item.section_html}
-          </@crafter.tag>
+          </@crafter.div>
           <hr class="major" />
         </@crafter.renderRepeatCollection>
 			</section>

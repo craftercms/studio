@@ -35,7 +35,7 @@
   <hero_title_html>&lt;h1&gt;Hi, I&amp;rsquo;m Editorial&lt;/h1&gt;
     &lt;h3&gt;&lt;span style="font-size: 1.5em;"&gt;by HTML5 UP&lt;/span&gt;&lt;/h3&gt;</hero_title_html>
   <features_o item-list="true">
-    <item datasource="features" inline="true">
+    <item datasource="features">
       <key>/site/components/features/4be0a368-783c-8f73-7469-63a62636bd4c.xml</key>
       <value>Smile</value>
       <include>/site/components/features/4be0a368-783c-8f73-7469-63a62636bd4c.xml</include>
@@ -91,7 +91,7 @@
         <lastModifiedDate_dt>2019-12-22T11:56:34.603Z</lastModifiedDate_dt>
       </component>
     </item>
-    <item datasource="features" inline="true">
+    <item datasource="features">
       <key>/site/components/features/72ef047f-02b7-89e2-bbd5-4763ac7dbca8.xml</key>
       <value>Closed captioning</value>
       <include>/site/components/features/72ef047f-02b7-89e2-bbd5-4763ac7dbca8.xml</include>

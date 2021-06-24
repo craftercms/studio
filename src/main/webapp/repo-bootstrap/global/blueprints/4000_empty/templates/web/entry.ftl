@@ -26,7 +26,7 @@
 		<@crafter.body_top/>
 		<main>
 			<@crafter.h1 $field="title_t">${model.title_t}</@crafter.h1>
-			<@crafter.tag $field="body_html">${model.body_html}</@crafter.tag>
+			<@crafter.div $field="body_html">${model.body_html}</@crafter.div>
 		</main>
 		<@crafter.body_bottom/>
 	</body>
