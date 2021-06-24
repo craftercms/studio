@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,22 +39,28 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.dircache.DirCache;
+import org.eclipse.jgit.errors.LockFailedException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -141,6 +147,7 @@ public class GitRepositoryHelper {
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -152,7 +159,8 @@ public class GitRepositoryHelper {
                                                 SecurityService securityService,
                                                 UserServiceInternal userServiceInternal,
                                                 TextEncryptor textEncryptor,
-                                                GeneralLockService generalLockService)
+                                                GeneralLockService generalLockService,
+                                                RetryingRepositoryOperationFacade retryingRepositoryOperationFacade)
             throws CryptoException {
         if (instance == null) {
             instance = new GitRepositoryHelper();
@@ -161,6 +169,7 @@ public class GitRepositoryHelper {
             instance.securityService = securityService;
             instance.userServiceInternal = userServiceInternal;
             instance.generalLockService = generalLockService;
+            instance.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
         }
         return instance;
     }
@@ -1142,10 +1151,16 @@ public class GitRepositoryHelper {
 
                 // Add the file to git
                 try (Git git = new Git(repo)) {
-                    git.add().addFilepattern(getGitPath(path)).call();
+                    AddCommand addCommand = git.add().addFilepattern(getGitPath(path));
+                    retryingRepositoryOperationFacade.call(addCommand);
 
                     git.close();
                     result = true;
+                } catch (JGitInternalException internalException) {
+                    if (internalException.getCause() instanceof LockFailedException) {
+                        throw new RepositoryLockedException("Writing file " + path + " for site " + site + " failed because " +
+                                "repository was locked.");
+                    }
                 } catch (GitAPIException e) {
                     logger.error("error adding file to git: site: " + site + " path: " + path, e);
                     result = false;
@@ -1167,16 +1182,17 @@ public class GitRepositoryHelper {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            status = git.status().addPath(gitPath).call();
+            StatusCommand statusCommand = git.status().addPath(gitPath);
+            status = retryingRepositoryOperationFacade.call(statusCommand);
 
             // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 RevCommit commit;
-                commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
+                CommitCommand commitCommand =
+                        git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment);
+                commit = retryingRepositoryOperationFacade.call(commitCommand);
                 commitId = commit.getName();
             }
-
-            git.close();
         } catch (GitAPIException e) {
             logger.error("error adding and committing file to git: site: " + site + " path: " + path, e);
         } finally {

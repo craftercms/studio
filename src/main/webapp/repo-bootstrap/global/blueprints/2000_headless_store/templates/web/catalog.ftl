@@ -21,7 +21,7 @@
 <head>
   <meta charset="utf-8">
   <title>${model.title_t}</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static-assets/css/vendor/bootstrap-3.3.7.min.css">
   <style>
     [v-cloak] { display:none; }
   </style>
@@ -155,11 +155,11 @@
       </div>
     </div>
   </div>
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="https://unpkg.com/vue@2.6.10/dist/vue.min.js"></script>
-  <script src="https://unpkg.com/vue-resource@1.5.1/dist/vue-resource.min.js"></script>
-  <script src="https://unpkg.com/vue-async-computed@3.6.1/dist/vue-async-computed.js"></script>
+  <script src="/static-assets/js/vendor/jquery-3.2.1.min.js"></script>
+  <script src="/static-assets/js/vendor/bootstrap-3.3.7.min.js"></script>
+  <script src="/static-assets/js/vendor/vue-2.6.10.min.js"></script>
+  <script src="/static-assets/js/vendor/vue-resource-1.5.1.min.js"></script>
+  <script src="/static-assets/js/vendor/vue-async-computed-3.6.1.js"></script>
   <script src="/static-assets/js/catalog.js"></script>
   <@studio.toolSupport/>
 </body>

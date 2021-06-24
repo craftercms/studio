@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -73,6 +73,13 @@
         (object_id, site, path, state, system_processing)
         VALUES
         (#{objectId}, #{site}, #{path}, #{state}, 0)
+        ON DUPLICATE KEY
+        UPDATE
+            object_id = VALUES(object_id),
+            site = VALUES(site),
+            path = VALUES(path),
+            state = VALUES(state),
+            system_processing = 0
     </insert>
 
     <update id="setObjectState" parameterType="org.craftercms.studio.api.v1.dal.ItemState" flushCache="true">

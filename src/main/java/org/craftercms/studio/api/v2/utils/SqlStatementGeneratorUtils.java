@@ -25,10 +25,6 @@ import java.util.UUID;
 
 public final class SqlStatementGeneratorUtils {
 
-    public static final String ITEM_STATE_INSERT =
-            "INSERT INTO item_state (object_id, site, path, state, system_processing) " +
-                    "VALUES ('#{objectId}', '#{site}', '#{path}', '#{state}', 0) ;";
-
     public static final String ITEM_STATE_UPSERT =
             "INSERT INTO item_state (object_id, site, path, state, system_processing) " +
                     "VALUES ('#{objectId}', '#{site}', '#{path}', '#{state}', 0) " +
@@ -68,10 +64,6 @@ public final class SqlStatementGeneratorUtils {
     public static final String ITEM_STATE_DELETE =
             "DELETE FROM item_state WHERE site = '#{site}' AND path = BINARY '#{path}' ;";
 
-    public static final String ITEM_METADATA_INSERT =
-            "INSERT INTO item_metadata (site, path, modifier, modified, creator, commit_id) " +
-                    "VALUES ('#{site}', '#{path}', '#{modifier}', '#{modified}', '#{creator}', '#{commitId}') ;";
-
     public static final String ITEM_METADATA_UPSERT =
             "INSERT INTO item_metadata (site, path, modifier, modified, creator, commit_id) " +
                     "VALUES ('#{site}', '#{path}', '#{modifier}', '#{modified}', '#{creator}', '#{commitId}') " +
@@ -98,14 +90,6 @@ public final class SqlStatementGeneratorUtils {
     public static final String DEPENDENCIES_DELETE =
             "DELETE FROM dependency WHERE site = '#{site}' AND (source_path = '#{path}' OR target_path = '#{path}') ;";
 
-    public static String insertItemStateRow(String site, String path) {
-        String sql =  StringUtils.replace(ITEM_STATE_INSERT,"#{objectId}", UUID.randomUUID().toString());
-        sql = StringUtils.replace(sql, "#{site}", StringUtils.replace(site,"'", "''"));
-        sql = StringUtils.replace(sql,"#{path}", StringUtils.replace(path, "'", "''"));
-        sql = StringUtils.replace(sql,"#{state}", State.NEW_UNPUBLISHED_UNLOCKED.name());
-        return sql;
-    }
-
     public static String upsertItemStateRow(String site, String path) {
         String sql =  StringUtils.replace(ITEM_STATE_UPSERT,"#{objectId}", UUID.randomUUID().toString());
         sql = StringUtils.replace(sql, "#{site}", StringUtils.replace(site,"'", "''"));
@@ -130,18 +114,6 @@ public final class SqlStatementGeneratorUtils {
     public static String deleteItemStateRow(String site, String path) {
         String sql =  StringUtils.replace(ITEM_STATE_DELETE,"#{site}", StringUtils.replace(site,"'", "''"));
         sql = StringUtils.replace(sql,"#{path}", StringUtils.replace(path, "'", "''"));
-        return sql;
-    }
-
-    public static String insertItemMetadataRow(String siteId, String path, String creator, ZonedDateTime dateTime,
-                                               String commitId) {
-        Timestamp sqlTs = new Timestamp(dateTime.toInstant().toEpochMilli());
-        String sql = StringUtils.replace(ITEM_METADATA_INSERT,"#{site}", StringUtils.replace(siteId,"'", "''"));
-        sql = StringUtils.replace(sql, "#{path}", StringUtils.replace(path,"'", "''"));
-        sql = StringUtils.replace(sql, "#{modifier}", StringUtils.replace(creator, "'", "''"));
-        sql = StringUtils.replace(sql, "#{modified}", sqlTs.toString());
-        sql = StringUtils.replace(sql, "#{creator}", StringUtils.replace(creator, "'", "''"));
-        sql = StringUtils.replace(sql, "#{commitId}", StringUtils.replace(commitId, "'", "''"));
         return sql;
     }
 

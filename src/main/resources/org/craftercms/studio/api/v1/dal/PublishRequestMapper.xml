@@ -36,15 +36,6 @@
         <result property="packageId" column="package_id"/>
     </resultMap>
 
-    <select id="getScheduledItems" resultMap="PublishRequestMap" parameterType="java.util.Map">
-        SELECT *
-        FROM publish_request
-        WHERE site = #{site}
-        AND state = #{state}
-        AND scheduleddate &gt; #{now}
-        ORDER BY scheduleddate ASC
-    </select>
-
     <insert id="insertItemForDeployment" parameterType="org.craftercms.studio.api.v1.dal.PublishRequest">
         INSERT INTO publish_request (site, environment, path, oldpath, username, scheduleddate, state, action,
         contenttypeclass, submissioncomment, commit_id, package_id)

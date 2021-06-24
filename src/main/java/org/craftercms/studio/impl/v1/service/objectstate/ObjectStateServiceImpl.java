@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     protected GeneralLockService generalLockService;
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
+    protected RetryingOperationFacade retryingOperationFacade;
 
     @Override
     public void register() {
@@ -128,17 +130,17 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
         }
     }
 
-    @RetryingOperation
     public void setSystemProcessingBulkPartial(String site, List<String> paths, boolean isSystemProcessing) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("site", site);
             params.put("paths", paths);
             params.put("systemProcessing", isSystemProcessing);
-            itemStateMapper.setSystemProcessingBySiteAndPathBulk(params);
+            retryingOperationFacade.setSystemProcessingBySiteAndPathBulk(params);
         }
     }
 
+    @RetryingOperation
     @Override
     @ValidateParams
     public void transition(@ValidateStringParam(name = "site") String site, ContentItemTO item, TransitionEvent event) {
@@ -640,5 +642,13 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     public void setItemStateMapper(ItemStateMapper itemStateMapper) {
         this.itemStateMapper = itemStateMapper;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

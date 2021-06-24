@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
@@ -84,6 +85,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected DependencyService dependencyService;
     protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected PublishRequestMapper publishRequestMapper;
+    protected RetryingOperationFacade retryingOperationFacade;
 
     @Override
     @ValidateParams
@@ -262,7 +264,6 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
-    @RetryingOperation
     @Override
     @ValidateParams
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
@@ -272,7 +273,7 @@ public class PublishingManagerImpl implements PublishingManager {
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             item.setCompletedDate(completed);
-            publishRequestMapper.markItemCompleted(item);
+            retryingOperationFacade.markPublishRequestCompleted(item);
         }
     }
 
@@ -557,5 +558,13 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

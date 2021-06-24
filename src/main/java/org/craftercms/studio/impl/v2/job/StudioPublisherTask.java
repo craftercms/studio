@@ -200,13 +200,12 @@ public class StudioPublisherTask extends StudioClockTask {
                                     + siteId, err);
                             publishingManager.resetProcessingQueue(siteId, env);
                             notificationService.notifyDeploymentError(siteId, err);
-                            logger.info("Continue executing deployment for other sites.");
                         }
                     } else {
                         logger.info("Publishing is blocked for site " + siteId);
                     }
                 } else {
-                    logger.info("Publishing is disabled for site " + siteId);
+                    logger.debug("Publishing is disabled for site {0}", siteId);
                 }
             }
         } catch (UncategorizedSQLException  dbErr) {
@@ -226,96 +225,85 @@ public class StudioPublisherTask extends StudioClockTask {
         }
     }
 
-    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment) {
+    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
+            throws DeploymentException, ServiceLayerException {
+        String statusMessage;
+        String status;
+        String author = itemsToDeploy.get(0).getUser();
+        StringBuilder sbComment = new StringBuilder();
+        List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
+        Set<String> processedPaths = new HashSet<String>();
+        SimpleDateFormat sdf =
+                new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
+        String currentPackageId = StringUtils.EMPTY;
         try {
-            String statusMessage;
-            String status;
-            String author = itemsToDeploy.get(0).getUser();
-            StringBuilder sbComment = new StringBuilder();
-            List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
-            Set<String> processedPaths = new HashSet<String>();
-            SimpleDateFormat sdf =
-                    new SimpleDateFormat(StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ);
-            String currentPackageId = StringUtils.EMPTY;
-            try {
-                logger.debug("Mark items as processing for site \"{0}\"", siteId);
-                Set<String> packageIds = new HashSet<String>();
-                int idx = 0;
-                for (PublishRequest item : itemsToDeploy) {
-                    idx++;
-                    if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
-                        currentPackageId = item.getPackageId();
-                    }
-                    statusMessage = studioConfiguration
-                            .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
-                    statusMessage =
-                            statusMessage.replace("{package_id}", currentPackageId)
-                                    .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                            .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
-                                    .replace("{x}", Integer.toString(idx))
-                                    .replace("{y}", Integer.toString(itemsToDeploy.size()));
-                    siteService.updatePublishingStatusMessage(siteId, PUBLISHING, statusMessage);
+            logger.debug("Mark items as processing for site \"{0}\"", siteId);
+            Set<String> packageIds = new HashSet<String>();
+            int idx = 0;
+            for (PublishRequest item : itemsToDeploy) {
+                idx++;
+                if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
+                    currentPackageId = item.getPackageId();
+                }
+                statusMessage = studioConfiguration
+                        .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING);
+                statusMessage =
+                        statusMessage.replace("{package_id}", currentPackageId)
+                                .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                        .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
+                                .replace("{x}", Integer.toString(idx))
+                                .replace("{y}", Integer.toString(itemsToDeploy.size()));
+                siteService.updatePublishingStatusMessage(siteId, PUBLISHING, statusMessage);
 
-                    processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
-                    if (packageIds.add(item.getPackageId())) {
-                        sbComment.append(item.getSubmissionComment()).append("\n");
-                    }
+                processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
+                if (packageIds.add(item.getPackageId())) {
+                    sbComment.append(item.getSubmissionComment()).append("\n");
                 }
-                deploy(siteId, environment, completeDeploymentItemList, author,
-                        sbComment.toString());
-                StringBuilder sbPackIds = new StringBuilder("Package(s): ");
-                for (String packageId : packageIds) {
-                    sbPackIds.append(packageId).append(";");
-                }
-                generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
-                publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
-                logger.debug("Mark deployment completed for processed items for site \"{0}\"", siteId);
-                logger.info("Finished publishing environment " + environment + " for site " + siteId);
+            }
+            deploy(siteId, environment, completeDeploymentItemList, author,
+                    sbComment.toString());
+            StringBuilder sbPackIds = new StringBuilder("Package(s): ");
+            for (String packageId : packageIds) {
+                sbPackIds.append(packageId).append(";");
+            }
+            generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
+            publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+            logger.debug("Mark deployment completed for processed items for site \"{0}\"", siteId);
+            logger.info("Finished publishing environment " + environment + " for site " + siteId);
 
-                if (publishingManager.isPublishingQueueEmpty(siteId)) {
-                    status = READY;
-                    statusMessage = studioConfiguration.getProperty
-                            (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
-                    statusMessage = statusMessage.replace("{package_id}", currentPackageId)
-                            .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
-                                    .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
-                            .replace("{package_size}",
-                                    Integer.toString(itemsToDeploy.size()));
-                } else {
-                    status = QUEUED;
-                    statusMessage =
-                            studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
-                }
-                siteService.updatePublishingStatusMessage(siteId, status, statusMessage);
-            } catch (DeploymentException err) {
-                logger.error("Error while executing deployment to environment store " +
-                                "for site \"{0}\", number of items \"{1}\"", err, siteId,
-                        itemsToDeploy.size());
-                publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
-                siteService.enablePublishing(siteId, false);
-                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
-                siteService.updatePublishingStatusMessage(siteId, ERROR, statusMessage);
-                throw err;
-            } catch (Exception err) {
-                logger.error("Unexpected error while executing deployment to environment " +
-                                "store for site \"{0}\", number of items \"{1}\"", err, siteId,
-                        itemsToDeploy.size());
-                publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
-                siteService.enablePublishing(siteId, false);
-                statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
-                siteService.updatePublishingStatusMessage(siteId, ERROR, statusMessage);
-                throw err;
+            if (publishingManager.isPublishingQueueEmpty(siteId)) {
+                status = READY;
+                statusMessage = studioConfiguration.getProperty
+                        (JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY);
+                statusMessage = statusMessage.replace("{package_id}", currentPackageId)
+                        .replace("{datetime}", ZonedDateTime.now(ZoneOffset.UTC)
+                                .format(DateTimeFormatter.ofPattern(sdf.toPattern())))
+                        .replace("{package_size}",
+                                Integer.toString(itemsToDeploy.size()));
+            } else {
+                status = QUEUED;
+                statusMessage =
+                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
             }
-        } catch (UncategorizedSQLException dbErr) {
-            logger.error("DB error while executing deployment to environment store", dbErr);
-            if (!dbErrorNotifiedSites.add(siteId)) {
-                notificationService.notifyDeploymentError(siteId, dbErr);
-            }
+            siteService.updatePublishingStatusMessage(siteId, status, statusMessage);
+        } catch (DeploymentException err) {
+            logger.error("Error while executing deployment to environment store " +
+                            "for site \"{0}\", number of items \"{1}\"", err, siteId,
+                    itemsToDeploy.size());
+            publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+            siteService.enablePublishing(siteId, false);
+            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
+            siteService.updatePublishingStatusMessage(siteId, ERROR, statusMessage);
+            throw err;
         } catch (Exception err) {
-            logger.error("Error while executing deployment to environment store for site: "
-                    + siteId, err);
-            notificationService.notifyDeploymentError(siteId, err);
-            logger.info("Continue executing deployment for other sites.");
+            logger.error("Unexpected error while executing deployment to environment " +
+                            "store for site \"{0}\", number of items \"{1}\"", err, siteId,
+                    itemsToDeploy.size());
+            publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+            siteService.enablePublishing(siteId, false);
+            statusMessage = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR);
+            siteService.updatePublishingStatusMessage(siteId, ERROR, statusMessage);
+            throw err;
         }
     }
 

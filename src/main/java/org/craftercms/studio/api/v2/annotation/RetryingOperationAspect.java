@@ -58,7 +58,7 @@ public class RetryingOperationAspect {
             " @annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
-        logger.debug("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());
+
         int numAttempts = 0;
         do {
             numAttempts++;
