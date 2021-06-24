@@ -22,7 +22,7 @@
           <configuration>
             <title id="words.dashboard" defaultMessage="Dashboard" />
             <icon id="@material-ui/icons/DashboardRounded" />
-            <widget id="craftercms.components.LegacyDashboardFrame" />
+            <widget id="craftercms.components.Dashboard" />
           </configuration>
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
@@ -413,6 +413,42 @@
             </widgets>
           </configuration>
         </widget>
+      </widgets>
+    </configuration>
+  </widget>
+  <widget id="craftercms.components.PreviewToolbar">
+    <configuration>
+      <leftSection>
+        <widgets>
+          <widget id="craftercms.components.SiteSwitcherSelect"/>
+          <widget id="craftercms.components.QuickCreate"/>
+        </widgets>
+      </leftSection>
+      <middleSection>
+        <widgets>
+          <widget id="craftercms.components.PreviewAddressBar"/>
+        </widgets>
+      </middleSection>
+      <rightSection>
+        <widgets>
+          <widget id="craftercms.components.EditModeSwitch"/>
+          <widget id="craftercms.components.PublishingStatusButton">
+            <configuration>
+              <variant>icon</variant>
+            </configuration>
+          </widget>
+        </widgets>
+      </rightSection>
+    </configuration>
+  </widget>
+  <widget id="craftercms.components.Dashboard">
+    <configuration>
+      <widgets>
+        <widget id="craftercms.components.AwaitingApprovalDashlet"/>
+        <widget id="craftercms.components.ApprovedScheduledDashlet"/>
+        <widget id="craftercms.components.RecentlyPublishedDashlet"/>
+        <widget id="craftercms.components.RecentActivityDashlet"/>
+        <widget id="craftercms.components.IconGuideDashlet"/>
       </widgets>
     </configuration>
   </widget>
