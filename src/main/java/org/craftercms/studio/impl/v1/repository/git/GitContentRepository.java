@@ -1344,7 +1344,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
                         ListBranchCommand listBranchCommand = git.branchList()
-                                .setListMode(ListBranchCommand.ListMode.REMOTE);
+                                .setListMode(REMOTE);
                         List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
                         List<String> branchesToDelete = new ArrayList<String>();

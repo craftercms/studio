@@ -694,7 +694,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             int counter = 0;
             try (Git git = new Git(publishedRepo)) {
                 // List all environments
-                ListBranchCommand listBranchCommand = git.branchList();;
+                ListBranchCommand listBranchCommand = git.branchList();
                 List<Ref> environments = retryingRepositoryOperationFacade.call(listBranchCommand);
                 for (int i = 0; i < environments.size() && counter < limit; i++) {
                     Ref env = environments.get(i);
