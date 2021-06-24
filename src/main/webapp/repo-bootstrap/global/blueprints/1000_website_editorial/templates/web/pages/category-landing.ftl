@@ -24,7 +24,7 @@
       <@renderComponent component=contentModel.header_o.item />
 
       <!-- Section -->
-      <@crafter.tag $tag="section" $model=contentModel>
+      <@crafter.section $model=contentModel>
         <header class="main">
           <h1>${contentModel.articles_title_t}</h1>
         </header>
@@ -53,7 +53,7 @@
             </@crafter.article>
           </#list>
         </div>
-      </@crafter.tag>
+      </@crafter.section>
 
     </div>
   </div>

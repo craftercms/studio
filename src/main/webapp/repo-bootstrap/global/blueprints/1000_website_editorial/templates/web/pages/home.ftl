@@ -31,9 +31,9 @@
           <@crafter.header $field="hero_title_html" $label="Hero Title">
             ${contentModel.hero_title_html}
           </@crafter.header>
-          <@crafter.tag $field="hero_text_html">
+          <@crafter.div $field="hero_text_html">
             ${contentModel.hero_text_html}
-          </@crafter.tag>
+          </@crafter.div>
         </div>
         <span class="image object">
           <@crafter.img $field="hero_image_s" src=(contentModel.hero_image_s!"") alt=""/>
@@ -44,9 +44,9 @@
       <!-- Section: Features -->
       <section>
         <header class="major">
-          <@crafter.tag $tag="h2" $field="features_title_t">
+          <@crafter.h2 $field="features_title_t">
             ${contentModel.features_title_t}
-          </@crafter.tag>
+          </@crafter.h2>
         </header>
         <@crafter.renderComponentCollection $field="features_o" class="features" $itemAttrs={ "class": "feature-container" }/>
       </section>
