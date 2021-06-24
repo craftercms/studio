@@ -16,7 +16,6 @@
 package org.craftercms.studio.api.v1.service.deployment;
 
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -25,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
+import org.craftercms.studio.api.v2.dal.PublishRequest;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -53,7 +53,7 @@ public interface DeploymentService {
     void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate, String submissionComment)
             throws DeploymentException, SiteNotFoundException;
 
-    List<PublishRequest> getScheduledItems(String site);
+    List<PublishRequest> getScheduledItems(String site, String filterType);
 
     void cancelWorkflow(String site, String path) throws DeploymentException;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -60,30 +60,36 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public void process(PipelineContent content, ResultTO result) throws SiteNotFoundException {
         if (result.getCommitId() != null) {
-            String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
-            String user = content.getProperty(DmConstants.KEY_USER);
-            String activityType = OPERATION_CREATE.equals(type) ? OPERATION_CREATE : OPERATION_UPDATE;
-            String site = (String) content.getProperty(DmConstants.KEY_SITE);
-            String folderPath = (String) content.getProperty(DmConstants.KEY_FOLDER_PATH);
-            String fileName = (String) content.getProperty(DmConstants.KEY_FILE_NAME);
-            boolean isSystemAsset =
-                    ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
-            if (isSystemAsset) {
-                ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO) result.getItem();
-                fileName = assetInfoTO.getFileName();
+            String site = content.getProperty(DmConstants.KEY_SITE);
+            boolean skipAuditLogInsert =
+                    ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT));
+            if (!skipAuditLogInsert) {
+                String type = content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
+                String user = content.getProperty(DmConstants.KEY_USER);
+                String activityType = OPERATION_CREATE.equals(type) ? OPERATION_CREATE : OPERATION_UPDATE;
+
+                String folderPath = content.getProperty(DmConstants.KEY_FOLDER_PATH);
+                String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
+                boolean isSystemAsset =
+                        ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
+
+                if (isSystemAsset) {
+                    ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO) result.getItem();
+                    fileName = assetInfoTO.getFileName();
+                }
+                String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
+                        + fileName;
+                SiteFeed siteFeed = siteService.getSite(site);
+                AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+                auditLog.setOperation(activityType);
+                auditLog.setActorId(user);
+                auditLog.setSiteId(siteFeed.getId());
+                auditLog.setPrimaryTargetId(site + ":" + uri);
+                auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
+                auditLog.setPrimaryTargetValue(uri);
+                auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
+                auditServiceInternal.insertAuditLog(auditLog);
             }
-            String uri = (folderPath.endsWith(FILE_SEPARATOR)) ? folderPath + fileName : folderPath + FILE_SEPARATOR
-                    + fileName;
-            SiteFeed siteFeed = siteService.getSite(site);
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(activityType);
-            auditLog.setActorId(user);
-            auditLog.setSiteId(siteFeed.getId());
-            auditLog.setPrimaryTargetId(site + ":" + uri);
-            auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLog.setPrimaryTargetValue(uri);
-            auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
-            auditServiceInternal.insertAuditLog(auditLog);
             contentRepository.markGitLogAudited(site, result.getCommitId());
         }
     }

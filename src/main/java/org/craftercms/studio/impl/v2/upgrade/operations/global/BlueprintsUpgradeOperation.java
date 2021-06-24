@@ -36,12 +36,16 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.springframework.beans.factory.annotation.Required;
@@ -71,6 +75,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
     protected UserServiceInternal userServiceInternal;
     protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     @Required
     public void setServicesConfig(final ServicesConfig servicesConfig) {
@@ -109,13 +114,21 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
         this.generalLockService = generalLockService;
     }
 
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
     @Override
     public void execute(final String site) throws UpgradeException {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                    userServiceInternal, encryptor, generalLockService);
+                    userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Path globalConfigPath = helper.buildRepoPath(GitRepositories.GLOBAL);
             Path blueprintsPath = Paths.get(globalConfigPath.toAbsolutePath().toString(),
                 studioConfiguration.getProperty(BLUE_PRINTS_PATH));
@@ -163,16 +176,18 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
 
             Repository globalRepo = helper.getRepository(site, GitRepositories.GLOBAL);
             try (Git git = new Git(globalRepo)) {
-
-                Status status = git.status().call();
+                StatusCommand statusCommand = git.status();
+                Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
                 if (status.hasUncommittedChanges() || !status.isClean()) {
                     // Commit everything
                     // TODO: Consider what to do with the commitId in the future
-                    git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
-                    git.commit()
+                    AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+                    retryingRepositoryOperationFacade.call(addCommand);
+                    CommitCommand commitCommand= git.commit()
                             .setAll(true)
-                            .setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE)).call();
+                            .setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE));
+                    retryingRepositoryOperationFacade.call(commitCommand);
                 }
             } catch (GitAPIException err) {
                 logger.error("error creating initial commit for global configuration", err);

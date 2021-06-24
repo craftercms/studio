@@ -22,11 +22,14 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 
 import javax.sql.DataSource;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
@@ -34,34 +37,79 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
     protected String delimiter;
     protected DataSource dataSource;
+    protected int scriptLinesBufferSize = 10000;
+    protected Connection connection = null;
+
+    protected StudioDBScriptRunnerImpl(String delimiter, DataSource dataSource, int scriptLinesBufferSize) {
+        this.delimiter = delimiter;
+        this.dataSource = dataSource;
+        this.scriptLinesBufferSize = scriptLinesBufferSize;
+    }
 
     @Override
-    public void execute(String sql) {
-        try (Reader reader = new StringReader(sql)) {
-            Connection connection = dataSource.getConnection();
-            ScriptRunner scriptRunner = new ScriptRunner(connection);
-            scriptRunner.setDelimiter(delimiter);
-            scriptRunner.setStopOnError(true);
-            scriptRunner.setLogWriter(null);
-            scriptRunner.runScript(reader);
-        } catch (SQLException | IOException e) {
-            logger.error("Error executing db script", e);
+    public void openConnection() {
+        if (Objects.isNull(connection)) {
+            try {
+                connection = dataSource.getConnection();
+            } catch (SQLException throwables) {
+                logger.error("Failed to open connection with DB", throwables);
+            }
         }
     }
 
-    public String getDelimiter() {
-        return delimiter;
+    @Override
+    public void closeConnection() {
+        if (!Objects.isNull(connection)) {
+            try {
+                connection.close();
+            } catch (SQLException throwables) {
+                logger.error("Failed to close connection with DB", throwables);
+            }
+            connection = null;
+        }
     }
 
-    public void setDelimiter(String delimiter) {
-        this.delimiter = delimiter;
+    @Override
+    public void execute(File sqlScriptFile) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
+            connection = dataSource.getConnection();
+
+            connection.setAutoCommit(false);
+
+            ScriptRunner scriptRunner = new ScriptRunner(connection);
+            scriptRunner.setAutoCommit(false);
+            scriptRunner.setDelimiter(delimiter);
+            scriptRunner.setStopOnError(true);
+            scriptRunner.setLogWriter(null);
+
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            boolean moreWork = true;
+            while (moreWork) {
+                for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
+                    line = bufferedReader.readLine();
+                    if (Objects.nonNull(line)) {
+                        sb.append(line).append("\n");
+                    } else {
+                        moreWork = false;
+                    }
+                }
+
+                if (sb.length() > 0) {
+                    scriptRunner.runScript(new StringReader(sb.toString()));
+                    sb.setLength(0);
+                }
+            }
+
+            connection.commit();
+        } catch (SQLException | IOException e) {
+            logger.error("Error executing db script", e);
+            try {
+                connection.rollback();
+            } catch (SQLException throwables) {
+                logger.error("Failed to rollback after error when running DB script", throwables);
+            }
+        }
     }
 
-    public DataSource getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
 }

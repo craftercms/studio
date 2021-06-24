@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -296,6 +296,19 @@ public class ContentServiceImpl implements ContentService {
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock) throws ServiceLayerException {
+        writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
+    }
+
+    @Override
+    @ValidateParams
+    public void writeContent(@ValidateStringParam(name = "site") String site,
+                             @ValidateSecurePathParam(name = "path") String path,
+                             @ValidateStringParam(name = "fileName") String fileName,
+                             @ValidateStringParam(name = "contentType") String contentType, InputStream input,
+                             @ValidateStringParam(name = "createFolders") String createFolders,
+                             @ValidateStringParam(name = "edit") String edit,
+                             @ValidateStringParam(name = "unlock") String unlock,
+                             boolean skipAuditLogInsert) throws ServiceLayerException {
         // TODO: SJ: refactor for 2.7.x
 
         try {
@@ -313,6 +326,7 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
         params.put(DmConstants.KEY_EDIT, edit);
         params.put(DmConstants.KEY_UNLOCK, unlock);
+        params.put(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT, String.valueOf(skipAuditLogInsert));
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         String relativePath = path;
         boolean contentExists = contentExists(site, path);
@@ -446,7 +460,7 @@ public class ContentServiceImpl implements ContentService {
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
         try {
-            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
+            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
             moveContent(site, path, targetPath);
         } catch (ServiceLayerException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "

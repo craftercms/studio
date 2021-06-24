@@ -61,7 +61,7 @@
             <props>
                 <prop key="output_encoding">UTF-8</prop>
                 <prop key="localized_lookup">false</prop>
-                <prop key="object_wrapper">org.craftercms.engine.freemarker.CrafterObjectWrapper</prop>
+                <prop key="object_wrapper">org.craftercms.engine.freemarker.CrafterObjectWrapper(${crafter.engine.groovy.sandbox.enable})</prop>
                 <prop key="datetime_format">${crafter.engine.model.datetime.pattern}</prop>
                 <prop key="time_zone">${crafter.engine.model.datetime.timeZone}</prop>
                 <prop key="new_builtin_class_resolver">safer</prop>
