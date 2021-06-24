@@ -16,10 +16,13 @@
 package org.craftercms.studio.impl.v2.upgrade;
 
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
@@ -81,12 +84,16 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
      */
     protected String currentConfigPath;
 
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+
     public StudioUpgradeContext(String target, StudioConfiguration studioConfiguration, DataSource dataSource,
-                                InstanceService instanceService) {
+                                InstanceService instanceService,
+                                RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         super(target);
         this.studioConfiguration = studioConfiguration;
         this.dataSource = dataSource;
         this.instanceService = instanceService;
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 
     public DataSource getDataSource() {
@@ -163,14 +170,15 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
         try (Git git = new Git(repo)) {
             var add = git.add();
             Stream.of(paths).map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
-            add.call();
+            retryingRepositoryOperationFacade.call(add);
 
-            Status status = git.status().call();
+            StatusCommand statusCommand = git.status();
+            Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
             if (!status.isClean()) {
-                git.commit()
-                        .setMessage(message + "\n\n" + getIdentifier())
-                        .call();
+                CommitCommand commitCommand = git.commit()
+                        .setMessage(message + "\n\n" + getIdentifier());
+                retryingRepositoryOperationFacade.call(commitCommand);
             }
         }
     }

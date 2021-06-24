@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.mongodb.client.model.Updates;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
@@ -57,6 +56,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachable
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplacePlugin;
@@ -74,6 +74,7 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.InitializingBean;
@@ -248,16 +249,19 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
      */
     protected String templateComment;
 
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+
     @ConstructorProperties({ "instanceService", "siteService", "sitesServiceInternal", "contentService",
             "configurationService", "studioConfiguration", "pluginDescriptorReader", "gitRepositoryHelper",
-            "pluginDescriptorFilename", "templateCode", "templateComment" })
+            "pluginDescriptorFilename", "templateCode", "templateComment", "retryingRepositoryOperationFacade" })
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesServiceInternal sitesServiceInternal, ContentService contentService,
                                           ConfigurationService configurationService,
                                           StudioConfiguration studioConfiguration,
                                           PluginDescriptorReader pluginDescriptorReader,
                                           GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename,
-                                          String templateCode, String templateComment) {
+                                          String templateCode, String templateComment,
+                                          RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.instanceService = instanceService;
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
@@ -269,6 +273,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         this.pluginDescriptorFilename = pluginDescriptorFilename;
         this.templateCode = templateCode;
         this.templateComment = templateComment;
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 
     public void setUrl(final String url) {
@@ -559,10 +564,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             files.stream()
                     .map(FileRecord::getPath)
                     .forEach(add::addFilepattern);
-            add.call();
-            git.commit()
-                    .setMessage(format("Install plugin %s %s", plugin.getId(), plugin.getVersion()))
-                    .call();
+            retryingRepositoryOperationFacade.call(add);
+            CommitCommand commitCommand = git.commit()
+                    .setMessage(format("Install plugin %s %s", plugin.getId(), plugin.getVersion()));
+            retryingRepositoryOperationFacade.call(commitCommand);
 
         }
         return files;
@@ -633,10 +638,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     files.stream()
                             .map(FileRecord::getPath)
                             .forEach(add::addFilepattern);
-                    add.call();
-                    git.commit()
-                            .setMessage(format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()))
-                            .call();
+                    retryingRepositoryOperationFacade.call(add);
+                    CommitCommand commitCommand = git.commit()
+                            .setMessage(format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()));
+                    retryingRepositoryOperationFacade.call(commitCommand);
 
                     // Wire plugin to the site configuration
                     performConfigurationWiring(plugin, siteId);

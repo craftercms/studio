@@ -31,9 +31,15 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask;
+import org.eclipse.jgit.api.CheckoutCommand;
+import org.eclipse.jgit.api.CreateBranchCommand;
+import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
+import org.eclipse.jgit.api.MergeCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
@@ -68,38 +74,43 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected GeneralLockService generalLockService;
     protected StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask;
     protected GitRepositoryHelper gitRepositoryHelper;
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     public SiteRepositoryUpgradePipelineImpl(String name, List<UpgradeOperation<String>> upgradeOperations) {
         super(name, upgradeOperations);
     }
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
-        List<Ref> branches = git.branchList().call();
+        ListBranchCommand listBranchCommand = git.branchList();
+        List<Ref> branches = retryingRepositoryOperationFacade.call(listBranchCommand);
         if(branches.stream().anyMatch(b -> b.getName().contains(siteUpgradeBranch))) {
             logger.debug("Temporary branch already exists, changes will be discarded");
             deleteTemporaryBranch(git);
         }
         logger.debug("Creating temporary branch {0} for site {1}", siteUpgradeBranch, site);
-        git.branchCreate().setName(siteUpgradeBranch).call();
+        CreateBranchCommand createBranchCommand = git.branchCreate().setName(siteUpgradeBranch);
+        retryingRepositoryOperationFacade.call(createBranchCommand);
     }
 
     protected void checkoutBranch(String branch, Git git) throws GitAPIException {
         logger.debug("Checking out {0} branch", branch);
-        git.checkout().setName(branch).call();
+        CheckoutCommand checkoutCommand = git.checkout().setName(branch);
+        retryingRepositoryOperationFacade.call(checkoutCommand);
     }
 
     protected void mergeTemporaryBranch(Repository repository, Git git) throws IOException, GitAPIException {
         logger.debug("Merging changes from upgrade branch");
-        git.merge()
+        MergeCommand mergeCommand = git.merge()
             .include(repository.findRef(siteUpgradeBranch))
             .setMessage(commitMessage)
-            .setCommit(true)
-            .call();
+            .setCommit(true);
+        retryingRepositoryOperationFacade.call(mergeCommand);
     }
 
     protected void deleteTemporaryBranch(Git git) throws GitAPIException {
         logger.debug("Removing temporary branch");
-        git.branchDelete().setBranchNames(siteUpgradeBranch).call();
+        DeleteBranchCommand deleteBranchCommand = git.branchDelete().setBranchNames(siteUpgradeBranch);
+        retryingRepositoryOperationFacade.call(deleteBranchCommand);
     }
 
     /**
@@ -187,5 +198,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
         this.gitRepositoryHelper = gitRepositoryHelper;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }

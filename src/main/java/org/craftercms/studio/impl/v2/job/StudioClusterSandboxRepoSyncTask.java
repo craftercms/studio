@@ -277,15 +277,14 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         cloneUrl = cloneUrl + "/" + studioConfiguration.getProperty(SANDBOX_PATH);
 
                         logger.debug("Executing clone command");
-                        Git gitClone = cloneResult = cloneCommand
-                                .setURI(cloneUrl)
+                        cloneCommand.setURI(cloneUrl)
                                 .setRemote(remoteNode.getGitRemoteName())
                                 .setDirectory(localPath)
-                                .setCloneAllBranches(true)
-                                .call();
+                                .setCloneAllBranches(true);
+                        cloneResult = retryingRepositoryOperationFacade.call(cloneCommand);
                         Files.deleteIfExists(tempKey);
 
-                        cloned = validateRepository(gitClone.getRepository());
+                        cloned = validateRepository(cloneResult.getRepository());
                     } catch (InvalidRemoteException e) {
                         logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
                                 " (" + remoteNode.getGitUrl() + ")", e);
@@ -363,7 +362,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             RemoteAddCommand remoteAddCommand = git.remoteAdd();
             remoteAddCommand.setName(remoteRepository.getRemoteName());
             remoteAddCommand.setUri(new URIish(remoteRepository.getRemoteUrl()));
-            remoteAddCommand.call();
+            retryingRepositoryOperationFacade.call(remoteAddCommand);
 
 
         } catch (URISyntaxException e) {
@@ -452,14 +451,14 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                     RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
                     remoteSetUrlCommand.setRemoteName(member.getGitRemoteName());
                     remoteSetUrlCommand.setRemoteUri(new URIish(remoteUrl));
-                    remoteSetUrlCommand.call();
+                    retryingRepositoryOperationFacade.call(remoteSetUrlCommand);
                 }
             } else {
                 logger.debug("Add " + member.getLocalAddress() + " as remote to SANDBOX");
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
-                remoteAddCommand.call();
+                retryingRepositoryOperationFacade.call(remoteAddCommand);
             }
 
         } catch (URISyntaxException e) {
@@ -523,7 +522,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand.setRemoteBranchName(sandboxBranchName);
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-                var result = pullCommand.call();
+                var result = retryingRepositoryOperationFacade.call(pullCommand);
 
                 if (result.isSuccessful() && result.getMergeResult() != null) {
                     // get all changed files that match the config patterns and invalidate the cache

@@ -20,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
@@ -36,17 +37,18 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
     private static final Logger logger = LoggerFactory.getLogger(StudioClockClusterTask.class);
 
     protected ContentRepository contentRepository;
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     protected abstract Path buildRepoPath(String site);
 
     protected void removeRemote(Git git, String remoteName) throws GitAPIException {
         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
         remoteRemoveCommand.setRemoteName(remoteName);
-        remoteRemoveCommand.call();
+        retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
-        List<Ref> resultRemoteBranches = git.branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                .call();
+        ListBranchCommand listBranchCommand = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE);
+        List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
         List<String> branchesToDelete = new ArrayList<String>();
         for (Ref remoteBranchRef : resultRemoteBranches) {
@@ -59,7 +61,7 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
             String[] array = new String[branchesToDelete.size()];
             delBranch.setBranchNames(branchesToDelete.toArray(array));
             delBranch.setForce(true);
-            delBranch.call();
+            retryingRepositoryOperationFacade.call(delBranch);
         }
     }
 
@@ -69,5 +71,13 @@ public abstract class StudioClockClusterTask extends StudioClockTask {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }

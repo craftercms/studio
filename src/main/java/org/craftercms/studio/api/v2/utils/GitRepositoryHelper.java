@@ -40,15 +40,24 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
+import org.eclipse.jgit.api.DeleteBranchCommand;
+import org.eclipse.jgit.api.DiffCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
+import org.eclipse.jgit.api.RenameBranchCommand;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
+import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -56,7 +65,6 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.dircache.DirCache;
 import org.eclipse.jgit.errors.LockFailedException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -131,7 +139,6 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_SECTION_CORE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class GitRepositoryHelper {
@@ -143,6 +150,7 @@ public class GitRepositoryHelper {
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -310,7 +318,7 @@ public class GitRepositoryHelper {
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         lsRemoteCommand = setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey, tempKey, false);
-        lsRemoteCommand.call();
+        retryingRepositoryOperationFacade.call(lsRemoteCommand);
         Files.deleteIfExists(tempKey);
         return true;
     }
@@ -470,10 +478,10 @@ public class GitRepositoryHelper {
                         nextCommitTreeParser.reset(reader, commitTree.getId());
 
                         // Diff the two commit Ids
-                        List<DiffEntry> diffEntries = git.diff()
+                        DiffCommand diffCommand = git.diff()
                                 .setOldTree(prevCommitTreeParser)
-                                .setNewTree(nextCommitTreeParser)
-                                .call();
+                                .setNewTree(nextCommitTreeParser);
+                        List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
                         for (DiffEntry diffEntry : diffEntries) {
                             if (diffEntry.getChangeType() == DiffEntry.ChangeType.DELETE) {
                                 files.add(FILE_SEPARATOR + diffEntry.getOldPath());
@@ -571,10 +579,10 @@ public class GitRepositoryHelper {
 
             toReturn = optimizeRepository(toReturn);
             try (Git git = new Git(toReturn)) {
-                git.commit()
+                CommitCommand commitCommand = git.commit()
                         .setAllowEmpty(true)
-                        .setMessage(getCommitMessage(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE))
-                        .call();
+                        .setMessage(getCommitMessage(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE));
+                retryingRepositoryOperationFacade.call(commitCommand);
             } catch (GitAPIException e) {
                 logger.error("Error while creating repository for site with path" + path.toString(), e);
                 toReturn = null;
@@ -628,7 +636,8 @@ public class GitRepositoryHelper {
         }
         try (Git git = new Git(sandboxRepo)) {
             if (!StringUtils.equals(sandboxRepo.getBranch(), sandboxBranchName)) {
-                List<Ref> branchList = git.branchList().call();
+                ListBranchCommand listBranchCommand = git.branchList();
+                List<Ref> branchList = retryingRepositoryOperationFacade.call(listBranchCommand);
                 boolean createBranch = true;
                 for (Ref branch : branchList) {
                     if (StringUtils.equals(branch.getName(), sandboxBranchName) ||
@@ -638,17 +647,17 @@ public class GitRepositoryHelper {
                     }
                 }
                 if (sandboxRepo.isBare() || sandboxRepo.resolve(Constants.HEAD) == null) {
-                    git.commit()
+                    CommitCommand commitCommand = git.commit()
                             .setAllowEmpty(true)
                             .setMessage(getCommitMessage(REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE)
-                                    .replaceAll(PATTERN_SANDBOX, sandboxBranchName))
-                            .call();
+                                    .replaceAll(PATTERN_SANDBOX, sandboxBranchName));
+                    retryingRepositoryOperationFacade.call(commitCommand);
                 }
-                git.checkout()
+                CheckoutCommand checkoutCommand = git.checkout()
                         .setCreateBranch(createBranch)
                         .setName(sandboxBranchName)
-                        .setForce(false)
-                        .call();
+                        .setForce(false);
+                retryingRepositoryOperationFacade.call(checkoutCommand);
             }
             return true;
         } catch (GitAPIException | IOException e) {
@@ -772,11 +781,12 @@ public class GitRepositoryHelper {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-
-            Status status = git.status().call();
+            StatusCommand statusCommand = git.status();
+            Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
             if (status.hasUncommittedChanges() || !status.isClean()) {
-                DirCache dirCache = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
+                AddCommand addCommand = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS);
+                retryingRepositoryOperationFacade.call(addCommand);
                 CommitCommand commitCommand = git.commit()
                         .setMessage(message);
                 String username = securityService.getCurrentUser();
@@ -784,14 +794,9 @@ public class GitRepositoryHelper {
                 if (Objects.nonNull(user)) {
                     commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
                 }
-                RevCommit commit = commitCommand.call();
-                // TODO: SJ: Do we need the commit id?
-                // commitId = commit.getName();
+                retryingRepositoryOperationFacade.call(commitCommand);
             }
-
             checkoutSandboxBranch(site, repo, sandboxBranch);
-
-            git.close();
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException err) {
             logger.error("error creating initial commit for site:  " + site, err);
             toReturn = false;
@@ -856,12 +861,12 @@ public class GitRepositoryHelper {
                 cloneCommand.setBranch(remoteBranch);
             }
 
-            cloneResult = cloneCommand
+            cloneCommand
                     .setURI(remoteUrl)
                     .setDirectory(localPath)
                     .setRemote(remoteName)
-                    .setCloneAllBranches(!singleBranch)
-                    .call();
+                    .setCloneAllBranches(!singleBranch);
+            cloneResult = retryingRepositoryOperationFacade.call(cloneCommand);
             Files.deleteIfExists(tempKey);
             Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
 
@@ -949,15 +954,16 @@ public class GitRepositoryHelper {
                 "cloning and renaming it to sandbox branch to replace fully cloned branch");
         try (Git git = new Git(repository)) {
             logger.debug("Create temporary orphan branch " + sandboxBranchOrphanName);
-            git.checkout()
+            CheckoutCommand checkoutCommand = git.checkout()
                     .setName(sandboxBranchOrphanName)
                     .setStartPoint(sandboxBranchName)
-                    .setOrphan(true)
-                    .call();
+                    .setOrphan(true);
+            retryingRepositoryOperationFacade.call(checkoutCommand);
 
             // Reset everything to simulate first commit as created empty repo
             logger.debug("Soft reset to commit empty repo");
-            git.reset().call();
+            ResetCommand resetCommand = git.reset();
+            retryingRepositoryOperationFacade.call(resetCommand);
 
             logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
             CommitCommand commitCommand = git.commit()
@@ -967,13 +973,17 @@ public class GitRepositoryHelper {
             if (Objects.nonNull(user)) {
                 commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
             }
-            commitCommand.call();
+            retryingRepositoryOperationFacade.call(commitCommand);
 
             logger.debug("Delete cloned branch " + sandboxBranchName);
-            git.branchDelete().setBranchNames(sandboxBranchName).setForce(true).call();
+            DeleteBranchCommand deleteBranchCommand =
+                    git.branchDelete().setBranchNames(sandboxBranchName).setForce(true);
+            retryingRepositoryOperationFacade.call(deleteBranchCommand);
 
             logger.debug("Rename temporary orphan branch to sandbox branch");
-            git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName).call();
+            RenameBranchCommand renameBranchCommand =
+                    git.branchRename().setNewName(sandboxBranchName).setOldName(sandboxBranchOrphanName);
+            retryingRepositoryOperationFacade.call(renameBranchCommand);
         }
     }
 
@@ -1124,7 +1134,8 @@ public class GitRepositoryHelper {
 
                 // Add the file to git
                 try (Git git = new Git(repo)) {
-                    git.add().addFilepattern(getGitPath(path)).call();
+                    AddCommand addCommand = git.add().addFilepattern(getGitPath(path));
+                    retryingRepositoryOperationFacade.call(addCommand);
 
                     git.close();
                     result = true;
@@ -1154,12 +1165,15 @@ public class GitRepositoryHelper {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            status = git.status().addPath(gitPath).call();
+            StatusCommand statusCommand = git.status().addPath(gitPath);
+            status = retryingRepositoryOperationFacade.call(statusCommand);
 
             // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
             if (status.hasUncommittedChanges() || !status.isClean()) {
                 RevCommit commit;
-                commit = git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment).call();
+                CommitCommand commitCommand =
+                        git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment);
+                commit = retryingRepositoryOperationFacade.call(commitCommand);
                 commitId = commit.getName();
             }
 
@@ -1241,5 +1255,13 @@ public class GitRepositoryHelper {
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }

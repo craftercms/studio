@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -85,15 +86,18 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     protected ContentRepository contentRepository;
     protected StudioConfiguration studioConfiguration;
     protected InstanceService instanceService;
+    protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     @ConstructorProperties({"dbVersionProvider", "dbPipelineFactory", "bpPipelineFactory", "configurationFile",
-            "dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService"})
+            "dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService",
+            "retryingRepositoryOperationFacade"})
     public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
                                     UpgradePipelineFactory<String> dbPipelineFactory,
                                     UpgradePipelineFactory<String> bpPipelineFactory, Resource configurationFile,
                                     DataSource dataSource, DbIntegrityValidator integrityValidator,
                                     ContentRepository contentRepository, StudioConfiguration studioConfiguration,
-                                    InstanceService instanceService) {
+                                    InstanceService instanceService,
+                                    RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.dbVersionProvider = dbVersionProvider;
         this.dbPipelineFactory = dbPipelineFactory;
         this.bpPipelineFactory = bpPipelineFactory;
@@ -103,6 +107,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         this.contentRepository = contentRepository;
         this.studioConfiguration = studioConfiguration;
         this.instanceService = instanceService;
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 
     /**
@@ -156,7 +161,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 
     @Override
     protected UpgradeContext<String> createUpgradeContext(String site) {
-        return new StudioUpgradeContext(site, studioConfiguration, dataSource, instanceService);
+        return new StudioUpgradeContext(site, studioConfiguration, dataSource, instanceService,
+                retryingRepositoryOperationFacade);
     }
 
     /**

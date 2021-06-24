@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
@@ -75,6 +76,7 @@ public class StudioClusterUtils {
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
     private StudioConfiguration studioConfiguration;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     public HierarchicalConfiguration<ImmutableNode> getClusterConfiguration() {
         return studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
@@ -99,11 +101,11 @@ public class StudioClusterUtils {
     public void removeRemote(Git git, String remoteName) throws GitAPIException {
         RemoteRemoveCommand remoteRemoveCommand = git.remoteRemove();
         remoteRemoveCommand.setRemoteName(remoteName);
-        remoteRemoveCommand.call();
+        retryingRepositoryOperationFacade.call(remoteRemoveCommand);
 
-        List<Ref> resultRemoteBranches = git.branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)
-                .call();
+        ListBranchCommand listBranchCommand = git.branchList()
+                .setListMode(ListBranchCommand.ListMode.REMOTE);
+        List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
         List<String> branchesToDelete = new ArrayList<String>();
         for (Ref remoteBranchRef : resultRemoteBranches) {
@@ -116,7 +118,7 @@ public class StudioClusterUtils {
             String[] array = new String[branchesToDelete.size()];
             delBranch.setBranchNames(branchesToDelete.toArray(array));
             delBranch.setForce(true);
-            delBranch.call();
+            retryingRepositoryOperationFacade.call(delBranch);
         }
     }
 
@@ -270,5 +272,13 @@ public class StudioClusterUtils {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
 }

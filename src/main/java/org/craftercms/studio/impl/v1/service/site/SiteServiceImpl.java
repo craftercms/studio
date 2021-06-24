@@ -88,7 +88,7 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
+import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -973,7 +973,7 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
@@ -1000,7 +1000,7 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -1019,7 +1019,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void updateLastSyncedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
@@ -1518,7 +1518,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled)
@@ -1534,7 +1534,7 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId,
@@ -1633,7 +1633,7 @@ public class SiteServiceImpl implements SiteService {
         return result == 1;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
         logger.debug("Unlocking publishing for site " + siteId);
@@ -1641,7 +1641,7 @@ public class SiteServiceImpl implements SiteService {
         return true;
     }
 
-    @RetryingOperation
+    @RetryingDatabaseOperation
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat for site " + siteId);

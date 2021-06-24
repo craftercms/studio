@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
@@ -77,6 +78,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
     private GeneralLockService generalLockService;
     private ConfigurationService configurationService;
     private String[] configurationPatterns;
+    private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     private synchronized boolean checkCycleCounter() {
         return !(--counter > 0);
@@ -176,12 +178,11 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
                         String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
 
                         logger.debug("Executing clone command");
-                        cloneResult = cloneCommand
-                                .setURI(cloneUrl)
+                        cloneCommand.setURI(cloneUrl)
                                 .setRemote(remoteNode.getGitRemoteName())
                                 .setDirectory(localPath)
-                                .setCloneAllBranches(true)
-                                .call();
+                                .setCloneAllBranches(true);
+                        cloneResult = retryingRepositoryOperationFacade.call(cloneCommand);
                         Files.deleteIfExists(tempKey);
                         cloned = true;
 
@@ -270,14 +271,14 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
                     RemoteSetUrlCommand remoteSetUrlCommand = git.remoteSetUrl();
                     remoteSetUrlCommand.setRemoteName(member.getGitRemoteName());
                     remoteSetUrlCommand.setRemoteUri(new URIish(remoteUrl));
-                    remoteSetUrlCommand.call();
+                    retryingRepositoryOperationFacade.call(remoteSetUrlCommand);
                 }
             } else {
                 logger.debug("Add " + member.getLocalAddress() + " as remote to sandbox");
                 RemoteAddCommand remoteAddCommand = git.remoteAdd();
                 remoteAddCommand.setName(member.getGitRemoteName());
                 remoteAddCommand.setUri(new URIish(remoteUrl));
-                remoteAddCommand.call();
+                retryingRepositoryOperationFacade.call(remoteAddCommand);
             }
 
         } catch (URISyntaxException e) {
@@ -323,7 +324,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-                var result = pullCommand.call();
+                var result = retryingRepositoryOperationFacade.call(pullCommand);
 
                 if (result.isSuccessful() && result.getMergeResult() != null) {
                     // get all changed files that match the config patterns and invalidate the cache
@@ -388,4 +389,11 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
         this.configurationPatterns = configurationPatterns;
     }
 
+    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
+        return retryingRepositoryOperationFacade;
+    }
+
+    public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
+        this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
 }

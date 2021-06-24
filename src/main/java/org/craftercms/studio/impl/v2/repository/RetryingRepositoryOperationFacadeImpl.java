@@ -14,28 +14,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v2.dal;
+package org.craftercms.studio.impl.v2.repository;
 
-import org.craftercms.studio.api.v2.annotation.RetryingOperation;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemDAO;
-import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.eclipse.jgit.api.GitCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 
-@RetryingOperation
-public class RetryingOperationFacadeImpl implements RetryingOperationFacade {
-
-    private ItemDAO itemDao;
+public class RetryingRepositoryOperationFacadeImpl implements RetryingRepositoryOperationFacade {
 
     @Override
-    public void upsertEntry(Item item) {
-        itemDao.upsertEntry(item);
-    }
-
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
-    public void setItemDao(ItemDAO itemDao) {
-        this.itemDao = itemDao;
+    public <T> T call(GitCommand<T> gitCommand) throws GitAPIException {
+        return gitCommand.call();
     }
 }
