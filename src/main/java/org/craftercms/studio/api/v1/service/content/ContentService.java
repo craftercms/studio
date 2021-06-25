@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -263,6 +263,25 @@ public interface ContentService {
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock) throws ServiceLayerException;
+
+    /**
+     * write content
+     *
+     * @param site site identifier
+     * @param path path
+     * @param fileName file name
+     * @param contentType content type
+     * @param input content
+     * @param createFolders
+     * 			create missing folders in path?
+     * @param edit edit
+     * @param unlock
+     * 			unlock the content upon edit?
+     * @param skipAuditLogInsert if true do not insert audit log row, otherwise false
+     * @throws ServiceLayerException general service error
+     */
+    void writeContent(String site, String path, String fileName, String contentType, InputStream input,
+                      String createFolders, String edit, String unlock, boolean skipAuditLogInsert) throws ServiceLayerException;
 
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
                                final String contentType, final InputStream input, final String createFolders,

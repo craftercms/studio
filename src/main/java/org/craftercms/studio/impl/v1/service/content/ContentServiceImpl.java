@@ -318,6 +318,21 @@ public class ContentServiceImpl implements ContentService {
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock) throws ServiceLayerException {
+        writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
+    }
+
+    @Override
+    @ValidateParams
+    @ValidateAction(type = Type.CREATE)
+    public void writeContent(@ValidateStringParam(name = "site") @SiteId String site,
+                             @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
+                             @ValidateStringParam(name = "fileName") @ActionTargetFilename String fileName,
+                             @ValidateStringParam(name = "contentType") @ActionContentType String contentType,
+                             InputStream input,
+                             @ValidateStringParam(name = "createFolders") String createFolders,
+                             @ValidateStringParam(name = "edit") String edit,
+                             @ValidateStringParam(name = "unlock") String unlock,
+                             boolean skipAuditLogInsert) throws ServiceLayerException {
         // TODO: SJ: refactor for 2.7.x
 
         try {
@@ -335,6 +350,7 @@ public class ContentServiceImpl implements ContentService {
         params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
         params.put(DmConstants.KEY_EDIT, edit);
         params.put(DmConstants.KEY_UNLOCK, unlock);
+        params.put(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT, String.valueOf(skipAuditLogInsert));
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         String relativePath = path;
         boolean contentExists = contentExists(site, path);
@@ -448,7 +464,7 @@ public class ContentServiceImpl implements ContentService {
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
         try {
-            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock);
+            writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
             moveContent(site, path, targetPath);
         } catch (ServiceLayerException | RuntimeException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
@@ -986,7 +1002,11 @@ public class ContentServiceImpl implements ContentService {
         }
 
         // Item update
-        itemServiceInternal.moveItems(site, fromPath, movePath);
+        String sourcePath = (fromPath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
+                fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
+        String targetPath = (movePath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
+                movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR)) : movePath;
+        itemServiceInternal.moveItems(site, sourcePath, targetPath);
 
         // write activity stream
         SiteFeed siteFeed = siteService.getSite(site);
