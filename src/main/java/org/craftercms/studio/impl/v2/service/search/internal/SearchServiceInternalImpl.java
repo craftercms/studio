@@ -27,6 +27,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,17 +70,25 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Required;
 
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.regexpQuery;
+
 /**
  * Default implementation of {@link SearchServiceInternal}
  * @author joseross
  */
 public class SearchServiceInternalImpl implements SearchServiceInternal {
 
+    public static final String CONFIG_KEY_FIELDS = "studio.search.fields.search";
     public static final String CONFIG_KEY_FACETS = "studio.search.facets";
     public static final String CONFIG_KEY_TYPES = "studio.search.types";
 
-    public static final String CONFIG_KEY_FACET_NAME = "name";
-    public static final String CONFIG_KEY_FACET_FIELD = "field";
+    public static final String CONFIG_KEY_NAME = "name";
+    public static final String CONFIG_KEY_FIELD = "field";
+
     public static final String CONFIG_KEY_FACET_DATE = "date";
     public static final String CONFIG_KEY_FACET_MULTIPLE = "multiple";
     public static final String CONFIG_KEY_FACET_RANGES = "ranges";
@@ -85,14 +96,16 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String CONFIG_KEY_FACET_RANGE_FROM = "from";
     public static final String CONFIG_KEY_FACET_RANGE_TO = "to";
 
-    public static final String CONFIG_KEY_TYPE_FIELD = CONFIG_KEY_FACET_FIELD;
-    public static final String CONFIG_KEY_TYPE_NAME = CONFIG_KEY_FACET_NAME;
     public static final String CONFIG_KEY_TYPE_MATCHES = "matches";
+
+    public static final String CONFIG_KEY_FIELD_BOOST = "boost";
 
     public static final String FACET_RANGE_MIN = "min";
     public static final String FACET_RANGE_MAX = "max";
 
     public static final String DEFAULT_MIME_TYPE = "application/xml";
+
+    public static final Pattern EXACT_MATCH_PATTERN = Pattern.compile(".*(\"([^\"]+)\").*");
 
     /**
      * Name of the field for paths
@@ -127,7 +140,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     /**
      * List of fields to include during searching
      */
-    protected String[] searchFields;
+    protected Map<String, Float> searchFields;
 
     /**
      * List of fields to include during highlighting
@@ -174,8 +187,6 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     protected Map<String, HierarchicalConfiguration<ImmutableNode>> types;
 
-
-
     @Required
     public void setPathFieldName(final String pathFieldName) {
         this.pathFieldName = pathFieldName;
@@ -212,11 +223,6 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     @Required
-    public void setSearchFields(final String[] searchFields) {
-        this.searchFields = searchFields;
-    }
-
-    @Required
     public void setHighlightFields(final String[] highlightFields) {
         this.highlightFields = highlightFields;
     }
@@ -250,8 +256,22 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Loads facets and type mapping from the global configuration
      */
     public void init() {
+        loadFieldsFromGlobalConfiguration();
         loadTypesFromGlobalConfiguration();
         loadFacetsFromGlobalConfiguration();
+    }
+
+    protected void loadFieldsFromGlobalConfiguration() {
+        searchFields = new TreeMap<>();
+
+        List<HierarchicalConfiguration<ImmutableNode>> fieldsConfig =
+                studioConfiguration.getSubConfigs(CONFIG_KEY_FIELDS);
+
+        if(CollectionUtils.isNotEmpty(fieldsConfig)) {
+            fieldsConfig.forEach(fieldConfig ->
+                searchFields.put(fieldConfig.getString(CONFIG_KEY_NAME), fieldConfig.getFloat(CONFIG_KEY_FIELD_BOOST))
+            );
+        }
     }
 
     /**
@@ -266,8 +286,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         if(CollectionUtils.isNotEmpty(facetsConfig)) {
             facetsConfig.forEach(facetConfig -> {
                 FacetTO facet = new FacetTO();
-                facet.setName(facetConfig.getString(CONFIG_KEY_FACET_NAME));
-                facet.setField(facetConfig.getString(CONFIG_KEY_FACET_FIELD));
+                facet.setName(facetConfig.getString(CONFIG_KEY_NAME));
+                facet.setField(facetConfig.getString(CONFIG_KEY_FIELD));
                 facet.setDate(facetConfig.getBoolean(CONFIG_KEY_FACET_DATE, false));
                 facet.setMultiple(facetConfig.getBoolean(CONFIG_KEY_FACET_MULTIPLE, false));
 
@@ -307,7 +327,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         List<HierarchicalConfiguration<ImmutableNode>> typesConfig =
             studioConfiguration.getSubConfigs(CONFIG_KEY_TYPES);
 
-        typesConfig.forEach(type -> types.put(type.getString(CONFIG_KEY_TYPE_NAME), type));
+        typesConfig.forEach(type -> types.put(type.getString(CONFIG_KEY_NAME), type));
 
     }
 
@@ -339,8 +359,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      */
     @SuppressWarnings("unchecked")
     protected void updateFilters(BoolQueryBuilder query, SearchParams params, Map<String, FacetTO> siteFacets) {
-        var builder = params.isOrOperator()?
-                                    QueryBuilders.boolQuery() : query;
+        var builder = params.isOrOperator()? boolQuery() : query;
         params.getFilters().forEach((filter, value) -> {
             FacetTO facetConfig;
             if(MapUtils.isNotEmpty(siteFacets)) {
@@ -351,7 +370,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             if(Objects.nonNull(facetConfig)) {
                 String fieldName = facetConfig.getField();
                 if(facetConfig.isRange()) {
-                    RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery(fieldName);
+                    RangeQueryBuilder rangeQuery = rangeQuery(fieldName);
                     Map<String, Object> range = (Map<String, Object>) value;
                     rangeQuery
                         .gte(range.get(FACET_RANGE_MIN))
@@ -364,16 +383,16 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                     }
                 } else if (facetConfig.isMultiple() && value instanceof List) {
                     List<Object> values = (List<Object>) value;
-                    BoolQueryBuilder orQuery = QueryBuilders.boolQuery();
-                    values.forEach(val -> orQuery.should(QueryBuilders.matchQuery(fieldName, val)));
-                    var qb = QueryBuilders.boolQuery().must(orQuery);
+                    BoolQueryBuilder orQuery = boolQuery();
+                    values.forEach(val -> orQuery.should(matchQuery(fieldName, val)));
+                    var qb = boolQuery().must(orQuery);
                     if (params.isOrOperator()) {
                         builder.should(qb);
                     } else {
                         builder.filter(qb);
                     }
                 } else {
-                    var qb = QueryBuilders.matchQuery(fieldName, value);
+                    var qb = matchQuery(fieldName, value);
                     if (params.isOrOperator()) {
                         builder.should(qb);
                     } else {
@@ -383,7 +402,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             }
         });
         if (params.isOrOperator()) {
-            query.filter(QueryBuilders.boolQuery().must(builder));
+            query.filter(boolQuery().must(builder));
         }
     }
 
@@ -427,33 +446,52 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             throws ServiceLayerException {
 
         Map<String, FacetTO> siteFacets = servicesConfig.getFacets(siteId);
-        BoolQueryBuilder query = QueryBuilders.boolQuery();
+        BoolQueryBuilder query = boolQuery();
+        Map<String, Float> boostedFields = new TreeMap<>(searchFields);
+        boostedFields.putAll(servicesConfig.getSearchFields(siteId));
 
+        // A Lucene query, this was added to support the custom query for content monitoring, could be replaced later
         if(StringUtils.isNotEmpty(params.getQuery())) {
             query.must(QueryBuilders.queryStringQuery(params.getQuery()));
         }
 
+        // Do not replace special characters, this will allow ES to handle them per field
         String rawKeywords = params.getKeywords();
-        if (StringUtils.isNotEmpty(rawKeywords)) {
-            rawKeywords = rawKeywords
-                .replaceAll("[^\\p{IsAlphabetic}\\p{Digit}\\s]", StringUtils.SPACE)
-                .trim();
-            BoolQueryBuilder keywordsQuery = QueryBuilders.boolQuery();
-            String[] keywords = rawKeywords.split(" ");
-            if (ArrayUtils.isNotEmpty(keywords)) {
-                keywordsQuery.should(
-                    QueryBuilders.multiMatchQuery(rawKeywords, searchFields)
-                        .type(MatchQuery.Type.PHRASE_PREFIX)
-                );
 
-                for (String keyword : keywords) {
-                    keywordsQuery
-                        .should(QueryBuilders.regexpQuery(pathFieldName, ".*" + keyword + ".*"))
-                        .should(QueryBuilders.multiMatchQuery(keyword, searchFields));
-                }
+        if (StringUtils.isNotEmpty(rawKeywords)) {
+            // Check if the user requests an exact match with quotes
+            Matcher matcher = EXACT_MATCH_PATTERN.matcher(rawKeywords);
+            if (matcher.matches()) {
+                // A match query without synonyms and no fuzziness is as close as we can get to an exact match
+                query.must(multiMatchQuery(matcher.group(2))
+                            .autoGenerateSynonymsPhraseQuery(false)
+                            .type(MatchQuery.Type.PHRASE)
+                            .fuzzyTranspositions(false)
+                            .fields(boostedFields));
+
+                // Remove the quoted section from the keywords to continue processing
+                rawKeywords = StringUtils.remove(rawKeywords, matcher.group(1));
             }
 
-            query.must(keywordsQuery);
+
+            if (StringUtils.isNotEmpty(rawKeywords)) {
+                // Search for the combination of all keywords and a wildcard on the last one
+                // (no custom fields in this one because it only works on text fields)
+                query.should(multiMatchQuery(rawKeywords)
+                                .type(MatchQuery.Type.PHRASE_PREFIX)
+                                .fields(searchFields));
+
+                String[] keywords = rawKeywords.split("\\s");
+                if (ArrayUtils.isNotEmpty(keywords)) {
+                    for (String keyword : keywords) {
+                        query
+                            // Search in the configured fields
+                            .should(multiMatchQuery(keyword).fields(boostedFields))
+                            // Search in the path, regex is required because the path is indexed as string
+                            .should(regexpQuery(pathFieldName, keyword + ".*"));
+                    }
+                }
+            }
         }
 
         if (StringUtils.isNotEmpty(params.getPath())) {
@@ -622,12 +660,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected String getItemType(Map<String, Object> source) {
         if(MapUtils.isNotEmpty(types)) {
             for (HierarchicalConfiguration<ImmutableNode> typeConfig : types.values()) {
-                String fieldName = typeConfig.getString(CONFIG_KEY_TYPE_FIELD);
+                String fieldName = typeConfig.getString(CONFIG_KEY_FIELD);
                 if(source.containsKey(fieldName)) {
                     String fieldValue = source.get(fieldName).toString();
                     if (StringUtils.isNotEmpty(fieldValue) &&
                             fieldValue.matches(typeConfig.getString(CONFIG_KEY_TYPE_MATCHES))) {
-                        return typeConfig.getString(CONFIG_KEY_TYPE_NAME);
+                        return typeConfig.getString(CONFIG_KEY_NAME);
                     }
                 }
             }

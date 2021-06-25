@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -65,7 +66,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_STAGING_URL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHER;
@@ -362,6 +362,7 @@ public class ServicesConfigImpl implements ServicesConfig {
                      // set the last updated date
                      siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
+                     loadSearchFields(configNode, siteConfig);
                      loadFacetConfiguration(configNode, siteConfig);
 
                      siteConfig.setPluginFolderPattern(configNode.valueOf(SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN));
@@ -403,6 +404,19 @@ public class ServicesConfigImpl implements ServicesConfig {
              String liveUrlValue = configNode.valueOf(SITE_CONFIG_ELEMENT_LIVE_URL);
              siteConfig.setLiveUrl(liveUrlValue);
          }
+     }
+
+     protected void loadSearchFields(Node root, SiteConfigTO config) {
+         Map<String, Float> fields = new TreeMap<>();
+         List<Node> fieldsConfig = root.selectNodes("search/fields/field");
+         if(CollectionUtils.isNotEmpty(fieldsConfig)) {
+             fieldsConfig.forEach(fieldConfig -> {
+                 String name = XmlUtils.selectSingleNodeValue(fieldConfig, "name/text()");
+                 String boost = XmlUtils.selectSingleNodeValue(fieldConfig, "boost/text()");
+                 fields.put(name, StringUtils.isNotEmpty(boost)? Float.parseFloat(boost) : 1.0f);
+             });
+         }
+         config.setSearchFields(fields);
      }
 
     /**
@@ -611,6 +625,15 @@ public class ServicesConfigImpl implements ServicesConfig {
             return config.getLiveEnvironment();
         }
         return null;
+    }
+
+    @Override
+    public Map<String, Float> getSearchFields(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if(Objects.nonNull(config)) {
+            return config.getSearchFields();
+        }
+        return Collections.emptyMap();
     }
 
     /**
