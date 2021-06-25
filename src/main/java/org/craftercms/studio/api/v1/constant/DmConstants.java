@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -61,6 +61,7 @@ public class DmConstants {
 	public static final String KEY_PAGE_GROUP_ID = "pageGroupId";
 	public final static String KEY_UNLOCK = "unlock";
     public final static String KEY_SYSTEM_ASSET = "systemAsset";
+	public final static String KEY_SKIP_AUDIT_LOG_INSERT = "skipAuditLogInsert";
 
 	/** rename keys **/
 	public final static String KEY_SOURCE_PATH = "sourcePath";
