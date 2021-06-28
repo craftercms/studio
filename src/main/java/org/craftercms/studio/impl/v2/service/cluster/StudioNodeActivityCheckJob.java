@@ -104,7 +104,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(CLUSTER_MEMBER_IDS, idsToRemove);
             params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
-            int result = retryingDatabaseOperationFacade.removeClusterMembers(params);
+            retryingDatabaseOperationFacade.removeClusterMembers(params);
         }
     }
 
