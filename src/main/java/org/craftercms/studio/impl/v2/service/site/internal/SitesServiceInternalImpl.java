@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -58,6 +59,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     private ContentRepository contentRepository;
     private StudioConfiguration studioConfiguration;
     private SiteFeedMapper siteFeedMapper;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -176,7 +178,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         if (isNotEmpty(name) && siteFeedMapper.isNameUsed(siteId, name)) {
             throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
         }
-        int updated = siteFeedMapper.updateSite(siteId, name, description);
+        int updated = retryingDatabaseOperationFacade.updateSite(siteId, name, description);
         if (updated != 1) {
             throw new SiteNotFoundException();
         }
@@ -190,7 +192,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
 
     @Override
     public void clearPublishingLock(String siteId) {
-        siteFeedMapper.clearPublishingLockForSite(siteId);
+        retryingDatabaseOperationFacade.clearPublishingLockForSite(siteId);
     }
 
     public PluginDescriptorReader getDescriptorReader() {
@@ -223,5 +225,13 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

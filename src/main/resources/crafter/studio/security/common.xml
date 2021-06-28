@@ -49,13 +49,13 @@
     </bean>
 
     <bean id="studioUserDetailsService" class="org.craftercms.studio.impl.v2.security.userdetails.DbUserDetailsService">
-        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="userDao" ref="userDao"/>
         <constructor-arg name="cache" ref="userDetailsCache"/>
     </bean>
 
     <bean id="daoAuthenticationUserDetailsService"
           class="org.craftercms.studio.impl.v2.security.userdetails.DbAuthenticationUserDetailsService">
-        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="userDao" ref="userDao"/>
         <constructor-arg name="cache" ref="userDetailsCache"/>
     </bean>
 

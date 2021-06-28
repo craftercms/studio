@@ -82,6 +82,7 @@
         <property name="dependencyService" ref="dependencyService" />
         <property name="itemDao" ref="itemDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <!-- all of these beans below need to move off contentRepository and on to content service.  Repository is a very NARROW interface -->
@@ -123,12 +124,13 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
-        <property name="userDao" ref="userDAO"/>
+        <property name="userDao" ref="userDao"/>
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
@@ -181,6 +183,7 @@
          <property name="userServiceInternal" ref="userServiceInternal" />
          <property name="publishingManager" ref="cstudioPublishingManager" />
          <property name="publishRequestDAO" ref="publishRequestDao" />
+         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
      </bean>
 
     <bean id="cstudioNotificationService"
@@ -269,6 +272,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="navigationOrderSequenceMapper" ref="navigationOrderSequenceMapper" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="cstudioContentLifeCycleService" class="org.craftercms.studio.impl.v1.service.content.DmContentLifeCycleServiceImpl"
@@ -402,7 +406,8 @@
           class="org.craftercms.studio.impl.v2.service.security.internal.GroupServiceInternalImpl">
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="configurationService" ref="configurationService"/>
-        <property name="groupDao" ref="groupDAO" />
+        <property name="groupDao" ref="groupDao" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="userService" class="org.craftercms.studio.impl.v2.service.security.UserServiceImpl">
@@ -426,11 +431,12 @@
     <bean id="userServiceInternal"
           class="org.craftercms.studio.impl.v2.service.security.internal.UserServiceInternalImpl">
         <constructor-arg name="groupServiceInternal" ref="groupServiceInternal"/>
-        <constructor-arg name="userDAO" ref="userDAO"/>
+        <constructor-arg name="userDao" ref="userDao"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
         <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -467,6 +473,7 @@
           class="org.craftercms.studio.impl.v2.service.cluster.internal.ClusterManagementServiceInternalImpl">
         <property name="clusterDao" ref="clusterDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
@@ -481,6 +488,7 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
@@ -495,6 +503,7 @@
           class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
         <property name="auditDao" ref="auditDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
@@ -528,6 +537,7 @@
         <property name="batchSizeGitLog"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -605,6 +615,7 @@
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -626,7 +637,8 @@
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="contentService" ref="cstudioContentService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
+        <property name="studioDBScriptRunnerFactory" ref="studio.dbScriptRunner" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
@@ -636,6 +648,7 @@
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
         <property name="workflowDao" ref="workflowDao" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -699,12 +712,14 @@
           class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeHeartbeatJob">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="clusterDAO" ref="clusterDao" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
     
     <bean id="studioClusterNodeInactivityCheckJob" 
           class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeActivityCheckJob">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="clusterDao" ref="clusterDao"/>
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studioRepositoryCleanupJob" class="org.craftercms.studio.impl.v1.repository.job.RepositoryCleanupJob">
@@ -793,6 +808,7 @@
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.clockClusterSitePublishedRepoSync"
@@ -810,6 +826,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
@@ -974,6 +991,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -994,6 +1012,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioUtils" ref="studio.utils" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
@@ -1019,6 +1038,7 @@
         <property name="metaDao" ref="metaDAO" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1273,6 +1293,7 @@
         <property name="publishRequestMapper" ref="publishRequestMapper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
@@ -1438,6 +1459,7 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="publishRequestMapper" ref="publishRequestMapper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">
@@ -1685,11 +1707,12 @@
                          value="#{studioConfiguration.getProperty('studio.security.token.password.encrypt')}"/>
         <constructor-arg name="refreshTokenExpiration"
                          value="#{studioConfiguration.getProperty('studio.security.sessionTimeout')}"/>
-        <constructor-arg name="securityMapper" ref="securityMapper"/>
+        <constructor-arg name="securityMapper" ref="securityDao"/>
         <constructor-arg name="instanceService" ref="instanceService"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
         <property name="cookieMaxAge"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>

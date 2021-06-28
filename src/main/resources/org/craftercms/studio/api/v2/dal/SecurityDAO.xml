@@ -179,35 +179,6 @@
             WHERE `user`.username = #{username}
     </select>
 
-    <insert id="createUser" parameterType="java.util.Map">
-            INSERT INTO `user` (username, password, first_name, last_name, email, enabled, externally_managed)
-            VALUES (#{username}, #{password}, #{firstname}, #{lastname}, #{email}, 1, #{externallyManaged})
-    </insert>
-
-    <delete id="deleteUser" parameterType="java.util.Map">
-            DELETE FROM `user` WHERE username = #{username}
-        </delete>
-
-    <update id="updateUser" parameterType="java.util.Map">
-        UPDATE `user`
-        <trim prefix="SET" suffixOverrides=",">
-            <if test="firstname != null">first_name = #{firstname},</if>
-            <if test="lastname != null">last_name = #{lastname},</if>
-            <if test="email != null">email = #{email}</if>
-        </trim>
-        WHERE username = #{username}
-    </update>
-
-    <update id="enableUser" parameterType="java.util.Map">
-            UPDATE `user`
-            SET enabled = #{enabled}
-            WHERE username = #{username}
-    </update>
-
-    <insert id="createGroup" parameterType="java.util.Map">
-            INSERT INTO `group` (group_name, group_description, externally_managed)
-            VALUES (#{name}, #{description}, #{externallyManaged})
-    </insert>
 
     <select id="getGroup" parameterType="java.util.Map" resultType="java.util.Map">
             SELECT cg.group_name AS group_name, cg.group_description AS description
@@ -295,29 +266,6 @@
             WHERE cg.group_name = #{groupName}
     </select>
 
-    <update id="updateGroup" parameterType="java.util.Map">
-            UPDATE `group`
-            SET description = #{description}
-            WHERE group_name = #{groupName}
-    </update>
-
-    <update id="deleteGroup" parameterType="java.util.Map">
-            DELETE FROM `group` WHERE group_name=#{groupName}
-    </update>
-
-    <insert id="addUserToGroup" parameterType="java.util.Map">
-            INSERT INTO group_user (user_id, group_id) VALUES (#{userId}, #{groupId})
-    </insert>
-
-    <insert id="removeUserFromGroup" parameterType="java.util.Map">
-            DELETE FROM group_user WHERE user_id = #{user_id} AND group_id = #{groupId}
-    </insert>
-
-    <update id="setUserPassword" parameterType="java.util.Map">
-            UPDATE `user`
-            SET password = #{password}
-            WHERE username = #{username}
-    </update>
 
     <select id="userExistsInGroup" resultType="Integer" parameterType="java.util.Map">
             SELECT COUNT(1)

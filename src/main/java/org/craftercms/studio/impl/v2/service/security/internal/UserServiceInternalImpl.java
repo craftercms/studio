@@ -27,8 +27,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Group;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserProperty;
@@ -82,18 +82,21 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private SiteService siteService;
     private AccessTokenServiceInternal accessTokenService;
     private SecurityService securityService;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
-            "accessTokenService"})
+            "accessTokenService", "retryingDatabaseOperationFacade"})
     public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
                                    StudioConfiguration studioConfiguration, SiteService siteService,
-                                   SecurityService securityService, AccessTokenServiceInternal accessTokenService) {
+                                   SecurityService securityService, AccessTokenServiceInternal accessTokenService,
+                                   RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.userDao = userDao;
         this.groupServiceInternal = groupServiceInternal;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.securityService = securityService;
         this.accessTokenService= accessTokenService;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
     @Override
@@ -205,7 +208,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             params.put(ENABLED, user.getEnabledAsInt());
 
             try {
-                userDao.createUser(params);
+                retryingDatabaseOperationFacade.createUser(params);
 
                 user.setId((Long) params.get(ID));
 
@@ -232,7 +235,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void updateUser(User user) throws UserNotFoundException, ServiceLayerException {
         long userId = user.getId();
@@ -249,7 +251,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(LOCALE, StringUtils.EMPTY);
 
         try {
-            userDao.updateUser(params);
+            retryingDatabaseOperationFacade.updateUser(params);
 
             // Force a re-authentication if the user is currently logged-in
             accessTokenService.deleteRefreshToken(oldUser);
@@ -258,7 +260,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void deleteUsers(List<Long> userIds, List<String> usernames)
             throws UserNotFoundException, ServiceLayerException {
@@ -269,16 +270,15 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(USER_IDS, ids);
 
         try {
-            userDao.deleteUsers(params);
+            retryingDatabaseOperationFacade.deleteUsers(params);
 
             // Cleanup user properties...
-            userDao.deleteUserPropertiesByUserIds(ids);
+            retryingDatabaseOperationFacade.deleteUserPropertiesByUserIds(ids);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException {
@@ -289,7 +289,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(ENABLED, enabled? 1: 0);
 
         try {
-            userDao.enableUsers(params);
+            retryingDatabaseOperationFacade.enableUsers(params);
 
             return getUsersByIdOrUsername(userIds, usernames);
         } catch (Exception e) {
@@ -334,7 +334,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
@@ -352,7 +351,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                         params = new HashMap<>();
                         params.put(USERNAME, username);
                         params.put(PASSWORD, hashedPassword);
-                        userDao.setUserPassword(params);
+                        retryingDatabaseOperationFacade.setUserPassword(params);
                         return true;
                     } else {
                         throw new PasswordRequirementsFailedException();
@@ -366,7 +365,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
@@ -386,7 +384,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                         params = new HashMap<String, Object>();
                         params.put(USERNAME, username);
                         params.put(PASSWORD, hashedPassword);
-                        userDao.setUserPassword(params);
+                        retryingDatabaseOperationFacade.setUserPassword(params);
                         return true;
                     }
                 } catch (Exception e) {
@@ -456,7 +454,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         var username = securityService.getCurrentUser();
         try {
             var user = getUserByIdOrUsername(0, username);
-            userDao.updateUserProperties(user.getId(), dbSiteId, propertiesToUpdate);
+            retryingDatabaseOperationFacade.updateUserProperties(user.getId(), dbSiteId, propertiesToUpdate);
 
             return getUserProperties(user, dbSiteId);
         } catch (UserNotFoundException e) {
@@ -475,7 +473,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         var username = securityService.getCurrentUser();
         try {
             var user = getUserByIdOrUsername(0, username);
-            userDao.deleteUserProperties(user.getId(), dbSiteId, propertiesToDelete);
+            retryingDatabaseOperationFacade.deleteUserProperties(user.getId(), dbSiteId, propertiesToDelete);
 
             return getUserProperties(user, dbSiteId);
         } catch (UserNotFoundException e) {

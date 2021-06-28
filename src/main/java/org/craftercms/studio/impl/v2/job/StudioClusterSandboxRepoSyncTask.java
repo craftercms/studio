@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -97,6 +98,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
     private GeneralLockService generalLockService;
     private ConfigurationService configurationService;
     private String[] configurationPatterns;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     protected void executeInternal(String siteId) {
@@ -130,9 +132,10 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
                 if (success && clusterDao.existsClusterSiteSyncRepo(localNode.getId(), siteFeed.getId()) < 1) {
                     String commitId = contentRepository.getRepoLastCommitId(siteId);
-                    clusterDao.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(), commitId, commitId,
-                            siteFeed.getLastSyncedGitlogCommitId());
-                    clusterDao.setSiteState(localNode.getId(), siteFeed.getId(), STATE_READY);
+                    retryingDatabaseOperationFacade.insertClusterSiteSyncRepo(localNode.getId(), siteFeed.getId(),
+                            commitId, commitId, siteFeed.getLastSyncedGitlogCommitId());
+                    retryingDatabaseOperationFacade.setClusterNodeSiteState(localNode.getId(), siteFeed.getId(),
+                            STATE_READY);
                     addSiteUuidFile(siteId, siteFeed.getSiteUuid());
                 }
 
@@ -207,8 +210,9 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (result) {
                     String commitId = contentRepository.getRepoLastCommitId(siteId);
 
-                    clusterDao.insertClusterSiteSyncRepo(localNodeId, sId, commitId, commitId, commitId);
-                    clusterDao.setSiteState(localNodeId, sId, STATE_READY);
+                    retryingDatabaseOperationFacade.insertClusterSiteSyncRepo(localNodeId, sId, commitId, commitId,
+                            commitId);
+                    retryingDatabaseOperationFacade.setClusterNodeSiteState(localNodeId, sId, STATE_READY);
                     addSiteUuidFile(siteId, siteUuid);
                     deploymentService.syncAllContentToPreview(siteId, true);
                 }
@@ -219,7 +223,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             }
 
             if (result) {
-                clusterDao.setSiteState(localNodeId, sId, STATE_READY);
+                retryingDatabaseOperationFacade.setClusterNodeSiteState(localNodeId, sId, STATE_READY);
             } else {
                 remotesMap.remove(siteId);
                 contentRepository.deleteSite(siteId);
@@ -337,7 +341,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             for (RemoteRepository remoteRepository : remoteRepositories) {
                 try {
                     addRemoteRepository(siteId, remoteRepository);
-                    clusterDao.addClusterRemoteRepository(currentNode.getId(), remoteRepository.getId());
+                    retryingDatabaseOperationFacade.addClusterRemoteRepository(currentNode.getId(), remoteRepository.getId());
                 } catch (IOException | InvalidRemoteUrlException | ServiceLayerException e) {
                     logger.error("Error while adding remote " + remoteRepository.getRemoteName() +
                             " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
@@ -500,7 +504,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             }
 
             String updatedCommitId = contentRepository.getRepoLastCommitId(siteId);
-            clusterDao.updateNodeLastCommitId(localNodeId, sId, updatedCommitId);
+            retryingDatabaseOperationFacade.updateClusterNodeLastCommitId(localNodeId, sId, updatedCommitId);
 
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(siteId);
@@ -596,4 +600,11 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
         this.configurationPatterns = configurationPatterns;
     }
 
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    }
 }

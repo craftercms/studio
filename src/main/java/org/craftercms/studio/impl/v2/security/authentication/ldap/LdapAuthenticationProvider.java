@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserGroup;
@@ -107,18 +108,21 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
     protected UserServiceInternal userServiceInternal;
     protected UserDAO userDao;
     protected GroupDAO groupDao;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @ConstructorProperties({"studioConfiguration", "siteService", "auditServiceInternal", "userServiceInternal",
-            "userDao", "groupDao"})
+            "userDao", "groupDao", "retryingDatabaseOperationFacade"})
     public LdapAuthenticationProvider(StudioConfiguration studioConfiguration, SiteService siteService,
                                       AuditServiceInternal auditServiceInternal,
-                                      UserServiceInternal userServiceInternal, UserDAO userDao, GroupDAO groupDao) {
+                                      UserServiceInternal userServiceInternal, UserDAO userDao, GroupDAO groupDao,
+                                      RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.auditServiceInternal = auditServiceInternal;
         this.userServiceInternal = userServiceInternal;
         this.userDao = userDao;
         this.groupDao = groupDao;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
     @Override
@@ -310,7 +314,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
             params.put(GROUP_NAME, groupName);
             params.put(GROUP_DESCRIPTION, "Externally managed group - " + groupName);
-            groupDao.createGroup(params);
+            retryingDatabaseOperationFacade.createGroup(params);
         } catch (Exception e) {
             logger.warn("Error creating group", e);
         }
@@ -329,7 +333,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
             params.put(USER_IDS, users);
             params.put(GROUP_ID, group.getId());
             try {
-                groupDao.addGroupMembers(params);
+                retryingDatabaseOperationFacade.addGroupMembers(params);
                 SiteFeed siteFeed =
                         siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();

@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.ClusterSiteRecord;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
@@ -83,6 +84,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     private ServicesConfig servicesConfig;
     private GeneralLockService generalLockService;
     private GitRepositoryHelper gitRepositoryHelper;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     protected void executeInternal(String siteId) {
@@ -121,7 +123,8 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                         // Site doesn't exist locally, create it
                         success = createSite(localNode.getId(), siteFeed.getId(), siteId, siteFeed.getSandboxBranch());
                     } else {
-                        clusterDao.setPublishedRepoCreated(localNode.getId(), siteFeed.getId());
+                        retryingDatabaseOperationFacade.setClusterNodePublishedRepoCreated(localNode.getId(),
+                                siteFeed.getId());
                     }
                 } else {
                     success = false;
@@ -194,7 +197,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
             result = gitRepositoryHelper.createPublishedRepository(siteId, sandboxBranch);
             if (result) {
-                clusterDao.setPublishedRepoCreated(localNodeId, sId);
+                retryingDatabaseOperationFacade.setClusterNodePublishedRepoCreated(localNodeId, sId);
             }
             if (!result) {
                 remotesMap.remove(siteId);
@@ -423,5 +426,13 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
 
     public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
         this.gitRepositoryHelper = gitRepositoryHelper;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

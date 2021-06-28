@@ -20,9 +20,9 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.HashMap;
@@ -40,6 +40,7 @@ public class StudioNodeHeartbeatJob implements Runnable {
 
     private StudioConfiguration studioConfiguration;
     private ClusterDAO clusterDAO;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     private final static ReentrantLock singleWorkerLock = new ReentrantLock();
 
@@ -58,7 +59,6 @@ public class StudioNodeHeartbeatJob implements Runnable {
         }
     }
 
-    @RetryingDatabaseOperation
     public void updateHeartbeat() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
@@ -67,7 +67,7 @@ public class StudioNodeHeartbeatJob implements Runnable {
             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
             logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
-            clusterDAO.updateHeartbeat(params);
+            retryingDatabaseOperationFacade.updateClusterNodeHeartbeat(params);
         }
     }
 
@@ -89,5 +89,13 @@ public class StudioNodeHeartbeatJob implements Runnable {
 
     public void setClusterDAO(ClusterDAO clusterDAO) {
         this.clusterDAO = clusterDAO;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

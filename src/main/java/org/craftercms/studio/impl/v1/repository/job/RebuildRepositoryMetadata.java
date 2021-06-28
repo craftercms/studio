@@ -29,7 +29,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.task.TaskExecutor;
@@ -53,6 +53,7 @@ public class RebuildRepositoryMetadata {
     protected SiteService siteService;
     protected ContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     public void execute(String site) {
         if (taskLock.tryLock()) {
@@ -98,7 +99,6 @@ public class RebuildRepositoryMetadata {
         }
     }
 
-    @RetryingDatabaseOperation
     public boolean cleanOldMetadata(String site) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
         logger.debug("Clean repository metadata for site " + site);
@@ -116,7 +116,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete deployment queue
             logger.debug("Deleting deployment queue for site " + site);
-            publishRequestMapper.deleteDeploymentDataForSite(params);
+            retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
         } catch (Exception error) {
             logger.error("Failed to delete deployment queue for site " + site);
         }
@@ -215,5 +215,13 @@ public class RebuildRepositoryMetadata {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

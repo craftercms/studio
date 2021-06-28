@@ -88,13 +88,13 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
@@ -212,6 +212,7 @@ public class SiteServiceImpl implements SiteService {
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
     protected DependencyServiceInternal dependencyServiceInternal;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     /**
      * given a site ID return the configuration as a document
@@ -321,13 +322,13 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeedMapper.createSite(siteFeed);
+                retryingDatabaseOperationFacade.createSite(siteFeed);
 
                 String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
                 ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
                 if (Objects.nonNull(cm)) {
                     SiteFeed s = getSite(siteId);
-                    clusterDao.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null, null);
+                    retryingDatabaseOperationFacade.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null, null);
                 }
 
                 logger.info("Upgrading site.");
@@ -769,7 +770,7 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatusMessage(
                         studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
-                siteFeedMapper.createSite(siteFeed);
+                retryingDatabaseOperationFacade.createSite(siteFeed);
 
                 upgradeManager.upgrade(siteId);
 
@@ -872,8 +873,8 @@ public class SiteServiceImpl implements SiteService {
             logger.debug("Deleting database records");
             SiteFeed siteFeed = getSite(siteId);
             workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
-            siteFeedMapper.deleteSite(siteId, STATE_DELETED);
-            userDao.deleteUserPropertiesBySiteId(siteFeed.getId());
+            retryingDatabaseOperationFacade.deleteSite(siteId, STATE_DELETED);
+            retryingDatabaseOperationFacade.deleteUserPropertiesBySiteId(siteFeed.getId());
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
@@ -973,7 +974,7 @@ public class SiteServiceImpl implements SiteService {
         rebuildRepositoryMetadata.execute(site);
     }
 
-    @RetryingDatabaseOperation
+
     @Override
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
@@ -982,7 +983,7 @@ public class SiteServiceImpl implements SiteService {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
-        siteFeedMapper.updateLastCommitId(params);
+        retryingDatabaseOperationFacade.updateSiteLastCommitId(params);
 
         String lockKey = "updateLastCommitId:" + site;
         generalLockService.lock(lockKey);
@@ -990,7 +991,8 @@ public class SiteServiceImpl implements SiteService {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                retryingDatabaseOperationFacade.updateClusterNodeLastCommitId(clusterMember.getId(), siteFeed.getId(),
+                        commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
@@ -1000,38 +1002,38 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+        retryingDatabaseOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
 
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastVerifiedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                retryingDatabaseOperationFacade.updateClusterNodeLastVerifiedGitlogCommitId(clusterMember.getId(),
+                        siteFeed.getId(), commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void updateLastSyncedGitlogCommitId(String site, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        siteFeedMapper.updateLastSyncedGitlogCommitId(params);
+        retryingDatabaseOperationFacade.updateSiteLastSyncedGitlogCommitId(params);
 
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(site);
-                clusterDao.updateNodeLastSyncedGitlogCommitId(clusterMember.getId(), siteFeed.getId(), commitId);
+                retryingDatabaseOperationFacade.updateClusterNodeLastSyncedGitlogCommitId(clusterMember.getId(),
+                        siteFeed.getId(), commitId);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
@@ -1518,7 +1520,6 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled)
@@ -1527,14 +1528,13 @@ public class SiteServiceImpl implements SiteService {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("siteId", siteId);
             params.put("enabled", enabled ? 1 : 0);
-            siteFeedMapper.enablePublishing(params);
+            retryingDatabaseOperationFacade.enableSitePublishing(params);
             return true;
         } else {
             throw new SiteNotFoundException();
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId,
@@ -1542,7 +1542,7 @@ public class SiteServiceImpl implements SiteService {
                                                  @ValidateStringParam(name = "message") String message)
             throws SiteNotFoundException {
         if (exists(siteId)) {
-            siteFeedMapper.updatePublishingStatusMessage(siteId, status, message);
+            retryingDatabaseOperationFacade.updateSitePublishingStatusMessage(siteId, status, message);
             return true;
         } else {
             throw new SiteNotFoundException();
@@ -1633,19 +1633,17 @@ public class SiteServiceImpl implements SiteService {
         return result == 1;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
         logger.debug("Unlocking publishing for site " + siteId);
-        siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId);
+        retryingDatabaseOperationFacade.unlockPublishingForSite(siteId, lockOwnerId);
         return true;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat for site " + siteId);
-        siteFeedMapper.updatePublishingLockHeartbeatForSite(siteId);
+        retryingDatabaseOperationFacade.updatePublishingLockHeartbeatForSite(siteId);
     }
 
     @Override
@@ -1665,12 +1663,12 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void setSiteState(String siteId, String state) {
-        siteFeedMapper.setSiteState(siteId, state);
+        retryingDatabaseOperationFacade.setSiteState(siteId, state);
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(siteId);
-                clusterDao.setSiteState(clusterMember.getId(), siteFeed.getId(), state);
+                retryingDatabaseOperationFacade.setClusterNodeSiteState(clusterMember.getId(), siteFeed.getId(), state);
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + siteId);
@@ -1689,12 +1687,12 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     public void setPublishedRepoCreated(String siteId) {
-        siteFeedMapper.setPublishedRepoCreated(siteId);
+        retryingDatabaseOperationFacade.setSitePublishedRepoCreated(siteId);
         try {
             ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
             if (Objects.nonNull(clusterMember)) {
                 SiteFeed siteFeed = getSite(siteId);
-                clusterDao.setPublishedRepoCreated(clusterMember.getId(), siteFeed.getId());
+                retryingDatabaseOperationFacade.setClusterNodePublishedRepoCreated(clusterMember.getId(), siteFeed.getId());
             }
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + siteId);
@@ -1954,5 +1952,13 @@ public class SiteServiceImpl implements SiteService {
 
     public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }
