@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v2.repository.blob;
 
 import org.apache.commons.io.FilenameUtils;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -341,22 +340,6 @@ public class BlobAwareContentRepositoryTest {
 
         verify(localV2).publish(eq(SITE), eq(EMPTY), itemsCaptor.capture(), eq(ENV), eq(USER), eq(COMMENT));
         assertTrue(itemsCaptor.getValue().contains(localItem), "local file should have been published");
-    }
-
-    @Test
-    public void getDeploymentHistoryTest() {
-        DeploymentSyncHistory history = new DeploymentSyncHistory();
-        history.setPath(POINTER_PATH);
-
-        when(localV2.getDeploymentHistory(eq(SITE), any(), any(), any(), any(), any(), anyInt()))
-                .thenReturn(singletonList(history));
-
-        List<DeploymentSyncHistory> result =
-                proxy.getDeploymentHistory(SITE, singletonList(ENV), now(), now(), null, null, 10);
-
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(result.get(0).getPath(), ORIGINAL_PATH);
     }
 
     @Test

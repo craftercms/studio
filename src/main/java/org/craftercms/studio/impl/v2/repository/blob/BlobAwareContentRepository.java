@@ -25,7 +25,6 @@ import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -42,14 +41,12 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
-import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.util.LinkedMultiValueMap;
@@ -72,13 +69,13 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
- * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository} and
- * {@link DeploymentHistoryProvider} that delegates calls to a {@link StudioBlobStore} when appropriate
+ * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository}
+ * that delegates calls to a {@link StudioBlobStore} when appropriate
  *
  * @author joseross
  * @since 3.1.6
  */
-public class BlobAwareContentRepository implements ContentRepository, DeploymentHistoryProvider,
+public class BlobAwareContentRepository implements ContentRepository,
         org.craftercms.studio.api.v2.repository.ContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(BlobAwareContentRepository.class);
@@ -497,18 +494,6 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     }
 
     // Start API 2
-    @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames,
-                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                            DmFilterWrapper dmFilterWrapper, String filterType,
-                                                            int numberOfItems) {
-        List<DeploymentSyncHistory> histories = localRepositoryV2.getDeploymentHistory(site, environmentNames,
-                fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
-
-        return histories.stream()
-                .peek(history -> history.setPath(getOriginalPath(history.getPath())))
-                .collect(toList());
-    }
 
     @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,

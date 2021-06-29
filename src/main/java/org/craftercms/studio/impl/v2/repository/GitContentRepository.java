@@ -27,7 +27,6 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
@@ -44,7 +43,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -59,7 +57,6 @@ import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -166,7 +163,7 @@ import static org.eclipse.jgit.lib.Constants.R_HEADS;
 import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 
-public class GitContentRepository implements ContentRepository, DeploymentHistoryProvider {
+public class GitContentRepository implements ContentRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(GitContentRepository.class);
 
@@ -801,70 +798,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
 
         return toReturn;
-    }
-
-    @Override
-    public List<DeploymentSyncHistory> getDeploymentHistory(String site, List<String> environmentNames,
-                                                            ZonedDateTime fromDate, ZonedDateTime toDate,
-                                                            DmFilterWrapper dmFilterWrapper,
-                                                            String filterType, int numberOfItems) {
-        List<DeploymentSyncHistory> toRet = new ArrayList<DeploymentSyncHistory>();
-        try {
-            Repository publishedRepo = helper.getRepository(site, PUBLISHED);
-            if (Objects.nonNull(publishedRepo)) {
-                int counter = 0;
-                try (Git git = new Git(publishedRepo)) {
-                    // List all environments
-                    ListBranchCommand listBranchCommand = git.branchList();
-                    List<Ref> environments = retryingRepositoryOperationFacade.call(listBranchCommand);
-                    for (int i = 0; i < environments.size() && counter < numberOfItems; i++) {
-                        Ref env = environments.get(i);
-                        String environment = env.getName();
-                        environment = environment.replace(R_HEADS, "");
-                        if (environmentNames.contains(environment)) {
-                            List<RevFilter> filters = new ArrayList<RevFilter>();
-                            filters.add(CommitTimeRevFilter.after(fromDate.toInstant().toEpochMilli()));
-                            filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
-                            filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
-
-                            LogCommand logCommand = git.log()
-                                    .add(env.getObjectId())
-                                    .setRevFilter(AndRevFilter.create(filters));
-                            Iterable<RevCommit> branchLog = retryingRepositoryOperationFacade.call(logCommand);
-
-                            Iterator<RevCommit> iterator = branchLog.iterator();
-                            while (iterator.hasNext() && counter < numberOfItems) {
-                                RevCommit revCommit = iterator.next();
-                                List<String> files = helper.getFilesInCommit(publishedRepo, revCommit);
-                                for (int j = 0; j < files.size() && counter < numberOfItems; j++) {
-                                    String file = files.get(j);
-                                    Path path = Paths.get(file);
-                                    String fileName = path.getFileName().toString();
-                                    if (!ArrayUtils.contains(IGNORE_FILES, fileName)) {
-                                        if (dmFilterWrapper.accept(site, file, filterType)) {
-                                            DeploymentSyncHistory dsh = new DeploymentSyncHistory();
-                                            dsh.setSite(site);
-                                            dsh.setPath(file);
-                                            dsh.setSyncDate(
-                                                    Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
-                                            dsh.setUser(revCommit.getAuthorIdent().getName());
-                                            dsh.setEnvironment(environment.replace(R_HEADS, ""));
-                                            toRet.add(dsh);
-                                            counter++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    git.close();
-                    toRet.sort((o1, o2) -> o2.getSyncDate().compareTo(o1.getSyncDate()));
-                }
-            }
-        } catch (IOException | GitAPIException e) {
-            logger.error("Error while getting deployment history for site " + site, e);
-        }
-        return toRet;
     }
 
     @RetryingDatabaseOperation

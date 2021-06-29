@@ -23,7 +23,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 
@@ -62,23 +61,6 @@ public interface DeploymentService {
     void cancelWorkflowBulk(String site, Set<String> paths) throws DeploymentException;
 
     void deleteDeploymentDataForSite(String site);
-
-    /**
-     * get deployment history given a specified date range
-     *
-     * @param site
-     * @param days
-     * @param number
-     * @param sort
-     *            the sort key to sort items within each deployed date
-     * @param ascending
-     * @param filterType
-     *
-     * @return list of deployment items
-     */
-    List<DmDeploymentTaskTO> getDeploymentHistory(
-            String site, int days, int number, String sort, boolean ascending,
-            String filterType) throws SiteNotFoundException;
 
     List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
                                           boolean subAscending, String filterType) throws ServiceLayerException;
