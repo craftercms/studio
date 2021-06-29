@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.17'
+  version: '4.0.0.18'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -7256,12 +7256,13 @@ components:
               * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
               * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
-              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Publishing, `DESCRIPTION`: The item is beening published
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7279,39 +7280,31 @@ components:
           format: int64
           description: >-
             available actions bitmap
-              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
-              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
-              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
-              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
-              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
-              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
-              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
-              * `BIT ORDER (little-endian)`: 13, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
-              * `BIT ORDER (little-endian)`: 14, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
-              * `BIT ORDER (little-endian)`: 15, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
-              * `BIT ORDER (little-endian)`: 16, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
-              * `BIT ORDER (little-endian)`: 17, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
-              * `BIT ORDER (little-endian)`: 18, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
-              * `BIT ORDER (little-endian)`: 19, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
-              * `BIT ORDER (little-endian)`: 20, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
-              * `BIT ORDER (little-endian)`: 21, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
-              * `BIT ORDER (little-endian)`: 22, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
-              * `BIT ORDER (little-endian)`: 23, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
-              * `BIT ORDER (little-endian)`: 24, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
-              * `BIT ORDER (little-endian)`: 25, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
-              * `BIT ORDER (little-endian)`: 26, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
-              * `BIT ORDER (little-endian)`: 27, `FLAG`: System Create, `DESCRIPTION`: Create system object
-              * `BIT ORDER (little-endian)`: 28, `FLAG`: System Read, `DESCRIPTION`: Read system object
-              * `BIT ORDER (little-endian)`: 29, `FLAG`: System Update, `DESCRIPTION`: Update system object
-              * `BIT ORDER (little-endian)`: 30, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
-              * `BIT ORDER (little-endian)`: 31, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
-              * `BIT ORDER (little-endian)`: 32, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Read, `DESCRIPTION`: Read content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Read Version History, `DESCRIPTION`: Read version history for content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Get Dependencies, `DESCRIPTION`: Get content dependencies
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Publish: Request, `DESCRIPTION`: Request publish for content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Edit, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Rename, `DESCRIPTION`: Rename or move content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Content: Upload, `DESCRIPTION`: Upload content
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Content: Change Type, `DESCRIPTION`: Change content type
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Content: Revert, `DESCRIPTION`: Revert content
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Content: Edit controller, `DESCRIPTION`: Edit controller for content type
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Content: Edit template, `DESCRIPTION`: Edit rendering template
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Content: Create folder, `DESCRIPTION`: Create folder
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Content: Delete controller, `DESCRIPTION`: Delete content type controller
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Content: Delete template, `DESCRIPTION`: Delete rendering template
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Publish: Publish, `DESCRIPTION`: Publish content
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish: Approve, `DESCRIPTION`: Approve publish request
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Publish: Schedule, `DESCRIPTION`: Schedule publish
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Publish: Reject, `DESCRIPTION`: Reject publish request
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Content: Unlock, `DESCRIPTION`: Unlock content item
         sandbox:
           type: object
           description: metadata of content item version stored in sandbox repository
