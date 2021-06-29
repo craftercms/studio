@@ -17,8 +17,7 @@
 def result = [:]
 
 result.message = "API deprecated."
-def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") +
-        "/api/2/workflow/item_states"
+def locationHeader = request.getRequestURL().toString().replace(request.getPathInfo().toString(), "") + "/api/2/workflow/item_states"
 response.addHeader("Location", locationHeader)
 response.setStatus(301)
 
