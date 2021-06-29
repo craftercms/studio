@@ -171,7 +171,6 @@
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="notificationService" ref="cstudioNotificationService"/>
          <property name="eventService" ref="studioEventService"/>
-         <property name="deploymentHistoryProvider" ref="contentRepository"/>
          <property name="studioConfiguration" ref="studioConfiguration" />
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
@@ -1268,7 +1267,6 @@
         <property name="contentRepository" ref="contentRepository"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="deploymentHistoryProvider" ref="contentRepository" />
         <property name="dependencyService" ref="studioDependencyService" />
         <property name="publishRequestMapper" ref="publishRequestMapper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
