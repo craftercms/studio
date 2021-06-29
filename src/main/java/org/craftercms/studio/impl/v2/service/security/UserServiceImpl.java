@@ -100,6 +100,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FO
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 
 public class UserServiceImpl implements UserService {
 
@@ -193,6 +194,12 @@ public class UserServiceImpl implements UserService {
         if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
                 CollectionUtils.containsAny(usernames, Arrays.asList(currentUser.getUsername()))) {
             throw new ServiceLayerException("Cannot delete self.");
+        }
+
+        User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+        if (CollectionUtils.containsAny(userIds, Arrays.asList(gitRepoUser.getId())) ||
+                CollectionUtils.containsAny(usernames, Arrays.asList(gitRepoUser.getUsername()))) {
+            throw new ServiceLayerException("Cannot delete generic Git Repo User.");
         }
 
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
