@@ -51,6 +51,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
 
 public class ContentTypeServiceInternalImpl implements ContentTypeServiceInternal {
 
@@ -102,7 +103,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
             qci.setPath(ctto.getQuickCreatePath());
             Set<String> allowedPermission = securityService.getUserPermissions(siteId, ctto.getQuickCreatePath(),
                     securityService.getCurrentUser(), null);
-            if (allowedPermission.contains("create content")) {
+            if (allowedPermission.contains(PERMISSION_CONTENT_CREATE)) {
                 toRet.add(qci);
             }
         }
