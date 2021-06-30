@@ -20,13 +20,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.FilenameUtils;
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
-import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -52,7 +50,6 @@ import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.event.EventService;
@@ -91,7 +88,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_DEPLOYED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_SCHEDULED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -131,7 +127,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected SecurityService securityService;
     protected EventService eventService;
     protected NotificationService notificationService;
-    protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected StudioConfiguration studioConfiguration;
     protected PublishRequestMapper publishRequestMapper;
     protected AuditServiceInternal auditServiceInternal;
@@ -480,60 +475,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         retryingDatabaseOperationFacade.cancelWorkflowBulk(params);
-    }
-
-    @Override
-    @ValidateParams
-    public List<DmDeploymentTaskTO> getDeploymentHistory(@ValidateStringParam(name = "site") String site,
-                                 @ValidateIntegerParam(name = "daysFromToday") int daysFromToday,
-                                 @ValidateIntegerParam(name = "numberOfItems") int numberOfItems,
-                                 @ValidateStringParam(name = "sort") String sort, boolean ascending,
-                                 @ValidateStringParam(name = "filterType") String filterType)
-            throws SiteNotFoundException {
-        // get the filtered list of attempts in a specific date range
-        ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
-        ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
-        List<DeploymentSyncHistory> deployReports = deploymentHistoryProvider.getDeploymentHistory(site,
-                getEnvironmentNames(site), fromDate, toDate, dmFilterWrapper, filterType, numberOfItems);
-        List<DmDeploymentTaskTO> tasks = new ArrayList<DmDeploymentTaskTO>();
-
-        if (deployReports != null) {
-            int count = 0;
-            Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
-            for (int index = 0; index < deployReports.size() && count < numberOfItems; index++) {
-                DeploymentSyncHistory entry = deployReports.get(index);
-                String env = entry.getEnvironment();
-                if (!processedItems.containsKey(env)) {
-                    processedItems.put(env, new HashSet<String>());
-                }
-                if (!processedItems.get(env).contains(entry.getPath())) {
-                    ContentItemTO deployedItem = getDeployedItem(entry.getSite(), entry.getPath());
-                    if (deployedItem != null) {
-                        deployedItem.eventDate = entry.getSyncDate();
-                        deployedItem.endpoint = entry.getTarget();
-                        deployedItem.setUser(entry.getUser());
-                        deployedItem.setEndpoint(entry.getEnvironment());
-                        String deployedLabel =
-                                entry.getSyncDate().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DEPLOYED));
-                        if (tasks.size() > 0) {
-                            DmDeploymentTaskTO lastTask = tasks.get(tasks.size() - 1);
-                            String lastDeployedLabel = lastTask.getInternalName();
-                            if (lastDeployedLabel.equals(deployedLabel)) {
-                                // add to the last task if it is deployed on the same day
-                                lastTask.setNumOfChildren(lastTask.getNumOfChildren() + 1);
-                                lastTask.getChildren().add(deployedItem);
-                            } else {
-                                tasks.add(createDeploymentTask(deployedLabel, deployedItem));
-                            }
-                        } else {
-                            tasks.add(createDeploymentTask(deployedLabel, deployedItem));
-                        }
-                        processedItems.get(env).add(entry.getPath());
-                    }
-                }
-            }
-        }
-        return tasks;
     }
 
     private List<String> getEnvironmentNames(String siteId) {
@@ -1022,14 +963,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setEventService(EventService eventService) {
         this.eventService = eventService;
-    }
-
-    public DeploymentHistoryProvider getDeploymentHistoryProvider() {
-        return deploymentHistoryProvider;
-    }
-
-    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) {
-        this.deploymentHistoryProvider = deploymentHistoryProvider;
     }
 
     public StudioConfiguration getStudioConfiguration() {

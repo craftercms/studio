@@ -45,7 +45,6 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -84,7 +83,6 @@ public class PublishingManagerImpl implements PublishingManager {
     protected ServicesConfig servicesConfig;
     protected StudioConfiguration studioConfiguration;
     protected DependencyService dependencyService;
-    protected DeploymentHistoryProvider deploymentHistoryProvider;
     protected PublishRequestMapper publishRequestMapper;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
@@ -515,14 +513,6 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
-    }
-
-    public DeploymentHistoryProvider getDeploymentHistoryProvider() {
-        return deploymentHistoryProvider;
-    }
-
-    public void setDeploymentHistoryProvider(DeploymentHistoryProvider deploymentHistoryProvider) {
-        this.deploymentHistoryProvider = deploymentHistoryProvider;
     }
 
     public PublishRequestMapper getPublishRequestMapper() {
