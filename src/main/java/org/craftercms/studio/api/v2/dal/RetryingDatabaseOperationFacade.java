@@ -28,34 +28,91 @@ import java.util.Map;
 public interface RetryingDatabaseOperationFacade {
 
     // Dependency API v1
+
+    /**
+     * Delete all dependencies for source path
+     * @param params SQL query parameters
+     */
     void deleteAllSourceDependencies(Map params);
 
+    /**
+     * Insert list of dependencies
+     * @param params SQL query parameters
+     */
     void insertDependenciesList(Map params);
 
+    /**
+     * Delete all dependencies for site (delete site subtask)
+     * @param params SQL query parameters
+     */
     void deleteDependenciesForSite(Map params);
 
+    /**
+     * Delete dependencies for site and path (delete content subtask)
+     * @param params SQL query parameters
+     */
     void deleteDependenciesForSiteAndPath(Map params);
 
+    /**
+     * Move dependencies (move content subtask)
+     * @param params SQL query parameters
+     */
     void moveDependency(Map params);
 
     // Navigation Order Sequence API v1
+    /**
+     * Insert new navigation order sequence
+     * @param navigationOrderSequence Navigation order sequence object
+     */
     void insertNavigationOrderSequence(NavigationOrderSequence navigationOrderSequence);
 
+    /**
+     * Update navigation order sequence
+     * @param navigationOrderSequence Navigation order sequence object
+     */
     void updateNavigationOrderSequence(NavigationOrderSequence navigationOrderSequence);
 
+    /**
+     * Delete navigation order sequences for site (delete site subtasks)
+     * @param params SQL query parameters
+     */
     void deleteNavigationOrderSequencesForSite(Map params);
 
     // Publish Request API v1
-    void insertItemForDeployment(PublishRequest copyToEnvironment);
+    /**
+     * Insert new publish request into publishing queue
+     * @param publishRequest
+     */
+    void insertItemForDeployment(PublishRequest publishRequest);
 
+    /**
+     * Cancel workflow for single item (cancel items from publishing queue)
+     * @param params SQL query parameters
+     */
     void cancelWorkflow(Map params);
 
+    /**
+     * Cancel workflow for multiple items (cancel items from publishing queue)
+     * @param params
+     */
     void cancelWorkflowBulk(Map params);
 
+    /**
+     * Update publishing queue item state
+     * @param item Publish request item
+     */
     void updateItemDeploymentState(PublishRequest item);
 
+    /**
+     * Mark publish request item as completed
+     * @param item Publish request item
+     */
     void markPublishRequestItemCompleted(PublishRequest item);
 
+    /**
+     * Delete publish request items for site (delete site subtask)
+     * @param params SQL query parameters
+     */
     void deleteDeploymentDataForSite(Map params);
 
     /**
@@ -66,6 +123,11 @@ public interface RetryingDatabaseOperationFacade {
     void resetPublishRequestProcessingQueue(Map params);
 
     // Site API v1
+    /**
+     * Create new site
+     * @param siteFeed Site object
+     * @return true if success otherwise false
+     */
     boolean createSite(SiteFeed siteFeed);
 
     /**
@@ -76,14 +138,36 @@ public interface RetryingDatabaseOperationFacade {
      */
     boolean deleteSite(String siteId, String state);
 
+    /**
+     * Update last commit id for site
+     * @param params SQL query parameters
+     */
     void updateSiteLastCommitId(Map params);
 
+    /**
+     * Enable/disable publishing site
+     * @param params SQL query parameters
+     */
     void enableSitePublishing(Map params);
 
+    /**
+     * Update publishing status for site
+     * @param siteId site identifier
+     * @param status status value
+     * @param message status message
+     */
     void updateSitePublishingStatusMessage(String siteId, String status, String message);
 
+    /**
+     * Update last verified git log commit id for site
+     * @param params SQL query parameters
+     */
     void updateSiteLastVerifiedGitlogCommitId(Map params);
 
+    /**
+     * Update last synced git log commit id for site
+     * @param params SQL query parameters
+     */
     void updateSiteLastSyncedGitlogCommitId(Map params);
 
     /**
@@ -124,8 +208,17 @@ public interface RetryingDatabaseOperationFacade {
     void clearPublishingLockForSite(String siteId);
 
     // Audit API v2
+    /**
+     * Insert audit log record
+     * @param auditLog Audit log
+     * @return number of rows affected
+     */
     int insertAuditLog(AuditLog auditLog);
 
+    /**
+     * Insert audit log parameters
+     * @param params SQL query parameters
+     */
     void insertAuditLogParams(Map params);
 
     /**
@@ -212,17 +305,46 @@ public interface RetryingDatabaseOperationFacade {
      */
     void updateClusterNodeLastCommitId(long clusterNodeId, long siteId, String commitId);
 
+    /**
+     * Set site state for cluster node
+     * @param clusterNodeId cluster node identifier
+     * @param siteId site identifier
+     * @param state state value
+     */
     void setClusterNodeSiteState(long clusterNodeId, long siteId, String state);
 
+    /**
+     * Set flag for published repo if created on cluster node
+     * @param clusterNodeId Cluster node identifier
+     * @param siteId site identifier
+     */
     void setClusterNodePublishedRepoCreated(long clusterNodeId, long siteId);
 
+    /**
+     * Update last synced git log commit id for site on given cluster node
+     * @param clusterNodeId Cluster node identifier
+     * @param siteId site identifier
+     * @param commitId commit id
+     */
     void updateClusterNodeLastSyncedGitlogCommitId(long clusterNodeId, long siteId, String commitId);
 
     // GitLog API v2
+    /**
+     * Insert new gitlog table row
+     * @param params SQL query parameters
+     */
     void insertGitLog(Map params);
 
+    /**
+     * Insert list of new rows to gitlog table
+     * @param params
+     */
     void insertGitLogList(Map params);
 
+    /**
+     * Mark git log row as processed
+     * @param params SQL query parameters
+     */
     void markGitLogProcessed(Map params);
 
     /**
@@ -232,10 +354,25 @@ public interface RetryingDatabaseOperationFacade {
      */
     void markGitLogProcessedBulk(String siteId, List<String> commitIds);
 
+    /**
+     * Delete gitlog rows for site (delete site subtask)
+     * @param params SQL query parameters
+     */
     void deleteGitLogForSite(Map params);
 
+    /**
+     * Mark gitlog as audited for site
+     * @param siteId site identifier
+     * @param commitId commit id
+     * @param audited audited flag value
+     */
     void markGitLogAudited(String siteId, String commitId, int audited);
 
+    /**
+     * Insert list of gitlog rows with ignore option if it already exists
+     * @param siteId site identifier
+     * @param commitIds commit id
+     */
     void insertIgnoreGitLogList(String siteId, List<String> commitIds);
 
     /**
@@ -515,25 +652,71 @@ public interface RetryingDatabaseOperationFacade {
     void cancelPackages(String siteId, List<String> packageIds, String cancelledState);
 
     // Remote Repository API v2
+    /**
+     * Insert remote repository record
+     * @param params SQL query parameters
+     */
     void insertRemoteRepository(Map params);
 
+    /**
+     * Delete remote repositories for site (delete site subtask)
+     * @param params SQL query parameters
+     */
     void deleteRemoteRepositoryForSite(Map params);
 
+    /**
+     * Delete remote repository record
+     * @param params SQL query parameters
+     */
     void deleteRemoteRepository(Map params);
 
+    /**
+     * Delete remote repositories for site (delete site subtask)
+     * @param params SQL query parameters
+     */
     void deleteRemoteRepositoriesForSite(Map params);
 
     // Security API v2
+
+    /**
+     * Insert or update refresh token
+     * @param userId User identifier
+     * @param token token
+     */
     void upsertRefreshToken(long userId, String token);
 
+    /**
+     * Delete refresh token
+     * @param userId user identifier
+     */
     void deleteRefreshToken(long userId);
 
+    /**
+     * Create access token
+     * @param userId user identifier
+     * @param token token
+     */
     void createAccessToken(long userId, PersistentAccessToken token);
 
+    /**
+     * Update access token
+     * @param userId user identifier
+     * @param tokenId token identifier
+     * @param enabled enabled flag
+     */
     void updateAccessToken(long userId, long tokenId, boolean enabled);
 
+    /**
+     * Delete access token
+     * @param userId user identifier
+     * @param tokenId token identifier
+     */
     void deleteAccessToken(long userId, long tokenId);
 
+    /**
+     * Delete expired tokens
+     * @param maxAge max age
+     */
     void deleteExpiredTokens(int maxAge);
 
     // User API v2
