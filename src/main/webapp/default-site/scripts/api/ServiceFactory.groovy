@@ -26,7 +26,6 @@ import scripts.api.impl.workflow.SpringWorkflowServices
 import scripts.api.impl.security.SpringSecurityServices
 import scripts.api.impl.site.SpringSiteServices
 import scripts.api.impl.dependency.SpringDependencyServices
-import scripts.api.impl.objectstate.SpringObjectStateServices
 import scripts.api.impl.cmis.SpringCmisServices
 import scripts.api.impl.user.SpringUserServices
 
