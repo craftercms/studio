@@ -1,5 +1,4 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
-<#import "/templates/system/common/navigation.ftl" as nav/>
 
 <@crafter.componentRootTag id="sidebar">
   <div class="inner">
@@ -16,7 +15,7 @@
       <header class="major">
         <h2>Menu</h2>
       </header>
-      <@nav.navigation url="/site/website" showNavElement=false />
+      <@crafter.navigation url="/site/website" showNavElement=false />
     </nav>
 
     <!-- Widgets -->
