@@ -127,16 +127,6 @@ class ServiceFactory {
     }
 
 	/**
-	 * return the implementation for object state services
-	 *
-	 * @param context site context
-	 * @return Object State Services
-	 */
-    static getObjectStateServices(context) {
-        return new SpringObjectStateServices(context)
-    }
-
-	/**
 	 * return the implementation for nav services
 	 *
 	 * @param context site context
