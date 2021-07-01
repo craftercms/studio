@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_PUBLISHING_PACKAGE;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.ERROR;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.PUBLISHING;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
@@ -359,7 +360,7 @@ public class StudioPublisherTask extends StudioClockTask {
         for (String packageId : packageIds) {
             AuditLogParameter auditLogParameter = new AuditLogParameter();
             auditLogParameter.setTargetId(site + ":" + environment);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
+            auditLogParameter.setTargetType(TARGET_TYPE_PUBLISHING_PACKAGE);
             auditLogParameter.setTargetValue(packageId);
             auditLogParameters.add(auditLogParameter);
         }

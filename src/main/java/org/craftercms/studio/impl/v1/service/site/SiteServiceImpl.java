@@ -138,7 +138,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_R
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_REMOTE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_BLUEPRINT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
@@ -350,7 +350,7 @@ public class SiteServiceImpl implements SiteService {
                 }
 
                 logger.info("Adding audit log");
-                insertCreateSiteAuditLog(siteId, siteName, createdFiles);
+                insertCreateSiteAuditLog(siteId, siteName, blueprintId);
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
@@ -392,7 +392,7 @@ public class SiteServiceImpl implements SiteService {
         logger.info("Finished creating site " + siteId);
     }
 
-    private void insertCreateSiteAuditLog(String siteId, String siteName, Map<String, String> createdFiles) throws SiteNotFoundException {
+    private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint) throws SiteNotFoundException {
         SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -403,17 +403,11 @@ public class SiteServiceImpl implements SiteService {
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteName);
         List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
-        createdFiles.forEach((k, v) -> {
-            String targetPath = k;
-            if (StringUtils.length(v) > 1) {
-                targetPath = v;
-            }
-            AuditLogParameter auditLogParameter = new AuditLogParameter();
-            auditLogParameter.setTargetId(siteId + ":" + targetPath);
-            auditLogParameter.setTargetType(TARGET_TYPE_CONTENT_ITEM);
-            auditLogParameter.setTargetValue(targetPath);
-            auditLogParameters.add(auditLogParameter);
-        });
+        AuditLogParameter auditLogParameter = new AuditLogParameter();
+        auditLogParameter.setTargetId(siteId + ":" + blueprint);
+        auditLogParameter.setTargetType(TARGET_TYPE_BLUEPRINT);
+        auditLogParameter.setTargetValue(blueprint);
+        auditLogParameters.add(auditLogParameter);
 
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
@@ -790,7 +784,7 @@ public class SiteServiceImpl implements SiteService {
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
                 }
 
-                insertCreateSiteAuditLog(siteId, siteId, createdFiles);
+                insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch);
                 contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
