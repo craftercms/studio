@@ -94,9 +94,22 @@
     </bean>
 
     <!-- MyBatis Mappers -->
-    <bean id="studio.retryingOperationFacade"
+    <bean id="studio.retryingDatabaseOperationFacade"
           class="org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl">
+        <property name="dependencyMapper" ref="dependencyMapper" />
+        <property name="navigationOrderSequenceMapper" ref="navigationOrderSequenceMapper" />
+        <property name="publishRequestMapper" ref="publishRequestMapper" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="auditDao" ref="auditDao" />
+        <property name="clusterDao" ref="clusterDao" />
+        <property name="gitLogDao" ref="gitLogDao" />
+        <property name="groupDao" ref="groupDao" />
         <property name="itemDao" ref="itemDao" />
+        <property name="publishRequestDao" ref="publishRequestDao" />
+        <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
+        <property name="securityDao" ref="securityDao" />
+        <property name="userDao" ref="userDao" />
+        <property name="workflowDao" ref="workflowDao" />
     </bean>
 
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
@@ -104,7 +117,7 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="groupDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <bean id="groupDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.GroupDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
@@ -124,7 +137,7 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="securityMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <bean id="securityDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.SecurityDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
@@ -134,7 +147,7 @@
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
-    <bean id="userDAO" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <bean id="userDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.UserDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>

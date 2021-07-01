@@ -21,9 +21,9 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.util.HashMap;
@@ -47,6 +47,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
 
     private StudioConfiguration studioConfiguration;
     private ClusterDAO clusterDao;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     private final static ReentrantLock singleWorkerLock = new ReentrantLock();
 
@@ -73,11 +74,10 @@ public class StudioNodeActivityCheckJob implements Runnable{
         }
     }
 
-    @RetryingDatabaseOperation
     public void setStaleMembersInactive(List<ClusterMember> staleMembers) {
         staleMembers.forEach(member -> {
             member.setState(INACTIVE);
-            clusterDao.updateMember(member);
+            retryingDatabaseOperationFacade.updateClusterMember(member);
         });
     }
 
@@ -96,7 +96,6 @@ public class StudioNodeActivityCheckJob implements Runnable{
         return clusterDao.getInactiveMembersWithStaleHeartbeat(params);
     }
 
-    @RetryingDatabaseOperation
     public void removeInactiveMembers(List<ClusterMember> inactiveMembersToRemove) {
         List<Long> idsToRemove = inactiveMembersToRemove.stream()
                 .map(ClusterMember::getId)
@@ -105,7 +104,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(CLUSTER_MEMBER_IDS, idsToRemove);
             params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
-            int result = clusterDao.removeMembers(params);
+            retryingDatabaseOperationFacade.removeClusterMembers(params);
         }
     }
 
@@ -135,5 +134,13 @@ public class StudioNodeActivityCheckJob implements Runnable{
 
     public void setClusterDao(ClusterDAO clusterDAO) {
         this.clusterDao = clusterDAO;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

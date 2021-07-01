@@ -43,7 +43,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -54,6 +53,7 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -184,6 +184,7 @@ public class GitContentRepository implements ContentRepository {
     private ItemServiceInternal itemServiceInternal;
     private StudioUtils studioUtils;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -611,17 +612,15 @@ public class GitContentRepository implements ContentRepository {
         return gitLogDao.getGitLog(params);
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void markGitLogVerifiedProcessed(String siteId, String commitId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
         params.put("commitId", commitId);
         params.put("processed", 1);
-        gitLogDao.markGitLogProcessed(params);
+        retryingDatabaseOperationFacade.markGitLogProcessed(params);
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         if (CollectionUtils.isNotEmpty(commitIds)) {
@@ -631,12 +630,11 @@ public class GitContentRepository implements ContentRepository {
                 partitions.add(commitIds.subList(i, Math.min(i + batchSize, commitIds.size())));
             }
             for (List<String> part : partitions) {
-                gitLogDao.markGitLogProcessedBulk(siteId, part);
+                retryingDatabaseOperationFacade.markGitLogProcessedBulk(siteId, part);
             }
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed) {
         String lockKey = "GitLogLock:" + siteId;
@@ -648,7 +646,6 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void insertGitLog(String siteId, String commitId, int processed, int audited) {
         String lockKey = "GitLogLock";
@@ -659,7 +656,7 @@ public class GitContentRepository implements ContentRepository {
         params.put("processed", processed);
         params.put("audited", audited);
         try {
-            gitLogDao.insertGitLog(params);
+            retryingDatabaseOperationFacade.insertGitLog(params);
         } catch (DuplicateKeyException e) {
             logger.debug("Failed to insert commit id: " + commitId + " for site: " + siteId + " into" +
                     " gitlog table, because it is duplicate entry. Marking it as not processed so it can be" +
@@ -668,7 +665,7 @@ public class GitContentRepository implements ContentRepository {
             params.put("siteId", siteId);
             params.put("commitId", commitId);
             params.put("processed", 0);
-            gitLogDao.markGitLogProcessed(params);
+            retryingDatabaseOperationFacade.markGitLogProcessed(params);
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -678,7 +675,7 @@ public class GitContentRepository implements ContentRepository {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        siteFeedMapper.updateLastVerifiedGitlogCommitId(params);
+        retryingDatabaseOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
     }
 
     @Override
@@ -800,7 +797,6 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
@@ -1207,7 +1203,6 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) {
         logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
@@ -1244,7 +1239,7 @@ public class GitContentRepository implements ContentRepository {
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        remoteRepositoryDAO.deleteRemoteRepository(params);
+        retryingDatabaseOperationFacade.deleteRemoteRepository(params);
 
         return true;
     }
@@ -1283,7 +1278,7 @@ public class GitContentRepository implements ContentRepository {
         }
 
         logger.debug("Insert site remote record into database");
-        remoteRepositoryDAO.insertRemoteRepository(params);
+        retryingDatabaseOperationFacade.insertRemoteRepository(params);
 
         params = new HashMap<String, String>();
         params.put("siteId", siteId);
@@ -1294,7 +1289,6 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    @RetryingDatabaseOperation
     public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
         HierarchicalConfiguration<ImmutableNode> registrationData =
                 studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
@@ -1302,7 +1296,7 @@ public class GitContentRepository implements ContentRepository {
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
             ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
             if (member != null) {
-                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+                retryingDatabaseOperationFacade.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
             }
         }
     }
@@ -1521,13 +1515,12 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void markGitLogAudited(String siteId, String commitId) {
         String lockKey = "GitLogLock:" + siteId;
         generalLockService.lock(lockKey);
         try {
-            gitLogDao.markGitLogAudited(siteId, commitId, 1);
+            retryingDatabaseOperationFacade.markGitLogAudited(siteId, commitId, 1);
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -1582,7 +1575,7 @@ public class GitContentRepository implements ContentRepository {
                             current = commitIds.read();
                         }
                         if (batch.size() > 0) {
-                            gitLogDao.insertIgnoreGitLogList(siteId, batch);
+                            retryingDatabaseOperationFacade.insertIgnoreGitLogList(siteId, batch);
                             siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
                             siteService.updateLastCommitId(siteId, batch.get(batch.size() - 1));
                             logger.debug("Inserted " + batch.size() + " git log commits for site " + siteId);
@@ -1681,7 +1674,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
+        retryingDatabaseOperationFacade.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
     }
 
     @Override
@@ -1748,7 +1741,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
-        gitLogDao.upsertGitLogList(siteId, commitIds, processed ? 1 : 0, audited ? 1 : 0);
+        retryingDatabaseOperationFacade.upsertGitLogList(siteId, commitIds, processed ? 1 : 0, audited ? 1 : 0);
     }
 
     public StudioConfiguration getStudioConfiguration() {
@@ -1877,5 +1870,13 @@ public class GitContentRepository implements ContentRepository {
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.UserGroup;
@@ -88,19 +89,22 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
     protected AuditServiceInternal auditServiceInternal;
     protected UserDAO userDao;
     protected GroupDAO groupDao;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @ConstructorProperties({"studioConfiguration", "siteService", "userServiceInternal", "auditServiceInternal",
-            "userDao", "groupDao"})
+            "userDao", "groupDao", "retryingDatabaseOperationFacade"})
     public HeadersAuthenticationProvider(StudioConfiguration studioConfiguration, SiteService siteService,
                                          UserServiceInternal userServiceInternal,
                                          AuditServiceInternal auditServiceInternal, UserDAO userDao,
-                                         GroupDAO groupDao) {
+                                         GroupDAO groupDao,
+                                         RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.userServiceInternal = userServiceInternal;
         this.auditServiceInternal = auditServiceInternal;
         this.userDao = userDao;
         this.groupDao = groupDao;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
     @Override
@@ -234,7 +238,7 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
             params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
             params.put(GROUP_NAME, groupName);
             params.put(GROUP_DESCRIPTION, "Externally managed group - " + groupName);
-            groupDao.createGroup(params);
+            retryingDatabaseOperationFacade.createGroup(params);
         } catch (Exception e) {
             logger.debug("Error creating group", e);
         }
@@ -255,7 +259,7 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
             params.put(GROUP_ID, group.getId());
 
             try {
-                groupDao.addGroupMembers(params);
+                retryingDatabaseOperationFacade.addGroupMembers(params);
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                 auditLog.setOperation(OPERATION_ADD_MEMBERS);
                 auditLog.setSiteId(siteFeed.getId());

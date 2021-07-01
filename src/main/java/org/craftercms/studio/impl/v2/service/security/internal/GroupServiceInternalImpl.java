@@ -28,9 +28,9 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -53,6 +53,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     private GroupDAO groupDao;
     private UserServiceInternal userServiceInternal;
     private ConfigurationService configurationService;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public Group getGroup(long groupId) throws GroupNotFoundException, ServiceLayerException {
@@ -166,7 +167,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         params.put(GROUP_DESCRIPTION, groupDescription);
 
         try {
-            groupDao.createGroup(params);
+            retryingDatabaseOperationFacade.createGroup(params);
 
             Group group = new Group();
             group.setId((Long) params.get(ID));
@@ -179,7 +180,6 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException {
         if (!groupExists(group.getId(), StringUtils.EMPTY)) {
@@ -193,7 +193,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         params.put(GROUP_DESCRIPTION, group.getGroupDescription());
 
         try {
-            groupDao.updateGroup(params);
+            retryingDatabaseOperationFacade.updateGroup(params);
 
             return group;
         } catch (Exception e) {
@@ -201,7 +201,6 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void deleteGroup(List<Long> groupIds) throws GroupNotFoundException, ServiceLayerException {
         for (Long groupId : groupIds) {
@@ -214,7 +213,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         params.put(GROUP_IDS, groupIds);
 
         try {
-            groupDao.deleteGroups(params);
+            retryingDatabaseOperationFacade.deleteGroups(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -268,7 +267,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         params.put(GROUP_ID, groupId);
 
         try {
-            groupDao.addGroupMembers(params);
+            retryingDatabaseOperationFacade.addGroupMembers(params);
 
             return users;
         } catch (Exception e) {
@@ -290,7 +289,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         params.put(GROUP_ID, groupId);
 
         try {
-            groupDao.removeGroupMembers(params);
+            retryingDatabaseOperationFacade.removeGroupMembers(params);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -333,5 +332,13 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

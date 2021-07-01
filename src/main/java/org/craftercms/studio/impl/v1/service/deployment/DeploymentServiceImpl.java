@@ -45,9 +45,9 @@ import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -136,6 +136,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected UserServiceInternal userServiceInternal;
     protected PublishingManager publishingManager;
     protected PublishRequestDAO publishRequestDAO;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     @ValidateParams
@@ -179,7 +180,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
                 submissionComment);
         for (PublishRequest item : items) {
-            publishRequestMapper.insertItemForDeployment(item);
+            retryingDatabaseOperationFacade.insertItemForDeployment(item);
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
 
@@ -317,7 +318,7 @@ public class DeploymentServiceImpl implements DeploymentService {
             List<PublishRequest> items =
                     createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
             for (PublishRequest item : items) {
-                publishRequestMapper.insertItemForDeployment(item);
+                retryingDatabaseOperationFacade.insertItemForDeployment(item);
             }
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
@@ -424,13 +425,12 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        publishRequestMapper.deleteDeploymentDataForSite(params);
+        retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
     }
 
     @Override
@@ -452,7 +452,6 @@ public class DeploymentServiceImpl implements DeploymentService {
                 ZonedDateTime.now(ZoneOffset.UTC));
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
@@ -463,10 +462,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        publishRequestMapper.cancelWorkflow(params);
+        retryingDatabaseOperationFacade.cancelWorkflow(params);
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
@@ -476,7 +474,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        publishRequestMapper.cancelWorkflowBulk(params);
+        retryingDatabaseOperationFacade.cancelWorkflowBulk(params);
     }
 
     private List<String> getEnvironmentNames(String siteId) {
@@ -783,7 +781,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser(), comment);
         logger.debug("Insert publish request items to the queue");
         for (PublishRequest request : publishRequests) {
-            publishRequestMapper.insertItemForDeployment(request);
+            retryingDatabaseOperationFacade.insertItemForDeployment(request);
         }
         logger.debug("Completed adding commits to publishing queue");
     }
@@ -1037,5 +1035,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setPublishRequestDAO(PublishRequestDAO publishRequestDAO) {
         this.publishRequestDAO = publishRequestDAO;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

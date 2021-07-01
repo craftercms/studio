@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -42,9 +41,9 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
@@ -87,6 +86,7 @@ public class PublishingManagerImpl implements PublishingManager {
     protected PublishRequestMapper publishRequestMapper;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     @ValidateParams
@@ -252,7 +252,6 @@ public class PublishingManagerImpl implements PublishingManager {
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
@@ -262,11 +261,10 @@ public class PublishingManagerImpl implements PublishingManager {
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             item.setPublishedOn(publishedOn);
-            publishRequestMapper.markItemCompleted(item);
+            retryingDatabaseOperationFacade.markPublishRequestItemCompleted(item);
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsProcessing(@ValidateStringParam(name = "site") String site,
@@ -274,11 +272,10 @@ public class PublishingManagerImpl implements PublishingManager {
                                     List<PublishRequest> itemsToDeploy) throws DeploymentException {
         for (PublishRequest item : itemsToDeploy) {
             item.setState(PublishRequest.State.PROCESSING);
-            publishRequestMapper.updateItemDeploymentState(item);
+            retryingDatabaseOperationFacade.updateItemDeploymentState(item);
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsReady(@ValidateStringParam(name = "site") String site,
@@ -286,11 +283,10 @@ public class PublishingManagerImpl implements PublishingManager {
                                List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(READY_FOR_LIVE);
-            publishRequestMapper.updateItemDeploymentState(item);
+            retryingDatabaseOperationFacade.updateItemDeploymentState(item);
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void markItemsBlocked(@ValidateStringParam(name = "site") String site,
@@ -298,7 +294,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                  List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.BLOCKED);
-            publishRequestMapper.updateItemDeploymentState(item);
+            retryingDatabaseOperationFacade.updateItemDeploymentState(item);
         }
     }
 
@@ -441,7 +437,6 @@ public class PublishingManagerImpl implements PublishingManager {
         return result < 1;
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void resetProcessingQueue(@ValidateStringParam(name = "site") String site,
@@ -451,7 +446,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put(ENVIRONMENT, environment);
         params.put(PROCESSING_STATE, PROCESSING);
         params.put(READY_STATE, READY_FOR_LIVE);
-        publishRequestMapper.resetProcessingQueue(params);
+        retryingDatabaseOperationFacade.resetPublishRequestProcessingQueue(params);
     }
 
     public String getIndexFile() {
@@ -542,5 +537,13 @@ public class PublishingManagerImpl implements PublishingManager {
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

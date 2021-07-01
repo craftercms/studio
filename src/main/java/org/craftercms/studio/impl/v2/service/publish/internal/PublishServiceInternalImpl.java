@@ -18,13 +18,13 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 
@@ -43,6 +43,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     private PublishRequestDAO publishRequestDao;
     private ContentRepository contentRepository;
     private DmFilterWrapper dmFilterWrapper;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -81,10 +82,9 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         return publishingPackageDetails;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void cancelPublishingPackages(String siteId, List<String> packageIds) {
-        publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED);
+        retryingDatabaseOperationFacade.cancelPackages(siteId, packageIds, CANCELLED);
     }
 
     @Override
@@ -164,5 +164,13 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
         this.dmFilterWrapper = dmFilterWrapper;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

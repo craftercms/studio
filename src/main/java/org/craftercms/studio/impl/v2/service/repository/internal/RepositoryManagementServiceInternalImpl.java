@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
@@ -43,6 +42,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -143,6 +143,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private ContentRepository contentRepositoryV2;
     private int batchSizeGitLog = 1000;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -253,7 +254,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
 
         logger.debug("Insert site remote record into database");
-        remoteRepositoryDao.insertRemoteRepository(params);
+        retryingDatabaseOperationFacade.insertRemoteRepository(params);
     }
 
     @Override
@@ -588,7 +589,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
     }
 
-    @RetryingDatabaseOperation
     @Override
     public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
         if (!isRemovableRemote(siteId, remoteName)) {
@@ -631,7 +631,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        remoteRepositoryDao.deleteRemoteRepository(params);
+        retryingDatabaseOperationFacade.deleteRemoteRepository(params);
 
         return true;
     }
@@ -966,5 +966,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

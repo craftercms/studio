@@ -58,7 +58,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -85,6 +84,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -215,6 +215,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected GeneralLockService generalLockService;
     protected GitRepositoryHelper helper;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -1199,7 +1200,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         params.put("siteId", siteId);
         params.put("gitLogs", gitLogs);
         params.put("processed", 1);
-        gitLogDao.insertGitLogList(params);
+        retryingDatabaseOperationFacade.insertGitLogList(params);
     }
 
 
@@ -1207,7 +1208,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void deleteGitLogForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
-        gitLogDao.deleteGitLogForSite(params);
+        retryingDatabaseOperationFacade.deleteGitLogForSite(params);
     }
 
     @Override
@@ -1458,7 +1459,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         logger.debug("Insert site remote record into database");
-        remoteRepositoryDAO.insertRemoteRepository(params);
+        retryingDatabaseOperationFacade.insertRemoteRepository(params);
         params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
@@ -1468,7 +1469,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    @RetryingDatabaseOperation
     public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
         HierarchicalConfiguration<ImmutableNode> registrationData =
                 studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
@@ -1476,7 +1476,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
             ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
             if (member != null) {
-                clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+                retryingDatabaseOperationFacade.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
             }
         }
     }
@@ -1485,7 +1485,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void removeRemoteRepositoriesForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
-        remoteRepositoryDAO.deleteRemoteRepositoriesForSite(params);
+        retryingDatabaseOperationFacade.deleteRemoteRepositoriesForSite(params);
     }
 
     @Override
@@ -1989,5 +1989,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

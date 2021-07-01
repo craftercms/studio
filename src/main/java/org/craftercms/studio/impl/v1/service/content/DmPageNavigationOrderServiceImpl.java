@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
@@ -51,6 +51,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     protected ContentService contentService;
     protected StudioConfiguration studioConfiguration;
     protected NavigationOrderSequenceMapper navigationOrderSequenceMapper;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public void register() {
@@ -64,7 +65,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         return getNewNavOrder(site, path, -1);
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
@@ -100,11 +100,11 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                     }
 
                 }
-                navigationOrderSequenceMapper.insert(navigationOrderSequence);
+                retryingDatabaseOperationFacade.insertNavigationOrderSequence(navigationOrderSequence);
             } else {
                 double newMaxCount = navigationOrderSequence.getMaxCount() + getPageNavigationOrderIncrement();
                 navigationOrderSequence.setMaxCount(newMaxCount);
-                navigationOrderSequenceMapper.update(navigationOrderSequence);
+                retryingDatabaseOperationFacade.updateNavigationOrderSequence(navigationOrderSequence);
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
@@ -155,13 +155,12 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         return docUpdated;
     }
 
-    @RetryingDatabaseOperation
     @Override
     @ValidateParams
     public void deleteSequencesForSite(@ValidateStringParam(name = "site") String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        navigationOrderSequenceMapper.deleteSequencesForSite(params);
+        retryingDatabaseOperationFacade.deleteNavigationOrderSequencesForSite(params);
     }
 
     @Override
@@ -200,5 +199,13 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
 
     public void setNavigationOrderSequenceMapper(NavigationOrderSequenceMapper navigationOrderSequenceMapper) {
         this.navigationOrderSequenceMapper = navigationOrderSequenceMapper;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

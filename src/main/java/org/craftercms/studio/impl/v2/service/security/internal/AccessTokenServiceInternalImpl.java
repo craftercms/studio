@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -122,15 +123,17 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected AuditServiceInternal auditService;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
             "refreshTokenExpiration", "securityDao", "instanceService", "auditService", "studioConfiguration",
-            "siteService"})
+            "siteService", "retryingDatabaseOperationFacade"})
     public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
                                           String signPassword, String encryptPassword, int refreshTokenExpiration,
                                           SecurityDAO securityDao, InstanceService instanceService,
                                           AuditServiceInternal auditService, StudioConfiguration studioConfiguration,
-                                          SiteService siteService) {
+                                          SiteService siteService,
+                                          RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.issuer = issuer;
         this.validIssuers = validIssuers;
         this.accessTokenExpiration = accessTokenExpiration;
@@ -142,6 +145,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         this.auditService = auditService;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
     public void setAudience(String audience) {
@@ -180,7 +184,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var refreshToken = UUID.randomUUID().toString();
         var userId = getUserId(auth);
 
-        securityDao.upsertRefreshToken(userId, refreshToken);
+        retryingDatabaseOperationFacade.upsertRefreshToken(userId, refreshToken);
 
         response.addCookie(createCookie(refreshToken));
     }
@@ -204,18 +208,18 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public void deleteRefreshToken(Authentication auth) {
         var userId = getUserId(auth);
-        securityDao.deleteRefreshToken(userId);
+        retryingDatabaseOperationFacade.deleteRefreshToken(userId);
     }
 
     @Override
     public void deleteRefreshToken(User user) {
         logger.debug("Triggering re-authentication for user {0}", user.getUsername());
-        securityDao.deleteRefreshToken(user.getId());
+        retryingDatabaseOperationFacade.deleteRefreshToken(user.getId());
     }
 
     @Override
     public void deleteExpiredRefreshTokens() {
-        securityDao.deleteExpiredTokens(refreshTokenExpiration);
+        retryingDatabaseOperationFacade.deleteExpiredTokens(refreshTokenExpiration);
     }
 
     @Override
@@ -226,7 +230,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         token.setLabel(label);
         token.setExpiresAt(expiresAt);
 
-        securityDao.createAccessToken(getUserId(auth), token);
+        retryingDatabaseOperationFacade.createAccessToken(getUserId(auth), token);
 
         token.setToken(createToken(Instant.now(), expiresAt, auth.getName(), token.getId()));
 
@@ -247,7 +251,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var auth = SecurityContextHolder.getContext().getAuthentication();
         var userId = getUserId(auth);
 
-        securityDao.updateAccessToken(userId, tokenId, enabled);
+        retryingDatabaseOperationFacade.updateAccessToken(userId, tokenId, enabled);
 
         createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_UPDATE);
 
@@ -258,7 +262,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     public void deleteAccessToken(long tokenId) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
 
-        securityDao.deleteAccessToken(getUserId(auth), tokenId);
+        retryingDatabaseOperationFacade.deleteAccessToken(getUserId(auth), tokenId);
 
         createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_DELETE);
     }

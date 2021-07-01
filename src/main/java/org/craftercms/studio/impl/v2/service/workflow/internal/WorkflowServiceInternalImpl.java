@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
@@ -28,6 +29,7 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     private WorkflowDAO workflowDao;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public WorkflowItem getWorkflowEntry(String siteId, String path) {
@@ -41,7 +43,7 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public void insertWorkflow(Workflow workflow) {
-        workflowDao.insertWorkflowEntry(workflow);
+        retryingDatabaseOperationFacade.insertWorkflowEntry(workflow);
     }
 
     @Override
@@ -51,17 +53,17 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public void deleteWorkflowEntries(String siteId, List<String> paths) {
-        workflowDao.deleteWorkflowEntries(siteId, paths);
+        retryingDatabaseOperationFacade.deleteWorkflowEntries(siteId, paths);
     }
 
     @Override
     public void deleteWorkflowEntry(String siteId, String path) {
-        workflowDao.deleteWorkflowEntry(siteId, path);
+        retryingDatabaseOperationFacade.deleteWorkflowEntry(siteId, path);
     }
 
     @Override
     public void deleteWorkflowEntriesForSite(long siteId) {
-        workflowDao.deleteWorkflowEntriesForSite(siteId);
+        retryingDatabaseOperationFacade.deleteWorkflowEntriesForSite(siteId);
     }
 
     public WorkflowDAO getWorkflowDao() {
@@ -70,5 +72,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     public void setWorkflowDao(WorkflowDAO workflowDao) {
         this.workflowDao = workflowDao;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

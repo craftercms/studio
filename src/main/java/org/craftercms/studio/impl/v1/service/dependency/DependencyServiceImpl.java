@@ -37,9 +37,9 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.CalculateDependenciesEntityTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -83,6 +83,7 @@ public class DependencyServiceImpl implements DependencyService {
     protected org.craftercms.studio.api.v2.service.dependency.DependencyService dependencyService;
     protected ItemDAO itemDao;
     protected GeneralLockService generalLockService;
+    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public Set<String> upsertDependencies(String site, String path)
@@ -170,16 +171,14 @@ public class DependencyServiceImpl implements DependencyService {
         return toRet;
     }
 
-    @RetryingDatabaseOperation
     public void deleteAllSourceDependencies(String site, String path) {
         logger.debug("Delete all source dependencies for site: " + site + " path: " + path);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);
         params.put(PATH_PARAM, path);
-        dependencyMapper.deleteAllSourceDependencies(params);
+        retryingDatabaseOperationFacade.deleteAllSourceDependencies(params);
     }
 
-    @RetryingDatabaseOperation
     public List<DependencyEntity> createDependencyEntities(String site, String path, Set<String> dependencyPaths,
                                                             String dependencyType, Set<String> extractedPaths) {
         logger.debug("Create dependency entity TO for site: " + site + " path: " + path);
@@ -202,13 +201,12 @@ public class DependencyServiceImpl implements DependencyService {
         return path.replaceAll("//", "/");
     }
 
-    @RetryingDatabaseOperation
     public void insertDependenciesIntoDatabase(List<DependencyEntity> dependencyEntities) {
         logger.debug("Insert list of dependency entities into database");
         if (CollectionUtils.isNotEmpty(dependencyEntities)) {
             Map<String, Object> params = new HashMap<>();
             params.put(StudioConstants.JSON_PROPERTY_DEPENDENCIES, dependencyEntities);
-            dependencyMapper.insertList(params);
+            retryingDatabaseOperationFacade.insertDependenciesList(params);
         }
     }
 
@@ -369,7 +367,6 @@ public class DependencyServiceImpl implements DependencyService {
         return dependencyMapper.getItemsDependingOn(params);
     }
 
-    @RetryingDatabaseOperation
     @Override
     public Set<String> moveDependencies(String site, String oldPath, String newPath)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
@@ -387,12 +384,11 @@ public class DependencyServiceImpl implements DependencyService {
         params.put(SITE_ID_PARAM, site);
         params.put(OLD_PATH_PARAM, oldPath);
         params.put(NEW_PATH_PARAM, newPath);
-        dependencyMapper.moveDependency(params);
+        retryingDatabaseOperationFacade.moveDependency(params);
 
         return getItemDependencies(site, newPath, 1);
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void deleteItemDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
@@ -404,16 +400,15 @@ public class DependencyServiceImpl implements DependencyService {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);
         params.put(PATH_PARAM, path);
-        dependencyMapper.deleteDependenciesForSiteAndPath(params);
+        retryingDatabaseOperationFacade.deleteDependenciesForSiteAndPath(params);
     }
 
-    @RetryingDatabaseOperation
     @Override
     public void deleteSiteDependencies(String site) throws ServiceLayerException {
         logger.debug("Delete all dependencies for site: " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);
-        dependencyMapper.deleteDependenciesForSite(params);
+        retryingDatabaseOperationFacade.deleteDependenciesForSite(params);
     }
 
     @Override
@@ -749,5 +744,13 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }

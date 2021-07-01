@@ -32,7 +32,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
@@ -131,7 +130,6 @@ public interface SiteService {
      */
    	boolean deleteSite(String siteId);
 
-    @RetryingDatabaseOperation
     void updateLastVerifiedGitlogCommitId(String site, String commitId);
 
     /**

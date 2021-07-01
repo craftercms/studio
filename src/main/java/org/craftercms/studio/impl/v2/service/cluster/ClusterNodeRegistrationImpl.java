@@ -23,10 +23,10 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.MetaDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.cluster.ClusterNodeRegistration;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
@@ -59,6 +59,7 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
     private MetaDAO metaDao;
     private StudioConfiguration studioConfiguration;
     private TextEncryptor encryptor;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @EventListener(StartClusterSetupEvent.class)
     public void registerClusterNode() {
@@ -155,21 +156,20 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         ClusterMember existingRecord = clusterDao.getMemberByLocalAddress(clusterMember.getLocalAddress());
         int result = 0;
         if (Objects.isNull(existingRecord)) {
-            result = clusterDao.addMember(clusterMember);
+            result = retryingDatabaseOperationFacade.addClusterMember(clusterMember);
         } else {
             clusterMember.setId(existingRecord.getId());
-            result = clusterDao.updateMember(clusterMember);
+            result = retryingDatabaseOperationFacade.updateClusterMember(clusterMember);
         }
         return result > 0;
     }
 
-    @RetryingDatabaseOperation
     @Override
     public boolean removeClusterNode(String localAddress) {
         logger.info("Remove cluster node " + localAddress);
         Map<String, String> params = new HashMap<String, String>();
         params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
-        int result = clusterDao.removeMemberByLocalAddress(params);
+        int result = retryingDatabaseOperationFacade.removeClusterMemberByLocalAddress(params);
         return result > 0;
     }
 
@@ -206,4 +206,11 @@ public class ClusterNodeRegistrationImpl implements ClusterNodeRegistration {
         this.encryptor = encryptor;
     }
 
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    }
 }

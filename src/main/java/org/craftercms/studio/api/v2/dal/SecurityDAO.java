@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,16 +32,6 @@ public interface SecurityDAO {
     List<Group> getUserGroups(String username);
 
     List<Group> getUserGroupsPerSite(Map params);
-
-    void createUser(Map params);
-
-    void deleteUser(Map params);
-
-    void updateUser(Map params);
-
-    void enableUser(Map params);
-
-    void createGroup(Map params);
 
     List<UserProfileResult> getUserDetails(String username);
 
@@ -79,17 +69,7 @@ public interface SecurityDAO {
 
     Integer groupExists(Map params);
 
-    void updateGroup(Map params);
-
-    void deleteGroup(Map params);
-
     Group getGroupObject(Map params);
-
-    void addUserToGroup(Map params);
-
-    void removeUserFromGroup(Map params);
-
-    void setUserPassword(Map params);
 
     int isSystemUser(Map params);
 

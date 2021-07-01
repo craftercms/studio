@@ -42,8 +42,8 @@
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
         <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
-        <constructor-arg name="userDAO" ref="userDAO"/>
-        <constructor-arg name="groupDAO" ref="groupDAO"/>
+        <constructor-arg name="userDao" ref="userDao"/>
+        <constructor-arg name="groupDao" ref="groupDao"/>
     </bean>
 
     <bean id="headersAuthenticationProvider"
@@ -52,9 +52,10 @@
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
         <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
-        <constructor-arg name="userDAO" ref="userDAO"/>
-        <constructor-arg name="groupDAO" ref="groupDAO"/>
-    </bean>
+        <constructor-arg name="userDao" ref="userDao"/>
+        <constructor-arg name="groupDao" ref="groupDao"/>
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+     </bean>
 
     <bean id="headersAuthenticationFilter"
           class="org.craftercms.studio.impl.v2.security.authentication.headers.HeadersAuthenticationFilter">

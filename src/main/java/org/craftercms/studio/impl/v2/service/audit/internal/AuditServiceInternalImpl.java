@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.QueryParameterNames;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
@@ -67,6 +68,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     private AuditDAO auditDao;
     private StudioConfiguration studioConfiguration;
+    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
@@ -285,14 +287,13 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     @Override
     // TODO: after login insert LOGIN audit
-    //@IsActionAllowed(allowedActionsMask = READ_AUDIT_LOG)
     public boolean insertAuditLog(AuditLog auditLog) {
-        int result = auditDao.insertAuditLog(auditLog);
+        int result = retryingDatabaseOperationFacade.insertAuditLog(auditLog);
         if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("auditId", auditLog.getId());
             params.put("parameters", auditLog.getParameters());
-            auditDao.insertAuditLogParams(params);
+            retryingDatabaseOperationFacade.insertAuditLogParams(params);
         }
         return result > 0;
     }
@@ -334,7 +335,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     @Override
     public void deleteAuditLogForSite(long siteId) {
-        auditDao.deleteAuditLogForSite(siteId);
+        retryingDatabaseOperationFacade.deleteAuditLogForSite(siteId);
     }
 
     public AuditDAO getAuditDao() {
@@ -351,5 +352,13 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
+        return retryingDatabaseOperationFacade;
+    }
+
+    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 }
