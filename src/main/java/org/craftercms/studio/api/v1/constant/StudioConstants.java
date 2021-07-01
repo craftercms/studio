@@ -131,6 +131,7 @@ public final class StudioConstants {
     public static final String CONTENT_TYPE_CONFIG_FOLDER = "content-types";
     public static final String CONTENT_TYPE_SCRIPT = "script";
     public static final String CONTENT_TYPE_LEVEL_DESCRIPTOR = "levelDescriptor";
+    public static final String CONTENT_TYPE_FILE = "file";
 
     /**
      * System constants

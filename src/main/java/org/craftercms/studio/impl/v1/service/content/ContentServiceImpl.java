@@ -117,6 +117,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_LEVEL_DESCRIPTOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
@@ -2078,7 +2079,7 @@ public class ContentServiceImpl implements ContentService {
             return CONTENT_TYPE_SCRIPT;
         }
 
-        return CONTENT_TYPE_UNKNOWN;
+        return CONTENT_TYPE_FILE;
     }
 
     protected boolean matchesPatterns(String uri, List<String> patterns) {
