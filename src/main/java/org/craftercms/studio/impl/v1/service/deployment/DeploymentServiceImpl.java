@@ -56,7 +56,6 @@ import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
@@ -81,6 +80,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -287,8 +287,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
 
                     User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                    Workflow workflow = new Workflow();
-                    workflow.setItemId(it.getId());
+                    Workflow workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
+                    boolean insert = false;
+                    if (Objects.isNull(workflow)) {
+                        workflow = new Workflow();
+                        workflow.setItemId(it.getId());
+                        insert = true;
+                    }
                     workflow.setState(STATE_APPROVED);
                     workflow.setTargetEnvironment(environment);
                     if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
@@ -297,7 +302,11 @@ public class DeploymentServiceImpl implements DeploymentService {
                     workflow.setReviewerComment(submissionComment);
                     workflow.setReviewerId(reviewer.getId());
                     workflow.setPublishingPackageId(packageId);
-                    workflowServiceInternal.insertWorkflow(workflow);
+                    if (insert) {
+                        workflowServiceInternal.insertWorkflow(workflow);
+                    } else {
+                        workflowServiceInternal.updateWorkflow(workflow);
+                    }
                 }
             }
         }
@@ -475,56 +484,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         retryingDatabaseOperationFacade.cancelWorkflowBulk(params);
-    }
-
-    private List<String> getEnvironmentNames(String siteId) {
-        List<String> toRet = new ArrayList<String>();
-        toRet.add(servicesConfig.getLiveEnvironment(siteId));
-        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
-            toRet.add(servicesConfig.getStagingEnvironment(siteId));
-        }
-        return toRet;
-    }
-
-    /**
-     * create WcmDeploymentTask
-     *
-     * @param deployedLabel
-     * @param item
-     * @return deployment task
-     */
-    protected DmDeploymentTaskTO createDeploymentTask(String deployedLabel, ContentItemTO item) {
-        // otherwise just add as the last task
-        DmDeploymentTaskTO task = new DmDeploymentTaskTO();
-        task.setInternalName(deployedLabel);
-        List<ContentItemTO> taskItems = task.getChildren();
-        if (taskItems == null) {
-            taskItems = new ArrayList<ContentItemTO>();
-            task.setChildren(taskItems);
-        }
-        taskItems.add(item);
-        task.setNumOfChildren(taskItems.size());
-        return task;
-    }
-
-    /**
-     * get a deployed item by the given path. If the item is new, it will be added to the itemsMap
-     *
-     * @param site
-     * @param path
-     * @return deployed item
-     */
-    protected ContentItemTO getDeployedItem(String site, String path) {
-
-        ContentItemTO item = null;
-        if (!contentService.contentExists(site, path)) {
-            item = contentService.createDummyDmContentItemForDeletedNode(site, path);
-            item.setLockOwner("");
-        } else {
-            item = contentService.getContentItem(site, path, 0);
-        }
-        return item;
-
     }
 
     @Override

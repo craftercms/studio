@@ -34,41 +34,41 @@
     </resultMap>
 
     <resultMap id="WorkflowItemMap" type="org.craftercms.studio.api.v2.dal.WorkflowItem">
-        <id property="id" column="id" />
-        <result property="targetEnvironment" column="target_environment" />
-        <result property="state" column="state" />
-        <result property="submitterId" column="submitter_id" />
-        <result property="submitterComment" column="submitter_comment" />
-        <result property="reviewerId" column="reviewer_id" />
-        <result property="reviewerComment" column="reviewer_comment" />
-        <result property="notifySubmitter" column="notify_submitter" />
-        <result property="schedule" column="schedule" />
-        <result property="publishingPackageId" column="publishing_package_id" />
+        <id property="id" column="workflow_id" />
+        <result property="targetEnvironment" column="workflow_target_environment" />
+        <result property="state" column="workflow_state" />
+        <result property="submitterId" column="workflow_submitter_id" />
+        <result property="submitterComment" column="workflow_submitter_comment" />
+        <result property="reviewerId" column="workflow_reviewer_id" />
+        <result property="reviewerComment" column="workflow_reviewer_comment" />
+        <result property="notifySubmitter" column="workflow_notify_submitter" />
+        <result property="schedule" column="workflow_schedule" />
+        <result property="publishingPackageId" column="workflow_publishing_package_id" />
         <association property="item" javaType="org.craftercms.studio.api.v2.dal.Item" >
             <id property="id" column="item_id" />
-            <result property="siteId" column="item.site_id" />
-            <result property="siteName" column="item.site_name" />
-            <result property="path" column="item.path" />
-            <result property="previewUrl" column="item.preview_url" />
-            <result property="state" column="item.state" />
-            <result property="ownedBy" column="item.owned_by" />
-            <result property="owner" column="item.owner" />
-            <result property="createdBy" column="item.created_by" />
-            <result property="creator" column="item.creator" />
-            <result property="createdOn" column="item.created_on" />
-            <result property="lastModifiedBy" column="item.last_modified_by" />
-            <result property="modifier" column="item.modifier" />
-            <result property="lastModifiedOn" column="item.last_modified_on" />
-            <result property="label" column="item.label" />
-            <result property="contentTypeId" column="item.content_type_id" />
-            <result property="systemType" column="item.system_type" />
-            <result property="mimeType" column="item.mime_type" />
-            <result property="disabledAsInt" column="item.disabled" />
-            <result property="localeCode" column="item.locale_code" />
-            <result property="translationSourceId" column="item.translation_source_id" />
-            <result property="size" column="item.size" />
-            <result property="parentId" column="item.parent_id" />
-            <result property="commitId" column="item.commit_id" />
+            <result property="siteId" column="site_id" />
+            <result property="siteName" column="site_name" />
+            <result property="path" column="item_path" />
+            <result property="previewUrl" column="item_preview_url" />
+            <result property="state" column="item_state" />
+            <result property="ownedBy" column="item_owned_by" />
+            <result property="owner" column="item_owner" />
+            <result property="createdBy" column="item_created_by" />
+            <result property="creator" column="item_creator" />
+            <result property="createdOn" column="item_created_on" />
+            <result property="lastModifiedBy" column="item_last_modified_by" />
+            <result property="modifier" column="item_modifier" />
+            <result property="lastModifiedOn" column="item_last_modified_on" />
+            <result property="label" column="item_label" />
+            <result property="contentTypeId" column="item_content_type_id" />
+            <result property="systemType" column="item_system_type" />
+            <result property="mimeType" column="item_mime_type" />
+            <result property="disabledAsInt" column="item_disabled" />
+            <result property="localeCode" column="item_locale_code" />
+            <result property="translationSourceId" column="item_translation_source_id" />
+            <result property="size" column="item_size" />
+            <result property="parentId" column="item_parent_id" />
+            <result property="commitId" column="item_commit_id" />
         </association>
     </resultMap>
 
@@ -80,6 +80,13 @@
         limit 0, 1
     </select>
 
+    <select id="getWorkflowEntryForApproval" resultMap="WorkflowMap">
+        SELECT workflow.*  FROM workflow INNER JOIN item ON workflow.item_id = item.id
+        WHERE item.id = #{itemId}
+          AND workflow.state = #{stateOpened}
+        limit 0, 1
+    </select>
+
     <select id="getWorkflowEntry" resultMap="WorkflowMap">
         SELECT w.* FROM workflow w INNER JOIN item i ON w.item_id = i.id INNER JOIN site s ON i.site_id = s.id
         WHERE s.site_id = #{siteId} AND s.deleted = 0
@@ -88,9 +95,46 @@
         limit 0, 1
     </select>
 
-    <select id="getSubmittedItems" resultType="org.craftercms.studio.api.v2.dal.WorkflowItem">
-        SELECT workflow.*, item.*
+    <select id="getSubmittedItems" resultMap="WorkflowItemMap">
+        SELECT
+            workflow.id as workflow_id,
+            workflow.target_environment as workflow_target_environment,
+            workflow.state as workflow_state,
+            workflow.submitter_id as workflow_submitter_id,
+            workflow.submitter_comment as workflow_submitter_comment,
+            workflow.reviewer_id as workflow_reviewer_id,
+            workflow.reviewer_comment as workdlow_reviewer_comment,
+            workflow.notify_submitter as workflow_notify_submitter,
+            workflow.schedule as workflow_schedule,
+            workflow.publishing_package_id as workflow_publishing_package_id,
+            workflow.item_id as item_id,
+            item.site_id as site_id,
+            site.name as site_name,
+            item.path as item_path,
+            item.preview_url as item_preview_url,
+            item.state as item_state,
+            item.owned_by as item_owned_by,
+            u1.username as item_owner,
+            item.created_by as item_created_by,
+            u2.username as item_creator,
+            item.created_on as item_created_on,
+            item.last_modified_by as item_last_modified_by,
+            u3.username as item_modifier,
+            item.last_modified_on as item_last_modified_on,
+            item.label as item_label,
+            item.content_type_id as item_content_type_id,
+            item.system_type as item_system_type,
+            item.mime_type as item_mime_type,
+            item.disabled as item_disabled,
+            item.locale_code as item_locale_code,
+            item.translation_source_id as item_translation_source_id,
+            item.size as item_size,
+            item.parent_id as item_parent_id,
+            item.commit_id as item_commit_id
         FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
+            left outer join user u1 on item.owned_by = u1.id
+            left outer join user u2 on item.created_by = u2.id
+            left outer join user u3 on item.last_modified_by = u3.id
         WHERE site.site_id = #{siteId} AND site.deleted = 0
         AND workflow.state = #{state}
     </select>
@@ -130,4 +174,17 @@
         DELETE FROM workflow WHERE id IN
         (SELECT w.id FROM  workflow w INNER JOIN item i ON w.item_id = i.id WHERE i.site_id = #{siteId})
     </delete>
+
+    <update id="updateWorkflowEntry" parameterType="org.craftercms.studio.api.v2.dal.Workflow">
+        UPDATE workflow SET
+            item_id = #{itemId},
+            target_environment = #{targetEnvironment},
+            state = #{state},
+            submitter_id = #{submitterId},
+            submitter_comment = #{submitterComment},
+            notify_submitter = #{notifySubmitter},
+            schedule = #{schedule},
+            publishing_package_id = #{publishingPackageId}
+        WHERE id = #{id}
+    </update>
 </mapper>

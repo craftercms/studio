@@ -21,6 +21,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_PACKAGE_ID;
@@ -40,6 +41,14 @@ public interface WorkflowDAO {
      */
     WorkflowItem getWorkflowEntryOpened(@Param(SITE_ID) String siteId, @Param(PATH) String path,
                                     @Param(STATE_OPENED) String stateOpened);
+
+    /**
+     * Get workflow entry for approval
+     * @param itemId item identifier
+     * @param stateOpened state opened
+     * @return
+     */
+    Workflow getWorkflowEntryForApproval(@Param(ITEM_ID) Long itemId, @Param(STATE_OPENED) String stateOpened);
 
     /**
      * Get workflow entry
@@ -62,6 +71,12 @@ public interface WorkflowDAO {
      * @param workflow workflow entry
      */
     void insertWorkflowEntry(@Param(WORKFLOW) Workflow workflow);
+
+    /**
+     * Update workflow entry
+     * @param workflow workflow entry
+     */
+    void updateWorkflowEntry(Workflow workflow);
 
     /**
      * Get submitted items

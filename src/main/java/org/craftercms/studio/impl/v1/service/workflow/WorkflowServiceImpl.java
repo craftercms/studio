@@ -462,28 +462,30 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public void fillQueue(@ValidateStringParam(name = "site") String site, GoLiveQueue goLiveQueue,
                           GoLiveQueue inProcessQueue) throws ServiceLayerException {
-        List<Item> changeSet = itemServiceInternal.getSubmittedItems(site);
+        //List<Item> changeSet = itemServiceInternal.getSubmittedItems(site);
+        List<WorkflowItem> changeSet = workflowServiceInternal.getSubmittedItems(site);
         // TODO: implement list changed all
 
         // the category item to add all other items that do not belong to
         // regular categories specified in the configuration
         if (changeSet != null) {
             // add all content items from each task if task is the review task
-            for (Item workflowItem : changeSet) {
+            for (WorkflowItem workflowItem : changeSet) {
+                Item it = workflowItem.getItem();
                 try {
-                    if (contentService.contentExists(site, workflowItem.getPath())) {
-                        ContentItemTO item = contentService.getContentItem(site, workflowItem.getPath(), 0);
+                    if (contentService.contentExists(site, it.getPath())) {
+                        ContentItemTO item = contentService.getContentItem(site, it.getPath(), 0);
                         Set<String> permissions = securityService.getUserPermissions(site, item.getUri(),
                                 securityService.getCurrentUser(), Collections.<String>emptyList());
                         if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
-                            addToQueue(site, goLiveQueue, inProcessQueue, item, workflowItem);
+                            addToQueue(site, goLiveQueue, inProcessQueue, item, it);
                         }
                     } else {
-                        _cancelWorkflow(site, workflowItem.getPath());
-                        itemServiceInternal.deleteItem(site, workflowItem.getPath());
+                        _cancelWorkflow(site, it.getPath());
+                        itemServiceInternal.deleteItem(site, it.getPath());
                     }
                 } catch (Exception e) {
-                    logger.error("Could not warm cache for [" + site + " : " + workflowItem.getPath()
+                    logger.error("Could not warm cache for [" + site + " : " + it.getPath()
                             + "] " + e.getMessage());
                 }
             }

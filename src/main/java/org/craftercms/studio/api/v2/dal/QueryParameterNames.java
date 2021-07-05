@@ -263,6 +263,8 @@ public final class  QueryParameterNames {
 
     public static final String STATE_OPENED = "stateOpened";
 
+    public static final String ITEM_ID = "itemId";
+
     private QueryParameterNames() {
     }
 }

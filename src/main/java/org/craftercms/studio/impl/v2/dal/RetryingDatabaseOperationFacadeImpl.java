@@ -606,6 +606,11 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
+    public void updateWorkflowEntry(Workflow workflow) {
+        workflowDao.updateWorkflowEntry(workflow);
+    }
+
+    @Override
     public void deleteWorkflowEntries(String siteId, List<String> paths) {
         workflowDao.deleteWorkflowEntries(siteId, paths);
     }
