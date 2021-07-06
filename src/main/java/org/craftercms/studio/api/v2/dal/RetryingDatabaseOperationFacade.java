@@ -796,6 +796,12 @@ public interface RetryingDatabaseOperationFacade {
     void insertWorkflowEntry(Workflow workflow);
 
     /**
+     * Update workflow entry
+     * @param workflow workflow entry
+     */
+    void updateWorkflowEntry(Workflow workflow);
+
+    /**
      * Delete workflow entries
      * @param siteId site identifier
      * @param paths list of paths

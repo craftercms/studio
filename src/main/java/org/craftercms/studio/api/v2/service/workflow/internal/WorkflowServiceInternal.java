@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.service.workflow.internal;
 
-import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 
@@ -33,6 +32,13 @@ public interface WorkflowServiceInternal {
     WorkflowItem getWorkflowEntry(String siteId, String path);
 
     /**
+     * Get workflow entry for approval
+     * @param itemId item identifier
+     * @return
+     */
+    Workflow getWorkflowEntryForApproval(Long itemId);
+
+    /**
      * Get workflow entry
      * @param siteId
      * @param path
@@ -46,6 +52,12 @@ public interface WorkflowServiceInternal {
      * @param workflow workflow entry
      */
     void insertWorkflow(Workflow workflow);
+
+    /**
+     * Update new workflow entry
+     * @param workflow workflow entry
+     */
+    void updateWorkflow(Workflow workflow);
 
     /**
      * Get submitted items for site

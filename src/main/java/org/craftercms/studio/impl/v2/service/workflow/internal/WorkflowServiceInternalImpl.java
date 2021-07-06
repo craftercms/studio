@@ -37,6 +37,11 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     }
 
     @Override
+    public Workflow getWorkflowEntryForApproval(Long itemId) {
+        return workflowDao.getWorkflowEntryForApproval(itemId, STATE_OPENED);
+    }
+
+    @Override
     public Workflow getWorkflowEntry(String siteId, String path, String publishingPackageId) {
         return workflowDao.getWorkflowEntry(siteId, path, publishingPackageId);
     }
@@ -44,6 +49,11 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     @Override
     public void insertWorkflow(Workflow workflow) {
         retryingDatabaseOperationFacade.insertWorkflowEntry(workflow);
+    }
+
+    @Override
+    public void updateWorkflow(Workflow workflow) {
+        retryingDatabaseOperationFacade.updateWorkflowEntry(workflow);
     }
 
     @Override
