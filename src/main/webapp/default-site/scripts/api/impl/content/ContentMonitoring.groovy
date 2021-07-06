@@ -58,7 +58,7 @@ class ContentMonitoring {
 		def servicesConfig = context.get(SERVICES_CONFIG_BEAN)
 		def configurationService = context.get(CONFIGURATION_SERVICE_BEAN)
 
-		def config = configurationService.legacyGetConfiguration(site, "site-config.xml");
+		def config = configurationService.legacyGetConfiguration(site, "site-config.xml")
 
 		if(config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
 			if(config.contentMonitoring.monitor instanceof Map) {
