@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,14 +34,48 @@ public interface UserServiceInternal {
     List<User> getUsersByIdOrUsername(List<Long> userIds,
                                       List<String> usernames) throws ServiceLayerException, UserNotFoundException;
 
-    List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit,
+    /**
+     * Get paginated list of all users for site filtered by keyword
+     * @param orgId organization identifier
+     * @param groupNames group names for site
+     * @param keyword keyword to filter users
+     * @param offset pagination offset
+     * @param limit limit number of users to return per page
+     * @param sort sort order
+     * @return requested page of list of users
+     * @throws ServiceLayerException
+     */
+    List<User> getAllUsersForSite(long orgId, List<String> groupNames, String keyword, int offset, int limit,
                                   String sort) throws ServiceLayerException;
 
-    List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException;
+    /**
+     * Get paginated list of all users filtered by keyword
+     * @param keyword keyword to filter users
+     * @param offset offset for pagination
+     * @param limit limit number of users per page
+     * @param sort sort order
+     * @return requested page of list of users
+     * @throws ServiceLayerException
+     */
+    List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
 
-    int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException;
+    /**
+     * Get total number of users for site filtered by keyword
+     * @param orgId organization identifier
+     * @param siteId site identifier
+     * @param keyword keyword to filter users
+     * @return total number of users for site filtered by keyword
+     * @throws ServiceLayerException
+     */
+    int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException;
 
-    int getAllUsersTotal() throws ServiceLayerException;
+    /**
+     * Get total number of users filtered by keyword
+     * @param keyword keyword to filter user
+     * @return total number of users filtered by keyword
+     * @throws ServiceLayerException
+     */
+    int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
     User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException;
 

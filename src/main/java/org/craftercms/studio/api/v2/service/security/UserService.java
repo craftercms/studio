@@ -32,14 +32,48 @@ import java.util.concurrent.ExecutionException;
 
 public interface UserService {
 
-    List<User> getAllUsersForSite(long orgId, String site, int offset, int limit, String sort)
+    /**
+     * Get paginated list of all users for site filtered by keyword
+     * @param orgId organization identifier
+     * @param site site identifier
+     * @param keyword keyword to filter users
+     * @param offset offset for pagination
+     * @param limit limit number of users to return per page
+     * @param sort sort order
+     * @return requested page of list of users
+     * @throws ServiceLayerException
+     */
+    List<User> getAllUsersForSite(long orgId, String site, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException;
 
-    List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException;
+    /**
+     * Get paginated list of all users filtered by keyword
+     * @param keyword keyword to filter users
+     * @param offset offset for pagination
+     * @param limit limit number of users to return per page
+     * @param sort sort order
+     * @return requested page of list of users
+     * @throws ServiceLayerException
+     */
+    List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
 
-    int getAllUsersForSiteTotal(long orgId, String site) throws ServiceLayerException;
+    /**
+     * Get total number of users for site filtered by keyword
+     * @param orgId organization identifier
+     * @param site site identifier
+     * @param keyword keyword to filter users
+     * @return total number of users for site filtered by keyword
+     * @throws ServiceLayerException
+     */
+    int getAllUsersForSiteTotal(long orgId, String site, String keyword) throws ServiceLayerException;
 
-    int getAllUsersTotal() throws ServiceLayerException;
+    /**
+     * Get total number of users filtered by keyword
+     * @param keyword keyword to filter user
+     * @return total number of users filtered by keyword
+     * @throws ServiceLayerException
+     */
+    int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
     User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
 

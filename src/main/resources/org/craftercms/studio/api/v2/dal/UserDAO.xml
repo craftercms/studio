@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -64,6 +64,9 @@
         <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
             #{groupName}
         </foreach>
+        <if test="keyword != null" >
+        AND u.username like '%${keyword}%'
+        </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
@@ -72,6 +75,9 @@
         SELECT u.*
         FROM `user` u
         WHERE u.deleted = 0
+        <if test="keyword != null" >
+            AND u.username like '%${keyword}%'
+        </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
@@ -142,11 +148,17 @@
         <foreach collection="groupNames" index="index" separator="," item="groupName" open="(" close=")">
             #{groupName}
         </foreach>
+        <if test="keyword != null" >
+            AND u.username like '%${keyword}%'
+        </if>
     </select>
 
     <select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
             SELECT COUNT(DISTINCT username)
             FROM `user` WHERE deleted = 0
+        <if test="keyword != null" >
+            AND username like '%${keyword}%'
+        </if>
     </select>
 
     <update id="setUserPassword" parameterType="java.util.Map">
