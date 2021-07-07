@@ -205,8 +205,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // Item
                 // TODO: get local code with API 2
                 Item pItem = itemServiceInternal.getItem(site, parentItem.getUri(), true);
-                itemServiceInternal.persistItemAfterCreate(site, itemPath, user, result.getCommitId(),
-                        Optional.of(unlock), pItem.getId());
+                itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, Optional.of(unlock),
+                        pItem.getId());
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -266,7 +266,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // Item
             // TODO: get local code with API 2
-            itemServiceInternal.persistItemAfterWrite(site, path, user, result.getCommitId(), Optional.of(unlock));
+            itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, Optional.of(unlock));
         }
 
         // unlock the content upon save if the flag is true

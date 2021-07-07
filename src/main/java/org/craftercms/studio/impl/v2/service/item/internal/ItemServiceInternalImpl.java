@@ -100,7 +100,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean upsertEntry(Item item) {
-        itemDao.upsertEntry(item);
+        retryingDatabaseOperationFacade.upsertEntry(item);
         return true;
     }
 
