@@ -56,14 +56,10 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PASSWORD;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
@@ -138,53 +134,39 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, int offset, int limit, String sort)
+    public List<User> getAllUsersForSite(long orgId, List<String> groupNames, String keyword, int offset, int limit,
+                                         String sort)
             throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<>();
-        params.put(GROUP_NAMES, groupNames);
-        params.put(OFFSET, offset);
-        params.put(LIMIT, limit);
-        params.put(SORT, StringUtils.EMPTY);
-
         try {
-            return userDao.getAllUsersForSite(params);
+            return userDao.getAllUsersForSite(groupNames, keyword, offset, limit, StringUtils.EMPTY);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
-        Map<String, Object> params = new HashMap<>();
-        params.put(OFFSET, offset);
-        params.put(LIMIT, limit);
-        params.put(SORT, sort);
-
+    public List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException {
         try {
-            return userDao.getAllUsers(params);
+            return userDao.getAllUsers(keyword, offset, limit, sort);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
+    public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(GROUP_NAMES, groupNames);
-
         try {
-            return userDao.getAllUsersForSiteTotal(params);
+            return userDao.getAllUsersForSiteTotal(groupNames, keyword);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
     @Override
-    public int getAllUsersTotal() throws ServiceLayerException {
+    public int getAllUsersTotal(String keyword) throws ServiceLayerException {
         try {
-            return userDao.getAllUsersTotal();
+            return userDao.getAllUsersTotal(keyword);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }

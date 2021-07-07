@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,10 +21,15 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.chemistry.opencmis.commons.server.CallContext.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GIT_NAME;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAMES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROPERTIES;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 
@@ -33,18 +38,26 @@ public interface UserDAO {
     /**
      * Get all users for given site
      *
-     * @param params SQL query parameters
+     * @param groupNames group names
+     * @param keyword keyword to filter users
+     * @param offset offset for pagination
+     * @param limit limit number of users per page
+     * @param sort sort order;
      * @return List of users
      */
-    List<User> getAllUsersForSite(Map params);
+    List<User> getAllUsersForSite(@Param(GROUP_NAMES) List<String> groupNames, @Param(KEYWORD) String keyword,
+                                  @Param(OFFSET) int offset, @Param(LIMIT) int limit, @Param(SORT) String sort);
 
     /**
      * Get all users
-     *
-     * @param params SQL query parameters
+     * @param keyword keyword to filter users
+     * @param offset offset for pagination
+     * @param limit limit number of users per page
+     * @param sort sort order;
      * @return List of users
      */
-    List<User> getAllUsers(Map params);
+    List<User> getAllUsers(@Param(KEYWORD) String keyword, @Param(OFFSET) int offset, @Param(LIMIT) int limit,
+                           @Param(SORT) String sort);
 
     /**
      * Create user
@@ -104,18 +117,18 @@ public interface UserDAO {
 
     /**
      * Get total number of users
-     *
-     * @param params SQL query params
+     * @param groupNames group names
+     * @param keyword keyword to filter users
      * @return total number of users for site
      */
-    int getAllUsersForSiteTotal(Map params);
+    int getAllUsersForSiteTotal(@Param(GROUP_NAMES) List<String> groupNames, @Param(KEYWORD) String keyword);
 
     /**
      * Get total number of users
-     *
+     * @param keyword keyword to filter users
      * @return total number of all users
      */
-    int getAllUsersTotal();
+    int getAllUsersTotal(@Param(KEYWORD) String keyword);
 
     /**
      * Set password for user

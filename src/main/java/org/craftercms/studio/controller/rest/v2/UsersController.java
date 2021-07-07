@@ -67,6 +67,7 @@ import java.util.concurrent.TimeUnit;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_KEYWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE;
@@ -135,6 +136,7 @@ public class UsersController {
     @GetMapping()
     public ResponseBody getAllUsers(
             @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
+            @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
@@ -142,11 +144,11 @@ public class UsersController {
         List<User> users = null;
         int total = 0;
         if (StringUtils.isEmpty(siteId)) {
-            total = userService.getAllUsersTotal();
-            users = userService.getAllUsers(offset, limit, sort);
+            total = userService.getAllUsersTotal(keyword);
+            users = userService.getAllUsers(keyword, offset, limit, sort);
         } else {
-            total = userService.getAllUsersForSiteTotal(DEFAULT_ORGANIZATION_ID, siteId);
-            users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, offset, limit, sort);
+            total = userService.getAllUsersForSiteTotal(DEFAULT_ORGANIZATION_ID, siteId, keyword);
+            users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, keyword, offset, limit, sort);
         }
 
         ResponseBody responseBody = new ResponseBody();

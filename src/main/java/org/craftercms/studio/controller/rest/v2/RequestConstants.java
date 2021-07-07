@@ -82,5 +82,7 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_FILTER_TYPE = "filterType";
 
+    public static final String REQUEST_PARAM_KEYWORD = "keyword";
+
     private RequestConstants() { }
 }

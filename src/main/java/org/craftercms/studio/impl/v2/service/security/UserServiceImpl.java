@@ -101,6 +101,10 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FO
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_USERS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_DELETE_USERS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_READ_USERS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_UPDATE_USERS;
 
 public class UserServiceImpl implements UserService {
 
@@ -123,33 +127,33 @@ public class UserServiceImpl implements UserService {
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<User> getAllUsersForSite(long orgId, String siteId, int offset, int limit, String sort)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
+    public List<User> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
-        return userServiceInternal.getAllUsersForSite(orgId, groupNames, offset, limit, sort);
+        return userServiceInternal.getAllUsersForSite(orgId, groupNames, keyword, offset, limit, sort);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public List<User> getAllUsers(int offset, int limit, String sort) throws ServiceLayerException {
-        return userServiceInternal.getAllUsers(offset, limit, sort);
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
+    public List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException {
+        return userServiceInternal.getAllUsers(keyword, offset, limit, sort);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public int getAllUsersForSiteTotal(long orgId, String siteId) throws ServiceLayerException {
-        return userServiceInternal.getAllUsersForSiteTotal(orgId, siteId);
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
+    public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
+        return userServiceInternal.getAllUsersForSiteTotal(orgId, siteId, keyword);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
-    public int getAllUsersTotal() throws ServiceLayerException {
-        return userServiceInternal.getAllUsersTotal();
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
+    public int getAllUsersTotal(String keyword) throws ServiceLayerException {
+        return userServiceInternal.getAllUsersTotal(keyword);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "create_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_USERS)
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
         try {
             entitlementValidator.validateEntitlement(EntitlementType.USER, 1);
@@ -171,7 +175,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userServiceInternal.updateUser(user);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
@@ -186,7 +190,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "delete_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_USERS)
     public void deleteUsers(List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         User currentUser = getCurrentUser();
@@ -258,14 +262,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
     public User getUserByIdOrUsername(long userId, String username)
             throws ServiceLayerException, UserNotFoundException {
         return userServiceInternal.getUserByIdOrUsername(userId, username);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
                                   boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         List<User> users = userServiceInternal.enableUsers(userIds, usernames, enabled);
@@ -295,7 +299,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
     public List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
@@ -324,7 +328,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
     public List<String> getUserSiteRoles(long userId, String username, String site)
             throws ServiceLayerException, UserNotFoundException {
         List<Group> groups = userServiceInternal.getUserGroups(userId, username);
@@ -581,7 +585,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_users")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public boolean resetPassword(String username, String newPassword)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         return userServiceInternal.setUserPassword(username, newPassword);

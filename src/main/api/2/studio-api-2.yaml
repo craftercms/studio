@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.18'
+  version: '4.0.0.19'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -443,6 +443,12 @@ paths:
         - name: site
           in: query
           description: The site ID to filter users for a particular site
+          required: false
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          description: The keyword to filter users
           required: false
           schema:
             type: string

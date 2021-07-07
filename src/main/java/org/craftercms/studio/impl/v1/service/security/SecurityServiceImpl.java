@@ -647,7 +647,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public int getAllUsersTotal() throws ServiceLayerException {
-        return userServiceInternal.getAllUsersTotal();
+        return userServiceInternal.getAllUsersTotal(null);
     }
 
 
