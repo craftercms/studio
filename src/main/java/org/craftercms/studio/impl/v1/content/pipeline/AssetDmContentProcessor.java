@@ -175,8 +175,11 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 // Item
                 // TODO: get local code with API 2
-                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, result.getCommitId(),
-                        Optional.of(unlock));
+                String commitId = result.getCommitId();
+                if (StringUtils.isEmpty(commitId)) {
+                    commitId = contentRepository.getRepoLastCommitId(site);
+                }
+                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, commitId, Optional.of(unlock));
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
@@ -223,7 +226,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
 
             // Item
-            itemServiceInternal.persistItemAfterWrite(site, relativePath, user, result.getCommitId(), Optional.of(unlock));
+            itemServiceInternal.persistItemAfterWrite(site, relativePath, user, commitId, Optional.of(unlock));
         }
         if (unlock) {
             contentRepository.unLockItem(site, relativePath);
