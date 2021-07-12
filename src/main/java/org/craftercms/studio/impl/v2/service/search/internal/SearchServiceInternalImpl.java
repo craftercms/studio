@@ -502,6 +502,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             updateFilters(query, params, siteFacets);
         }
 
+        if (CollectionUtils.isNotEmpty(query.should()) &&
+                (CollectionUtils.isNotEmpty(query.must()) || CollectionUtils.isNotEmpty(query.filter()))) {
+            query.minimumShouldMatch(1);
+        }
+
         SearchSourceBuilder builder = new SearchSourceBuilder()
             .query(query)
             .from(params.getOffset())
