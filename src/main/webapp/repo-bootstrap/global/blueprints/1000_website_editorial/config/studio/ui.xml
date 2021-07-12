@@ -458,5 +458,107 @@
                 </tool>
             </tools>
         </reference>
+		<reference id="craftercms.freemarkerCodeSnippets">
+			<contentVariable label="Content variable">
+				<value><![CDATA[${contentModel.VARIABLE_NAME}]]></value>
+			</contentVariable>
+			<requestParameter label="Request parameter">
+				<value><![CDATA[${RequestParameters["PARAM_NAME"]!"DEFAULT"}]]></value>
+			</requestParameter>
+			<crafterSupportMacros label="Crafter support macros">
+				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />]]></value>
+			</crafterSupportMacros>
+			<transformPathToUrl label="Transform PATH to URL">
+				<value><![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
+			</transformPathToUrl>
+			<renderComponentsList label="Render list of components">
+				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
+	<@renderComponent component=module />
+</#list>]]></value>
+			</renderComponentsList>
+			<iterateItemsListLoadContentItem label="Iterate over a list of items and load content item">
+				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as myItem>
+	<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
+	${myContentItem.variableName}
+</#list>]]></value>
+			</iterateItemsListLoadContentItem>
+			<iterateRepeatGroup label="Iterate over repeat group">
+				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as row>
+	${row.VARIABLE_NAME}
+</#list>]]></value>
+			</iterateRepeatGroup>
+			<fremarkerValueAssignment label="Freemarker value assignment">
+				<value><![CDATA[<#assign imageSource = contentModel.image!"" />]]></value>
+			</fremarkerValueAssignment>
+			<freemarkerIf label="Freemarker value IF">
+				<value><![CDATA[<#if CONDITION>
+	...
+</#if>]]></value>
+			</freemarkerIf>
+			<freemarkerLoop label="Freemarker value LOOP">
+				<value><![CDATA[<#list ARRAY as value>
+	${value_index}: ${value}
+</#list>]]></value>
+			</freemarkerLoop>
+			<freemarkerFragmentInclude label="Freemarker Fragment include">
+				<value><![CDATA[<#include "/templates/PATH" />]]></value>
+			</freemarkerFragmentInclude>
+			<freemarkerLibraryImport label="Freemarker Library import">
+				<value><![CDATA[<#import "/templates/PATH" as NAMESPACE />]]></value>
+			</freemarkerLibraryImport>
+		</reference>
+		<reference id="craftercms.groovyCodeSnippets">
+			<accessContentModel label="Access Content variable">
+				<value><![CDATA[contentModel.VARIABLE_NAME]]></value>
+			</accessContentModel>
+			<accessTemplateodel label="Access Template variable">
+				<value><![CDATA[templateModel]]></value>
+			</accessTemplateodel>
+			<currentSiteId label="Current Site ID">
+				<value><![CDATA[siteContext.siteName]]></value>
+			</currentSiteId>
+			<requestParameters label="Request Parameters">
+				<value><![CDATA[params]]></value>
+			</requestParameters>
+			<cookies label="Cookies">
+				<value><![CDATA[cookies]]></value>
+			</cookies>
+			<httpRequest label="HTTP Request">
+				<value><![CDATA[request]]></value>
+			</httpRequest>
+			<httpResponse label="HTTP Response">
+				<value><![CDATA[response]]></value>
+			</httpResponse>
+			<session label="Session">
+				<value><![CDATA[session]]></value>
+			</session>
+			<transformPathToUrl label="Transform PATH to URL">
+				<value><![CDATA[urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)]]></value>
+			</transformPathToUrl>
+			<userProfile label="User Profile">
+				<value><![CDATA[profile]]></value>
+			</userProfile>
+			<currentAuthentication label="Current Authentication">
+				<value><![CDATA[authentication]]></value>
+			</currentAuthentication>
+			<logInfo label="Log an INFO">
+				<value><![CDATA[logger.info('MY MESSAGE')]]></value>
+			</logInfo>
+			<logError label="Log an ERROR">
+				<value><![CDATA[logger.error('MY MESSAGE')]]></value>
+			</logError>
+			<searchService label="Search Service">
+				<value><![CDATA[searchService]]></value>
+			</searchService>
+			<siteItemService label="Site Item Service">
+				<value><![CDATA[siteItemService]]></value>
+			</siteItemService>
+			<profileService label="Profile Service">
+				<value><![CDATA[profileService]]></value>
+			</profileService>
+			<getSpringBean label="Get Spring Bean">
+				<value><![CDATA[applicationContext.get("SPRING_BEAN_NAME")]]></value>
+			</getSpringBean>
+		</reference>
     </references>
 </siteUi>
