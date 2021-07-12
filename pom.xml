@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.15-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.16-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -52,7 +52,7 @@
         <aws.version>1.11.1034</aws.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.4.8</mariadb4j.version>
+        <mariadb4j.version>2.4.9</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
         <jackson.databind.version>2.10.5.1</jackson.databind.version>
         <bouncycastle.version>1.61</bouncycastle.version>
