@@ -77,9 +77,14 @@ import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsC
 
 public final class ContentItemPossibleActionsConstants {
 
+    /*
+        TODO:
+        Temporarily disabled RENAME permission until proper rename API is provided for all renamable content
+        types and system types.
+     */
     public static final long PAGE = CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY +
             CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_CREATE + CONTENT_PASTE + CONTENT_EDIT +
-            CONTENT_RENAME + CONTENT_CUT + CONTENT_DUPLICATE + CONTENT_CHANGE_TYPE + CONTENT_REVERT +
+            CONTENT_CUT + CONTENT_DUPLICATE + CONTENT_CHANGE_TYPE + CONTENT_REVERT +
             CONTENT_EDIT_CONTROLLER + CONTENT_EDIT_TEMPLATE + FOLDER_CREATE + CONTENT_DELETE +
             CONTENT_DELETE_CONTROLLER + CONTENT_DELETE_TEMPLATE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
@@ -89,15 +94,25 @@ public final class ContentItemPossibleActionsConstants {
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE  + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
+    /*
+        TODO:
+        Temporarily disabled RENAME permission until proper rename API is provided for all renamable content
+        types and system types.
+     */
     public static final long COMPONENT = CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY +
             CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT +
-            CONTENT_RENAME + CONTENT_CUT + CONTENT_DUPLICATE + CONTENT_CHANGE_TYPE + CONTENT_REVERT +
+            CONTENT_CUT + CONTENT_DUPLICATE + CONTENT_CHANGE_TYPE + CONTENT_REVERT +
             CONTENT_EDIT_CONTROLLER + CONTENT_EDIT_TEMPLATE + CONTENT_DELETE +
             CONTENT_DELETE_CONTROLLER + CONTENT_DELETE_TEMPLATE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
+    /*
+        TODO:
+        Temporarily disabled RENAME permission until proper rename API is provided for all renamable content
+        types and system types.
+     */
     public static final long DOCUMENT = CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY +
-            CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT + CONTENT_RENAME + CONTENT_CUT +
+            CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT + CONTENT_CUT +
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
@@ -106,8 +121,13 @@ public final class ContentItemPossibleActionsConstants {
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
+    /*
+        TODO:
+        Temporarily disabled RENAME permission until proper rename API is provided for all renamable content
+        types and system types.
+     */
     public static final long TAXONOMY = CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY +
-            CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT + CONTENT_RENAME + CONTENT_CUT +
+            CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT + CONTENT_CUT +
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE  + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
@@ -135,8 +155,13 @@ public final class ContentItemPossibleActionsConstants {
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
+    /*
+        TODO:
+        Temporarily disabled RENAME permission until proper rename API is provided for all renamable content
+        types and system types.
+     */
     public static final long LEVEL_DESCRIPTOR = CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY +
-            CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT + CONTENT_RENAME + CONTENT_CUT +
+            CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_EDIT + CONTENT_CUT +
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
