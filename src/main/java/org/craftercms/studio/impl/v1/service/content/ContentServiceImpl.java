@@ -146,6 +146,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
+import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
 import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
@@ -1770,9 +1771,11 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 item.setNew(isNew(it.getState()));
                 item.setLive(isLive(it.getState()));
+                item.setStaged(isStaged(it.getState()));
             }
             item.isNew = item.isNew();
             item.isLive = item.isLive();
+            item.isStaged = item.isStaged();
             item.setInProgress(!item.isLive());
             item.isInProgress = item.isInProgress();
             item.setScheduled(isScheduled(it.getState()));
@@ -1784,10 +1787,13 @@ public class ContentServiceImpl implements ContentService {
         } else {
             if (item.isFolder()) {
                 boolean liveFolder = isLive(it.getState());
+                boolean stagedFolder = isStaged(it.getState());
                 item.setNew(!liveFolder);
                 item.setLive(liveFolder);
+                item.setStaged(stagedFolder);
                 item.isNew = item.isNew();
                 item.isLive = item.isLive();
+                item.isStaged = item.isStaged();
                 item.setInProgress(!item.isLive());
                 item.isInProgress = item.isInProgress();
             }

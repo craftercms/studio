@@ -72,6 +72,7 @@ public class ContentItemTO implements Serializable {
 	public boolean deleted;
 	public boolean inProgress;
 	public boolean live;
+	public boolean staged;
     public boolean inFlight;
 
     // duplicate properties (these are probable getters)
@@ -79,6 +80,7 @@ public class ContentItemTO implements Serializable {
     public boolean isSavedAsDraft;
     public boolean isInProgress;
     public boolean isLive;
+    public boolean isStaged;
     public boolean isSubmittedForDeletion;
     public boolean isScheduled;
     public boolean isPublished;
@@ -171,11 +173,13 @@ public class ContentItemTO implements Serializable {
         this.deleted = item.deleted;
         this.inProgress = item.inProgress;
         this.live = item.live;
+        this.staged = item.staged;
         this.inFlight = item.inFlight;
         this.isDisabled = item.isDisabled;
         this.isSavedAsDraft = item.isSavedAsDraft;
         this.isInProgress = item.isInProgress;
         this.isLive = item.isLive;
+        this.isStaged = item.isStaged;
         this.isSubmittedForDeletion = item.isSubmittedForDeletion;
         this.isScheduled = item.isScheduled;
         this.isPublished = item.isPublished;
@@ -567,6 +571,14 @@ public class ContentItemTO implements Serializable {
 
 	public void setLive(boolean live) {
 	    this.live = live;
+	}
+
+	public boolean isStaged() {
+		return staged;
+	}
+
+	public void setStaged(boolean staged) {
+		this.staged = staged;
 	}
 
 	public String getCategoryRoot() {
