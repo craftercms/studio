@@ -97,6 +97,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.DESTINATION;
 import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
@@ -106,6 +107,7 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
@@ -150,6 +152,23 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
+        String liveEnvironment = StringUtils.EMPTY;
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            liveEnvironment = servicesConfig.getLiveEnvironment(site);
+        }
+        boolean isLive = false;
+        if (StringUtils.isEmpty(liveEnvironment)) {
+            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        }
+        if (liveEnvironment.equals(environment)) {
+            isLive = true;
+        }
+        if (isLive) {
+            itemServiceInternal.updateStateBitsBulk(site, paths, DESTINATION.value, 0);
+        } else {
+            itemServiceInternal.updateStateBitsBulk(site, paths, 0, DESTINATION.value);
+        }
+
         List<String> newPaths = new ArrayList<String>();
         List<String> updatedPaths = new ArrayList<String>();
         List<String> movedPaths = new ArrayList<String>();

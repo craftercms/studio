@@ -26,11 +26,12 @@ public enum ItemState {
     IN_WORKFLOW(5),
     SCHEDULED(6),
     PUBLISHING(7),
-    STAGED(8),
-    LIVE(9),
-    TRANSLATION_UP_TO_DATE(10),
-    TRANSLATION_PENDING(11),
-    TRANSLATION_IN_PROGRESS(12);
+    DESTINATION(8),
+    STAGED(9),
+    LIVE(10),
+    TRANSLATION_UP_TO_DATE(11),
+    TRANSLATION_PENDING(12),
+    TRANSLATION_IN_PROGRESS(13);
 
     public final long value;
 
@@ -41,27 +42,34 @@ public enum ItemState {
     // Masks
     public static final long CANCEL_WORKFLOW_ON_MASK = MODIFIED.value;
     public static final long CANCEL_WORKFLOW_OFF_MASK =
-            SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + USER_LOCKED.value;
+            SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value + USER_LOCKED.value + DESTINATION.value;
 
     public static final long SAVE_AND_CLOSE_ON_MASK = MODIFIED.value;
     public static final long SAVE_AND_CLOSE_OFF_MASK = SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value +
-            STAGED.value + LIVE.value + USER_LOCKED.value;
+            STAGED.value + LIVE.value + USER_LOCKED.value + DESTINATION.value;
 
     public static final long CANCEL_PUBLISHING_PACKAGE_ON_MASK = MODIFIED.value;
     public static final long CANCEL_PUBLISHING_PACKAGE_OFF_MASK = SYSTEM_PROCESSING.value + IN_WORKFLOW.value +
-            SCHEDULED.value + USER_LOCKED.value;
+            SCHEDULED.value + USER_LOCKED.value + DESTINATION.value;
 
     public static final long SAVE_AND_NOT_CLOSE_ON_MASK = MODIFIED.value  + USER_LOCKED.value;
     public static final long SAVE_AND_NOT_CLOSE_OFF_MASK =
             SYSTEM_PROCESSING.value + IN_WORKFLOW.value + SCHEDULED.value +
-            STAGED.value + LIVE.value;
+            STAGED.value + LIVE.value + DESTINATION.value;
 
     public static final long SUBMIT_TO_WORKFLOW_ON_MASK = IN_WORKFLOW.value;
     public static final long SUBMIT_TO_WORKFLOW_OFF_MASK =
             USER_LOCKED.value + SYSTEM_PROCESSING.value + SCHEDULED.value;
+    public static final long SUBMIT_TO_WORKFLOW_LIVE_ON_MASK = IN_WORKFLOW.value + DESTINATION.value;
+    public static final long SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK =
+            USER_LOCKED.value + SYSTEM_PROCESSING.value + SCHEDULED.value + DESTINATION.value;
 
     public static final long SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK = IN_WORKFLOW.value + SCHEDULED.value;
     public static final long SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK = USER_LOCKED.value + SYSTEM_PROCESSING.value;
+    public static final long SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK =
+            IN_WORKFLOW.value + SCHEDULED.value + DESTINATION.value;
+    public static final long SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK =
+            USER_LOCKED.value + SYSTEM_PROCESSING.value + DESTINATION.value;
 
     public static final long REJECT_ON_MASK = 0L;
     public static final long REJECT_OFF_MASK =

@@ -101,8 +101,12 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.REJECT_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
@@ -110,6 +114,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 /**
@@ -355,13 +360,35 @@ public class WorkflowServiceImpl implements WorkflowService {
         workflowServiceInternal.insertWorkflow(workflow);
 
         // Item
+        String liveEnvironment = StringUtils.EMPTY;
+        if (servicesConfig.isStagingEnvironmentEnabled(site)) {
+            liveEnvironment = servicesConfig.getLiveEnvironment(site);
+        }
+        boolean isLive = false;
+        if (StringUtils.isEmpty(liveEnvironment)) {
+            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        }
+        if (liveEnvironment.equals(environment)) {
+            isLive = true;
+        }
 
         if (Objects.nonNull(scheduledDate)) {
-            itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
-                    SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
+            if (isLive) {
+                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(),
+                        SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK);
+            } else {
+                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
+            }
         } else {
-            itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_ON_MASK,
-                    SUBMIT_TO_WORKFLOW_OFF_MASK);
+            if (isLive) {
+                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_LIVE_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK);
+            } else {
+                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_OFF_MASK);
+            }
         }
     }
 
