@@ -359,51 +359,31 @@
           <title id="dropTargetsMessages.contentTypes" defaultMessage="Content Types"/>
           <icon id="@material-ui/icons/WidgetsOutlined"/>
           <url>content-types</url>
-          <widget id="craftercms.components.ContentTypeManagement">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.ContentTypeManagement" />
         </tool>
         <tool>
           <title id="GlobalMenu.EncryptionToolEntryLabel" defaultMessage="Encryption Tool"/>
           <icon id="@material-ui/icons/LockOutlined"/>
           <url>encrypt-tool</url>
-          <widget id="craftercms.components.SiteEncryptTool">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.SiteEncryptTool" />
         </tool>
         <tool>
           <title id="words.configuration" defaultMessage="Configuration"/>
           <icon id="@material-ui/icons/SettingsApplicationsOutlined"/>
           <url>configuration</url>
-          <widget id="craftercms.components.SiteConfigurationManagement">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.SiteConfigurationManagement" />
         </tool>
         <tool>
           <title id="GlobalMenu.AuditEntryLabel" defaultMessage="Audit"/>
           <icon id="@material-ui/icons/SubjectRounded" />
           <url>audit</url>
-          <widget id="craftercms.components.SiteAuditManagement">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.SiteAuditManagement" />
         </tool>
         <tool>
           <title id="workflowStates.title" defaultMessage="Workflow States"/>
           <icon id="@material-ui/icons/SettingsOutlined"/>
           <url>item-states</url>
-          <widget id="craftercms.components.ItemStatesManagement">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.ItemStatesManagement" />
         </tool>
         <tool>
           <title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>
@@ -412,7 +392,6 @@
           <widget id="craftercms.components.LogConsole">
             <configuration>
               <logType>preview</logType>
-              <embedded>true</embedded>
             </configuration>
           </widget>
         </tool>
@@ -420,41 +399,25 @@
           <title id="words.publishing" defaultMessage="Publishing"/>
           <icon id="@material-ui/icons/CloudUploadOutlined"/>
           <url>publishing</url>
-          <widget id="craftercms.components.PublishingDashboard">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.PublishingDashboard" />
         </tool>
         <tool>
           <title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
           <icon id="@material-ui/icons/StorageRounded"/>
           <url>remote-repositories</url>
-          <widget id="craftercms.components.RemoteRepositoriesManagement">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.RemoteRepositoriesManagement" />
         </tool>
         <tool>
           <title>GraphQL</title>
           <icon id="craftercms.icons.GraphQL"/>
           <url>graphiql</url>
-          <widget id="craftercms.components.SiteGraphiQL">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.SiteGraphiQL"/>
         </tool>
         <tool>
           <title id="PluginManagement.title" defaultMessage="Plugin Management"/>
           <icon id="@material-ui/icons/ExtensionOutlined"/>
           <url>plugins</url>
-          <widget id="craftercms.components.PluginManagement">
-            <configuration>
-              <embedded>true</embedded>
-            </configuration>
-          </widget>
+          <widget id="craftercms.components.PluginManagement" />
         </tool>
       </tools>
     </reference>
