@@ -930,15 +930,15 @@ studio.marketplace.plugin.wire.mapping:
 # Mapping used to wire plugin files into the site templates
 studio.marketplace.plugin.template.mapping:
   - systemPath: /templates/system/plugins/definitions.ftl
-    pluginPattern: /templates/plugins/${pluginPath}/definitions.ftl
+    pluginPattern: templates/plugins/${pluginPath}/definitions.ftl
   - systemPath: /templates/system/plugins/head.ftl
-    pluginPattern: /templates/plugins/${pluginPath}/head.ftl
+    pluginPattern: templates/plugins/${pluginPath}/head.ftl
   - systemPath: /templates/system/plugins/body_top.ftl
-    pluginPattern: /templates/plugins/${pluginPath}/body_top.ftl
+    pluginPattern: templates/plugins/${pluginPath}/body_top.ftl
   - systemPath: /templates/system/plugins/body_bottom.ftl
-    pluginPattern: /templates/plugins/${pluginPath}/body_bottom.ftl
+    pluginPattern: templates/plugins/${pluginPath}/body_bottom.ftl
 # Code injected in the templates for each plugin
-studio.marketplace.plugin.template.code: '<#include "${path}" ignore_missing=true/>'
+studio.marketplace.plugin.template.code: '<#include "/${path}" ignore_missing=true/>'
 # Comment added in the templates for each plugin
 studio.marketplace.plugin.template.comment: '<#-- pluginId:${pluginId} -->'
 
