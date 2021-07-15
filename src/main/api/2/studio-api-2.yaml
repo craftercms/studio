@@ -4225,76 +4225,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/expiring:
-    get:
-      tags:
-        - content
-      summary: Get content items that are expiring soon
-      description: 'Required permission "read_item" ("site member")'
-      operationId: getExpiringContent
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: days
-          in: query
-          description: number of days for content to expire (7, 15, 30, 60, 90); default 7 
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: offset
-          in: query
-          description: offset for pagination 
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: limit
-          in: query
-          description: linit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
-                    $ref: '#/components/schemas/ExpiringContent'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /content/dashboard/{state}:
     get:
       tags:
@@ -4954,73 +4884,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /publish/scheduled:
-    get:
-      tags:
-        - publishing
-      summary: Get scheduled items
-      description: 'Required permission "get_publishing_queue"'
-      operationId: getPublishScheduledItems
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: environment
-          in: query
-          description: environment
-          required: false
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: Offset for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          description: Limit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  package:
-                    $ref: '#/components/schemas/ScheduledItems'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /security/encrypt:
     post:
       tags:
@@ -5198,13 +5061,92 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content:
+  /dashboard/tasks:
     get:
       tags:
         - dashboard
-      summary: Get content dashboard
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getContentDashboard
+      summary: Get dashboard tasks to display in Tasks dashboard
+      description: 'Required permission "get_tasks"'
+      operationId: getDashboardTasks
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: submitter
+          in: query
+          description: filter by submitters(s)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: status
+          in: query
+          description: filter by task status
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/my_tasks:
+    get:
+      tags:
+        - dashboard
+      summary: Get dashboard tasks to display in My Tasks dashboard
+      description: 'Required permission "site member"'
+      operationId: getDashboardMyTasks
       parameters:
         - name: siteId
           in: query
@@ -5212,24 +5154,248 @@ paths:
           required: true
           schema:
             type: string
-        - name: sortBy
+        - name: offset
           in: query
-          description: >-
-            order result by column
-            List of columns:
-              - label - label or internalName - user friendly name of item
-              - path - path of an item item
-              - modifier - user that last modified item
-              - dateModified - data and time of last modification of an item
-              - contentType - content type of an item
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /dashboard/scheduled:
+    get:
+      tags:
+        - dashboard
+      summary: Get scheduled items
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getDashboardScheduledItems
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
           schema:
             type: string
-        - name: order
+        - name: environment
           in: query
-          description: order of sorted data (ASC or DESC)
+          description: environment
+          required: false
           schema:
             type: string
-            format: ASC, DESC
+        - name: submitter
+          in: query
+          description: user that submitted item
+          required: false
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  package:
+                    $ref: '#/components/schemas/ScheduledItems'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/expiring:
+    get:
+      tags:
+        - dashboard
+      summary: Get content items that are expiring soon
+      description: 'Required permission "read_item" ("site member")'
+      operationId: getDashboardExpiringContent
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset for pagination 
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: linit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    $ref: '#/components/schemas/ExpiringContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/audit:
+    get:
+      tags:
+        - dashboard
+      summary: Get audit dashboard
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getAuditDashboard
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: actor
+          in: query
+          description: filter items by username
+          schema:
+            type: string
+        - name: operations
+          in: query
+          description: filter items by operations
+          schema:
+            type: array
+            items:
+              type: string
+        - name: operationTimestampFrom
+          in: query
+          description: filter items by operations timestamp setting lower boundary for date range
+          schema:
+            type: string
+            format: date-time
+        - name: operationTimestampTo
+          in: query
+          description: filter items by operations timestamp setting upper boundary for date range
+          schema:
+            type: string
+            format: date-time
+        - name: target
+          in: query
+          description: filter items by target
+          schema:
+            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -5240,39 +5406,105 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters.path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditDashboardItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content:
+    get:
+      tags:
+        - dashboard
+      summary: Get content dashboard
+      description: 'Required permission "get_dashboard" ("site member")'
+      operationId: getDashboardContent
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
           in: query
           description: filter items by path regular expression
           schema:
             type: string
-        - name: filters.modifier
+        - name: modifier
           in: query
           description: filter items by username that modified content
           schema:
             type: string
-        - name: filters.dateModifiedFrom
+        - name: dateModifiedFrom
           in: query
           description: filter items by modified date setting lower boundary for date range
           schema:
             type: string
             format: datetime
-        - name: filters.dateModifiedTo
+        - name: dateModifiedTo
           in: query
           description: filter items by modified date setting upper boundary for date range
           schema:
             type: string
             format: datetime
-        - name: filters.contentType
+        - name: contentType
           in: query
           description: filter items by contentTypes
           schema:
             type: string
-        - name: filters.state
+        - name: state
           in: query
           description: filter items by state (bitmap state values)
           schema:
             type: integer
             format: int64
+        - name: systemType
+          in: query
+          description: filter items by system type
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
@@ -5324,25 +5556,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: sortBy
-          in: query
-          description: >-
-            order result by column
-            List of columns:
-              - label - label or internalName - user friendly name of item
-              - path - path of an item item
-              - publisher - user that published item
-              - datePublished - data and time when item was published
-              - environment - environment where item was published
-              - content type - content type of an item
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -5353,44 +5566,6 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters.path
-          in: query
-          description: filter items by path regular expression
-          schema:
-            type: string
-        - name: filters.publisher
-          in: query
-          description: filter items by username that published content
-          schema:
-            type: string
-        - name: filters.datePublishedFrom
-          in: query
-          description: filter items by published date setting lower boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.datePublishedTo
-          in: query
-          description: filter items by published date setting upper boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.environment
-          in: query
-          description: filter items by environment where published
-          schema:
-            type: string
-        - name: filters.contentType
-          in: query
-          description: filter items by contentTypes
-          schema:
-            type: string
-        - name: filters.state
-          in: query
-          description: filter items by state (bitmap state values)
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           description: OK
@@ -5416,7 +5591,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PublishingDashboardItem'
+                      $ref: '#/components/schemas/PublishingPackage'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5428,13 +5603,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/audit:
+  /dashboard/submission:
     get:
       tags:
         - dashboard
-      summary: Get audit dashboard
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getAuditDashboard
+      summary: Get submission details
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getDashboardSubmission
       parameters:
         - name: siteId
           in: query
@@ -5442,61 +5617,10 @@ paths:
           required: true
           schema:
             type: string
-        - name: sortBy
+        - name: submissionId
           in: query
-          description: >-
-            order result by column
-            List of columns:
-              - site - site of the audit item
-              - actor - user that executed action
-              - operation - operation that was audited
-              - operationTimestamp - timestamp when operation was executed
-              - target - target upon which operation was executed
-          schema:
-            type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-        - name: filters.actor
-          in: query
-          description: filter items by username
-          schema:
-            type: string
-        - name: filters.operations
-          in: query
-          description: filter items by operations
-          schema:
-            type: array
-            items:
-              type: string
-        - name: filters.operationTimestampFrom
-          in: query
-          description: filter items by operations timestamp setting lower boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.operationTimestampTo
-          in: query
-          description: filter items by operations timestamp setting upper boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.target
-          in: query
-          description: filter items by target
+          description: submission ID
+          required: true
           schema:
             type: string
       responses:
@@ -5509,28 +5633,14 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
+                  package:
                     type: array
-                    items:
-                      $ref: '#/components/schemas/AuditDashboardItem'
+                    items: 
+                      $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -6165,82 +6275,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /tasks:
-    get:
-      tags:
-        - tasks
-      summary: Get tasks to display in Tasks dashboard
-      description: 'Required permission "get_tasks"'
-      operationId: getTasks
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: username
-          in: query
-          description: filter by username(s)
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-        - name: status
-          in: query
-          description: filter by task status
-          required: false
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: Offset for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          description: Limit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TaskItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -7337,15 +7371,31 @@ components:
         status:
           type: string
           description: publishing status for site
-        message:
-          type: string
-          description: publishing message for site
         lockOwner:
           type: string
           description: studio instance owner of publishing lock
         lockTTL:
           type: string
           description: TTL timestamp for publishing lock
+        totalItems:
+          type: integer
+          format: int32
+          description: total number of item being published right now
+        numberOfItems:
+          type: integer
+          format: int32
+          description: number of items published so far
+        submissionId:
+          type: string
+          description: identifier of a submission being published
+        submitter:
+          type: string
+          description: user that submitted current submission
+        dateSubmitted:
+          type: string
+          format: date-time
+          description: UTC datetime when current submission was submitted
+
       required:
         - enabled
         - status
@@ -7419,11 +7469,12 @@ components:
               * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: 0 = stageing, 1 = live
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7585,13 +7636,14 @@ components:
               * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
               * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
-              * `BIT ORDER (little-endian)`: 6, `FLAG`: Publishing, `DESCRIPTION`: The item is beening published
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: 0 = stageing, 1 = live
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7747,11 +7799,13 @@ components:
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
               * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: 0 = stageing, 1 = live
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7796,29 +7850,6 @@ components:
         target:
           type: string
           description: target upon which operation was executed
-
-    PublishingDashboardItem:
-      type: object
-      properties:
-        siteId:
-          type: string
-          description: site identifier
-        label:
-          type: string
-          description: user friendly name of item
-        path:
-          type: string
-          description: path of the item
-        publisher:
-          type: string
-          description: user that published item
-        datePublished:
-          type: string
-          format: datetime
-          description: date and time when item was published
-        environment:
-          type: string
-          description: environment where item was published
 
     DashboardItem:
       type: object
@@ -7961,45 +7992,176 @@ components:
     TaskItem:
       type: object
       properties:
-        siteId:
+        id:
           type: integer
           format: int64
-          description: site identifier
-        siteName:
+          description: content item ID
+        label:
           type: string
-          description: site user friendly name
-        status:
+          description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
+        contentTypeId:
           type: string
-          description: status of the task
-        createdOn:
+          description: content type of content item
+        path:
           type: string
-          format: date-time
-          description: date and time of task creation
+          description: path where content item is stored inside repository (with filename)
+        previewUrl:
+          type: string
+          description: url for previewing content item
+        systemType:
+          type: string
+          description: one of predifined type values (page, component, asset, levelDescriptor, folder ...)
+        mimeType:
+          type: string
+          description: mime-type of content item file
+        state:
+          type: integer
+          format: int64
+          description: >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: New, `DESCRIPTION`: The item is new and never been published
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: Modified, `DESCRIPTION`: The item has been published in the past and has been modified in the sandbox
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: 0 = stageing, 1 = live
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+        lockOwner:
+          type: string
+          description: username of user that locked item for editing
+        disabled:
+          type: boolean
+          description: true if item is disabled for rendering in delivery, otherwise false
+        localeCode:
+          type: string
+          description: locale of content item
+        translationSourceId:
+          type: string
+          description: ID of content item that is original for translation that current item represents
         creator:
           type: string
-          description: user that created this task
-        lastModifiedOn:
+          description: username of user that created item
+        dateCreated:
           type: string
-          format: date-time
-          description: date and time of last update
+          format: datetime
+          description: timestamp when item was created
         modifier:
           type: string
-          description: user that last modified task
-        assignee:
+          description: username of last user that modified item
+        dateModified:
           type: string
-          description: user that task is assigned to
-        schedule:
+          format: datetime
+          description: timestamp when was item last modified
+        commitId:
           type: string
-          format: date-time
-          description: schedule to finish task
-        targetObject:
-          type: object
-          description: depending on the type of task it can be WorkflowItem, SandboxItem ...
+          description: commit id of last modification in the repository for item
+        sizeInBytes:
+          type: integer
+          format: int64
+          description: size of content item in the repository
+        availableActions:
+          type: integer
+          format: int64
+          description: >-
+            available actions bitmap
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Content: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Content: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Content: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Publishing: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Publishing: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: Site Admin: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: Site Admin: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: Site Admin: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: Site Admin: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Site Admin: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 33, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 34, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 35, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 36, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 37, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 38, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 39, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 40, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 41, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 42, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 43, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 44, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 45, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
+              * `BIT ORDER (little-endian)`: 46, `FLAG`: System: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 47, `FLAG`: System: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 48, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 49, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 50, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 51, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 52, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 53, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 54, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 55, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 56, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 57, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 58, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 59, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 60, `FLAG`: Reserved 13, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 61, `FLAG`: Reserved 14, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 62, `FLAG`: Reserved 15, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 63, `FLAG`: Reserved 16, `DESCRIPTION`: Reserved for future use
+        taskState:
+          type: string
+          description: task state
+        comment:
+          type: string
+          description: submission comment
       required:
-        - siteId
-        - siteName
-        - status
-        - targetObject
+        - id
+        - label
+        - contentTypeId
+        - path
+        - previewUrl
+        - systemType
+        - mimeType
+        - state
+        - lockOwner
+        - disabled
+        - createdDate
+        - creator
+        - modifier
+        - lastModifiedDate
+        - commitId
+        - availableActions
 
     ScheduledItems:
       type: object
@@ -8214,7 +8376,16 @@ components:
         items:
           type: array
           items:
-            $ref: '#/components/schemas/SandboxItem'
+            type: object
+            properties:
+              days:
+                type: integer
+                format: int32
+                description: expiring within number of days specified by value
+              contentItems:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SandboxItem'
 
   responses:
     NotFound:
