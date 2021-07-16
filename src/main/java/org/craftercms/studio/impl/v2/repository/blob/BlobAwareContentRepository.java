@@ -358,8 +358,8 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
-        return localRepositoryV2.getContentVersion(site, path, version);
+    public InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
+        return localRepositoryV2.getContentByCommitId(site, path, commitId);
     }
 
     @Override

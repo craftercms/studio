@@ -352,10 +352,10 @@ public interface ContentRepository {
      *
      * @param site    site id where the operation will be executed
      * @param path    path of the content
-     * @param version version to return
+     * @param commitId version to return
      * @return input stream
      *
      * @throws ContentNotFoundException content not found for given path and version
      */
-    InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
+    InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException;
 }

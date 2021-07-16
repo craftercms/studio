@@ -743,10 +743,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             List<ObjectId> mergeHeads = repo.readMergeHeads();
             ObjectId mergeCommitId = mergeHeads.get(0);
             logger.debug("Get content for studio version of conflicted file " + path + " for site " + siteId);
-            InputStream studioVersionIs = contentRepositoryV2.getContentVersion(siteId, path, Constants.HEAD);
+            InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD);
             diffResult.setStudioVersion(IOUtils.toString(studioVersionIs));
             logger.debug("Get content for remote version of conflicted file " + path + " for site " + siteId);
-            InputStream remoteVersionIs = contentRepositoryV2.getContentVersion(siteId, path, mergeCommitId.getName());
+            InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName());
             diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 

@@ -1747,12 +1747,12 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
+    public InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
         InputStream toReturn = null;
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
-            RevTree tree = helper.getTreeForCommit(repo, version);
+            RevTree tree = helper.getTreeForCommit(repo, commitId);
             if (tree != null) {
                 try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                     if (tw != null) {
@@ -1763,12 +1763,12 @@ public class GitContentRepository implements ContentRepository {
                     }
                 } catch (IOException e) {
                     logger.error("Error while getting content for file at site: " + site + " path: " + path +
-                            " version: " + version, e);
+                            " commitId: " + commitId, e);
                 }
             }
         } catch (IOException e) {
             logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
-                    version, e);
+                    commitId, e);
         }
 
         return toReturn;

@@ -314,7 +314,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public String getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException, IOException {
-        InputStream is = contentRepository.getContentVersion(siteId, path, commitId);
+        InputStream is = contentRepository.getContentByCommitId(siteId, path, commitId);
         return IOUtils.toString(is, StandardCharsets.UTF_8);
     }
 

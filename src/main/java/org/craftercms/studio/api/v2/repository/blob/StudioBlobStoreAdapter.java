@@ -74,7 +74,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default InputStream getContentVersion(String site, String path, String version) {
+    default InputStream getContentByCommitId(String site, String path, String commitId) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
