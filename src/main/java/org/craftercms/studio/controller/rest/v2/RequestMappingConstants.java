@@ -48,6 +48,7 @@ public final class RequestMappingConstants {
     public static final String SANDBOX_ITEMS_BY_ID = "/sandbox_items_by_id";
     public static final String ITEM_UNLOCK_BY_PATH = "/item_unlock_by_path";
     public static final String ITEM_UNLOCK_BY_ID = "/item_unlock_by_id";
+    public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
 
     /** Users controller */
     public static final String USERS = "/users";

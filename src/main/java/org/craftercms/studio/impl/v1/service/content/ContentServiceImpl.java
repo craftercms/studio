@@ -1958,9 +1958,9 @@ public class ContentServiceImpl implements ContentService {
     @ValidateParams
     public InputStream getContentVersion(@ValidateStringParam(name = "site") String site,
                                          @ValidateSecurePathParam(name = "path") String path,
-                                         @ValidateStringParam(name = "version") String version)
+                                         @ValidateStringParam(name = "commitId") String commitId)
             throws ContentNotFoundException {
-        return _contentRepository.getContentVersion(site, path, version);
+        return contentRepository.getContentByCommitId(site, path, commitId);
     }
 
     @Override

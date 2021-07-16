@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -39,6 +40,9 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -305,6 +309,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public void itemUnlockById(String siteId, long itemId) {
         Item item = itemDao.getItemById(itemId);
         contentRepository.itemUnlock(siteId, item.getPath());
+    }
+
+    @Override
+    public String getContentByCommitId(String siteId, String path, String commitId)
+            throws ContentNotFoundException, IOException {
+        InputStream is = contentRepository.getContentByCommitId(siteId, path, commitId);
+        return IOUtils.toString(is, StandardCharsets.UTF_8);
     }
 
     public ContentRepository getContentRepository() {

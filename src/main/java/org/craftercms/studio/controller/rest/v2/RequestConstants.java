@@ -84,5 +84,7 @@ public final class RequestConstants {
 
     public static final String REQUEST_PARAM_KEYWORD = "keyword";
 
+    public static final String REQUEST_PARAM_COMMIT_ID = "commitId";
+
     private RequestConstants() { }
 }

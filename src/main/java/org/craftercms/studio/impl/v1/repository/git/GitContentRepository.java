@@ -775,8 +775,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return commitId;
     }
 
-    @Override
-    public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
+    private InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
         InputStream toReturn = null;
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
