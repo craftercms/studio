@@ -316,6 +316,7 @@ public class ContentController {
         ResultOne<String> result = new ResultOne<String>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_CONTENT, content);
+        responseBody.setResult(result);
         return responseBody;
     }
 

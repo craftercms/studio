@@ -7666,6 +7666,10 @@ components:
         translationSourceId:
           type: string
           description: ID of content item that is original for translation that current item represents
+        expiresOn:
+          type: string
+          format: datetime
+          description: timestamp when the item will expire, can be null if not present/set
         availableActions:
           type: integer
           format: int64
