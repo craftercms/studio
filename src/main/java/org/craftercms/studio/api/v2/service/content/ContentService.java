@@ -27,6 +27,7 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ContentService {
@@ -187,4 +188,14 @@ public interface ContentService {
      * @param itemId item identifier
      */
     void itemUnlockById(String siteId, long itemId);
+
+    /**
+     * Get content for commit id
+     * @param siteId  site identifier
+     * @param path path of the content
+     * @param commitId commit id of the content version
+     * @return
+     */
+    String getContentByCommitId(String siteId, String path, String commitId)
+            throws ContentNotFoundException, IOException;
 }

@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -106,6 +107,7 @@ import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -1742,6 +1744,34 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
         retryingDatabaseOperationFacade.upsertGitLogList(siteId, commitIds, processed ? 1 : 0, audited ? 1 : 0);
+    }
+
+    @Override
+    public InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException {
+        InputStream toReturn = null;
+        try {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+
+            RevTree tree = helper.getTreeForCommit(repo, version);
+            if (tree != null) {
+                try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+                    if (tw != null) {
+                        ObjectId id = tw.getObjectId(0);
+                        ObjectLoader objectLoader = repo.open(id);
+                        toReturn = objectLoader.openStream();
+                        tw.close();
+                    }
+                } catch (IOException e) {
+                    logger.error("Error while getting content for file at site: " + site + " path: " + path +
+                            " version: " + version, e);
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
+                    version, e);
+        }
+
+        return toReturn;
     }
 
     public StudioConfiguration getStudioConfiguration() {

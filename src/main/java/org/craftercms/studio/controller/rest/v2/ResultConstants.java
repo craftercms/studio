@@ -78,6 +78,7 @@ public final class ResultConstants {
     public static final String RESULT_KEY_CHILD_ITEMS = "childItems";
     public static final String RESULT_KEY_DEPENDENT_ITEMS = "dependentItems";
     public static final String RESULT_KEY_XML = "xml";
+    public static final String RESULT_KEY_CONTENT = "content";
 
     /** Publish controller */
     public static final String RESULT_KEY_PACKAGES = "packages";

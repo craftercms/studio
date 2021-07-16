@@ -1960,7 +1960,7 @@ public class ContentServiceImpl implements ContentService {
                                          @ValidateSecurePathParam(name = "path") String path,
                                          @ValidateStringParam(name = "version") String version)
             throws ContentNotFoundException {
-        return _contentRepository.getContentVersion(site, path, version);
+        return contentRepository.getContentVersion(site, path, version);
     }
 
     @Override

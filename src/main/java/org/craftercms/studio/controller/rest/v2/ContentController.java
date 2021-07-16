@@ -54,10 +54,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_COMMIT_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PREFER_CONTENT;
@@ -68,6 +70,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.D
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONTENT_BY_COMMIT_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
@@ -79,6 +82,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.P
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -298,6 +302,20 @@ public class ContentController {
         Result result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(GET_CONTENT_BY_COMMIT_ID)
+    public ResponseBody getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                             @RequestParam(value = REQUEST_PARAM_PATH) String path,
+                                             @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
+            throws ContentNotFoundException, IOException {
+        String content = contentService.getContentByCommitId(siteId, path, commitId);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<String> result = new ResultOne<String>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_CONTENT, content);
         return responseBody;
     }
 

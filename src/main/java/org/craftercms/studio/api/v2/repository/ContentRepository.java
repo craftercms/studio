@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -31,6 +32,7 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
+import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -344,4 +346,16 @@ public interface ContentRepository {
      * @param audited true if already audited
      */
     void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited);
+
+    /**
+     * return a specific version of the content
+     *
+     * @param site    site id where the operation will be executed
+     * @param path    path of the content
+     * @param version version to return
+     * @return input stream
+     *
+     * @throws ContentNotFoundException content not found for given path and version
+     */
+    InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
 }
