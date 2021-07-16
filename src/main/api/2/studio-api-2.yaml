@@ -4225,13 +4225,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/dashboard/{state}:
+  /content/get_content_by_commit_id:
     get:
       tags:
         - content
-      summary: Get content items for dashboard by state
-      description: 'Required permission "read_item" ("site member")'
-      operationId: getContentDashoard
+      summary: Get content for commit id
+      description: 'Required permission ("site member")'
+      operationId: getContentByCommitId
       parameters:
         - name: siteId
           in: query
@@ -4239,64 +4239,18 @@ paths:
           required: true
           schema:
             type: string
-        - name: state
-          in: path
-          description: get only items with specified state
+        - name: path
+          in: query
+          description: path of the content
           required: true
           schema:
             type: string
-        - name: path
+        - name: commitId
           in: query
-          description: regular expresion to filter items by path
-          required: false
+          description: commit id of the content version
+          required: true
           schema:
             type: string
-        - name: modifier
-          in: query
-          description: filter items by last modifier
-          required: false
-          schema:
-            type: string
-        - name: contentType
-          in: query
-          description: filter items by content type
-          required: false
-          schema:
-            type: string
-        - name: systemType
-          in: query
-          description: filter items by system type
-          required: false
-          schema:
-            type: string
-        - name: dateFrom
-          in: query
-          description: lower boundary to filter items by date range for modified date
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: dateTo
-          in: query
-          description: upper boundary to filter items by date range for modified date
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: offset
-          in: query
-          description: offset for pagination 
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: limit
-          in: query
-          description: linit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int32
       responses:
         '200':
           description: OK
@@ -4307,20 +4261,9 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
-                    $ref: '#/components/schemas/SandboxItem'
+                  content:
+                    type: string
+                    description: requested content
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
