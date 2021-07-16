@@ -272,7 +272,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>uploadImages,existingImages</value>
 							<type>datasource:image</type>
 						</property>
 						<property>
@@ -307,23 +307,55 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>				<datasource>
-					<type>site-component</type>
-					<id>feature_icons</id>
-					<title>Feature Icons</title>
-					<interface>item</interface>
-					<properties>
-						<property>
-							<name>dataType</name>
-							<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
-								<type>undefined</type>
-						</property>
-						<property>
-							<name>componentPath</name>
-							<value>/site/taxonomy/feature-icons.xml</value>
-								<type>undefined</type>
-						</property>
-					</properties>
-				</datasource>
+	<datasources>
+		<datasource>
+			<type>site-component</type>
+			<id>feature_icons</id>
+			<title>Feature Icons</title>
+			<interface>item</interface>
+			<properties>
+				<property>
+					<name>dataType</name>
+					<value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;HTML&quot;,&quot;selected&quot;:false}]</value>
+						<type>undefined</type>
+				</property>
+				<property>
+					<name>componentPath</name>
+					<value>/site/taxonomy/feature-icons.xml</value>
+						<type>undefined</type>
+				</property>
+			</properties>
+		</datasource>
+		<datasource>
+			<type>img-desktop-upload</type>
+			<id>uploadImages</id>
+			<title>Upload Images</title>
+			<interface>image</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/static-assets/images</value>
+					<type>content-path-input</type>
+				</property>
+			</properties>
+		</datasource>
+		<datasource>
+			<type>img-repository-upload</type>
+			<id>existingImages</id>
+			<title>Existing Images</title>
+			<interface>image</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/static-assets/images</value>
+					<type>content-path-input</type>
+				</property>
+				<property>
+					<name>useSearch</name>
+					<value>false</value>
+					<type>boolean</type>
+				</property>
+			</properties>
+		</datasource>
 	</datasources>
 </form>

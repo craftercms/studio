@@ -244,7 +244,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>uploadImages,existingImages</value>
 							<type>datasource:image</type>
 						</property>
 						<property>
@@ -388,7 +388,7 @@
 						</property>
 						<property>
 							<name>imageManager</name>
-							<value></value>
+							<value>uploadImages,existingImages</value>
 							<type>datasource:image</type>
 						</property>
 						<property>
@@ -408,5 +408,37 @@
 			</fields>
 		</section>
 	</sections>
-	<datasources>	</datasources>
+	<datasources>
+		<datasource>
+			<type>img-desktop-upload</type>
+			<id>uploadImages</id>
+			<title>Upload Images</title>
+			<interface>image</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/static-assets/images</value>
+					<type>content-path-input</type>
+				</property>
+			</properties>
+		</datasource>
+		<datasource>
+			<type>img-repository-upload</type>
+			<id>existingImages</id>
+			<title>Existing Images</title>
+			<interface>image</interface>
+			<properties>
+				<property>
+					<name>repoPath</name>
+					<value>/static-assets/images</value>
+					<type>content-path-input</type>
+				</property>
+				<property>
+					<name>useSearch</name>
+					<value>false</value>
+					<type>boolean</type>
+				</property>
+			</properties>
+		</datasource>
+	</datasources>
 </form>
