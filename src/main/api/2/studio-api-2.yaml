@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.19'
+  version: '4.0.0.20'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -60,6 +60,8 @@ tags:
     description: Translation operations
   - name: workflow
     description: Workflow operations
+  - name: tasks
+    description: tasks operations
 
 paths:
 
@@ -3629,7 +3631,7 @@ paths:
       tags:
         - content
       summary: Get list of children for given item id
-      description: 'Required permission "get_children" ("site member")'
+      description: 'Required permission "get_children" and "site member"'
       operationId: getChildrenById
       requestBody:
         required: true
@@ -3721,7 +3723,7 @@ paths:
       tags:
         - content
       summary: Get list of children for given item path
-      description: 'Required permission "get_children" ("site member")'
+      description: 'Required permission "get_children" and "site member"'
       operationId: getChildrenByPath
       requestBody:
         required: true
@@ -3813,7 +3815,7 @@ paths:
       tags:
         - content
       summary: Get content item for given item id
-      description: 'Required permission "get_detailed_item" "read_item" ("site member")'
+      description: 'Required permission "get_detailed_item" and "read_item" and "site member"'
       operationId: getDetailedItemById
       parameters:
         - name: siteId
@@ -3862,7 +3864,7 @@ paths:
       tags:
         - content
       summary: Get item details for given an item path
-      description: 'Required permission "get_detailed_item" "read_item" ("site member")'
+      description: 'Required permission "get_detailed_item" and "read_item" and "site member"'
       operationId: getDetailedItemByPath
       parameters:
         - name: siteId
@@ -3911,7 +3913,7 @@ paths:
       tags:
         - content
       summary: Get list of items for given list of item ids
-      description: 'Required permission "get_children" ("site member")'
+      description: 'Required permission "get_children" and "site member"'
       operationId: getSandboxItemsById
       requestBody:
         required: true
@@ -3964,7 +3966,7 @@ paths:
       tags:
         - content
       summary: Get list of items for given item paths
-      description: 'Required permission "get_children" ("site member")'
+      description: 'Required permission "get_children" and "site member"'
       operationId: getSandboxItemsByPath
       requestBody:
         required: true
@@ -4212,6 +4214,56 @@ paths:
         '200':
           description: OK
 
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/get_content_by_commit_id:
+    get:
+      tags:
+        - content
+      summary: Get content for commit id
+      description: 'Required permission "site member"'
+      operationId: getContentByCommitId
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of the content
+          required: true
+          schema:
+            type: string
+        - name: commitId
+          in: query
+          description: commit id of the content version
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: requested content
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4952,78 +5004,47 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content:
+  /dashboard/tasks:
     get:
       tags:
         - dashboard
-      summary: Get content dashboard
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getContentDashboard
+      summary: Get tasks by site, submitter and status
+      description: 'Required permission "get_tasks"'
+      operationId: getDashboardTasks
       parameters:
         - name: siteId
           in: query
           description: site ID
           required: true
           schema:
-            type: string
-        - name: sortBy
+            type: array
+            items:
+              type: string
+        - name: submitter
           in: query
-          description: >-
-            order result by column
-            List of columns:
-              - label - label or internalName - user friendly name of item
-              - path - path of an item item
-              - modifier - user that last modified item
-              - dateModified - data and time of last modification of an item
-              - contentType - content type of an item
+          description: filter by submitters(s)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: status
+          in: query
+          description: filter by task status
+          required: false
           schema:
             type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
         - name: offset
           in: query
-          description: offset of the first result item, default 0
+          description: Offset for pagination
+          required: false
           schema:
             type: integer
+            format: int64
         - name: limit
           in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-        - name: filters.path
-          in: query
-          description: filter items by path regular expression
-          schema:
-            type: string
-        - name: filters.modifier
-          in: query
-          description: filter items by username that modified content
-          schema:
-            type: string
-        - name: filters.dateModifiedFrom
-          in: query
-          description: filter items by modified date setting lower boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.dateModifiedTo
-          in: query
-          description: filter items by modified date setting upper boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.contentType
-          in: query
-          description: filter items by contentTypes
-          schema:
-            type: string
-        - name: filters.state
-          in: query
-          description: filter items by state (bitmap state values)
+          description: Limit for pagination
+          required: false
           schema:
             type: integer
             format: int64
@@ -5049,28 +5070,26 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-                  items:
+                  tasks:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DashboardItem'
+                      $ref: '#/components/schemas/TaskItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing:
+  /dashboard/me/tasks:
     get:
       tags:
         - dashboard
-      summary: Get publishing dashboard
-      description: 'Required permission "get_dashboard" ("site member")'
-      operationId: getPublishingDashboard
+      summary: Get current user's tasks
+      description: 'Required permission "site member"'
+      operationId: getDashboardMyTasks
       parameters:
         - name: siteId
           in: query
@@ -5078,70 +5097,23 @@ paths:
           required: true
           schema:
             type: string
-        - name: sortBy
+        - name: status
           in: query
-          description: >-
-            order result by column
-            List of columns:
-              - label - label or internalName - user friendly name of item
-              - path - path of an item item
-              - publisher - user that published item
-              - datePublished - data and time when item was published
-              - environment - environment where item was published
-              - content type - content type of an item
+          description: filter by task status
+          required: false
           schema:
             type: string
-        - name: order
-          in: query
-          description: order of sorted data (ASC or DESC)
-          schema:
-            type: string
-            format: ASC, DESC
         - name: offset
           in: query
-          description: offset of the first result item, default 0
+          description: Offset for pagination
+          required: false
           schema:
             type: integer
+            format: int64
         - name: limit
           in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-        - name: filters.path
-          in: query
-          description: filter items by path regular expression
-          schema:
-            type: string
-        - name: filters.publisher
-          in: query
-          description: filter items by username that published content
-          schema:
-            type: string
-        - name: filters.datePublishedFrom
-          in: query
-          description: filter items by published date setting lower boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.datePublishedTo
-          in: query
-          description: filter items by published date setting upper boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.environment
-          in: query
-          description: filter items by environment where published
-          schema:
-            type: string
-        - name: filters.contentType
-          in: query
-          description: filter items by contentTypes
-          schema:
-            type: string
-        - name: filters.state
-          in: query
-          description: filter items by state (bitmap state values)
+          description: Limit for pagination
+          required: false
           schema:
             type: integer
             format: int64
@@ -5167,10 +5139,167 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /dashboard/scheduled:
+    get:
+      tags:
+        - dashboard
+      summary: Get items scheduled for publishing
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getDashboardScheduledItems
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: environment
+          in: query
+          description: environment
+          required: false
+          schema:
+            type: string
+        - name: submitter
+          in: query
+          description: user that submitted item
+          required: false
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: Offset for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: limit
+          in: query
+          description: Limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  package:
+                    $ref: '#/components/schemas/ScheduledItems'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/expiring:
+    get:
+      tags:
+        - dashboard
+      summary: Get content items that are expiring soon
+      description: 'Required permission "read_item" and "site member"'
+      operationId: getDashboardExpiringContent
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: expireLimit
+          in: query
+          description: limit the results to items expiring with this number of days, default 90 days
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: offset
+          in: query
+          description: offset for pagination 
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: limit for pagination
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
                   items:
                     type: array
                     items:
-                      $ref: '#/components/schemas/PublishingDashboardItem'
+                      $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5186,8 +5315,8 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get audit dashboard
-      description: 'Required permission "get_dashboard" ("site member")'
+      summary: Get the audit history for the site
+      description: 'Required permission "audit_log" and "site member"'
       operationId: getAuditDashboard
       parameters:
         - name: siteId
@@ -5196,24 +5325,35 @@ paths:
           required: true
           schema:
             type: string
-        - name: sortBy
+        - name: actor
           in: query
-          description: >-
-            order result by column
-            List of columns:
-              - site - site of the audit item
-              - actor - user that executed action
-              - operation - operation that was audited
-              - operationTimestamp - timestamp when operation was executed
-              - target - target upon which operation was executed
+          description: filter items by username
           schema:
             type: string
-        - name: order
+        - name: operations
           in: query
-          description: order of sorted data (ASC or DESC)
+          description: filter items by operations
+          schema:
+            type: array
+            items:
+              type: string
+        - name: operationTimestampFrom
+          in: query
+          description: filter items by operations timestamp setting lower boundary for date range
           schema:
             type: string
-            format: ASC, DESC
+            format: date-time
+        - name: operationTimestampTo
+          in: query
+          description: filter items by operations timestamp setting upper boundary for date range
+          schema:
+            type: string
+            format: date-time
+        - name: target
+          in: query
+          description: filter items by target
+          schema:
+            type: string
         - name: offset
           in: query
           description: offset of the first result item, default 0
@@ -5224,35 +5364,6 @@ paths:
           description: number of results to return, default 10
           schema:
             type: integer
-        - name: filters.actor
-          in: query
-          description: filter items by username
-          schema:
-            type: string
-        - name: filters.operations
-          in: query
-          description: filter items by operations
-          schema:
-            type: array
-            items:
-              type: string
-        - name: filters.operationTimestampFrom
-          in: query
-          description: filter items by operations timestamp setting lower boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.operationTimestampTo
-          in: query
-          description: filter items by operations timestamp setting upper boundary for date range
-          schema:
-            type: string
-            format: datetime
-        - name: filters.target
-          in: query
-          description: filter items by target
-          schema:
-            type: string
       responses:
         '200':
           description: OK
@@ -5290,12 +5401,263 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /dashboard/content:
+    get:
+      tags:
+        - dashboard
+      summary: Get content items in the site narrowed down by a variety of filters
+      description: 'Required permission "read_item" and "site member"'
+      operationId: getDashboardContent
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: filter items by path regular expression
+          required: false
+          schema:
+            type: string
+        - name: modifier
+          in: query
+          description: filter items by username that modified content
+          required: false
+          schema:
+            type: string
+        - name: dateModifiedFrom
+          in: query
+          description: filter items by modified date setting lower boundary for date range
+          required: false
+          schema:
+            type: string
+            format: datetime
+        - name: dateModifiedTo
+          in: query
+          description: filter items by modified date setting upper boundary for date range
+          required: false
+          schema:
+            type: string
+            format: datetime
+        - name: contentType
+          in: query
+          description: filter items by contentTypes
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          description: filter items by state (bitmap state values)
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: systemType
+          in: query
+          description: filter items by system type
+          required: false
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/history:
+    get:
+      tags:
+        - dashboard
+      summary: Get publish history narrowed down by a variety of filters
+      description: 'Required permission "get_publishing_queue" and "site member"'
+      operationId: getPublishingDashboard
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: filter results by path regexes
+          schema:
+            type: array
+            items:
+              type: string
+        - name: environment
+          in: query
+          description: environment
+          required: false
+          schema:
+            type: string
+        - name: submitter
+          in: query
+          description: user that submitted the item
+          required: false
+          schema:
+            type: string
+        - name: approver
+          in: query
+          description: user that approved the item
+          required: false
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/package:
+    get:
+      tags:
+        - dashboard
+      summary: Get package details
+      description: 'Required permission "get_publishing_queue"'
+      operationId: getDashboardSubmission
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: query
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    type: array
+                    items: 
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 #  /dashboard/workflow:
 #    get:
 #      tags:
 #        - dashboard
 #      summary: Get workflow dashboard
-#      description: 'Required permission "get_dashboard" ("site member")'
+#      description: 'Required permission "get_dashboard" and "site member"'
 #      operationId: getWorkflowDashboard
 #      parameters:
 #        - name: siteId
@@ -5918,6 +6280,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+
 
 components:
   schemas:
@@ -7014,15 +7377,31 @@ components:
         status:
           type: string
           description: publishing status for site
-        message:
-          type: string
-          description: publishing message for site
         lockOwner:
           type: string
           description: studio instance owner of publishing lock
         lockTTL:
           type: string
           description: TTL timestamp for publishing lock
+        totalItems:
+          type: integer
+          format: int32
+          description: total number of item being published right now
+        numberOfItems:
+          type: integer
+          format: int32
+          description: number of items published so far
+        submissionId:
+          type: string
+          description: identifier of a submission being published
+        submitter:
+          type: string
+          description: user that submitted current submission
+        dateSubmitted:
+          type: string
+          format: date-time
+          description: UTC datetime when current submission was submitted
+
       required:
         - enabled
         - status
@@ -7093,14 +7472,15 @@ components:
               * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
               * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
-              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
-              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted for review
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7134,6 +7514,10 @@ components:
           type: integer
           format: int64
           description: size of content item in the repository
+        expiresOn:
+          type: string
+          format: datetime
+          description: timestamp when the item will expire, can be null if not present/set
         availableActions:
           type: integer
           format: int64
@@ -7261,14 +7645,15 @@ components:
               * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
               * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
-              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
-              * `BIT ORDER (little-endian)`: 6, `FLAG`: Publishing, `DESCRIPTION`: The item is beening published
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted for review
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7422,13 +7807,15 @@ components:
               * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
               * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
               * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
-              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted to the workflow engine
-              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for publishing
-              * `BIT ORDER (little-endian)`: 7, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 8, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted for review
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
@@ -7473,32 +7860,6 @@ components:
         target:
           type: string
           description: target upon which operation was executed
-
-    PublishingDashboardItem:
-      type: object
-      properties:
-        siteId:
-          type: string
-          description: site identifier
-        label:
-          type: string
-          description: user friendly name of item
-        path:
-          type: string
-          description: path of the item
-        publisher:
-          type: string
-          description: user that published item
-        datePublished:
-          type: string
-          format: datetime
-          description: date and time when item was published
-        environment:
-          type: string
-          description: environment where item was published
-
-    DashboardItem:
-      type: object
 
     TranslationConfig:
       type: object
@@ -7634,6 +7995,233 @@ components:
           type: string
           format: date-time
           description: Date of creation of the access token
+    
+    TaskItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: content item ID
+        label:
+          type: string
+          description: user friendly display name for content item
+        parentId:
+          type: integer
+          format: int64
+          description: parent item ID
+        contentTypeId:
+          type: string
+          description: content type of content item
+        path:
+          type: string
+          description: path where content item is stored inside repository (with filename)
+        previewUrl:
+          type: string
+          description: url for previewing content item
+        systemType:
+          type: string
+          description: one of predifined type values (page, component, asset, levelDescriptor, folder ...)
+        mimeType:
+          type: string
+          description: mime-type of content item file
+        state:
+          type: integer
+          format: int64
+          description: >-
+            bitmap of states
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: New, `DESCRIPTION`: The item is new and never been published
+              * `BIT ORDER (little-endian)`: 1: `FLAG`: Modified, `DESCRIPTION`: The item has been published in the past and has been modified in the sandbox
+              * `BIT ORDER (little-endian)`: 2: `FLAG`: Deleted, `DESCRIPTION`: The item is deleted
+              * `BIT ORDER (little-endian)`: 3: `FLAG`: User Locked, `DESCRIPTION`: The item is locked by a user
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: System Processing, `DESCRIPTION`: The item is locked by the system for processing
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: In Workflow, `DESCRIPTION`: The item has been submitted for review
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+        lockOwner:
+          type: string
+          description: username of user that locked item for editing
+        disabled:
+          type: boolean
+          description: true if item is disabled for rendering in delivery, otherwise false
+        localeCode:
+          type: string
+          description: locale of content item
+        translationSourceId:
+          type: string
+          description: ID of content item that is original for translation that current item represents
+        creator:
+          type: string
+          description: username of user that created item
+        dateCreated:
+          type: string
+          format: datetime
+          description: timestamp when item was created
+        modifier:
+          type: string
+          description: username of last user that modified item
+        dateModified:
+          type: string
+          format: datetime
+          description: timestamp when was item last modified
+        commitId:
+          type: string
+          description: commit id of last modification in the repository for item
+        sizeInBytes:
+          type: integer
+          format: int64
+          description: size of content item in the repository
+        availableActions:
+          type: integer
+          format: int64
+          description: >-
+            available actions bitmap
+              * `BIT ORDER (little-endian)`: 0, `FLAG`: Content: Create, `DESCRIPTION`: Create content
+              * `BIT ORDER (little-endian)`: 1, `FLAG`: Content: Update, `DESCRIPTION`: Update content
+              * `BIT ORDER (little-endian)`: 2, `FLAG`: Content: Delete, `DESCRIPTION`: Delete content
+              * `BIT ORDER (little-endian)`: 3, `FLAG`: Content: Cut, `DESCRIPTION`: Cut content
+              * `BIT ORDER (little-endian)`: 4, `FLAG`: Content: Copy, `DESCRIPTION`: Copy content
+              * `BIT ORDER (little-endian)`: 5, `FLAG`: Content: Paste, `DESCRIPTION`: Paste content
+              * `BIT ORDER (little-endian)`: 6, `FLAG`: Content: Move/Rename, `DESCRIPTION`: Move or rename content
+              * `BIT ORDER (little-endian)`: 7, `FLAG`: Content: Duplicate, `DESCRIPTION`: Duplicate content
+              * `BIT ORDER (little-endian)`: 8, `FLAG`: Content: Translate, `DESCRIPTION`: Translate content
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Content: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Content: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Content: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Request Publish, `DESCRIPTION`: Request publish
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Approve Publish, `DESCRIPTION`: Approve publish
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reject Publish, `DESCRIPTION`: Reject publish
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Cancel Publish, `DESCRIPTION`: Cancel publish
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Bulk Publish, `DESCRIPTION`: Bulk publish
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Read Publishing Queue, `DESCRIPTION`: Read publishing queue
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Read Publishing Status, `DESCRIPTION`: Read publishing status
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Start Publishing, `DESCRIPTION`: Start publishing
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Stop Publishing, `DESCRIPTION`: Stop publishing
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Publish by Commit ID, `DESCRIPTION`: Publish by commit id
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Publishing: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Publishing: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Set Workflow State, `DESCRIPTION`: Set workflow state
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Read Audit Log, `DESCRIPTION`: Read audit log
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Read Site Log, `DESCRIPTION`: Read site log
+              * `BIT ORDER (little-endian)`: 27, `FLAG`: Site Admin: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 28, `FLAG`: Site Admin: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 29, `FLAG`: Site Admin: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 30, `FLAG`: Site Admin: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 31, `FLAG`: Site Admin: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 32, `FLAG`: Add Remote Repository, `DESCRIPTION`: Add remote repository
+              * `BIT ORDER (little-endian)`: 33, `FLAG`: Remove Remote Repository, `DESCRIPTION`: Remove remote repository
+              * `BIT ORDER (little-endian)`: 34, `FLAG`: Pull From Remote Repository, `DESCRIPTION`: Pull from remote repository
+              * `BIT ORDER (little-endian)`: 35, `FLAG`: Push To Remote Repository, `DESCRIPTION`: Push to remote repository
+              * `BIT ORDER (little-endian)`: 36, `FLAG`: Resolve Conflicts, `DESCRIPTION`: Resolve conflicts
+              * `BIT ORDER (little-endian)`: 37, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 38, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 39, `FLAG`: Git: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 40, `FLAG`: System Create, `DESCRIPTION`: Create system object
+              * `BIT ORDER (little-endian)`: 41, `FLAG`: System Read, `DESCRIPTION`: Read system object
+              * `BIT ORDER (little-endian)`: 42, `FLAG`: System Update, `DESCRIPTION`: Update system object
+              * `BIT ORDER (little-endian)`: 43, `FLAG`: System Delete, `DESCRIPTION`: Delete system object
+              * `BIT ORDER (little-endian)`: 44, `FLAG`: Read Studio Log Settings, `DESCRIPTION`: Read studio log settings
+              * `BIT ORDER (little-endian)`: 45, `FLAG`: Update Studio Log Settings, `DESCRIPTION`: Update studio log settings
+              * `BIT ORDER (little-endian)`: 46, `FLAG`: System: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 47, `FLAG`: System: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 48, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 49, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 50, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 51, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 52, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 53, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 54, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 55, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 56, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 57, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 58, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 59, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 60, `FLAG`: Reserved 13, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 61, `FLAG`: Reserved 14, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 62, `FLAG`: Reserved 15, `DESCRIPTION`: Reserved for future use
+              * `BIT ORDER (little-endian)`: 63, `FLAG`: Reserved 16, `DESCRIPTION`: Reserved for future use
+        taskStatus:
+          type: string
+          description: task status
+        submissionComment:
+          type: string
+          description: submission comment
+        reviewComment:
+          type: string
+          description: review comment
+      required:
+        - id
+        - label
+        - contentTypeId
+        - path
+        - previewUrl
+        - systemType
+        - mimeType
+        - state
+        - lockOwner
+        - disabled
+        - createdDate
+        - creator
+        - modifier
+        - lastModifiedDate
+        - commitId
+        - availableActions
+        - taskStatus
+
+    ScheduledItems:
+      type: object
+      properties:
+        siteId:
+          type: string
+          description: site ID
+        packages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ScheduledPackage'
+
+    ScheduledPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: package ID
+        siteId:
+          type: string
+          description: site ID
+        schedule:
+          type: string
+          format: datetime
+          description: scheduled date and time
+        approver:
+          type: string
+          description: user that approved publishing package
+        state:
+          type: string
+          description: package state
+        environment:
+          type: string
+          description: environment where package will be published
+        comment:
+          type: string
+          description: submission comment
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SandboxItem'
+      required:
+        - id
+        - siteId
+        - schedule
+        - approver
+        - state
+        - environment
+        - items
 
   responses:
     NotFound:
