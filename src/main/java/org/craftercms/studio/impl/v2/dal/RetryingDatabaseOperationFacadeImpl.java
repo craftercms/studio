@@ -204,7 +204,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     @Override
     public void clearPublishingLockForSite(String siteId) {
-        clearPublishingLockForSite(siteId);
+        siteFeedMapper.clearPublishingLockForSite(siteId);
     }
 
     // Audit API v2
