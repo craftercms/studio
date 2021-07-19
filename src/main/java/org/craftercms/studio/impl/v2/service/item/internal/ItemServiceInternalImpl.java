@@ -460,7 +460,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             boolean disabled = StringUtils.isNotEmpty(disabledStr) && "true".equalsIgnoreCase(disabledStr);
             String label = descriptor.queryDescriptorValue(INTERNAL_NAME);
             if (StringUtils.isEmpty(label)) {
-                logger.error("Label = " + label);
+                label = FilenameUtils.getName(path);
             }
             Item item = instantiateItem(siteId, path)
                     .withPreviewUrl(getBrowserUrl(siteId, path))
