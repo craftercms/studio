@@ -98,7 +98,7 @@
       <disableFlattening>false</disableFlattening>
     </item>
   </features_o>
-  <hero_image_s><![CDATA[/static-assets/images/strawberries.jpg]]></hero_image_s>
+  <hero_image_s>/static-assets/images/strawberries.jpg</hero_image_s>
   <left_rail_o item-list="true">
     <item>
       <key>/site/components/left-rails/left-rail-with-latest-articles.xml</key>
