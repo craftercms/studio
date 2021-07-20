@@ -475,7 +475,7 @@ public class SiteServiceImpl implements SiteService {
                     addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
                 } else {
                     Files.write(createdFileScriptPath, insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value,
-                            null, userObj.getId(), now, userObj.getId(), now, now, label, contentTypeId,
+                            null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
                             contentService.getContentTypeClass(siteId, path),
                             StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
                             null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null).getBytes(UTF_8), StandardOpenOption.APPEND);
@@ -513,7 +513,7 @@ public class SiteServiceImpl implements SiteService {
                 if (StringUtils.isNotEmpty(ancestor.toString())) {
                     currentPath = currentPath + FILE_SEPARATOR + ancestor.toString();
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
-                            , now, userId, now, now, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null, 0,
+                            , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null, 0,
                             Locale.US.toString(), null, 0L, null, commitId, null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
@@ -1271,7 +1271,7 @@ public class SiteServiceImpl implements SiteService {
                         Files.write(repoOperationsScriptPath, insertItemRow(siteFeed.getId(),
                                 repoOperation.getPath(), previewUrl, NEW.value, null, userObj.getId(),
                                 repoOperation.getDateTime(), userObj.getId(), repoOperation.getDateTime(),
-                                repoOperation.getDateTime(), label, contentTypeId,
+                                null, label, contentTypeId,
                                 contentService.getContentTypeClass(siteId, repoOperation.getPath()),
                                 StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
                                 null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,

@@ -73,7 +73,45 @@
     </resultMap>
 
     <select id="getWorkflowEntryOpened" resultMap="WorkflowItemMap">
-        SELECT workflow.*, item.*  FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
+        SELECT
+            workflow.id as workflow_id,
+            workflow.target_environment as workflow_target_environment,
+            workflow.state as workflow_state,
+            workflow.submitter_id as workflow_submitter_id,
+            workflow.submitter_comment as workflow_submitter_comment,
+            workflow.reviewer_id as workflow_reviewer_id,
+            workflow.reviewer_comment as workdlow_reviewer_comment,
+            workflow.notify_submitter as workflow_notify_submitter,
+            workflow.schedule as workflow_schedule,
+            workflow.publishing_package_id as workflow_publishing_package_id,
+            workflow.item_id as item_id,
+            item.site_id as site_id,
+            site.name as site_name,
+            item.path as item_path,
+            item.preview_url as item_preview_url,
+            item.state as item_state,
+            item.owned_by as item_owned_by,
+            u1.username as item_owner,
+            item.created_by as item_created_by,
+            u2.username as item_creator,
+            item.created_on as item_created_on,
+            item.last_modified_by as item_last_modified_by,
+            u3.username as item_modifier,
+            item.last_modified_on as item_last_modified_on,
+            item.label as item_label,
+            item.content_type_id as item_content_type_id,
+            item.system_type as item_system_type,
+            item.mime_type as item_mime_type,
+            item.disabled as item_disabled,
+            item.locale_code as item_locale_code,
+            item.translation_source_id as item_translation_source_id,
+            item.size as item_size,
+            item.parent_id as item_parent_id,
+            item.commit_id as item_commit_id
+        FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
+                      left outer join user u1 on item.owned_by = u1.id
+                      left outer join user u2 on item.created_by = u2.id
+                      left outer join user u3 on item.last_modified_by = u3.id
         WHERE site.site_id = #{siteId} AND site.deleted = 0
         AND item.path = #{path}
         AND workflow.state = #{stateOpened}
