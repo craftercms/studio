@@ -153,6 +153,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLIS
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -1616,7 +1617,7 @@ public class GitContentRepository implements ContentRepository {
             if (Objects.nonNull(repo)) {
                 RevTree tree = getTree(repo, environment);
                 if (Objects.nonNull(tree)) {
-                    populateProperties(siteId, repo, tree, environmentData, path, environment);
+                    populateProperties(siteId, repo, environmentData, path, environment);
                 }
             }
         } catch (IOException e) {
@@ -1641,8 +1642,8 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    private void populateProperties(String siteId, Repository repository, RevTree tree,
-                                    DetailedItem.Environment environment, String path, String branch)
+    private void populateProperties(String siteId, Repository repository, DetailedItem.Environment environment,
+                                    String path, String branch)
             throws IOException {
         if (repository != null) {
 
@@ -1655,11 +1656,19 @@ public class GitContentRepository implements ContentRepository {
                 if (iterator.hasNext()) {
                     RevCommit revCommit = iterator.next();
                     environment.setDatePublished(Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
-                    environment.setPublisher(revCommit.getAuthorIdent().getName());
+                    String publisherGit = revCommit.getAuthorIdent().getName();
+                    User publisher = null;
+                    try {
+                        publisher = userServiceInternal.getUserByGitName(publisherGit);
+                    } catch (ServiceLayerException | UserNotFoundException e) {
+                        logger.debug("Publisher user not found. Using git repo user instead.");
+                        publisher = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
+                    }
+                    environment.setPublisher(publisher.getUsername());
                     environment.setCommitId(revCommit.getName());
                 }
-            } catch (IOException | GitAPIException e) {
-                logger.error("error while getting history for content item " + path);
+            } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e) {
+                logger.error("error while getting repository properties for content item " + path);
             }
             environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
                     PublishRequest.State.READY_FOR_LIVE, ZonedDateTime.now(ZoneOffset.UTC)));
