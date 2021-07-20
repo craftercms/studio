@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -93,6 +94,7 @@ import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -183,6 +185,7 @@ public class ContentServiceImpl implements ContentService {
     protected UserService userService;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
+    protected UserServiceInternal userServiceInternal;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -1830,7 +1833,7 @@ public class ContentServiceImpl implements ContentService {
                 item.setUserLastName("");
                 item.setUserFirstName("");
             } else {
-                User u = userService.getUserByIdOrUsername(-1, metadata.getModifier());
+                User u = userServiceInternal.getUserByIdOrUsername(-1, metadata.getModifier());
                 item.user = metadata.getModifier();
                 item.setUser(metadata.getModifier());
                 item.userFirstName = u.getFirstName();
@@ -1858,6 +1861,10 @@ public class ContentServiceImpl implements ContentService {
             }
             if (workflowItem != null && StringUtils.isNotEmpty(workflowItem.getTargetEnvironment())) {
                 item.setSubmittedToEnvironment(workflowItem.getTargetEnvironment());
+            }
+            if (Objects.nonNull(workflowItem)) {
+                item.isSubmitted = true;
+                item.setSubmitted(true);
             }
         } else {
             item.setLockOwner("");
@@ -2682,5 +2689,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }

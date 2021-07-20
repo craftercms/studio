@@ -68,6 +68,7 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
