@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
@@ -50,9 +51,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -123,7 +122,7 @@ public class ServicesConfigImpl implements ServicesConfig {
     protected GeneralLockService generalLockService;
     protected StudioConfiguration studioConfiguration;
     protected ConfigurationService configurationService;
-    protected Cache<String, Optional<SiteConfigTO>> configurationCache;
+    protected Cache<String, SiteConfigTO> configurationCache;
 
     protected SiteConfigTO getSiteConfig(final String site) {
         return loadConfiguration(site);
@@ -310,19 +309,21 @@ public class ServicesConfigImpl implements ServicesConfig {
 	 *
 	 */
      protected SiteConfigTO loadConfiguration(String site) {
-         var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-         var configFilename = getConfigFileName();
-         var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, getConfigFileName(), environment, "object");
+         String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+         String configFilename = getConfigFileName();
+         String cacheKey =
+                 configurationService.getCacheKey(site, MODULE_STUDIO, getConfigFileName(), environment, "object");
 
-         try {
-             var config = configurationCache.get(cacheKey, () -> {
-                 Document document =
-                         configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configFilename, environment);
+         SiteConfigTO siteConfig = configurationCache.getIfPresent(cacheKey);
+         if (siteConfig == null) {
+             try {
+                 Document document = configurationService
+                         .getConfigurationAsDocument(site, MODULE_STUDIO, configFilename, environment);
                  if (document != null) {
                      Element root = document.getRootElement();
                      Node configNode = root.selectSingleNode("/site-config");
                      String name = configNode.valueOf("display-name");
-                     SiteConfigTO siteConfig = new SiteConfigTO();
+                     siteConfig = new SiteConfigTO();
                      siteConfig.setName(name);
                      siteConfig.setWemProject(configNode.valueOf("wem-project"));
                      siteConfig.setTimezone(configNode.valueOf("default-timezone"));
@@ -340,13 +341,15 @@ public class ServicesConfigImpl implements ServicesConfig {
                          siteConfig.setStagingEnvironmentEnabled(Boolean.parseBoolean(stagingEnvironmentEnabledValue));
                      }
 
-                     String stagingEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
+                     String stagingEnvironment =
+                             configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
                              SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT);
                      if (StringUtils.isEmpty(stagingEnvironment)) {
                          stagingEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_STAGING);
                      }
                      siteConfig.setStagingEnvironment(stagingEnvironment);
-                     String liveEnvironment = configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
+                     String liveEnvironment =
+                             configNode.valueOf(SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY + "/" +
                              SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT);
                      if (StringUtils.isEmpty(liveEnvironment)) {
                          liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
@@ -368,8 +371,9 @@ public class ServicesConfigImpl implements ServicesConfig {
                      siteConfig.setPluginFolderPattern(configNode.valueOf(SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN));
 
                      String requirePeerReviewValue =
-                             configNode.valueOf(SITE_CONFIG_XML_ELEMENT_WORKFLOW + "/" + SITE_CONFIG_XML_ELEMENT_PUBLISHER +
-                                     "/" + SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW);
+                             configNode.valueOf(SITE_CONFIG_XML_ELEMENT_WORKFLOW + "/" +
+                                     SITE_CONFIG_XML_ELEMENT_PUBLISHER + "/" +
+                                     SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW);
                      if (StringUtils.isEmpty(requirePeerReviewValue)) {
                          siteConfig.setRequirePeerReview(false);
                      } else {
@@ -380,17 +384,13 @@ public class ServicesConfigImpl implements ServicesConfig {
                              getStringList(configNode.selectNodes(SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS));
                      siteConfig.setProtectedFolderPatterns(protectedFolderPatterns);
 
-                     return Optional.of(siteConfig);
-                 } else {
-                     return Optional.empty();
+                     configurationCache.put(cacheKey, siteConfig);
                  }
-             });
-
-             return config.orElse(null);
-         } catch (ExecutionException e) {
-             LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
-             return null;
+             } catch(ServiceLayerException e) {
+                 LOGGER.error("No site configuration found for " + site + " at " + getConfigFileName());
+             }
          }
+         return siteConfig;
      }
 
      protected void loadSiteUrlsConfiguration(SiteConfigTO siteConfig, Node configNode) {
@@ -758,7 +758,7 @@ public class ServicesConfigImpl implements ServicesConfig {
         this.configurationService = configurationService;
     }
 
-    public void setConfigurationCache(Cache<String, Optional<SiteConfigTO>> configurationCache) {
+    public void setConfigurationCache(Cache<String, SiteConfigTO> configurationCache) {
         this.configurationCache = configurationCache;
     }
 
