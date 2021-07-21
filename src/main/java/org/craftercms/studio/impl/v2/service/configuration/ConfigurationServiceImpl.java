@@ -17,7 +17,6 @@ package org.craftercms.studio.impl.v2.service.configuration;
 
 import com.google.common.cache.Cache;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -56,6 +55,7 @@ import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -73,8 +73,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -115,8 +113,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationServiceImpl.class);
 
-    public static final XMLConfiguration EMPTY_CONFIG = new XMLConfiguration();
-
     public static final String PLACEHOLDER_TYPE = "type";
     public static final String PLACEHOLDER_NAME = "name";
     public static final String PLACEHOLDER_ID = "id";
@@ -138,8 +134,8 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ContentRepository contentRepository;
 
     private String translationConfig;
-    private Cache<String, Optional<?>> configurationCache;
-    private List<CacheInvalidator<String, Optional<?>>> cacheInvalidators;
+    private Cache<String, Object> configurationCache;
+    private List<CacheInvalidator<String, Object>> cacheInvalidators;
 
     @Override
     public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
@@ -226,16 +222,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Document getConfigurationAsDocument(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
                                                String path, String environment) throws ServiceLayerException {
         var normalizedPath = normalize(path);
         var cacheKey = getCacheKey(siteId,module,normalizedPath, environment);
-        try {
-            var config = (Optional<Document>) configurationCache.get(cacheKey, () -> {
+        Document doc = (Document) configurationCache.getIfPresent(cacheKey);
+        if (doc == null) {
+            try {
                 logger.debug("CACHE MISS: {0}", cacheKey);
                 String content = getEnvironmentConfiguration(siteId, module, normalizedPath, environment);
-                Document retDocument = null;
                 if (isNotEmpty(content)) {
                     SAXReader saxReader = new SAXReader();
                     try {
@@ -246,72 +241,66 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
                     }
                     try (InputStream is = IOUtils.toInputStream(content, UTF_8)) {
-                        retDocument = saxReader.read(is);
+                        doc = saxReader.read(is);
+                        configurationCache.put(cacheKey, doc);
                     }
-                    return Optional.of(retDocument);
-                } else {
-                    return Optional.empty();
                 }
-            });
-
-            return config.orElse(null);
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
+            } catch (IOException | DocumentException e) {
+                throw new ServiceLayerException("Error loading configuration", e);
+            }
         }
+        return doc;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException {
         var cacheKey = getCacheKey(siteId, null, path, null, "commons");
-        try {
-            var config = (Optional<HierarchicalConfiguration<?>>) configurationCache.get(cacheKey, () -> {
+        HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
+        if (config == null) {
+            try {
                 logger.debug("CACHE MISS: {0}", cacheKey);
                 if (contentService.contentExists(siteId, path)) {
-                    return Optional.of(
-                            configurationReader.readXmlConfiguration(contentService.getContent(siteId, path)));
-                } else {
-                    return Optional.empty();
+                    config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, path));
+                    configurationCache.put(cacheKey, config);
                 }
-            });
-            return config.orElse(EMPTY_CONFIG);
-        } catch (ExecutionException e) {
-            throw new ConfigurationException("Error loading configuration", e);
+            } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
+                throw new ConfigurationException("Error loading configuration", e);
+            }
         }
+        return config;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public HierarchicalConfiguration<?> getGlobalXmlConfiguration(String path) throws ConfigurationException {
         var cacheKey = path + ":commons";
-        try {
-            var config = (Optional<HierarchicalConfiguration<?>>) configurationCache.get(cacheKey, () -> {
+        HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
+        if (config == null) {
+            try {
                 logger.debug("Cache miss: {0}", cacheKey);
                 if (contentService.contentExists(EMPTY, path)) {
-                    return Optional.of(
-                            configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path)));
-                } else {
-                    return Optional.empty();
+                    config = configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path));
+                    configurationCache.put(cacheKey,config);
                 }
-            });
-            return config.orElse(EMPTY_CONFIG);
-        } catch (ExecutionException e) {
-            throw new ConfigurationException("Error loading configuration", e);
+            } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
+                throw new ConfigurationException("Error loading configuration", e);
+            }
         }
+        return config;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Document getGlobalConfigurationAsDocument(String path) throws ServiceLayerException {
-        try {
-            var doc = (Optional<Document>) configurationCache.get(path, () -> {
+        Document doc = (Document) configurationCache.getIfPresent(path);
+        if (doc == null) {
+            try {
                 logger.debug("Cache miss: {0}", path);
-                return Optional.ofNullable(contentService.getContentAsDocument(EMPTY, path));
-            });
-            return doc.orElse(null);
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error getting global config " + path, e);
+                doc = contentService.getContentAsDocument(EMPTY, path);
+                configurationCache.put(path, doc);
+            } catch (DocumentException e) {
+                throw new ServiceLayerException("Error getting global config " + path, e);
+            }
         }
+        return doc;
     }
 
     @Override
@@ -634,10 +623,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
-        // anonymous object needed to access the non-final configContent variable in the lambda
-        var ref = new Object() {
-            String configContent;
-        };
         String configPath = null;
         String xmlCacheKey;
         String env = null;
@@ -657,50 +642,36 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             }
         }
 
-        // final variables needed to use the lambda as a cache loader
-        boolean finalUseContentService = useContentService;
         String finalConfigPath = configPath;
         String finalEnv = env;
 
         var objCacheKey = xmlCacheKey + ":map";
+        Map<String, Object> map = (Map<String, Object>) configurationCache.getIfPresent(objCacheKey);
+        if (map == null) {
+            Document doc = (Document) configurationCache.getIfPresent(xmlCacheKey);
+            if (doc == null) {
+                try {
+                    logger.debug("CACHE MISS: {0}", xmlCacheKey);
+                    String configContent;
+                    if (useContentService) {
+                        configContent = contentService.getContentAsString(site, finalConfigPath);
+                    } else {
+                        configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
+                    }
+                    configContent = configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
+                    configContent = configContent.replaceAll("\\n([\\s]+)?+", "");
+                    configContent = configContent.replaceAll("<!--(.*?)-->", "");
 
-        try {
-            var map = (Optional<Map<String, Object>>) configurationCache.get(objCacheKey, () ->
-                    convertNodesFromXml(() -> {
-                        if (finalUseContentService) {
-                            ref.configContent = contentService.getContentAsString(site, finalConfigPath);
-                        } else {
-                            ref.configContent = getConfigurationAsString(site, MODULE_STUDIO, path, finalEnv);
-                        }
-                        ref.configContent = ref.configContent.replaceAll("\"\\n([\\s]+)?+", "\" ");
-                        ref.configContent = ref.configContent.replaceAll("\\n([\\s]+)?+", "");
-                        ref.configContent = ref.configContent.replaceAll("<!--(.*?)-->", "");
-
-                        return ref.configContent;
-                    }, xmlCacheKey)
-            );
-            return map.orElse(null);
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
-        } catch (ClassCastException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
+                    doc = DocumentHelper.parseText(configContent);
+                    configurationCache.put(xmlCacheKey, doc);
+                } catch (DocumentException e) {
+                    throw new ServiceLayerException("Error loading configuration", e);
+                }
+            }
+            map = createMap(doc.getRootElement());
+            configurationCache.put(objCacheKey, map);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private Optional<Map<String, Object>> convertNodesFromXml(Supplier<String> content, String cacheKey)
-            throws ServiceLayerException {
-        try {
-            var doc = (Optional<Document>) configurationCache.get(cacheKey, () -> {
-                logger.debug("CACHE MISS: {0}", cacheKey);
-                return Optional.of(DocumentHelper.parseText(content.get()));
-            });
-            return doc.map(document -> createMap(document.getRootElement()));
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
-        } catch (ClassCastException e) {
-            throw new ServiceLayerException("Error loading configuration", e);
-        }
+        return map;
     }
 
     @SuppressWarnings("rawtypes,unchecked")
@@ -792,7 +763,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public void setConfigurationCache(Cache<String, Optional<?>> configurationCache) {
+    public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
     }
 
@@ -803,7 +774,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
-    public void setCacheInvalidators(List<CacheInvalidator<String, Optional<?>>> cacheInvalidators) {
+    public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {
         this.cacheInvalidators = cacheInvalidators;
     }
 

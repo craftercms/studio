@@ -76,10 +76,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
@@ -127,7 +125,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected AuditServiceInternal auditServiceInternal;
     protected SiteService siteService;
 
-    protected Cache<String, Optional<PermissionsConfigTO>> cache;
+    protected Cache<String, PermissionsConfigTO> cache;
 
     @Override
     public String getCurrentUser() {
@@ -498,13 +496,13 @@ public class SecurityServiceImpl implements SecurityService {
     protected PermissionsConfigTO loadConfiguration(String site, String filename) {
         var environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
         var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, filename, environment, "object");
-
-        try {
-            var object = cache.get(cacheKey, () -> {
+        PermissionsConfigTO config = cache.getIfPresent(cacheKey);
+        if (config == null) {
+            try {
                 Document document =
                         configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, filename, environment);
                 if (document != null) {
-                    PermissionsConfigTO config = new PermissionsConfigTO();
+                    config = new PermissionsConfigTO();
                     config.setMapping(document);
                     Element root = document.getRootElement();
 
@@ -517,18 +515,13 @@ public class SecurityServiceImpl implements SecurityService {
                     config.setKey(site + ":" + filename);
                     config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
-                    return Optional.of(config);
-                } else {
-                    logger.error("Permission mapping not found for " + site + ":" + filename);
-                    return Optional.empty();
+                    cache.put(cacheKey, config);
                 }
-            });
-
-            return object.orElse(null);
-        } catch (ExecutionException e) {
-            logger.error("Permission mapping not found for " + site + ":" + filename);
-            return null;
+            } catch (ServiceLayerException e) {
+                logger.error("Permission mapping not found for " + site + ":" + filename);
+            }
         }
+        return config;
     }
 
     protected void loadRoles(Element root, PermissionsConfigTO config) {
@@ -587,13 +580,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected PermissionsConfigTO loadGlobalPermissionsConfiguration() {
         String globalPermissionsConfigPath = getGlobalConfigPath() + FILE_SEPARATOR + getGlobalPermissionsFileName();
-        var cacheKey = configurationService.getCacheKey(null, null, globalPermissionsConfigPath, null, "object");
-
-        try {
-            var permissions = cache.get(cacheKey, () -> {
+        String cacheKey = configurationService.getCacheKey(null, null, globalPermissionsConfigPath, null, "object");
+        PermissionsConfigTO config = cache.getIfPresent(cacheKey);
+        if (config == null) {
+            try {
                 Document document = configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
                 if (document != null) {
-                    PermissionsConfigTO config = new PermissionsConfigTO();
+                    config = new PermissionsConfigTO();
                     config.setMapping(document);
                     Element root = document.getRootElement();
 
@@ -604,18 +597,13 @@ public class SecurityServiceImpl implements SecurityService {
                     config.setKey(globalPermissionsKey);
                     config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
 
-                    return Optional.of(config);
-                } else {
-                    logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
-                    return Optional.empty();
+                    cache.put(cacheKey, config);
                 }
-            });
-
-            return permissions.orElse(null);
-        } catch (ExecutionException e) {
-            logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
-            return null;
+            } catch (ServiceLayerException e) {
+                logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
+            }
         }
+        return config;
     }
 
     protected PermissionsConfigTO loadGlobalRolesConfiguration() {
@@ -954,7 +942,7 @@ public class SecurityServiceImpl implements SecurityService {
         this.siteService = siteService;
     }
 
-    public void setCache(Cache<String, Optional<PermissionsConfigTO>> cache) {
+    public void setCache(Cache<String, PermissionsConfigTO> cache) {
         this.cache = cache;
     }
 
