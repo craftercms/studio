@@ -507,7 +507,6 @@ configurations:
               template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v12.xslt
               commitDetails: Add plugin management
 
-
   contextual-nav:
     module: studio
     path: context-nav/contextual-nav.xml
@@ -545,8 +544,13 @@ configurations:
     path: workflow/notification-config.xml
     pipeline:
       requires: '>=2'
-      # Add new versions as needed, starting on 2
-      # versions:
+      versions:
+        - currentVersion: 2
+          nextVersion: 3
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v3.xslt
+              commitDetails: Comment example emails
 
   code-editor-config:
     module: studio
