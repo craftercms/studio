@@ -91,7 +91,8 @@ public final class SqlStatementGeneratorUtils {
                                        String commitId, String previousPath) {
         Timestamp sqlTsCreated = new Timestamp(createdOn.toInstant().toEpochMilli());
         Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
-        Timestamp sqlTsLastPublished = new Timestamp(lastPublishedOn.toInstant().toEpochMilli());
+        Timestamp sqlTsLastPublished = Objects.isNull(lastPublishedOn) ?
+                null : new Timestamp(lastPublishedOn.toInstant().toEpochMilli());
         int ignoredAsInt = 0;
         String fileName = FilenameUtils.getName(path);
         if (ArrayUtils.contains(IGNORE_FILES, fileName)) {
@@ -111,7 +112,11 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{lastModifiedBy}", Objects.isNull(lastModifiedBy) ? "NULL" :
                 Long.toString(lastModifiedBy));
         sql = StringUtils.replace(sql, "#{lastModifiedOn}", sqlTsLastModified.toString());
-        sql = StringUtils.replace(sql, "#{lastPublishedOn}", sqlTsLastPublished.toString());
+        if (Objects.isNull(sqlTsLastPublished)) {
+            sql = StringUtils.replace(sql, "'#{lastPublishedOn}'", "NULL");
+        } else {
+            sql = StringUtils.replace(sql, "#{lastPublishedOn}", sqlTsLastPublished.toString());
+        }
         sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
         sql = StringUtils.replace(sql,"#{contentTypeId}", Objects.isNull(contentTypeId) ?
                 "NULL" : StringUtils.replace(contentTypeId, "'", "''"));

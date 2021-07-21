@@ -1688,8 +1688,7 @@ public class ContentServiceImpl implements ContentService {
             } else {
                 item = createDummyDmContentItemForDeletedNode(site, path);
             }
-        }
-        catch(Exception err) {
+        } catch(Exception err) {
             logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
         }
 
