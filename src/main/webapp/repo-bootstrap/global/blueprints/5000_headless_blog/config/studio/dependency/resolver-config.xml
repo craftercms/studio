@@ -22,6 +22,7 @@
 -->
 
 <dependency-resolver>
+    <version>2</version>
     <item-types>
         <item-type>
             <!-- name of type -->
@@ -62,7 +63,7 @@
                     <includes>
                         <!-- path patterns to look for (multiple) -->
                         <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\#]+)</find-regex>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
                         </pattern>
                     </includes>
                 </dependency-type>
@@ -131,7 +132,7 @@
                     <name>asset</name>
                     <includes>
                         <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\#]+)</find-regex>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
                         </pattern>
                     </includes>
                 </dependency-type>
@@ -208,7 +209,7 @@
                     <name>asset</name>
                     <includes>
                         <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\#]+)</find-regex>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
                         </pattern>
                     </includes>
                 </dependency-type>
@@ -262,7 +263,7 @@
                     <includes>
                         <!-- path patterns to look for (multiple) -->
                         <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\#]+)</find-regex>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
                         </pattern>
                     </includes>
                 </dependency-type>
@@ -283,7 +284,7 @@
                     <includes>
                         <!-- path patterns to look for (multiple) -->
                         <pattern>
-                            <find-regex>/static-assets/([^&lt;"'\)\?\#]+)</find-regex>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
                         </pattern>
                     </includes>
                 </dependency-type>
