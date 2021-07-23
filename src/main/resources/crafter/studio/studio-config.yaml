@@ -774,7 +774,7 @@ studio.aws.mediaconvert.extension.smooth: ism
 ################################################################
 ##                         WebDav                             ##
 ################################################################
-studio.webdav.url.pattern: /remote-assets/webdav/%s/%s/%s
+studio.webdav.url.pattern: /remote-assets/webdav/%s/%s
 
 ##########################################################
 ##                 Serverless Delivery                  ##
