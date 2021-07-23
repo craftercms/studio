@@ -225,6 +225,45 @@ public class DetailedItem {
         return instance;
     }
 
+    public static DetailedItem getInstance(org.craftercms.studio.api.v2.dal.DetailedItem item) {
+        DetailedItem instance = new DetailedItem();
+        instance.sandbox = new Sandbox();
+        instance.staging = new Environment();
+        instance.live = new Environment();
+
+        instance.id = item.getId();
+        instance.label = item.getLabel();
+        instance.parentId = item.getParentId();
+        instance.contentTypeId = item.getContentTypeId();
+        instance.path = item.getPath();
+        instance.previewUrl = item.getPreviewUrl();
+        instance.systemType = item.getSystemType();
+        instance.mimeType = item.getMimeType();
+        instance.state = item.getState();
+        instance.lockOwner = item.getOwner();
+        instance.disabled = item.isDisabled();
+        instance.localeCode = item.getLocaleCode();
+        instance.translationSourceId = item.getTranslationSourceId();
+        instance.sandbox.creator = item.getCreator();
+        instance.sandbox.dateCreated = item.getCreatedOn();
+        instance.sandbox.modifier = item.getModifier();
+        instance.sandbox.dateModified = item.getLastModifiedOn();
+        instance.sandbox.commitId = item.getCommitId();
+        instance.sandbox.sizeInBytes = item.getSize();
+        instance.availableActions = item.getAvailableActions();
+
+        instance.staging.dateScheduled = item.getStagingScheduledDate();
+        instance.staging.datePublished = item.getStagingPublishedOn();
+        instance.staging.publisher = item.getStagingUsername();
+        instance.staging.commitId = item.getStagingCommitId();
+        instance.live.dateScheduled = item.getLiveScheduledDate();
+        instance.live.datePublished = item.getLivePublishedOn();
+        instance.live.publisher = item.getLiveUsername();
+        instance.live.commitId = item.getLiveCommitId();
+
+        return instance;
+    }
+
     public static class Environment {
         private ZonedDateTime dateScheduled;
         private ZonedDateTime datePublished;

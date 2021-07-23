@@ -49,6 +49,44 @@
         <result property="ignoredAsInt" column="ignored" />
     </resultMap>
 
+    <resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem">
+        <id property="id" column="id" />
+        <result property="siteId" column="site_id" />
+        <result property="siteName" column="site_name" />
+        <result property="path" column="path" />
+        <result property="previewUrl" column="preview_url" />
+        <result property="state" column="state" />
+        <result property="ownedBy" column="owned_by" />
+        <result property="owner" column="owner" />
+        <result property="createdBy" column="created_by" />
+        <result property="creator" column="creator" />
+        <result property="createdOn" column="created_on" />
+        <result property="lastModifiedBy" column="last_modified_by" />
+        <result property="modifier" column="modifier" />
+        <result property="lastModifiedOn" column="last_modified_on" />
+        <result property="lastPublishedOn" column="last_published_on" />
+        <result property="label" column="label" />
+        <result property="contentTypeId" column="content_type_id" />
+        <result property="systemType" column="system_type" />
+        <result property="mimeType" column="mime_type" />
+        <result property="disabledAsInt" column="disabled" />
+        <result property="localeCode" column="locale_code" />
+        <result property="translationSourceId" column="translation_source_id" />
+        <result property="size" column="size" />
+        <result property="parentId" column="parent_id" />
+        <result property="commitId" column="commit_id" />
+        <result property="previewUrl" column="preview_url" />
+        <result property="ignoredAsInt" column="ignored" />
+        <result property="stagingScheduledDate" column="staging_scheduleddate" />
+        <result property="stagingPublishedOn" column="staging_published_on" />
+        <result property="stagingUsername" column="staging_username" />
+        <result property="stagingCommitId" column="staging_commit_id" />
+        <result property="liveScheduledDate" column="live_scheduleddate" />
+        <result property="livePublishedOn" column="live_published_on" />
+        <result property="liveUsername" column="live_username" />
+        <result property="liveCommitId" column="live_commit_id" />
+    </resultMap>
+
     <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
         INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
         last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
@@ -228,53 +266,149 @@
     </select>
     
     <select id="getItemById" resultMap="ItemMap">
-            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
-            from item i left outer join user u1 on i.owned_by = u1.id
+            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+                   staging1.scheduleddate as staging_scheduleddate,
+                   staging1.published_on as staging_published_on,
+                   staging1.username as staging_username,
+                   staging1.commit_id as staging_commit_id,
+                   live1.scheduleddate as live_scheduleddate,
+                   live1.published_on as live_published_on,
+                   live1.username as live_username,
+                   live1.commit_id as live_commit_id
+            from item i inner join site s1 on i.site_id = s1.id left outer join user u1 on i.owned_by = u1.id
                         left outer join user u2 on i.created_by = u2.id
                         left outer join user u3 on i.last_modified_by = u3.id
+                        left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
+                                         where s2.id = #{siteId} and pr1.path = #{path} and pr1.environment = #{stagingEnvironment}
+                                           and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
+                                        on s1.site_id = staging1.site and i.path = staging1.path
+                        left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
+                                         where s3.id = 3 and pr2.path = '/site/website/index.xml' and pr2.environment = 'live'
+                                           and pr2.state = 'COMPLETED' order by pr2.published_on desc limit 0, 1) as live1
+                                        on s1.site_id = live1.site and i.path = live1.path
             where i.id = #{id}
             limit 0, 1
     </select>
 
     <select id="getItemByIdPreferContent" resultMap="ItemMap">
-            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
-            from item i1 left outer join user u1 on i1.owned_by = u1.id
+            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+                    staging1.scheduleddate as staging_scheduleddate,
+                    staging1.published_on as staging_published_on,
+                    staging1.username as staging_username,
+                    staging1.commit_id as staging_commit_id,
+                    live1.scheduleddate as live_scheduleddate,
+                    live1.published_on as live_published_on,
+                    live1.username as live_username,
+                    live1.commit_id as live_commit_id
+            from item i1 inner join site s1 on i1.site_id = s1.id left outer join user u1 on i1.owned_by = u1.id
                  left outer join user u2 on i1.created_by = u2.id
-                 left outer join user u3 on i1.last_modified_by = u3.id, item i2
+                 left outer join user u3 on i1.last_modified_by = u3.id
+                         left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
+                                          where s2.id = #{siteId} and pr1.path = #{path} and pr1.environment = #{stagingEnvironment}
+                                            and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
+                                         on s1.site_id = staging1.site and i1.path = staging1.path
+                         left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
+                                          where s3.id = #{siteId} and pr2.path = #{path} and pr2.environment = #{liveEnvironment}
+                                            and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
+                                         on s1.site_id = live1.site and i1.path = live1.path, item i2
             where i2.id = #{id}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
-            from item i3 left outer join user u4 on i3.owned_by = u4.id
+            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
+                   staging2.scheduleddate as staging_scheduleddate,
+                   staging2.published_on as staging_published_on,
+                   staging2.username as staging_username,
+                   staging2.commit_id as staging_commit_id,
+                   live2.scheduleddate as live_scheduleddate,
+                   live2.published_on as live_published_on,
+                   live2.username as live_username,
+                   live2.commit_id as live_commit_id
+            from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
+                         left outer join (select pr3.* from publish_request pr1 inner join site s5 on pr3.site = s5.site_id
+                                          where s5.id = #{siteId} and pr3.path = #{path} and pr3.environment = #{stagingEnvironment}
+                                            and pr3.state = #{completedState} order by pr3. published_on desc limit 0, 1) as staging2
+                                         on s4.site_id = staging2.site and i3.path = staging2.path
+                         left outer join (select pr4.* from publish_request pr4 inner join site s6 on pr4.site = s6.site_id
+                                          where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
+                                            and pr4.state = #{completedEnvironment} order by pr4.published_on desc limit 0, 1) as live2
+                                         on s4.site_id = live2.site and i3.path = live2.path
             where i3.id = #{id})
             limit 0, 1
     </select>
 
-    <select id="getItemByPath" resultMap="ItemMap">
-            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
-            from item i left outer join user u1 on i.owned_by = u1.id
+    <select id="getItemByPath" resultMap="DetailedItemMap">
+            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+                   staging1.scheduleddate as staging_scheduleddate,
+                   staging1.published_on as staging_published_on,
+                   staging1.username as staging_username,
+                   staging1.commit_id as staging_commit_id,
+                   live1.scheduleddate as live_scheduleddate,
+                   live1.published_on as live_published_on,
+                   live1.username as live_username,
+                   live1.commit_id as live_commit_id
+            from item i inner join site s1 on i.site_id = s1.id left outer join user u1 on i.owned_by = u1.id
             left outer join user u2 on i.created_by = u2.id
             left outer join user u3 on i.last_modified_by = u3.id
+                left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
+                where s2.id = #{siteId} and pr1.path = #{path} and pr1.environment = #{stagingEnvironment}
+                  and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
+                    on s1.site_id = staging1.site and i.path = staging1.path
+                left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
+                where s3.id = 3 and pr2.path = '/site/website/index.xml' and pr2.environment = 'live'
+                  and pr2.state = 'COMPLETED' order by pr2.published_on desc limit 0, 1) as live1
+                    on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
             limit 0, 1
     </select>
 
-    <select id="getItemByPathPreferContent" resultMap="ItemMap">
-            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
-            from item i1 left outer join user u1 on i1.owned_by = u1.id
+    <select id="getItemByPathPreferContent" resultMap="DetailedItemMap">
+            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+                    staging1.scheduleddate as staging_scheduleddate,
+                    staging1.published_on as staging_published_on,
+                    staging1.username as staging_username,
+                    staging1.commit_id as staging_commit_id,
+                    live1.scheduleddate as live_scheduleddate,
+                    live1.published_on as live_published_on,
+                    live1.username as live_username,
+                    live1.commit_id as live_commit_id
+            from item i1 inner join site s1 on i1.site_id = s1.id  left outer join user u1 on i1.owned_by = u1.id
             left outer join user u2 on i1.created_by = u2.id
-            left outer join user u3 on i1.last_modified_by = u3.id, item i2
+            left outer join user u3 on i1.last_modified_by = u3.id
+                left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
+                where s2.id = #{siteId} and pr1.path = #{path} and pr1.environment = #{stagingEnvironment}
+                  and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
+                    on s1.site_id = staging1.site and i1.path = staging1.path
+                left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
+                where s3.id = #{siteId} and pr2.path = #{path} and pr2.environment = #{liveEnvironment}
+                  and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
+                    on s1.site_id = live1.site and i1.path = live1.path , item i2
             where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
-            from item i3 left outer join user u4 on i3.owned_by = u4.id
+            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
+                   staging2.scheduleddate as staging_scheduleddate,
+                   staging2.published_on as staging_published_on,
+                   staging2.username as staging_username,
+                   staging2.commit_id as staging_commit_id,
+                   live2.scheduleddate as live_scheduleddate,
+                   live2.published_on as live_published_on,
+                   live2.username as live_username,
+                   live2.commit_id as live_commit_id
+            from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
             left outer join user u5 on i3.created_by = u5.id
             left outer join user u6 on i3.last_modified_by = u6.id
+                left outer join (select pr3.* from publish_request pr1 inner join site s5 on pr3.site = s5.site_id
+                where s5.id = #{siteId} and pr3.path = #{path} and pr3.environment = #{stagingEnvironment}
+                  and pr3.state = #{completedState} order by pr3. published_on desc limit 0, 1) as staging2
+                    on s4.site_id = staging2.site and i3.path = staging2.path
+                left outer join (select pr4.* from publish_request pr4 inner join site s6 on pr4.site = s6.site_id
+                where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
+                  and pr4.state = #{completedEnvironment} order by pr4.published_on desc limit 0, 1) as live2
+                    on s4.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path})
             limit 0, 1
     </select>
@@ -349,29 +483,79 @@
         and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
     </select>
 
-    <select id="getItemBySiteIdAndPath" resultMap="ItemMap">
-            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
-            from item i left outer join user u1 on i.owned_by = u1.id
+    <select id="getItemBySiteIdAndPath" resultMap="DetailedItemMap">
+            select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+                   staging1.scheduleddate as staging_scheduleddate,
+                   staging1.published_on as staging_published_on,
+                   staging1.username as staging_username,
+                   staging1.commit_id as staging_commit_id,
+                   live1.scheduleddate as live_scheduleddate,
+                   live1.published_on as live_published_on,
+                   live1.username as live_username,
+                   live1.commit_id as live_commit_id
+            from item i inner join site s1 on i.site_id = s1.id  left outer join user u1 on i.owned_by = u1.id
                         left outer join user u2 on i.created_by = u2.id
                         left outer join user u3 on i.last_modified_by = u3.id
+                        left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
+                                         where s2.id = #{siteId} and pr1.path = #{path} and
+                                             pr1.environment = #{stagingEnvironment}
+                                           and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
+                                        on s1.site_id = staging1.site and i.path = staging1.path
+                        left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
+                                         where s3.id = #{siteId} and pr2.path = #{path} and pr2.environment = #{liveEnvironment}
+                                           and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
+                                        on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
             limit 0, 1
     </select>
 
-    <select id="getItemBySiteIdAndPathPreferContent" resultMap="ItemMap">
-            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
-            from item i1 left outer join user u1 on i1.owned_by = u1.id
+    <select id="getItemBySiteIdAndPathPreferContent" resultMap="DetailedItemMap">
+            (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+                 staging1.scheduleddate as staging_scheduleddate,
+                     staging1.published_on as staging_published_on,
+                    staging1.username as staging_username,
+                    staging1.commit_id as staging_commit_id,
+                    live1.scheduleddate as live_scheduleddate,
+                    live1.published_on as live_published_on,
+                    live1.username as live_username,
+                    live1.commit_id as live_commit_id
+            from item i1 inner join site s1 on i1.site_id = s1.id left outer join user u1 on i1.owned_by = u1.id
                  left outer join user u2 on i1.created_by = u2.id
-                 left outer join user u3 on i1.last_modified_by = u3.id, item i2
+                 left outer join user u3 on i1.last_modified_by = u3.id
+                 left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
+                                  where s2.id = #{siteId} and pr1.path = #{path} and
+                                      pr1.environment = #{stagingEnvironment}
+                                    and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
+                     on s1.site_id = staging1.site and i1.path = staging1.path
+                 left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
+                                  where s3.id = #{siteId} and pr2.path = #{path} and pr2.environment = #{liveEnvironment}
+                                    and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
+                     on s1.site_id = live1.site and i1.path = live1.path , item i2
             where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.ignored = 0
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
             union
-            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
-            from item i3 left outer join user u4 on i3.owned_by = u4.id
+            select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
+                   staging2.scheduleddate as staging_scheduleddate,
+                   staging2.published_on as staging_published_on,
+                   staging2.username as staging_username,
+                   staging2.commit_id as staging_commit_id,
+                   live2.scheduleddate as live_scheduleddate,
+                   live2.published_on as live_published_on,
+                   live2.username as live_username,
+                   live2.commit_id as live_commit_id
+            from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
+                 left outer join (select pr3.* from publish_request pr3 inner join site s5 on pr3.site = s5.site_id
+                 where s5.id = #{siteId} and pr3.path = #{path} and pr3.environment = #{stagingEnvironment}
+                   and pr3.state = #{completedState} order by pr3. published_on desc limit 0, 1) as staging2
+                     on s4.site_id = staging2.site and i3.path = staging2.path
+                 left outer join (select pr4.* from publish_request pr4 inner join site s6 on pr4.site = s6.site_id
+                 where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
+                   and pr4.state = #{completedState} order by pr4.published_on desc limit 0, 1) as live2
+                     on s3.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0)
             limit 0, 1
     </select>

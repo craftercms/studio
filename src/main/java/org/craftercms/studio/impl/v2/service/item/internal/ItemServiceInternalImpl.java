@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -75,6 +76,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentIdSimple;
@@ -167,16 +169,18 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        Item item = null;
+        DetailedItem item = null;
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path);
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path);
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);
         }
-        return item;
+        return Item.getInstance(item);
     }
 
     @Override

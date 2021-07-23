@@ -167,6 +167,10 @@ public final class  QueryParameterNames {
 
     public static final String CONTENT_TYPE_CLASS = "contentTypeClass";
 
+    public static final String STAGING_ENVIRONMENT = "stagingEnvironment";
+
+    public static final String LIVE_ENVIRONMENT = "liveEnvironment";
+
     /* Audit */
     public static final String ACTIONS = "actions";
 

@@ -52,6 +52,7 @@ import java.util.Objects;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 
@@ -191,11 +192,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        Item item = null;
+        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path);
+            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemByPath(siteFeed.getId(), path);
+            item = itemDao.getItemByPath(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
         }
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
@@ -208,10 +211,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             String user = securityService.getCurrentUser();
             detailedItem.setAvailableActions(
                     semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, detailedItem));
-            detailedItem.setStaging(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
-                    studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_STAGING), detailedItem.getPath()));
-            detailedItem.setLive(contentRepository.getItemEnvironmentProperties(siteId, GitRepositories.PUBLISHED,
-                    studioConfiguration.getProperty(StudioConfiguration.REPO_PUBLISHED_LIVE), detailedItem.getPath()));
         }
     }
 
