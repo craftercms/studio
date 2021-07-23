@@ -22,6 +22,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
@@ -37,6 +38,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIP
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIKE_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIVE_ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCKED_BIT_OFF;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCKED_BIT_ON;
@@ -62,6 +64,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PREVIOUS_PATH
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCRIPT_PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT_STRATEGY;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STAGING_ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SUBMITTED_MASK;
@@ -189,7 +192,10 @@ public interface ItemDAO {
      * @param path path of the item
      * @return item for given site and path
      */
-    Item getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+    DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                        @Param(COMPLETED_STATE) String completedState,
+                                        @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                        @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item with prefer content option for given site and path
@@ -197,7 +203,10 @@ public interface ItemDAO {
      * @param path path of the item
      * @return item for given site and path
      */
-    Item getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path);
+    DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                                     @Param(COMPLETED_STATE) String completedState,
+                                                     @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                                     @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Update item
@@ -354,7 +363,10 @@ public interface ItemDAO {
      * @return item
      */
 
-    Item getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
+    DetailedItem getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                               @Param(COMPLETED_STATE) String completedState,
+                               @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                               @Param(LIVE_ENVIRONMENT) String liveEnvironment);
     /**
      * Get item with prefer content option for given path from database
      *
@@ -363,7 +375,10 @@ public interface ItemDAO {
      * @return item
      */
 
-    Item getItemByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
+    DetailedItem getItemByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                                            @Param(COMPLETED_STATE) String completedState,
+                                            @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                            @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
 
     /**

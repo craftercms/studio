@@ -18,21 +18,12 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
-import java.util.Map;
 
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
-public class Item {
-
-    private static final Logger logger = LoggerFactory.getLogger(Item.class);
+public class DetailedItem {
 
     private long id;
     private long siteId;
@@ -65,9 +56,19 @@ public class Item {
     private int ignoredAsInt;
     private boolean ignored;
 
-    public Item() { }
+    private ZonedDateTime stagingScheduledDate;
+    private ZonedDateTime stagingPublishedOn;
+    private String stagingUsername;
+    private String stagingCommitId;
 
-    private Item(Builder builder) {
+    private ZonedDateTime liveScheduledDate;
+    private ZonedDateTime livePublishedOn;
+    private String liveUsername;
+    private String liveCommitId;
+
+    public DetailedItem() { }
+
+    private DetailedItem(Builder builder) {
         id = builder.id;
         siteId = builder.siteId;
         siteName = builder.siteName;
@@ -342,8 +343,72 @@ public class Item {
         this.ignored = ignored;
     }
 
-    public static Item getInstance(DetailedItem item) {
-        Item instance = new Item();
+    public ZonedDateTime getStagingScheduledDate() {
+        return stagingScheduledDate;
+    }
+
+    public void setStagingScheduledDate(ZonedDateTime stagingScheduledDate) {
+        this.stagingScheduledDate = stagingScheduledDate;
+    }
+
+    public ZonedDateTime getStagingPublishedOn() {
+        return stagingPublishedOn;
+    }
+
+    public void setStagingPublishedOn(ZonedDateTime stagingPublishedOn) {
+        this.stagingPublishedOn = stagingPublishedOn;
+    }
+
+    public String getStagingUsername() {
+        return stagingUsername;
+    }
+
+    public void setStagingUsername(String stagingUsername) {
+        this.stagingUsername = stagingUsername;
+    }
+
+    public String getStagingCommitId() {
+        return stagingCommitId;
+    }
+
+    public void setStagingCommitId(String stagingCommitId) {
+        this.stagingCommitId = stagingCommitId;
+    }
+
+    public ZonedDateTime getLiveScheduledDate() {
+        return liveScheduledDate;
+    }
+
+    public void setLiveScheduledDate(ZonedDateTime liveScheduledDate) {
+        this.liveScheduledDate = liveScheduledDate;
+    }
+
+    public ZonedDateTime getLivePublishedOn() {
+        return livePublishedOn;
+    }
+
+    public void setLivePublishedOn(ZonedDateTime livePublishedOn) {
+        this.livePublishedOn = livePublishedOn;
+    }
+
+    public String getLiveUsername() {
+        return liveUsername;
+    }
+
+    public void setLiveUsername(String liveUsername) {
+        this.liveUsername = liveUsername;
+    }
+
+    public String getLiveCommitId() {
+        return liveCommitId;
+    }
+
+    public void setLiveCommitId(String liveCommitId) {
+        this.liveCommitId = liveCommitId;
+    }
+
+    public static DetailedItem getInstance(Item item) {
+        DetailedItem instance = new DetailedItem();
 
         instance.id = item.getId();
         instance.label = item.getLabel();
@@ -395,9 +460,17 @@ public class Item {
         private int ignoredAsInt;
         private boolean ignored;
 
-        public Builder() { }
+        private ZonedDateTime stagingScheduledDate;
+        private ZonedDateTime stagingPublishedOn;
+        private String stagingUsername;
+        private String stagingCommitId;
 
-        public static Builder buildFromClone(Item item) {
+        private ZonedDateTime liveScheduledDate;
+        private ZonedDateTime livePublishedOn;
+        private String liveUsername;
+        private String liveCommitId;
+
+        public static Builder buildFromClone(DetailedItem item) {
             Builder clone = new Builder();
             clone.siteId = item.siteId;
             clone.siteName = item.siteName;
@@ -428,6 +501,15 @@ public class Item {
             clone.previousPath = item.previousPath;
             clone.ignoredAsInt = item.ignoredAsInt;
             clone.ignored = item.ignored;
+
+            clone.stagingScheduledDate = item.stagingScheduledDate;
+            clone.stagingPublishedOn = item.stagingPublishedOn;
+            clone.stagingUsername = item.stagingUsername;
+            clone.stagingCommitId = item.stagingCommitId;
+            clone.liveScheduledDate = item.liveScheduledDate;
+            clone.livePublishedOn = item.livePublishedOn;
+            clone.liveUsername = item.liveUsername;
+            clone.liveCommitId = item.liveCommitId;
             return clone;
         }
 
@@ -580,13 +662,53 @@ public class Item {
             return this;
         }
 
-        public Item build() {
+        public Builder withStagingScheduledDate(ZonedDateTime stagingScheduledDate) {
+            this.stagingScheduledDate = stagingScheduledDate;
+            return this;
+        }
+
+        public Builder withStagingPublishedOn(ZonedDateTime stagingPublishedOn) {
+            this.stagingPublishedOn = stagingPublishedOn;
+            return this;
+        }
+
+        public Builder withStagingUsername(String stagingUsername) {
+            this.stagingUsername = stagingUsername;
+            return this;
+        }
+
+        public Builder withStagingCommitId(String stagingCommitId) {
+            this.stagingCommitId = stagingCommitId;
+            return this;
+        }
+
+        public Builder withLiveScheduledDate(ZonedDateTime liveScheduledDate) {
+            this.liveScheduledDate = liveScheduledDate;
+            return this;
+        }
+
+        public Builder withLivePublishedOn(ZonedDateTime livePublishedOn) {
+            this.livePublishedOn = livePublishedOn;
+            return this;
+        }
+
+        public Builder withLiveUsername(String liveUsername) {
+            this.liveUsername = liveUsername;
+            return this;
+        }
+
+        public Builder withLiveCommitId(String liveCommitId) {
+            this.liveCommitId = liveCommitId;
+            return this;
+        }
+
+        public DetailedItem build() {
             String fileName = FilenameUtils.getName(this.path);
             if (ArrayUtils.contains(IGNORE_FILES, fileName)) {
                 this.ignoredAsInt = 1;
                 this.ignored = true;
             }
-            return new Item(this);
+            return new DetailedItem(this);
         }
     }
 }
