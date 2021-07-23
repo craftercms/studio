@@ -21,12 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
-import java.util.Map;
 
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
@@ -478,8 +473,6 @@ public class DetailedItem {
         private ZonedDateTime livePublishedOn;
         private String liveUsername;
         private String liveCommitId;
-
-        public Builder() { }
 
         public static Builder buildFromClone(DetailedItem item) {
             Builder clone = new Builder();
