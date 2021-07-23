@@ -327,7 +327,7 @@
             from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
-                         left outer join (select pr3.* from publish_request pr1 inner join site s5 on pr3.site = s5.site_id
+                         left outer join (select pr3.* from publish_request pr3 inner join site s5 on pr3.site = s5.site_id
                                           where s5.id = #{siteId} and pr3.path = #{path} and pr3.environment = #{stagingEnvironment}
                                             and pr3.state = #{completedState} order by pr3. published_on desc limit 0, 1) as staging2
                                          on s4.site_id = staging2.site and i3.path = staging2.path
@@ -401,7 +401,7 @@
             from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
             left outer join user u5 on i3.created_by = u5.id
             left outer join user u6 on i3.last_modified_by = u6.id
-                left outer join (select pr3.* from publish_request pr1 inner join site s5 on pr3.site = s5.site_id
+                left outer join (select pr3.* from publish_request pr3 inner join site s5 on pr3.site = s5.site_id
                 where s5.id = #{siteId} and pr3.path = #{path} and pr3.environment = #{stagingEnvironment}
                   and pr3.state = #{completedState} order by pr3. published_on desc limit 0, 1) as staging2
                     on s4.site_id = staging2.site and i3.path = staging2.path
