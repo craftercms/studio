@@ -333,7 +333,7 @@
                                          on s4.site_id = staging2.site and i3.path = staging2.path
                          left outer join (select pr4.* from publish_request pr4 inner join site s6 on pr4.site = s6.site_id
                                           where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
-                                            and pr4.state = #{completedEnvironment} order by pr4.published_on desc limit 0, 1) as live2
+                                            and pr4.state = #{completedState} order by pr4.published_on desc limit 0, 1) as live2
                                          on s4.site_id = live2.site and i3.path = live2.path
             where i3.id = #{id})
             limit 0, 1
@@ -407,7 +407,7 @@
                     on s4.site_id = staging2.site and i3.path = staging2.path
                 left outer join (select pr4.* from publish_request pr4 inner join site s6 on pr4.site = s6.site_id
                 where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
-                  and pr4.state = #{completedEnvironment} order by pr4.published_on desc limit 0, 1) as live2
+                  and pr4.state = #{completedState} order by pr4.published_on desc limit 0, 1) as live2
                     on s4.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path})
             limit 0, 1
