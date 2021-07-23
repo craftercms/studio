@@ -27,6 +27,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
@@ -343,6 +344,10 @@ public class Item {
     }
 
     public static Item getInstance(DetailedItem item) {
+        if (Objects.isNull(item)) {
+            return null;
+        }
+
         Item instance = new Item();
 
         instance.id = item.getId();
