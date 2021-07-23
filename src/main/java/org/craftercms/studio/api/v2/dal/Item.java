@@ -351,20 +351,36 @@ public class Item {
         Item instance = new Item();
 
         instance.id = item.getId();
-        instance.label = item.getLabel();
-        instance.parentId = item.getParentId();
-        instance.contentTypeId = item.getContentTypeId();
+        instance.siteId = item.getSiteId();
+        instance.siteName = item.getSiteName();
         instance.path = item.getPath();
         instance.previewUrl = item.getPreviewUrl();
+        instance.state = item.getState();
+        instance.ownedBy = item.getOwnedBy();
+        instance.owner = item.getOwner();
+        instance.createdBy = item.getCreatedBy();
+        instance.creator = item.getCreator();
+        instance.createdOn = item.getCreatedOn();
+        instance.lastModifiedBy = item.getLastModifiedBy();
+        instance.modifier = item.getModifier();
+        instance.lastModifiedOn = item.getLastModifiedOn();
+        instance.lastPublishedOn = item.getLastPublishedOn();
+        instance.label = item.getLabel();
+        instance.contentTypeId = item.getContentTypeId();
         instance.systemType = item.getSystemType();
         instance.mimeType = item.getMimeType();
-        instance.state = item.getState();
-        instance.owner = item.getOwner();
+        instance.disabledAsInt = item.getDisabledAsInt();
         instance.disabled = item.isDisabled();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
+        instance.size = item.getSize();
+        instance.parentId = item.getParentId();
+        instance.commitId = item.getCommitId();
         instance.availableActions = item.getAvailableActions();
-
+        instance.previousPath = item.getPreviousPath();
+        instance.ignoredAsInt = item.getIgnoredAsInt();
+        instance.ignored = item.isIgnored();
+        
         return instance;
     }
 
