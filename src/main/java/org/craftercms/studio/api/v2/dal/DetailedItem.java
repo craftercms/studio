@@ -27,8 +27,6 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 
 public class DetailedItem {
 
-    private static final Logger logger = LoggerFactory.getLogger(DetailedItem.class);
-
     private long id;
     private long siteId;
     private String siteName;
