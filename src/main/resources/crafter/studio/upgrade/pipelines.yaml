@@ -560,6 +560,17 @@ configurations:
       # Add new versions as needed, starting on 2
       # versions:
 
+  resolver-config:
+    module: studio
+    path: dependency/resolver-config.xml
+    pipeline:
+      - currentVersion: 1
+        nextVersion: 2
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v2.xslt
+            commitDetails: Update resovler regex to support CDATA
+
   engine-site-config:
     module: engine
     path: site-config.xml
