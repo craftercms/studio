@@ -100,7 +100,6 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.REJECT_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
@@ -151,7 +150,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected String JSON_KEY_DELETED_ITEMS = "deletedItems";
     protected String JSON_KEY_CHILDREN = "children";
     protected String JSON_KEY_SEND_EMAIL = "sendEmail";
-    protected String JSON_KEY_USER = "user";
     protected String JSON_KEY_REASON = "reason";
     protected String JSON_KEY_ENVIRONMENT = "environment";
     public static final String COMPLETE_SUBMIT_TO_GO_LIVE_MSG = "submitToGoLive";
@@ -2225,13 +2223,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // and only submit the top level items to workflow
             for (DmDependencyTO dmDependencyTO : submittedItems) {
                 DependencyRules rule = new DependencyRules(site, contentService, itemServiceInternal);
-                rejectThisAndReferences(site, dmDependencyTO, rule, approver, reason);
-                List<DmDependencyTO> children = dmDependencyTO.getChildren();
-                if (children != null) {
-                    for (DmDependencyTO child : children) {
-                        rejectThisAndReferences(site, child, rule, approver, reason);
-                    }
-                }
+                _cancelWorkflow(site, dmDependencyTO.getUri());
             }
             if(!submittedItems.isEmpty()) {
                 // for some reason ,  submittedItems.get(0).getSubmittedBy() returns empty and
@@ -2251,33 +2243,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
 
         // TODO: send the reason to the user
-    }
-
-    protected void rejectThisAndReferences(String site, DmDependencyTO dmDependencyTO, DependencyRules rule,
-                                           String approver, String reason) {
-        _reject(site, dmDependencyTO, approver, true, reason);
-        Set<DmDependencyTO> dependencyTOSet = rule.applyRejectRule(dmDependencyTO);
-        for (DmDependencyTO dependencyTO : dependencyTOSet) {
-            boolean lsendEmail = true;
-            try {
-                ContentItemTO contentItem = contentService.getContentItem(site, dependencyTO.getUri());
-                lsendEmail = !contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset();
-            } catch (Exception e) {
-                logger.error("during rejection, content retrieve failed");
-                lsendEmail = false;
-            }
-            _reject(site, dependencyTO, approver, lsendEmail, reason);
-        }
-    }
-
-    protected void _reject(String site, DmDependencyTO dmDependencyTO, String approver, boolean sendEmail,
-                           String reason) {
-        boolean contentExists = contentService.contentExists(site, dmDependencyTO.getUri());
-        if (contentExists) {
-            workflowServiceInternal.deleteWorkflowEntry(site, dmDependencyTO.getUri());
-
-            itemServiceInternal.resetStateBits(site, dmDependencyTO.getUri(), REJECT_OFF_MASK);
-        }
     }
 
     /* ================= */
