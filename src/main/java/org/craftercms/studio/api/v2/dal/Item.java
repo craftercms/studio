@@ -380,7 +380,7 @@ public class Item {
         instance.previousPath = item.getPreviousPath();
         instance.ignoredAsInt = item.getIgnoredAsInt();
         instance.ignored = item.isIgnored();
-        
+
         return instance;
     }
 
