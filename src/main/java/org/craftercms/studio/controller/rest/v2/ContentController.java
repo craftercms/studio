@@ -45,6 +45,11 @@ import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -55,6 +60,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +88,6 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.P
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -306,18 +311,20 @@ public class ContentController {
     }
 
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
-    public ResponseBody getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+    public ResponseEntity<InputStreamResource> getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                              @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                              @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
-            throws ContentNotFoundException, IOException {
-        String content = contentService.getContentByCommitId(siteId, path, commitId);
+            throws ServiceLayerException, IOException, UserNotFoundException {
 
-        ResponseBody responseBody = new ResponseBody();
-        ResultOne<String> result = new ResultOne<String>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_CONTENT, content);
-        responseBody.setResult(result);
-        return responseBody;
+        DetailedItem item = contentService.getItemByPath(siteId, path, true);
+        InputStream content = contentService.getContentByCommitId(siteId, path, commitId);
+
+        InputStreamResource responseBody = new InputStreamResource(content);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.parseMediaType(item.getMimeType()));
+        httpHeaders.setContentLength(item.getSandbox().getSizeInBytes());
+        return new ResponseEntity<InputStreamResource>(responseBody, httpHeaders, HttpStatus.OK);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

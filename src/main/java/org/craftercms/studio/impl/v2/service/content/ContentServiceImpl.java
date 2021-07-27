@@ -47,6 +47,7 @@ import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -232,8 +233,8 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public String getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
-                                       String commitId) throws ContentNotFoundException, IOException {
+    public InputStream getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
+                                            String commitId) throws ContentNotFoundException, IOException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
     }
 

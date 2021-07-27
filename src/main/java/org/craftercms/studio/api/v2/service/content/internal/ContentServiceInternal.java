@@ -25,6 +25,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public interface ContentServiceInternal {
@@ -200,6 +201,6 @@ public interface ContentServiceInternal {
      * @param commitId commit id of the content version
      * @return
      */
-    String getContentByCommitId(String siteId, String path, String commitId)
+    InputStream getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException, IOException;
 }
