@@ -17,7 +17,6 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -31,7 +30,6 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
-import org.craftercms.studio.impl.v1.log.l4j.LoggerImpl;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -60,13 +58,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,7 +90,6 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.P
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -329,17 +324,6 @@ public class ContentController {
         InputStream content = contentService.getContentByCommitId(siteId, path, commitId);
 
         InputStreamResource responseBody = new InputStreamResource(content);
-
-        /*StreamingResponseBody responseBody = out -> {
-            InputStream content = null;
-            try {
-                content = contentService.getContentByCommitId(siteId, path, commitId);
-                out.write(IOUtils.toByteArray(content));
-            } catch (ContentNotFoundException e) {
-                logger.error("Error getting content for site " + siteId + " path " + path + " commit ID " + commitId,
-                        e);
-            }
-        };*/
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.parseMediaType(item.getMimeType()));
