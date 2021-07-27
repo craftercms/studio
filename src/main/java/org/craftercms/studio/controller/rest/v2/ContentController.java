@@ -17,17 +17,21 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.impl.v1.log.l4j.LoggerImpl;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -45,16 +49,24 @@ import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +106,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RestController
 @RequestMapping(API_2 + CONTENT)
 public class ContentController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ContentController.class);
 
     private final ContentService contentService;
     private final SiteService siteService;
@@ -306,18 +320,31 @@ public class ContentController {
     }
 
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
-    public ResponseBody getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+    public ResponseEntity<InputStreamResource> getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                              @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                              @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
-            throws ContentNotFoundException, IOException {
-        String content = contentService.getContentByCommitId(siteId, path, commitId);
+            throws ServiceLayerException, IOException, UserNotFoundException {
 
-        ResponseBody responseBody = new ResponseBody();
-        ResultOne<String> result = new ResultOne<String>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_CONTENT, content);
-        responseBody.setResult(result);
-        return responseBody;
+        DetailedItem item = contentService.getItemByPath(siteId, path, true);
+        InputStream content = contentService.getContentByCommitId(siteId, path, commitId);
+
+        InputStreamResource responseBody = new InputStreamResource(content);
+
+        /*StreamingResponseBody responseBody = out -> {
+            InputStream content = null;
+            try {
+                content = contentService.getContentByCommitId(siteId, path, commitId);
+                out.write(IOUtils.toByteArray(content));
+            } catch (ContentNotFoundException e) {
+                logger.error("Error getting content for site " + siteId + " path " + path + " commit ID " + commitId,
+                        e);
+            }
+        };*/
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.parseMediaType(item.getMimeType()));
+        httpHeaders.setContentLength(item.getSandbox().getSizeInBytes());
+        return new ResponseEntity<InputStreamResource>(responseBody, httpHeaders, HttpStatus.OK);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
