@@ -27,6 +27,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
+import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -202,7 +203,9 @@ public class WebDavServiceImpl implements WebDavService {
             sardine.put(fileUrl, content);
             logger.debug("Upload complete for file {0}", fileUrl);
 
-            return new WebDavItem(filename, String.format(urlPattern, profileId, path, filename), false);
+            String filePath = UrlUtils.concat(path, filename);
+
+            return new WebDavItem(filename, String.format(urlPattern, profileId, filePath), false);
         } catch (Exception e ) {
             throw new WebDavException("Error uploading file", e);
         }
