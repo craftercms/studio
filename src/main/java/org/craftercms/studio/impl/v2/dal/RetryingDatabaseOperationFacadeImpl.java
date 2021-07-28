@@ -576,7 +576,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     @Override
     public int setUserPassword(Map params) {
-        return setUserPassword(params);
+        return userDao.setUserPassword(params);
     }
 
     @Override
