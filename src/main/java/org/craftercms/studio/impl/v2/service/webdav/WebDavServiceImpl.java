@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
@@ -141,11 +140,12 @@ public class WebDavServiceImpl implements WebDavService {
     }
 
     protected String getRemoteAssetUrl(String profileId, String fullPath) {
-        return getRemoteAssetUrl(profileId, FilenameUtils.getPath(fullPath), FilenameUtils.getName(fullPath));
+        return String.format(urlPattern, profileId, StringUtils.removeStart(fullPath, "/"));
     }
 
     protected String getRemoteAssetUrl(String profileId, String path, String filename) {
-        return String.format(urlPattern, profileId, StringUtils.removeEnd(path, "/"), filename);
+        String fullPath = UrlUtils.concat(path, filename);
+        return getRemoteAssetUrl(profileId, fullPath);
     }
 
     protected String getName(DavResource resource) {
@@ -203,9 +203,8 @@ public class WebDavServiceImpl implements WebDavService {
             sardine.put(fileUrl, content);
             logger.debug("Upload complete for file {0}", fileUrl);
 
-            String filePath = UrlUtils.concat(path, filename);
 
-            return new WebDavItem(filename, String.format(urlPattern, profileId, filePath), false);
+            return new WebDavItem(filename, getRemoteAssetUrl(profileId, path, filename), false);
         } catch (Exception e ) {
             throw new WebDavException("Error uploading file", e);
         }
