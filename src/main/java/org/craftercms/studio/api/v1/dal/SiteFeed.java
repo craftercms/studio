@@ -29,7 +29,6 @@ public class SiteFeed {
     protected String siteId;
     protected String name;
     protected String description;
-    protected String status;
     protected int deleted;
     protected String liveUrl;
     protected String lastCommitId;
@@ -82,14 +81,6 @@ public class SiteFeed {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public String getLiveUrl() {
