@@ -334,7 +334,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
                 List<String> ancestors = new LinkedList<>();
                 if (CollectionUtils.isNotEmpty(parts)) {
-                    StringBuilder  sbAncestor = new StringBuilder();
+                    StringBuilder sbAncestor = new StringBuilder();
                     for (Path ancestor : parts) {
                         if (StringUtils.isNotEmpty(ancestor.toString())) {
                             sbAncestor.append(FILE_SEPARATOR).append(ancestor.toString());
