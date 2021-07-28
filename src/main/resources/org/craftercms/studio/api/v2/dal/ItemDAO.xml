@@ -742,8 +742,8 @@
     </update>
 
     <select id="getMandatoryParentsForPublishing" resultType="String">
-        SELECT i1.path as path
-        FROM item i1 inner join site s on i1.site_id = s.id
+        SELECT i3.path as path
+        FROM item i1 inner join site s on i1.site_id = s.id inner join item i3 on i1.parent_id = i3.id
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i1.ignored = 0
@@ -754,8 +754,8 @@
         </foreach>
         AND (i1.state &amp; #{newMask}) > 0
         UNION
-        SELECT i2.path as path
-        FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id
+        SELECT i4.path as path
+        FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id inner join item i4 on i2.parent_id = i4.id
         WHERE s2.site_id = #{siteId}
         AND TRIM(IFNULL(i2.previous_path, '')) &lt;&gt; ''
         AND i2.ignored = 0

@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
@@ -229,17 +230,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 submittedItems.addAll(addDependenciesForSubmitForApproval(site, submittedItems, format, schDate));
-                List<String> submittedPaths = new ArrayList<String>();
-                for (DmDependencyTO goLiveItem : submittedItems) {
-                    submittedPaths.add(goLiveItem.getUri());
-                    itemServiceInternal.setSystemProcessing(site, goLiveItem.getUri(), true);
-                    DependencyRules rule = new DependencyRules(site, contentService, itemServiceInternal);
-                    Set<DmDependencyTO> depSet = rule.applySubmitRule(goLiveItem);
-                    for (DmDependencyTO dep : depSet) {
-                        submittedPaths.add(dep.getUri());
-                        itemServiceInternal.setSystemProcessing(site, dep.getUri(), true);
-                    }
-                }
+                List<String> submittedPaths = submittedItems.stream().map(a -> a.getUri()).collect(Collectors.toList());
+                itemServiceInternal.setSystemProcessingBulk(site, submittedPaths, true);
+
+                workflowServiceInternal.deleteWorkflowEntries(site, submittedPaths);
+
                 List<DmError> errors = submitToGoLive(submittedItems, scheduledDate, sendEmail, delete, requestContext,
                         submissionComment, environment);
                 SiteFeed siteFeed = siteService.getSite(site);
@@ -255,8 +250,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 result.setStatus(200);
                 result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
                             .CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
-                for (String relativePath : submittedPaths) {
-                }
                 itemServiceInternal.setSystemProcessingBulk(site, submittedPaths, false);
             }
         } catch (Exception e) {
@@ -276,18 +269,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         String submittedBy = requestContext.getUser();
         for (DmDependencyTO submittedItem : submittedItems) {
             try {
-                DependencyRules rule = new DependencyRules(site, contentService, itemServiceInternal);
-                submitThisAndReferredComponents(submittedItem, site, scheduledDate, sendEmail, submitForDeletion,
-                        submittedBy, rule, submissionComment, environment);
-                List<DmDependencyTO> children = submittedItem.getChildren();
-                if (children != null && !submitForDeletion) {
-                    for (DmDependencyTO child : children) {
-                        if (!child.isReference()) {
-                            submitThisAndReferredComponents(child, site, scheduledDate, sendEmail, submitForDeletion,
-                                    submittedBy, rule, submissionComment, environment);
-                        }
-                    }
-                }
+                doSubmit(site, submittedItem.getUri(), scheduledDate, sendEmail, submittedBy,
+                        submissionComment, environment);
             } catch (ContentNotFoundException | UserNotFoundException e) {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
@@ -306,42 +289,12 @@ public class WorkflowServiceImpl implements WorkflowService {
         return paths;
     }
 
-    protected void submitThisAndReferredComponents(DmDependencyTO submittedItem, String site,
-                                                   ZonedDateTime scheduledDate, boolean sendEmail,
-                                                                   boolean submitForDeletion, String submittedBy,
-                                                   DependencyRules rule, String submissionComment, String environment)
-            throws ServiceLayerException, UserNotFoundException {
-        doSubmit(site, submittedItem, scheduledDate, sendEmail, submitForDeletion, submittedBy, true,
-            submissionComment, environment);
-        Set<DmDependencyTO> stringSet;
-
-        if (submitForDeletion) {
-            stringSet = rule.applyDeleteDependencyRule(submittedItem);
-        } else {
-            stringSet = rule.applySubmitRule(submittedItem);
-        }
-
-        for (DmDependencyTO s : stringSet) {
-            ContentItemTO contentItem = contentService.getContentItem(site, s.getUri());
-            boolean lsendEmail = true;
-            boolean lnotifyAdmin = true;
-            lsendEmail = sendEmail && ((!contentItem.isDocument() && !contentItem.isComponent() && !contentItem
-                .isAsset()));
-            lnotifyAdmin = (!contentItem.isDocument() && !contentItem.isComponent() && !contentItem.isAsset());
-            // notify admin will always be true, unless for dependent document/banner/other-files
-            doSubmit(site, s, scheduledDate, lsendEmail, submitForDeletion, submittedBy, lnotifyAdmin,
-                    submissionComment, environment);
-        }
-    }
-
-    protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate,
-                            final boolean sendEmail, final boolean submitForDeletion, final String user,
-                            final boolean notifyAdmin, final String submissionComment, String environment)
+    protected void doSubmit(final String site, final String dependency, final ZonedDateTime scheduledDate,
+                            final boolean sendEmail, final String user, final String submissionComment,
+                            String environment)
             throws ServiceLayerException, UserNotFoundException {
         //first remove from workflow
-        removeFromWorkflow(site, dependencyTO.getUri(), true);
-        ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
-        Item it = itemServiceInternal.getItem(site, dependencyTO.getUri());
+        Item it = itemServiceInternal.getItem(site, dependency);
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, user);
 
         Workflow workflow = new Workflow();
@@ -372,19 +325,19 @@ public class WorkflowServiceImpl implements WorkflowService {
 
         if (Objects.nonNull(scheduledDate)) {
             if (isLive) {
-                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(),
+                itemServiceInternal.updateStateBits(site, dependency,
                         SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK,
                         SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK);
             } else {
-                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
+                itemServiceInternal.updateStateBits(site, dependency, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
                         SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
             }
         } else {
             if (isLive) {
-                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_LIVE_ON_MASK,
+                itemServiceInternal.updateStateBits(site, dependency, SUBMIT_TO_WORKFLOW_LIVE_ON_MASK,
                         SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK);
             } else {
-                itemServiceInternal.updateStateBits(site, dependencyTO.getUri(), SUBMIT_TO_WORKFLOW_ON_MASK,
+                itemServiceInternal.updateStateBits(site, dependency, SUBMIT_TO_WORKFLOW_ON_MASK,
                         SUBMIT_TO_WORKFLOW_OFF_MASK);
             }
         }
@@ -2105,21 +2058,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
         return label;
 
-    }
-
-    /**
-     * submit the given list of paths to workflow
-     *
-     * @param site
-     * @param launchDate
-     * @param label
-     * @param paths
-     */
-    @SuppressWarnings("deprecation")
-    protected void submitToWorkflow(final String site, final ZonedDateTime launchDate, final String label,
-                                    final List<String> paths, final MultiChannelPublishingContext mcpContext)
-            throws ServiceLayerException {
-        _submit(site, launchDate, label, paths, mcpContext);
     }
 
     protected void _submit(String site, ZonedDateTime launchDate, String label, List<String> paths,
