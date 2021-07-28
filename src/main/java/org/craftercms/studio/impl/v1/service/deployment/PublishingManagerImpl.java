@@ -15,16 +15,21 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -54,6 +59,7 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
@@ -206,9 +212,20 @@ public class PublishingManagerImpl implements PublishingManager {
 
             if (workflowEntry == null) {
                 if (contentService.contentExists(site, path)) {
-                    LOGGER.warn("Content item: '" + site + "':'" + path + "' doesn't exists in " +
-                            "the database, but does exist in git. This may cause problems " +
-                            "in the environment: '" + environment + "'");
+                    Item it = itemServiceInternal.getItem(site, path, true);
+                    if (Objects.nonNull(it)) {
+                        if (isLive) {
+                            itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+                            itemServiceInternal.clearPreviousPath(site, path);
+                        } else {
+                            itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
+                        }
+                    } else {
+                        LOGGER.warn("Content item: '" + site + "':'" + path + "' doesn't exists in " +
+                                "the database, but does exist in git. This may cause problems " +
+                                "in the environment: '" + environment + "'");
+                    }
                 } else {
                     LOGGER.warn("Content item: '" + site + "':'" + path + "' cannot be published. " +
                             "Content does not exist in git nor in the database. Skipping...");
@@ -310,16 +327,35 @@ public class PublishingManagerImpl implements PublishingManager {
         if (StringUtils.equals(item.getAction(), PublishRequest.Action.NEW) ||
                 StringUtils.equals(item.getAction(), PublishRequest.Action.MOVE)) {
             if (ContentUtils.matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
-                String helpPath = path.replace(FILE_SEPARATOR + getIndexFile(), "");
-                int idx = helpPath.lastIndexOf(FILE_SEPARATOR);
-                String parentPath = helpPath.substring(0, idx) + FILE_SEPARATOR + getIndexFile();
-                Item it = itemServiceInternal.getItem(site, parentPath);
-                if (Objects.nonNull(it)) {
-                    if (ItemState.isNew(it.getState()) || StringUtils.isNotEmpty(it.getPreviousPath())) {
-                        if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
-                            deploymentService.cancelWorkflow(site, parentPath);
-                            missingDependenciesPaths.add(parentPath);
-                            PublishRequest parentItem = createMissingItem(site, parentPath, item);
+                Path p = Paths.get(path);
+                List<Path> parts = new LinkedList<>();
+                if (Objects.nonNull(p.getParent())) {
+                    p.getParent().iterator().forEachRemaining(parts::add);
+                }
+                List<String> ancestors = new LinkedList<>();
+                if (CollectionUtils.isNotEmpty(parts)) {
+                    StringBuilder sbAncestor = new StringBuilder();
+                    for (Path ancestor : parts) {
+                        if (StringUtils.isNotEmpty(ancestor.toString())) {
+                            sbAncestor.append(FILE_SEPARATOR).append(ancestor.toString());
+                            ancestors.add(0, sbAncestor.toString());
+                        }
+                    }
+                }
+
+                if (CollectionUtils.isNotEmpty(ancestors)) {
+                    Iterator<String> ancestorIterator = ancestors.iterator();
+                    boolean breakLoop = false;
+                    while (!breakLoop && ancestorIterator.hasNext()) {
+                        String anc = ancestorIterator.next();
+                        Item it = itemServiceInternal.getItem(site, anc, true);
+                        if (Objects.nonNull(it) && !StringUtils.equals(it.getSystemType(), CONTENT_TYPE_FOLDER) &&
+                                (ItemState.isNew(it.getState()) || StringUtils.isNotEmpty(it.getPreviousPath())) &&
+                                !missingDependenciesPaths.contains(it.getPath()) &&
+                                !pathsToDeploy.contains(it.getPath())) {
+                            deploymentService.cancelWorkflow(site, it.getPath());
+                            missingDependenciesPaths.add(it.getPath());
+                            PublishRequest parentItem = createMissingItem(site, it.getPath(), item);
                             DeploymentItemTO parentDeploymentItem = processItem(parentItem);
                             mandatoryDependencies.add(parentDeploymentItem);
                             mandatoryDependencies.addAll(
