@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -258,6 +257,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                                    String path, String environment, InputStream content)
             throws ServiceLayerException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(siteId);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     @Override
@@ -294,10 +296,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         objectStateService.transition(siteId, configPath, TransitionEvent.SAVE);
         updateMetadata(siteId, configPath, currentUser);
         generateAuditLog(siteId, configPath, currentUser);
-
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(siteId);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     @SuppressWarnings("unchecked")
