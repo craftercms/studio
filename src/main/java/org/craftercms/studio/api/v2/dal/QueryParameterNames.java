@@ -249,6 +249,8 @@ public final class  QueryParameterNames {
 
     public static final String LOCKED_BIT_OFF = "lockedBitOff";
 
+    public static final String SYSTEM_TYPE_FOLDER = "systemTypeFolder";
+
     /** Gitlog */
     public static final String AUDITED = "audited";
     // list of commit ids

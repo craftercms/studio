@@ -605,8 +605,9 @@ public interface RetryingDatabaseOperationFacade {
      * @param path path of the item
      * @param lockOwnerId lock owner
      * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
      */
-    void lockItemByPath(String siteId, String path, long lockOwnerId, long lockedBitOn);
+    void lockItemByPath(String siteId, String path, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
 
     /**
      * Lock item
@@ -621,8 +622,9 @@ public interface RetryingDatabaseOperationFacade {
      * @param itemId item identifier
      * @param lockOwnerId lock owner
      * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
      */
-    void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn);
+    void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
 
     /**
      * Lock item
