@@ -68,6 +68,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STAGING_ENVIR
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SUBMITTED_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SYSTEM_TYPE_FOLDER;
 
 public interface ItemDAO {
 
@@ -544,9 +545,10 @@ public interface ItemDAO {
      * @param path path of the item
      * @param lockOwnerId lock owner
      * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
      */
     void lockItemByPath(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(LOCK_OWNER_ID) long lockOwnerId,
-                        @Param(LOCKED_BIT_ON) long lockedBitOn);
+                        @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Lock item
@@ -561,9 +563,10 @@ public interface ItemDAO {
      * @param itemId item identifier
      * @param lockOwnerId lock owner
      * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
      */
     void lockItemById(@Param(ID) Long itemId, @Param(LOCK_OWNER_ID) long lockOwnerId,
-                      @Param(LOCKED_BIT_ON) long lockedBitOn);
+                      @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Lock item

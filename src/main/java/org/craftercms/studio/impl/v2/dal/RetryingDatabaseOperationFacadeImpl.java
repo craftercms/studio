@@ -471,8 +471,9 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void lockItemByPath(String siteId, String path, long lockOwnerId, long lockedBitOn) {
-        itemDao.lockItemByPath(siteId, path, lockOwnerId, lockedBitOn);
+    public void lockItemByPath(String siteId, String path, long lockOwnerId, long lockedBitOn,
+                               String systemTypeFolder) {
+        itemDao.lockItemByPath(siteId, path, lockOwnerId, lockedBitOn, systemTypeFolder);
     }
 
     @Override
@@ -481,8 +482,8 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn) {
-        itemDao.lockItemById(itemId, lockOwnerId, lockedBitOn);
+    public void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
+        itemDao.lockItemById(itemId, lockOwnerId, lockedBitOn, systemTypeFolder);
     }
 
     @Override

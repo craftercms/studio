@@ -908,6 +908,7 @@
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i.path =  #{path}
+        AND i.system_type &lt;&gt; #{systemTypeFolder}
     </update>
 
     <update id="unlockItemByPath">
@@ -921,7 +922,7 @@
     <update id="lockItemById">
         UPDATE item i
         SET i.owned_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
-        WHERE i.id =  #{id}
+        WHERE i.id =  #{id} AND i.system_type &lt;&gt; #{systemTypeFolder}
     </update>
 
     <update id="unlockItemById">
