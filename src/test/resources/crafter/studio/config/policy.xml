@@ -72,7 +72,7 @@
     <statement>
         <target-path-pattern>/site/components/headers.*</target-path-pattern>
         <permitted>
-            <content-types>/component/header</content-types>
+            <content-types>/component/header,/component/test</content-types>
         </permitted>
     </statement>
 

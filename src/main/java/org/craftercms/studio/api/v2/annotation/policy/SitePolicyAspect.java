@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v2.annotation.policy;
 
-import org.apache.commons.io.FilenameUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -33,6 +32,8 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
+import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
+import static org.apache.commons.io.FilenameUtils.getName;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 
@@ -125,8 +126,8 @@ public class SitePolicyAspect {
         if (modified.isPresent()) {
             var newArgs = pjp.getArgs();
             if (isNotEmpty(targetFilename)) {
-                newArgs[targetPathPosition] = FilenameUtils.getFullPath(modified.get().getModifiedValue());
-                newArgs[targetFilenamePosition] = FilenameUtils.getName(modified.get().getModifiedValue());
+                newArgs[targetPathPosition] = getFullPathNoEndSeparator(modified.get().getModifiedValue());
+                newArgs[targetFilenamePosition] = getName(modified.get().getModifiedValue());
             } else {
                 newArgs[targetPathPosition] = modified.get().getModifiedValue();
             }

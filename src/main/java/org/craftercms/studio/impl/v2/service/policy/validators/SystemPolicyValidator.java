@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v2.service.policy.validators;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v2.exception.validation.FilenameTooLongException;
 import org.craftercms.studio.api.v2.exception.validation.PathTooLongException;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
@@ -24,6 +23,7 @@ import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 
 import java.beans.ConstructorProperties;
+import java.nio.file.Path;
 
 /**
  * Implementation of {@link PolicyValidator} for system restrictions
@@ -45,14 +45,20 @@ public class SystemPolicyValidator implements PolicyValidator {
 
     @Override
     public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
-        var filename = FilenameUtils.getName(action.getTarget());
-        if (filename.length() >= filenameMaxSize) {
-            throw new FilenameTooLongException(filename);
-        }
-
-        var fullPath = action.getTarget();
+        // Check if the full path exceeds the limit
+        String fullPath = action.getTarget();
         if (fullPath.length() >= fullPathMaxSize) {
             throw new PathTooLongException(fullPath);
+        }
+
+        // Check if any folder in the path exceeds the limit
+        Path path = Path.of(fullPath);
+        while (path != null && path.getFileName() != null) {
+            String filename = path.getFileName().toString();
+            if (filename.length() >= filenameMaxSize) {
+                throw new FilenameTooLongException(filename);
+            }
+            path = path.getParent();
         }
     }
 
