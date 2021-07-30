@@ -343,6 +343,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             throws ServiceLayerException, UserNotFoundException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(siteId);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     public String getCacheKey(String siteId, String module, String path, String environment, String suffix) {
@@ -439,10 +442,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
                 contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
         generateAuditLog(siteId, configPath, currentUser);
-
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(siteId);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {
