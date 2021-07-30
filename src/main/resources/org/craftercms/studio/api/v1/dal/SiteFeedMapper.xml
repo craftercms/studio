@@ -26,7 +26,6 @@
         <result property="siteId" column="site_id"/>
         <result property="name" column="name"/>
         <result property="description" column="description"/>
-        <result property="status" column="status" jdbcType="VARCHAR" javaType="String"/>
         <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
@@ -57,7 +56,6 @@
         <parameter property="siteId" jdbcType="VARCHAR"/>
         <parameter property="name" jdbcType="VARCHAR"/>
         <parameter property="description" jdbcType="VARCHAR"/>
-        <parameter property="status" jdbcType="VARCHAR"/>
         <parameter property="deleted" jdbcType="INTEGER"/>
         <parameter property="lastCommitId" jdbcType="VARCHAR"/>
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
@@ -84,9 +82,9 @@
     </select>
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
-        insert into site (site_uuid, site_id, name, description, status, deleted, last_commit_id,
+        insert into site (site_uuid, site_id, name, description, deleted, last_commit_id,
                           publishing_status, publishing_status_message, sandbox_branch)
-        values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{status}, #{deleted}, #{lastCommitId},
+        values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{deleted}, #{lastCommitId},
                 #{publishingStatus}, #{publishingStatusMessage}, #{sandboxBranch})
     </insert>
 

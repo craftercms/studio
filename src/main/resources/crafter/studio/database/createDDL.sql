@@ -197,7 +197,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.27', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.28', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -299,7 +299,6 @@ CREATE TABLE IF NOT EXISTS `site` (
   `site_id`                         VARCHAR(50)   NOT NULL,
   `name`                            VARCHAR(255)  NOT NULL,
   `description`                     TEXT          NULL,
-  `status`                          VARCHAR(255)  NULL,
   `deleted`                         INT           NOT NULL DEFAULT 0,
   `last_commit_id`                  VARCHAR(50)   NULL,
   `system`                          INT           NOT NULL DEFAULT 0,
