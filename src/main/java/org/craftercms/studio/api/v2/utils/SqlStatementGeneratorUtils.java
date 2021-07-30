@@ -24,25 +24,23 @@ import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
 public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_INSERT =
             "INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by," +
-                    " last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled," +
+                    " last_modified_on, last_published_on, label, content_type_id, system_type, mime_type," +
                     " locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored)" +
                     " VALUES (#{siteId}, '#{path}', '#{previewUrl}', #{state}, #{ownedBy}, #{createdBy}," +
                     " '#{createdOn}', #{lastModifiedBy}, '#{lastModifiedOn}', '#{lastPublishedOn}', '#{label}'," +
-                    " '#{contentTypeId}', '#{systemType}', '#{mimeType}', #{disabledAsInt}, '#{localeCode}'," +
+                    " '#{contentTypeId}', '#{systemType}', '#{mimeType}', '#{localeCode}'," +
                     " #{translationSourceId}, #{size}, #{parentId}, '#{commitId}', '#{previousPath}', #{ignoredAsInt})" +
                     " ON DUPLICATE KEY UPDATE site_id = #{siteId}, path = '#{path}', preview_url = '#{previewUrl}'," +
                     " state = #{state}, owned_by = #{ownedBy}, last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', last_published_on = '#{lastPublishedOn}'," +
                     " label = '#{label}', content_type_id = '#{contentTypeId}', system_type = '#{systemType}'," +
-                    " mime_type = '#{mimeType}', disabled = #{disabledAsInt}, locale_code = '#{localeCode}'," +
+                    " mime_type = '#{mimeType}', locale_code = '#{localeCode}'," +
                     " translation_source_id = #{translationSourceId}, size = #{size}, parent_id = #{parentId}," +
                     " commit_id = '#{commitId}', previous_path = '#{previousPath}', ignored = #{ignoredAsInt} ;";
 
@@ -51,8 +49,8 @@ public final class SqlStatementGeneratorUtils {
                     " state = state | #{onStatesBitMap} & ~#{offStatesBitMap}," +
                     " last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', label = '#{label}', content_type_id = '#{contentTypeId}'," +
-                    " system_type = '#{systemType}', mime_type = '#{mimeType}', disabled = #{disabledAsInt}," +
-                    " size = #{size}, commit_id = '#{commitId}', ignored = #{ignoredAsInt} WHERE site_id = #{siteId} " +
+                    " system_type = '#{systemType}', mime_type = '#{mimeType}', size = #{size}," +
+                    " commit_id = '#{commitId}', ignored = #{ignoredAsInt} WHERE site_id = #{siteId} " +
                     " and path = '#{path}' ;";
 
     public static final String ITEM_DELETE =
@@ -86,9 +84,9 @@ public final class SqlStatementGeneratorUtils {
     public static String insertItemRow(long siteId, String path, String previewUrl, long state, Long ownedBy,
                                        Long createdBy, ZonedDateTime createdOn, Long lastModifiedBy,
                                        ZonedDateTime lastModifiedOn, ZonedDateTime lastPublishedOn, String label,
-                                       String contentTypeId, String systemType, String mimeType, int disabledAsInt,
-                                       String localeCode, Long translationSourceId, Long size, Long parentId,
-                                       String commitId, String previousPath) {
+                                       String contentTypeId, String systemType, String mimeType, String localeCode,
+                                       Long translationSourceId, Long size, Long parentId, String commitId,
+                                       String previousPath) {
         Timestamp sqlTsCreated = new Timestamp(createdOn.toInstant().toEpochMilli());
         Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
         Timestamp sqlTsLastPublished = Objects.isNull(lastPublishedOn) ?
@@ -123,7 +121,6 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
         sql = StringUtils.replace(sql,"#{mimeType}", Objects.isNull(mimeType) ?
                 "NULL" : StringUtils.replace(mimeType, "'", "''"));
-        sql = StringUtils.replace(sql,"#{disabledAsInt}", Integer.toString(disabledAsInt));
         sql = StringUtils.replace(sql,"#{localeCode}", StringUtils.replace(localeCode, "'", "''"));
         sql = StringUtils.replace(sql,"#{translationSourceId}", Objects.isNull(translationSourceId) ? "NULL" :
                 Long.toString(translationSourceId));
@@ -141,10 +138,10 @@ public final class SqlStatementGeneratorUtils {
         return sql;
     }
 
-    public static String updateItemRow(long siteId, String path, String previewUrl, Long lastModifiedBy,
-                                       ZonedDateTime lastModifiedOn, String label, String contentTypeId,
-                                       String systemType, String mimeType, int disabledAsInt, Long size,
-                                       String commitId) {
+    public static String updateItemRow(long siteId, String path, String previewUrl, long onStatesBitMap,
+                                       long offStatesBitMap, Long lastModifiedBy, ZonedDateTime lastModifiedOn,
+                                       String label, String contentTypeId, String systemType, String mimeType,
+                                       Long size, String commitId) {
         Timestamp sqlTsLastModified = new Timestamp(lastModifiedOn.toInstant().toEpochMilli());
         int ignoredAsInt = 0;
         String fileName = FilenameUtils.getName(path);
@@ -158,8 +155,8 @@ public final class SqlStatementGeneratorUtils {
         } else {
             sql = StringUtils.replace(sql, "#{previewUrl}", StringUtils.replace(previewUrl, "'", "''"));
         }
-        sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(SAVE_AND_CLOSE_ON_MASK));
-        sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(SAVE_AND_CLOSE_OFF_MASK));
+        sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(onStatesBitMap));
+        sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(offStatesBitMap));
         sql = StringUtils.replace(sql,"#{lastModifiedBy}", Objects.isNull(lastModifiedBy) ? "NULL" :
                 Long.toString(lastModifiedBy));
         sql = StringUtils.replace(sql, "#{lastModifiedOn}", sqlTsLastModified.toString());
@@ -169,7 +166,6 @@ public final class SqlStatementGeneratorUtils {
         sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
         sql = StringUtils.replace(sql,"#{mimeType}", Objects.isNull(mimeType) ?
                 "NULL" : StringUtils.replace(mimeType, "'", "''"));
-        sql = StringUtils.replace(sql,"#{disabledAsInt}", Integer.toString(disabledAsInt));
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
         sql = StringUtils.replace(sql,"#{commitId}", Objects.isNull(commitId) ?
                 "NULL" : StringUtils.replace(commitId, "'", "''"));
@@ -183,12 +179,13 @@ public final class SqlStatementGeneratorUtils {
         return sql;
     }
 
-    public static String moveItemRow(String site, String oldPath, String newPath) {
+    public static String moveItemRow(String site, String oldPath, String newPath, long onStatesBitMap,
+                                     long offStatesBitMap) {
         String sql =  StringUtils.replace(ITEM_MOVE,"#{site}", StringUtils.replace(site,"'", "''"));
         sql = StringUtils.replace(sql,"#{oldPath}", StringUtils.replace(oldPath, "'", "''"));
         sql = StringUtils.replace(sql,"#{newPath}", StringUtils.replace(newPath, "'", "''"));
-        sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(SAVE_AND_CLOSE_ON_MASK));
-        sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(SAVE_AND_CLOSE_OFF_MASK));
+        sql = StringUtils.replace(sql,"#{onStatesBitMap}", Long.toString(onStatesBitMap));
+        sql = StringUtils.replace(sql,"#{offStatesBitMap}", Long.toString(offStatesBitMap));
         return sql;
     }
 

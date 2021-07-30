@@ -61,6 +61,7 @@ import java.util.Map;
 
 import static java.time.ZoneOffset.UTC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -266,7 +267,9 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 item.setLabel(internalName);
             }
             item.setContentTypeId(StringUtils.isNotEmpty(contentType) ? contentType : null);
-            item.setDisabled(StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled));
+            if (StringUtils.isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled)) {
+                item.setState(item.getState() | DISABLED.value);
+            }
         }
     }
 }

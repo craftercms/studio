@@ -45,8 +45,6 @@ public class DetailedItem {
     private String contentTypeId;
     private String systemType;
     private String mimeType;
-    private int disabledAsInt;
-    private boolean disabled;
     private String localeCode;
     private Long translationSourceId = null;
     private long size;
@@ -89,8 +87,6 @@ public class DetailedItem {
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
         mimeType = builder.mimeType;
-        disabledAsInt = builder.disabledAsInt;
-        disabled = builder.disabled;
         localeCode = builder.localeCode;
         translationSourceId = builder.translationSourceId;
         size = builder.size;
@@ -252,24 +248,6 @@ public class DetailedItem {
 
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
-    }
-
-    public int getDisabledAsInt() {
-        return disabledAsInt;
-    }
-
-    public void setDisabledAsInt(int disabledAsInt) {
-        this.disabledAsInt = disabledAsInt;
-        this.disabled = disabledAsInt > 0;
-    }
-
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-        this.disabledAsInt = disabled ? 1 : 0;
     }
 
     public String getLocaleCode() {
@@ -434,8 +412,6 @@ public class DetailedItem {
         instance.contentTypeId = item.getContentTypeId();
         instance.systemType = item.getSystemType();
         instance.mimeType = item.getMimeType();
-        instance.disabledAsInt = item.getDisabledAsInt();
-        instance.disabled = item.isDisabled();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
         instance.size = item.getSize();
@@ -469,8 +445,6 @@ public class DetailedItem {
         private String contentTypeId;
         private String systemType;
         private String mimeType;
-        private int disabledAsInt;
-        private boolean disabled;
         private String localeCode;
         private Long translationSourceId;
         private long size;
@@ -511,8 +485,6 @@ public class DetailedItem {
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
             clone.mimeType = item.mimeType;
-            clone.disabledAsInt = item.disabledAsInt;
-            clone.disabled = item.disabled;
             clone.localeCode = item.localeCode;
             clone.translationSourceId = item.translationSourceId;
             clone.size = item.size;
@@ -626,18 +598,6 @@ public class DetailedItem {
 
         public Builder withMimeType(String mimeType) {
             this.mimeType = mimeType;
-            return this;
-        }
-
-        public Builder withDisabledAsInt(int disabledAsInt) {
-            this.disabledAsInt = disabledAsInt;
-            this.disabled = disabledAsInt > 0;
-            return this;
-        }
-
-        public Builder withDisabled(boolean disabled) {
-            this.disabled = disabled;
-            this.disabledAsInt = disabled ? 1 : 0;
             return this;
         }
 

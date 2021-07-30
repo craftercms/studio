@@ -131,6 +131,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT_GROUPS_DESCRIPTION;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_DISABLED;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_DELETED;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
@@ -141,7 +142,10 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOV
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_BLUEPRINT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.deleteItemRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertItemRow;
@@ -449,6 +453,7 @@ public class SiteServiceImpl implements SiteService {
                 // Item
                 String label = FilenameUtils.getName(path);
                 String contentTypeId = StringUtils.EMPTY;
+                boolean disabled = false;
                 if (StringUtils.endsWith(path, XML_PATTERN)) {
                     try {
                         Document contentDoc = contentService.getContentAsDocument(siteId, path);
@@ -459,6 +464,7 @@ public class SiteServiceImpl implements SiteService {
                                 label = internalName;
                             }
                             contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                            disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                         }
                     } catch (DocumentException e) {
                         logger.error("Error extracting metadata from xml file " + siteId + ":" + path);
@@ -470,15 +476,20 @@ public class SiteServiceImpl implements SiteService {
                     previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
                 }
                 processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, createdFileScriptPath);
+                long state = NEW.value;
+                if (disabled) {
+                    state = state | DISABLED.value;
+                }
 
                 if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(path))) {
                     addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
                 } else {
-                    Files.write(createdFileScriptPath, insertItemRow(siteFeed.getId(), path, previewUrl, NEW.value,
+                    Files.write(createdFileScriptPath, insertItemRow(siteFeed.getId(), path, previewUrl, state,
                             null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
                             contentService.getContentTypeClass(siteId, path),
-                            StudioUtils.getMimeType(FilenameUtils.getName(path)), 0, Locale.US.toString(),
-                            null, contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null).getBytes(UTF_8), StandardOpenOption.APPEND);
+                            StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
+                            contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null).getBytes(UTF_8),
+                            StandardOpenOption.APPEND);
                     Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 
                     addUpdateParentIdScriptSnippets(siteFeed.getId(), path, updateParentIdScriptPath);
@@ -513,7 +524,7 @@ public class SiteServiceImpl implements SiteService {
                 if (StringUtils.isNotEmpty(ancestor.toString())) {
                     currentPath = currentPath + FILE_SEPARATOR + ancestor.toString();
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
-                            , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null, 0,
+                            , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
                             Locale.US.toString(), null, 0L, null, commitId, null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
@@ -1223,6 +1234,10 @@ public class SiteServiceImpl implements SiteService {
         String label;
         String contentTypeId;
         String previewUrl;
+        boolean disabled = false;
+        long state;
+        long onStateBitMap;
+        long offStateBitmap;
         for (RepoOperation repoOperation : repoOperations) {
             switch (repoOperation.getAction()) {
                 case CREATE:
@@ -1241,6 +1256,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                     label = FilenameUtils.getName(repoOperation.getPath());
                     contentTypeId = StringUtils.EMPTY;
+                    disabled = false;
                     if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
                         try {
                             Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
@@ -1251,6 +1267,7 @@ public class SiteServiceImpl implements SiteService {
                                     label = internalName;
                                 }
                                 contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
                             logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
@@ -1263,18 +1280,23 @@ public class SiteServiceImpl implements SiteService {
                     }
                     processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
                             repoOperation.getDateTime(), repoOperation.getCommitId(), repoOperationsScriptPath);
+                    state = NEW.value;
+                    if (disabled) {
+                        state = state | DISABLED.value;
+                    }
 
                     if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
                         addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(),
                                 updateParentIdScriptPath);
                     } else {
                         Files.write(repoOperationsScriptPath, insertItemRow(siteFeed.getId(),
-                                repoOperation.getPath(), previewUrl, NEW.value, null, userObj.getId(),
+                                repoOperation.getPath(), previewUrl, state, null, userObj.getId(),
                                 repoOperation.getDateTime(), userObj.getId(), repoOperation.getDateTime(),
                                 null, label, contentTypeId,
                                 contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0, Locale.US.toString(),
-                                null, contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
+                                Locale.US.toString(), null,
+                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
                                 repoOperation.getCommitId(), null).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                         logger.debug("Extract dependencies for site: " + siteId + " path: " +
@@ -1302,6 +1324,7 @@ public class SiteServiceImpl implements SiteService {
                         }
                         label = FilenameUtils.getName(repoOperation.getPath());
                         contentTypeId = StringUtils.EMPTY;
+                        disabled = false;
                         if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
                             try {
                                 Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
@@ -1312,6 +1335,7 @@ public class SiteServiceImpl implements SiteService {
                                         label = internalName;
                                     }
                                     contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                    disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                                 }
                             } catch (DocumentException e) {
                                 logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
@@ -1322,12 +1346,19 @@ public class SiteServiceImpl implements SiteService {
                                 StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
                             previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
                         }
+                        onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
+                        offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
+                        if (disabled) {
+                            onStateBitMap = onStateBitMap | DISABLED.value;
+                        } else {
+                            offStateBitmap = offStateBitmap | DISABLED.value;
+                        }
 
                         Files.write(repoOperationsScriptPath, updateItemRow(siteFeed.getId(),
-                                repoOperation.getPath(), previewUrl, userObj.getId(), repoOperation.getDateTime(),
-                                label, contentTypeId,
+                                repoOperation.getPath(), previewUrl, onStateBitMap, offStateBitmap, userObj.getId(),
+                                repoOperation.getDateTime(), label, contentTypeId,
                                 contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
                                 contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
                                 repoOperation.getCommitId()).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
@@ -1362,6 +1393,7 @@ public class SiteServiceImpl implements SiteService {
                     }
                     label = FilenameUtils.getName(repoOperation.getMoveToPath());
                     contentTypeId = StringUtils.EMPTY;
+                    disabled = false;
                     if (StringUtils.endsWith(repoOperation.getMoveToPath(), XML_PATTERN)) {
                         try {
                             Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getMoveToPath());
@@ -1372,6 +1404,7 @@ public class SiteServiceImpl implements SiteService {
                                     label = internalName;
                                 }
                                 contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+                                disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
                             logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
@@ -1384,19 +1417,27 @@ public class SiteServiceImpl implements SiteService {
                     }
                     processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
                             repoOperation.getDateTime(), repoOperation.getCommitId(), repoOperationsScriptPath);
+                    onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
+                    offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
+                    if (disabled) {
+                        onStateBitMap = onStateBitMap | DISABLED.value;
+                    } else {
+                        offStateBitmap = offStateBitmap | DISABLED.value;
+                    }
                     if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) ||
                             ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
                         addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(),
                                 updateParentIdScriptPath);
                     } else {
                         Files.write(repoOperationsScriptPath, moveItemRow(siteId, repoOperation.getPath(),
-                                repoOperation.getMoveToPath()).getBytes(UTF_8), StandardOpenOption.APPEND);
+                                repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap).getBytes(UTF_8),
+                                StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, updateItemRow(siteFeed.getId(),
-                                repoOperation.getPath(), previewUrl, userObj.getId(),
+                                repoOperation.getPath(), previewUrl, onStateBitMap, offStateBitmap, userObj.getId(),
                                 repoOperation.getDateTime(), label, contentTypeId,
                                 contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())), 0,
+                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
                                 contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
                                 repoOperation.getCommitId()).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);

@@ -217,8 +217,6 @@ public interface ItemServiceInternal {
      * @param contentTypeId content type id
      * @param systemType system type
      * @param mimeType mime type
-     * @param disabledAsInt disabled as integer 0 = enabled, 1 = disabled
-     * @param disabled disabled as boolean
      * @param localeCode locale code
      * @param translationSourceId translation source item id
      * @param size size of the file
@@ -229,8 +227,8 @@ public interface ItemServiceInternal {
     Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, Long ownedBy,
                          String owner, Long createdBy, String creator, ZonedDateTime createdOn, Long lastModifiedBy,
                          String modifier, ZonedDateTime lastModifiedOn, String label, String contentTypeId,
-                         String systemType, String mimeType, int disabledAsInt,  boolean disabled, String localeCode,
-                         Long translationSourceId, long size, Long parentId, String commitId);
+                         String systemType, String mimeType, String localeCode, Long translationSourceId, long size,
+                         Long parentId, String commitId);
 
     /**
      * Instantiate item after write or update
@@ -541,14 +539,14 @@ public interface ItemServiceInternal {
 
     /**
      * Lock item for given lock owner
-     * @param id item identifier
+     * @param itemId item identifier
      * @param username user that owns the lock
      */
     void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Unlock item
-     * @param id item identifier
+     * @param itemId item identifier
      */
     void unlockItemById(long itemId);
 

@@ -197,7 +197,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.28', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.29', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -474,7 +474,6 @@ CREATE TABLE IF NOT EXISTS `item` (
   `content_type_id`         VARCHAR(256)    NULL,
   `system_type`             VARCHAR(64)     NULL,
   `mime_type`               VARCHAR(96)     NULL,
-  `disabled`                INT             NOT NULL    DEFAULT 0,
   `locale_code`             VARCHAR(16)     NULL,
   `translation_source_id`   BIGINT          NULL,
   `size`                    INT             NULL,
