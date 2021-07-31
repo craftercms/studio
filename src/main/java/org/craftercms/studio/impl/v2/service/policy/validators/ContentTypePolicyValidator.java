@@ -44,14 +44,12 @@ public class ContentTypePolicyValidator implements PolicyValidator {
             return;
         }
 
-        var contentType = action.<String>getMetadata(Action.METADATA_CONTENT_TYPE);
-
-        if (isEmpty(contentType)) {
-            logger.debug("Skipping action that doesn't contain a Content-Type");
-            return;
-        }
-
         if (config.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
+            String contentType = action.getMetadata(Action.METADATA_CONTENT_TYPE);
+            if (isEmpty(contentType)) {
+                throw new ValidationException("Content-Type is required for validation");
+            }
+
             var allowedTypes = config.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
 
             if (!allowedTypes.contains(contentType)) {

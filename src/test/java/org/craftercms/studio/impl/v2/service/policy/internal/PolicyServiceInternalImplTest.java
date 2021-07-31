@@ -17,9 +17,11 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.XMLConfiguration;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -118,6 +120,7 @@ public class PolicyServiceInternalImplTest {
                 systemValidator, policyValidators, CONFIG_PATH);
 
         var config = new XMLConfiguration();
+        config.setListDelimiterHandler(new DefaultListDelimiterHandler(','));
         try (var is = CONFIG.getInputStream()) {
             var fh = new FileHandler(config);
             fh.load(is);
@@ -248,6 +251,19 @@ public class PolicyServiceInternalImplTest {
     }
 
     @Test
+    public void bulkUploadTest() throws ConfigurationException {
+        var longName = StringUtils.repeat("longName", 100);
+
+        var action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget("/static-assets/" + longName + "/" + DOC1_FILENAME);
+
+        var results = policyService.validate(SITE_ID, List.of(action));
+
+        checkSingleResult(results, false);
+    }
+
+    @Test
     public void maxSizeTest() throws IOException, ContentNotFoundException, ConfigurationException {
         var action = new Action();
         action.setType(Type.CREATE);
@@ -340,16 +356,20 @@ public class PolicyServiceInternalImplTest {
 
     @Test
     public void contentTypeTest() throws ConfigurationException, IOException, ContentNotFoundException {
+        // Check that validation fails if the content-type is not included in the metadata
         var action = new Action();
         action.setType(Type.CREATE);
         action.setTarget(CONTENT_TYPE_RESTRICTED_FOLDER + "/component.xml");
-        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, FOOTER_CONTENT_TYPE));
-
         var results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, false);
 
-        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
+        // Check that validation fails if the content-type is not allowed
+        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, FOOTER_CONTENT_TYPE));
+        results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, false);
 
+        // Check that validation is ok with an allowed content-type
+        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
     }
