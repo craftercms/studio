@@ -63,7 +63,6 @@
             <result property="contentTypeId" column="item_content_type_id" />
             <result property="systemType" column="item_system_type" />
             <result property="mimeType" column="item_mime_type" />
-            <result property="disabledAsInt" column="item_disabled" />
             <result property="localeCode" column="item_locale_code" />
             <result property="translationSourceId" column="item_translation_source_id" />
             <result property="size" column="item_size" />
@@ -102,7 +101,6 @@
             item.content_type_id as item_content_type_id,
             item.system_type as item_system_type,
             item.mime_type as item_mime_type,
-            item.disabled as item_disabled,
             item.locale_code as item_locale_code,
             item.translation_source_id as item_translation_source_id,
             item.size as item_size,
@@ -163,7 +161,6 @@
             item.content_type_id as item_content_type_id,
             item.system_type as item_system_type,
             item.mime_type as item_mime_type,
-            item.disabled as item_disabled,
             item.locale_code as item_locale_code,
             item.translation_source_id as item_translation_source_id,
             item.size as item_size,
