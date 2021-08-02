@@ -342,17 +342,15 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, Long ownedBy,
                                 String owner, Long createdBy, String creator, ZonedDateTime createdOn,
                                 Long lastModifiedBy, String modifier, ZonedDateTime lastModifiedOn, String label,
-                                String contentTypeId, String systemType, String mimeType, int disabledAsInt,
-                                boolean disabled, String localeCode, Long translationSourceId, long size, Long parentId,
-                                String commitId) {
+                                String contentTypeId, String systemType, String mimeType, String localeCode,
+                                Long translationSourceId, long size, Long parentId, String commitId) {
 
         return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withOwnedBy(ownedBy)
                 .withOwner(owner).withCreatedBy(createdBy).withCreator(creator).withCreatedOn(createdOn)
                 .withLastModifiedBy(lastModifiedBy).withModifier(modifier).withLastModifiedOn(lastModifiedOn)
                 .withLabel(label).withContentTypeId(contentTypeId).withSystemType(systemType).withMimeType(mimeType)
-                .withDisabledAsInt(disabledAsInt).withDisabled(disabled).withLocaleCode(localeCode)
-                .withTranslationSourceId(translationSourceId).withSize(size).withParentId(parentId)
-                .withCommitId(commitId).build();
+                .withLocaleCode(localeCode).withTranslationSourceId(translationSourceId).withSize(size)
+                .withParentId(parentId).withCommitId(commitId).build();
 
     }
 
@@ -479,7 +477,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                     .withMimeType(StudioUtils.getMimeType(path))
                     .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
                     .withCommitId(commitId)
-                    .withDisabled(disabled)
                     .withSize(contentServiceInternal.getContentSize(siteId, path))
                     .withParentId(parentId)
                     .build();
@@ -487,6 +484,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 item.setState(ItemState.savedAndNotClosed(item.getState()));
             } else {
                 item.setState(ItemState.savedAndClosed(item.getState()));
+            }
+            if (disabled) {
+                item.setState(item.getState() | ItemState.DISABLED.value);
             }
             retryingDatabaseOperationFacade.upsertEntry(item);
         } finally {
@@ -516,13 +516,15 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withMimeType(StudioUtils.getMimeType(path))
                 .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
                 .withCommitId(commitId)
-                .withDisabled(disabled)
                 .withSize(contentServiceInternal.getContentSize(siteId, path))
                 .build();
         if (unlock.isPresent() && !unlock.get()) {
             item.setState(ItemState.savedAndNotClosed(item.getState()));
         } else {
             item.setState(ItemState.savedAndClosed(item.getState()));
+        }
+        if (disabled) {
+            item.setState(item.getState() | ItemState.DISABLED.value);
         }
         upsertEntry(item);
     }

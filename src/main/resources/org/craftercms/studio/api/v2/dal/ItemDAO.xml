@@ -39,7 +39,6 @@
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
         <result property="mimeType" column="mime_type" />
-        <result property="disabledAsInt" column="disabled" />
         <result property="localeCode" column="locale_code" />
         <result property="translationSourceId" column="translation_source_id" />
         <result property="size" column="size" />
@@ -69,7 +68,6 @@
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
         <result property="mimeType" column="mime_type" />
-        <result property="disabledAsInt" column="disabled" />
         <result property="localeCode" column="locale_code" />
         <result property="translationSourceId" column="translation_source_id" />
         <result property="size" column="size" />
@@ -89,12 +87,11 @@
 
     <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
         INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
-        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
+        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code,
         translation_source_id, size, parent_id, commit_id, previous_path, ignored) VALUES
         (#{siteId}, #{path}, #{previewUrl}, #{state}, #{ownedBy}, #{createdBy}, #{createdOn}, #{lastModifiedBy},
          #{lastModifiedOn}, #{lastPublishedOn}, #{label}, #{contentTypeId}, #{systemType}, #{mimeType},
-         #{disabledAsInt}, #{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{commitId}, #{previousPath},
-         #{ignoredAsInt})
+         #{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{commitId}, #{previousPath}, #{ignoredAsInt})
         ON DUPLICATE KEY
         UPDATE
         site_id = #{siteId},
@@ -109,7 +106,6 @@
         content_type_id = #{contentTypeId},
         system_type = #{systemType},
         mime_type = #{mimeType},
-        disabled = #{disabledAsInt},
         locale_code = #{localeCode},
         translation_source_id = #{translationSourceId},
         size = #{size},
@@ -121,14 +117,14 @@
 
     <insert id="upsertEntries" parameterType="java.util.List">
         INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
-        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, disabled, locale_code,
+        last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code,
         translation_source_id, size, parent_id, commit_id, previous_path, ignored) VALUES
         <foreach collection="entries" item="entry" index="index" open="" separator=","  close="">
             (#{entry.siteId}, #{entry.path}, #{entry.previewUrl}, #{entry.state}, #{entry.ownedBy},
             #{entry.createdBy}, #{entry.createdOn}, #{entry.lastModifiedBy}, #{entry.lastModifiedOn},
             #{entry.lastPublishedOn}, #{entry.label}, #{entry.contentTypeId}, #{entry.systemType}, #{entry.mimeType},
-            #{entry.disabledAsInt}, #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId},
-            #{entry.commitId}, #{entry.previousPath}, #{entry.ignoredAsInt})
+            #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId}, #{entry.commitId},
+            #{entry.previousPath}, #{entry.ignoredAsInt})
         </foreach>
         ON DUPLICATE KEY
         UPDATE
@@ -144,7 +140,6 @@
             content_type_id = VALUES(content_type_id),
             system_type = VALUES(system_type),
             mime_type = VALUES(mime_type),
-            disabled = VALUES(disabled),
             locale_code = VALUES(locale_code),
             translation_source_id = VALUES(translation_source_id),
             size = VALUES(size),
@@ -574,7 +569,6 @@
             content_type_id = #{contentTypeId},
             system_type = #{systemType},
             mime_type = #{mimeType},
-            disabled = #{disabled},
             locale_code = #{localeCode},
             translation_source_id = #{translationSourceId},
             size = #{size},

@@ -7478,15 +7478,25 @@ components:
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
               * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
               * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
-        disabled:
-          type: boolean
-          description: true if item is disabled for rendering in delivery, otherwise false
         localeCode:
           type: string
           description: locale of content item
@@ -7597,7 +7607,6 @@ components:
         - mimeType
         - state
         - lockOwner
-        - disabled
         - createdDate
         - creator
         - modifier
@@ -7651,15 +7660,25 @@ components:
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
               * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
               * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
-        disabled:
-          type: boolean
-          description: true if item is disabled for rendering in delivery, otherwise false
         localeCode:
           type: string
           description: locale of content item
@@ -7771,7 +7790,6 @@ components:
         - mimeType
         - state
         - lockOwner
-        - disabled
         - staging
         - availableActions
 
@@ -7817,15 +7835,25 @@ components:
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
               * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
               * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
-        disabled:
-          type: boolean
-          description: true if item is disabled for rendering in delivery, otherwise false
         localeCode:
           type: string
           description: locale of content item
@@ -7842,7 +7870,6 @@ components:
         - mimeType
         - state
         - lockOwner
-        - disabled
         - localeCode
 
     AuditDashboardItem:
@@ -8045,15 +8072,25 @@ components:
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
               * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
               * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
-              * `BIT ORDER (little-endian)`: 11, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
-              * `BIT ORDER (little-endian)`: 12, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
-              * `BIT ORDER (little-endian)`: 13, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
+              * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
+              * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 14, `FLAG`: Reserved 10, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 15, `FLAG`: Reserved 9, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 16, `FLAG`: Reserved 8, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 17, `FLAG`: Reserved 7, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 18, `FLAG`: Reserved 6, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 19, `FLAG`: Reserved 5, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 20, `FLAG`: Reserved 4, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 21, `FLAG`: Reserved 3, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 22, `FLAG`: Reserved 2, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 23, `FLAG`: Reserved 1, `DESCRIPTION`: Reserved value for future use
+              * `BIT ORDER (little-endian)`: 24, `FLAG`: Translation Up To Date, `DESCRIPTION`: This item is a translation of another and it’s up to date
+              * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
+              * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
           type: string
           description: username of user that locked item for editing
-        disabled:
-          type: boolean
-          description: true if item is disabled for rendering in delivery, otherwise false
         localeCode:
           type: string
           description: locale of content item
@@ -8169,7 +8206,6 @@ components:
         - mimeType
         - state
         - lockOwner
-        - disabled
         - createdDate
         - creator
         - modifier

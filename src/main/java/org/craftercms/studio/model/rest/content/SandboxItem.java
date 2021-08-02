@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.api.v2.dal.Item;
 
 import java.time.ZonedDateTime;
@@ -34,7 +32,6 @@ public class SandboxItem {
     private String mimeType;
     private long state;
     private String lockOwner;
-    private boolean disabled;
     private String localeCode;
     private Long translationSourceId;
     private String creator;
@@ -125,26 +122,6 @@ public class SandboxItem {
         this.lockOwner = lockOwner;
     }
 
-    @JsonProperty("disabled")
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    @JsonProperty("disabled")
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-    }
-
-    @JsonIgnore
-    public int getDisabledAsInt() {
-        return disabled ? 1 : 0;
-    }
-
-    @JsonIgnore
-    public void setDisabledAsInt(int disabled) {
-        this.disabled = disabled > 0;
-    }
-
     public String getLocaleCode() {
         return localeCode;
     }
@@ -230,7 +207,6 @@ public class SandboxItem {
         instance.mimeType = item.getMimeType();
         instance.state = item.getState();
         instance.lockOwner = item.getOwner();
-        instance.disabled = item.isDisabled();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
         instance.creator = item.getCreator();

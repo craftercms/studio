@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,7 @@ public class StudioXmlConstants {
 	public static final String DOCUMENT_ELM_MODIFIED_BY = "modifiedby";
 	public static final String DOCUMENT_ELM_CREATED_DATE= "createddate";
 	public static final String DOCUMENT_ELM_MODIFIED_DATE= "modifieddate";
+	public static final String DOCUMENT_ELM_DISABLED = "disabled";
 
 
 	/** xml document element for taxonomy **/

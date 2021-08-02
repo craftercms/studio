@@ -21,12 +21,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
-import java.beans.IntrospectionException;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.util.Objects;
 
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -54,8 +49,6 @@ public class Item {
     private String contentTypeId;
     private String systemType;
     private String mimeType;
-    private int disabledAsInt;
-    private boolean disabled;
     private String localeCode;
     private Long translationSourceId = null;
     private long size;
@@ -88,8 +81,6 @@ public class Item {
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
         mimeType = builder.mimeType;
-        disabledAsInt = builder.disabledAsInt;
-        disabled = builder.disabled;
         localeCode = builder.localeCode;
         translationSourceId = builder.translationSourceId;
         size = builder.size;
@@ -253,24 +244,6 @@ public class Item {
         this.mimeType = mimeType;
     }
 
-    public int getDisabledAsInt() {
-        return disabledAsInt;
-    }
-
-    public void setDisabledAsInt(int disabledAsInt) {
-        this.disabledAsInt = disabledAsInt;
-        this.disabled = disabledAsInt > 0;
-    }
-
-    public boolean isDisabled() {
-        return disabled;
-    }
-
-    public void setDisabled(boolean disabled) {
-        this.disabled = disabled;
-        this.disabledAsInt = disabled ? 1 : 0;
-    }
-
     public String getLocaleCode() {
         return localeCode;
     }
@@ -369,8 +342,6 @@ public class Item {
         instance.contentTypeId = item.getContentTypeId();
         instance.systemType = item.getSystemType();
         instance.mimeType = item.getMimeType();
-        instance.disabledAsInt = item.getDisabledAsInt();
-        instance.disabled = item.isDisabled();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
         instance.size = item.getSize();
@@ -404,8 +375,6 @@ public class Item {
         private String contentTypeId;
         private String systemType;
         private String mimeType;
-        private int disabledAsInt;
-        private boolean disabled;
         private String localeCode;
         private Long translationSourceId;
         private long size;
@@ -438,8 +407,6 @@ public class Item {
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
             clone.mimeType = item.mimeType;
-            clone.disabledAsInt = item.disabledAsInt;
-            clone.disabled = item.disabled;
             clone.localeCode = item.localeCode;
             clone.translationSourceId = item.translationSourceId;
             clone.size = item.size;
@@ -544,18 +511,6 @@ public class Item {
 
         public Builder withMimeType(String mimeType) {
             this.mimeType = mimeType;
-            return this;
-        }
-
-        public Builder withDisabledAsInt(int disabledAsInt) {
-            this.disabledAsInt = disabledAsInt;
-            this.disabled = disabledAsInt > 0;
-            return this;
-        }
-
-        public Builder withDisabled(boolean disabled) {
-            this.disabled = disabled;
-            this.disabledAsInt = disabled ? 1 : 0;
             return this;
         }
 
