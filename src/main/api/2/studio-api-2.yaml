@@ -6443,6 +6443,12 @@ components:
         siteId:
           type: string
           description: 'Site ID, unique and immutable'
+        uuid:
+          type: string
+          description: Site UUID unique and immutable
+        name:
+          type: string
+          description: site name 
         desc:
           type: string
           description: Site description

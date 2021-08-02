@@ -314,6 +314,7 @@ public class UserServiceImpl implements UserService {
                     SiteFeed siteFeed = siteService.getSite(siteId);
                     Site site = new Site();
                     site.setSiteId(siteFeed.getSiteId());
+                    site.setUuid(siteFeed.getSiteUuid());
                     site.setName(siteFeed.getName());
                     site.setDesc(siteFeed.getDescription());
 
