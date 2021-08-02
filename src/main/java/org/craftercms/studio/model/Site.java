@@ -19,6 +19,7 @@ package org.craftercms.studio.model;
 public class Site implements Entity {
 
     private String siteId;
+    private String uuid;
     private String name;
     private String desc;
 
@@ -28,6 +29,14 @@ public class Site implements Entity {
 
     public void setSiteId(String siteId) {
         this.siteId = siteId;
+    }
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 
     public String getName() {
