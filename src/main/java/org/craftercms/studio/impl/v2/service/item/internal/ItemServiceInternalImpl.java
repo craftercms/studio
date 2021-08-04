@@ -155,8 +155,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public Item getItem(long id) {
-        return itemDao.getItemById(id);
+    public Item getItem(String siteId, long id) {
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+        return itemDao.getItemById(id, ldName, COMPLETED, stagingEnv, liveEnv);
     }
 
     @Override
@@ -170,12 +173,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         DetailedItem item = null;
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, ldName, COMPLETED, stagingEnv,
+                    liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, ldName, COMPLETED, stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);

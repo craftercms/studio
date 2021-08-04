@@ -58,6 +58,7 @@ public class Item {
     private String previousPath;
     private int ignoredAsInt;
     private boolean ignored;
+    private int childrenCount = 0;
 
     public Item() { }
 
@@ -90,6 +91,7 @@ public class Item {
         previousPath = builder.previousPath;
         ignoredAsInt = builder.ignoredAsInt;
         ignored = builder.ignored;
+        childrenCount = builder.childrenCount;
     }
 
     public long getId() {
@@ -316,6 +318,14 @@ public class Item {
         this.ignored = ignored;
     }
 
+    public int getChildrenCount() {
+        return childrenCount;
+    }
+
+    public void setChildrenCount(int childrenCount) {
+        this.childrenCount = childrenCount;
+    }
+
     public static Item getInstance(DetailedItem item) {
         if (Objects.isNull(item)) {
             return null;
@@ -351,6 +361,7 @@ public class Item {
         instance.previousPath = item.getPreviousPath();
         instance.ignoredAsInt = item.getIgnoredAsInt();
         instance.ignored = item.isIgnored();
+        instance.childrenCount = item.getChildrenCount();
 
         return instance;
     }
@@ -384,6 +395,7 @@ public class Item {
         private String previousPath;
         private int ignoredAsInt;
         private boolean ignored;
+        private int childrenCount = 0;
 
         public Builder() { }
 
@@ -416,6 +428,7 @@ public class Item {
             clone.previousPath = item.previousPath;
             clone.ignoredAsInt = item.ignoredAsInt;
             clone.ignored = item.ignored;
+            clone.childrenCount = item.childrenCount;
             return clone;
         }
 

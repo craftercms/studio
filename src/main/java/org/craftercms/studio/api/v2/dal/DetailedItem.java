@@ -54,6 +54,7 @@ public class DetailedItem {
     private String previousPath;
     private int ignoredAsInt;
     private boolean ignored;
+    private int childrenCount = 0;
 
     private ZonedDateTime stagingScheduledDate;
     private ZonedDateTime stagingPublishedOn;
@@ -96,6 +97,7 @@ public class DetailedItem {
         previousPath = builder.previousPath;
         ignoredAsInt = builder.ignoredAsInt;
         ignored = builder.ignored;
+        childrenCount = builder.childrenCount;
     }
 
     public long getId() {
@@ -322,6 +324,14 @@ public class DetailedItem {
         this.ignored = ignored;
     }
 
+    public int getChildrenCount() {
+        return childrenCount;
+    }
+
+    public void setChildrenCount(int childrenCount) {
+        this.childrenCount = childrenCount;
+    }
+
     public ZonedDateTime getStagingScheduledDate() {
         return stagingScheduledDate;
     }
@@ -421,6 +431,7 @@ public class DetailedItem {
         instance.previousPath = item.getPreviousPath();
         instance.ignoredAsInt = item.getIgnoredAsInt();
         instance.ignored = item.isIgnored();
+        instance.childrenCount = item.getChildrenCount();
 
         return instance;
     }
@@ -454,6 +465,7 @@ public class DetailedItem {
         private String previousPath;
         private int ignoredAsInt;
         private boolean ignored;
+        private int childrenCount = 0;
 
         private ZonedDateTime stagingScheduledDate;
         private ZonedDateTime stagingPublishedOn;
@@ -494,6 +506,7 @@ public class DetailedItem {
             clone.previousPath = item.previousPath;
             clone.ignoredAsInt = item.ignoredAsInt;
             clone.ignored = item.ignored;
+            clone.childrenCount = item.childrenCount;
 
             clone.stagingScheduledDate = item.stagingScheduledDate;
             clone.stagingPublishedOn = item.stagingPublishedOn;

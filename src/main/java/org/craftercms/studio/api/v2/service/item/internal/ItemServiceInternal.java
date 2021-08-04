@@ -53,10 +53,11 @@ public interface ItemServiceInternal {
 
     /**
      * Get item by given id
+     * @param siteId site identifier
      * @param id item id
      * @return item
      */
-    Item getItem(long id);
+    Item getItem(String siteId, long id);
 
     /**
      * Get item fir given site and path

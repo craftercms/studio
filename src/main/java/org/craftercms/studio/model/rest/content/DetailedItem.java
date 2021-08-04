@@ -38,7 +38,7 @@ public class DetailedItem {
     private Sandbox sandbox;
     private Environment staging;
     private Environment live;
-
+    private int childrenCount = 0;
 
     public long getId() {
         return id;
@@ -172,6 +172,14 @@ public class DetailedItem {
         this.live = live;
     }
 
+    public int getChildrenCount() {
+        return childrenCount;
+    }
+
+    public void setChildrenCount(int childrenCount) {
+        this.childrenCount = childrenCount;
+    }
+
     public static DetailedItem getInstance(Item item) {
         DetailedItem instance = new DetailedItem();
         instance.sandbox = new Sandbox();
@@ -197,6 +205,7 @@ public class DetailedItem {
         instance.sandbox.commitId = item.getCommitId();
         instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
+        instance.childrenCount = item.getChildrenCount();
 
         return instance;
     }
@@ -226,6 +235,7 @@ public class DetailedItem {
         instance.sandbox.commitId = item.getCommitId();
         instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
+        instance.childrenCount = item.getChildrenCount();
 
         instance.staging.dateScheduled = item.getStagingScheduledDate();
         instance.staging.datePublished = item.getStagingPublishedOn();
