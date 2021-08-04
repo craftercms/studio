@@ -237,7 +237,6 @@
         </if>
         AND i1.ignored = 0
         AND (i3.ignored = 0 or i3.ignored is null)
-        AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
                 AND i1.path NOT RLIKE('${exclude}')
@@ -301,12 +300,11 @@
                                         on s1.site_id = live1.site and i.path = live1.path
             where i.id = #{id}
               AND (i3.ignored = 0 or i3.ignored is null)
-              AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
             GROUP BY i.id
             limit 0, 1
     </select>
 
-    <select id="getItemByIdPreferContent" resultMap="ItemMap">
+    <select id="getItemByIdPreferContent" resultMap="DetailedItemMap">
             (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                     staging1.scheduleddate as staging_scheduleddate,
                     staging1.published_on as staging_published_on,
@@ -334,7 +332,6 @@
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 or i5.ignored is null)
-              AND (i5.path NOT LIKE '%/${ldName}' or i5.path is null)
              GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
@@ -362,7 +359,6 @@
                                          on s4.site_id = live2.site and i3.path = live2.path
             where i3.id = #{id}
               AND (i6.ignored = 0 or i6.ignored is null)
-              AND (i6.path NOT LIKE '%/${ldName}' or i6.path is null)
              GROUP BY i3.id)
             limit 0, 1
     </select>
@@ -393,7 +389,6 @@
                     on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
               AND (i3.ignored = 0 or i3.ignored is null)
-              AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
             GROUP BY i.id
             limit 0, 1
     </select>
@@ -426,7 +421,6 @@
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 or i5.ignored is null)
-              AND (i5.path NOT LIKE '%/${ldName}' or i5.path is null)
              GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
@@ -454,7 +448,6 @@
                     on s4.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path}
               AND (i6.ignored = 0 or i6.ignored is null)
-              AND (i6.path NOT LIKE '%/${ldName}' or i6.path is null)
              GROUP BY i3.id)
             limit 0, 1
     </select>
@@ -471,7 +464,6 @@
             #{id}
         </foreach>
         AND (i3.ignored = 0 or i3.ignored is null)
-        AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
         GROUP BY i.id)
     </select>
 
@@ -488,7 +480,6 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         AND (i5.ignored = 0 or i5.ignored is null)
-        AND (i5.path NOT LIKE '%/${ldName}' or i5.path is null)
         GROUP BY i1.id
         union
         select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier, COUNT(1) as children_count
@@ -504,7 +495,6 @@
         (select i4.path from item i4 where i4.site_id = i3.site_id
         and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
         AND (i6.ignored = 0 or i6.ignored is null)
-        AND (i6.path NOT LIKE '%/${ldName}' or i6.path is null)
         GROUP BY i3.id)
     </select>
 
@@ -520,7 +510,6 @@
             #{path}
         </foreach>
         AND (i3.ignored = 0 or i3.ignored is null)
-        AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
         GROUP BY i.id
     </select>
 
@@ -538,7 +527,6 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         AND (i5.ignored = 0 or i5.ignored is null)
-        AND (i5.path NOT LIKE '%/${ldName}' or i5.path is null)
         GROUP BY i1.id
         union
         select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier, COUNT(1) as children_count
@@ -555,7 +543,6 @@
         (select i4.path from item i4 where i4.site_id = i3.site_id
         and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
         AND (i6.ignored = 0 or i6.ignored is null)
-        AND (i6.path NOT LIKE '%/${ldName}' or i6.path is null)
         GROUP BY i3.id)
     </select>
 
@@ -585,7 +572,6 @@
                                         on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
               AND (i3.ignored = 0 or i3.ignored is null)
-              AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
             GROUP BY i.id
             limit 0, 1
     </select>
@@ -619,7 +605,6 @@
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 or i5.ignored is null)
-              AND (i5.path NOT LIKE '%/${ldName}' or i5.path is null)
              GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
@@ -646,7 +631,6 @@
                      on s4.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0
               AND (i6.ignored = 0 or i6.ignored is null)
-              AND (i6.path NOT LIKE '%/${ldName}' or i6.path is null)
              GROUP BY i3.id)
             limit 0, 1
     </select>

@@ -190,13 +190,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         org.craftercms.studio.api.v2.dal.DetailedItem item = null;
-        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, ldName, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemByPath(siteFeed.getId(), path, ldName, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByPath(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
         }
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
@@ -215,14 +214,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public DetailedItem getItemById(String siteId, long id, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        Item item = null;
-        String ldName = servicesConfig.getLevelDescriptorName(siteId);
+        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByIdPreferContent(id, ldName, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByIdPreferContent(id, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemById(id, ldName, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemById(id, COMPLETED, stagingEnv, liveEnv);
         }
         if (!contentRepository.contentExists(siteId, item.getPath())) {
             throw new ContentNotFoundException(item.getPath(), siteId,
@@ -240,11 +238,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> items = null;
-        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         if (preferContent) {
-            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, ldName);
+            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths);
         } else {
-            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, ldName);
+            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths);
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -253,11 +250,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items = null;
-        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, ldName);
+            items = itemDao.getSandboxItemsByIdPreferContent(ids);
         } else {
-            items = itemDao.getSandboxItemsById(ids, ldName);
+            items = itemDao.getSandboxItemsById(ids);
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -311,8 +307,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public void itemUnlockById(String siteId, long itemId) {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        Item item = itemDao.getItemById(itemId, servicesConfig.getLevelDescriptorName(siteId), COMPLETED,
-                stagingEnv, liveEnv);
+        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, COMPLETED, stagingEnv, liveEnv);
         contentRepository.itemUnlock(siteId, item.getPath());
     }
 
