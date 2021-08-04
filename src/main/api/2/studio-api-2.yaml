@@ -7603,6 +7603,10 @@ components:
               * `BIT ORDER (little-endian)`: 61, `FLAG`: Reserved 14, `DESCRIPTION`: Reserved for future use
               * `BIT ORDER (little-endian)`: 62, `FLAG`: Reserved 15, `DESCRIPTION`: Reserved for future use
               * `BIT ORDER (little-endian)`: 63, `FLAG`: Reserved 16, `DESCRIPTION`: Reserved for future use
+        childrenCount:
+          type: integer
+          format: int32
+          description: number of children of the item
       required:
         - id
         - label
@@ -7786,6 +7790,10 @@ components:
             commitId:
               type: string
               description: commit id of last modification in the live repository
+        childrenCount:
+          type: integer
+          format: int32
+          description: number of children of the item
       required:
         - id
         - label

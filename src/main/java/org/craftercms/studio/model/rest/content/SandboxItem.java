@@ -41,6 +41,7 @@ public class SandboxItem {
     private String commitId;
     private long sizeInBytes;
     private long availableActions;
+    private int childrenCount = 0;
 
     public long getId() {
         return id;
@@ -194,6 +195,14 @@ public class SandboxItem {
         this.availableActions = availableActions;
     }
 
+    public int getChildrenCount() {
+        return childrenCount;
+    }
+
+    public void setChildrenCount(int childrenCount) {
+        this.childrenCount = childrenCount;
+    }
+
     public static SandboxItem getInstance(Item item) {
         SandboxItem instance = new SandboxItem();
 
@@ -216,6 +225,7 @@ public class SandboxItem {
         instance.commitId = item.getCommitId();
         instance.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
+        instance.childrenCount = item.getChildrenCount();
 
         return instance;
     }

@@ -175,22 +175,37 @@ public interface ItemDAO {
      * Get item by id
      *
      * @param id item id
+     * @param completedState completed state
+     * @param liveEnvironment live environment
+     * @param stagingEnvironment staging environment
      * @return item identified by given id
      */
-    Item getItemById(@Param(ID) long id);
+    DetailedItem getItemById(@Param(ID) long id,
+                     @Param(COMPLETED_STATE) String completedState,
+                     @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                     @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item by id with prefer content option
      *
      * @param id item id
+     * @param completedState completed state
+     * @param liveEnvironment live environment
+     * @param stagingEnvironment staging environment
      * @return item identified by given id
      */
-    Item getItemByIdPreferContent(@Param(ID) long id);
+    DetailedItem getItemByIdPreferContent(@Param(ID) long id,
+                                  @Param(COMPLETED_STATE) String completedState,
+                                  @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                  @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item for given site and path
      * @param siteId site identifier
      * @param path path of the item
+     * @param completedState completed state
+     * @param liveEnvironment live environment
+     * @param stagingEnvironment staging environment
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
@@ -202,6 +217,9 @@ public interface ItemDAO {
      * Get item with prefer content option for given site and path
      * @param siteId site identifier
      * @param path path of the item
+     * @param completedState completed state
+     * @param liveEnvironment live environment
+     * @param stagingEnvironment staging environment
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
@@ -361,6 +379,9 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
+     * @param completedState completed state
+     * @param liveEnvironment live environment
+     * @param stagingEnvironment staging environment
      * @return item
      */
 
@@ -373,6 +394,9 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
+     * @param completedState completed state
+     * @param liveEnvironment live environment
+     * @param stagingEnvironment staging environment
      * @return item
      */
 

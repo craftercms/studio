@@ -17,9 +17,7 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -42,7 +40,6 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -217,11 +214,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public DetailedItem getItemById(String siteId, long id, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        Item item = null;
+        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByIdPreferContent(id);
+            item = itemDao.getItemByIdPreferContent(id, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemById(id);
+            item = itemDao.getItemById(id, COMPLETED, stagingEnv, liveEnv);
         }
         if (!contentRepository.contentExists(siteId, item.getPath())) {
             throw new ContentNotFoundException(item.getPath(), siteId,
@@ -306,7 +305,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public void itemUnlockById(String siteId, long itemId) {
-        Item item = itemDao.getItemById(itemId);
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, COMPLETED, stagingEnv, liveEnv);
         contentRepository.itemUnlock(siteId, item.getPath());
     }
 

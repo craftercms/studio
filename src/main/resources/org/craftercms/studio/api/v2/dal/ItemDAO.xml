@@ -46,6 +46,7 @@
         <result property="commitId" column="commit_id" />
         <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
+        <result property="childrenCount" column="children_count" />
     </resultMap>
 
     <resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem">
@@ -83,6 +84,7 @@
         <result property="livePublishedOn" column="live_published_on" />
         <result property="liveUsername" column="live_username" />
         <result property="liveCommitId" column="live_commit_id" />
+        <result property="childrenCount" column="children_count" />
     </resultMap>
 
     <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
@@ -150,46 +152,54 @@
     </insert>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        SELECT * FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
+        SELECT *, 0 as children_count FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
         UNION
-        (SELECT * FROM item WHERE site_id = #{siteId}
-        AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
-        AND CONCAT(path, '/index.xml') NOT IN
+        (SELECT i1.*, COUNT(distinct(i3.id)) as children_count FROM item i1 left outer join item i3 on i1.id =
+        i3.parent_id WHERE
+        i1.site_id = #{siteId}
+        AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
         AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
-        AND path NOT LIKE '%/${ldName}'
+        AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
-            AND locale_code = #{localeCode}
+            AND i1.locale_code = #{localeCode}
         </if>
         <if test="keyword != null">
-            AND (path LIKE '%${keyword}%' OR label LIKE '%${keyword}%')
+            AND (i1.path LIKE '%${keyword}%' OR i1.label LIKE '%${keyword}%')
         </if>
-        AND ignored = 0
+        AND i1.ignored = 0
+        AND (i3.ignored = 0 or i3.ignored is null)
+        AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
-                AND path NOT RLIKE('${exclude}')
+                AND i1.path NOT RLIKE('${exclude}')
             </foreach>
         </if>
+        GROUP BY i1.id
         <choose>
             <when test="sortStrategy == 'alphabetic'">
-                ORDER BY label ${order}, path ${order}
+                ORDER BY i1.label ${order}, i1.path ${order}
             </when>
             <when test="sortStrategy == 'foldersFirst'">
-                ORDER BY IF(FIELD(system_type, 'folder')=0,1,0), FIELD(system_type, 'folder'), label ${order}, path ${order}
+                ORDER BY IF(FIELD(i1.system_type, 'folder')=0,1,0), FIELD(i1.system_type, 'folder'), i1.label ${order},
+                i1.path ${order}
             </when>
             <otherwise>
-                ORDER BY LABEL ${order}, path ${order}
+                ORDER BY i1.label ${order}, i1.path ${order}
             </otherwise>
         </choose>
         LIMIT #{offset},#{limit})
     </select>
 
     <select id="getAllChildrenByPath" resultMap="ItemMap">
-        SELECT * FROM item WHERE site_id = #{siteId}
-        AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
-        AND CONCAT(path, '/index.xml') NOT IN
+        SELECT i1.*, COUNT(1) as children_count FROM item i1 left outer join item i3 on i1.id = i3.parent_id WHERE i1.site_id = #{siteId}
+        AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
         AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+        AND (i3.path NOT LIKE '%/${ldName}' or i3.path is null)
+        GROUP BY i1.id
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
@@ -214,30 +224,34 @@
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
-        SELECT * FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
+        SELECT *, 0 as children_count FROM item
+        WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
-        SELECT * FROM item WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path NOT LIKE '%/${ldName}'
+        SELECT i1.*, COUNT(1) as children_count FROM item i1 left outer join item i3 on i1.id = i3.parent_id
+        WHERE i1.site_id = #{siteId} AND i1.parent_id = #{parentId} AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
-            AND locale_code = #{localeCode}
+            AND i1.locale_code = #{localeCode}
         </if>
         <if test="keyword != null">
-            AND (path LIKE '%${keyword}%' OR label LIKE '%${keyword}%')
+            AND (i1.path LIKE '%${keyword}%' OR i1.label LIKE '%${keyword}%')
         </if>
-        AND ignored = 0
+        AND i1.ignored = 0
+        AND (i3.ignored = 0 or i3.ignored is null)
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
-                AND path NOT RLIKE('${exclude}')
+                AND i1.path NOT RLIKE('${exclude}')
             </foreach>
         </if>
+        GROUP BY i1.id
         <choose>
             <when test="sortStrategy == 'alphabetic'">
-                ORDER BY label ${order}, path ${order}
+                ORDER BY i1.label ${order}, i1.path ${order}
             </when>
             <when test="sortStrategy == 'foldersFirst'">
-                ORDER BY IF(FIELD(system_type, 'folder')=0,1,0), FIELD(system_type, 'folder'), label ${order}, path ${order}
+                ORDER BY IF(FIELD(i1.system_type, 'folder')=0,1,0), FIELD(i1.system_type, 'folder'), i1.label ${order}, i1.path ${order}
             </when>
             <otherwise>
-                ORDER BY label ${order}, path ${order}
+                ORDER BY i1.label ${order}, i1.path ${order}
             </otherwise>
         </choose>
         LIMIT #{offset},#{limit}
@@ -260,7 +274,7 @@
         </if>
     </select>
     
-    <select id="getItemById" resultMap="ItemMap">
+    <select id="getItemById" resultMap="DetailedItemMap">
             select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                    staging1.scheduleddate as staging_scheduleddate,
                    staging1.published_on as staging_published_on,
@@ -269,23 +283,28 @@
                    live1.scheduleddate as live_scheduleddate,
                    live1.published_on as live_published_on,
                    live1.username as live_username,
-                   live1.commit_id as live_commit_id
-            from item i inner join site s1 on i.site_id = s1.id left outer join user u1 on i.owned_by = u1.id
+                   live1.commit_id as live_commit_id,
+                   COUNT(1) as children_count
+            from item i inner join site s1 on i.site_id = s1.id
+                        left outer join item i3 on i.id = i3.parent_id
+                        left outer join user u1 on i.owned_by = u1.id
                         left outer join user u2 on i.created_by = u2.id
                         left outer join user u3 on i.last_modified_by = u3.id
                         left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
-                                         where s2.id = #{siteId} and pr1.path = #{path} and pr1.environment = #{stagingEnvironment}
+                                         where s2.id = i.site_id and pr1.path = i.path and pr1.environment = #{stagingEnvironment}
                                            and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
                                         on s1.site_id = staging1.site and i.path = staging1.path
                         left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
-                                         where s3.id = 3 and pr2.path = '/site/website/index.xml' and pr2.environment = 'live'
-                                           and pr2.state = 'COMPLETED' order by pr2.published_on desc limit 0, 1) as live1
+                                         where s3.id = i.site_id and pr2.path = i.path and pr2.environment = #{liveEnvironment}
+                                           and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
                                         on s1.site_id = live1.site and i.path = live1.path
             where i.id = #{id}
+              AND (i3.ignored = 0 or i3.ignored is null)
+            GROUP BY i.id
             limit 0, 1
     </select>
 
-    <select id="getItemByIdPreferContent" resultMap="ItemMap">
+    <select id="getItemByIdPreferContent" resultMap="DetailedItemMap">
             (select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                     staging1.scheduleddate as staging_scheduleddate,
                     staging1.published_on as staging_published_on,
@@ -294,10 +313,13 @@
                     live1.scheduleddate as live_scheduleddate,
                     live1.published_on as live_published_on,
                     live1.username as live_username,
-                    live1.commit_id as live_commit_id
-            from item i1 inner join site s1 on i1.site_id = s1.id left outer join user u1 on i1.owned_by = u1.id
-                 left outer join user u2 on i1.created_by = u2.id
-                 left outer join user u3 on i1.last_modified_by = u3.id
+                    live1.commit_id as live_commit_id,
+                    COUNT(1) as children_count
+            from item i1 inner join site s1 on i1.site_id = s1.id
+                left outer join item i5 on i1.id = i5.parent_id
+                left outer join user u1 on i1.owned_by = u1.id
+                left outer join user u2 on i1.created_by = u2.id
+                left outer join user u3 on i1.last_modified_by = u3.id
                          left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
                                           where s2.id = #{siteId} and pr1.path = #{path} and pr1.environment = #{stagingEnvironment}
                                             and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
@@ -309,6 +331,8 @@
             where i2.id = #{id}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+              AND (i5.ignored = 0 or i5.ignored is null)
+             GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
                    staging2.scheduleddate as staging_scheduleddate,
@@ -318,8 +342,11 @@
                    live2.scheduleddate as live_scheduleddate,
                    live2.published_on as live_published_on,
                    live2.username as live_username,
-                   live2.commit_id as live_commit_id
-            from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
+                   live2.commit_id as live_commit_id,
+                   COUNT(1) as children_count
+            from item i3 inner join site s4 on i3.site_id = s4.id
+                left outer join item i6 on i3.id = i6.parent_id
+                left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
                          left outer join (select pr3.* from publish_request pr3 inner join site s5 on pr3.site = s5.site_id
@@ -330,7 +357,9 @@
                                           where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
                                             and pr4.state = #{completedState} order by pr4.published_on desc limit 0, 1) as live2
                                          on s4.site_id = live2.site and i3.path = live2.path
-            where i3.id = #{id})
+            where i3.id = #{id}
+              AND (i6.ignored = 0 or i6.ignored is null)
+             GROUP BY i3.id)
             limit 0, 1
     </select>
 
@@ -343,8 +372,11 @@
                    live1.scheduleddate as live_scheduleddate,
                    live1.published_on as live_published_on,
                    live1.username as live_username,
-                   live1.commit_id as live_commit_id
-            from item i inner join site s1 on i.site_id = s1.id left outer join user u1 on i.owned_by = u1.id
+                   live1.commit_id as live_commit_id,
+                   COUNT(1) as children_count
+            from item i inner join site s1 on i.site_id = s1.id
+                left outer join item i3 on i.id = i3.parent_id
+                left outer join user u1 on i.owned_by = u1.id
             left outer join user u2 on i.created_by = u2.id
             left outer join user u3 on i.last_modified_by = u3.id
                 left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
@@ -352,10 +384,12 @@
                   and pr1.state = #{completedState} order by pr1. published_on desc limit 0, 1) as staging1
                     on s1.site_id = staging1.site and i.path = staging1.path
                 left outer join (select pr2.* from publish_request pr2 inner join site s3 on pr2.site = s3.site_id
-                where s3.id = 3 and pr2.path = '/site/website/index.xml' and pr2.environment = 'live'
-                  and pr2.state = 'COMPLETED' order by pr2.published_on desc limit 0, 1) as live1
+                where s3.id = 3 and pr2.path = #{path} and pr2.environment = #{liveEnvironment}
+                  and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
                     on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
+              AND (i3.ignored = 0 or i3.ignored is null)
+            GROUP BY i.id
             limit 0, 1
     </select>
 
@@ -368,8 +402,11 @@
                     live1.scheduleddate as live_scheduleddate,
                     live1.published_on as live_published_on,
                     live1.username as live_username,
-                    live1.commit_id as live_commit_id
-            from item i1 inner join site s1 on i1.site_id = s1.id  left outer join user u1 on i1.owned_by = u1.id
+                    live1.commit_id as live_commit_id,
+                    COUNT(1) as children_count
+            from item i1 inner join site s1 on i1.site_id = s1.id
+                left outer join item i5 on i1.id = i5.parent_id
+                left outer join user u1 on i1.owned_by = u1.id
             left outer join user u2 on i1.created_by = u2.id
             left outer join user u3 on i1.last_modified_by = u3.id
                 left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
@@ -383,6 +420,8 @@
             where i2.site_id = #{siteId} and i2.path = #{path}
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+              AND (i5.ignored = 0 or i5.ignored is null)
+             GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
                    staging2.scheduleddate as staging_scheduleddate,
@@ -392,8 +431,11 @@
                    live2.scheduleddate as live_scheduleddate,
                    live2.published_on as live_published_on,
                    live2.username as live_username,
-                   live2.commit_id as live_commit_id
-            from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
+                   live2.commit_id as live_commit_id,
+                   COUNT(1) as children_count
+            from item i3 inner join site s4 on i3.site_id = s4.id
+                left outer join item i6 on i3.id = i6.parent_id
+                left outer join user u4 on i3.owned_by = u4.id
             left outer join user u5 on i3.created_by = u5.id
             left outer join user u6 on i3.last_modified_by = u6.id
                 left outer join (select pr3.* from publish_request pr3 inner join site s5 on pr3.site = s5.site_id
@@ -404,24 +446,32 @@
                 where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
                   and pr4.state = #{completedState} order by pr4.published_on desc limit 0, 1) as live2
                     on s4.site_id = live2.site and i3.path = live2.path
-            where i3.site_id = #{siteId} and i3.path = #{path})
+            where i3.site_id = #{siteId} and i3.path = #{path}
+              AND (i6.ignored = 0 or i6.ignored is null)
+             GROUP BY i3.id)
             limit 0, 1
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
-        from item i left outer join user u1 on i.owned_by = u1.id
+        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        from item i
+            left outer join item i3 on i.id = i3.parent_id
+            left outer join user u1 on i.owned_by = u1.id
         left outer join user u2 on i.created_by = u2.id
         left outer join user u3 on i.last_modified_by = u3.id
         where i.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
         </foreach>
+        AND (i3.ignored = 0 or i3.ignored is null)
+        GROUP BY i.id)
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
-        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
-        from item i1 left outer join user u1 on i1.owned_by = u1.id
+        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        from item i1
+            left outer join item i5 on i1.id = i5.parent_id
+            left outer join user u1 on i1.owned_by = u1.id
         left outer join user u2 on i1.created_by = u2.id
         left outer join user u3 on i1.last_modified_by = u3.id, item i2 where i2.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
@@ -429,9 +479,13 @@
         </foreach>
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+        AND (i5.ignored = 0 or i5.ignored is null)
+        GROUP BY i1.id
         union
-        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
-        from item i3 left outer join user u4 on i3.owned_by = u4.id
+        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier, COUNT(1) as children_count
+        from item i3
+            left outer join item i6 on i3.id = i6.parent_id
+            left outer join user u4 on i3.owned_by = u4.id
         left outer join user u5 on i3.created_by = u5.id
         left outer join user u6 on i3.last_modified_by = u6.id where i3.id in
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
@@ -439,23 +493,31 @@
         </foreach>
         and concat(i3.path, '/index.xml') not in
         (select i4.path from item i4 where i4.site_id = i3.site_id
-        and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
+        and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
+        AND (i6.ignored = 0 or i6.ignored is null)
+        GROUP BY i3.id)
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier
-        from item i left outer join user u1 on i.owned_by = u1.id
+        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        from item i
+            left outer join item i3 on i.id = i3.parent_id
+            left outer join user u1 on i.owned_by = u1.id
         left outer join user u2 on i.created_by = u2.id
         left outer join user u3 on i.last_modified_by = u3.id
         where i.site_id = #{siteId} and i.ignored = 0 and i.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
             #{path}
         </foreach>
+        AND (i3.ignored = 0 or i3.ignored is null)
+        GROUP BY i.id
     </select>
 
     <select id="getSandboxItemsByPathPreferContent" resultMap="ItemMap">
-        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier
-        from item i1 left outer join user u1 on i1.owned_by = u1.id
+        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        from item i1
+            left outer join item i5 on i1.id = i5.parent_id
+            left outer join user u1 on i1.owned_by = u1.id
         left outer join user u2 on i1.created_by = u2.id
         left outer join user u3 on i1.last_modified_by = u3.id, item i2 where i2.site_id = #{siteId} and i2.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
@@ -464,9 +526,13 @@
         and i1.ignored = 0
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+        AND (i5.ignored = 0 or i5.ignored is null)
+        GROUP BY i1.id
         union
-        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier
-        from item i3 left outer join user u4 on i3.owned_by = u4.id
+        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier, COUNT(1) as children_count
+        from item i3
+            left outer join item i6 on i3.id = i6.parent_id
+            left outer join user u4 on i3.owned_by = u4.id
         left outer join user u5 on i3.created_by = u5.id
         left outer join user u6 on i3.last_modified_by = u6.id where i3.site_id = #{siteId} and i3.path in
         <foreach collection="paths" item="path" index="index" open="(" close=")" separator=",">
@@ -475,7 +541,9 @@
         and i3.ignored = 0
         and concat(i3.path, '/index.xml') not in
         (select i4.path from item i4 where i4.site_id = i3.site_id
-        and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
+        and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
+        AND (i6.ignored = 0 or i6.ignored is null)
+        GROUP BY i3.id)
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="DetailedItemMap">
@@ -487,8 +555,10 @@
                    live1.scheduleddate as live_scheduleddate,
                    live1.published_on as live_published_on,
                    live1.username as live_username,
-                   live1.commit_id as live_commit_id
-            from item i inner join site s1 on i.site_id = s1.id  left outer join user u1 on i.owned_by = u1.id
+                   live1.commit_id as live_commit_id, COUNT(1) as children_count
+            from item i inner join site s1 on i.site_id = s1.id
+                        left outer join item i3 on i.id = i3.parent_id
+                        left outer join user u1 on i.owned_by = u1.id
                         left outer join user u2 on i.created_by = u2.id
                         left outer join user u3 on i.last_modified_by = u3.id
                         left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
@@ -501,6 +571,8 @@
                                            and pr2.state = #{completedState} order by pr2.published_on desc limit 0, 1) as live1
                                         on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
+              AND (i3.ignored = 0 or i3.ignored is null)
+            GROUP BY i.id
             limit 0, 1
     </select>
 
@@ -513,8 +585,10 @@
                     live1.scheduleddate as live_scheduleddate,
                     live1.published_on as live_published_on,
                     live1.username as live_username,
-                    live1.commit_id as live_commit_id
-            from item i1 inner join site s1 on i1.site_id = s1.id left outer join user u1 on i1.owned_by = u1.id
+                    live1.commit_id as live_commit_id, COUNT(1) as children_count
+            from item i1 inner join site s1 on i1.site_id = s1.id
+                         left outer join item i5 on i1.id = i5.parent_id
+                left outer join user u1 on i1.owned_by = u1.id
                  left outer join user u2 on i1.created_by = u2.id
                  left outer join user u3 on i1.last_modified_by = u3.id
                  left outer join (select pr1.* from publish_request pr1 inner join site s2 on pr1.site = s2.site_id
@@ -530,6 +604,8 @@
             and i1.ignored = 0
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+              AND (i5.ignored = 0 or i5.ignored is null)
+             GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
                    staging2.scheduleddate as staging_scheduleddate,
@@ -539,8 +615,10 @@
                    live2.scheduleddate as live_scheduleddate,
                    live2.published_on as live_published_on,
                    live2.username as live_username,
-                   live2.commit_id as live_commit_id
-            from item i3 inner join site s4 on i3.site_id = s4.id  left outer join user u4 on i3.owned_by = u4.id
+                   live2.commit_id as live_commit_id, COUNT(1) as children_count
+            from item i3 inner join site s4 on i3.site_id = s4.id
+                         left outer join item i6 on i3.id = i6.parent_id
+                left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
                  left outer join (select pr3.* from publish_request pr3 inner join site s5 on pr3.site = s5.site_id
@@ -551,7 +629,9 @@
                  where s6.id = #{siteId} and pr4.path = #{path} and pr4.environment = #{liveEnvironment}
                    and pr4.state = #{completedState} order by pr4.published_on desc limit 0, 1) as live2
                      on s4.site_id = live2.site and i3.path = live2.path
-            where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0)
+            where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0
+              AND (i6.ignored = 0 or i6.ignored is null)
+             GROUP BY i3.id)
             limit 0, 1
     </select>
 

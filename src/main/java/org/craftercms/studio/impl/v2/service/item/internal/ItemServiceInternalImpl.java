@@ -155,8 +155,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public Item getItem(long id) {
-        return itemDao.getItemById(id);
+    public DetailedItem getItem(String siteId, long id) {
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+        return itemDao.getItemById(id, COMPLETED, stagingEnv, liveEnv);
     }
 
     @Override

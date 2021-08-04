@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.item.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
@@ -53,10 +54,11 @@ public interface ItemServiceInternal {
 
     /**
      * Get item by given id
+     * @param siteId site identifier
      * @param id item id
      * @return item
      */
-    Item getItem(long id);
+    DetailedItem getItem(String siteId, long id);
 
     /**
      * Get item fir given site and path
