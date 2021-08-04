@@ -466,7 +466,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             }
             Item item = instantiateItem(siteId, path)
                     .withPreviewUrl(getBrowserUrl(siteId, path))
-                    .withOwnedBy(userObj.getId())
                     .withCreatedBy(userObj.getId())
                     .withCreatedOn(ZonedDateTime.now())
                     .withLastModifiedBy(userObj.getId())
