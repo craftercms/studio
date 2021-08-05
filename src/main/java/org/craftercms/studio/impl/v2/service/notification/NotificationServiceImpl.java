@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.Cache;
 import freemarker.template.Configuration;
@@ -307,10 +306,11 @@ public class NotificationServiceImpl implements NotificationService {
         var cacheKey = configurationService.getCacheKey(site, MODULE_STUDIO, configPath, environment, "object");
 
         try {
-            return cache.get(cacheKey, () -> {
+            Map<String, NotificationConfigTO> config = cache.getIfPresent(cacheKey);
+            if (config == null) {
                 logger.debug("Cache miss {0}", cacheKey);
 
-                Map<String, NotificationConfigTO> siteNotificationConfig = new HashMap<>();
+                config = new HashMap<>();
                 Document document =
                         configurationService.getConfigurationAsDocument(site, MODULE_STUDIO, configPath, environment);
                 Element root = document.getRootElement();
@@ -324,10 +324,10 @@ public class NotificationServiceImpl implements NotificationService {
                         Element language = (Element) node;
                         String messagesLang = language.attributeValue("name");
                         if (StringUtils.isNotBlank(messagesLang)) {
-                            if (!siteNotificationConfig.containsKey(messagesLang)) {
-                                siteNotificationConfig.put(messagesLang, new NotificationConfigTO(site));
+                            if (!config.containsKey(messagesLang)) {
+                                config.put(messagesLang, new NotificationConfigTO(site));
                             }
-                            NotificationConfigTO configForLang = siteNotificationConfig.get(messagesLang);
+                            NotificationConfigTO configForLang = config.get(messagesLang);
                             loadGenericMessage((Element) language.selectSingleNode("//generalMessages"), configForLang
                                     .getMessages());
                             loadGenericMessage((Element) language.selectSingleNode("//completeMessages"), configForLang
@@ -350,9 +350,10 @@ public class NotificationServiceImpl implements NotificationService {
                     }
                 }
 
-                return siteNotificationConfig;
-            });
-        } catch (ExecutionException e) {
+                cache.put(cacheKey, config);
+            }
+            return config;
+        } catch (Exception e) {
             logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, e);
             return null;
         }

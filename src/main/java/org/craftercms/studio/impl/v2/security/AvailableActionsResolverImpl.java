@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -75,38 +74,33 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         this.cache = cache;
     }
 
-    private SitePermissionMappings fetchSitePermissionMappings(String site) {
+    private SitePermissionMappings fetchSitePermissionMappings(String site) throws ServiceLayerException {
         SitePermissionMappings sitePermissionMappings = new SitePermissionMappings();
         sitePermissionMappings.setSiteId(site);
-        try {
 
+        String globalRolesConfigPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) +
+                FILE_SEPARATOR + studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
+        Document globalRoleMappingsDocument =
+                configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
 
-            String globalRolesConfigPath = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) +
-                    FILE_SEPARATOR + studioConfiguration.getProperty(CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME);
-            Document globalRoleMappingsDocument =
-                    configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
+        String globalPermissionsConfigPath =
+                studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
+                        studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
+        Document globalPermissionMappingsDocument =
+                configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
 
-            String globalPermissionsConfigPath =
-                    studioConfiguration.getProperty(CONFIGURATION_GLOBAL_CONFIG_BASE_PATH) + FILE_SEPARATOR +
-                            studioConfiguration.getProperty(CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME);
-            Document globalPermissionMappingsDocument =
-                    configurationService.getGlobalConfigurationAsDocument(globalPermissionsConfigPath);
+        loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
+        loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
 
-            loadRoles(globalRoleMappingsDocument, sitePermissionMappings);
-            loadPermissions(globalPermissionMappingsDocument, sitePermissionMappings);
-
-            if (!StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
-                Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
-                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-                Document permissionsMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
-                        studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME),
-                        studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
-                loadRoles(roleMappingsDocument, sitePermissionMappings);
-                loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
-            }
-        } catch (ServiceLayerException e) {
-            e.printStackTrace();
+        if (!StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
+            Document roleMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME),
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+            Document permissionsMappingsDocument = configurationService.getConfigurationAsDocument(site, MODULE_STUDIO,
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME),
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
+            loadRoles(roleMappingsDocument, sitePermissionMappings);
+            loadPermissions(permissionsMappingsDocument, sitePermissionMappings);
         }
         return sitePermissionMappings;
     }
@@ -175,21 +169,19 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     @Override
     public long getContentItemAvailableActions(String username, String siteId, String path)
             throws ServiceLayerException, UserNotFoundException {
-        SitePermissionMappings sitePermissionMappings = null;
-        try {
-            sitePermissionMappings = findSitePermissionMappings(siteId);
-        } catch (ExecutionException e) {
-            throw new ServiceLayerException("Error fetching available actions from cache for site " + siteId, e);
-        }
+        SitePermissionMappings sitePermissionMappings = findSitePermissionMappings(siteId);
         return calculateAvailableActions(username, path, sitePermissionMappings);
     }
 
-    private SitePermissionMappings findSitePermissionMappings(final String site) throws ExecutionException {
+    private SitePermissionMappings findSitePermissionMappings(final String site) throws ServiceLayerException {
         var cacheKey = site + CACHE_KEY;
-        return cache.get(cacheKey, () -> {
+        SitePermissionMappings mappings = cache.getIfPresent(cacheKey);
+        if (mappings == null) {
             logger.debug("Cache miss for {0}", cacheKey);
-            return fetchSitePermissionMappings(site);
-        });
+            mappings = fetchSitePermissionMappings(site);
+            cache.put(cacheKey, mappings);
+        }
+        return mappings;
     }
 
     private long calculateAvailableActions(String username, String path,
