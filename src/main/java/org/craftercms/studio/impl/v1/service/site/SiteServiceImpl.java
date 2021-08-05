@@ -873,6 +873,9 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Failed to delete the repository for site:" + siteId, e);
         }
 
+        // clear cache
+        configurationService.invalidateConfiguration(siteId);
+
         try {
             // delete database records
             logger.debug("Deleting database records");
