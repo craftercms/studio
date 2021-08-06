@@ -154,7 +154,7 @@
     <select id="getChildrenByPath" resultMap="ItemMap">
         SELECT *, 0 as children_count FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
         UNION
-        (SELECT i1.*, COUNT(distinct(i3.id)) as children_count FROM item i1 left outer join item i3 on i1.id =
+        (SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1 left outer join item i3 on i1.id =
         i3.parent_id WHERE
         i1.site_id = #{siteId}
         AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
@@ -193,7 +193,8 @@
     </select>
 
     <select id="getAllChildrenByPath" resultMap="ItemMap">
-        SELECT i1.*, COUNT(1) as children_count FROM item i1 left outer join item i3 on i1.id = i3.parent_id WHERE i1.site_id = #{siteId}
+        SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1 left outer join item i3 on i1.id =
+                                                                                                    i3.parent_id WHERE i1.site_id = #{siteId}
         AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
@@ -227,7 +228,7 @@
         SELECT *, 0 as children_count FROM item
         WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
-        SELECT i1.*, COUNT(1) as children_count FROM item i1 left outer join item i3 on i1.id = i3.parent_id
+        SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1 left outer join item i3 on i1.id = i3.parent_id
         WHERE i1.site_id = #{siteId} AND i1.parent_id = #{parentId} AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND i1.locale_code = #{localeCode}
@@ -284,7 +285,7 @@
                    live1.published_on as live_published_on,
                    live1.username as live_username,
                    live1.commit_id as live_commit_id,
-                   COUNT(1) as children_count
+                   COUNT(DISTINCT i3.id) as children_count
             from item i inner join site s1 on i.site_id = s1.id
                         left outer join item i3 on i.id = i3.parent_id
                         left outer join user u1 on i.owned_by = u1.id
@@ -300,6 +301,8 @@
                                         on s1.site_id = live1.site and i.path = live1.path
             where i.id = #{id}
               AND (i3.ignored = 0 or i3.ignored is null)
+              AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
             GROUP BY i.id
             limit 0, 1
     </select>
@@ -314,7 +317,7 @@
                     live1.published_on as live_published_on,
                     live1.username as live_username,
                     live1.commit_id as live_commit_id,
-                    COUNT(1) as children_count
+                    COUNT(DISTINCT i5.id) as children_count
             from item i1 inner join site s1 on i1.site_id = s1.id
                 left outer join item i5 on i1.id = i5.parent_id
                 left outer join user u1 on i1.owned_by = u1.id
@@ -332,6 +335,8 @@
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 or i5.ignored is null)
+              AND (i5.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i10 where i10.site_id = i5.site_id and i10.path = concat(i5.path, '/index.xml')))
              GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
@@ -343,7 +348,7 @@
                    live2.published_on as live_published_on,
                    live2.username as live_username,
                    live2.commit_id as live_commit_id,
-                   COUNT(1) as children_count
+                   COUNT(DISTINCT i6.id) as children_count
             from item i3 inner join site s4 on i3.site_id = s4.id
                 left outer join item i6 on i3.id = i6.parent_id
                 left outer join user u4 on i3.owned_by = u4.id
@@ -359,6 +364,8 @@
                                          on s4.site_id = live2.site and i3.path = live2.path
             where i3.id = #{id}
               AND (i6.ignored = 0 or i6.ignored is null)
+              AND (i6.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i11 where i11.site_id = i6.site_id and i11.path = concat(i6.path, '/index.xml')))
              GROUP BY i3.id)
             limit 0, 1
     </select>
@@ -373,7 +380,7 @@
                    live1.published_on as live_published_on,
                    live1.username as live_username,
                    live1.commit_id as live_commit_id,
-                   COUNT(1) as children_count
+                   COUNT(DISTINCT i3.id) as children_count
             from item i inner join site s1 on i.site_id = s1.id
                 left outer join item i3 on i.id = i3.parent_id
                 left outer join user u1 on i.owned_by = u1.id
@@ -389,6 +396,8 @@
                     on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
               AND (i3.ignored = 0 or i3.ignored is null)
+            AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
             GROUP BY i.id
             limit 0, 1
     </select>
@@ -403,7 +412,7 @@
                     live1.published_on as live_published_on,
                     live1.username as live_username,
                     live1.commit_id as live_commit_id,
-                    COUNT(1) as children_count
+                    COUNT(DISTINCT i5.id) as children_count
             from item i1 inner join site s1 on i1.site_id = s1.id
                 left outer join item i5 on i1.id = i5.parent_id
                 left outer join user u1 on i1.owned_by = u1.id
@@ -421,6 +430,8 @@
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 or i5.ignored is null)
+              AND (i5.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i10 where i10.site_id = i5.site_id and i10.path = concat(i5.path, '/index.xml')))
              GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
@@ -432,7 +443,7 @@
                    live2.published_on as live_published_on,
                    live2.username as live_username,
                    live2.commit_id as live_commit_id,
-                   COUNT(1) as children_count
+                   COUNT(DISTINCT i6.id) as children_count
             from item i3 inner join site s4 on i3.site_id = s4.id
                 left outer join item i6 on i3.id = i6.parent_id
                 left outer join user u4 on i3.owned_by = u4.id
@@ -448,12 +459,15 @@
                     on s4.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path}
               AND (i6.ignored = 0 or i6.ignored is null)
+              AND (i6.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i11 where i11.site_id = i6.site_id and i11.path = concat(i6.path, '/index.xml')))
              GROUP BY i3.id)
             limit 0, 1
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+               COUNT(DISTINCT i3.id) as children_count
         from item i
             left outer join item i3 on i.id = i3.parent_id
             left outer join user u1 on i.owned_by = u1.id
@@ -464,11 +478,14 @@
             #{id}
         </foreach>
         AND (i3.ignored = 0 or i3.ignored is null)
+        AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
         GROUP BY i.id)
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
-        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+               COUNT(DISTINCT i5.id ) as children_count
         from item i1
             left outer join item i5 on i1.id = i5.parent_id
             left outer join user u1 on i1.owned_by = u1.id
@@ -480,9 +497,12 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         AND (i5.ignored = 0 or i5.ignored is null)
+        AND (i5.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i10 where i10.site_id = i5.site_id and i10.path = concat(i5.path, '/index.xml')))
         GROUP BY i1.id
         union
-        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier, COUNT(1) as children_count
+        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
+               COUNT(DISTINCT i6.id) as children_count
         from item i3
             left outer join item i6 on i3.id = i6.parent_id
             left outer join user u4 on i3.owned_by = u4.id
@@ -495,11 +515,14 @@
         (select i4.path from item i4 where i4.site_id = i3.site_id
         and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
         AND (i6.ignored = 0 or i6.ignored is null)
+        AND (i6.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i11 where i11.site_id = i6.site_id and i11.path = concat(i6.path, '/index.xml')))
         GROUP BY i3.id)
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+               COUNT(DISTINCT i3.id) as children_count
         from item i
             left outer join item i3 on i.id = i3.parent_id
             left outer join user u1 on i.owned_by = u1.id
@@ -510,11 +533,14 @@
             #{path}
         </foreach>
         AND (i3.ignored = 0 or i3.ignored is null)
+        AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
         GROUP BY i.id
     </select>
 
     <select id="getSandboxItemsByPathPreferContent" resultMap="ItemMap">
-        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier, COUNT(1) as children_count
+        select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
+               COUNT(DISTINCT i5.id) as children_count
         from item i1
             left outer join item i5 on i1.id = i5.parent_id
             left outer join user u1 on i1.owned_by = u1.id
@@ -527,9 +553,12 @@
         and i1.site_id = i2.site_id
         and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
         AND (i5.ignored = 0 or i5.ignored is null)
+        AND (i5.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i10 where i10.site_id = i5.site_id and i10.path = concat(i5.path, '/index.xml')))
         GROUP BY i1.id
         union
-        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier, COUNT(1) as children_count
+        select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
+               COUNT(DISTINCT i6.id) as children_count
         from item i3
             left outer join item i6 on i3.id = i6.parent_id
             left outer join user u4 on i3.owned_by = u4.id
@@ -543,6 +572,8 @@
         (select i4.path from item i4 where i4.site_id = i3.site_id
         and i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
         AND (i6.ignored = 0 or i6.ignored is null)
+        AND (i6.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i11 where i11.site_id = i6.site_id and i11.path = concat(i6.path, '/index.xml')))
         GROUP BY i3.id)
     </select>
 
@@ -555,7 +586,8 @@
                    live1.scheduleddate as live_scheduleddate,
                    live1.published_on as live_published_on,
                    live1.username as live_username,
-                   live1.commit_id as live_commit_id, COUNT(1) as children_count
+                   live1.commit_id as live_commit_id,
+                   COUNT(DISTINCT i3.id) as children_count
             from item i inner join site s1 on i.site_id = s1.id
                         left outer join item i3 on i.id = i3.parent_id
                         left outer join user u1 on i.owned_by = u1.id
@@ -572,6 +604,8 @@
                                         on s1.site_id = live1.site and i.path = live1.path , item i2
             where i.site_id = #{siteId} and i.path = #{path}
               AND (i3.ignored = 0 or i3.ignored is null)
+              AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
             GROUP BY i.id
             limit 0, 1
     </select>
@@ -585,7 +619,8 @@
                     live1.scheduleddate as live_scheduleddate,
                     live1.published_on as live_published_on,
                     live1.username as live_username,
-                    live1.commit_id as live_commit_id, COUNT(1) as children_count
+                    live1.commit_id as live_commit_id,
+                    COUNT(DISTINCT i5.id) as children_count
             from item i1 inner join site s1 on i1.site_id = s1.id
                          left outer join item i5 on i1.id = i5.parent_id
                 left outer join user u1 on i1.owned_by = u1.id
@@ -605,6 +640,8 @@
             and i1.site_id = i2.site_id
             and i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 or i5.ignored is null)
+              AND (i5.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i10 where i10.site_id = i5.site_id and i10.path = concat(i5.path, '/index.xml')))
              GROUP BY i1.id
             union
             select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
@@ -615,7 +652,8 @@
                    live2.scheduleddate as live_scheduleddate,
                    live2.published_on as live_published_on,
                    live2.username as live_username,
-                   live2.commit_id as live_commit_id, COUNT(1) as children_count
+                   live2.commit_id as live_commit_id,
+                   COUNT(DISTINCT i6.id) as children_count
             from item i3 inner join site s4 on i3.site_id = s4.id
                          left outer join item i6 on i3.id = i6.parent_id
                 left outer join user u4 on i3.owned_by = u4.id
@@ -631,6 +669,8 @@
                      on s4.site_id = live2.site and i3.path = live2.path
             where i3.site_id = #{siteId} and i3.path = #{path} and i3.ignored = 0
               AND (i6.ignored = 0 or i6.ignored is null)
+              AND (i6.system_type &lt;&gt; #{systemTypeFolder} or not exists
+                (select * from item i11 where i11.site_id = i6.site_id and i11.path = concat(i6.path, '/index.xml')))
              GROUP BY i3.id)
             limit 0, 1
     </select>

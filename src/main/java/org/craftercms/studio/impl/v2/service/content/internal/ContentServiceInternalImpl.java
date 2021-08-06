@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
@@ -193,9 +194,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+                    stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemByPath(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         }
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
@@ -218,9 +220,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByIdPreferContent(id, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByIdPreferContent(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemById(id, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemById(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         }
         if (!contentRepository.contentExists(siteId, item.getPath())) {
             throw new ContentNotFoundException(item.getPath(), siteId,
@@ -239,9 +241,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> items = null;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths);
+            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
         } else {
-            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths);
+            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -251,9 +253,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items = null;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids);
+            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER);
         } else {
-            items = itemDao.getSandboxItemsById(ids);
+            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER);
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -307,7 +309,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public void itemUnlockById(String siteId, long itemId) {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, COMPLETED, stagingEnv, liveEnv);
+        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, CONTENT_TYPE_FOLDER, COMPLETED,
+                stagingEnv, liveEnv);
         contentRepository.itemUnlock(siteId, item.getPath());
     }
 
