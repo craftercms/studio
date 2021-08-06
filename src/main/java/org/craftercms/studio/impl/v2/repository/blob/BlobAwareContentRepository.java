@@ -140,9 +140,14 @@ public class BlobAwareContentRepository implements ContentRepository,
         return (StudioBlobStore) blobStoreResolver.getByPaths(site, paths);
     }
 
-    protected boolean pointersExists(String siteId, String... paths) {
+    protected boolean pointersExist(String siteId, String... paths) {
         return Stream.of(paths).
-                allMatch(path -> localRepositoryV1.contentExists(siteId, getPointerPath(siteId, path)));
+                allMatch(path -> {
+                    // Check if the pointer path is not the same (this happens for folders)
+                    String pointerPath = getPointerPath(siteId, path);
+                    return !StringUtils.equals(path, pointerPath)
+                            && localRepositoryV1.contentExists(siteId, pointerPath);
+                });
     }
 
     // Start API 1
@@ -151,7 +156,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     public boolean contentExists(String site, String path) {
         logger.debug("Checking if {0} exists in site {1}", path, site);
         try {
-            if (!isFolder(site, path) && pointersExists(site, path)) {
+            if (!isFolder(site, path) && pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.contentExists(site, normalize(path));
@@ -168,7 +173,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     public InputStream getContent(String site, String path) {
         logger.debug("Getting content of {0} in site {1}", path, site);
         try {
-            if (!isFolder(site, path) && pointersExists(site, path)) {
+            if (!isFolder(site, path) && pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.getContent(site, normalize(path));
@@ -185,7 +190,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     public long getContentSize(String site, String path) {
         logger.debug("Getting size of {0} in site {1}", path, site);
         try {
-            if (pointersExists(site, path)) {
+            if (pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return store.getContentSize(site, normalize(path));
@@ -329,7 +334,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     public VersionTO[] getContentVersionHistory(String site, String path) {
         logger.debug("Getting version history for {0} in site {1}", path, site);
         try {
-            if (pointersExists(site, path)) {
+            if (pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
                     return localRepositoryV1.getContentVersionHistory(site, getPointerPath(site, path));
@@ -510,8 +515,9 @@ public class BlobAwareContentRepository implements ContentRepository,
         List<DeploymentItemTO> localItems = new LinkedList<>();
         try {
             for (DeploymentItemTO item : deploymentItems) {
-                if (pointersExists(site, item.getPath()) &&
-                        (isEmpty(item.getOldPath()) || pointersExists(site, item.getOldPath()))) {
+                if (pointersExist(site, item.getPath()) &&
+                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()))) {
+                    logger.debug("Looking blob store for item {0}", item);
                     StudioBlobStore store = getBlobStore(site, item.getPath());
                     if (store != null) {
                         stores.putIfAbsent(store.getId(), store);
