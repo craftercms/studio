@@ -436,6 +436,7 @@ public class GitContentRepository implements ContentRepository {
                                             .setOldTree(firstCommitTreeParser)
                                             .setNewTree(null);
                                     List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Diff from " + objFirstCommitId.getName() + " to null " +
                                                 "finished in " + ((System.currentTimeMillis() - startDiffMark1) / 1000)
@@ -474,6 +475,35 @@ public class GitContentRepository implements ContentRepository {
                                             .setOldTree(fromCommitTreeParser)
                                             .setNewTree(toCommitTreeParser);
                                     List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+
+                                    if (logger.isDebugEnabled()) {
+                                        logger.debug("Diff from " + objCommitIdFrom.getName() + " to " +
+                                                objCommitIdTo.getName() + " finished in " +
+                                                ((System.currentTimeMillis() - startDiffMark2) / 1000) + " seconds");
+                                        logger.debug("Number of diff entries " + diffEntries.size());
+                                    }
+
+                                    if (CollectionUtils.isEmpty(diffEntries)) {
+                                        ObjectId objCommitIdPrevious = repo.resolve(commitIdTo + "~");
+                                        if (Objects.nonNull(objCommitIdPrevious)) {
+                                            RevTree previousTree = helper.getTreeForCommit(repo,
+                                                    objCommitIdPrevious.getName());
+                                            CanonicalTreeParser previousCommitTreeParser = new CanonicalTreeParser();
+                                            previousCommitTreeParser.reset(reader, previousTree.getId());
+                                            toCommitTreeParser.reset(reader, toTree.getId());
+                                            diffCommand = git.diff()
+                                                    .setOldTree(previousCommitTreeParser)
+                                                    .setNewTree(toCommitTreeParser);
+                                            diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+                                            if (logger.isDebugEnabled()) {
+                                                logger.debug("Diff from " + objCommitIdPrevious.getName() + " to " +
+                                                        objCommitIdTo.getName() + " finished in " +
+                                                        ((System.currentTimeMillis() - startDiffMark2) / 1000) + " seconds");
+                                                logger.debug("Number of diff entries " + diffEntries.size());
+                                            }
+                                        }
+                                    }
+
                                     if (logger.isDebugEnabled()) {
                                         logger.debug("Diff from " + objCommitIdFrom.getName() + " to " +
                                                 objCommitIdTo.getName() + " finished in " +
@@ -591,7 +621,7 @@ public class GitContentRepository implements ContentRepository {
                     logger.error("Error: Unknown git operation " + diffEntry.getChangeType());
                     break;
             }
-            if ((repoOperation != null) && (!repoOperation.getPath().endsWith(".keep"))) {
+            if (repoOperation != null) {
                 repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" : author);
                 toReturn.add(repoOperation);
             }
