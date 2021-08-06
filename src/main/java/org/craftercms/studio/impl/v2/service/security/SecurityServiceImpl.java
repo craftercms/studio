@@ -37,8 +37,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -65,13 +65,15 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getUserPermission(String siteId, String username, List<String> roles)
-            throws ExecutionException {
+    public List<String> getUserPermission(String siteId, String username, List<String> roles) {
         String key = siteId + ":" + CACHE_KEY + username;
-        return (List<String>) configurationCache.get(key, () -> {
+        List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
+        if (isEmpty(permissions)) {
             logger.debug("Cache miss for {0}", key);
-            return loadUserPermission(siteId, roles);
-        });
+            permissions = loadUserPermission(siteId, roles);
+            configurationCache.put(key, permissions);
+        }
+        return permissions;
     }
 
     private List<String> loadUserPermission(String siteId, List<String> roles) {

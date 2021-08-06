@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 
@@ -112,9 +111,13 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     private HierarchicalConfiguration<ImmutableNode> loadGlobalRepoConfig() {
         String cacheKey = prependIfMissing(systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG), "/");
         try {
-            return configurationCache.get(cacheKey, () -> {
-                Path globalRepoOverrideConfigLocation = Paths.get(systemConfig.getString(REPO_BASE_PATH),
-                        systemConfig.getString(GLOBAL_REPO_PATH), systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
+            HierarchicalConfiguration<ImmutableNode> config = configurationCache.getIfPresent(cacheKey);
+            if (config == null) {
+                config = systemConfig;
+                Path globalRepoOverrideConfigLocation = Paths.get(
+                        systemConfig.getString(REPO_BASE_PATH),
+                        systemConfig.getString(GLOBAL_REPO_PATH),
+                        systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
                 if (systemConfig.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
                     FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
                     if (fsr.exists()) {
@@ -133,9 +136,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                                     combinedConfig.addConfiguration(globalRepoOverrideConfig);
                                     combinedConfig.addConfiguration(systemConfig);
 
-                                    return combinedConfig;
-                                } else {
-                                    return systemConfig;
+                                    config = combinedConfig;
                                 }
                             }
                         } catch (IOException | ConfigurationException e) {
@@ -143,9 +144,9 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                         }
                     }
                 }
-                return systemConfig;
-            });
-        } catch (ExecutionException e) {
+            }
+            return config;
+        } catch (Exception e) {
             logger.error("Error loading configuration from global repo", e);
             return systemConfig;
         }
