@@ -175,12 +175,14 @@ public interface ItemDAO {
      * Get item by id
      *
      * @param id item id
+     * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
      * @return item identified by given id
      */
     DetailedItem getItemById(@Param(ID) long id,
+                     @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                      @Param(COMPLETED_STATE) String completedState,
                      @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                      @Param(LIVE_ENVIRONMENT) String liveEnvironment);
@@ -189,26 +191,30 @@ public interface ItemDAO {
      * Get item by id with prefer content option
      *
      * @param id item id
+     * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
      * @return item identified by given id
      */
     DetailedItem getItemByIdPreferContent(@Param(ID) long id,
-                                  @Param(COMPLETED_STATE) String completedState,
-                                  @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                                  @Param(LIVE_ENVIRONMENT) String liveEnvironment);
+                                          @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                                          @Param(COMPLETED_STATE) String completedState,
+                                          @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                          @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item for given site and path
      * @param siteId site identifier
      * @param path path of the item
+     * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                        @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                         @Param(COMPLETED_STATE) String completedState,
                                         @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                         @Param(LIVE_ENVIRONMENT) String liveEnvironment);
@@ -217,12 +223,14 @@ public interface ItemDAO {
      * Get item with prefer content option for given site and path
      * @param siteId site identifier
      * @param path path of the item
+     * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                                     @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                                      @Param(COMPLETED_STATE) String completedState,
                                                      @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                                      @Param(LIVE_ENVIRONMENT) String liveEnvironment);
@@ -379,6 +387,7 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
+     * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
@@ -386,6 +395,7 @@ public interface ItemDAO {
      */
 
     DetailedItem getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                               @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                @Param(COMPLETED_STATE) String completedState,
                                @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                @Param(LIVE_ENVIRONMENT) String liveEnvironment);
@@ -394,6 +404,7 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
+     * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
      * @param stagingEnvironment staging environment
@@ -401,6 +412,7 @@ public interface ItemDAO {
      */
 
     DetailedItem getItemByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                                            @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                             @Param(COMPLETED_STATE) String completedState,
                                             @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                             @Param(LIVE_ENVIRONMENT) String liveEnvironment);
@@ -422,31 +434,39 @@ public interface ItemDAO {
      * Get sandbox items for given paths with prefer content option
      * @param siteId site identifier
      * @param paths paths to get items for
+     * @param systemTypeFolder value for system type folder
      * @return list of items
      */
-    List<Item> getSandboxItemsByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths);
+    List<Item> getSandboxItemsByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+                                                  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get sandbox items for given paths
      * @param siteId site identifier
      * @param paths paths to get items for
+     * @param systemTypeFolder value for system type folder
      * @return list of items
      */
-    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths);
+    List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+                                     @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get sandbox items for given ids with prefer content option
      * @param itemIds item ids
+     * @param systemTypeFolder value for system type folder
      * @return list of items
      */
-    List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds);
+    List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
+                                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get sandbox items for given ids
      * @param itemIds item ids
+     * @param systemTypeFolder value for system type folder
      * @return list of items
      */
-    List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds);
+    List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
+                                   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get mandatory parents for publishing

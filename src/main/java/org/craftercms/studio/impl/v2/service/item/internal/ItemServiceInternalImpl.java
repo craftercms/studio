@@ -158,7 +158,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public DetailedItem getItem(String siteId, long id) {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        return itemDao.getItemById(id, COMPLETED, stagingEnv, liveEnv);
+        return itemDao.getItemById(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
     }
 
     @Override
@@ -175,9 +175,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+                    stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), CONTENT_TYPE_FOLDER, path, COMPLETED,
+                    stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
             item.setSiteName(siteId);
