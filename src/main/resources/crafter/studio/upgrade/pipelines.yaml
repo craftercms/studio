@@ -1621,6 +1621,14 @@ configurations:
             commitDetails: Add pull from remote conflict notifiction
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/3.1.x/config/notification-config/notification-config-v3.xslt
+            commitDetails: Comment example emails
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
 
   code-editor-config:
     module: studio
