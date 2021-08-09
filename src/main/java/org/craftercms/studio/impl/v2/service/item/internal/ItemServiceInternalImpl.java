@@ -178,7 +178,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
                     stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), CONTENT_TYPE_FOLDER, path, COMPLETED,
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
                     stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
