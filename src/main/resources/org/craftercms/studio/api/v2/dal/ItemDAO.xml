@@ -1069,7 +1069,7 @@
         AND i.path RLIKE(#{path})
         </if>
         <if test="statesBitMap != null">
-        AND (i.state &amp; #{statesBitMap}) &gt; 0
+        AND ((i.state ^ #{statesBitMap}) &amp; #{statesBitMap}) = 0
         </if>
         LIMIT #{offset}, #{limit}
     </select>
