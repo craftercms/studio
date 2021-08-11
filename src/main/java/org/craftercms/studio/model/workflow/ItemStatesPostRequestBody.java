@@ -27,8 +27,8 @@ public class ItemStatesPostRequestBody {
     private List<String> items;
     private boolean clearSystemProcessing;
     private boolean clearUserLocked;
-    private boolean live;
-    private boolean staged;
+    private Boolean live;
+    private Boolean staged;
 
     public String getSiteId() {
         return siteId;
@@ -62,19 +62,19 @@ public class ItemStatesPostRequestBody {
         this.clearUserLocked = clearUserLocked;
     }
 
-    public boolean isLive() {
+    public Boolean getLive() {
         return live;
     }
 
-    public void setLive(boolean live) {
+    public void setLive(Boolean live) {
         this.live = live;
     }
 
-    public boolean isStaged() {
+    public Boolean getStaged() {
         return staged;
     }
 
-    public void setStaged(boolean staged) {
+    public void setStaged(Boolean staged) {
         this.staged = staged;
     }
 }

@@ -730,7 +730,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, boolean live, boolean staged) {
+                                 boolean clearUserLocked, Boolean live, Boolean staged) {
         if (CollectionUtils.isNotEmpty(paths)) {
             long setStatesMask = 0L;
             long resetStatesMask = 0l;
@@ -741,15 +741,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             if (clearUserLocked) {
                 resetStatesMask = resetStatesMask | USER_LOCKED.value;
             }
-            if (live) {
-                setStatesMask = setStatesMask | LIVE.value;
-            } else {
-                resetStatesMask = resetStatesMask | LIVE.value;
+            if (live != null) {
+                if (live) {
+                    setStatesMask = setStatesMask | LIVE.value;
+                } else {
+                    resetStatesMask = resetStatesMask | LIVE.value;
+                }
             }
-            if (staged) {
-                setStatesMask = setStatesMask | STAGED.value;
-            } else {
-                resetStatesMask = resetStatesMask | STAGED.value;
+            if (staged != null) {
+                if (staged) {
+                    setStatesMask = setStatesMask | STAGED.value;
+                } else {
+                    resetStatesMask = resetStatesMask | STAGED.value;
+                }
             }
 
             Map<String, String> params = new HashMap<String, String>();

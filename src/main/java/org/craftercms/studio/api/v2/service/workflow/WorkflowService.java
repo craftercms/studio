@@ -52,7 +52,7 @@ public interface WorkflowService {
      * @param staged if true set staged flag, otherwise reset it
      */
     void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked,
-                          boolean live, boolean staged);
+                          Boolean live, Boolean staged);
 
     /**
      * Update item state flags for given path query
