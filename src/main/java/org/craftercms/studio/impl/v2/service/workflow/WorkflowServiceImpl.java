@@ -40,7 +40,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, boolean live, boolean staged) {
+                                 boolean clearUserLocked, Boolean live, Boolean staged) {
         itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged);
     }
 

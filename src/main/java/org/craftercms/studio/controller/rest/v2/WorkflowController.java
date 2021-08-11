@@ -97,8 +97,8 @@ public class WorkflowController {
         }
 
         workflowService.updateItemStates(requestBody.getSiteId(), requestBody.getItems(),
-                requestBody.isClearSystemProcessing(), requestBody.isClearUserLocked(), requestBody.isLive(),
-                requestBody.isStaged());
+                requestBody.isClearSystemProcessing(), requestBody.isClearUserLocked(), requestBody.getLive(),
+                requestBody.getStaged());
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
