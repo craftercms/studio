@@ -338,8 +338,7 @@ public class ContentServiceImpl implements ContentService {
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock,
                              boolean skipAuditLogInsert) throws ServiceLayerException {
-        // TODO: SJ: refactor for 2.7.x
-
+        path = path.replaceAll("//", "/");
         try {
             entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
         } catch (EntitlementException e) {
