@@ -116,11 +116,12 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path to get children for
-     *
+     * @param ldName level descriptor name
      * @return list of items (parent, level descriptor, children)
      */
 
-    List<Item> getAllChildrenByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path);
+    List<Item> getAllChildrenByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                                    @Param(LEVEL_DESCRIPTOR_NAME) String ldName);
 
     /**
      * Get total number of children for given path
@@ -175,6 +176,7 @@ public interface ItemDAO {
      * Get item by id
      *
      * @param id item id
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -182,15 +184,17 @@ public interface ItemDAO {
      * @return item identified by given id
      */
     DetailedItem getItemById(@Param(ID) long id,
-                     @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                     @Param(COMPLETED_STATE) String completedState,
-                     @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                     @Param(LIVE_ENVIRONMENT) String liveEnvironment);
+                             @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
+                             @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                             @Param(COMPLETED_STATE) String completedState,
+                             @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                             @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item by id with prefer content option
      *
      * @param id item id
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -198,6 +202,7 @@ public interface ItemDAO {
      * @return item identified by given id
      */
     DetailedItem getItemByIdPreferContent(@Param(ID) long id,
+                                          @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                           @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                           @Param(COMPLETED_STATE) String completedState,
                                           @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -207,6 +212,7 @@ public interface ItemDAO {
      * Get item for given site and path
      * @param siteId site identifier
      * @param path path of the item
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -214,6 +220,7 @@ public interface ItemDAO {
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPath(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                        @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                         @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                         @Param(COMPLETED_STATE) String completedState,
                                         @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -223,6 +230,7 @@ public interface ItemDAO {
      * Get item with prefer content option for given site and path
      * @param siteId site identifier
      * @param path path of the item
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -230,6 +238,7 @@ public interface ItemDAO {
      * @return item for given site and path
      */
     DetailedItem getItemBySiteIdAndPathPreferContent(@Param(SITE_ID) long siteId, @Param(PATH) String path,
+                                                     @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                                      @Param(COMPLETED_STATE) String completedState,
                                                      @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -387,6 +396,7 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -395,6 +405,7 @@ public interface ItemDAO {
      */
 
     DetailedItem getItemByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                               @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                @Param(COMPLETED_STATE) String completedState,
                                @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -404,6 +415,7 @@ public interface ItemDAO {
      *
      * @param siteId site identifier
      * @param path path of the item
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -412,6 +424,7 @@ public interface ItemDAO {
      */
 
     DetailedItem getItemByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+                                            @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                             @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                             @Param(COMPLETED_STATE) String completedState,
                                             @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -434,38 +447,46 @@ public interface ItemDAO {
      * Get sandbox items for given paths with prefer content option
      * @param siteId site identifier
      * @param paths paths to get items for
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @return list of items
      */
     List<Item> getSandboxItemsByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+                                                  @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                                   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get sandbox items for given paths
      * @param siteId site identifier
      * @param paths paths to get items for
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @return list of items
      */
     List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
+                                     @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                      @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get sandbox items for given ids with prefer content option
      * @param itemIds item ids
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @return list of items
      */
     List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
+                                                @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                                 @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
      * Get sandbox items for given ids
      * @param itemIds item ids
+     * @param ldName level descriptor name
      * @param systemTypeFolder value for system type folder
      * @return list of items
      */
     List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
+                                   @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
                                    @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**

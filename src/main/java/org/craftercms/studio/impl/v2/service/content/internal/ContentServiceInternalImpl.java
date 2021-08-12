@@ -191,13 +191,15 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+            item = itemDao.getItemByPathPreferContent(siteFeed.getId(), path, ldName, CONTENT_TYPE_FOLDER, COMPLETED,
                     stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByPath(siteFeed.getId(), path, ldName, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv,
+                    liveEnv);
         }
         DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
@@ -217,12 +219,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public DetailedItem getItemById(String siteId, long id, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByIdPreferContent(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByIdPreferContent(id, ldName, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemById(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemById(id, ldName, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         }
         if (!contentRepository.contentExists(siteId, item.getPath())) {
             throw new ContentNotFoundException(item.getPath(), siteId,
@@ -239,11 +242,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         List<Item> items = null;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, ldName, CONTENT_TYPE_FOLDER);
         } else {
-            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, ldName, CONTENT_TYPE_FOLDER);
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -252,10 +256,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items = null;
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsByIdPreferContent(ids, ldName, CONTENT_TYPE_FOLDER);
         } else {
-            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsById(ids, ldName, CONTENT_TYPE_FOLDER);
         }
         return calculatePossibleActions(siteId, items);
     }
@@ -307,10 +312,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public void itemUnlockById(String siteId, long itemId) {
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, CONTENT_TYPE_FOLDER, COMPLETED,
-                stagingEnv, liveEnv);
+        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, ldName, CONTENT_TYPE_FOLDER,
+                COMPLETED, stagingEnv, liveEnv);
         contentRepository.itemUnlock(siteId, item.getPath());
     }
 
