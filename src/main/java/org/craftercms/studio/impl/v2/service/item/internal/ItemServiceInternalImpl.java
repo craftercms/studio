@@ -118,7 +118,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         try {
             String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
             Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
@@ -130,7 +130,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             while (!queue.isEmpty()) {
                 Item parentItem = queue.poll();
                 List<Item> children = itemDao.getAllChildrenByPath(siteFeed.getId(),
-                        parentItem.getPath());
+                        parentItem.getPath(), ldName);
                 if (CollectionUtils.isNotEmpty(children)) {
                     for (Item item : children) {
                         queue.add(item);
@@ -156,9 +156,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public DetailedItem getItem(String siteId, long id) {
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        return itemDao.getItemById(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+        return itemDao.getItemById(id, ldName, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
     }
 
     @Override
@@ -172,13 +173,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         DetailedItem item = null;
+        String ldName = servicesConfig.getLevelDescriptorName(siteId);
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
-                    stagingEnv, liveEnv);
+            item = itemDao.getItemBySiteIdAndPathPreferContent(siteFeed.getId(), path, ldName, CONTENT_TYPE_FOLDER,
+                    COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED,
+            item = itemDao.getItemBySiteIdAndPath(siteFeed.getId(), path, ldName, CONTENT_TYPE_FOLDER, COMPLETED,
                     stagingEnv, liveEnv);
         }
         if (Objects.nonNull(item)) {
