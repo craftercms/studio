@@ -8,9 +8,9 @@ cache:
     - $HOME/.m2
 before_install:
   - mkdir -p .linuxbrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C .linuxbrew
-  - export PATH="$HOME/.linuxbrew/bin:$PATH"
-  - export MANPATH="$HOME/.linuxbrew/share/man:$MANPATH"
-  - export INFOPATH="$HOME/.linuxbrew/share/info:$INFOPATH"
+  - export PATH="/home/travis/.linuxbrew/bin:$PATH"
+  - export MANPATH="/home/travis/.linuxbrew/share/man:$MANPATH"
+  - export INFOPATH="/home/travis/.linuxbrew/share/info:$INFOPATH"
   - brew install openjdk@11
   - export PATH="/home/travis/.linuxbrew/opt/openjdk@11/bin:$PATH"
   - export JAVA_HOME="/home/travis/.linuxbrew/opt/openjdk@11"
