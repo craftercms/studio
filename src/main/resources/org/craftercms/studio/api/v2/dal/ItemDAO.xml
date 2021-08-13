@@ -155,9 +155,8 @@
         SELECT *, 0 as children_count FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
         UNION
         (SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-                and i100.path NOT LIKE '%/${ldName}') as i3 on i1.id = i3.parent_id WHERE
-        i1.site_id = #{siteId}
+            left outer join item  i3 on i1.id = i3.parent_id
+        WHERE i1.site_id = #{siteId}
         AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
@@ -194,8 +193,7 @@
 
     <select id="getAllChildrenByPath" resultMap="ItemMap">
         SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                       and i100.path NOT LIKE '%/${ldName}') as i3
+            left outer join item i3
                 on i1.id = i3.parent_id WHERE i1.site_id = #{siteId}
         AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
@@ -231,8 +229,7 @@
         WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
         SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-        and i100.path NOT LIKE '%/${ldName}') as i3 on i1.id = i3.parent_id
+            left outer join item i3 on i1.id = i3.parent_id
         WHERE i1.site_id = #{siteId} AND i1.parent_id = #{parentId} AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND i1.locale_code = #{localeCode}
@@ -291,8 +288,7 @@
                    live1.commit_id as live_commit_id,
                    COUNT(DISTINCT i3.id) as children_count
             from item i inner join site s1 on i.site_id = s1.id
-                        left outer join (select * from item i100 where i100.site_id = #{siteId}
-                              and i100.path NOT LIKE '%/${ldName}') as i3 on i.id = i3.parent_id
+                        left outer join item i3 on i.id = i3.parent_id
                         left outer join user u1 on i.owned_by = u1.id
                         left outer join user u2 on i.created_by = u2.id
                         left outer join user u3 on i.last_modified_by = u3.id
@@ -333,8 +329,7 @@
                     live1.commit_id as live_commit_id,
                     COUNT(DISTINCT i5.id) as children_count
             from item i1 inner join site s1 on i1.site_id = s1.id
-                left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                           and i100.path NOT LIKE '%/${ldName}') as i5 on i1.id = i5.parent_id
+                left outer join item i5 on i1.id = i5.parent_id
                 left outer join user u1 on i1.owned_by = u1.id
                 left outer join user u2 on i1.created_by = u2.id
                 left outer join user u3 on i1.last_modified_by = u3.id
@@ -373,8 +368,7 @@
                    live2.commit_id as live_commit_id,
                    COUNT(DISTINCT i6.id) as children_count
             from item i3 inner join site s4 on i3.site_id = s4.id
-                left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                           and i100.path NOT LIKE '%/${ldName}') as i6 on i3.id = i6.parent_id
+                left outer join item i6 on i3.id = i6.parent_id
                 left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
@@ -414,8 +408,7 @@
                    live1.commit_id as live_commit_id,
                    COUNT(DISTINCT i3.id) as children_count
             from item i inner join site s1 on i.site_id = s1.id
-                left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                           and i100.path NOT LIKE '%/${ldName}') as i3 on i.id = i3.parent_id
+                left outer join item i3 on i.id = i3.parent_id
                 left outer join user u1 on i.owned_by = u1.id
             left outer join user u2 on i.created_by = u2.id
             left outer join user u3 on i.last_modified_by = u3.id
@@ -455,8 +448,7 @@
                     live1.commit_id as live_commit_id,
                     COUNT(DISTINCT i5.id) as children_count
             from item i1 inner join site s1 on i1.site_id = s1.id
-                left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                           and i100.path NOT LIKE '%/${ldName}') as i5 on i1.id = i5.parent_id
+                left outer join item i5 on i1.id = i5.parent_id
                 left outer join user u1 on i1.owned_by = u1.id
             left outer join user u2 on i1.created_by = u2.id
             left outer join user u3 on i1.last_modified_by = u3.id
@@ -495,8 +487,7 @@
                    live2.commit_id as live_commit_id,
                    COUNT(DISTINCT i6.id) as children_count
             from item i3 inner join site s4 on i3.site_id = s4.id
-                left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                           and i100.path NOT LIKE '%/${ldName}') as i6 on i3.id = i6.parent_id
+                left outer join item i6 on i3.id = i6.parent_id
                 left outer join user u4 on i3.owned_by = u4.id
             left outer join user u5 on i3.created_by = u5.id
             left outer join user u6 on i3.last_modified_by = u6.id
@@ -528,8 +519,7 @@
         select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                COUNT(DISTINCT i3.id) as children_count
         from item i
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-        and i100.path NOT LIKE '%/${ldName}') as i3 on i.id = i3.parent_id
+            left outer join item i3 on i.id = i3.parent_id
             left outer join user u1 on i.owned_by = u1.id
         left outer join user u2 on i.created_by = u2.id
         left outer join user u3 on i.last_modified_by = u3.id
@@ -547,8 +537,7 @@
         select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                COUNT(DISTINCT i5.id ) as children_count
         from item i1
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-        and i100.path NOT LIKE '%/${ldName}') as i5 on i1.id = i5.parent_id
+            left outer join item i5 on i1.id = i5.parent_id
             left outer join user u1 on i1.owned_by = u1.id
         left outer join user u2 on i1.created_by = u2.id
         left outer join user u3 on i1.last_modified_by = u3.id, item i2 where i2.id in
@@ -585,8 +574,7 @@
         select i.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                COUNT(DISTINCT i3.id) as children_count
         from item i
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-        and i100.path NOT LIKE '%/${ldName}') as i3 on i.id = i3.parent_id
+            left outer join item i3 on i.id = i3.parent_id
             left outer join user u1 on i.owned_by = u1.id
         left outer join user u2 on i.created_by = u2.id
         left outer join user u3 on i.last_modified_by = u3.id
@@ -604,8 +592,7 @@
         select i1.*, u1.username as owner, u2.username as creator, u3.username as modifier,
                COUNT(DISTINCT i5.id) as children_count
         from item i1
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-        and i100.path NOT LIKE '%/${ldName}') as i5 on i1.id = i5.parent_id
+            left outer join item i5 on i1.id = i5.parent_id
             left outer join user u1 on i1.owned_by = u1.id
         left outer join user u2 on i1.created_by = u2.id
         left outer join user u3 on i1.last_modified_by = u3.id, item i2 where i2.site_id = #{siteId} and i2.path in
@@ -623,8 +610,7 @@
         select i3.*, u4.username as owner, u5.username as creator, u6.username as modifier,
                COUNT(DISTINCT i6.id) as children_count
         from item i3
-            left outer join (select * from item i100 where i100.site_id = #{siteId}
-        and i100.path NOT LIKE '%/${ldName}') as i6 on i3.id = i6.parent_id
+            left outer join item i6 on i3.id = i6.parent_id
             left outer join user u4 on i3.owned_by = u4.id
         left outer join user u5 on i3.created_by = u5.id
         left outer join user u6 on i3.last_modified_by = u6.id where i3.site_id = #{siteId} and i3.path in
@@ -653,8 +639,7 @@
                    live1.commit_id as live_commit_id,
                    COUNT(DISTINCT i3.id) as children_count
             from item i inner join site s1 on i.site_id = s1.id
-                        left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                                   and i100.path NOT LIKE '%/${ldName}') as i3 on i.id = i3.parent_id
+                        left outer join item i3 on i.id = i3.parent_id
                         left outer join user u1 on i.owned_by = u1.id
                         left outer join user u2 on i.created_by = u2.id
                         left outer join user u3 on i.last_modified_by = u3.id
@@ -695,8 +680,7 @@
                     live1.commit_id as live_commit_id,
                     COUNT(DISTINCT i5.id) as children_count
             from item i1 inner join site s1 on i1.site_id = s1.id
-                         left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                                    and i100.path NOT LIKE '%/${ldName}') as i5 on i1.id = i5.parent_id
+                         left outer join item i5 on i1.id = i5.parent_id
                 left outer join user u1 on i1.owned_by = u1.id
                  left outer join user u2 on i1.created_by = u2.id
                  left outer join user u3 on i1.last_modified_by = u3.id
@@ -737,8 +721,7 @@
                    live2.commit_id as live_commit_id,
                    COUNT(DISTINCT i6.id) as children_count
             from item i3 inner join site s4 on i3.site_id = s4.id
-                         left outer join (select * from item i100 where i100.site_id = #{siteId}
-                                                                    and i100.path NOT LIKE '%/${ldName}') as i6 on i3.id = i6.parent_id
+                         left outer join item i6 on i3.id = i6.parent_id
                 left outer join user u4 on i3.owned_by = u4.id
                  left outer join user u5 on i3.created_by = u5.id
                  left outer join user u6 on i3.last_modified_by = u6.id
