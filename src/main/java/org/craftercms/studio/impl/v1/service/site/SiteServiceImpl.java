@@ -323,8 +323,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(desc);
                 siteFeed.setPublishingStatus(READY);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
 
@@ -772,8 +770,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatus(READY);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
 

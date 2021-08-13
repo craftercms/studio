@@ -618,6 +618,11 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
+    <bean id="studio.publishingProgressServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.publish.internal.PublishingProgressServiceInternalImpl">
+
+    </bean>
+
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />

@@ -16,7 +16,6 @@ public class PublishStatus {
     @JsonIgnore
     private int enabledAsInt;
     private String status;
-    private String message;
     private String lockOwner;
     private String lockTTL;
 
@@ -56,14 +55,6 @@ public class PublishStatus {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 
     public String getLockOwner() {
