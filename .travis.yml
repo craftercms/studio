@@ -8,6 +8,8 @@ cache:
     - $HOME/.m2
 before_install:
   - mkdir -p .linuxbrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C .linuxbrew
+  - echo $HOME
+  - pwd
   - export PATH="/home/travis/.linuxbrew/bin:$PATH"
   - export MANPATH="/home/travis/.linuxbrew/share/man:$MANPATH"
   - export INFOPATH="/home/travis/.linuxbrew/share/info:$INFOPATH"
