@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 
@@ -204,7 +205,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                 // Item
                 // TODO: get local code with API 2
-                Item pItem = itemServiceInternal.getItem(site, parentItem.getUri(), true);
+                String parentItemPath = ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
+                Item pItem = itemServiceInternal.getItem(site, parentItemPath, true);
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, Optional.of(unlock),
                         pItem.getId());
             } catch (Exception e) {
