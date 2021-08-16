@@ -59,6 +59,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -188,6 +189,7 @@ public class GitContentRepository implements ContentRepository {
     private StudioUtils studioUtils;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private PublishingProgressServiceInternal publishingProgressServiceInternal;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -953,6 +955,7 @@ public class GitContentRepository implements ContentRepository {
                     Set<String> deployedPackages = new HashSet<String>();
                     logger.debug("Checkout deployed files started.");
                     AddCommand addCommand = git.add();
+                    String currentPackageId = deploymentItems.get(0).getPackageId();
                     for (DeploymentItemTO deploymentItem : deploymentItems) {
                         commitId = deploymentItem.getCommitId();
                         path = helper.getGitPath(deploymentItem.getPath());
@@ -1005,6 +1008,13 @@ public class GitContentRepository implements ContentRepository {
                         addCommand.addFilepattern(path);
                         itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
                                 ZonedDateTime.now(UTC));
+
+                        if (!StringUtils.equals(currentPackageId, deploymentItem.getPackageId())) {
+                            currentPackageId = deploymentItem.getPackageId();
+                            publishingProgressServiceInternal.updateObserver(site, currentPackageId);
+                        } else {
+                            publishingProgressServiceInternal.updateObserver(site);
+                        }
                     }
                     logger.debug("Checkout deployed files completed.");
 
@@ -1947,5 +1957,13 @@ public class GitContentRepository implements ContentRepository {
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    }
+
+    public PublishingProgressServiceInternal getPublishingProgressServiceInternal() {
+        return publishingProgressServiceInternal;
+    }
+
+    public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
+        this.publishingProgressServiceInternal = publishingProgressServiceInternal;
     }
 }

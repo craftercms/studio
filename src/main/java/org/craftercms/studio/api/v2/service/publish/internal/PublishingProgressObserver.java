@@ -51,6 +51,10 @@ public class PublishingProgressObserver {
         return packageId;
     }
 
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
+    }
+
     public String getEnvironment() {
         return environment;
     }

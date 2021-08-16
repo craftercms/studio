@@ -89,7 +89,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_SCHEDULED;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
@@ -104,9 +103,6 @@ import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.STOPPED;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
@@ -209,10 +205,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         } catch(Exception errNotify) {
             logger.error("Error sending approval notification ", errNotify);
         }
-        String statusMessage = studioConfiguration
-                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
-            siteService.updatePublishingStatusMessage(site, QUEUED, statusMessage);
+            siteService.updatePublishingStatus(site, QUEUED);
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
@@ -350,10 +344,8 @@ public class DeploymentServiceImpl implements DeploymentService {
             }
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
-        String statusMessage = studioConfiguration
-                .getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
         try {
-            siteService.updatePublishingStatusMessage(site, QUEUED, statusMessage);
+            siteService.updatePublishingStatus(site, QUEUED);
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
@@ -698,26 +690,20 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
 
         boolean toRet = siteService.enablePublishing(site, enabled);
-        String message;
         String status;
         if (enabled) {
             logger.info("Publishing started for site {0}", site);
             if (publishingManager.isPublishingQueueEmpty(site)) {
-                message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT);
                 status = READY;
             } else {
-                message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED);
                 status = QUEUED;
             }
 
         } else {
             logger.info("Publishing stopped for site {0}", site);
-            message = studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED);
-            message = message.replace("{username}", securityService.getCurrentUser()).replace("{datetime}",
-                    ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern(DATE_PATTERN_WORKFLOW_WITH_TZ)));
             status = STOPPED;
         }
-        siteService.updatePublishingStatusMessage(site, status, message);
+        siteService.updatePublishingStatus(site, status);
 
         SiteFeed siteFeed = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();

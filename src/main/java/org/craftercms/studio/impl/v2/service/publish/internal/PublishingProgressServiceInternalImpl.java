@@ -34,7 +34,14 @@ public class PublishingProgressServiceInternalImpl implements PublishingProgress
 
     @Override
     public void removeObserver(PublishingProgressObserver observer) {
-        this.publishingProgress.remove(observer.getSiteId());
+        if (Objects.nonNull(observer)) {
+            this.publishingProgress.remove(observer.getSiteId());
+        }
+    }
+
+    @Override
+    public void removeObserver(String siteId) {
+        this.publishingProgress.remove(siteId);
     }
 
     @Override
@@ -46,10 +53,43 @@ public class PublishingProgressServiceInternalImpl implements PublishingProgress
     }
 
     @Override
+    public void updateObserver(String siteId, String packageId) {
+        PublishingProgressObserver observer = this.publishingProgress.get(siteId);
+        if (Objects.nonNull(observer)) {
+            observer.setPackageId(packageId);
+            observer.updateProgress();
+        }
+    }
+
+    @Override
     public void updateObserver(String siteId, int delta) {
         PublishingProgressObserver observer = this.publishingProgress.get(siteId);
         if (Objects.nonNull(observer)) {
             observer.updateProgress(delta);
         }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void updateObserver(String siteId, int delta, String packageId) {
+        PublishingProgressObserver observer = this.publishingProgress.get(siteId);
+        if (Objects.nonNull(observer)) {
+            observer.setPackageId(packageId);
+            observer.updateProgress(delta);
+        }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public PublishingProgressObserver getPublishingProgress(String siteId) {
+        return this.publishingProgress.get(siteId);
     }
 }

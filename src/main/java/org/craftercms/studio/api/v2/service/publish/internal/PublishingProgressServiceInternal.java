@@ -31,10 +31,23 @@ public interface PublishingProgressServiceInternal {
     void removeObserver(PublishingProgressObserver observer);
 
     /**
+     * Remove publishing progress observer
+     * @param siteId site identifier
+     */
+    void removeObserver(String siteId);
+
+    /**
      * Update publishing progress for given site
      * @param siteId site identifier
      */
     void updateObserver(String siteId);
+
+    /**
+     * Update publishing progress for given site
+     * @param siteId site identifier
+     * @param packageId package identifier
+     */
+    void updateObserver(String siteId, String packageId);
 
     /**
      * Update publishing progres for given site by delta
@@ -43,5 +56,18 @@ public interface PublishingProgressServiceInternal {
      */
     void updateObserver(String siteId, int delta);
 
-    PublishingProgressObserver 
+    /**
+     * Update publishing progres for given site by delta
+     * @param siteId site identifier
+     * @param delta increment progress by delta
+     * @param packageId package identifier
+     */
+    void updateObserver(String siteId, int delta, String packageId);
+
+    /**
+     * Get publishing progress for given site
+     * @param siteId site identifier
+     * @return publishing progress
+     */
+    PublishingProgressObserver getPublishingProgress(String siteId);
 }
