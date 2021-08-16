@@ -163,8 +163,8 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void updateSitePublishingStatusMessage(String siteId, String status, String message) {
-        siteFeedMapper.updatePublishingStatusMessage(siteId, status, message);
+    public void updateSitePublishingStatus(String siteId, String status) {
+        siteFeedMapper.updatePublishingStatus(siteId, status);
     }
 
     @Override

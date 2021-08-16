@@ -478,6 +478,7 @@
 
     <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
         <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
+        <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
     </bean>
 
     <bean id="pluginDescriptorReader" class="org.craftercms.commons.plugin.impl.PluginDescriptorReaderImpl"/>
@@ -616,6 +617,11 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+    </bean>
+
+    <bean id="studio.publishingProgressServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.publish.internal.PublishingProgressServiceInternalImpl">
+
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
@@ -855,6 +861,7 @@
         <property name="notificationService" ref="cstudioNotificationService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
     </bean>
 
     <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask">
@@ -1013,6 +1020,7 @@
         <property name="studioUtils" ref="studio.utils" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">

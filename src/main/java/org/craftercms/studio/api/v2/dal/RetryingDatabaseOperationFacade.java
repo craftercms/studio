@@ -154,9 +154,8 @@ public interface RetryingDatabaseOperationFacade {
      * Update publishing status for site
      * @param siteId site identifier
      * @param status status value
-     * @param message status message
      */
-    void updateSitePublishingStatusMessage(String siteId, String status, String message);
+    void updateSitePublishingStatus(String siteId, String status);
 
     /**
      * Update last verified git log commit id for site

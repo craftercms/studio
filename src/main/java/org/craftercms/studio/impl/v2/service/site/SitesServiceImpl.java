@@ -23,10 +23,13 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
+import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_CLEAR_LOCK;
@@ -35,6 +38,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SitesServiceImpl implements SitesService {
 
     private SitesServiceInternal sitesServiceInternal;
+    private PublishingProgressServiceInternal publishingProgressServiceInternal;
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -63,6 +67,27 @@ public class SitesServiceImpl implements SitesService {
         sitesServiceInternal.updateSite(siteId, name, description);
     }
 
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
+    public PublishStatus getPublishingStatus(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
+        PublishingProgressObserver publishingProgressObserver =
+                publishingProgressServiceInternal.getPublishingProgress(siteId);
+        if (Objects.nonNull(publishingProgressObserver)) {
+            publishStatus.setEnvironment(publishingProgressObserver.getEnvironment());
+            publishStatus.setSubmissionId(publishingProgressObserver.getPackageId());
+            publishStatus.setNumberOfItems(publishingProgressObserver.getNumberOfFilesCompleted());
+            publishStatus.setTotalItems(publishingProgressObserver.getNumberOfFilesBeingPublished());
+        }
+        return publishStatus;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
+    public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        sitesServiceInternal.clearPublishingLock(siteId);
+    }
+
     public SitesServiceInternal getSitesServiceInternal() {
         return sitesServiceInternal;
     }
@@ -71,15 +96,11 @@ public class SitesServiceImpl implements SitesService {
         this.sitesServiceInternal = sitesServiceInternal;
     }
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
-    public PublishStatus getPublishingStatus(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
-        return sitesServiceInternal.getPublishingStatus(siteId);
+    public PublishingProgressServiceInternal getPublishingProgressServiceInternal() {
+        return publishingProgressServiceInternal;
     }
 
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
-    public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
-        sitesServiceInternal.clearPublishingLock(siteId);
+    public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
+        this.publishingProgressServiceInternal = publishingProgressServiceInternal;
     }
 }

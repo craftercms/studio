@@ -161,7 +161,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
@@ -272,7 +271,6 @@ public class SiteServiceImpl implements SiteService {
         logger.debug("Validating blueprint parameters");
         sitesServiceInternal.validateBlueprintParameters(descriptor, params);
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
-        String searchEngine = descriptor.getPlugin().getSearchEngine();
 
         logger.debug("Validate site entitlements");
         try {
@@ -323,8 +321,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(desc);
                 siteFeed.setPublishingStatus(READY);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
 
@@ -772,8 +768,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setSiteUuid(siteUuid);
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatus(READY);
-                siteFeed.setPublishingStatusMessage(
-                        studioConfiguration.getProperty(JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT));
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
 
@@ -1575,12 +1569,11 @@ public class SiteServiceImpl implements SiteService {
 
     @Override
     @ValidateParams
-    public boolean updatePublishingStatusMessage(@ValidateStringParam(name = "siteId") String siteId,
-                                                 @ValidateStringParam(name = "status") String status,
-                                                 @ValidateStringParam(name = "message") String message)
+    public boolean updatePublishingStatus(@ValidateStringParam(name = "siteId") String siteId,
+                                          @ValidateStringParam(name = "status") String status)
             throws SiteNotFoundException {
         if (exists(siteId)) {
-            retryingDatabaseOperationFacade.updateSitePublishingStatusMessage(siteId, status, message);
+            retryingDatabaseOperationFacade.updateSitePublishingStatus(siteId, status);
             return true;
         } else {
             throw new SiteNotFoundException();

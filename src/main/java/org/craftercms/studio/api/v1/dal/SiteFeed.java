@@ -34,7 +34,6 @@ public class SiteFeed {
     protected String lastCommitId;
     protected int publishingEnabled;
     protected String publishingStatus;
-    protected String publishingStatusMessage;
     protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
     protected int publishedRepoCreated;
@@ -113,14 +112,6 @@ public class SiteFeed {
 
     public void setPublishingStatus(String publishingStatus) {
         this.publishingStatus = publishingStatus;
-    }
-
-    public String getPublishingStatusMessage() {
-        return publishingStatusMessage;
-    }
-
-    public void setPublishingStatusMessage(String publishingStatusMessage) {
-        this.publishingStatusMessage = publishingStatusMessage;
     }
 
     public String getLastVerifiedGitlogCommitId() {

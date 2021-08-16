@@ -30,7 +30,6 @@
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
         <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
-        <result property="publishingStatusMessage" column="publishing_status_message" jdbcType="VARCHAR" javaType="String"/>
         <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
@@ -45,7 +44,6 @@
         <id property="id" column="id" />
         <result property="enabledAsInt" column="publishing_enabled" />
         <result property="status" column="publishing_status" />
-        <result property="message" column="publishing_status_message" />
         <result property="lockOwner" column="publishing_lock_owner" />
         <result property="lockTTL" column="publishing_lock_heartbeat" />
     </resultMap>
@@ -59,7 +57,6 @@
         <parameter property="deleted" jdbcType="INTEGER"/>
         <parameter property="lastCommitId" jdbcType="VARCHAR"/>
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
-        <parameter property="publishingStatusMessage" jdbcType="VARCHAR" />
         <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="lastSyncedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
@@ -83,9 +80,9 @@
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
         insert into site (site_uuid, site_id, name, description, deleted, last_commit_id,
-                          publishing_status, publishing_status_message, sandbox_branch)
+                          publishing_status, sandbox_branch)
         values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{deleted}, #{lastCommitId},
-                #{publishingStatus}, #{publishingStatusMessage}, #{sandboxBranch})
+                #{publishingStatus}, #{sandboxBranch})
     </insert>
 
     <update id="deleteSite">
@@ -173,8 +170,8 @@
         UPDATE site SET publishing_enabled = #{enabled} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
-    <update id="updatePublishingStatusMessage" parameterType="java.util.Map">
-        UPDATE site SET publishing_status = #{publishingStatus}, publishing_status_message = #{message}
+    <update id="updatePublishingStatus" parameterType="java.util.Map">
+        UPDATE site SET publishing_status = #{publishingStatus}
         WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
@@ -245,7 +242,7 @@
     </select>
 
     <select id="getPublishingStatus" resultMap="PublishStatusMap">
-        SELECT publishing_enabled, publishing_status, publishing_status_message, publishing_lock_owner,
+        SELECT publishing_enabled, publishing_status, publishing_lock_owner,
                DATE_ADD(publishing_lock_heartbeat, INTERVAL #{ttl} MINUTE) as publishing_lock_heartbeat
         FROM site WHERE site_id = #{siteId} AND deleted = 0 LIMIT 0, 1
     </select>
