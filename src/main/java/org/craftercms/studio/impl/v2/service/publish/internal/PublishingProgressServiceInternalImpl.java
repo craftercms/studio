@@ -67,11 +67,6 @@ public class PublishingProgressServiceInternalImpl implements PublishingProgress
         if (Objects.nonNull(observer)) {
             observer.updateProgress(delta);
         }
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -80,11 +75,6 @@ public class PublishingProgressServiceInternalImpl implements PublishingProgress
         if (Objects.nonNull(observer)) {
             observer.setPackageId(packageId);
             observer.updateProgress(delta);
-        }
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 
