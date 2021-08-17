@@ -126,6 +126,10 @@ public class ApiResponse {
     public static final ApiResponse REMOTE_REPOSITORY_NOT_REMOVABLE =
             new ApiResponse(12006, "Failed to remove remote repository",
                     "Remote repository is cluster node repository. Can't be removed.", StringUtils.EMPTY);
+    public static final ApiResponse REMOTE_REPOSITORY_AUTHENTICATION_FAILED =
+            new ApiResponse(12007, "Remote repository authentication failed",
+                    "Authentication failure. Create a new remote with proper authentication and " +
+                            "authorization to write.", StringUtils.EMPTY);
 
     // 40000 - 41000
     public static final ApiResponse MARKETPLACE_NOT_INITIALIZED =
