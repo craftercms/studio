@@ -6319,6 +6319,7 @@ components:
           * `CODE:` 12004, `MESSAGE:` Failed to remove remote repository, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 12005, `MESSAGE:` Push to remote repository failed, `REMEDIAL ACTION:` Check your repository settings or contact your system administrator.
           * `CODE:` 12006, `MESSAGE:` Remove remote repository failed, `REMEDIAL ACTION:` The remote repository is a cluster node repository. It can't be removed.
+          * `CODE:` 12007, `MESSAGE:` Remote repository authentication failed, `REMEDIAL ACTION:` Recreate the remote repository with the correct authentication credentials and make sure you have write access.
           * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 40002, `MESSAGE:` Plugin is already installed, `REMEDIAL ACTION:` Check that the site id, plugin id and plugin version are correct

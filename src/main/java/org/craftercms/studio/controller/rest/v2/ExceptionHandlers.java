@@ -31,9 +31,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
@@ -380,6 +382,24 @@ public class ExceptionHandlers {
     public ResponseBody handleValidationRuntimeException(HttpServletRequest request,
                                                          ValidationRuntimeException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(InvalidRemoteRepositoryCredentialsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleInvalidRemoteRepositoryCredentialsException(HttpServletRequest request,
+            InvalidRemoteRepositoryCredentialsException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_AUTHENTICATION_FAILED);
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(RemoteRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleRemoteRepositoryNotFoundException(HttpServletRequest request,
+            RemoteRepositoryNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_FOUND);
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 

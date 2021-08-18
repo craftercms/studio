@@ -25,9 +25,11 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -72,6 +74,7 @@ import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -392,7 +395,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
@@ -468,6 +471,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
+        } catch (TransportException e) {
+            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                logger.error("Bad credentials or read only repository: " + remoteName + " (" +
+                                remoteRepository.getRemoteUrl() + ")", e);
+                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
+                        remoteName + " (" + remoteRepository.getRemoteUrl() + ") for username " +
+                        remoteRepository.getRemoteUsername(), e);
+            } else {
+                logger.error("Remote repository not found: " + remoteName + " (" +
+                        remoteRepository.getRemoteUrl() + ")", e);
+                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
+                        remoteRepository.getRemoteUrl() + ")");
+            }
         } catch (GitAPIException e) {
             logger.error("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
@@ -521,7 +537,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
-            throws CryptoException, ServiceLayerException, InvalidRemoteUrlException {
+            throws CryptoException, ServiceLayerException, InvalidRemoteUrlException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 
@@ -581,6 +597,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
+        } catch (TransportException e) {
+            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                logger.error("Bad credentials or read only repository: " + remoteName + " (" +
+                        remoteRepository.getRemoteUrl() + ")", e);
+                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
+                        remoteName + " (" + remoteRepository.getRemoteUrl() + ") for username " +
+                        remoteRepository.getRemoteUsername(), e);
+            } else {
+                logger.error("Remote repository not found: " + remoteName + " (" +
+                        remoteRepository.getRemoteUrl() + ")", e);
+                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
+                        remoteRepository.getRemoteUrl() + ")");
+            }
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
             logger.error("Error while pushing to remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
