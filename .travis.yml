@@ -1,7 +1,7 @@
 version: ~> 1.0
 language: java
 jdk:
-  - openjdk11
+  - oraclejdk11
 addons:
   apt:
     packages:
