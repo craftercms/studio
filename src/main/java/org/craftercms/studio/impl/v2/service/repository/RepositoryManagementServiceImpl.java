@@ -24,8 +24,10 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -90,7 +92,8 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @HasPermission(type = DefaultPermission.class, action = "pull_from_remote")
     public boolean pullFromRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
                                   String remoteBranch, String mergeStrategy)
-            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
+            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         boolean toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
                 mergeStrategy);
         insertAddRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
@@ -104,7 +107,8 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @HasPermission(type = DefaultPermission.class, action = "push_to_remote")
     public boolean pushToRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
                                 String remoteBranch, boolean force)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         boolean toRet = repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
         insertAddRemoteAuditLog(siteId, OPERATION_PUSH_TO_REMOTE,remoteName + "/" + remoteBranch,
                 remoteName + "/" + remoteBranch);

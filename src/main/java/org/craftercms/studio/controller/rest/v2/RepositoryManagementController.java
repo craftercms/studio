@@ -21,8 +21,10 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -130,7 +132,8 @@ public class RepositoryManagementController {
 
     @PostMapping(PULL_FROM_REMOTE)
     public ResponseBody pullFromRemote(@RequestBody PullFromRemoteRequest pullFromRemoteRequest)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException {
+            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         if (!siteService.exists(pullFromRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pullFromRemoteRequest.getSiteId());
         }
@@ -151,7 +154,8 @@ public class RepositoryManagementController {
 
     @PostMapping(PUSH_TO_REMOTE)
     public ResponseBody pushToRemote(HttpServletResponse response, @RequestBody PushToRemoteRequest pushToRemoteRequest)
-            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException {
+            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException,
+            InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         if (!siteService.exists(pushToRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pushToRemoteRequest.getSiteId());
         }
