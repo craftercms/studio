@@ -2,10 +2,6 @@ version: ~> 1.0
 language: java
 jdk:
   - oraclejdk11
-addons:
-  apt:
-    packages:
-      - openjdk-11-jdk
 cache:
   directories:
     - $HOME/.m2
