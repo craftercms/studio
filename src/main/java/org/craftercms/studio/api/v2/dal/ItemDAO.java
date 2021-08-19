@@ -181,6 +181,7 @@ public interface ItemDAO {
      * Get item by id
      *
      * @param id item id
+     * @param siteId site identifier
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -188,6 +189,7 @@ public interface ItemDAO {
      * @return item identified by given id
      */
     DetailedItem getItemById(@Param(ID) long id,
+                             @Param(SITE_ID) String siteId,
                              @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                              @Param(COMPLETED_STATE) String completedState,
                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -197,6 +199,7 @@ public interface ItemDAO {
      * Get item by id with prefer content option
      *
      * @param id item id
+     * @param siteId site identifier
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -204,6 +207,7 @@ public interface ItemDAO {
      * @return item identified by given id
      */
     DetailedItem getItemByIdPreferContent(@Param(ID) long id,
+                                          @Param(SITE_ID) String siteId,
                                           @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                           @Param(COMPLETED_STATE) String completedState,
                                           @Param(STAGING_ENVIRONMENT) String stagingEnvironment,

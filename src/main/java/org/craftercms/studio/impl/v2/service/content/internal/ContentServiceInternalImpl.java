@@ -221,9 +221,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
-            item = itemDao.getItemByIdPreferContent(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemByIdPreferContent(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         } else {
-            item = itemDao.getItemById(id, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
+            item = itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
         }
         if (!contentRepository.contentExists(siteId, item.getPath())) {
             throw new ContentNotFoundException(item.getPath(), siteId,
@@ -310,7 +310,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public void itemUnlockById(String siteId, long itemId) {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, CONTENT_TYPE_FOLDER,
+        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, siteId, CONTENT_TYPE_FOLDER,
                 COMPLETED, stagingEnv, liveEnv);
         contentRepository.itemUnlock(siteId, item.getPath());
     }
