@@ -96,7 +96,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), ldPath, ldName, parentFolderPath,
-                locale, keyword, excludes, sortStrategy, order, offset, limit);
+                CONTENT_TYPE_FOLDER, locale, keyword, excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
@@ -152,8 +152,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenById(siteFeed.getId(), parentId,
-                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes, sortStrategy,
-                order, offset, limit);
+                servicesConfig.getLevelDescriptorName(siteId), CONTENT_TYPE_FOLDER, locale, keyword, excludes,
+                sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale,

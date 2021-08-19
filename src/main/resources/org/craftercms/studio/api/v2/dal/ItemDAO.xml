@@ -170,6 +170,8 @@
         </if>
         AND i1.ignored = 0
         AND (i3.ignored = 0 or i3.ignored is null)
+        AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
         <if test="excludes != null" >
             <foreach collection="excludes" item="exclude" index="index" >
                 AND i1.path NOT RLIKE('${exclude}')
@@ -228,8 +230,8 @@
         SELECT *, 0 as children_count FROM item
         WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
-        SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
-            left outer join item i3 on i1.id = i3.parent_id
+        ((SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
+        left outer join item i3 on i1.id = i3.parent_id
         WHERE i1.site_id = #{siteId} AND i1.parent_id = #{parentId} AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND i1.locale_code = #{localeCode}
@@ -239,8 +241,10 @@
         </if>
         AND i1.ignored = 0
         AND (i3.ignored = 0 or i3.ignored is null)
-        <if test="excludes != null" >
-            <foreach collection="excludes" item="exclude" index="index" >
+        AND (i3.system_type &lt;&gt; #{systemTypeFolder} or not exists
+        (select * from item i10 where i10.site_id = i3.site_id and i10.path = concat(i3.path, '/index.xml')))
+        <if test="excludes != null">
+            <foreach collection="excludes" item="exclude" index="index">
                 AND i1.path NOT RLIKE('${exclude}')
             </foreach>
         </if>
@@ -250,13 +254,14 @@
                 ORDER BY i1.label ${order}, i1.path ${order}
             </when>
             <when test="sortStrategy == 'foldersFirst'">
-                ORDER BY IF(FIELD(i1.system_type, 'folder')=0,1,0), FIELD(i1.system_type, 'folder'), i1.label ${order}, i1.path ${order}
+                ORDER BY IF(FIELD(i1.system_type, 'folder')=0,1,0), FIELD(i1.system_type, 'folder'), i1.label ${order},
+                i1.path ${order}
             </when>
             <otherwise>
                 ORDER BY i1.label ${order}, i1.path ${order}
             </otherwise>
         </choose>
-        LIMIT #{offset},#{limit}
+        ) LIMIT #{offset},#{limit})
     </select>
 
     <select id="getChildrenByIdTotal" resultType="Integer">
