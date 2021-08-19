@@ -1,7 +1,13 @@
 version: ~> 1.0
 language: java
 jdk:
-  - oraclejdk11
+  - openjdk11
+  - openjdk-ea
+
+matrix:
+  allow_failures:
+    - jdk: openjdk-ea
+
 cache:
   directories:
     - $HOME/.m2
