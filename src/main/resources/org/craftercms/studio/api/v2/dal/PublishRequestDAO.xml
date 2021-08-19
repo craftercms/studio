@@ -82,6 +82,7 @@
             and path RLIKE #{path}
         </if>
         GROUP BY package_id
+        ORDER BY published_on DESC, scheduleddate DESC
         LIMIT #{offset}, #{limit}
     </select>
 
