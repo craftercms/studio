@@ -1,9 +1,8 @@
 version: ~> 1.0
 dist: focal
 language: java
-#jdk:
-#  - openjdk11
-jdk: openjdk10
+jdk:
+  - openjdk11
 cache:
   directories:
     - $HOME/.m2
@@ -24,13 +23,10 @@ notifications:
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 install: skip
 script:
-  - jdk_switcher use openjdk10
-  - # do stuff with OpenJDK 10
-  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh
-  - chmod +x $TRAVIS_BUILD_DIR/install-jdk.sh
-  - export JAVA_HOME=$HOME/openjdk11
-  - $TRAVIS_BUILD_DIR/install-jdk.sh -F 11 --target $JAVA_HOME
-  - # do stuff with open OpenJDK 11
+  - wget https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
+  - tar xvzf openjdk-11+28_linux-x64_bin.tar.gz
+  - export JAVA_HOME=$HOME/jdk-11
+  - export PATH=$HOME/jdk-11/bin:$PATH
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml"; else bash -c "mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true" ;fi
 env:
   global:
