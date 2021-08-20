@@ -3,6 +3,7 @@ dist: focal
 language: java
 addons:
   apt:
+    sourceline: 'http://ppa.launchpad.net/openjdk-r/ppa/ubuntu'
     packages:
       - openjdk-11-jdk
 #jdk:
