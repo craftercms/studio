@@ -79,6 +79,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -91,6 +92,8 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleO
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
@@ -113,6 +116,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
+import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
@@ -171,6 +175,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected ItemServiceInternal itemServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
+    protected ContentServiceInternal contentServiceInternal;
 
     @Override
     @ValidateParams
@@ -600,13 +605,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site,
                                       @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         Set<String> processedPaths = new HashSet<>();
         return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
     }
 
     protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         // remove submitted aspects from all dependent items
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
@@ -621,7 +626,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         return false;
     }
 
-    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException {
+    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException, UserNotFoundException {
         List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
@@ -639,10 +644,13 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {
+    protected List<String> getWorkflowAffectedPathsInternal(String site, String path)
+            throws ServiceLayerException, UserNotFoundException {
+        long start = System.currentTimeMillis();
         List<String> affectedPaths = new ArrayList<String>();
         List<String> filteredPaths = new ArrayList<String>();
         Item item = itemServiceInternal.getItem(site, path);
+        logger.error("getWorkflowAffectedPathsInternal time after get item" + (System.currentTimeMillis() - start));
         if (isInWorkflow(item.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(item.getState());
@@ -650,9 +658,10 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (isNew || isRenamed) {
                 getMandatoryChildren(site, path, affectedPaths);
             }
-
+            logger.error("getWorkflowAffectedPathsInternal time after get mandatory children" + (System.currentTimeMillis() - start));
             List<String> dependencyPaths = new ArrayList<String>();
             dependencyPaths.addAll(dependencyService.getPublishingDependencies(site, affectedPaths));
+            logger.error("getWorkflowAffectedPathsInternal time after get publishing dependencies" + (System.currentTimeMillis() - start));
             affectedPaths.addAll(dependencyPaths);
             List<String> candidates = new ArrayList<String>();
             for (String p : affectedPaths) {
@@ -661,13 +670,14 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
 
-            for (String cp : candidates) {
-                if (isInWorkflow(item.getState())) {
-                    filteredPaths.add(cp);
+            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(site, candidates, true);
+            for (SandboxItem cp : candidateItems) {
+                if (isInWorkflow(cp.getState())) {
+                    filteredPaths.add(cp.getPath());
                 }
             }
         }
-
+        logger.error("getWorkflowAffectedPathsInternal time " + (System.currentTimeMillis() - start));
         return filteredPaths;
     }
 
@@ -675,28 +685,37 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site,
                                                         @ValidateSecurePathParam(name = "path") String path)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
         return getWorkflowAffectedItems(site, affectedPaths);
     }
 
-    private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
-        ContentItemTO item = contentService.getContentItem(site, path);
-        for (ContentItemTO child : item.getChildren()) {
-            if (!affectedPaths.contains(child.getUri())) {
-                affectedPaths.add(child.getUri());
-                getMandatoryChildren(site, child.getUri(), affectedPaths);
+    private void getMandatoryChildren(String site, String path, List<String> affectedPaths)
+            throws UserNotFoundException, ServiceLayerException {
+        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null,
+                null, 0, Integer.MAX_VALUE);
+        if (result != null) {
+            if (Objects.nonNull(result.getLevelDescriptor())) {
+                affectedPaths.add(result.getLevelDescriptor().getPath());
+            }
+            if (CollectionUtils.isNotEmpty(result.getChildren())) {
+                for (SandboxItem item : result.getChildren()) {
+                    affectedPaths.add(item.getPath());
+                    getMandatoryChildren(site, item.getPath(), affectedPaths);
+                }
             }
         }
     }
 
     protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
+        long start = System.currentTimeMillis();
         List<ContentItemTO> items = new ArrayList<>();
 
         for (String path : paths) {
             ContentItemTO item = contentService.getContentItem(site, path);
             items.add(item);
         }
+        logger.error("getWorkflowAffectedPathsInternal time " + (System.currentTimeMillis() - start));
         return items;
     }
 
@@ -1912,7 +1931,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         cleanUrisFromWorkflow(urisToDelete, context.getSite());
         cleanUrisFromWorkflow(rescheduledUris, context.getSite());
         List<String> deletedItems =
@@ -1929,7 +1948,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
     }
 
-    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws ServiceLayerException {
+    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site)
+            throws ServiceLayerException, UserNotFoundException {
         if (uris != null && !uris.isEmpty()) {
             for (String uri : uris) {
                 cleanWorkflow(uri, site, Collections.<DmDependencyTO>emptySet());
@@ -1965,7 +1985,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url,
                                  @ValidateStringParam(name = "site") final String site,
-                                 final Set<DmDependencyTO> dependents) throws ServiceLayerException {
+                                 final Set<DmDependencyTO> dependents)
+            throws ServiceLayerException, UserNotFoundException {
         _cancelWorkflow(site, url);
         return true;
     }
@@ -2308,6 +2329,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public ContentServiceInternal getContentServiceInternal() {
+        return contentServiceInternal;
+    }
+
+    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

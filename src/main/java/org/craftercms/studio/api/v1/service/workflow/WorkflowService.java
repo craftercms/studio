@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
@@ -59,9 +60,9 @@ public interface WorkflowService {
 	 * @return true if success, otherwise false
 	 * @throws ServiceLayerException general service error
 	 */
-	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException;
+	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException, UserNotFoundException;
 
-	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceLayerException;
+	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
@@ -87,7 +88,7 @@ public interface WorkflowService {
                            GoLiveContext context, Set rescheduledUris) throws ServiceLayerException;
 
     List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws
-		ServiceLayerException;
+			ServiceLayerException, UserNotFoundException;
 
     boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
 
@@ -106,5 +107,5 @@ public interface WorkflowService {
     void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceLayerException;
 
     boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws
-		ServiceLayerException;
+			ServiceLayerException, UserNotFoundException;
 }
