@@ -28,8 +28,8 @@ script:
   - wget -q https://raw.githubusercontent.com/craftercms/craftercms/develop/.travis-prep-jdk.sh
   - chmod +x .travis-prep-jdk.sh
   - ./.travis-prep-jdk.sh
-  - export JAVA_HOME=$HOME/jdk
-  - export PATH=$HOME/jdk/bin:$PATH
+  - export JAVA_HOME=$HOME/downloads/openjdk-11.0.12_7
+  - export PATH=$HOME/downloads/openjdk-11.0.12_7/bin:$PATH
   - which java
   - java -version
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; else mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
