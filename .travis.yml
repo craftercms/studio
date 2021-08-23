@@ -31,8 +31,8 @@ script:
   - export PATH=$HOME/jdk/bin:$PATH
   - which java
   - java -version
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -B -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; else mvn -B -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
-#  - mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
 env:
   global:
   - secure: ccvaP/HRa4Taolqr0RX0xcJLXtRCRtyqLLs3EGfC7pAFQ0q0hfiYKyRFTPPsZ9wzrE7ozb31AaCJFDZo9S1/clzAGCJccAENyIj36RTuF3EQYZkFKSoeHOTeCMuC3k+ZiDzKWGdGwo54lSlNZNx1yQVGCK5dE+y4f9e2d7wR3Kk=
