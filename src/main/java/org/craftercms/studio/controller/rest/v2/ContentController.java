@@ -267,6 +267,9 @@ public class ContentController {
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequest request)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(
                 request.getSiteId(), request.getPaths(), request.isPreferContent());
         ResponseBody responseBody = new ResponseBody();
@@ -280,6 +283,9 @@ public class ContentController {
     @PostMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(
                 request.getSiteId(), request.getIds(), request.isPreferContent());
         ResponseBody responseBody = new ResponseBody();
