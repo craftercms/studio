@@ -6,6 +6,8 @@ jdk:
 cache:
   directories:
     - $HOME/.m2
+    - $HOME/JDK
+    - $HOME/downloads
 git:
   depth: 1
   quiet: true
@@ -22,20 +24,15 @@ notifications:
     skip_join: true
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 install: skip
+before_script:
+  - ./travis-prep-jdk.sh
 script:
-  - echo `pwd`
-  - pushd .
-  - cd /home/travis
-  - wget -q https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/download/jdk-11.0.12%2B7/OpenJDK11U-jdk_x64_linux_11.0.12_7.tar.gz
-  - tar xvzf OpenJDK11U-jdk_x64_linux_11.0.12_7.tar.gz
-  - export JAVA_HOME=/home/travis/openjdk-11.0.12_7
-  - export PATH=/home/travis/openjdk-11.0.12_7/bin:$PATH
-  - popd
+  - export JAVA_HOME=$HOME/jdk
+  - export PATH=$HOME/jdk/bin:$PATH
   - which java
   - java -version
-  - mvn -version
-#  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; else mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
-  - mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; else mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
+#  - mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml
 env:
   global:
   - secure: ccvaP/HRa4Taolqr0RX0xcJLXtRCRtyqLLs3EGfC7pAFQ0q0hfiYKyRFTPPsZ9wzrE7ozb31AaCJFDZo9S1/clzAGCJccAENyIj36RTuF3EQYZkFKSoeHOTeCMuC3k+ZiDzKWGdGwo54lSlNZNx1yQVGCK5dE+y4f9e2d7wR3Kk=
