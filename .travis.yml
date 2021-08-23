@@ -7,9 +7,9 @@ cache:
   directories:
     - $HOME/.m2
     - $HOME/downloads
-git:
-  depth: 1
-  quiet: true
+#git:
+#  depth: 1
+#  quiet: true
 branches:
   only:
   - develop
