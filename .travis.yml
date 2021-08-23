@@ -25,7 +25,7 @@ notifications:
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 install: skip
 before_script:
-  - $HOME/build/craftercms/studio/travis-prep-jdk.sh
+  - wget -q0 https://raw.githubusercontent.com/craftercms/studio/develop/.travis-prep-jdk.sh | bash
 script:
   - export JAVA_HOME=$HOME/jdk
   - export PATH=$HOME/jdk/bin:$PATH
