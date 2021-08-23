@@ -4,6 +4,7 @@ JDK_URL=https://github.com/AdoptOpenJDK/openjdk11-upstream-binaries/releases/dow
 JDK_FOLDER=openjdk-11.0.12_7
 
 if [ -f "$HOME/downloads/OpenJDK11U-jdk_x64_linux_11.0.12_7.tar.gz" ]
+then
 	echo JDK already downloaded
 else
 	pushd .
@@ -14,6 +15,7 @@ else
 fi
 
 if [ -f "$HOME/jdk/bin/java" ]
+then
 	echo Java already installed
 else
 	pushd .
