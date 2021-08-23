@@ -31,7 +31,10 @@ script:
   - export JAVA_HOME=/home/travis/jdk-11
   - export PATH=/home/travis/jdk-11/bin:$PATH
   - popd
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml"; else bash -c "mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true" ;fi
+  - javac -version
+  - mvn -version
+  - which javac
+#  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml"; else bash -c "mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true" ;fi
 env:
   global:
   - secure: ccvaP/HRa4Taolqr0RX0xcJLXtRCRtyqLLs3EGfC7pAFQ0q0hfiYKyRFTPPsZ9wzrE7ozb31AaCJFDZo9S1/clzAGCJccAENyIj36RTuF3EQYZkFKSoeHOTeCMuC3k+ZiDzKWGdGwo54lSlNZNx1yQVGCK5dE+y4f9e2d7wR3Kk=
