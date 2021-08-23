@@ -31,7 +31,7 @@ script:
   - export PATH=$HOME/jdk/bin:$PATH
   - which java
   - java -version
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; else mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -B -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; else mvn -B -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
 #  - mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml
 env:
   global:
