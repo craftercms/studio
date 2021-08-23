@@ -23,11 +23,14 @@ notifications:
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 install: skip
 script:
+  - echo `pwd`
+  - pushd .
   - cd /home/travis
   - wget -q https://download.java.net/openjdk/jdk11/ri/openjdk-11+28_linux-x64_bin.tar.gz
   - tar xvzf openjdk-11+28_linux-x64_bin.tar.gz
   - export JAVA_HOME=/home/travis/jdk-11
   - export PATH=/home/travis/jdk-11/bin:$PATH
+  - popd
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn -q -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml"; else bash -c "mvn -q -Dmaven.javadoc.skip=true clean install -DcloneUi=true" ;fi
 env:
   global:
