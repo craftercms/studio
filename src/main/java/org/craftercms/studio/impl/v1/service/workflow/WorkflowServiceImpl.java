@@ -116,7 +116,6 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
-import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
@@ -526,14 +525,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         categoryItems.addAll(categoryItems1);
 
 
-        long st = System.currentTimeMillis();
         List<Item> changeSet = itemServiceInternal.getInProgressItems(site);
 
-        logger.debug("Time taken listChangedAll()  " + (System.currentTimeMillis() - st));
 
         // the category item to add all other items that do not belong to
         // regular categories specified in the configuration
-        st = System.currentTimeMillis();
 
         if (changeSet != null) {
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
@@ -548,7 +544,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
 
-        logger.debug("Time taken after listChangedAll() : " + (System.currentTimeMillis() - st));
         return categoryItems;
     }
 
@@ -616,12 +611,9 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
             // cancel workflow if anything is pending
-            long startTime = System.currentTimeMillis();
             if (cancelWorkflow) {
                 _cancelWorkflow(site, path);
             }
-            long duration = System.currentTimeMillis() - startTime;
-            logger.debug("_cancelWorkflow Duration 111: {0}", duration);
         }
         return false;
     }
@@ -646,11 +638,9 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path)
             throws ServiceLayerException, UserNotFoundException {
-        long start = System.currentTimeMillis();
         List<String> affectedPaths = new ArrayList<String>();
         List<String> filteredPaths = new ArrayList<String>();
         Item item = itemServiceInternal.getItem(site, path);
-        logger.error("getWorkflowAffectedPathsInternal time after get item" + (System.currentTimeMillis() - start));
         if (isInWorkflow(item.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(item.getState());
@@ -658,10 +648,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (isNew || isRenamed) {
                 getMandatoryChildren(site, path, affectedPaths);
             }
-            logger.error("getWorkflowAffectedPathsInternal time after get mandatory children" + (System.currentTimeMillis() - start));
             List<String> dependencyPaths = new ArrayList<String>();
             dependencyPaths.addAll(dependencyService.getPublishingDependencies(site, affectedPaths));
-            logger.error("getWorkflowAffectedPathsInternal time after get publishing dependencies" + (System.currentTimeMillis() - start));
             affectedPaths.addAll(dependencyPaths);
             List<String> candidates = new ArrayList<String>();
             for (String p : affectedPaths) {
@@ -677,7 +665,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
         }
-        logger.error("getWorkflowAffectedPathsInternal time " + (System.currentTimeMillis() - start));
         return filteredPaths;
     }
 
@@ -708,14 +695,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
-        long start = System.currentTimeMillis();
         List<ContentItemTO> items = new ArrayList<>();
 
         for (String path : paths) {
             ContentItemTO item = contentService.getContentItem(site, path);
             items.add(item);
         }
-        logger.error("getWorkflowAffectedPathsInternal time " + (System.currentTimeMillis() - start));
         return items;
     }
 
@@ -1512,7 +1497,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected void doDelete(String site, List<DmDependencyTO> submittedItems, String approver)
             throws ServiceLayerException {
-        long start = System.currentTimeMillis();
         String user = securityService.getCurrentUser();
         // get web project information
         // Don't make go live an item if it is new and to be deleted
@@ -1605,8 +1589,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                         approver, null);
             }
         }
-        long end = System.currentTimeMillis();
-        logger.debug("Submitted deleted items to queue time = " + (end - start));
     }
 
     @Override
@@ -2078,20 +2060,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             label = label.substring(0, 252) + "..";
         }
         return label;
-
-    }
-
-    protected void _submit(String site, ZonedDateTime launchDate, String label, List<String> paths,
-                           MultiChannelPublishingContext mcpContext) {
-        if (label.length() > 255) {
-            label = label.substring(0, 252) + "..";
-        }
-
-        // submit to workflow
-
-        logger.debug("[WORKFLOW] w1,publish for " + label + ",start," + System.currentTimeMillis());
-
-        dmPublishService.publish(site, paths, launchDate, mcpContext);
 
     }
 
