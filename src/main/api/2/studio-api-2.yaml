@@ -6281,6 +6281,50 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /workflow/affected_paths:
+    get:
+      tags:
+        - workflow
+      summary: Get workflow affected paths
+      description: 'Required permission "site member"'
+      operationId: getWorkflowAffectedPaths
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of the content
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
