@@ -16,12 +16,15 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.workflow.ItemStatesPostRequestBody;
 import org.craftercms.studio.model.workflow.UpdateItemStatesByQueryRequestBody;
@@ -42,6 +45,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AFFECTED_PATHS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_STATES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UPDATE_ITEM_STATES_BY_QUERY;
@@ -121,6 +125,22 @@ public class WorkflowController {
 
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = AFFECTED_PATHS, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getWorkflowAffectedPaths(@RequestParam(REQUEST_PARAM_SITEID) String siteId,
+                                                 @RequestParam(REQUEST_PARAM_PATH) String path)
+            throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        List<SandboxItem> sandboxItems = workflowService.getWorkflowAffectedPaths(siteId, path);
+        ResponseBody responseBody = new ResponseBody();
+        ResultList<SandboxItem> result = new ResultList<SandboxItem>();
+        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

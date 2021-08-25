@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,7 +23,6 @@ import java.util.Set;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 import org.craftercms.studio.api.v1.to.GoLiveQueue;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -61,8 +60,6 @@ public interface WorkflowService {
 	 * @throws ServiceLayerException general service error
 	 */
 	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException, UserNotFoundException;
-
-	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceLayerException, UserNotFoundException;
 
 	/**
 	 * update workflow sandboxes if the content at the given path is in workflow
