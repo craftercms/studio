@@ -668,15 +668,6 @@ public class WorkflowServiceImpl implements WorkflowService {
         return filteredPaths;
     }
 
-    @Override
-    @ValidateParams
-    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site,
-                                                        @ValidateSecurePathParam(name = "path") String path)
-            throws ServiceLayerException, UserNotFoundException {
-        List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
-        return getWorkflowAffectedItems(site, affectedPaths);
-    }
-
     private void getMandatoryChildren(String site, String path, List<String> affectedPaths)
             throws UserNotFoundException, ServiceLayerException {
         GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null,
@@ -692,16 +683,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
         }
-    }
-
-    protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
-        List<ContentItemTO> items = new ArrayList<>();
-
-        for (String path : paths) {
-            ContentItemTO item = contentService.getContentItem(site, path);
-            items.add(item);
-        }
-        return items;
     }
 
     @Override

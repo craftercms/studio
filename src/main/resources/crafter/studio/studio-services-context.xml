@@ -650,6 +650,8 @@
 
     <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"

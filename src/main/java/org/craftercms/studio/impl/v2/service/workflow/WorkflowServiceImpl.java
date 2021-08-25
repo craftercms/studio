@@ -16,16 +16,37 @@
 
 package org.craftercms.studio.impl.v2.service.workflow;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
+import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public class WorkflowServiceImpl implements WorkflowService {
 
     private ItemServiceInternal itemServiceInternal;
+    private ContentServiceInternal contentServiceInternal;
+    private DependencyServiceInternal dependencyServiceInternal;
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -51,11 +72,77 @@ public class WorkflowServiceImpl implements WorkflowService {
                 live, staged);
     }
 
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public List<SandboxItem> getWorkflowAffectedPaths(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                      @ProtectedResourceId(PATH_RESOURCE_ID)
+                                                      String path) throws UserNotFoundException, ServiceLayerException {
+        List<String> affectedPaths = new ArrayList<String>();
+        List<SandboxItem> result = new ArrayList<>();
+        Item item = itemServiceInternal.getItem(siteId, path);
+        if (isInWorkflow(item.getState())) {
+            affectedPaths.add(path);
+            boolean isNew = isNew(item.getState());
+            boolean isRenamed = StringUtils.isNotEmpty(item.getPreviousPath());
+            if (isNew || isRenamed) {
+                affectedPaths.addAll(getMandatoryDescendents(siteId, path));
+            }
+            List<String> dependencyPaths = new ArrayList<String>();
+            dependencyPaths.addAll(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
+            affectedPaths.addAll(dependencyPaths);
+            List<String> candidates = new ArrayList<String>();
+            for (String p : affectedPaths) {
+                if (!candidates.contains(p)) {
+                    candidates.add(p);
+                }
+            }
+
+            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(siteId, candidates, true);
+            result = candidateItems.stream().filter(i -> isInWorkflow(i.getState())).collect(Collectors.toList());
+        }
+        return result;
+    }
+
+    private List<String> getMandatoryDescendents(String site, String path)
+            throws UserNotFoundException, ServiceLayerException {
+        List<String> descendents = new ArrayList<String>();
+        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null,
+                null, 0, Integer.MAX_VALUE);
+        if (result != null) {
+            if (Objects.nonNull(result.getLevelDescriptor())) {
+                descendents.add(result.getLevelDescriptor().getPath());
+            }
+            if (CollectionUtils.isNotEmpty(result.getChildren())) {
+                for (SandboxItem item : result.getChildren()) {
+                    descendents.add(item.getPath());
+                    descendents.addAll(getMandatoryDescendents(site, item.getPath()));
+                }
+            }
+        }
+        return descendents;
+    }
+
     public ItemServiceInternal getItemServiceInternal() {
         return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public ContentServiceInternal getContentServiceInternal() {
+        return contentServiceInternal;
+    }
+
+    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
+    }
+
+    public DependencyServiceInternal getDependencyServiceInternal() {
+        return dependencyServiceInternal;
+    }
+
+    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+        this.dependencyServiceInternal = dependencyServiceInternal;
     }
 }
