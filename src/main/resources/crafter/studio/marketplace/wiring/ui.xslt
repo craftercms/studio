@@ -17,8 +17,6 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
-    <xsl:param name="parentId"/>
-    <xsl:param name="pluginId"/>
     <xsl:param name="newXml"/>
 
     <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
@@ -42,37 +40,12 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- If the parent doesn't have a any configuration add the new section -->
-    <xsl:template match="(//widget[@id=$parentId] | ${parentXpath})[not(configuration)]">
+    <xsl:template match="${parentXpath}">
         <xsl:copy>
-            <xsl:element name="configuration">
-                <xsl:element name="widgets">
-                    <xsl:value-of select="$newXml"/>
-                </xsl:element>
-            </xsl:element>
-        </xsl:copy>
-    </xsl:template>
+            <!-- To keep the attributes -->
+            <xsl:apply-templates select="@*|node()" />
 
-    <!-- If the parent doesn't have a any widgets add the new section -->
-    <xsl:template match="(//widget[@id=$parentId] | ${parentXpath})/configuration[not(widgets)]">
-        <xsl:copy>
-            <!-- Copy all existing configuration -->
-            <xsl:apply-templates select="node() | @*"/>
-
-            <xsl:element name="widgets">
-                <xsl:value-of select="$newXml"/>
-            </xsl:element>
-        </xsl:copy>
-    </xsl:template>
-
-
-    <!-- If the parent already has other widgets, add a new one -->
-    <xsl:template match="(//widget[@id=$parentId] | ${parentXpath})/configuration/widgets[not(widget/plugin[@id=$pluginId])]">
-        <xsl:copy>
-            <!-- Copy all existing widgets -->
-            <xsl:apply-templates select="node() | @*"/>
-
-            <!-- Add the new widget -->
+            <!-- Add the new content -->
             <xsl:copy-of select="$newFragment"/>
         </xsl:copy>
     </xsl:template>

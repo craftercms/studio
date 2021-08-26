@@ -1,0 +1,23 @@
+{
+  "id": "org.craftercms.plugin.test",
+  "installation": [
+    {
+      "type": "nothing",
+      "parentXpath": "//widget[@id='org.craftercms.Imaginary']",
+      "element": {
+        "name": "configuration",
+        "children": [
+          {
+            "name": "widgets",
+            "children": [
+              {
+                "name": "myPlugin",
+                "value": "test"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
