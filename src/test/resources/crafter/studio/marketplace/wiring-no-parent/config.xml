@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <tools>
+        <tool>
+            <name>content-types</name>
+            <label>Content Types</label>
+            <datasources>
+                <datasource>
+                    <name>dropTargets</name>
+                    <icon>
+                        <class>fa-object-group</class>
+                    </icon>
+                </datasource>
+                <!-- the new element should be added here -->
+            </datasources>
+        </tool>
+    </tools>
+</config>

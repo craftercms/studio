@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui>
+    <!-- parent element -->
+    <widget id="org.craftercms.Test">
+        <leftSection>
+            <configuration>
+                <widgets>
+                    <widget id="org.craftercms.Placeholder"/>
+                    <!-- the new element should be added here -->
+                </widgets>
+            </configuration>
+        </leftSection>
+        <rightSection>
+            <configuration>
+                <widgets>
+                    <widget id="org.craftercms.Unrelated"/>
+                </widgets>
+            </configuration>
+        </rightSection>
+    </widget>
+</ui>

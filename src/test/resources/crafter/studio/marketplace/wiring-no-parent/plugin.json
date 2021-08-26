@@ -1,0 +1,12 @@
+{
+  "id": "org.craftercms.plugin.test",
+  "installation": [
+    {
+      "type": "no-parent",
+      "element": {
+        "name": "myPlugin",
+        "value": "test"
+      }
+    }
+  ]
+}

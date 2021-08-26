@@ -71,8 +71,11 @@ import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.dom4j.Node;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
@@ -145,8 +148,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public static final String SYSTEM_PATH_KEY = "systemPath";
 
     public static final String PLUGIN_PATTERN_KEY = "pluginPattern";
-
-    public static final String PARAM_PARENT_ID = "parentId";
 
     public static final String PARAM_NEW_XML = "newXml";
 
@@ -659,39 +660,66 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected void performConfigurationWiring(Plugin plugin, String siteId) throws
-            TransformerException, IOException, ServiceLayerException, UserNotFoundException {
+            TransformerException, IOException, ServiceLayerException, UserNotFoundException, DocumentException {
         if (CollectionUtils.isNotEmpty(plugin.getInstallation())) {
             logger.info("Starting wiring for plugin {0} in site {1}", plugin.getId(), siteId);
-
-            for(Installation i : plugin.getInstallation()) {
+            for(Installation installation : plugin.getInstallation()) {
                 try {
-                    HierarchicalConfiguration<?> mapping = widgetMapping.configurationAt(i.getType());
-
-                    logger.info("Wiring widget of type {0}", i.getType());
-                    Element element = buildXml(i.getElement());
-
-                    String newXml = element.asXML();
-                    logger.debug("New configuration: {0}", newXml);
-
+                    HierarchicalConfiguration<?> mapping = widgetMapping.configurationAt(installation.getType());
+                    if (mapping == null) {
+                        throw new PluginInstallationException("Unsupported wiring of type: " + installation.getType() +
+                                " for plugin: " + plugin.getId());
+                    }
 
                     String module = mapping.getString(MODULE_CONFIG_KEY);
                     String configPath = mapping.getString(PATH_CONFIG_KEY);
                     String templatePath = mapping.getString(TEMPLATE_CONFIG_KEY);
-                    var params = new HashMap<String, Object>();
-                    if (i.getParent() != null) {
-                        params.put(PARAM_PARENT_ID, i.getParent().getId());
+
+                    // load the existing configuration
+                    String config = configurationService.getConfigurationAsString(siteId, module, configPath, null);
+
+                    Installation.Element root = installation.getElement();
+                    String parentXpath = installation.getParentXpath();
+                    Document document = DocumentHelper.parseText(config);
+
+                    // check if the wiring has already been performed
+                    if (document.selectSingleNode(installation.getTestXpath()) != null) {
+                        logger.info("Wiring of type: {0} was already performed for plugin: {1}",
+                                installation.getType(), plugin.getId());
+                        continue;
                     }
-                    params.put(PARAM_PLUGIN_ID, plugin.getId());
+
+                    // merge the new XML with the existing configuration (to avoid invalid XML)
+                    // get the parent element
+                    Node docRoot = document.selectSingleNode(parentXpath);
+                    boolean completed = docRoot == null;
+                    while (!completed) {
+                        // if the parent has only one child, go one level down
+                        // if there is more than one child just add the new XML as a sibling
+                        List<Node> children = docRoot.selectNodes(root.getName());
+                        if (CollectionUtils.isNotEmpty(children) && children.size() == 1) {
+                            parentXpath += "/" + root.getName();
+                            root = root.getChildren().get(0);
+                            docRoot = children.get(0);
+                        } else {
+                            completed = true;
+                        }
+                    }
+
+                    logger.info("Wiring widget of type {0}", installation.getType());
+                    Element element = buildXml(root);
+
+                    String newXml = element.asXML();
+                    logger.debug("New configuration: {0}", newXml);
+
+                    var params = new HashMap<String, Object>();
                     params.put(PARAM_NEW_XML, newXml);
 
-                    String config = configurationService.getConfigurationAsString(siteId, module, configPath, null);
                     ClassPathResource templateRes = new ClassPathResource(templatePath);
                     ByteArrayOutputStream output = new ByteArrayOutputStream();
                     String template = IOUtils.toString(templateRes.getInputStream(), UTF_8);
 
-                    if (i.getParent() != null) {
-                        template = replace(template, Map.of(PARAM_PARENT_XPATH, i.getParent().getXpath()));
-                    }
+                    template = replace(template, Map.of(PARAM_PARENT_XPATH, parentXpath));
 
                     executeTemplate(toInputStream(template, UTF_8), params, null,
                                     toInputStream(config, UTF_8), output);
@@ -699,7 +727,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     configurationService.writeConfiguration(siteId, module, configPath, null,
                             new ByteArrayInputStream(output.toByteArray()));
                 } catch (ConfigurationRuntimeException e) {
-                    logger.warn("Unsupported installation type {0} for plugin {1}", i.getType(), plugin.getId());
+                    logger.warn("Unsupported installation type {0} for plugin {1}",
+                            installation.getType(), plugin.getId());
                 }
             }
             logger.info("Completed wiring for plugin {0} in site {1}", plugin.getId(), siteId);

@@ -305,6 +305,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-core</artifactId>
+            <version>${org.xmlunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- MariaDB -->
         <dependency>
             <groupId>org.craftercms.mariaDB4j</groupId>
