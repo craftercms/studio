@@ -24,7 +24,6 @@
     <version>8</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
-    <default-timezone>EST5EDT</default-timezone>
 
     <!-- Site URLs. Default to http://localhost:8080 if blank -->
     <site-urls>
@@ -32,6 +31,27 @@
         <staging-url></staging-url>
         <live-url></live-url>
     </site-urls>
+
+    <locale>
+        <!--
+        BCP 47 language tag or unicode extension (e.g. "en-US-u-ca-buddhist").
+        Leave empty — but do not remove — for using the user's browser locale.
+        -->
+        <localeCode>en-US</localeCode>
+        <!--
+        For full list of options and docs, visit
+        https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat
+        Remove the `timeZone` element all together to default to the users's time zone.
+        -->
+        <dateTimeFormatOptions>
+            <timeZone>EST5EDT</timeZone>
+            <day>numeric</day>
+            <month>numeric</month>
+            <year>numeric</year>
+            <hour>numeric</hour>
+            <minute>numeric</minute>
+        </dateTimeFormatOptions>
+    </locale>
 
     <!--
     Specifies the regular expression patterns to match content type field
