@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
