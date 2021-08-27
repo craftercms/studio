@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -81,6 +82,10 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<String> affectedPaths = new ArrayList<String>();
         List<SandboxItem> result = new ArrayList<>();
         Item item = itemServiceInternal.getItem(siteId, path);
+        if (Objects.isNull(item)) {
+            throw new ContentNotFoundException(path, siteId,
+                    "Content not found for site " + siteId + " and path " + path);
+        }
         if (isInWorkflowOrScheduled(item.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(item.getState());
