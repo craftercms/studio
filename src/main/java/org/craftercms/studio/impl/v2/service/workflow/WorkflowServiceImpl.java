@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
+import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -80,7 +81,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         List<String> affectedPaths = new ArrayList<String>();
         List<SandboxItem> result = new ArrayList<>();
         Item item = itemServiceInternal.getItem(siteId, path);
-        if (isInWorkflow(item.getState())) {
+        if (Objects.isNull(item)) {
+            throw new ContentNotFoundException(path, siteId,
+                    "Content not found for site " + siteId + " and path " + path);
+        }
+        if (isInWorkflowOrScheduled(item.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(item.getState());
             boolean isRenamed = StringUtils.isNotEmpty(item.getPreviousPath());
@@ -98,7 +103,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
 
             List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(siteId, candidates, true);
-            result = candidateItems.stream().filter(i -> isInWorkflow(i.getState())).collect(Collectors.toList());
+            result = candidateItems.stream().filter(i -> isInWorkflowOrScheduled(i.getState())).collect(Collectors.toList());
         }
         return result;
     }
