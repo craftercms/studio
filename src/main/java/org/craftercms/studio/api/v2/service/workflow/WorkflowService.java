@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.service.workflow;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.util.List;
@@ -65,4 +67,13 @@ public interface WorkflowService {
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
                                  boolean clearUserLocked, Boolean live, Boolean staged);
+
+    /**
+     * Get workflow affected paths if content is edited
+     * @param siteId site identifier
+     * @param path path of the content to be edited
+     * @return List of sandbox items that will be taken out of workflow after edit
+     */
+    List<SandboxItem> getWorkflowAffectedPaths(String siteId, String path)
+            throws UserNotFoundException, ServiceLayerException;
 }

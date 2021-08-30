@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui>
+    <!-- this file should change -->
+    <widget id="org.craftercms.Test">
+        <configuration>
+            <widgets>
+                <myPlugin>test</myPlugin>
+            </widgets>
+        </configuration>
+    </widget>
+</ui>

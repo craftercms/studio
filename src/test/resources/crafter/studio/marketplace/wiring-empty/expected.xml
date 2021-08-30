@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui>
+    <!-- parent element -->
+    <widget id="org.craftercms.Test">
+        <!-- the full xml structure should be added here -->
+        <configuration>
+            <widgets>
+                <myPlugin>test</myPlugin>
+            </widgets>
+        </configuration>
+    </widget>
+</ui>

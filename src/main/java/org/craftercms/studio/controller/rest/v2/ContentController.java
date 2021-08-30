@@ -163,6 +163,9 @@ public class ContentController {
     @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequest request)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         GetChildrenResult result = contentService.getChildrenByPath(
                 request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
                 request.getExcludes(), request.getSortStrategy(), request.getOrder(), request.getOffset(),
@@ -176,6 +179,9 @@ public class ContentController {
     @PostMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getChildrenById(@RequestBody @Valid GetChildrenByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         GetChildrenResult result =
                 contentService.getChildrenById(
                         request.getSiteId(), request.getId(), request.getLocaleCode(), request.getKeyword(),
@@ -240,6 +246,9 @@ public class ContentController {
                                       @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                               defaultValue = "false") boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
         DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
@@ -255,6 +264,9 @@ public class ContentController {
                                     @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                             defaultValue = "false") boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
         DetailedItem detailedItem = contentService.getItemById(siteId, id, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
@@ -267,6 +279,9 @@ public class ContentController {
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequest request)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(
                 request.getSiteId(), request.getPaths(), request.isPreferContent());
         ResponseBody responseBody = new ResponseBody();
@@ -280,6 +295,9 @@ public class ContentController {
     @PostMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequest request)
             throws ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(
                 request.getSiteId(), request.getIds(), request.isPreferContent());
         ResponseBody responseBody = new ResponseBody();

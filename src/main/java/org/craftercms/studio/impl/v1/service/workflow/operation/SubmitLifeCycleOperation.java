@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v1.service.workflow.operation;
 
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 
@@ -46,7 +47,7 @@ public abstract class SubmitLifeCycleOperation<Result> {
         this.rescheduledUris = rescheduledUris;
     }
 
-    public abstract Result execute() throws ServiceLayerException;
+    public abstract Result execute() throws ServiceLayerException, UserNotFoundException;
 
     public boolean needsTransaction() {
         return needsTransaction;

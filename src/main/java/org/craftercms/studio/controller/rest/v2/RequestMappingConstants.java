@@ -104,6 +104,7 @@ public final class RequestMappingConstants {
     public static final String WORKFLOW = "/workflow";
     public static final String ITEM_STATES = "/item_states";
     public static final String UPDATE_ITEM_STATES_BY_QUERY = "/update_item_states_by_query";
+    public static final String AFFECTED_PATHS = "/affected_paths";
 
     private RequestMappingConstants() {
     }

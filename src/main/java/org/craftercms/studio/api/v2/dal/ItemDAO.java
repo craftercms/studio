@@ -94,6 +94,7 @@ public interface ItemDAO {
      * @param ldPath level descriptor path
      * @param ldName level descriptor name
      * @param path path to get children for
+     * @param systemTypeFolder system type value for folder
      * @param localeCode locale code
      * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
@@ -107,6 +108,7 @@ public interface ItemDAO {
 
     List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
                                  @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
+                                 @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                  @Param(LOCALE_CODE) String localeCode, @Param(KEYWORD) String keyword,
                                  @Param(EXCLUDES) List<String> excludes, @Param(SORT_STRATEGY) String sortStrategy,
                                  @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
@@ -143,6 +145,7 @@ public interface ItemDAO {
      * @param siteId site identifier
      * @param parentId parent identifier
      * @param ldName level descriptor name
+     * @param systemTypeFolder system type value for folder
      * @param localeCode locale code
      * @param keyword filter by keyword
      * @param excludes exclude items by regular expression patterns
@@ -153,7 +156,9 @@ public interface ItemDAO {
      * @return list of items (parent, level descriptor, children)
      */
     List<Item> getChildrenById(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
-                               @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
+                               @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
+                               @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                               @Param(LOCALE_CODE) String localeCode,
                                @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
                                @Param(SORT_STRATEGY) String sortStrategy, @Param(ORDER) String order,
                                @Param(OFFSET) int offset, @Param(LIMIT) int limit);
@@ -176,6 +181,7 @@ public interface ItemDAO {
      * Get item by id
      *
      * @param id item id
+     * @param siteId site identifier
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -183,6 +189,7 @@ public interface ItemDAO {
      * @return item identified by given id
      */
     DetailedItem getItemById(@Param(ID) long id,
+                             @Param(SITE_ID) String siteId,
                              @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                              @Param(COMPLETED_STATE) String completedState,
                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
@@ -192,6 +199,7 @@ public interface ItemDAO {
      * Get item by id with prefer content option
      *
      * @param id item id
+     * @param siteId site identifier
      * @param systemTypeFolder value for system type folder
      * @param completedState completed state
      * @param liveEnvironment live environment
@@ -199,6 +207,7 @@ public interface ItemDAO {
      * @return item identified by given id
      */
     DetailedItem getItemByIdPreferContent(@Param(ID) long id,
+                                          @Param(SITE_ID) String siteId,
                                           @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
                                           @Param(COMPLETED_STATE) String completedState,
                                           @Param(STAGING_ENVIRONMENT) String stagingEnvironment,

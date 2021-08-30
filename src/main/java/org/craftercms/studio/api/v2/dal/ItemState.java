@@ -190,6 +190,10 @@ public enum ItemState {
         return (currentState & LIVE.value) > 0;
     }
 
+    public static boolean isInWorkflowOrScheduled(long currentState) {
+        return (currentState & (IN_WORKFLOW.value + SCHEDULED.value)) > 0;
+    }
+
     public static boolean isTranslationUpToDate(long currentState) {
         return (currentState & TRANSLATION_UP_TO_DATE.value) > 0;
     }

@@ -161,6 +161,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -649,6 +650,8 @@
 
     <bean id="studio.workflowService" class="org.craftercms.studio.impl.v2.service.workflow.WorkflowServiceImpl">
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"

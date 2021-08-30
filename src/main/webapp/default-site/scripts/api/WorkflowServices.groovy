@@ -1,6 +1,6 @@
 
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -99,11 +99,6 @@ class WorkflowServices {
     static getGoLiveItems(context, site, sort, ascending) {
         def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
         workflowServicesImpl.getGoLiveItems(site, sort, ascending);
-    }
-
-    static getWorkflowAffectedPaths(context, site, path) {
-        def workflowServicesImpl = ServiceFactory.getWorkflowServices(context);
-        workflowServicesImpl.getWorkflowAffectedPaths(site, path);
     }
 
     static goDelete(context, site, requestBody) {

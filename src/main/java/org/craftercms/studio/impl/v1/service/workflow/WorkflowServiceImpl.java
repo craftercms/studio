@@ -79,6 +79,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -91,6 +92,8 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleO
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
@@ -171,6 +174,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected ItemServiceInternal itemServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
+    protected ContentServiceInternal contentServiceInternal;
 
     @Override
     @ValidateParams
@@ -521,14 +525,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         categoryItems.addAll(categoryItems1);
 
 
-        long st = System.currentTimeMillis();
         List<Item> changeSet = itemServiceInternal.getInProgressItems(site);
 
-        logger.debug("Time taken listChangedAll()  " + (System.currentTimeMillis() - st));
 
         // the category item to add all other items that do not belong to
         // regular categories specified in the configuration
-        st = System.currentTimeMillis();
 
         if (changeSet != null) {
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
@@ -543,7 +544,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
         }
 
-        logger.debug("Time taken after listChangedAll() : " + (System.currentTimeMillis() - st));
         return categoryItems;
     }
 
@@ -600,28 +600,25 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site,
                                       @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         Set<String> processedPaths = new HashSet<>();
         return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
     }
 
     protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         // remove submitted aspects from all dependent items
         if (!processedPaths.contains(path)) {
             processedPaths.add(path);
             // cancel workflow if anything is pending
-            long startTime = System.currentTimeMillis();
             if (cancelWorkflow) {
                 _cancelWorkflow(site, path);
             }
-            long duration = System.currentTimeMillis() - startTime;
-            logger.debug("_cancelWorkflow Duration 111: {0}", duration);
         }
         return false;
     }
 
-    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException {
+    protected void _cancelWorkflow(String site, String path) throws ServiceLayerException, UserNotFoundException {
         List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
         List<String> paths = new ArrayList<String>();
         for (String affectedItem : allItemsToCancel) {
@@ -639,7 +636,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceLayerException {
+    protected List<String> getWorkflowAffectedPathsInternal(String site, String path)
+            throws ServiceLayerException, UserNotFoundException {
         List<String> affectedPaths = new ArrayList<String>();
         List<String> filteredPaths = new ArrayList<String>();
         Item item = itemServiceInternal.getItem(site, path);
@@ -650,7 +648,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (isNew || isRenamed) {
                 getMandatoryChildren(site, path, affectedPaths);
             }
-
             List<String> dependencyPaths = new ArrayList<String>();
             dependencyPaths.addAll(dependencyService.getPublishingDependencies(site, affectedPaths));
             affectedPaths.addAll(dependencyPaths);
@@ -661,43 +658,31 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
             }
 
-            for (String cp : candidates) {
-                if (isInWorkflow(item.getState())) {
-                    filteredPaths.add(cp);
+            List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(site, candidates, true);
+            for (SandboxItem cp : candidateItems) {
+                if (isInWorkflow(cp.getState())) {
+                    filteredPaths.add(cp.getPath());
                 }
             }
         }
-
         return filteredPaths;
     }
 
-    @Override
-    @ValidateParams
-    public List<ContentItemTO> getWorkflowAffectedPaths(@ValidateStringParam(name = "site") String site,
-                                                        @ValidateSecurePathParam(name = "path") String path)
-            throws ServiceLayerException {
-        List<String> affectedPaths = getWorkflowAffectedPathsInternal(site, path);
-        return getWorkflowAffectedItems(site, affectedPaths);
-    }
-
-    private void getMandatoryChildren(String site, String path, List<String> affectedPaths) {
-        ContentItemTO item = contentService.getContentItem(site, path);
-        for (ContentItemTO child : item.getChildren()) {
-            if (!affectedPaths.contains(child.getUri())) {
-                affectedPaths.add(child.getUri());
-                getMandatoryChildren(site, child.getUri(), affectedPaths);
+    private void getMandatoryChildren(String site, String path, List<String> affectedPaths)
+            throws UserNotFoundException, ServiceLayerException {
+        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null,
+                null, 0, Integer.MAX_VALUE);
+        if (result != null) {
+            if (Objects.nonNull(result.getLevelDescriptor())) {
+                affectedPaths.add(result.getLevelDescriptor().getPath());
+            }
+            if (CollectionUtils.isNotEmpty(result.getChildren())) {
+                for (SandboxItem item : result.getChildren()) {
+                    affectedPaths.add(item.getPath());
+                    getMandatoryChildren(site, item.getPath(), affectedPaths);
+                }
             }
         }
-    }
-
-    protected List<ContentItemTO> getWorkflowAffectedItems(String site, List<String> paths) {
-        List<ContentItemTO> items = new ArrayList<>();
-
-        for (String path : paths) {
-            ContentItemTO item = contentService.getContentItem(site, path);
-            items.add(item);
-        }
-        return items;
     }
 
     @Override
@@ -1493,7 +1478,6 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected void doDelete(String site, List<DmDependencyTO> submittedItems, String approver)
             throws ServiceLayerException {
-        long start = System.currentTimeMillis();
         String user = securityService.getCurrentUser();
         // get web project information
         // Don't make go live an item if it is new and to be deleted
@@ -1586,8 +1570,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                         approver, null);
             }
         }
-        long end = System.currentTimeMillis();
-        logger.debug("Submitted deleted items to queue time = " + (end - start));
     }
 
     @Override
@@ -1912,7 +1894,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     @Override
     public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         cleanUrisFromWorkflow(urisToDelete, context.getSite());
         cleanUrisFromWorkflow(rescheduledUris, context.getSite());
         List<String> deletedItems =
@@ -1929,7 +1911,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
     }
 
-    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws ServiceLayerException {
+    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site)
+            throws ServiceLayerException, UserNotFoundException {
         if (uris != null && !uris.isEmpty()) {
             for (String uri : uris) {
                 cleanWorkflow(uri, site, Collections.<DmDependencyTO>emptySet());
@@ -1965,7 +1948,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url,
                                  @ValidateStringParam(name = "site") final String site,
-                                 final Set<DmDependencyTO> dependents) throws ServiceLayerException {
+                                 final Set<DmDependencyTO> dependents)
+            throws ServiceLayerException, UserNotFoundException {
         _cancelWorkflow(site, url);
         return true;
     }
@@ -2057,20 +2041,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             label = label.substring(0, 252) + "..";
         }
         return label;
-
-    }
-
-    protected void _submit(String site, ZonedDateTime launchDate, String label, List<String> paths,
-                           MultiChannelPublishingContext mcpContext) {
-        if (label.length() > 255) {
-            label = label.substring(0, 252) + "..";
-        }
-
-        // submit to workflow
-
-        logger.debug("[WORKFLOW] w1,publish for " + label + ",start," + System.currentTimeMillis());
-
-        dmPublishService.publish(site, paths, launchDate, mcpContext);
 
     }
 
@@ -2308,6 +2278,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public ContentServiceInternal getContentServiceInternal() {
+        return contentServiceInternal;
+    }
+
+    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {
