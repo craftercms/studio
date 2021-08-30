@@ -17,12 +17,15 @@ package org.craftercms.studio.impl.v2.utils.spring.context;
 
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
 import org.craftercms.studio.impl.v2.utils.spring.event.BootstrapFinishedEvent;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Central point to control the event-based bootstrap process.
@@ -32,9 +35,19 @@ import org.springframework.core.annotation.Order;
  * @author joseross
  * @since 4.0
  */
-public class BootstrapManager {
+public class BootstrapManager implements SystemStatusProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(BootstrapManager.class);
+
+    /**
+     * Flag used to indicate if the bootstrap process has finished
+     */
+    private final AtomicBoolean systemReady = new AtomicBoolean(false);
+
+    @Override
+    public boolean isSystemReady() {
+        return systemReady.get();
+    }
 
     // the condition is needed to avoid a repeated event from a child app context
     @Order
@@ -64,6 +77,7 @@ public class BootstrapManager {
     @EventListener(BootstrapFinishedEvent.class)
     public void onBootstrapFinished() {
         logger.info("Bootstrap process finished");
+        systemReady.set(true);
     }
 
 }

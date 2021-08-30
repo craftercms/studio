@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,21 +42,27 @@ public class StudioNodeHeartbeatJob implements Runnable {
     private StudioConfiguration studioConfiguration;
     private ClusterDAO clusterDAO;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private SystemStatusProvider systemStatusProvider;
+
 
     private final static ReentrantLock singleWorkerLock = new ReentrantLock();
 
     @Override
     public void run() {
-        if (singleWorkerLock.tryLock()) {
-            try {
-                updateHeartbeat();
-            } catch (Exception error) {
-                logger.error("Error during execution of node heartbeat job", error);
-            } finally {
-                singleWorkerLock.unlock();
+        if (systemStatusProvider.isSystemReady()) {
+            if (singleWorkerLock.tryLock()) {
+                try {
+                    updateHeartbeat();
+                } catch (Exception error) {
+                    logger.error("Error during execution of node heartbeat job", error);
+                } finally {
+                    singleWorkerLock.unlock();
+                }
+            } else {
+                logger.debug("Another worker is updating heartbeat. Skipping cycle.");
             }
         } else {
-            logger.debug("Another worker is updating heartbeat. Skipping cycle.");
+            logger.debug("System not ready yet. Skipping cycle");
         }
     }
 
@@ -98,4 +105,9 @@ public class StudioNodeHeartbeatJob implements Runnable {
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
+
+    public void setSystemStatusProvider(SystemStatusProvider systemStatusProvider) {
+        this.systemStatusProvider = systemStatusProvider;
+    }
+
 }

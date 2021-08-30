@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.springframework.core.task.TaskExecutor;
 
 import java.io.IOException;
@@ -57,20 +58,12 @@ public class StudioClockExecutor implements Job {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClockExecutor.class);
     private static final ReentrantLock singleWorkerLock = new ReentrantLock();
-    private static final Map<String, ReentrantLock> singleWorkerSiteTasksLockMap = new HashMap<String, ReentrantLock>();
 
     private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
 
-    private static boolean stopSignaled = false;
     private static boolean running = false;
 
-    public static synchronized void signalToStop() {
-        stopSignaled = true;
-    }
-
-    public static synchronized void signalToStart() {
-        stopSignaled = false;
-    }
+    private SystemStatusProvider systemStatusProvider;
 
     public synchronized static boolean isRunning() {
         return running;
@@ -93,7 +86,7 @@ public class StudioClockExecutor implements Job {
     @Override
     public void execute() {
         threadCounter++;
-        if (!stopSignaled) {
+        if (systemStatusProvider.isSystemReady()) {
             if (singleWorkerLock.tryLock()) {
                 try {
                     setRunning(true);
@@ -106,6 +99,8 @@ public class StudioClockExecutor implements Job {
                     singleWorkerLock.unlock();
                 }
             }
+        } else {
+            logger.debug("System not ready yet. Skipping cycle");
         }
     }
 
@@ -265,4 +260,9 @@ public class StudioClockExecutor implements Job {
     public void setSiteTasks(List<SiteJob> siteTasks) {
         this.siteTasks = siteTasks;
     }
+
+    public void setSystemStatusProvider(SystemStatusProvider systemStatusProvider) {
+        this.systemStatusProvider = systemStatusProvider;
+    }
+
 }
