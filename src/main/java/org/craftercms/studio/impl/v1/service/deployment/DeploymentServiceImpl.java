@@ -97,6 +97,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.DESTINATION;
+import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
 import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
@@ -148,6 +149,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
+        itemServiceInternal.updateStateBitsBulk(site, paths, 0, IN_WORKFLOW.value);
         String liveEnvironment = StringUtils.EMPTY;
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             liveEnvironment = servicesConfig.getLiveEnvironment(site);
