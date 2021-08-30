@@ -50,6 +50,7 @@
             <year>numeric</year>
             <hour>numeric</hour>
             <minute>numeric</minute>
+            <hour12>true</hour12>
         </dateTimeFormatOptions>
     </locale>
 
