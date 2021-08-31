@@ -75,6 +75,7 @@
             <!-- <delete-required/> -->
             <!-- <bulk-publish-required/> -->
             <!-- <publish-by-commit-required/> -->
+					  <!-- <published-required/> -->
         </comments>
     </publishing>
 
