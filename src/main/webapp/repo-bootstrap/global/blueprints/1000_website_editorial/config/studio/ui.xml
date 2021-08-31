@@ -388,7 +388,7 @@
                                 "content_style": "body {}",
                                 "contextmenu": false
                             }
-                    ]]>
+                        ]]>
                     </tinymceOptions>
                 </setup>
             </setups>
