@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,29 +49,34 @@ public class StudioNodeActivityCheckJob implements Runnable{
     private StudioConfiguration studioConfiguration;
     private ClusterDAO clusterDao;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private SystemStatusProvider systemStatusProvider;
 
     private final static ReentrantLock singleWorkerLock = new ReentrantLock();
 
     @Override
     public void run() {
-        if (singleWorkerLock.tryLock()) {
-            try {
-                List<ClusterMember> staleMembers = getMembersWithStaleHeartbeat();
-                if (CollectionUtils.isNotEmpty(staleMembers)) {
-                    setStaleMembersInactive(staleMembers);
-                }
+        if (systemStatusProvider.isSystemReady()) {
+            if (singleWorkerLock.tryLock()) {
+                try {
+                    List<ClusterMember> staleMembers = getMembersWithStaleHeartbeat();
+                    if (CollectionUtils.isNotEmpty(staleMembers)) {
+                        setStaleMembersInactive(staleMembers);
+                    }
 
-                List<ClusterMember> inactiveMembersToRemove = getInactiveMembersForRemoval();
-                if (CollectionUtils.isNotEmpty(inactiveMembersToRemove)) {
-                    removeInactiveMembers(inactiveMembersToRemove);
+                    List<ClusterMember> inactiveMembersToRemove = getInactiveMembersForRemoval();
+                    if (CollectionUtils.isNotEmpty(inactiveMembersToRemove)) {
+                        removeInactiveMembers(inactiveMembersToRemove);
+                    }
+                } catch (Exception error) {
+                    logger.error("Error while executing node activity check job", error);
+                } finally {
+                    singleWorkerLock.unlock();
                 }
-            } catch (Exception error) {
-                logger.error("Error while executing node activity check job", error);
-            } finally {
-                singleWorkerLock.unlock();
+            } else {
+                logger.debug("Another worker is checking cluster nodes activity. Skipping cycle.");
             }
         } else {
-            logger.debug("Another worker is checking cluster nodes activity. Skipping cycle.");
+            logger.debug("System is not ready yet. Skipping cycle.");
         }
     }
 
@@ -143,4 +149,9 @@ public class StudioNodeActivityCheckJob implements Runnable{
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
+
+    public void setSystemStatusProvider(SystemStatusProvider systemStatusProvider) {
+        this.systemStatusProvider = systemStatusProvider;
+    }
+
 }
