@@ -84,7 +84,7 @@
             <!-- <delete-required/> -->
             <!-- <bulk-publish-required/> -->
             <!-- <publish-by-commit-required/> -->
-					  <!-- <publish-required/> -->
+            <!-- <publish-required/> -->
         </comments>
     </publishing>
 
