@@ -51,6 +51,11 @@
             here. Leaving it unspecified, will display dates/times to each user in their own system time zone.
             -->
             <!--<timeZone>EST5EDT</timeZone>-->
+            <day>numeric</day>
+            <month>numeric</month>
+            <year>numeric</year>
+            <hour>numeric</hour>
+            <minute>numeric</minute>
             <!--
             Set `hour12` to "false" to show times in 24 hour format.
             -->
