@@ -356,6 +356,8 @@
             <setups>
                 <setup id="generic">
                     <tinymceOptions>
+												<!-- Configuration options: https://www.tiny.cloud/docs/configure/ -->
+												<!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
                         <![CDATA[
                             {
                                 "menubar": true,

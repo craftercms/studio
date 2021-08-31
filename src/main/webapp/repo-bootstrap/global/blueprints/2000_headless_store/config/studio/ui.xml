@@ -355,6 +355,8 @@
     <configuration>
       <setups>
         <setup id="generic">
+					<!-- Configuration options: https://www.tiny.cloud/docs/configure/ -->
+					<!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
           <tinymceOptions>
             <![CDATA[
               {
