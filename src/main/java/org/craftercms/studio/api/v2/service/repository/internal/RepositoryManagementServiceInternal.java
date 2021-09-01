@@ -33,7 +33,7 @@ import java.util.List;
 public interface RepositoryManagementServiceInternal {
 
     boolean addRemote(String siteId, RemoteRepository remoteRepository)
-            throws ServiceLayerException, InvalidRemoteUrlException;
+            throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException;
 
     List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch)
             throws ServiceLayerException, CryptoException;

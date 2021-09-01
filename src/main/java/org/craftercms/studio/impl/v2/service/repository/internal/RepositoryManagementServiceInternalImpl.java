@@ -75,6 +75,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
+import org.eclipse.jgit.errors.NoRemoteRepositoryException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -150,7 +151,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
-            throws ServiceLayerException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
         boolean isValid = false;
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
@@ -207,10 +208,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 logger.error("Remote URL is invalid " + remoteRepository.getRemoteUrl(), e);
                 throw new InvalidRemoteUrlException();
             } catch (GitAPIException | IOException e) {
-                logger.error("Error while adding remote " + remoteRepository.getRemoteName() + " (url: " +
-                        remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
-                throw new ServiceLayerException("Error while adding remote " + remoteRepository.getRemoteName() +
-                        " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+                if (e.getCause() instanceof NoRemoteRepositoryException) {
+                    logger.error("Remote repository not found " + remoteRepository.getRemoteName() + " (url: " +
+                            remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
+                    throw new RemoteRepositoryNotFoundException("Remote repository not found " +
+                            remoteRepository.getRemoteName() + " (url: " + remoteRepository.getRemoteUrl() +
+                            ") for site " + siteId, e);
+                } else {
+                    logger.error("Error while adding remote " + remoteRepository.getRemoteName() + " (url: " +
+                            remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
+                    throw new ServiceLayerException("Error while adding remote " + remoteRepository.getRemoteName() +
+                            " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+                }
             }
 
             if (isValid) {
