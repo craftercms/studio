@@ -59,7 +59,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "add_remote")
     public boolean addRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, RemoteRepository remoteRepository)
-            throws ServiceLayerException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
         boolean toRet = repositoryManagementServiceInternal.addRemote(siteId, remoteRepository);
         insertAddRemoteAuditLog(siteId, OPERATION_ADD_REMOTE, remoteRepository.getRemoteName(),
                 remoteRepository.getRemoteName());
