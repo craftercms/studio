@@ -94,7 +94,7 @@ public class RepositoryManagementController {
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(ADD_REMOTE)
     public ResponseBody addRemote(HttpServletResponse response, @RequestBody RemoteRepository remoteRepository)
-            throws ServiceLayerException, InvalidRemoteUrlException {
+            throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException {
 
         if (!siteService.exists(remoteRepository.getSiteId())) {
             throw new SiteNotFoundException(remoteRepository.getSiteId());
