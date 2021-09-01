@@ -3645,7 +3645,8 @@ paths:
                   type: string
                 id:
                   description: item id to get children for
-                  type: string
+                  type: integer
+                  format: int64
                 localeCode:
                   description: |-
                     filter children by locale code, or show source items (not translation) if translatation to
@@ -3829,7 +3830,8 @@ paths:
           description: item identifier
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
         - name: preferContent
           in: query
           description: when set to true, return an item instead of a folder if the path can match either
@@ -3929,7 +3931,8 @@ paths:
                   description: item ids to get
                   type: array
                   items:
-                    type: string
+                    type: integer
+                    format: int64
                 preferContent:
                   description: when set to true, return an item instead of a folder if the path can match either
                   type: boolean
@@ -4205,7 +4208,8 @@ paths:
                   type: string
                   description: The id of the site
                 itemId:
-                  type: string
+                  type: integer
+                  format: int64
                   description: The id of the item to unlock
               required:
                 - siteId
