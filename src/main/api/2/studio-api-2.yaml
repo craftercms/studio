@@ -6330,6 +6330,70 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /workflow/request_publish:
+    post:
+      tags:
+        - workflow
+      summary: Request publish for content
+      description: 'Required permission "site_member"'
+      operationId: workflowRequestPublish
+      requestBody:
+        description: parameters for request publish
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                items:
+                  type: array
+                  description: path(s) of content item(s)
+                  items:
+                    type: string
+                optional:
+                  type: array
+                  description: optional (soft) dependencies
+                  items:
+                    type: string
+                mandatory:
+                  type: array
+                  description: mandatory (hard) dependencies
+                  items:
+                    type: string
+                environment:
+                  type: string
+                  description: environment to publish content to
+                schedule:
+                  type: string
+                  format: datetime
+                  description: schedule when to publish content
+                submissionComment:
+                  type: string
+                  description: comment about publish request
+                sendEmail:
+                  type: boolean
+                  description: if true send email notifications
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
