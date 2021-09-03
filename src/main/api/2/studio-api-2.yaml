@@ -6370,7 +6370,7 @@ paths:
                   description: if true, send email notifications
               required:
                 - items
-                - environment
+                - publishingTarget
       responses:
         '200':
           description: OK
@@ -6432,7 +6432,7 @@ paths:
                   description: Reviewer's comment
               required:
                 - items
-                - environment
+                - publishingTarget
       responses:
         '200':
           description: OK
@@ -6484,7 +6484,6 @@ paths:
                   description: deletion comment by the user performing the delete
               required:
                 - items
-                - environment
       responses:
         '200':
           description: OK
