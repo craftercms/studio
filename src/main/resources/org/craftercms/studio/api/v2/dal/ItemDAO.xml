@@ -416,9 +416,9 @@
                    COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
                 LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN USER u4 ON i3.owned_by = u4.id
-                LEFT OUTER JOIN USER u5 ON i3.created_by = u5.id
-                LEFT OUTER JOIN USER u6 ON i3.last_modified_by = u6.id
+                LEFT OUTER JOIN user u4 ON i3.owned_by = u4.id
+                LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
+                LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
                 LEFT OUTER JOIN (
                     SELECT pr3.*
                     FROM publish_request pr3, item i13
@@ -717,7 +717,7 @@
         </foreach>
         AND CONCAT(i3.path, '/index.xml') NOT IN
             (SELECT i4.path FROM item i4 WHERE i4.site_id = i3.site_id
-        AND i4.path RLIKE(CONCAT(i3.path, '/index\.xml$'))
+        AND i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
         AND (i6.ignored = 0 OR i6.ignored IS NULL)
         AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
