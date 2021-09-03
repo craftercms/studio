@@ -420,6 +420,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v8.xslt
               commitDetails: Added protected folders pattern configuration
+        - currentVersion: 8
+          nextVersion: 9
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v9.xslt
+              commitDetails: Add new section for locale
 
   permission-mappings-config:
     module: studio
