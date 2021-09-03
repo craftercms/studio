@@ -6350,19 +6350,14 @@ paths:
                   description: path(s) of content item(s)
                   items:
                     type: string
-                optional:
+                optionalDependencies:
                   type: array
                   description: optional (soft) dependencies
                   items:
                     type: string
-                mandatory:
-                  type: array
-                  description: mandatory (hard) dependencies
-                  items:
-                    type: string
-                environment:
+                publishingTarget:
                   type: string
-                  description: environment to publish content to
+                  description: target to publish content to
                 schedule:
                   type: string
                   format: datetime
@@ -6370,9 +6365,9 @@ paths:
                 submissionComment:
                   type: string
                   description: comment about publish request
-                sendEmail:
+                sendEmailNotifications:
                   type: boolean
-                  description: if true send email notifications
+                  description: if true, send email notifications
               required:
                 - items
                 - environment
@@ -6417,19 +6412,14 @@ paths:
                   description: path(s) of content item(s)
                   items:
                     type: string
-                optional:
+                optionalDependencies:
                   type: array
                   description: optional (soft) dependencies
                   items:
                     type: string
-                mandatory:
-                  type: array
-                  description: mandatory (hard) dependencies
-                  items:
-                    type: string
-                environment:
+                publishingTarget:
                   type: string
-                  description: environment to publish content to
+                  description: target to publish content to
                 schedule:
                   type: string
                   format: datetime
@@ -6437,9 +6427,9 @@ paths:
                 submissionComment:
                   type: string
                   description: submission comment by author
-                publishComment:
+                reviewerComment:
                   type: string
-                  description: publish comment by reviewer
+                  description: Reviewer's comment
               required:
                 - items
                 - environment
@@ -6484,19 +6474,14 @@ paths:
                   description: path(s) of content item(s)
                   items:
                     type: string
-                optional:
+                optionalDepepndencies:
                   type: array
                   description: optional (soft) dependencies
                   items:
                     type: string
-                mandatory:
-                  type: array
-                  description: mandatory (hard) dependencies
-                  items:
-                    type: string
-                deleteComment:
+                deletionComment:
                   type: string
-                  description: delete comment by user that deletes
+                  description: deletion comment by the user performing the delete
               required:
                 - items
                 - environment
