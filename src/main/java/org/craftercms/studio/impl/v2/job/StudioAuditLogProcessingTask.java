@@ -229,7 +229,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID. Local copy will not be deleted");
+            logger.info("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
         }
         return toRet;
     }
