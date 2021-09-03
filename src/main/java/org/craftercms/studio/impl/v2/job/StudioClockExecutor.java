@@ -113,18 +113,15 @@ public class StudioClockExecutor implements Job {
 
         List<String> sites = siteService.getAllCreatedSites();
         for (String site : sites) {
-            taskExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
-                    if (generalLockService.tryLock(tasksLock)) {
-                        try {
-                            for (SiteJob siteTask : siteTasks) {
-                                siteTask.execute(site);
-                            }
-                        } finally {
-                            generalLockService.unlock(tasksLock);
+            taskExecutor.execute(() -> {
+                String tasksLock = STUDIO_CLOCK_EXECUTOR_SITE_LOCK.replaceAll(PATTERN_SITE, site);
+                if (generalLockService.tryLock(tasksLock)) {
+                    try {
+                        for (SiteJob siteTask : siteTasks) {
+                            siteTask.execute(site);
                         }
+                    } finally {
+                        generalLockService.unlock(tasksLock);
                     }
                 }
             });
@@ -163,7 +160,7 @@ public class StudioClockExecutor implements Job {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID. Local copy will not be deleted");
+            logger.info("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
         }
         return toRet;
     }
