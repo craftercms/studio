@@ -176,21 +176,22 @@ public class StudioPublisherTask extends StudioClockTask {
                                         if (retriesLeft > 0) {
                                             retryCounter.put(siteId, retriesLeft);
                                             logger.info("Following commits are not present in local " +
-                                                    "repository " + sbMissingCommits.toString() + " Publisher task " +
+                                                    "repository " + sbMissingCommits + " Publisher task " +
                                                     "will retry in next cycle. Number of retries left: " + retriesLeft);
                                         } else {
                                             retryCounter.remove(siteId);
                                             siteService.enablePublishing(siteId, false);
                                             throw new DeploymentException("Deployment failed after " + maxRetryCounter
                                                     + " retries. Following commits are not present in local " +
-                                                    "repository " + sbMissingCommits.toString());
+                                                    "repository " + sbMissingCommits);
                                         }
                                     }
 
                                 }
                             }
                         } catch (UncategorizedSQLException  dbErr) {
-                            logger.error("DB error while executing deployment to environment store", dbErr);
+                            logger.error("DB error while executing deployment to environment store for site " + siteId,
+                                    dbErr);
                             if (!dbErrorNotifiedSites.add(siteId)) {
                                 notificationService.notifyDeploymentError(siteId, dbErr);
                             }
@@ -209,13 +210,13 @@ public class StudioPublisherTask extends StudioClockTask {
                 }
             }
         } catch (UncategorizedSQLException  dbErr) {
-            logger.error("DB error while executing deployment to environment store", dbErr);
+            logger.error("DB error while executing deployment to environment store for site " + siteId, dbErr);
             if (!dbErrorNotifiedSites.add(siteId)) {
                 notificationService.notifyDeploymentError(siteId, dbErr);
             }
             publishingManager.resetProcessingQueue(siteId, env);
         } catch (Exception err) {
-            logger.error("Error while executing deployment to environment store", err);
+            logger.error("Error while executing deployment to environment store for site " + siteId, err);
             notificationService.notifyDeploymentError(siteId, err);
             publishingManager.resetProcessingQueue(siteId, env);
         } finally {
