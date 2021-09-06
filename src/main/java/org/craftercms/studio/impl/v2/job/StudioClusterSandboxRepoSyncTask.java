@@ -143,9 +143,6 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 if (success) {
                     syncRemoteRepositories(siteId, localAddress);
 
-                    // Get the site's database last commit ID
-                    //String siteDatabaseLastCommitId = getDatabaseLastCommitId(siteId);
-
                     // Check if the site needs to be synced
                     boolean syncRequired = isSyncRequired(siteId, siteFeed.getLastCommitId());
 
@@ -256,7 +253,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                         .findFirst();
                 if (csr.isPresent()) {
                     ClusterMember remoteNode = clusterDao.getMemberById(csr.get().getClusterNodeId());
-                    logger.debug("Cloning " + SANDBOX.toString() + " repository for site " + siteId +
+                    logger.debug("Cloning " + SANDBOX + " repository for site " + siteId +
                             " from " + remoteNode.getLocalAddress());
 
                     // prepare a new folder for the cloned repository
@@ -290,18 +287,18 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
                         cloned = validateRepository(cloneResult.getRepository());
                     } catch (InvalidRemoteException e) {
-                        logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
-                                " (" + remoteNode.getGitUrl() + ")", e);
+                        logger.error("Invalid remote repository for site " + siteId + ": " +
+                                        remoteNode.getGitRemoteName() + " (" + remoteNode.getGitUrl() + ")", e);
                     } catch (TransportException e) {
                         if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
                             logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
-                                    " (" + remoteNode.getGitUrl() + ")", e);
+                                    " (" + remoteNode.getGitUrl() + ") for site " + siteId, e);
                         } else {
                             logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
-                                    " (" + remoteNode.getGitUrl() + ")", e);
+                                    " (" + remoteNode.getGitUrl() + ") for site " + siteId, e);
                         }
                     } catch (GitAPIException | IOException e) {
-                        logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+                        logger.error("Error while creating repository for site with path " + siteSandboxPath, e);
                     } finally {
                         if (cloneResult != null) {
                             cloneResult.close();
@@ -370,7 +367,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
 
 
         } catch (URISyntaxException e) {
-            logger.error("Remote URL is invalid " + remoteRepository.getRemoteUrl(), e);
+            logger.error("Remote URL is invalid " + remoteRepository.getRemoteUrl() + " for site " + siteId, e);
             throw new InvalidRemoteUrlException();
         } catch (GitAPIException e) {
             logger.error("Error while adding remote " + remoteRepository.getRemoteName() +
@@ -417,7 +414,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
 
             } catch (IOException e) {
-                logger.error("Failed to open repository", e);
+                logger.error("Failed to open sandbox repository for site " + siteId, e);
             }
         }
     }
@@ -442,7 +439,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
                 try {
                     removeRemote(git, member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
                 } catch (GitAPIException e) {
-                    logger.debug("Error while cleaning up remote repository", e);
+                    logger.debug("Error while cleaning up remote repository for site " + siteId, e);
                 }
             }
 
@@ -466,7 +463,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             }
 
         } catch (URISyntaxException e) {
-            logger.error("Remote URL is invalid " + remoteUrl, e);
+            logger.error("Remote URL is invalid " + remoteUrl + " for site " + siteId, e);
             throw new InvalidRemoteUrlException();
         } catch (GitAPIException e) {
             logger.error("Error while adding remote " + member.getGitRemoteName() + " (url: " + remoteUrl +

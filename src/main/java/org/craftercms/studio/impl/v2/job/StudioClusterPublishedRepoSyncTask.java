@@ -231,7 +231,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
 
             } catch (IOException e) {
-                logger.error("Failed to open repository", e);
+                logger.error("Failed to open published repository for site " + siteId, e);
             }
         }
     }
@@ -256,7 +256,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 try {
                     removeRemote(git, member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
                 } catch (GitAPIException e) {
-                    logger.debug("Error while cleaning up remote repository", e);
+                    logger.debug("Error while cleaning up remote repository for site " + siteId, e);
                 }
             }
 
