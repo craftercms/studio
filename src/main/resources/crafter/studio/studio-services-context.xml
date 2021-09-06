@@ -1726,6 +1726,7 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="systemStatusProvider" ref="bootstrapManager"/>
         <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
         <property name="cookieMaxAge"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
