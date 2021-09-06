@@ -92,12 +92,12 @@
       </widgets>
     </configuration>
   </widget>
-  <widget id="craftercms.components.PageBuilderPanel">
+  <widget id="craftercms.components.ICEToolsPanel">
     <configuration>
       <widgets>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewSearchPanel.title" defaultMessage="Search"/>
             <icon id="@material-ui/icons/SearchRounded"/>
             <widgets>
@@ -107,7 +107,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewComponentsPanel.title" defaultMessage="Add Components"/>
             <icon id="@material-ui/icons/ExtensionOutlined"/>
             <widgets>
@@ -117,7 +117,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewBrowseComponentsPanel.title" defaultMessage="Browse Components"/>
             <icon id="@material-ui/icons/ExtensionOutlined"/>
             <widgets>
@@ -127,7 +127,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewDropTargetsPanel.title" defaultMessage="Component Drop Targets"/>
             <icon id="@material-ui/icons/ExtensionOutlined"/>
             <widgets>
@@ -137,7 +137,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewAssetsPanel.title" defaultMessage="Assets"/>
             <icon id="@material-ui/icons/ImageOutlined"/>
             <widgets>
@@ -147,7 +147,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewAudiencesPanel.title" defaultMessage="Audience Targeting"/>
             <icon id="@material-ui/icons/EmojiPeopleRounded"/>
             <widgets>
@@ -191,7 +191,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewPageExplorerPanel.title" defaultMessage="Page Explorer"/>
             <icon id="craftercms.icons.PageExplorer"/>
             <widgets>
@@ -201,7 +201,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="previewSimulatorPanel.title" defaultMessage="Device Simulator"/>
             <icon id="@material-ui/icons/DevicesRounded"/>
             <widgets>
@@ -226,7 +226,7 @@
         </widget>
         <widget id="craftercms.components.ToolsPanelPageButton">
           <configuration>
-            <target id="pageBuilderPanel"/>
+            <target id="ICEToolsPanel"/>
             <title id="words.settings" defaultMessage="Settings"/>
             <icon id="@material-ui/icons/SettingsOutlined"/>
             <widgets>
