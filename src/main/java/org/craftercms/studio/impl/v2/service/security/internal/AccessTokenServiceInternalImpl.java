@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.craftercms.studio.model.security.AccessToken;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 import org.jose4j.jwe.ContentEncryptionAlgorithmIdentifiers;
@@ -124,16 +125,18 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    protected SystemStatusProvider systemStatusProvider;
 
     @ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
             "refreshTokenExpiration", "securityDao", "instanceService", "auditService", "studioConfiguration",
-            "siteService", "retryingDatabaseOperationFacade"})
+            "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider"})
     public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
                                           String signPassword, String encryptPassword, int refreshTokenExpiration,
                                           SecurityDAO securityDao, InstanceService instanceService,
                                           AuditServiceInternal auditService, StudioConfiguration studioConfiguration,
                                           SiteService siteService,
-                                          RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+                                          RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+                                          SystemStatusProvider systemStatusProvider) {
         this.issuer = issuer;
         this.validIssuers = validIssuers;
         this.accessTokenExpiration = accessTokenExpiration;
@@ -146,6 +149,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+        this.systemStatusProvider = systemStatusProvider;
     }
 
     public void setAudience(String audience) {
@@ -219,7 +223,11 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
     @Override
     public void deleteExpiredRefreshTokens() {
-        retryingDatabaseOperationFacade.deleteExpiredTokens(refreshTokenExpiration);
+        if (systemStatusProvider.isSystemReady()) {
+            retryingDatabaseOperationFacade.deleteExpiredTokens(refreshTokenExpiration);
+        } else {
+            logger.debug("System is not ready yet, skipping token cleanup");
+        }
     }
 
     @Override

@@ -115,7 +115,6 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-webdav.xml
                 dest: configuration/samples/sample-webdav.xml
             commitDetails: Update sample file for webdav.xml
-          - type: dbVersionUpgrader
       - currentVersion: 3.2.0.18
         nextVersion: 3.2.0.19
         operations:
