@@ -55,13 +55,6 @@
         </file>
         <file>
             <module>studio</module>
-            <path>form-control-config/rte/rte-setup.xml</path>
-            <title>confTabRTEConf</title>
-            <description>confTabRTEConfDesc</description>
-            <samplePath>sample-form-control-rte-setup.xml</samplePath>
-        </file>
-        <file>
-            <module>studio</module>
             <path>form-control-config/rte/rte-setup-tinymce5.xml</path>
             <title>confTabRTEtMCE5Conf</title>
             <description>confTabRTEtMCE5ConfDesc</description>
