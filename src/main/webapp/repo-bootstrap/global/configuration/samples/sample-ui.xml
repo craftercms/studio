@@ -343,9 +343,27 @@
     <widget id="craftercms.components.Dashboard">
         <configuration>
             <widgets>
-                <widget id="craftercms.components.AwaitingApprovalDashlet"/>
-                <widget id="craftercms.components.ApprovedScheduledDashlet"/>
-                <widget id="craftercms.components.RecentlyPublishedDashlet"/>
+                <widget id="craftercms.components.AwaitingApprovalDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
+                <widget id="craftercms.components.ApprovedScheduledDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
+                <widget id="craftercms.components.RecentlyPublishedDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
                 <widget id="craftercms.components.RecentActivityDashlet"/>
                 <widget id="craftercms.components.IconGuideDashlet"/>
             </widgets>
