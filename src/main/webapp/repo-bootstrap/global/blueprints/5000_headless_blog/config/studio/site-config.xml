@@ -21,7 +21,7 @@
 
 -->
 <site-config>
-    <version>9</version>
+    <version>10</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
 
