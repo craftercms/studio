@@ -1631,11 +1631,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 try {
-
                     ObjectId objCommitIdFrom = repository.resolve(lastProcessedCommitId);
                     ObjectId objCommitIdTo = repository.resolve(HEAD);
 
-
+                    logger.debug("Update git log from " + objCommitIdFrom.getName() + " to " + objCommitIdTo.getName());
                     try (Git git = new Git(repository)) {
 
                         // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
@@ -1643,20 +1642,22 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                         if (!objCommitIdFrom.equals(objCommitIdTo)) {
 
                             // Get the log of all the commits between commitId and head
-                            Iterable<RevCommit> commits = git.log().addRange(objCommitIdFrom, objCommitIdTo).call();
+                            Iterable<RevCommit> commits = git.log().call();
                             ObjectId nextCommitId;
                             String commitId = EMPTY;
 
                             Iterator<RevCommit> iterator = commits.iterator();
                             while (iterator.hasNext()) {
                                 RevCommit commit = iterator.next();
+                                if (StringUtils.equals(commit.getId().getName(), lastProcessedCommitId)) {
+                                    break;
+                                }
                                 commitIds.write(commit);
                             }
 
                             List<String> batch = new ArrayList<String>();
                             RevCommit current = commitIds.read();
                             while (current != null) {
-
                                 nextCommitId = current.getId();
                                 commitId = nextCommitId.getName();
                                 if (StringUtils.contains(current.getFullMessage(),
@@ -1672,7 +1673,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                             if (batch.size() > 0) {
                                 gitLogDao.insertIgnoreGitLogList(siteId, batch);
                                 siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
-                                siteService.updateLastCommitId(siteId, batch.get(batch.size() - 1));
                                 logger.debug("Inserted " + batch.size() + " git log commits for site " + siteId);
                             } else {
                                 siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());
