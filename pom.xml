@@ -43,8 +43,8 @@
         <testng.version>6.9.10</testng.version>
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>support/3.1.x</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v13.6.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
+        <studio.ui.node.version>v15.0.1</studio.ui.node.version>
+        <studio.ui.yarn.version>v1.22.10</studio.ui.yarn.version>
         <spring.version>4.3.29.RELEASE</spring.version>
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
@@ -630,6 +630,16 @@
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <phase>prepare-package</phase>
+                    </execution>
+                    <execution>
+                        <id>UI build: prep</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}</workingDirectory>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn install sass</id>
