@@ -255,7 +255,7 @@
                 </constraints>
             </field>
             <field>
-                <type>rte-tinymce5</type>
+                <type>rte</type>
                 <id>biography_html</id>
                 <iceId></iceId>
                 <title>Biography</title>

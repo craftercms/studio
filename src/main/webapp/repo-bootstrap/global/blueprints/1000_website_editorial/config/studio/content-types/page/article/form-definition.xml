@@ -669,7 +669,7 @@
 					</properties>
 					<fields>
 				<field>
-					<type>rte-tinymce5</type>
+					<type>rte</type>
 					<id>section_html</id>
 					<iceId>article</iceId>
 					<title>Section</title>

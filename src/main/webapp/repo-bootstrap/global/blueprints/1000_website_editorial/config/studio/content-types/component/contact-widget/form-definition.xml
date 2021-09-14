@@ -176,7 +176,7 @@
 					</constraints>
 				</field>
 				<field>
-					<type>rte-tinymce5</type>
+					<type>rte</type>
 					<id>text_html</id>
 					<iceId></iceId>
 					<title>Text</title>
@@ -320,7 +320,7 @@
 					</constraints>
 				</field>
 				<field>
-					<type>rte-tinymce5</type>
+					<type>rte</type>
 					<id>address_html</id>
 					<iceId></iceId>
 					<title>Address</title>

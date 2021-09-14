@@ -209,7 +209,7 @@
                     </constraints>
                 </field>
                 <field>
-					<type>rte-tinymce5</type>
+					<type>rte</type>
 					<id>body_html</id>
 					<iceId>main</iceId>
 					<title>Body</title>
