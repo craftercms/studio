@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<config>
+    <version>12</version>
+    <tools>
+        <tool>
+            <name>content-types</name>
+            <label>Content Types</label>
+            <formSection>
+                <icon>
+                    <class>fa-object-group</class>
+                </icon>
+            </formSection>
+            <repeatSection>
+                <icon>
+                    <class>fa-repeat</class>
+                </icon>
+            </repeatSection>
+            <controls>
+                <control>
+                    <name>textarea</name>
+                    <icon>
+                        <class>fa-paragraph</class>
+                    </icon>
+                </control>
+                <control>
+                    <name>rte</name>
+                    <icon>
+                        <class>fa-code</class>
+                    </icon>
+                </control>
+                <control>
+                    <name>dropdown</name>
+                    <icon>
+                        <class>fa-sort-desc</class>
+                    </icon>
+                </control>
+            </controls>
+            <datasources>
+                <datasource>
+                    <name>dropTargets</name>
+                    <icon>
+                        <class>fa-object-group</class>
+                    </icon>
+                </datasource>
+            </datasources>
+            <objectTypes>
+                <type>
+                    <label>Page</label>
+                    <name>page</name>
+                    <properties>
+                        <property>
+                            <name>display-template</name>
+                            <label>Display Template</label>
+                            <value></value>
+                            <type>template</type>
+                        </property>
+                        <property>
+                            <name>no-template-required</name>
+                            <label>No Template Required</label>
+                            <value></value>
+                            <type>boolean</type>
+                        </property>
+                        <property>
+                            <name>merge-strategy</name>
+                            <label>Merge Strategy</label>
+                            <value>inherit-levels</value>
+                            <type>string</type>
+                        </property>
+                    </properties>
+                </type>
+            </objectTypes>
+        </tool>
+        <tool>
+            <name>encrypt-tool</name>
+            <label>Encryption Tool</label>
+            <icon>
+                <class>fa-lock</class>
+            </icon>
+        </tool>
+    </tools>
+</config>
