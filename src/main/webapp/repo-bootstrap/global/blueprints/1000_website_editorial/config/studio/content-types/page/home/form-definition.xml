@@ -292,7 +292,7 @@
 			<defaultOpen>true</defaultOpen>
 			<fields>
 				<field>
-					<type>rte-tinymce5</type>
+					<type>rte</type>
 					<id>hero_title_html</id>
 					<iceId>hero</iceId>
 					<title>Hero Title</title>
@@ -350,7 +350,7 @@
 					</constraints>
 				</field>
 				<field>
-					<type>rte-tinymce5</type>
+					<type>rte</type>
 					<id>hero_text_html</id>
 					<iceId>hero</iceId>
 					<title>Hero Text</title>

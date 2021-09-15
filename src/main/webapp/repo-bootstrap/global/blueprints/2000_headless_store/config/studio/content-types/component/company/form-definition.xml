@@ -212,7 +212,7 @@
                 </constraints>
             </field>
             <field>
-                <type>rte-tinymce5</type>
+                <type>rte</type>
                 <id>description_html</id>
                 <iceId></iceId>
                 <title>Description</title>
