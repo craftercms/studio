@@ -24,6 +24,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 
+import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -159,6 +160,21 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
         public CachedServletInputStream() {
             /* create a new input stream from the cached request body */
             input = new ByteArrayInputStream(cachedBytes.toByteArray());
+        }
+
+        @Override
+        public boolean isFinished() {
+            return false;
+        }
+
+        @Override
+        public boolean isReady() {
+            return false;
+        }
+
+        @Override
+        public void setReadListener(ReadListener readListener) {
+            throw new IllegalStateException();
         }
 
         @Override
