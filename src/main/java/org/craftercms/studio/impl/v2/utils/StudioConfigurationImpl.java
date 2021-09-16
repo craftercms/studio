@@ -46,7 +46,6 @@ public class StudioConfigurationImpl implements StudioConfiguration {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioConfigurationImpl.class);
 
-    protected HierarchicalConfiguration<ImmutableNode> config;
     protected HierarchicalConfiguration<ImmutableNode> systemConfig;
 
     protected Cache configurationCache;
@@ -63,7 +62,6 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void loadConfig() {
         YamlConfiguration baseConfig = new YamlConfiguration();
         YamlConfiguration overrideConfig = new YamlConfiguration();
@@ -102,26 +100,24 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             combinedConfig.addConfiguration(overrideConfig);
             combinedConfig.addConfiguration(baseConfig);
 
-            config = combinedConfig;
+            systemConfig = combinedConfig;
         } else {
-            config = baseConfig;
+            systemConfig = baseConfig;
         }
-
-        systemConfig = config;
-        config = loadGlobalRepoConfig();
     }
 
     @SuppressWarnings("unchecked")
     private HierarchicalConfiguration<ImmutableNode> loadGlobalRepoConfig() {
-        String cacheKey = prependIfMissing(config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG), "/");
-        Path globalRepoOverrideConfigLocation = Paths.get(config.getString(REPO_BASE_PATH),
-                config.getString(GLOBAL_REPO_PATH), config.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
-        HierarchicalConfiguration<ImmutableNode> globalRepoConfig = null;
+        String cacheKey = prependIfMissing(systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG), "/");
+        Path globalRepoOverrideConfigLocation = Paths.get(systemConfig.getString(REPO_BASE_PATH),
+                systemConfig.getString(GLOBAL_REPO_PATH),
+                systemConfig.getString(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG));
+        HierarchicalConfiguration<ImmutableNode> config = systemConfig;
         Element element = configurationCache.get(cacheKey);
         if (element != null && !element.isExpired()) {
-            globalRepoConfig = (HierarchicalConfiguration<ImmutableNode>) element.getObjectValue();
+            config = (HierarchicalConfiguration<ImmutableNode>) element.getObjectValue();
         } else {
-            if (config.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
+            if (systemConfig.containsKey(STUDIO_CONFIG_GLOBAL_REPO_OVERRIDE_CONFIG)) {
                 FileSystemResource fsr = new FileSystemResource(globalRepoOverrideConfigLocation.toFile());
                 if (fsr.exists()) {
                     try {
@@ -133,26 +129,21 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                             if (!globalRepoOverrideConfig.isEmpty()) {
                                 logger.debug("Loaded additional configuration from location: {0} \n {1}",
                                         fsr.getPath(), globalRepoOverrideConfig);
+                                CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
+                                combinedConfig.setExpressionEngine(getExpressionEngine());
+                                combinedConfig.addConfiguration(globalRepoOverrideConfig);
+                                combinedConfig.addConfiguration(systemConfig);
+
+                                config = combinedConfig;
                             }
-                            globalRepoConfig = globalRepoOverrideConfig;
-                            configurationCache.put(new Element(cacheKey, globalRepoConfig));
+
                         }
                     } catch (IOException | ConfigurationException e) {
                         logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
-                        // Put null in the cache to prevent the error in future calls
-                        configurationCache.put(new Element(cacheKey, null));
                     }
                 }
             }
-        }
-
-        if (globalRepoConfig != null && !globalRepoConfig.isEmpty()) {
-            CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
-            combinedConfig.setExpressionEngine(getExpressionEngine());
-            combinedConfig.addConfiguration(globalRepoConfig);
-            combinedConfig.addConfiguration(systemConfig);
-
-            config = combinedConfig;
+            configurationCache.put(new Element(cacheKey, config));
         }
 
         return config;
@@ -206,7 +197,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
     @Override
     public List<HierarchicalConfiguration<ImmutableNode>> getSubConfigs(String key) {
         try {
-            return config.configurationsAt(key);
+            return getConfig().configurationsAt(key);
         } catch (Exception e) {
             logger.error("Failed to load values for " + key);
             return null;
