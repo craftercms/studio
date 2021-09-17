@@ -26,7 +26,9 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 
@@ -153,11 +155,25 @@ public class ChainAuthenticationProvider implements AuthenticationProvider, Appl
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        for (var provider : providers) {
+        logger.debug("Starting authentication chain for username {0}", authentication.getName());
+        for (AuthenticationProvider provider : providers) {
+            logger.debug("Checking compatibility for username {0} with provider {1}",
+                    authentication.getName(), provider);
             if (provider.supports(authentication.getClass())) {
-                var result = provider.authenticate(authentication);
-                if (result != null) {
-                    return result;
+                try {
+                    logger.debug("Attempting authentication for username {0} with provider {1}",
+                            authentication.getName(), provider);
+                    Authentication result = provider.authenticate(authentication);
+                    if (result != null) {
+                        return result;
+                    }
+                } catch (AccountStatusException | InternalAuthenticationServiceException e) {
+                    // These exceptions need to be handled by the auth manager
+                    throw e;
+                } catch (Exception e) {
+                    // Any other exception should just be logged and continue
+                    logger.debug("Authentication for username {0} failed with provider {1}",
+                            e, authentication.getName(), provider);
                 }
             }
         }
