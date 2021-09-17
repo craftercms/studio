@@ -144,6 +144,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                         }
                     }
                 }
+                configurationCache.put(cacheKey, config);
             }
             return config;
         } catch (Exception e) {
