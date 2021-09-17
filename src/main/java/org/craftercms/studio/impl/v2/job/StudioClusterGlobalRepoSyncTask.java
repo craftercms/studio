@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,20 +30,16 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
-import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.RemoteAddCommand;
 import org.eclipse.jgit.api.RemoteSetUrlCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.URIish;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
@@ -113,7 +109,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
 
                 if (!checkIfRepoExists()) {
                     // Site doesn't exist locally, create it
-                    success = cloneRepository(clusterNodes);
+                    success = studioClusterUtils.cloneGlobalRepository(clusterNodes);
                 }
 
                 if (success) {
@@ -154,75 +150,6 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
         } else {
             return false;
         }
-    }
-
-    private boolean cloneRepository(List<ClusterMember> clusterNodes)
-            throws CryptoException, ServiceLayerException {
-        // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
-        // we will eventually to catch up to the latest
-        boolean cloned = false;
-        int idx = 0;
-        String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
-        if (generalLockService.tryLock(gitLockKey)) {
-            try {
-                while (!cloned && idx < clusterNodes.size()) {
-                    ClusterMember remoteNode = clusterNodes.get(idx++);
-                    logger.debug("Cloning global repository from " + remoteNode.getLocalAddress());
-
-                    // prepare a new folder for the cloned repository
-                    Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH));
-                    File localPath = siteSandboxPath.toFile();
-                    localPath.delete();
-                    // then clone
-                    logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
-                    CloneCommand cloneCommand = Git.cloneRepository();
-                    Git cloneResult = null;
-
-                    try {
-                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-                        logger.debug("Add user credentials if provided");
-
-                        studioClusterUtils.configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
-
-                        String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
-
-                        logger.debug("Executing clone command");
-                        cloneResult = cloneCommand
-                                .setURI(cloneUrl)
-                                .setRemote(remoteNode.getGitRemoteName())
-                                .setDirectory(localPath)
-                                .setCloneAllBranches(true)
-                                .call();
-                        Files.deleteIfExists(tempKey);
-                        cloned = true;
-
-                    } catch (InvalidRemoteException e) {
-                        logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
-                                " (" + remoteNode.getGitUrl() + ")", e);
-                    } catch (TransportException e) {
-                        if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                            logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
-                                    " (" + remoteNode.getGitUrl() + ")", e);
-                        } else {
-                            logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
-                                    " (" + remoteNode.getGitUrl() + ")", e);
-                        }
-                    } catch (GitAPIException | IOException e) {
-                        logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
-                    } finally {
-                        if (cloneResult != null) {
-                            cloneResult.close();
-                        }
-                    }
-                }
-            } finally {
-                generalLockService.unlock(gitLockKey);
-            }
-        } else {
-            logger.debug("Failed to get lock " + gitLockKey);
-        }
-        return cloned;
     }
 
     protected void addRemotes(List<ClusterMember> clusterNodes)
