@@ -13,31 +13,55 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model.rest.content;
+
+package org.craftercms.studio.model.rest.workflow;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-/**
- * Holds data for the getSandboxItemsById request
- *
- * @author joseross
- * @since 4.0
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetSandboxItemsByIdRequest extends GetSandboxItemsRequest {
+public class RejectRequestBody {
 
     @NotEmpty
-    protected List<Long> ids;
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> items;
+    @NotEmpty
+    private String reason;
+    private String comment;
 
-    public List<Long> getIds() {
-        return ids;
+    public String getSiteId() {
+        return siteId;
     }
 
-    public void setIds(List<Long> ids) {
-        this.ids = ids;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
+    public List<String> getItems() {
+        return items;
+    }
+
+    public void setItems(List<String> items) {
+        this.items = items;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 }

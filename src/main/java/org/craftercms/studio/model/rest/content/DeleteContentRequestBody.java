@@ -17,26 +17,46 @@ package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
- * Holds data for the getChildrenByPath request
+ * Holds data for the deleteContent request
  *
  * @author joseross
  * @since 4.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetChildrenByPathRequest extends GetChildrenRequest {
+public class DeleteContentRequestBody {
 
     @NotEmpty
-    protected String path;
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> paths;
+    private String submissionComment;
 
-    public String getPath() {
-        return path;
+    public String getSiteId() {
+        return siteId;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
+    public List<String> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
+
+    public String getSubmissionComment() {
+        return submissionComment;
+    }
+
+    public void setSubmissionComment(String submissionComment) {
+        this.submissionComment = submissionComment;
+    }
 }

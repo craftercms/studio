@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -32,16 +31,16 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
-import org.craftercms.studio.model.rest.content.DeleteContentRequest;
+import org.craftercms.studio.model.rest.content.DeleteContentRequestBody;
 import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.model.rest.content.GetChildrenByIdRequest;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathRequest;
+import org.craftercms.studio.model.rest.content.GetChildrenByIdRequestBody;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathRequestBody;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequest;
-import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequest;
+import org.craftercms.studio.model.rest.content.GetDeletePackageRequestBody;
+import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequestBody;
+import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequestBody;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
@@ -134,7 +133,7 @@ public class ContentController {
     }
 
     @PostMapping(GET_DELETE_PACKAGE)
-    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequest request) {
+    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
         List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
@@ -149,7 +148,7 @@ public class ContentController {
     }
 
     @PostMapping(DELETE)
-    public ResponseBody delete(@RequestBody @Valid DeleteContentRequest request)
+    public ResponseBody delete(@RequestBody @Valid DeleteContentRequestBody request)
             throws DeploymentException, AuthenticationException, ServiceLayerException {
         contentService.deleteContent(request.getSiteId(), request.getPaths(), request.getSubmissionComment());
 
@@ -161,7 +160,7 @@ public class ContentController {
     }
 
     @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequest request)
+    public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
@@ -177,7 +176,7 @@ public class ContentController {
     }
 
     @PostMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenById(@RequestBody @Valid GetChildrenByIdRequest request)
+    public ResponseBody getChildrenById(@RequestBody @Valid GetChildrenByIdRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
@@ -277,7 +276,7 @@ public class ContentController {
     }
 
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequest request)
+    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
@@ -293,7 +292,7 @@ public class ContentController {
     }
 
     @PostMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequest request)
+    public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
@@ -344,10 +343,4 @@ public class ContentController {
         httpHeaders.setContentLength(item.getSandbox().getSizeInBytes());
         return new ResponseEntity<InputStreamResource>(responseBody, httpHeaders, HttpStatus.OK);
     }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class GetDeletePackageRequest extends SiteAwareBulkRequest {
-
-    }
-
 }

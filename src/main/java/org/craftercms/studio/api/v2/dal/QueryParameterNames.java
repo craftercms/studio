@@ -267,6 +267,8 @@ public final class  QueryParameterNames {
 
     public static final String WORKFLOW = "workflow";
 
+    public static final String WORKFLOW_ENTRIES = "workflowEntries";
+
     public static final String STATE_OPENED = "stateOpened";
 
     public static final String ITEM_ID = "itemId";

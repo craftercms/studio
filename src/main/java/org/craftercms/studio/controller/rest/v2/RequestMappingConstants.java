@@ -105,6 +105,9 @@ public final class RequestMappingConstants {
     public static final String ITEM_STATES = "/item_states";
     public static final String UPDATE_ITEM_STATES_BY_QUERY = "/update_item_states_by_query";
     public static final String AFFECTED_PATHS = "/affected_paths";
+    public static final String REQUEST_PUBLISH = "/request_publish";
+    public static final String REJECT = "/reject";
+    public static final String APPROVE = "/approve";
 
     private RequestMappingConstants() {
     }

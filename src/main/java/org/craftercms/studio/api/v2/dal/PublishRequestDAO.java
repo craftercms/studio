@@ -33,6 +33,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES;
@@ -139,4 +141,16 @@ public interface PublishRequestDAO {
                                            @Param(STATE) String state,
                                            @Param(CONTENT_TYPE_CLASS) String contentTypeClass,
                                            @Param(NOW) ZonedDateTime now);
+
+    /**
+     * Cancel scheduled items from publishing queue
+     * @param siteId site identifier
+     * @param paths list of paths of content items to be cancelled
+     * @param now timestamp now
+     * @param cancelledState cancelled state value
+     * @param readyState ready for live state value
+     */
+    void cancelScheduledQueueItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                                   @Param(NOW) ZonedDateTime now, @Param(CANCELLED_STATE) String cancelledState,
+                                   @Param(READY_STATE) String readyState);
 }

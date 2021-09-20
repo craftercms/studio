@@ -2145,8 +2145,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         whoToBlame = user.getUsername();
                     }
                 }
-                notificationService.notifyContentRejection(site, whoToBlame, getDeploymentPaths(submittedItems),
-                    reason, approver, Locale.ENGLISH);
+                notificationService.notifyContentRejection(site, Collections.singletonList(whoToBlame),
+                        getDeploymentPaths(submittedItems), reason, approver, Locale.ENGLISH);
             }
         }
 

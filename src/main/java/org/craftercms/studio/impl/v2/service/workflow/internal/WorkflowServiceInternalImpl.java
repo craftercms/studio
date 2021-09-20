@@ -52,6 +52,11 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     }
 
     @Override
+    public void insertWorkflowEntries(List<Workflow> workflowEntries) {
+        retryingDatabaseOperationFacade.insertWorkflowEntries(workflowEntries);
+    }
+
+    @Override
     public void updateWorkflow(Workflow workflow) {
         retryingDatabaseOperationFacade.updateWorkflowEntry(workflow);
     }

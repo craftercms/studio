@@ -54,6 +54,12 @@ public interface WorkflowServiceInternal {
     void insertWorkflow(Workflow workflow);
 
     /**
+     * insert new workflow entries
+     * @param workflowEntries list of workflow entries
+     */
+    void insertWorkflowEntries(List<Workflow> workflowEntries);
+
+    /**
      * Update new workflow entry
      * @param workflow workflow entry
      */

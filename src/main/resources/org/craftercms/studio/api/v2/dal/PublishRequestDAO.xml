@@ -144,4 +144,17 @@
         AND scheduleddate &gt; #{now}
         ORDER BY scheduleddate ASC
     </select>
+
+    <update id="cancelScheduledQueueItems" >
+        UPDATE publish_request
+        SET state = #{cancelledState}
+        WHERE site = #{siteId}
+        AND state = #{readyState}
+        AND scheduleddate &gt; #{now}
+        AND path IN
+        <foreach item="path" index="index" collection="paths"
+                 open="(" separator="," close=")">
+            #{path}
+        </foreach>
+    </update>
 </mapper>

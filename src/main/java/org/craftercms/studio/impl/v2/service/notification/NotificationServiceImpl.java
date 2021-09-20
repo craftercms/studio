@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import com.google.common.cache.Cache;
 import freemarker.template.Configuration;
@@ -271,29 +272,42 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @ValidateParams
     public void notifyContentRejection(@ValidateStringParam(name = "site") final String site,
-                                       @ValidateStringParam(name = "submittedBy") final String submittedBy,
+                                       final List<String> submittedByList,
                                        final List<String> rejectedItems,
                                        @ValidateStringParam(name = "rejectionReason") final String rejectionReason,
                                        @ValidateStringParam(name = "userThatRejects") final String userThatRejects,
                                        final Locale locale) {
         try {
-            Map<String, Object> submitterUser;
-            try {
-                submitterUser = securityService.getUserProfile(submittedBy);
-            } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.debug("User not found by username " + submittedBy);
-                submitterUser = securityService.getUserProfileByGitName(submittedBy);
-            }
-            if (Objects.nonNull(submitterUser) && !submitterUser.isEmpty()) {
+            var submitterUsers = new ArrayList<Map<String, Object>>();
+            submittedByList.forEach(submittedBy -> {
+                Map<String, Object> userProfile = null;
+                try {
+                    userProfile = securityService.getUserProfile(submittedBy);
+
+                } catch (ServiceLayerException | UserNotFoundException e) {
+                    logger.debug("User not found by username " + submittedBy);
+                    try {
+                        userProfile = securityService.getUserProfileByGitName(submittedBy);
+                    } catch (ServiceLayerException | UserNotFoundException ex) {
+                        logger.debug("Didn't find user " + submittedBy + ". Notification will not be sent " +
+                                "to that user.", ex);
+                    }
+                }
+                if (Objects.nonNull(userProfile)) {
+                    submitterUsers.add(userProfile);
+                }
+            });
+            if (Objects.nonNull(submitterUsers) && !submitterUsers.isEmpty()) {
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put("files", convertPathsToContent(site, rejectedItems));
-                templateModel.put("submitter", submitterUser);
                 templateModel.put("rejectionReason", rejectionReason);
                 templateModel.put("userThatRejects", securityService.getUserProfile(userThatRejects));
-                notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_REJECTED,
-                        locale, templateModel);
+                List<String> emails = submitterUsers.stream().map(u -> u.get(KEY_EMAIL).toString())
+                        .collect(Collectors.toList());
+                notify(site, emails, NOTIFICATION_KEY_CONTENT_REJECTED, locale, templateModel);
             } else {
-                logger.info("Unable to notify content rejection. User " + submittedBy + " not found.");
+                logger.info("Unable to notify content rejection. User(s) " +
+                        StringUtils.join(submittedByList, ", ") + " not found.");
             }
         } catch (Exception ex) {
             logger.error("Unable to notify content rejection", ex);

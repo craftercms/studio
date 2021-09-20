@@ -16,25 +16,46 @@
 package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
+
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
- * Holds data for the deleteContent request
+ * Holds data for the getSandboxItemsById request
  *
  * @author joseross
  * @since 4.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DeleteContentRequest extends SiteAwareBulkRequest {
+public class GetSandboxItemsByIdRequestBody {
 
-    protected String submissionComment;
+    @NotEmpty
+    private String siteId;
+    @NotEmpty
+    private List<Long> ids;
+    private boolean preferContent;
 
-    public String getSubmissionComment() {
-        return submissionComment;
+    public String getSiteId() {
+        return siteId;
     }
 
-    public void setSubmissionComment(String submissionComment) {
-        this.submissionComment = submissionComment;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
+    public List<Long> getIds() {
+        return ids;
+    }
+
+    public void setIds(List<Long> ids) {
+        this.ids = ids;
+    }
+
+    public boolean isPreferContent() {
+        return preferContent;
+    }
+
+    public void setPreferContent(boolean preferContent) {
+        this.preferContent = preferContent;
+    }
 }

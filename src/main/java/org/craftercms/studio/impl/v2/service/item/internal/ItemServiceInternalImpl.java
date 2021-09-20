@@ -188,6 +188,26 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public List<Item> getItems(String siteId, List<String> paths) {
+        return getItems(siteId, paths, false);
+    }
+
+    @Override
+    public List<Item> getItems(String siteId, List<String> paths, boolean preferContent) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        DetailedItem item = null;
+        List<Item> items = null;
+        if (preferContent) {
+            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
+        } else {
+            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
+        }
+        return items;
+    }
+
+    @Override
     public void deleteItem(long itemId) {
         retryingDatabaseOperationFacade.deleteById(itemId);
     }
@@ -409,8 +429,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier, String contentType, long state,
-                                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy, String order,
+    public List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier,
+                                                          String contentType, long state, ZonedDateTime dateFrom,
+                                                          ZonedDateTime dateTo, String sortBy, String order,
                                                           int offset, int limit) {
         List<Item> items = itemDao.getContentDashboard(siteId, path, modifier, contentType, state, dateFrom,
                 dateTo, sortBy, order, offset, limit);
@@ -791,6 +812,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             }
         }
         retryingDatabaseOperationFacade.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask);
+    }
+
+    @Override
+    public List<String> getSubtreeForDelete(String siteId, String path) {
+        String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
+        return itemDao.getSubtreeForDelete(siteId, likePath);
     }
 
     public UserServiceInternal getUserServiceInternal() {

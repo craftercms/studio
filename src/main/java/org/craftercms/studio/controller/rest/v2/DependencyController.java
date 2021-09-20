@@ -16,13 +16,12 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
+import org.craftercms.studio.model.rest.dependency.GetSoftDependenciesRequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,7 +47,7 @@ public class DependencyController {
     private DependencyService dependencyService;
 
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequest request)
+    public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
             throws ServiceLayerException {
         List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
@@ -74,10 +73,4 @@ public class DependencyController {
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    protected static class GetSoftDependenciesRequest extends SiteAwareBulkRequest {
-
-    }
-
 }

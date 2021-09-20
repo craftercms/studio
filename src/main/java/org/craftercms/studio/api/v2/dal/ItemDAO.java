@@ -610,7 +610,8 @@ public interface ItemDAO {
      * @param path path of the item
      * @param lockedBitOff state bit mask with LOCKED bit off
      */
-    void unlockItemByPath(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(LOCKED_BIT_OFF) long lockedBitOff);
+    void unlockItemByPath(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                          @Param(LOCKED_BIT_OFF) long lockedBitOff);
 
     /**
      * Lock item
@@ -662,4 +663,13 @@ public interface ItemDAO {
                              @Param(STATES_BIT_MAP) Long states,
                                  @Param(ON_STATES_BIT_MAP) long setStatesMask,
                                  @Param(OFF_STATES_BIT_MAP) long resetStatesMask);
+
+    /**
+     * Get subtree for delete
+     * @param siteId site identifier
+     * @param likePath like path for query
+     * @return list of items
+     */
+    List<String> getSubtreeForDelete(@Param(SITE_ID) String siteId,
+                                     @Param(LIKE_PATH) String likePath);
 }

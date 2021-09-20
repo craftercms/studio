@@ -652,6 +652,17 @@ public interface RetryingDatabaseOperationFacade {
      */
     void cancelPackages(String siteId, List<String> packageIds, String cancelledState);
 
+    /**
+     * Cancel scheduled items from publishing queue
+     * @param siteId site identifier
+     * @param paths list of paths of content items to be cancelled
+     * @param now timestamp now
+     * @param cancelledState cancelled state value
+     * @param readyState ready for live state value
+     */
+    void cancelScheduledQueueItems(String siteId, List<String> paths, ZonedDateTime now, String cancelledState,
+                                   String readyState);
+
     // Remote Repository API v2
     /**
      * Insert remote repository record
@@ -795,6 +806,12 @@ public interface RetryingDatabaseOperationFacade {
      * @param workflow workflow entry
      */
     void insertWorkflowEntry(Workflow workflow);
+
+    /**
+     * Insert workflow entries
+     * @param workflowEntries list of workflow entries
+     */
+    void insertWorkflowEntries(List<Workflow> workflowEntries);
 
     /**
      * Update workflow entry

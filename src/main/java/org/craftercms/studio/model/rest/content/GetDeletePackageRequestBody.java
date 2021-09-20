@@ -13,22 +13,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model.rest;
+
+package org.craftercms.studio.model.rest.content;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-/**
- * Base class for any request that requires a siteId and a list of paths
- *
- * @author joseross
- * @since 4.0
- */
-public abstract class SiteAwareBulkRequest extends SiteAwareRequest {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GetDeletePackageRequestBody {
 
     @NotEmpty
-    protected List<@Valid @NotEmpty String> paths;
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> paths;
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
 
     public List<String> getPaths() {
         return paths;
@@ -37,5 +45,4 @@ public abstract class SiteAwareBulkRequest extends SiteAwareRequest {
     public void setPaths(List<String> paths) {
         this.paths = paths;
     }
-
 }

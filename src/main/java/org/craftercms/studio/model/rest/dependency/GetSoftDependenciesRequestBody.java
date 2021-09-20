@@ -13,7 +13,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model.rest.content;
+
+package org.craftercms.studio.model.rest.dependency;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -21,17 +22,21 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-/**
- * Holds data for the getSandboxItemsByPath request
- *
- * @author joseross
- * @since 4.0
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetSandboxItemsByPathRequest extends GetSandboxItemsRequest {
+public class GetSoftDependenciesRequestBody {
 
     @NotEmpty
-    protected List<@Valid @NotEmpty String> paths;
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> paths;
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
 
     public List<String> getPaths() {
         return paths;
@@ -40,5 +45,4 @@ public class GetSandboxItemsByPathRequest extends GetSandboxItemsRequest {
     public void setPaths(List<String> paths) {
         this.paths = paths;
     }
-
 }

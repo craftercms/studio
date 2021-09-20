@@ -502,6 +502,12 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         publishRequestDao.cancelPackages(siteId, packageIds, cancelledState);
     }
 
+    @Override
+    public void cancelScheduledQueueItems(String siteId, List<String> paths, ZonedDateTime now, String cancelledState,
+                                          String readyState) {
+        publishRequestDao.cancelScheduledQueueItems(siteId, paths, now, cancelledState, readyState);
+    }
+
     // Remote Repository API v2
     @Override
     public void insertRemoteRepository(Map params) {
@@ -604,6 +610,11 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     @Override
     public void insertWorkflowEntry(Workflow workflow) {
         workflowDao.insertWorkflowEntry(workflow);
+    }
+
+    @Override
+    public void insertWorkflowEntries(List<Workflow> workflowEntries) {
+        workflowDao.insertWorkflowEntries(workflowEntries);
     }
 
     @Override
