@@ -22,7 +22,7 @@
                     <configuration>
                         <title id="words.dashboard" defaultMessage="Dashboard"/>
                         <icon id="@material-ui/icons/DashboardRounded"/>
-                        <widget id="craftercms.components.LegacyDashboardFrame"/>
+                        <widget id="craftercms.components.Dashboard"/>
                     </configuration>
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
@@ -101,12 +101,12 @@
             </widgets>
         </configuration>
     </widget>
-    <widget id="craftercms.components.PageBuilderPanel">
+    <widget id="craftercms.components.ICEToolsPanel">
         <configuration>
             <widgets>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewSearchPanel.title" defaultMessage="Search"/>
                         <icon id="@material-ui/icons/SearchRounded"/>
                         <widgets>
@@ -116,7 +116,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewComponentsPanel.title" defaultMessage="Add Components"/>
                         <icon id="@material-ui/icons/ExtensionOutlined"/>
                         <widgets>
@@ -126,7 +126,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewBrowseComponentsPanel.title" defaultMessage="Browse Components"/>
                         <icon id="@material-ui/icons/ExtensionOutlined"/>
                         <widgets>
@@ -136,7 +136,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewDropTargetsPanel.title" defaultMessage="Component Drop Targets"/>
                         <icon id="@material-ui/icons/ExtensionOutlined"/>
                         <widgets>
@@ -146,7 +146,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewAssetsPanel.title" defaultMessage="Assets"/>
                         <icon id="@material-ui/icons/ImageOutlined"/>
                         <widgets>
@@ -156,7 +156,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewAudiencesPanel.title" defaultMessage="Audience Targeting"/>
                         <icon id="@material-ui/icons/EmojiPeopleRounded"/>
                         <widgets>
@@ -200,7 +200,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewPageExplorerPanel.title" defaultMessage="Page Explorer"/>
                         <icon id="craftercms.icons.PageExplorer"/>
                         <widgets>
@@ -210,7 +210,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="previewSimulatorPanel.title" defaultMessage="Device Simulator"/>
                         <icon id="@material-ui/icons/DevicesRounded"/>
                         <widgets>
@@ -235,7 +235,7 @@
                 </widget>
                 <widget id="craftercms.components.ToolsPanelPageButton">
                     <configuration>
-                        <target id="pageBuilderPanel"/>
+                        <target id="icePanel"/>
                         <title id="words.settings" defaultMessage="Settings"/>
                         <icon id="@material-ui/icons/SettingsOutlined"/>
                         <widgets>
@@ -343,12 +343,73 @@
     <widget id="craftercms.components.Dashboard">
         <configuration>
             <widgets>
-                <widget id="craftercms.components.AwaitingApprovalDashlet"/>
-                <widget id="craftercms.components.ApprovedScheduledDashlet"/>
-                <widget id="craftercms.components.RecentlyPublishedDashlet"/>
+                <widget id="craftercms.components.AwaitingApprovalDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
+                <widget id="craftercms.components.ApprovedScheduledDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
+                <widget id="craftercms.components.RecentlyPublishedDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
                 <widget id="craftercms.components.RecentActivityDashlet"/>
                 <widget id="craftercms.components.IconGuideDashlet"/>
             </widgets>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.TinyMCE">
+        <configuration>
+            <setups>
+                <setup id="generic">
+                    <!-- Configuration options: https://www.tiny.cloud/docs/configure/ -->
+                    <!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
+                    <tinymceOptions>
+                        <![CDATA[
+                            {
+                                "menubar": true,
+                                "theme": "silver",
+                                "plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste editform",
+                                "extended_valid_elements": "",
+                                "valid_children": "",
+                                "toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat | editform",
+                                "code_editor_wrap": false,
+                                "toolbar_sticky": true,
+                                "image_advtab": true,
+                                "encoding": "xml",
+                                "relative_urls": false,
+                                "remove_script_host": false,
+                                "convert_urls": false,
+                                "remove_trailing_brs": false,
+                                "media_live_embeds": true,
+                                "autoresize_on_init": false,
+                                "autoresize_bottom_margin": 0,
+                                "menu": {
+                                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
+                                },
+                                "automatic_uploads": true,
+                                "file_picker_types":  "image media file",
+                                "paste_data_images": true,
+                                "templates": [],
+                                "content_css": [],
+                                "content_style": "body {}",
+                                "contextmenu": false
+                            }
+                    ]]>
+                    </tinymceOptions>
+                </setup>
+            </setups>
         </configuration>
     </widget>
 

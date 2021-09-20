@@ -37,7 +37,7 @@
     - samplePath: the path to a sample file to help the user update the file
 -->
 <config>
-    <version>13</version>
+    <version>14</version>
     <files>
         <file>
             <module>studio</module>
@@ -55,17 +55,10 @@
         </file>
         <file>
             <module>studio</module>
-            <path>form-control-config/rte/rte-setup.xml</path>
-            <title>confTabRTEConf</title>
-            <description>confTabRTEConfDesc</description>
-            <samplePath>sample-form-control-rte-setup.xml</samplePath>
-        </file>
-        <file>
-            <module>studio</module>
-            <path>form-control-config/rte/rte-setup-tinymce5.xml</path>
-            <title>confTabRTEtMCE5Conf</title>
-            <description>confTabRTEtMCE5ConfDesc</description>
-            <samplePath>sample-form-control-rte-setup-tinymce5.xml</samplePath>
+            <path>form-control-config/rte/rte-config.xml</path>
+            <title>rteConfigTitle</title>
+            <description>rteConfigDescription</description>
+            <samplePath>sample-form-control-rte-config.xml</samplePath>
         </file>
         <file>
             <module>studio</module>

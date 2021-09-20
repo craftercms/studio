@@ -59,8 +59,33 @@ public class XsltTest {
                 new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v9/input.xml"),
                 new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v9/expected.xml"),
                 emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config/site-config-v10.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v10/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v10/expected.xml"),
+                emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/4.0.0.2/site/rte-refactor.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/form-definition.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/form-definition-expected.xml"),
+                emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/config-list/config-list-v14.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/config-list.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/config-list-expected.xml"),
+                emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v13.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/site-config-tools.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/site-config-tools-expected.xml"),
+                emptyMap()
             }
-        };
+
+    };
     }
 
     @Test(dataProvider = "xsltData")
