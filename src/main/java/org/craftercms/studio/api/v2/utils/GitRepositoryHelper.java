@@ -1264,4 +1264,5 @@ public class GitRepositoryHelper {
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
+
 }
