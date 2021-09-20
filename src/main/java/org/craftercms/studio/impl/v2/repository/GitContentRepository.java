@@ -1582,7 +1582,7 @@ public class GitContentRepository implements ContentRepository {
                 ObjectId objCommitIdFrom = repository.resolve(lastProcessedCommitId);
                 ObjectId objCommitIdTo = repository.resolve(HEAD);
 
-
+                    logger.debug("Update git log from " + objCommitIdFrom.getName() + " to " + objCommitIdTo.getName());
                 try (Git git = new Git(repository)) {
 
                     // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
@@ -1590,7 +1590,7 @@ public class GitContentRepository implements ContentRepository {
                     if (!objCommitIdFrom.equals(objCommitIdTo)) {
 
                         // Get the log of all the commits between commitId and head
-                        LogCommand logCommand = git.log().addRange(objCommitIdFrom, objCommitIdTo);
+                        LogCommand logCommand = git.log();
                         Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
                         ObjectId nextCommitId;
                         String commitId = EMPTY;
@@ -1598,6 +1598,9 @@ public class GitContentRepository implements ContentRepository {
                         Iterator<RevCommit> iterator = commits.iterator();
                         while (iterator.hasNext()) {
                             RevCommit commit = iterator.next();
+                            if (StringUtils.equals(commit.getId().getName(), lastProcessedCommitId)) {
+                                break;
+                            }
                             commitIds.write(commit);
                         }
 
@@ -1620,7 +1623,6 @@ public class GitContentRepository implements ContentRepository {
                         if (batch.size() > 0) {
                             retryingDatabaseOperationFacade.insertIgnoreGitLogList(siteId, batch);
                             siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
-                            siteService.updateLastCommitId(siteId, batch.get(batch.size() - 1));
                             logger.debug("Inserted " + batch.size() + " git log commits for site " + siteId);
                         } else {
                             siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());
