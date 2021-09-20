@@ -88,6 +88,7 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -216,6 +217,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected GitRepositoryHelper helper;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    protected StudioClusterUtils studioClusterUtils;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -923,8 +925,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     @EventListener(ContextRefreshedEvent.class)
     public void bootstrap() throws Exception {
+        logger.debug("Bootstrap global repository.");
 
-        if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO)) && helper.createGlobalRepo()) {
+        boolean bootstrapRepo = Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO));
+        boolean isCreated = false;
+
+        HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
+        if (bootstrapRepo && registrationData != null && !registrationData.isEmpty()) {
+            String firstCommitId = getRepoFirstCommitId(StringUtils.EMPTY);
+            String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+            List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
+            if (StringUtils.isEmpty(firstCommitId)) {
+                logger.error("Creating global repository as cluster clone");
+                isCreated = studioClusterUtils.cloneGlobalRepository(clusterNodes);
+            } else {
+                logger.error("Global repository exists syncing with cluster siblings");
+                isCreated = true;
+                Repository repo = helper.getRepository(EMPTY, GLOBAL);
+                try (Git git = new Git(repo)) {
+                    for (ClusterMember remoteNode : clusterNodes) {
+                        syncFromRemote(git, remoteNode);
+                    }
+                }
+            }
+        }
+
+        if (bootstrapRepo && !isCreated && helper.createGlobalRepo()) {
             // Copy the global config defaults to the global site
             // Build a path to the bootstrap repo (the repo that ships with Studio)
             String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
@@ -969,6 +995,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Create global repository object
         if (!helper.buildGlobalRepo()) {
             logger.error("Failed to create global repository!");
+        }
+    }
+
+    private void syncFromRemote(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
+            IOException, ServiceLayerException {
+        if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
+            try {
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                PullCommand pullCommand = git.pull();
+                pullCommand.setRemote(remoteNode.getGitRemoteName());
+                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+                pullCommand.call();
+
+                Files.delete(tempKey);
+            } finally {
+                generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
+            }
+        } else {
+            logger.debug("Failed to get lock " + GLOBAL_REPOSITORY_GIT_LOCK);
         }
     }
 
@@ -1996,5 +2041,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
     }
 }

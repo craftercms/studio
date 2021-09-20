@@ -107,7 +107,7 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
 
                 if (!checkIfRepoExists()) {
                     // Site doesn't exist locally, create it
-                    success = cloneRepository(clusterNodes);
+                    success = studioClusterUtils.cloneGlobalRepository(clusterNodes);
                 }
 
                 if (success) {
