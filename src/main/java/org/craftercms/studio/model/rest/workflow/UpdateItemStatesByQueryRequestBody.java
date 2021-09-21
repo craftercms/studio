@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.workflow;
+package org.craftercms.studio.model.rest.workflow;
 
 import javax.validation.constraints.NotEmpty;
 

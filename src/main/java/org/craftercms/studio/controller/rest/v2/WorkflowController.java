@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
@@ -26,8 +27,13 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.model.workflow.ItemStatesPostRequestBody;
-import org.craftercms.studio.model.workflow.UpdateItemStatesByQueryRequestBody;
+import org.craftercms.studio.model.rest.workflow.ApproveRequestBody;
+import org.craftercms.studio.model.rest.workflow.DeleteRequestBody;
+import org.craftercms.studio.model.rest.workflow.ItemStatesPostRequestBody;
+import org.craftercms.studio.model.rest.workflow.PublishRequestBody;
+import org.craftercms.studio.model.rest.workflow.RejectRequestBody;
+import org.craftercms.studio.model.rest.workflow.RequestPublishRequestBody;
+import org.craftercms.studio.model.rest.workflow.UpdateItemStatesByQueryRequestBody;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +54,12 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AFFECTED_PATHS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.APPROVE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_STATES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REJECT;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REQUEST_PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UPDATE_ITEM_STATES_BY_QUERY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.WORKFLOW;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -82,8 +94,8 @@ public class WorkflowController {
             items = workflowService.getItemStates(siteId, path, states, offset, limit);
         }
 
-        ResponseBody responseBody = new ResponseBody();
-        PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();
+        var responseBody = new ResponseBody();
+        var result = new PaginatedResultList<SandboxItem>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(items) ? 0 : items.size());
@@ -104,8 +116,8 @@ public class WorkflowController {
                 requestBody.isClearSystemProcessing(), requestBody.isClearUserLocked(), requestBody.getLive(),
                 requestBody.getStaged());
 
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        var responseBody = new ResponseBody();
+        var result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
@@ -123,8 +135,8 @@ public class WorkflowController {
                 requestBody.getUpdate().isClearUserLocked(), requestBody.getUpdate().isLive(),
                 requestBody.getUpdate().isStaged());
 
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        var responseBody = new ResponseBody();
+        var result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
@@ -138,9 +150,78 @@ public class WorkflowController {
             throw new SiteNotFoundException(siteId);
         }
         List<SandboxItem> sandboxItems = workflowService.getWorkflowAffectedPaths(siteId, path);
-        ResponseBody responseBody = new ResponseBody();
-        ResultList<SandboxItem> result = new ResultList<SandboxItem>();
+        var responseBody = new ResponseBody();
+        var result = new ResultList<SandboxItem>();
         result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
+            throws ServiceLayerException, UserNotFoundException, DeploymentException {
+        workflowService.requestPublish(requestPublishRequestBody.getSiteId(), requestPublishRequestBody.getItems(),
+                requestPublishRequestBody.getOptionalDependencies(), requestPublishRequestBody.getPublishingTarget(),
+                requestPublishRequestBody.getSchedule(), requestPublishRequestBody.getComment(),
+                requestPublishRequestBody.isSendEmailNotifications());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody publish(@RequestBody PublishRequestBody publishRequestBody)
+            throws UserNotFoundException, ServiceLayerException, DeploymentException {
+        workflowService.publish(publishRequestBody.getSiteId(), publishRequestBody.getItems(),
+                publishRequestBody.getOptionalDependencies(), publishRequestBody.getPublishingTarget(),
+                publishRequestBody.getSchedule(), publishRequestBody.getComment());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = APPROVE, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody approve(@RequestBody ApproveRequestBody approveRequestBody)
+            throws UserNotFoundException, ServiceLayerException, DeploymentException {
+        workflowService.approve(approveRequestBody.getSiteId(), approveRequestBody.getItems(),
+                approveRequestBody.getOptionalDependencies(), approveRequestBody.getPublishingTarget(),
+                approveRequestBody.getSchedule(), approveRequestBody.getComment());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = REJECT, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody reject(@RequestBody RejectRequestBody rejectRequestBody)
+            throws ServiceLayerException, DeploymentException {
+        workflowService.reject(rejectRequestBody.getSiteId(), rejectRequestBody.getItems(),
+                rejectRequestBody.getReason(), rejectRequestBody.getComment());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody delete(@RequestBody DeleteRequestBody deleteRequestBody)
+            throws UserNotFoundException, ServiceLayerException, DeploymentException {
+        workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
+                deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;

@@ -29,6 +29,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE_OPENED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.WORKFLOW;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.WORKFLOW_ENTRIES;
 
 public interface WorkflowDAO {
 
@@ -71,6 +72,12 @@ public interface WorkflowDAO {
      * @param workflow workflow entry
      */
     void insertWorkflowEntry(@Param(WORKFLOW) Workflow workflow);
+
+    /**
+     * Insert workflow entries
+     * @param workflowEntries list of workflow entries
+     */
+    void insertWorkflowEntries(@Param(WORKFLOW_ENTRIES) List<Workflow> workflowEntries);
 
     /**
      * Update workflow entry

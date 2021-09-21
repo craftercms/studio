@@ -13,20 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model.rest;
+package org.craftercms.studio.model.rest.content;
 
-import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
- * Base class for any request that requires a siteId
+ * Holds data for the getSandboxItemsByPath request
  *
  * @author joseross
  * @since 4.0
  */
-public abstract class SiteAwareRequest {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GetSandboxItemsByPathRequestBody {
 
-    @NotNull
-    protected String siteId;
+    @NotEmpty
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> paths;
+    private boolean preferContent;
 
     public String getSiteId() {
         return siteId;
@@ -36,4 +44,19 @@ public abstract class SiteAwareRequest {
         this.siteId = siteId;
     }
 
+    public List<String> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
+
+    public boolean isPreferContent() {
+        return preferContent;
+    }
+
+    public void setPreferContent(boolean preferContent) {
+        this.preferContent = preferContent;
+    }
 }

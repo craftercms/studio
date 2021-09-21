@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -112,14 +112,14 @@ public interface NotificationService {
     /**
      * Notifies to the submitter that the content has been rejected.
      * @param site Site of the Content.
-     * @param submittedBy User that submitted the rejected content.
+     * @param submittedByList List of users that submitted the rejected content.
      * @param rejectedItems Items that where rejected
      * @param rejectionReason  why the content was rejected.
      * @param userThatRejects User that is rejecting the content.
      * @param locale Language of the message ,if null defaults to English.
      */
-    void notifyContentRejection(final String site,final String submittedBy,final List<String> rejectedItems,final
-                                String rejectionReason, final String userThatRejects,final Locale locale);
+    void notifyContentRejection(final String site,final List<String> submittedByList,final List<String> rejectedItems,
+                                final String rejectionReason, final String userThatRejects,final Locale locale);
 
     /**
      * Send email to admin that repository has merge conflict

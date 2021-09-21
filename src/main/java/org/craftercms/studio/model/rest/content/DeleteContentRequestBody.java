@@ -16,7 +16,10 @@
 package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
 /**
  * Holds data for the deleteContent request
@@ -25,9 +28,29 @@ import org.craftercms.studio.model.rest.SiteAwareBulkRequest;
  * @since 4.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class DeleteContentRequest extends SiteAwareBulkRequest {
+public class DeleteContentRequestBody {
 
-    protected String submissionComment;
+    @NotEmpty
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> paths;
+    private String submissionComment;
+
+    public String getSiteId() {
+        return siteId;
+    }
+
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
+
+    public List<String> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
 
     public String getSubmissionComment() {
         return submissionComment;
@@ -36,5 +59,4 @@ public class DeleteContentRequest extends SiteAwareBulkRequest {
     public void setSubmissionComment(String submissionComment) {
         this.submissionComment = submissionComment;
     }
-
 }

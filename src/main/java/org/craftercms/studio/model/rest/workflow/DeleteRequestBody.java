@@ -14,21 +14,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.workflow;
+package org.craftercms.studio.model.rest.workflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-public class ItemStatesPostRequestBody {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DeleteRequestBody {
 
     @NotEmpty
     private String siteId;
     @NotEmpty
-    private List<String> items;
-    private boolean clearSystemProcessing;
-    private boolean clearUserLocked;
-    private Boolean live;
-    private Boolean staged;
+    private List<@Valid @NotEmpty String> items;
+    private List<String> optionalDependencies;
+    private String comment;
 
     public String getSiteId() {
         return siteId;
@@ -46,35 +48,19 @@ public class ItemStatesPostRequestBody {
         this.items = items;
     }
 
-    public boolean isClearSystemProcessing() {
-        return clearSystemProcessing;
+    public List<String> getOptionalDependencies() {
+        return optionalDependencies;
     }
 
-    public void setClearSystemProcessing(boolean clearSystemProcessing) {
-        this.clearSystemProcessing = clearSystemProcessing;
+    public void setOptionalDependencies(List<String> optionalDependencies) {
+        this.optionalDependencies = optionalDependencies;
     }
 
-    public boolean isClearUserLocked() {
-        return clearUserLocked;
+    public String getComment() {
+        return comment;
     }
 
-    public void setClearUserLocked(boolean clearUserLocked) {
-        this.clearUserLocked = clearUserLocked;
-    }
-
-    public Boolean getLive() {
-        return live;
-    }
-
-    public void setLive(Boolean live) {
-        this.live = live;
-    }
-
-    public Boolean getStaged() {
-        return staged;
-    }
-
-    public void setStaged(Boolean staged) {
-        this.staged = staged;
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

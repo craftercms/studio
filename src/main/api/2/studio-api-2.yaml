@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.20'
+  version: '4.0.0.21'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -6319,6 +6319,307 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/request_publish:
+    post:
+      tags:
+        - workflow
+      summary: Request publish for content
+      description: 'Required permission "site_member"'
+      operationId: workflowRequestPublish
+      requestBody:
+        description: parameters for request publish
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                siteId:
+                  type: string
+                  description: site identifier
+                items:
+                  type: array
+                  description: path(s) of content item(s)
+                  items:
+                    type: string
+                optionalDependencies:
+                  type: array
+                  description: optional (soft) dependencies
+                  items:
+                    type: string
+                publishingTarget:
+                  type: string
+                  description: target to publish content to
+                schedule:
+                  type: string
+                  format: datetime
+                  description: schedule when to publish content
+                comment:
+                  type: string
+                  description: comment about publish request
+                sendEmailNotifications:
+                  type: boolean
+                  description: if true, send email notifications
+              required:
+                - siteId
+                - items
+                - publishingTarget
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/publish:
+    post:
+      tags:
+        - workflow
+      summary: Publish content
+      description: 'Required permission "publish"'
+      operationId: workflowPublish
+      requestBody:
+        description: parameters for publish content
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                siteId:
+                  type: string
+                  description: site identifier
+                items:
+                  type: array
+                  description: path(s) of content item(s)
+                  items:
+                    type: string
+                optionalDependencies:
+                  type: array
+                  description: optional (soft) dependencies
+                  items:
+                    type: string
+                publishingTarget:
+                  type: string
+                  description: target to publish content to
+                schedule:
+                  type: string
+                  format: datetime
+                  description: schedule when to publish content
+                comment:
+                  type: string
+                  description: submission comment by publisher
+              required:
+                - siteId
+                - items
+                - publishingTarget
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/approve:
+    post:
+      tags:
+        - workflow
+      summary: Approve request publish submission
+      description: 'Required permission "publish"'
+      operationId: workflowApprove
+      requestBody:
+        description: parameters for apporve request publish submission
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                siteId:
+                  type: string
+                  description: site identifier
+                items:
+                  type: array
+                  description: path(s) of content item(s)
+                  items:
+                    type: string
+                optionalDependencies:
+                  type: array
+                  description: optional (soft) dependencies
+                  items:
+                    type: string
+                publishingTarget:
+                  type: string
+                  description: target to publish content to
+                schedule:
+                  type: string
+                  format: datetime
+                  description: schedule when to publish content
+                comment:
+                  type: string
+                  description: Reviewer's comment
+              required:
+                - siteId
+                - items
+                - publishingTarget
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/reject:
+    post:
+      tags:
+        - workflow
+      summary: Reject request publish submission
+      description: 'Required permission "publish"'
+      operationId: workflowReject
+      requestBody:
+        description: parameters for reject request publish submission
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                siteId:
+                  type: string
+                  description: site identifier
+                items:
+                  type: array
+                  description: path(s) of content item(s)
+                  items:
+                    type: string
+                reason:
+                  type: string
+                  description: reason why it is rejected
+                comment:
+                  type: string
+                  description: Reviewer's rejection comment
+              required:
+                - siteId
+                - items
+                - reason
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/delete:
+    post:
+      tags:
+        - workflow
+      summary: Delete content
+      description: 'Required permission "content_delete"'
+      operationId: workflowDelete
+      requestBody:
+        description: parameters for delete content
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: 
+                siteId:
+                  type: string
+                  description: site identifier
+                items:
+                  type: array
+                  description: path(s) of content item(s)
+                  items:
+                    type: string
+                optionalDepepndencies:
+                  type: array
+                  description: optional (soft) dependencies
+                  items:
+                    type: string
+                comment:
+                  type: string
+                  description: deletion comment by the user performing the delete
+              required:
+                - siteId
+                - items
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

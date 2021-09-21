@@ -13,30 +13,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model.rest.content;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+call addColumnIfNotExists('crafter', 'publish_request', 'submission_type', 'VARCHAR(32) NULL') ;
 
-import javax.validation.constraints.NotEmpty;
+call addColumnIfNotExists('crafter', 'workflow', 'submission_type', 'VARCHAR(32) NULL') ;
 
-/**
- * Holds data for the getChildrenByPath request
- *
- * @author joseross
- * @since 4.0
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class GetChildrenByPathRequest extends GetChildrenRequest {
-
-    @NotEmpty
-    protected String path;
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-}
+UPDATE _meta SET version = '4.0.0.31' ;

@@ -17,28 +17,45 @@ package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * Holds data for the getSandboxItemsByPath request
+ * Holds data for the getSandboxItemsById request
  *
  * @author joseross
  * @since 4.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GetSandboxItemsByPathRequest extends GetSandboxItemsRequest {
+public class GetSandboxItemsByIdRequestBody {
 
     @NotEmpty
-    protected List<@Valid @NotEmpty String> paths;
+    private String siteId;
+    @NotEmpty
+    private List<Long> ids;
+    private boolean preferContent;
 
-    public List<String> getPaths() {
-        return paths;
+    public String getSiteId() {
+        return siteId;
     }
 
-    public void setPaths(List<String> paths) {
-        this.paths = paths;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
+    public List<Long> getIds() {
+        return ids;
+    }
+
+    public void setIds(List<Long> ids) {
+        this.ids = ids;
+    }
+
+    public boolean isPreferContent() {
+        return preferContent;
+    }
+
+    public void setPreferContent(boolean preferContent) {
+        this.preferContent = preferContent;
+    }
 }

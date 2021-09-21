@@ -205,6 +205,16 @@
                 #{workflow.publishingPackageId})
     </insert>
 
+    <insert id="insertWorkflowEntries" parameterType="java.util.List">
+        INSERT INTO workflow (item_id, target_environment, state, submitter_id, submitter_comment, notify_submitter,
+                              schedule, publishing_package_id) VALUES
+        <foreach collection="workflowEntries" item="workflow" index="index" open="" separator="," close="">
+        (#{workflow.itemId}, #{workflow.targetEnvironment}, #{workflow.state}, #{workflow.submitterId},
+                #{workflow.submitterComment}, #{workflow.notifySubmitter}, #{workflow.schedule},
+                #{workflow.publishingPackageId})
+        </foreach>
+    </insert>
+
     <delete id="deleteWorkflowEntriesForSite">
         DELETE FROM workflow WHERE id IN
         (SELECT w.id FROM  workflow w INNER JOIN item i ON w.item_id = i.id WHERE i.site_id = #{siteId})

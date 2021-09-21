@@ -16,32 +16,46 @@
 package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.studio.model.rest.SiteAwareRequest;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * Base class for any getChildren* request
+ * Holds data for the getChildrenById request
  *
  * @author joseross
  * @since 4.0
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class GetChildrenRequest extends SiteAwareRequest {
+public class GetChildrenByIdRequestBody {
 
-    protected  String localeCode;
+    @NotEmpty
+    private String siteId;
+    @NotEmpty
+    private String id;
+    private  String localeCode;
+    private  String keyword;
+    private List<String> excludes;
+    private String sortStrategy;
+    private String order = "ASC";
+    private int offset = 0;
+    private int limit = 10;
 
-    protected  String keyword;
+    public String getSiteId() {
+        return siteId;
+    }
 
-    protected List<String> excludes;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
+    }
 
-    protected String sortStrategy;
+    public String getId() {
+        return id;
+    }
 
-    protected String order = "ASC";
-
-    protected int offset = 0;
-
-    protected int limit = 10;
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getLocaleCode() {
         return localeCode;
@@ -98,5 +112,4 @@ public abstract class GetChildrenRequest extends SiteAwareRequest {
     public void setLimit(int limit) {
         this.limit = limit;
     }
-
 }

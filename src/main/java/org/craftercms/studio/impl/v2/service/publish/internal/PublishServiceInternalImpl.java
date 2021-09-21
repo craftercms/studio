@@ -37,6 +37,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
+import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal {
 
@@ -140,6 +141,12 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         }
         toRet.sort((o1, o2) -> o2.getDeploymentDate().compareTo(o1.getDeploymentDate()));
         return toRet;
+    }
+
+    @Override
+    public void cancelScheduledQueueItems(String siteId, List<String> paths) {
+        retryingDatabaseOperationFacade.cancelScheduledQueueItems(siteId, paths, ZonedDateTime.now(), CANCELLED,
+                READY_FOR_LIVE);
     }
 
     public PublishRequestDAO getPublishRequestDao() {

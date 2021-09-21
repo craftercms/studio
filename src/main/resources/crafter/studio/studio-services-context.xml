@@ -652,6 +652,15 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="deploymentService" ref="cstudioDeploymentService" />
+        <property name="notificationService" ref="cstudioNotificationService" />
+        <property name="dependencyService" ref="studioDependencyService" />
+        <property name="publishServiceInternal" ref="publishServiceInternal" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"

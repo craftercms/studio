@@ -13,26 +13,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.craftercms.studio.model.rest.content;
 
-import org.craftercms.studio.model.rest.SiteAwareRequest;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/**
- * Base class for any getSandboxItems* request
- *
- * @author joseross
- * @since 4.0
- */
-public abstract class GetSandboxItemsRequest extends SiteAwareRequest {
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
-    protected boolean preferContent;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GetDeletePackageRequestBody {
 
-    public boolean isPreferContent() {
-        return preferContent;
+    @NotEmpty
+    private String siteId;
+    @NotEmpty
+    private List<@Valid @NotEmpty String> paths;
+
+    public String getSiteId() {
+        return siteId;
     }
 
-    public void setPreferContent(boolean preferContent) {
-        this.preferContent = preferContent;
+    public void setSiteId(String siteId) {
+        this.siteId = siteId;
     }
 
+    public List<String> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
+    }
 }

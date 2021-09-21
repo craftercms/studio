@@ -45,6 +45,7 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
     public static final String OPERATION_REMOVE_CLUSTER_NODE = "REMOVE_CLUSTER_NODE";
     public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
+    public static final String OPERATION_PUBLISH = "PUBLISH";
     public static final String OPERATION_UNKNOWN = "UNKNOWN";
 
     /** Origin **/

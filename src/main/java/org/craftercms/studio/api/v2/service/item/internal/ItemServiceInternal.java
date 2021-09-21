@@ -78,6 +78,23 @@ public interface ItemServiceInternal {
     Item getItem(String siteId, String path, boolean preferContent);
 
     /**
+     * Get items for given site and paths
+     * @param siteId site identifier
+     * @param path item paths
+     * @return list of items
+     */
+    List<Item> getItems(String siteId, List<String> path);
+
+    /**
+     * Get items for given site and paths
+     * @param siteId site identifier
+     * @param paths item paths
+     * @param preferContent if true return content item if available
+     * @return list of items
+     */
+    List<Item> getItems(String siteId, List<String> paths, boolean preferContent);
+
+    /**
      * Update item
      * @param item item to update
      */
@@ -530,7 +547,8 @@ public interface ItemServiceInternal {
      * @param path item path
      * @param username user that owns the lock
      */
-    void lockItemByPath(String siteId, String path, String username) throws UserNotFoundException, ServiceLayerException;
+    void lockItemByPath(String siteId, String path, String username)
+            throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Unlock item
@@ -595,4 +613,12 @@ public interface ItemServiceInternal {
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
                                  boolean clearUserLocked, Boolean live, Boolean staged);
+
+    /**
+     * Get subtree for delete
+     * @param siteId site identifier
+     * @param path root path of the subtree
+     * @return list of items
+     */
+    List<String> getSubtreeForDelete(String siteId, String path);
 }

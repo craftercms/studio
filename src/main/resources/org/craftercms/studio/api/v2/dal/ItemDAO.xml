@@ -1394,4 +1394,12 @@
             AND (i.state &amp; #{statesBitMap}) &gt; 0
         </if>
     </update>
+
+    <select id="getSubtreeForDelete" resultType="java.lang.String">
+        SELECT i.path
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND i.path LIKE #{likePath})
+    </select>
 </mapper>
