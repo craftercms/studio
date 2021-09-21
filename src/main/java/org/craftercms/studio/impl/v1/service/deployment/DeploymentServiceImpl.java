@@ -69,9 +69,9 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,11 +84,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_FORMAT_SCHEDULED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
@@ -580,7 +580,8 @@ public class DeploymentServiceImpl implements DeploymentService {
                                           List<String> displayPatterns)
             throws ServiceLayerException {
         String timeZone = servicesConfig.getDefaultTimezone(site);
-        String dateLabel = launchDate.format(DateTimeFormatter.ofPattern(DATE_FORMAT_SCHEDULED));
+        String dateLabel =
+                launchDate.withZoneSameInstant(ZoneId.of(timeZone)).format(ISO_OFFSET_DATE_TIME);
         // add only if the current node is a file (directories are
         // deployed with index.xml)
         // display only if the path matches one of display patterns
