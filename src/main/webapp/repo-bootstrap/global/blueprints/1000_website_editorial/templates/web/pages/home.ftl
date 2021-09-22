@@ -28,7 +28,7 @@
       <!-- Banner -->
       <section id="banner">
         <div class="content">
-          <@crafter.header $field="hero_title_html" $label="Hero Title">
+          <@crafter.header $field="hero_title_html">
             ${contentModel.hero_title_html}
           </@crafter.header>
           <@crafter.div $field="hero_text_html">
