@@ -422,30 +422,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String toRet = parent;
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-        List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
-                .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-        List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
-                .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-        if (wasPage ||
-                (CollectionUtils.isEmpty(dirs) &&
-                        (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
-            if (CollectionUtils.isNotEmpty(dirs)) {
-                for (String child : dirs) {
-                    Path childToDelete = Paths.get(folderToDelete, child);
-                    deleteParentFolder(git, childToDelete, false);
-                    RmCommand rmCommand = git.rm()
-                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                            .setCached(false);
-                    retryingRepositoryOperationFacade.call(rmCommand);
+        if (toDelete.toFile().exists()) {
+            List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+            List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+            if (wasPage ||
+                    (CollectionUtils.isEmpty(dirs) &&
+                            (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+                if (CollectionUtils.isNotEmpty(dirs)) {
+                    for (String child : dirs) {
+                        Path childToDelete = Paths.get(folderToDelete, child);
+                        deleteParentFolder(git, childToDelete, false);
+                        RmCommand rmCommand = git.rm()
+                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                                .setCached(false);
+                        retryingRepositoryOperationFacade.call(rmCommand);
+                    }
                 }
-            }
 
-            if (CollectionUtils.isNotEmpty(files)) {
-                for (String child : files) {
-                    RmCommand rmCommand = git.rm()
-                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                            .setCached(false);
-                    retryingRepositoryOperationFacade.call(rmCommand);
+                if (CollectionUtils.isNotEmpty(files)) {
+                    for (String child : files) {
+                        RmCommand rmCommand = git.rm()
+                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                                .setCached(false);
+                        retryingRepositoryOperationFacade.call(rmCommand);
+                    }
                 }
             }
         }
