@@ -6545,16 +6545,12 @@ paths:
                   description: path(s) of content item(s)
                   items:
                     type: string
-                reason:
-                  type: string
-                  description: reason why it is rejected
                 comment:
                   type: string
                   description: Reviewer's rejection comment
               required:
                 - siteId
                 - items
-                - reason
       responses:
         '200':
           description: OK
