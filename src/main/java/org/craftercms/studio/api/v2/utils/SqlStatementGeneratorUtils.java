@@ -116,11 +116,17 @@ public final class SqlStatementGeneratorUtils {
             sql = StringUtils.replace(sql, "#{lastPublishedOn}", sqlTsLastPublished.toString());
         }
         sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
-        sql = StringUtils.replace(sql,"#{contentTypeId}", Objects.isNull(contentTypeId) ?
-                "NULL" : StringUtils.replace(contentTypeId, "'", "''"));
+        if (StringUtils.isEmpty(contentTypeId)) {
+            sql = StringUtils.replace(sql,"'#{contentTypeId}'", "NULL");
+        } else {
+            sql = StringUtils.replace(sql,"#{contentTypeId}", StringUtils.replace(contentTypeId, "'", "''"));
+        }
         sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
-        sql = StringUtils.replace(sql,"#{mimeType}", Objects.isNull(mimeType) ?
-                "NULL" : StringUtils.replace(mimeType, "'", "''"));
+        if (StringUtils.isEmpty(mimeType)) {
+            sql = StringUtils.replace(sql, "'#{mimeType}'", "NULL");
+        } else {
+            sql = StringUtils.replace(sql, "#{mimeType}", StringUtils.replace(mimeType, "'", "''"));
+        }
         sql = StringUtils.replace(sql,"#{localeCode}", StringUtils.replace(localeCode, "'", "''"));
         sql = StringUtils.replace(sql,"#{translationSourceId}", Objects.isNull(translationSourceId) ? "NULL" :
                 Long.toString(translationSourceId));
@@ -161,11 +167,17 @@ public final class SqlStatementGeneratorUtils {
                 Long.toString(lastModifiedBy));
         sql = StringUtils.replace(sql, "#{lastModifiedOn}", sqlTsLastModified.toString());
         sql = StringUtils.replace(sql,"#{label}", StringUtils.replace(label, "'", "''"));
-        sql = StringUtils.replace(sql,"#{contentTypeId}", Objects.isNull(contentTypeId) ?
-                "NULL" : StringUtils.replace(contentTypeId, "'", "''"));
+        if (StringUtils.isEmpty(contentTypeId)) {
+            sql = StringUtils.replace(sql,"'#{contentTypeId}'", "NULL");
+        } else {
+            sql = StringUtils.replace(sql,"#{contentTypeId}", StringUtils.replace(contentTypeId, "'", "''"));
+        }
         sql = StringUtils.replace(sql,"#{systemType}", StringUtils.replace(systemType, "'", "''"));
-        sql = StringUtils.replace(sql,"#{mimeType}", Objects.isNull(mimeType) ?
-                "NULL" : StringUtils.replace(mimeType, "'", "''"));
+        if (StringUtils.isEmpty(mimeType)) {
+            sql = StringUtils.replace(sql, "'#{mimeType}'", "NULL");
+        } else {
+            sql = StringUtils.replace(sql, "#{mimeType}", StringUtils.replace(mimeType, "'", "''"));
+        }
         sql = StringUtils.replace(sql,"#{size}", Long.toString(size));
         sql = StringUtils.replace(sql,"#{commitId}", Objects.isNull(commitId) ?
                 "NULL" : StringUtils.replace(commitId, "'", "''"));
