@@ -123,10 +123,9 @@ public interface WorkflowService {
      * Reject request for publish
      * @param siteId site identifier
      * @param paths list of paths for content items that author requested publish
-     * @param reason reason for rejection
      * @param comment rejection comment
      */
-    void reject(String siteId, List<String> paths, String reason, String comment)
+    void reject(String siteId, List<String> paths, String comment)
             throws ServiceLayerException, DeploymentException;
 
     /**

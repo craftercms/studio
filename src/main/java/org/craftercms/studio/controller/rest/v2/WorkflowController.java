@@ -205,7 +205,7 @@ public class WorkflowController {
     public ResponseBody reject(@RequestBody RejectRequestBody rejectRequestBody)
             throws ServiceLayerException, DeploymentException {
         workflowService.reject(rejectRequestBody.getSiteId(), rejectRequestBody.getItems(),
-                rejectRequestBody.getReason(), rejectRequestBody.getComment());
+                rejectRequestBody.getComment());
 
         var responseBody = new ResponseBody();
         var result = new Result();

@@ -29,8 +29,6 @@ public class RejectRequestBody {
     private String siteId;
     @NotEmpty
     private List<@Valid @NotEmpty String> items;
-    @NotEmpty
-    private String reason;
     private String comment;
 
     public String getSiteId() {
@@ -47,14 +45,6 @@ public class RejectRequestBody {
 
     public void setItems(List<String> items) {
         this.items = items;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    public void setReason(String reason) {
-        this.reason = reason;
     }
 
     public String getComment() {

@@ -397,7 +397,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public void reject(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                       String reason,
                        String comment) throws ServiceLayerException, DeploymentException {
         // Create submission package
         List<String> pathsToCancelWorkflow = calculateSubmissionPackage(siteId, paths, null);
@@ -410,7 +409,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // create audit log entries
             createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy);
             // notify rejection
-            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, reason);
+            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment);
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, false);
