@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
@@ -44,17 +43,16 @@ public class AbstractCachedUserDetailsService {
     }
 
     protected User getUser(String username) {
-        try {
-            return cache.get(username, () -> {
-                var user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
-                if (user == null) {
-                    throw new UsernameNotFoundException("User not found for " + username);
-                }
-                return user;
-            });
-        } catch (ExecutionException e) {
-            throw new UsernameNotFoundException("Error getting user for " + username, e);
+        User user = cache.getIfPresent(username);
+        if (user == null) {
+            user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
+            if (user != null) {
+                cache.put(username, user);
+            } else {
+                throw new UsernameNotFoundException("User not found for " + username);
+            }
         }
+        return user;
     }
 
 }

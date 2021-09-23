@@ -156,6 +156,7 @@ public class ChainAuthenticationProvider implements AuthenticationProvider, Appl
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         logger.debug("Starting authentication chain for username {0}", authentication.getName());
+        AuthenticationException lastException = null;
         for (AuthenticationProvider provider : providers) {
             logger.debug("Checking compatibility for username {0} with provider {1}",
                     authentication.getName(), provider);
@@ -170,6 +171,11 @@ public class ChainAuthenticationProvider implements AuthenticationProvider, Appl
                 } catch (AccountStatusException | InternalAuthenticationServiceException e) {
                     // These exceptions need to be handled by the auth manager
                     throw e;
+                } catch (AuthenticationException e) {
+                    // Authentication exceptions will be propagated if no other provider can authenticate the user
+                    logger.debug("Authentication for username {0} failed with provider {1}",
+                            e, authentication.getName(), provider);
+                    lastException = e;
                 } catch (Exception e) {
                     // Any other exception should just be logged and continue
                     logger.debug("Authentication for username {0} failed with provider {1}",
@@ -177,6 +183,11 @@ public class ChainAuthenticationProvider implements AuthenticationProvider, Appl
                 }
             }
         }
+
+        if (lastException != null) {
+            throw lastException;
+        }
+
         return null;
     }
 
