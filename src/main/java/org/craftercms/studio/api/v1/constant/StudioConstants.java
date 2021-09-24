@@ -184,6 +184,9 @@ public final class StudioConstants {
     public static final String SITE_CONFIG_XML_ELEMENT_PUBLISHER = "publisher";
     public static final String SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW = "requirePeerReview";
     public static final String SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS = "protected-folder-patterns/pattern";
+    public static final String SITE_CONFIG_XML_ELEMENT_LOCALE = "locale";
+    public static final String SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS = "dateTimeFormatOptions";
+    public static final String SITE_CONFIG_XML_ELEMENT_TIME_ZONE = "timeZone";
 
     /**
      * Repository commit messages variables

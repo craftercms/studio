@@ -4806,7 +4806,7 @@ paths:
             format: int32
         - name: filterType
           in: query
-          description: filter items by type (all, pages, components, documents ...)
+          description: filter items by type (all, page, component, asset)
           required: false
           schema:
             type: string
