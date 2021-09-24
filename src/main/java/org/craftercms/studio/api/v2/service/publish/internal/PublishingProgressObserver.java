@@ -22,15 +22,15 @@ public class PublishingProgressObserver {
 
     private String siteId;
     private String packageId;
-    private String environment;
+    private String publishingTarget;
     private int numberOfFilesBeingPublished;
     private AtomicInteger numberOfFilesCompleted;
 
-    public PublishingProgressObserver(String siteId, String packageId, String environment,
+    public PublishingProgressObserver(String siteId, String packageId, String publishingTarget,
                                       int numberOfFilesBeingPublished) {
         this.siteId = siteId;
         this.packageId = packageId;
-        this.environment = environment;
+        this.publishingTarget = publishingTarget;
         this.numberOfFilesBeingPublished = numberOfFilesBeingPublished;
         numberOfFilesCompleted = new AtomicInteger(0);
     }
@@ -55,8 +55,8 @@ public class PublishingProgressObserver {
         this.packageId = packageId;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getPublishingTarget() {
+        return publishingTarget;
     }
 
     public int getNumberOfFilesBeingPublished() {

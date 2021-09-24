@@ -74,7 +74,7 @@ public class SitesServiceImpl implements SitesService {
         PublishingProgressObserver publishingProgressObserver =
                 publishingProgressServiceInternal.getPublishingProgress(siteId);
         if (Objects.nonNull(publishingProgressObserver)) {
-            publishStatus.setEnvironment(publishingProgressObserver.getEnvironment());
+            publishStatus.setPublishingTarget(publishingProgressObserver.getPublishingTarget());
             publishStatus.setSubmissionId(publishingProgressObserver.getPackageId());
             publishStatus.setNumberOfItems(publishingProgressObserver.getNumberOfFilesCompleted());
             publishStatus.setTotalItems(publishingProgressObserver.getNumberOfFilesBeingPublished());

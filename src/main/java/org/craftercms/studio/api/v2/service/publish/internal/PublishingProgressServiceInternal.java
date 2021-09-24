@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import java.time.ZonedDateTime;
+
 public interface PublishingProgressServiceInternal {
 
     /**

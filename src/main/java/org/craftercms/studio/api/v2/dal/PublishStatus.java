@@ -36,7 +36,7 @@ public class PublishStatus {
     private String lockOwner;
     private String lockTTL;
 
-    private String environment;
+    private String publishingTarget;
     private String submissionId;
     private int numberOfItems;
     private int totalItems;
@@ -95,12 +95,12 @@ public class PublishStatus {
         this.lockTTL = lockTTL;
     }
 
-    public String getEnvironment() {
-        return environment;
+    public String getPublishingTarget() {
+        return publishingTarget;
     }
 
-    public void setEnvironment(String environment) {
-        this.environment = environment;
+    public void setPublishingTarget(String publishingTarget) {
+        this.publishingTarget = publishingTarget;
     }
 
     public String getSubmissionId() {
