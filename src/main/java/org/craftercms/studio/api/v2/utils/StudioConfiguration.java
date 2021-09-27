@@ -140,6 +140,7 @@ public interface StudioConfiguration {
     String CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS =
             "studio.configuration.management.previewProtectedUrls";
     String CONFIGURATION_PUBLISHING_BLACKLIST_REGEX = "studio.configuration.publishing.blacklist.regex";
+    String CONFIGURATION_DEFAULT_TIME_ZONE = "studio.configuration.defaultTimeZone";
 
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
