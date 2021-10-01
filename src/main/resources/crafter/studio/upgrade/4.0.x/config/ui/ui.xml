@@ -336,13 +336,13 @@
 							<variant>icon</variant>
 						</configuration>
 					</widget>
-          <widget id="craftercms.components.WidgetDialogIconButton">
-            <configuration>
-              <title id="words.search" defaultMessage="Search"/>
-              <icon id="@mui/icons-material/SearchRounded"/>
-              <widget id="craftercms.components.EmbeddedSearchIframe"/>
-            </configuration>
-          </widget>
+					<widget id="craftercms.components.WidgetDialogIconButton">
+						<configuration>
+							<title id="words.search" defaultMessage="Search"/>
+							<icon id="@mui/icons-material/SearchRounded"/>
+							<widget id="craftercms.components.EmbeddedSearchIframe"/>
+						</configuration>
+					</widget>
 				</widgets>
 			</rightSection>
 		</configuration>
