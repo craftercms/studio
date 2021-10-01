@@ -519,8 +519,8 @@
 			<freemarkerLibraryImport label="Freemarker Library import">
 				<value><![CDATA[<#import "/templates/PATH" as NAMESPACE />]]></value>
 			</freemarkerLibraryImport>
-      <htmlPage label="HTML Page">
-        <value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
+			<htmlPage label="HTML Page">
+				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
 <!doctype html>
 <html lang="en">
   <head>
@@ -533,7 +533,7 @@
     <@crafter.body_bottom />
   </body>
 </html>]]></value>
-      </htmlPage>
+			</htmlPage>
 		</reference>
 		<reference id="craftercms.groovyCodeSnippets">
 			<accessContentModel label="Access Content variable">
