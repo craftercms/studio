@@ -199,18 +199,6 @@ public interface StudioConfiguration {
     /** Jobs */
     String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED =
             "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT =
-            "studio.job.deployContentToEnvironment.status.message.default";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_READY =
-            "studio.job.deployContentToEnvironment.status.message.ready";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_PUBLISHING =
-            "studio.job.deployContentToEnvironment.status.message.publishing";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_QUEUED =
-            "studio.job.deployContentToEnvironment.status.message.queued";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_ERROR =
-            "studio.job.deployContentToEnvironment.status.message.error";
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_STOPPED =
-            "studio.job.deployContentToEnvironment.status.message.stopped";
     String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
 
     /** Content Types Filter Patterns */
