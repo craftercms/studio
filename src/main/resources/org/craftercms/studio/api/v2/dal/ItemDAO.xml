@@ -152,10 +152,19 @@
     </insert>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        SELECT *, 0 as children_count FROM item WHERE site_id = #{siteId} AND path = #{ldPath}
+        SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, 0 as children_count
+        FROM item i
+        LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+        LEFT OUTER JOIN user u2 ON i.created_by = u2.id
+        LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
+        WHERE i.site_id = #{siteId} AND i.path = #{ldPath}
         UNION
-        (SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
+        (SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, COUNT(DISTINCT i3.id) as children_count
+        FROM item i1
             left outer join item  i3 on i1.id = i3.parent_id
+        LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+        LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
+        LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId}
         AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
@@ -194,9 +203,13 @@
     </select>
 
     <select id="getAllChildrenByPath" resultMap="ItemMap">
-        SELECT i1.*, COUNT(DISTINCT i3.id) as children_count FROM item i1
-            left outer join item i3
-                on i1.id = i3.parent_id WHERE i1.site_id = #{siteId}
+        SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, COUNT(DISTINCT i3.id) as  children_count
+        FROM item i1
+            left outer join item i3 on i1.id = i3.parent_id
+            LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+            LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
+            LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
+        WHERE i1.site_id = #{siteId}
         AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
@@ -227,11 +240,18 @@
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
-        SELECT *, 0 AS children_count FROM item
-        WHERE site_id = #{siteId} AND parent_id = #{parentId} AND path LIKE '%/${ldName}'
+        SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, 0 AS children_count
+        FROM item i
+        LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+        LEFT OUTER JOIN user u2 ON i.created_by = u2.id
+        LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
+        WHERE i.site_id = #{siteId} AND i.parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
         ((SELECT i1.*, COUNT(DISTINCT i3.id) AS children_count FROM item i1
         LEFT OUTER JOIN item i3 ON i1.id = i3.parent_id
+        LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+        LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
+        LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId} AND i1.parent_id = #{parentId} AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND i1.locale_code = #{localeCode}
