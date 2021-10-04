@@ -166,7 +166,7 @@ public interface ContentRepository {
      * Check if repository exists for  given site
      *
      * @param site     site id
-     * @return true if it repository exists, otherwise false
+     * @return true if repository exists, otherwise false
      */
     boolean repositoryExists(String site);
 
