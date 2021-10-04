@@ -763,12 +763,13 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="taskExecutor" ref="studio.clockTaskExecutor" />
-        <property name="contentRepository" ref="contentRepository" />
+        <property name="contentRepositoryV1" ref="contentRepository" />
         <property name="deployer" ref="allDeployers" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="globalTasks" ref="studio.clockTasksGlobal" />
         <property name="siteTasks" ref="studio.clockTasksSite" />
         <property name="systemStatusProvider" ref="bootstrapManager"/>
+        <property name="contentRepositoryV2" ref="gitContentRepositoryV2" />
     </bean>
 
     <bean id="studio.clockTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
