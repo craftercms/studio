@@ -72,7 +72,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     private static final Logger logger = LoggerFactory.getLogger(StudioUpgradeManagerImpl.class);
 
     public static final String SQL_QUERY_SITES_3_0_0 = "select site_id from cstudio_site where system = 0";
-    public static final String SQL_QUERY_SITES = "select site_id from site where system = 0";
+    public static final String SQL_QUERY_SITES = "select site_id from site where system = 0 and deleted = 0";
 
     protected VersionProvider dbVersionProvider;
     protected UpgradePipelineFactory<String> dbPipelineFactory;
