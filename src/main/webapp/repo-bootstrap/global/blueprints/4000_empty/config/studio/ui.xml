@@ -239,27 +239,6 @@
   </widget>
   <widget id="craftercms.components.Launcher">
     <configuration>
-      <siteCardMenuLinks>
-        <link>
-          <title id="words.dashboard" defaultMessage="Dashboard" />
-          <systemLinkId>siteDashboard</systemLinkId>
-          <icon id="@mui/icons-material/DashboardRounded"/>
-        </link>
-        <link>
-          <title id="words.preview" defaultMessage="Preview" />
-          <systemLinkId>preview</systemLinkId>
-          <icon id="craftercms.icons.Preview" />
-        </link>
-        <link>
-          <roles>
-            <role>admin</role>
-            <role>developer</role>
-          </roles>
-          <title id="siteTools.title" defaultMessage="Site Tools" />
-          <systemLinkId>siteTools</systemLinkId>
-          <icon id="@mui/icons-material/BuildRounded" />
-        </link>
-      </siteCardMenuLinks>
       <widgets>
         <widget id="craftercms.components.LauncherSection">
           <configuration>
@@ -270,7 +249,7 @@
               <widget id="craftercms.components.LauncherLinkTile">
                 <configuration>
                   <title id="words.dashboard" defaultMessage="Dashboard" />
-                  <systemLinkId>siteDashboard</systemLinkId>
+                  <systemLinkId>siteDashboardDialog</systemLinkId>
                   <icon id="@mui/icons-material/DashboardRounded" />
                 </configuration>
               </widget>
@@ -288,14 +267,14 @@
                 </permittedRoles>
                 <configuration>
                   <title id="siteTools.title" defaultMessage="Site Tools" />
-                  <systemLinkId>siteTools</systemLinkId>
+                  <systemLinkId>siteToolsDialog</systemLinkId>
                   <icon id="@mui/icons-material/BuildRounded" />
                 </configuration>
               </widget>
               <widget id="craftercms.components.LauncherLinkTile">
                 <configuration>
                   <title id="words.search" defaultMessage="Search" />
-                  <systemLinkId>siteSearch</systemLinkId>
+                  <systemLinkId>siteSearchDialog</systemLinkId>
                   <icon id="@mui/icons-material/SearchRounded" />
                 </configuration>
               </widget>
