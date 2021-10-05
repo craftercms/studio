@@ -549,6 +549,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
         if (disabled) {
             item.setState(item.getState() | ItemState.DISABLED.value);
+        } else {
+            item.setState(item.getState() & ~ItemState.DISABLED.value);
         }
         upsertEntry(item);
     }
