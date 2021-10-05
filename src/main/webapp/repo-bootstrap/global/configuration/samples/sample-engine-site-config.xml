@@ -200,7 +200,7 @@
         <enable>true</enable>
         <accessControlMaxAge>3600</accessControlMaxAge>
         <accessControlAllowOrigin>*</accessControlAllowOrigin>
-        <accessControlAllowMethods>GET\, POST\, PUT</accessControlAllowMethods>
+        <accessControlAllowMethods>GET\, OPTIONS</accessControlAllowMethods>
         <accessControlAllowHeaders>Content-Type</accessControlAllowHeaders>
         <accessControlAllowCredentials>true</accessControlAllowCredentials>
     </cors>
