@@ -26,8 +26,8 @@
     help set these properties as KVP (key-value-pairs) that are then injected into
     the Crafter Engine's session and are made accessible using the Profile APIs.
 
-    You can learn more about personalization and targeting here:
-    http://docs.craftercms.org/en/3.0/developers/targeting.html
+    You can learn more about personalization and targeting in the docs at:
+    http://docs.craftercms.org
 
     <property>
         <name />
