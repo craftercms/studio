@@ -21,7 +21,7 @@
                 <widget id="craftercms.components.ToolsPanelEmbeddedAppViewButton">
                     <configuration>
                         <title id="words.dashboard" defaultMessage="Dashboard"/>
-                        <icon id="@material-ui/icons/DashboardRounded"/>
+                        <icon id="@mui/icons-material/DashboardRounded"/>
                         <widget id="craftercms.components.Dashboard"/>
                     </configuration>
                 </widget>
@@ -34,7 +34,7 @@
                                 <configuration>
                                     <id>Pages</id>
                                     <label>Pages</label>
-                                    <icon id="@material-ui/icons/DescriptionOutlined" />
+                                    <icon id="@mui/icons-material/DescriptionOutlined" />
                                     <rootPath>/site/website</rootPath>
                                     <locale>en</locale>
                                 </configuration>
@@ -52,7 +52,7 @@
                                 <configuration>
                                     <id>Taxonomy</id>
                                     <label>Taxonomy</label>
-                                    <icon id="@material-ui/icons/LocalOfferOutlined"/>
+                                    <icon id="@mui/icons-material/LocalOfferOutlined"/>
                                     <rootPath>/site/taxonomy</rootPath>
                                     <locale>en</locale>
                                 </configuration>
@@ -61,7 +61,7 @@
                                 <configuration>
                                     <id>StaticAssets</id>
                                     <label>Static Assets</label>
-                                    <icon id="@material-ui/icons/ImageOutlined"/>
+                                    <icon id="@mui/icons-material/ImageOutlined"/>
                                     <rootPath>/static-assets</rootPath>
                                     <locale>en</locale>
                                 </configuration>
@@ -69,7 +69,7 @@
                             <widget id="craftercms.components.PathNavigatorTree">
                                 <configuration>
                                     <label>Templates</label>
-                                    <icon id="@material-ui/icons/InsertDriveFileOutlined"/>
+                                    <icon id="@mui/icons-material/InsertDriveFileOutlined"/>
                                     <rootPath>/templates</rootPath>
                                     <locale>en</locale>
                                 </configuration>
@@ -77,7 +77,7 @@
                             <widget id="craftercms.components.PathNavigatorTree">
                                 <configuration>
                                     <label>Scripts</label>
-                                    <icon id="@material-ui/icons/CodeRounded"/>
+                                    <icon id="@mui/icons-material/CodeRounded"/>
                                     <rootPath>/scripts</rootPath>
                                     <locale>en</locale>
                                 </configuration>
@@ -92,7 +92,7 @@
                     </permittedRoles>
                     <configuration>
                         <title id="siteTools.title" defaultMessage="Site Tools"/>
-                        <icon id="@material-ui/icons/TuneRounded"/>
+                        <icon id="@mui/icons-material/TuneRounded"/>
                         <widgets>
                             <widget id="craftercms.components.SiteToolsPanel"/>
                         </widgets>
@@ -108,7 +108,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewSearchPanel.title" defaultMessage="Search"/>
-                        <icon id="@material-ui/icons/SearchRounded"/>
+                        <icon id="@mui/icons-material/SearchRounded"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewSearchPanel"/>
                         </widgets>
@@ -118,7 +118,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewComponentsPanel.title" defaultMessage="Add Components"/>
-                        <icon id="@material-ui/icons/ExtensionOutlined"/>
+                        <icon id="@mui/icons-material/ExtensionOutlined"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewComponentsPanel"/>
                         </widgets>
@@ -128,7 +128,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewBrowseComponentsPanel.title" defaultMessage="Browse Components"/>
-                        <icon id="@material-ui/icons/ExtensionOutlined"/>
+                        <icon id="@mui/icons-material/ExtensionOutlined"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewBrowseComponentsPanel"/>
                         </widgets>
@@ -138,7 +138,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewDropTargetsPanel.title" defaultMessage="Component Drop Targets"/>
-                        <icon id="@material-ui/icons/ExtensionOutlined"/>
+                        <icon id="@mui/icons-material/ExtensionOutlined"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewDropTargetsPanel"/>
                         </widgets>
@@ -148,7 +148,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewAssetsPanel.title" defaultMessage="Assets"/>
-                        <icon id="@material-ui/icons/ImageOutlined"/>
+                        <icon id="@mui/icons-material/ImageOutlined"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewAssetsPanel"/>
                         </widgets>
@@ -158,7 +158,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewAudiencesPanel.title" defaultMessage="Audience Targeting"/>
-                        <icon id="@material-ui/icons/EmojiPeopleRounded"/>
+                        <icon id="@mui/icons-material/EmojiPeopleRounded"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewAudiencesPanel">
                                 <configuration>
@@ -212,7 +212,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="previewSimulatorPanel.title" defaultMessage="Device Simulator"/>
-                        <icon id="@material-ui/icons/DevicesRounded"/>
+                        <icon id="@mui/icons-material/DevicesRounded"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewSimulatorPanel">
                                 <configuration>
@@ -237,7 +237,7 @@
                     <configuration>
                         <target id="icePanel"/>
                         <title id="words.settings" defaultMessage="Settings"/>
-                        <icon id="@material-ui/icons/SettingsOutlined"/>
+                        <icon id="@mui/icons-material/SettingsOutlined"/>
                         <widgets>
                             <widget id="craftercms.components.PreviewSettingsPanel"/>
                         </widgets>
@@ -248,27 +248,6 @@
     </widget>
     <widget id="craftercms.components.Launcher">
         <configuration>
-            <siteCardMenuLinks>
-                <link>
-                    <title id="words.dashboard" defaultMessage="Dashboard"/>
-                    <systemLinkId>siteDashboard</systemLinkId>
-                    <icon id="@material-ui/icons/DashboardRounded"/>
-                </link>
-                <link>
-                    <title id="words.preview" defaultMessage="Preview"/>
-                    <systemLinkId>preview</systemLinkId>
-                    <icon id="craftercms.icons.Preview"/>
-                </link>
-                <link>
-                    <roles>
-                        <role>admin</role>
-                        <role>developer</role>
-                    </roles>
-                    <title id="siteTools.title" defaultMessage="Site Tools"/>
-                    <systemLinkId>siteTools</systemLinkId>
-                    <icon id="@material-ui/icons/BuildRounded"/>
-                </link>
-            </siteCardMenuLinks>
             <widgets>
                 <widget id="craftercms.components.LauncherSection">
                     <configuration>
@@ -279,8 +258,8 @@
                             <widget id="craftercms.components.LauncherLinkTile">
                                 <configuration>
                                     <title id="words.dashboard" defaultMessage="Dashboard"/>
-                                    <systemLinkId>siteDashboard</systemLinkId>
-                                    <icon id="@material-ui/icons/DashboardRounded"/>
+                                    <systemLinkId>siteDashboardDialog</systemLinkId>
+                                    <icon id="@mui/icons-material/DashboardRounded"/>
                                 </configuration>
                             </widget>
                             <widget id="craftercms.components.LauncherLinkTile">
@@ -297,15 +276,15 @@
                                 </permittedRoles>
                                 <configuration>
                                     <title id="siteTools.title" defaultMessage="Site Tools"/>
-                                    <systemLinkId>siteTools</systemLinkId>
-                                    <icon id="@material-ui/icons/BuildRounded"/>
+                                    <systemLinkId>siteToolsDialog</systemLinkId>
+                                    <icon id="@mui/icons-material/BuildRounded"/>
                                 </configuration>
                             </widget>
                             <widget id="craftercms.components.LauncherLinkTile">
                                 <configuration>
                                     <title id="words.search" defaultMessage="Search"/>
-                                    <systemLinkId>siteSearch</systemLinkId>
-                                    <icon id="@material-ui/icons/SearchRounded"/>
+                                    <systemLinkId>siteSearchDialog</systemLinkId>
+                                    <icon id="@mui/icons-material/SearchRounded"/>
                                 </configuration>
                             </widget>
                             <widget id="craftercms.components.LauncherPublishingStatusTile"/>
@@ -330,10 +309,17 @@
             </middleSection>
             <rightSection>
                 <widgets>
-                    <widget id="craftercms.components.EditModeSwitch"/>
+                    <widget id="craftercms.components.EditModesSwitcher"/>
                     <widget id="craftercms.components.PublishingStatusButton">
                         <configuration>
                             <variant>icon</variant>
+                        </configuration>
+                    </widget>
+                    <widget id="craftercms.components.WidgetDialogIconButton">
+                        <configuration>
+                            <title id="words.search" defaultMessage="Search"/>
+                            <icon id="@mui/icons-material/SearchRounded"/>
+                            <widget id="craftercms.components.EmbeddedSearchIframe"/>
                         </configuration>
                     </widget>
                 </widgets>
@@ -418,37 +404,37 @@
             <tools>
                 <tool>
                     <title id="dropTargetsMessages.contentTypes" defaultMessage="Content Types"/>
-                    <icon id="@material-ui/icons/WidgetsOutlined"/>
+                    <icon id="@mui/icons-material/WidgetsOutlined"/>
                     <url>content-types</url>
                     <widget id="craftercms.components.ContentTypeManagement" />
                 </tool>
                 <tool>
                     <title id="GlobalMenu.EncryptionToolEntryLabel" defaultMessage="Encryption Tool"/>
-                    <icon id="@material-ui/icons/LockOutlined"/>
+                    <icon id="@mui/icons-material/LockOutlined"/>
                     <url>encrypt-tool</url>
                     <widget id="craftercms.components.SiteEncryptTool" />
                 </tool>
                 <tool>
                     <title id="words.configuration" defaultMessage="Configuration"/>
-                    <icon id="@material-ui/icons/SettingsApplicationsOutlined"/>
+                    <icon id="@mui/icons-material/SettingsApplicationsOutlined"/>
                     <url>configuration</url>
                     <widget id="craftercms.components.SiteConfigurationManagement" />
                 </tool>
                 <tool>
                     <title id="GlobalMenu.AuditEntryLabel" defaultMessage="Audit"/>
-                    <icon id="@material-ui/icons/SubjectRounded" />
+                    <icon id="@mui/icons-material/SubjectRounded" />
                     <url>audit</url>
                     <widget id="craftercms.components.SiteAuditManagement" />
                 </tool>
                 <tool>
                     <title id="workflowStates.title" defaultMessage="Workflow States"/>
-                    <icon id="@material-ui/icons/SettingsOutlined"/>
+                    <icon id="@mui/icons-material/SettingsOutlined"/>
                     <url>item-states</url>
                     <widget id="craftercms.components.ItemStatesManagement" />
                 </tool>
                 <tool>
                     <title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>
-                    <icon id="@material-ui/icons/FormatAlignCenterRounded"/>
+                    <icon id="@mui/icons-material/FormatAlignCenterRounded"/>
                     <url>log</url>
                     <widget id="craftercms.components.LogConsole">
                         <configuration>
@@ -458,13 +444,13 @@
                 </tool>
                 <tool>
                     <title id="words.publishing" defaultMessage="Publishing"/>
-                    <icon id="@material-ui/icons/CloudUploadOutlined"/>
+                    <icon id="@mui/icons-material/CloudUploadOutlined"/>
                     <url>publishing</url>
                     <widget id="craftercms.components.PublishingDashboard" />
                 </tool>
                 <tool>
                     <title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
-                    <icon id="@material-ui/icons/StorageRounded"/>
+                    <icon id="@mui/icons-material/StorageRounded"/>
                     <url>remote-repositories</url>
                     <widget id="craftercms.components.RemoteRepositoriesManagement" />
                 </tool>
@@ -476,7 +462,7 @@
                 </tool>
                 <tool>
                     <title id="PluginManagement.title" defaultMessage="Plugin Management"/>
-                    <icon id="@material-ui/icons/ExtensionOutlined"/>
+                    <icon id="@mui/icons-material/ExtensionOutlined"/>
                     <url>plugins</url>
                     <widget id="craftercms.components.PluginManagement" />
                 </tool>
@@ -530,6 +516,21 @@
 			<freemarkerLibraryImport label="Freemarker Library import">
 				<value><![CDATA[<#import "/templates/PATH" as NAMESPACE />]]></value>
 			</freemarkerLibraryImport>
+			<htmlPage label="HTML Page">
+				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
+<!doctype html>
+<html lang="en">
+  <head>
+    <#-- Insert your head markup here -->
+    <@crafter.head />
+  </head>
+  <body>
+    <@crafter.body_top />
+    <#-- Insert your body markup  here -->
+    <@crafter.body_bottom />
+  </body>
+</html>]]></value>
+			</htmlPage>
 		</reference>
 		<reference id="craftercms.groovyCodeSnippets">
 			<accessContentModel label="Access Content variable">

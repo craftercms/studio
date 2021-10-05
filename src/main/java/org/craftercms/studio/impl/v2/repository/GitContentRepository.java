@@ -155,6 +155,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBO
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -1162,8 +1163,13 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public boolean repositoryExists(String site) {
-        return commitIdExists(site, HEAD);
+    public boolean repositoryExists(String siteId) {
+        boolean exists = false;
+        Path siteSandboxRepoPath = helper.buildRepoPath(GitRepositories.SANDBOX, siteId).resolve(GIT_ROOT);
+        if (Files.exists(siteSandboxRepoPath)) {
+            exists = commitIdExists(siteId, HEAD);
+        }
+        return exists;
     }
 
     @Override

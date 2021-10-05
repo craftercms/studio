@@ -28,11 +28,11 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.job.Job;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.job.SiteJob;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
 import org.springframework.core.task.TaskExecutor;
@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.STUDIO_CLOCK_EXECUTOR_SITE_LOCK;
@@ -76,11 +75,12 @@ public class StudioClockExecutor implements Job {
     private StudioConfiguration studioConfiguration;
     private TaskExecutor taskExecutor;
     private SiteService siteService;
-    private ContentRepository contentRepository;
+    private org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
     private Deployer deployer;
     private GeneralLockService generalLockService;
     private List<Job> globalTasks;
     private List<SiteJob> siteTasks;
+    private ContentRepository contentRepositoryV2;
     private static int threadCounter = 0;
 
     @Override
@@ -134,11 +134,11 @@ public class StudioClockExecutor implements Job {
         deletedSites.forEach(siteFeed -> {
             String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
             if (!deletedSitesMap.containsKey(key)) {
-                if (contentRepository.contentExists(siteFeed.getName(), FILE_SEPARATOR) &&
+                if (contentRepositoryV2.repositoryExists(siteFeed.getName()) &&
                         checkSiteUuid(siteFeed.getSiteId(), siteFeed.getSiteUuid())) {
                     deployer.deleteTargets(siteFeed.getName());
                     destroySitePreviewContext(siteFeed.getName());
-                    contentRepository.deleteSite(siteFeed.getName());
+                    contentRepositoryV1.deleteSite(siteFeed.getName());
                 }
                 StudioClusterSandboxRepoSyncTask.remotesMap.remove(siteFeed.getSiteId());
                 StudioClusterPublishedRepoSyncTask.remotesMap.remove(siteFeed.getSiteId());
@@ -218,12 +218,12 @@ public class StudioClockExecutor implements Job {
         this.siteService = siteService;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
+    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepositoryV1() {
+        return contentRepositoryV1;
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
+    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
+        this.contentRepositoryV1 = contentRepositoryV1;
     }
 
     public Deployer getDeployer() {
@@ -262,4 +262,11 @@ public class StudioClockExecutor implements Job {
         this.systemStatusProvider = systemStatusProvider;
     }
 
+    public ContentRepository getContentRepositoryV2() {
+        return contentRepositoryV2;
+    }
+
+    public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
+        this.contentRepositoryV2 = contentRepositoryV2;
+    }
 }
