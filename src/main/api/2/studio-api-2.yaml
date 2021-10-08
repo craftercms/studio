@@ -3585,7 +3585,7 @@ paths:
         - content
       summary: Delete content
       description: 'Required permission "content_delete"'
-      operationId: workflowDelete
+      operationId: contentDelete
       requestBody:
         description: parameters for delete content
         required: true
