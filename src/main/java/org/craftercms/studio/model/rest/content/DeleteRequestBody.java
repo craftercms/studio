@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.workflow;
+package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
