@@ -28,7 +28,6 @@ import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.workflow.ApproveRequestBody;
-import org.craftercms.studio.model.rest.workflow.DeleteRequestBody;
 import org.craftercms.studio.model.rest.workflow.ItemStatesPostRequestBody;
 import org.craftercms.studio.model.rest.workflow.PublishRequestBody;
 import org.craftercms.studio.model.rest.workflow.RejectRequestBody;
@@ -55,7 +54,6 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AFFECTED_PATHS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.APPROVE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_STATES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REJECT;
@@ -206,19 +204,6 @@ public class WorkflowController {
             throws ServiceLayerException, DeploymentException {
         workflowService.reject(rejectRequestBody.getSiteId(), rejectRequestBody.getItems(),
                 rejectRequestBody.getComment());
-
-        var responseBody = new ResponseBody();
-        var result = new Result();
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody delete(@RequestBody DeleteRequestBody deleteRequestBody)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
-                deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
 
         var responseBody = new ResponseBody();
         var result = new Result();

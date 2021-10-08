@@ -19,7 +19,6 @@ package org.craftercms.studio.controller.rest.v2;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -27,13 +26,13 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
+import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
-import org.craftercms.studio.model.rest.content.DeleteContentRequestBody;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenByIdRequestBody;
 import org.craftercms.studio.model.rest.content.GetChildrenByPathRequestBody;
@@ -44,6 +43,7 @@ import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequestBody
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
+import org.craftercms.studio.model.rest.content.DeleteRequestBody;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -91,7 +91,6 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
-import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -102,17 +101,21 @@ public class ContentController {
     private final ContentService contentService;
     private final SiteService siteService;
     private final DependencyService dependencyService;
+    private final WorkflowService workflowService;
 
     //TODO: Migrate logic to new content service
     private final ClipboardService clipboardService;
 
-    @ConstructorProperties({"contentService", "siteService", "dependencyService", "clipboardService"})
+    @ConstructorProperties({"contentService", "siteService", "dependencyService", "clipboardService",
+            "workflowService"})
     public ContentController(ContentService contentService, SiteService siteService,
-                             DependencyService dependencyService, ClipboardService clipboardService) {
+                             DependencyService dependencyService, ClipboardService clipboardService,
+                             WorkflowService workflowService) {
         this.contentService = contentService;
         this.siteService = siteService;
         this.dependencyService = dependencyService;
         this.clipboardService = clipboardService;
+        this.workflowService = workflowService;
     }
 
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
@@ -147,14 +150,15 @@ public class ContentController {
         return responseBody;
     }
 
-    @PostMapping(DELETE)
-    public ResponseBody delete(@RequestBody @Valid DeleteContentRequestBody request)
-            throws DeploymentException, AuthenticationException, ServiceLayerException {
-        contentService.deleteContent(request.getSiteId(), request.getPaths(), request.getSubmissionComment());
+    @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody delete(@RequestBody DeleteRequestBody deleteRequestBody)
+            throws UserNotFoundException, ServiceLayerException, DeploymentException {
+        workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
+                deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
 
-        ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
-        result.setResponse(DELETED);
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
     }

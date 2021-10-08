@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.21'
+  version: '4.0.0.22'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3584,9 +3584,10 @@ paths:
       tags:
         - content
       summary: Delete content
-      description: 'Required Permission: "delete_content"'
-      operationId: deleteContent
+      description: 'Required permission "content_delete"'
+      operationId: workflowDelete
       requestBody:
+        description: parameters for delete content
         required: true
         content:
           application/json:
@@ -3594,22 +3595,27 @@ paths:
               type: object
               properties:
                 siteId:
-                  description: Site ID
                   type: string
-                paths:
-                  description: Content paths to be deleted
+                  description: site identifier
+                items:
                   type: array
+                  description: path(s) of content item(s)
                   items:
                     type: string
-                submissionComment:
-                  description: Submission comment
+                optionalDepepndencies:
+                  type: array
+                  description: optional (soft) dependencies
+                  items:
+                    type: string
+                comment:
                   type: string
+                  description: deletion comment by the user performing the delete
               required:
                 - siteId
-                - paths
+                - items
       responses:
         '200':
-          description: Deleted
+          description: OK
           content:
             application/json:
               schema:
@@ -3621,6 +3627,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -6548,61 +6556,6 @@ paths:
                 comment:
                   type: string
                   description: Reviewer's rejection comment
-              required:
-                - siteId
-                - items
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /workflow/delete:
-    post:
-      tags:
-        - workflow
-      summary: Delete content
-      description: 'Required permission "content_delete"'
-      operationId: workflowDelete
-      requestBody:
-        description: parameters for delete content
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties: 
-                siteId:
-                  type: string
-                  description: site identifier
-                items:
-                  type: array
-                  description: path(s) of content item(s)
-                  items:
-                    type: string
-                optionalDepepndencies:
-                  type: array
-                  description: optional (soft) dependencies
-                  items:
-                    type: string
-                comment:
-                  type: string
-                  description: deletion comment by the user performing the delete
               required:
                 - siteId
                 - items
