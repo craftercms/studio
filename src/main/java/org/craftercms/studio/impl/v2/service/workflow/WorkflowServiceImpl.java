@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -49,6 +50,7 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInter
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
@@ -72,9 +74,18 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CON
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -98,6 +109,8 @@ public class WorkflowServiceImpl implements WorkflowService {
     private NotificationService notificationService;
     private DependencyService dependencyService;
     private PublishServiceInternal publishServiceInternal;
+    private ServicesConfig servicesConfig;
+    private StudioConfiguration studioConfiguration;
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -178,8 +191,9 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public void requestPublish(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> paths,
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public void requestPublish(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                               @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                                String comment, boolean sendEmailNotifications)
             throws ServiceLayerException, UserNotFoundException, DeploymentException {
@@ -245,6 +259,38 @@ public class WorkflowServiceImpl implements WorkflowService {
             workflowEntries.add(workflow);
         });
         workflowServiceInternal.insertWorkflowEntries(workflowEntries);
+
+        // Item
+        String liveEnvironment = StringUtils.EMPTY;
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            liveEnvironment = servicesConfig.getLiveEnvironment(siteId);
+        }
+        boolean isLive = false;
+        if (StringUtils.isEmpty(liveEnvironment)) {
+            liveEnvironment = studioConfiguration.getProperty(REPO_PUBLISHED_LIVE);
+        }
+        if (liveEnvironment.equals(publishingTarget)) {
+            isLive = true;
+        }
+
+        if (Objects.nonNull(scheduledDate)) {
+            if (isLive) {
+                itemServiceInternal.updateStateBitsBulk(siteId, paths,
+                        SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK);
+            } else {
+                itemServiceInternal.updateStateBitsBulk(siteId, paths, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK);
+            }
+        } else {
+            if (isLive) {
+                itemServiceInternal.updateStateBitsBulk(siteId, paths, SUBMIT_TO_WORKFLOW_LIVE_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK);
+            } else {
+                itemServiceInternal.updateStateBitsBulk(siteId, paths, SUBMIT_TO_WORKFLOW_ON_MASK,
+                        SUBMIT_TO_WORKFLOW_OFF_MASK);
+            }
+        }
     }
 
     private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy)
@@ -488,7 +534,9 @@ public class WorkflowServiceImpl implements WorkflowService {
             throws UserNotFoundException, ServiceLayerException {
         var deletePackage = new ArrayList<String>();
         deletePackage.addAll(paths);
-        deletePackage.addAll(optionalDependencies);
+        if (CollectionUtils.isNotEmpty(optionalDependencies)) {
+            deletePackage.addAll(optionalDependencies);
+        }
         List<SandboxItem> items = contentServiceInternal.getSandboxItemsByPath(siteId, paths, false);
         items.forEach(item -> {
             if (StringUtils.equals(item.getSystemType(), StudioConstants.CONTENT_TYPE_FOLDER)) {
@@ -597,5 +645,21 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

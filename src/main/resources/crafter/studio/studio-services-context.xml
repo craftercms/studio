@@ -661,6 +661,8 @@
         <property name="notificationService" ref="cstudioNotificationService" />
         <property name="dependencyService" ref="studioDependencyService" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"
