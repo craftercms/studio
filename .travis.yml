@@ -1,15 +1,12 @@
-version: ~> 1.0
+version: "~> 1.0"
 dist: focal
 language: java
 jdk:
-  - openjdk11
+- openjdk11
 cache:
   directories:
-    - $HOME/.m2
-    - $HOME/downloads
-#git:
-#  depth: 1
-#  quiet: true
+  - "$HOME/.m2"
+  - "$HOME/downloads"
 branches:
   only:
   - develop
@@ -24,16 +21,18 @@ notifications:
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 install: skip
 script:
-  - wget -q https://raw.githubusercontent.com/craftercms/craftercms/develop/.travis-prep-jdk.sh
-  - chmod +x .travis-prep-jdk.sh
-  - ./.travis-prep-jdk.sh
-  - export JAVA_HOME=$HOME/jdk
-  - export PATH=$HOME/jdk/bin:$PATH
-  - which java
-  - java -version
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; fi
-  - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true ;fi
+- wget -q https://raw.githubusercontent.com/craftercms/craftercms/develop/.travis-prep-jdk.sh
+- chmod +x .travis-prep-jdk.sh
+- "./.travis-prep-jdk.sh"
+- export JAVA_HOME=$HOME/jdk
+- export PATH=$HOME/jdk/bin:$PATH
+- which java
+- java -version
+- if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean
+  deploy -DcloneUi=true --settings .travis-settings.xml; fi
+- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean
+  install -DcloneUi=true ;fi
 env:
   global:
-  - secure: ccvaP/HRa4Taolqr0RX0xcJLXtRCRtyqLLs3EGfC7pAFQ0q0hfiYKyRFTPPsZ9wzrE7ozb31AaCJFDZo9S1/clzAGCJccAENyIj36RTuF3EQYZkFKSoeHOTeCMuC3k+ZiDzKWGdGwo54lSlNZNx1yQVGCK5dE+y4f9e2d7wR3Kk=
-  - secure: JeNNkqjucCFDU//OwUVLLp3Ru//9L4nyym9bsuHiL4aaoXc4+IAtodGw8mnpZ6c/XTsILeJ9O5iUaMOKUQy6PTtSOyGBejVn2FNeQnYr6tJDyioSy1f0cPQeL6R5MF3AOIIDZwYcCpy/aN6dGYB8+V/Jv9bTPEFnn0CUUKIR10g=
+  - secure: UrqsAwhqy/hg3bJh6zDDg51+a60bnvdFaNZx/9KsgGxrz174mMU0aJCAl1uUcY1tte8v5cylWvdSzPfBQhgH4p8zu2naFmIgtX+NUBLOqR5CX8w60+kNuSPBRj7TY+PRr1Vak8WztRxQE/T+VjAGH2ZdL0Ww9Soq2RFvMKgtvKk=
+  - secure: XHFhJ16qGXSgzokWsFa7DuTNcdHs3x7w2iSOSnChO1x8vIejHZPnGXitDe2773TsgRMDUEOuD4m4ejlklWg4Wv0C5AiGu9bGjk/XJEiUgNrb7eizwGcYJHnFVWgJ0MInJ5xJH45CQQENk0+ns08hEFqPQ8yhbYYxo3g5PHfuKLI=
