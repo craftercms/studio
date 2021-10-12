@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.22'
+  version: '4.0.0.23'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4538,6 +4538,97 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /marketplace/remove:
+    post:
+      tags:
+        - marketplace
+      summary: Remove a plugin from the given site
+      description: 'Required permission "install_plugins"'
+      operationId: removePlugin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: The id of the site
+                  type: string
+                pluginId:
+                  description: The id of the plugin
+                  type: string
+                force:
+                  description: Indicates if the plugin should be removed even if there are dependant items
+              required:
+                - siteId
+                - pluginId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /marketplace/usage:
+    get:
+      tags:
+        - marketplace
+      summary: List dependant items for a plugin
+      description: 'Required permission "install_plugins"'
+      operationId: pluginUsage
+      parameters:
+        - name: siteId
+          description: The id of the site
+          schema:
+            type: string
+          required: true
+          in: query
+        - name: pluginId
+          description: The id of the plugin
+          schema:
+            type: string
+          required: true
+          in: query
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 

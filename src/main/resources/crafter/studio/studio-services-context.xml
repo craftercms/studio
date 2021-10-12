@@ -389,6 +389,7 @@
         <property name="configurationCache" ref="configurationCache"/>
         <property name="contentRepository" ref="gitContentRepositoryV2" />
         <property name="cacheInvalidators" ref="configurationCacheInvalidators"/>
+        <property name="dependencyService" ref="studioDependencyService"/>
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
@@ -1584,10 +1585,11 @@
         <constructor-arg name="instanceService" ref="instanceService"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="sitesServiceInternal" ref="sitesServiceInternal"/>
-        <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="pluginDescriptorReader" ref="pluginDescriptorReader"/>
         <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper"/>
+        <constructor-arg name="deploymentService" ref="cstudioDeploymentService"/>
+        <constructor-arg name="dependencyService" ref="dependencyService"/>
         <constructor-arg name="pluginDescriptorFilename"
                          value="#{studioConfiguration.getProperty('studio.repo.blueprints.descriptor.filename')}"/>
         <constructor-arg name="templateCode"

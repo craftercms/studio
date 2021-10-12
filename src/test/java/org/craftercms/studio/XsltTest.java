@@ -83,6 +83,12 @@ public class XsltTest {
                 new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/site-config-tools.xml"),
                 new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/site-config-tools-expected.xml"),
                 emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v3/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v3/expected.xml"),
+                emptyMap()
             }
 
     };

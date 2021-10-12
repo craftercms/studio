@@ -33,11 +33,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
@@ -83,12 +86,11 @@ public class RegexDependencyResolver implements DependencyResolver {
                         " and it is valid XML file: " + configLocation);
             }
         } catch (Exception exc) {
-            logger.error("Unexpected error resolving dependencies for site: " + site + " path: " + path);
+            logger.error("Unexpected error resolving dependencies for site: " + site + " path: " + path, exc);
         }
         return toRet;
     }
 
-    @SuppressWarnings("unchecked")
     private DependencyResolverConfigTO getConfiguration(String site) {
         DependencyResolverConfigTO config = null;
         logger.debug("Get configuration location for site " + site);
@@ -112,7 +114,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 
             Element itemTypesEl = root.element(XML_CONFIGURATION_ROOT_ELEMENT);
             if (itemTypesEl != null) {
-                logger.debug("Load configuration accoridng to XML structure");
+                logger.debug("Load configuration according to XML structure");
                 Map<String, DependencyResolverConfigTO.ItemType> itemTypes =
                         new HashMap<String, DependencyResolverConfigTO.ItemType>();
                 Iterator<Element> iterItemTypes = itemTypesEl.elementIterator(XML_CONFIGURATION_ITEM_TYPE);
@@ -163,8 +165,14 @@ public class RegexDependencyResolver implements DependencyResolver {
                                             new DependencyResolverConfigTO.DependencyExtractionTransform();
                                     Element matchEl = transformEl.element(XML_CONFIGURATION_MATCH);
                                     Element replaceEl = transformEl.element(XML_CONFIGURATION_REPLACE);
+                                    Element splitEl = transformEl.element(XML_CONFIGURATION_SPLIT);
                                     transform.setMatch(matchEl.getStringValue());
                                     transform.setReplace(replaceEl.getStringValue());
+                                    if (splitEl != null) {
+                                        transform.setSplit(Boolean.parseBoolean(splitEl.getStringValue()));
+
+                                        transform.setDelimiter(splitEl.attributeValue("delimiter", ","));
+                                    }
                                     transforms.add(transform);
                                 }
                             }
@@ -221,28 +229,53 @@ public class RegexDependencyResolver implements DependencyResolver {
                 Matcher matcher = pattern.matcher(content);
                 logger.debug("Matching content against regular expression " + extractionPattern.getFindRegex());
                 while (matcher.find()) {
-                    String matchedPath = matcher.group();
-                    logger.debug("Matched path: " + matchedPath + ". Apply transformations");
+                    String matchedValue = matcher.group();
+                    List<String> matchedPaths = new LinkedList<>();
+                    logger.debug("Matched path: " + matchedValue + ". Apply transformations");
                     if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
                         for (DependencyResolverConfigTO.DependencyExtractionTransform transform :
                                 extractionPattern.getTransforms()) {
                             Pattern find = Pattern.compile(transform.getMatch());
-                            Matcher replaceMatcher = find.matcher(matchedPath);
-                            matchedPath = replaceMatcher.replaceAll(transform.getReplace());
+                            Matcher replaceMatcher = find.matcher(matchedValue);
+
+                            if (transform.isSplit()) {
+                                if (replaceMatcher.matches()) {
+                                    matchedValue = replaceMatcher.group(1);
+                                    String[] splitValues = matchedValue.split(transform.getDelimiter());
+
+                                    List<String> transformedValues = Stream.of(splitValues)
+                                            // simulate a regex to be able to apply the replace from the config
+                                            .map(v -> {
+                                                Pattern p = Pattern.compile("(" + v + ")");
+                                                Matcher m = p.matcher(v);
+                                                return m.replaceAll(transform.getReplace());
+                                            })
+                                            .collect(Collectors.toList());
+
+                                    matchedPaths.addAll(transformedValues);
+                                }
+                            } else {
+                                matchedValue = replaceMatcher.replaceAll(transform.getReplace());
+                                matchedPaths.add(matchedValue);
+                            }
                         }
-                    }
-                    if (contentService.contentExists(site, matchedPath)) {
-                        logger.debug("Content exists for matched path " + matchedPath + ". Adding to the result set");
-                        extractedPaths.add(matchedPath);
                     } else {
-                        String message = "Found reference to " + matchedPath + " in content at " +
-                                path + " but content does not exist in referenced path for site " +
-                                site + ".\n"
-                                + "Regular expression for extracting dependencies matched " +
-                                "string, and after applying transformation rules to get value " +
-                                "for dependency path, that dependency path was not found in" +
-                                " site repository as a content.";
-                        logger.debug(message);
+                        matchedPaths.add(matchedValue);
+                    }
+                    for(String matchedPath : matchedPaths) {
+                        if (contentService.contentExists(site, matchedPath)) {
+                            logger.debug("Content exists for matched path " + matchedPath + ". Adding to the result set");
+                            extractedPaths.add(matchedPath);
+                        } else {
+                            String message = "Found reference to " + matchedPath + " in content at " +
+                                    path + " but content does not exist in referenced path for site " +
+                                    site + ".\n"
+                                    + "Regular expression for extracting dependencies matched " +
+                                    "string, and after applying transformation rules to get value " +
+                                    "for dependency path, that dependency path was not found in" +
+                                    " site repository as a content.";
+                            logger.debug(message);
+                        }
                     }
                 }
             }

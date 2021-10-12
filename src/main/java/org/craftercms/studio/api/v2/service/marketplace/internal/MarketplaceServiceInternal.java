@@ -97,4 +97,21 @@ public interface MarketplaceServiceInternal {
      */
     void copyPlugin(String siteId, String path) throws MarketplaceException;
 
+    /**
+     * Removes a plugin from a site
+     * @param siteId the id of the site
+     * @param pluginId the id of the plugin
+     * @param force indicates if the plugin should be removed even if there are dependant items
+     * @throws MarketplaceException if there is any error removing the plugin
+     */
+    void removePlugin(String siteId, String pluginId, boolean force) throws ServiceLayerException;
+
+    /**
+     * List dependant items for a plugin
+     * @param siteId the id of the site
+     * @param pluginId the id of the plugin
+     * @throws ServiceLayerException if there is any error getting the dependant items
+     */
+    List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException;
+
 }

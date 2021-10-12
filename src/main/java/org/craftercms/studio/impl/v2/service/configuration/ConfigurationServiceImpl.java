@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -132,6 +133,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private ItemServiceInternal itemServiceInternal;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private ContentRepository contentRepository;
+    private DependencyService dependencyService;
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
@@ -442,6 +444,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
                 contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
         generateAuditLog(siteId, configPath, currentUser);
+        dependencyService.upsertDependencies(siteId, configPath);
     }
 
     protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {
@@ -499,6 +502,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
                         contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
                 generateAuditLog(siteId, configPath, currentUser);
+                dependencyService.upsertDependencies(siteId, configPath);
             } else {
                 writeDefaultConfiguration(siteId, module, path, content);
             }
@@ -775,6 +779,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
     public void setCacheInvalidators(List<CacheInvalidator<String, Object>> cacheInvalidators) {
         this.cacheInvalidators = cacheInvalidators;
+    }
+
+    public void setDependencyService(DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
     }
 
 }

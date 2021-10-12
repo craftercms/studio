@@ -18,9 +18,6 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
     <xsl:param name="pluginId"/>
-    <xsl:param name="newXml"/>
-
-    <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
 
     <!-- to keep the right formatting -->
     <xsl:output method="xml" indent="yes" />
@@ -41,13 +38,9 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- If the plugin is not present add it -->
-    <xsl:template match="/config/tools/tool[name='content-types' and not(controls/control/plugin/pluginId = $pluginId)]/controls">
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
-
-            <xsl:copy-of select="$newFragment"/>
-        </xsl:copy>
+    <!-- Remove any element autowired for the given plugin id -->
+    <xsl:template match="//*[@autoWiredFrom=$pluginId]">
+        <!-- Empty to remove the whole element -->
     </xsl:template>
 
 </xsl:stylesheet>

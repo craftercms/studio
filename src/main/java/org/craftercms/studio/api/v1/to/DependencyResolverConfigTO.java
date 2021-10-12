@@ -75,11 +75,30 @@ public class DependencyResolverConfigTO {
 
         private String match;
         private String replace;
+        private boolean split;
+        private String delimiter;
 
         public String getMatch() { return match; }
         public void setMatch(String match) { this.match = match; }
 
         public String getReplace() { return replace; }
         public void setReplace(String replace) { this.replace = replace; }
+
+        public boolean isSplit() {
+            return split;
+        }
+
+        public void setSplit(boolean split) {
+            this.split = split;
+        }
+
+        public String getDelimiter() {
+            return delimiter;
+        }
+
+        public void setDelimiter(String delimiter) {
+            this.delimiter = delimiter;
+        }
+        
     }
 }

@@ -37,6 +37,7 @@ public interface DependencyResolver {
     String XML_CONFIGURATION_TRANSFORM = "transform";
     String XML_CONFIGURATION_MATCH = "match";
     String XML_CONFIGURATION_REPLACE = "replace";
+    String XML_CONFIGURATION_SPLIT = "split";
 
     /**
      * Resolves dependent files for given content of given path

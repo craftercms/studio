@@ -93,4 +93,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         marketplaceServiceInternal.copyPlugin(siteId, path);
     }
 
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
+    public void removePlugin(String siteId, String pluginId, boolean force) throws ServiceLayerException {
+        marketplaceServiceInternal.removePlugin(siteId, pluginId, force);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
+    public List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException {
+        return marketplaceServiceInternal.getPluginUsage(siteId, pluginId);
+    }
 }

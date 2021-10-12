@@ -347,6 +347,13 @@ pipelines:
             oldPath: configuration/samples/sample-form-control-rte-setup-tinymce5.xml
             newPath: configuration/samples/sample-form-control-rte-config.xml
             commitDetails: Rename the RTE configuration sample
+      - currentVersion: 4.0.0.31
+        nextVersion: 4.0.0.32
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/dependency/resolver-config.xml
+            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
+            commitDetails: Add new dependencies for content-types
 
   # Pipeline to upgrade site repositories
   site:
@@ -630,6 +637,12 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v2.xslt
             commitDetails: Update resovler regex to support CDATA
+      - currentVersion: 2
+        nextVersion: 3
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
+            commitDetails: Add new dependencies for content-types
 
   engine-site-config:
     module: engine

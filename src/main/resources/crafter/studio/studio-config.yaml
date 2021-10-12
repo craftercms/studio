@@ -879,7 +879,7 @@ studio.marketplace.url: https://mp.craftercms.org
 # Indicates if the search should include plugins pending of approval
 studio.marketplace.search.pending: false
 # The path in the repository for the plugin registry file
-studio.marketplace.plugin.registry.path: /config/plugins.yaml
+studio.marketplace.plugin.registry.path: config/plugins.yaml
 # The list of plugin types that can be installed
 studio.marketplace.plugin.installable:
   - site
@@ -917,20 +917,22 @@ studio.marketplace.plugin.wire.mapping:
     module: studio
     path: administration/site-config-tools.xml
     template: crafter/studio/marketplace/wiring/datasource.xslt
+studio.marketplace.plugin.wire.remove: crafter/studio/marketplace/wiring/remove.xslt
 # Mapping used to wire plugin files into the site templates
 studio.marketplace.plugin.template.mapping:
-  - systemPath: /templates/system/plugins/definitions.ftl
+  - systemPath: templates/system/plugins/definitions.ftl
     pluginPattern: templates/plugins/${pluginPath}/definitions.ftl
-  - systemPath: /templates/system/plugins/head.ftl
+  - systemPath: templates/system/plugins/head.ftl
     pluginPattern: templates/plugins/${pluginPath}/head.ftl
-  - systemPath: /templates/system/plugins/body_top.ftl
+  - systemPath: templates/system/plugins/body_top.ftl
     pluginPattern: templates/plugins/${pluginPath}/body_top.ftl
-  - systemPath: /templates/system/plugins/body_bottom.ftl
+  - systemPath: templates/system/plugins/body_bottom.ftl
     pluginPattern: templates/plugins/${pluginPath}/body_bottom.ftl
 # Code injected in the templates for each plugin
 studio.marketplace.plugin.template.code: '<#include "/${path}" ignore_missing=true/>'
 # Comment added in the templates for each plugin
 studio.marketplace.plugin.template.comment: '<#-- pluginId:${pluginId} -->'
+studio.marketplace.plugin.contentType.pattern: '/config/studio/content-types(/.+?)/form-definition\.xml'
 
 ##################################################
 ##                    Cache                     ##
