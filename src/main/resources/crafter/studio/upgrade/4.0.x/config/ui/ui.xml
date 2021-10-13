@@ -107,56 +107,6 @@
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-						<title id="previewSearchPanel.title" defaultMessage="Search"/>
-						<icon id="@mui/icons-material/SearchRounded"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewSearchPanel"/>
-						</widgets>
-					</configuration>
-				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
-					<configuration>
-						<target id="icePanel"/>
-						<title id="previewComponentsPanel.title" defaultMessage="Add Components"/>
-						<icon id="@mui/icons-material/ExtensionOutlined"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewComponentsPanel"/>
-						</widgets>
-					</configuration>
-				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
-					<configuration>
-						<target id="icePanel"/>
-						<title id="previewBrowseComponentsPanel.title" defaultMessage="Browse Components"/>
-						<icon id="@mui/icons-material/ExtensionOutlined"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewBrowseComponentsPanel"/>
-						</widgets>
-					</configuration>
-				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
-					<configuration>
-						<target id="icePanel"/>
-						<title id="previewDropTargetsPanel.title" defaultMessage="Component Drop Targets"/>
-						<icon id="@mui/icons-material/ExtensionOutlined"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewDropTargetsPanel"/>
-						</widgets>
-					</configuration>
-				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
-					<configuration>
-						<target id="icePanel"/>
-						<title id="previewAssetsPanel.title" defaultMessage="Assets"/>
-						<icon id="@mui/icons-material/ImageOutlined"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewAssetsPanel"/>
-						</widgets>
-					</configuration>
-				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
-					<configuration>
-						<target id="icePanel"/>
 						<title id="previewAudiencesPanel.title" defaultMessage="Audience Targeting"/>
 						<icon id="@mui/icons-material/EmojiPeopleRounded"/>
 						<widgets>
@@ -198,14 +148,10 @@
 						</widgets>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
+				<widget id="craftercms.components.LegacyComponentsPanel">
 					<configuration>
-						<target id="icePanel"/>
-						<title id="previewPageExplorerPanel.title" defaultMessage="Page Explorer"/>
-						<icon id="craftercms.icons.PageExplorer"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewPageExplorerPanel"/>
-						</widgets>
+						<title id="words.components" defaultMessage="Components"/>
+						<icon id="@mui/icons-material/ExtensionOutlined"/>
 					</configuration>
 				</widget>
 				<widget id="craftercms.components.ToolsPanelPageButton">
@@ -230,16 +176,6 @@
 									</devices>
 								</configuration>
 							</widget>
-						</widgets>
-					</configuration>
-				</widget>
-				<widget id="craftercms.components.ToolsPanelPageButton">
-					<configuration>
-						<target id="icePanel"/>
-						<title id="words.settings" defaultMessage="Settings"/>
-						<icon id="@mui/icons-material/SettingsOutlined"/>
-						<widgets>
-							<widget id="craftercms.components.PreviewSettingsPanel"/>
 						</widgets>
 					</configuration>
 				</widget>
@@ -309,7 +245,7 @@
 			</middleSection>
 			<rightSection>
 				<widgets>
-					<widget id="craftercms.components.EditModesSwitcher"/>
+					<widget id="craftercms.components.EditModeSwitch" />
 					<widget id="craftercms.components.PublishingStatusButton">
 						<configuration>
 							<variant>icon</variant>
@@ -458,11 +394,27 @@
 				<value><![CDATA[${RequestParameters["PARAM_NAME"]!"DEFAULT"}]]></value>
 			</requestParameter>
 			<crafterSupportMacros label="Crafter support macros">
-				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />]]></value>
+				<value><![CDATA[<#import "/templates/system/common/cstudio-support.ftl" as studio />
+...
+<@studio.toolSupport />]]></value>
 			</crafterSupportMacros>
+			<dynamicNavigation label="Dynamic Navigation">
+				<value><![CDATA[<#include "/templates/web/navigation/navigation.ftl">
+...
+<@renderNavigation "/site/website", 1 />]]></value>
+			</dynamicNavigation>
 			<transformPathToUrl label="Transform PATH to URL">
 				<value><![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
 			</transformPathToUrl>
+			<iceAttr label="Incontext editing attribute (pencil)">
+				<value><![CDATA[<@studio.iceAttr iceGroup="ICEGROUID"/>]]></value>
+			</iceAttr>
+			<componentDropzoneAttr label="Component DropZone attribute">
+				<value><![CDATA[<@studio.componentContainerAttr target="TARGETID" objectId=contentModel.objectId />]]></value>
+			</componentDropzoneAttr>
+			<componentAttr label="Component attribute">
+				<value><![CDATA[<@studio.componentAttr path=contentModel.storeUrl ice=false />]]></value>
+			</componentAttr>
 			<renderComponentsList label="Render list of components">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
 	<@renderComponent component=module />
@@ -499,20 +451,22 @@
 				<value><![CDATA[<#import "/templates/PATH" as NAMESPACE />]]></value>
 			</freemarkerLibraryImport>
 			<htmlPage label="HTML Page">
-				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
-<!doctype html>
+				<value><![CDATA[<#import "/templates/system/common/cstudio-support.ftl" as studio />
 <html lang="en">
-  <head>
-    <#-- Insert your head markup here -->
-    <@crafter.head />
-  </head>
-  <body>
-    <@crafter.body_top />
-    <#-- Insert your body markup  here -->
-    <@crafter.body_bottom />
-  </body>
+<head>
+	</head>
+	<body>
+		<h1>CONTENT HERE</h1>
+	<@studio.toolSupport/>
+	</body>
 </html>]]></value>
 			</htmlPage>
+			<htmlComponent label="HTML Component">
+				<value><![CDATA[<#import "/templates/system/common/cstudio-support.ftl" as studio />
+<div <@studio.componentAttr path=contentModel.storeUrl ice=false /> >
+    COMPONENT MARKUP
+</div>]]></value>
+			</htmlComponent>
 		</reference>
 		<reference id="craftercms.groovyCodeSnippets">
 			<accessContentModel label="Access Content variable">
