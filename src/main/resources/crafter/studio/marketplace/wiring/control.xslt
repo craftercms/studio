@@ -23,7 +23,7 @@
     <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
 
     <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" />
+    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
     <xsl:strip-space elements="*"/>
 
     <!-- copy all elements -->

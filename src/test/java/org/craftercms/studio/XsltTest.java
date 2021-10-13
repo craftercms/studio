@@ -15,9 +15,9 @@
  */
 package org.craftercms.studio;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.testng.annotations.DataProvider;
@@ -25,18 +25,14 @@ import org.testng.annotations.Test;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.Diff;
 
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
-import static org.craftercms.studio.impl.v2.utils.XsltUtils.SAXON_CLASS;
+import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.testng.Assert.assertEquals;
 
 /**
@@ -84,10 +80,16 @@ public class XsltTest {
                 new ClassPathResource("crafter/studio/upgrade/xslt/rte-refactor/site-config-tools-expected.xml"),
                 emptyMap()
             },
-            new Object[] {
+            new Object[]{
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt"),
                 new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v3/input.xml"),
                 new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v3/expected.xml"),
+                emptyMap()
+            },
+            new Object[]{
+                new ClassPathResource("crafter/studio/upgrade/copy.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/cdata/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/cdata/expected.xml"),
                 emptyMap()
             }
 
@@ -95,19 +97,13 @@ public class XsltTest {
     }
 
     @Test(dataProvider = "xsltData")
-    public void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, String> params)
+    public void testXsltTemplate(Resource template, Resource content, Resource expected, Map<String, Object> params)
             throws IOException, TransformerException {
         try (InputStream templateIs = template.getInputStream();
              InputStream contentIs = content.getInputStream();
              InputStream expectedIs = expected.getInputStream()) {
-            // Saxon is used to support XSLT 2.0
-            Transformer transformer =
-                    TransformerFactory.newInstance(SAXON_CLASS, null).newTransformer(new StreamSource(templateIs));
-            if (MapUtils.isNotEmpty(params)) {
-                params.forEach(transformer::setParameter);
-            }
             ByteArrayOutputStream output = new ByteArrayOutputStream();
-            transformer.transform(new StreamSource(contentIs), new StreamResult(output));
+            XsltUtils.executeTemplate(templateIs, params, null, contentIs, output);
             String result = new String(output.toByteArray());
 
             // Compare the result
@@ -125,21 +121,22 @@ public class XsltTest {
 
             // test that the XSLT is idempotent
             output = new ByteArrayOutputStream();
-            transformer.transform(new StreamSource(new StringReader(result)), new StreamResult(output));
+            try (InputStream template2 = template.getInputStream()) {
+                XsltUtils.executeTemplate(template2, params, null, toInputStream(result, UTF_8), output);
 
-            // Compare the result
-            diff = DiffBuilder
-                    .compare(result)
-                    .withTest(output.toByteArray())
-                    .ignoreWhitespace()
-                    .ignoreComments()
-                    .checkForSimilar()
-                    .build();
+                // Compare the result
+                diff = DiffBuilder
+                        .compare(result)
+                        .withTest(output.toByteArray())
+                        .ignoreWhitespace()
+                        .ignoreComments()
+                        .checkForSimilar()
+                        .build();
 
-            // there should not be any differences
-            assertEquals(IterableUtils.size(diff.getDifferences()), 0,
-                    "The result XML shoud not change the second time");
-
+                // there should not be any differences
+                assertEquals(IterableUtils.size(diff.getDifferences()), 0,
+                        "The result XML shoud not change the second time");
+            }
         }
     }
 

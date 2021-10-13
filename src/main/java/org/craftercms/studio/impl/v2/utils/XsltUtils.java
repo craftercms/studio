@@ -16,6 +16,7 @@
 package org.craftercms.studio.impl.v2.utils;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -23,9 +24,20 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.lang.String.join;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang.text.StrSubstitutor.replace;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 
 /**
  * Utility class for XSLT related operations
@@ -37,18 +49,42 @@ public abstract class XsltUtils {
 
     public static final String SAXON_CLASS = "net.sf.saxon.TransformerFactoryImpl";
 
+    public static final Pattern CDATA_PATTERN = Pattern.compile("<(\\w+).*?>\\s*<!\\[CDATA");
+
+    public static final String CDATA_KEY = "cdataElements";
+
     public static void executeTemplate(InputStream template, Map<String, Object> params, URIResolver uriResolver,
-                                       InputStream content, OutputStream output) throws TransformerException {
+                                       InputStream content, OutputStream output)
+            throws TransformerException, IOException {
+        // load the template & content into memory, no other way to find & replace
+        String templateString = IOUtils.toString(template, UTF_8);
+        String contentString = IOUtils.toString(content, UTF_8);
+
+        // find all elements that include CDATA
+        Set<String> elements = new HashSet<>();
+        Matcher matcher = CDATA_PATTERN.matcher(contentString);
+        while (matcher.find()) {
+            elements.add(matcher.group(1));
+        }
+
+        // inject the cdata info into the template
+        templateString = replace(templateString, Map.of(CDATA_KEY, join(SPACE, elements)));
+
+        // execute the template
+
         // Saxon is used to support XSLT 2.0
-        Transformer transformer =
-                TransformerFactory.newInstance(SAXON_CLASS, null).newTransformer(new StreamSource(template));
+        Transformer transformer = TransformerFactory.newInstance(SAXON_CLASS, null)
+                .newTransformer(new StreamSource(new StringReader(templateString)));
+
         if (MapUtils.isNotEmpty(params)) {
             params.forEach(transformer::setParameter);
         }
+
         if (uriResolver != null) {
             transformer.setURIResolver(uriResolver);
         }
-        transformer.transform(new StreamSource(content), new StreamResult(output));
+
+        transformer.transform(new StreamSource(new StringReader(contentString)), new StreamResult(output));
     }
 
 }
