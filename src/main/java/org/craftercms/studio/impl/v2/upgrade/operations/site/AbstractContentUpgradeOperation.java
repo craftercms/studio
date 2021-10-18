@@ -79,7 +79,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
                 for (Path file : filteredPaths) {
                     updateFile(context, file);
                     // TODO: check if those are relative
-                    trackChanges(file.toString());
+                    trackChangedFiles(file.toString());
                 }
             }
         } catch (IOException e) {

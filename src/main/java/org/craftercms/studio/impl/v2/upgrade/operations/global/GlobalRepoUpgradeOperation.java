@@ -118,7 +118,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
                 try (InputStream in = entry.getKey().getInputStream();
                      OutputStream out = Files.newOutputStream(file)) {
                     IOUtils.copy(in, out);
-                    trackChanges(path);
+                    trackChangedFiles(path);
                 } catch (IOException e) {
                     throw new UpgradeException("Error while upgrading global repo file " + path, e);
                 }

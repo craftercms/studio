@@ -59,7 +59,7 @@ public class DeleteUpgradeOperation extends AbstractUpgradeOperation {
                 File f = pathToDelete.toFile();
                 if (f.exists()) {
                     FileUtils.forceDelete(f);
-                    trackChanges(path);
+                    trackDeletedFiles(path);
                 }
             } catch (Exception e) {
                 throw new UpgradeException("Error deleting path " + path + " to path for repo " +

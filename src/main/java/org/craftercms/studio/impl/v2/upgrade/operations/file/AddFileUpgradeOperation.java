@@ -87,7 +87,7 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
             try(InputStream in = file.getInputStream();
                 OutputStream out = Files.newOutputStream(newFile)) {
                 IOUtils.copy(in, out);
-                trackChanges(path);
+                trackChangedFiles(path);
             } catch (IOException e) {
                 throw new UpgradeException("Error upgrading file " + path + " for site " + site, e);
             }

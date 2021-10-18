@@ -25,6 +25,7 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.List;
 
 /**
  * Extension of {@link XmlFileVersionProvider} that also creates the version file if missing.
@@ -56,7 +57,7 @@ public class SiteVersionProvider extends XmlFileVersionProvider {
             try (InputStream in = defaultFile.getInputStream();
                  OutputStream out = Files.newOutputStream(file)) {
                 IOUtils.copy(in, out);
-                studioContext.commitChanges("[Upgrade Manager] Add version file", path);
+                studioContext.commitChanges("[Upgrade Manager] Add version file", List.of(path), null);
 
             }
         } else {

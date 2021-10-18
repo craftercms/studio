@@ -35,6 +35,7 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.util.List;
 
 
 /**
@@ -144,7 +145,7 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
                 xmlWriter.write(document);
             }
 
-            studioContext.commitChanges("[Upgrade Manager] Update version", actualPath);
+            studioContext.commitChanges("[Upgrade Manager] Update version", List.of(actualPath), null);
         }
     }
 

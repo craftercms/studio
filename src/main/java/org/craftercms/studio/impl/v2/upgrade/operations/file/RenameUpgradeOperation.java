@@ -70,7 +70,8 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
             Path to = repo.resolve(newPath);
 
             if (renamePath(from, to)) {
-                trackChanges(oldPath, newPath);
+                trackDeletedFiles(oldPath);
+                trackChangedFiles(newPath);
             }
         } catch (Exception e) {
             throw new UpgradeException("Error moving path " + oldPath + " to path " + newPath + " for repo " +

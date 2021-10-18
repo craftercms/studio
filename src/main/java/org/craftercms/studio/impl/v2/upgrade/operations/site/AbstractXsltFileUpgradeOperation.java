@@ -83,7 +83,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
                 logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
                 Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
                 XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
-                trackChanges(path);
+                trackChangedFiles(path);
             } catch (Exception e) {
                 throw new UpgradeException("Error processing file", e);
             }
