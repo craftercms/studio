@@ -4546,7 +4546,7 @@ paths:
       tags:
         - marketplace
       summary: Remove a plugin from the given site
-      description: 'Required permission "install_plugins"'
+      description: 'Required permission "remove_plugins"'
       operationId: removePlugin
       requestBody:
         required: true
@@ -4582,6 +4582,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
         '500':
@@ -4592,7 +4594,7 @@ paths:
       tags:
         - marketplace
       summary: List dependant items for a plugin
-      description: 'Required permission "install_plugins"'
+      description: 'Required permission "remove_plugins"'
       operationId: pluginUsage
       parameters:
         - name: siteId
@@ -4627,6 +4629,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
         '500':

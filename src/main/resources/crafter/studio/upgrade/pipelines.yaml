@@ -354,6 +354,10 @@ pipelines:
             path: /configuration/dependency/resolver-config.xml
             template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v3.xslt
             commitDetails: Add new dependencies for content-types
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.32/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permission for removing plugins
 
   # Pipeline to upgrade site repositories
   site:
@@ -515,6 +519,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v20.xslt
               commitDetails: Added item_unlock permissions for admin
+        - currentVersion: 20
+          nextVersion: 21
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v21.xslt
+              commitDetails: Add new permission for removing plugins
 
   role-mappings-config:
     module: studio

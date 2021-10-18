@@ -39,6 +39,7 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_INSTALL_PLUGINS;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LIST_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_REMOVE_PLUGINS;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -94,13 +95,13 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_PLUGINS)
     public void removePlugin(String siteId, String pluginId, boolean force) throws ServiceLayerException {
         marketplaceServiceInternal.removePlugin(siteId, pluginId, force);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_PLUGINS)
     public List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException {
         return marketplaceServiceInternal.getPluginUsage(siteId, pluginId);
     }
