@@ -1,0 +1,16 @@
+<fake>
+    <!-- Dependency without any transformation -->
+    <form>/config/studio/content-types/page/a/form-definition.xml</form>
+
+    <!-- Dependency with a single value -->
+    <single>/page/a</single>
+
+    <!-- Dependency with multiple values -->
+    <multiple>/component/a,/component/b</multiple>
+
+    <!-- Tag without value, should not be matched -->
+    <multiple/>
+
+    <!-- Tag with empty value, should not be matched -->
+    <multiple></multiple>
+</fake>

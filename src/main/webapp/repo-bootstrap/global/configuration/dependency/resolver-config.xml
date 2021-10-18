@@ -22,6 +22,7 @@
 -->
 
 <dependency-resolver>
+    <version>2</version>
     <item-types>
         <item-type>
             <!-- name of type -->
@@ -86,6 +87,20 @@
                                 <transform>
                                     <match>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</match>
                                     <replace>/scripts/$1s/$2.groovy</replace>
+                                </transform>
+                            </transforms>
+                        </pattern>
+                    </includes>
+                </dependency-type>
+                <dependency-type>
+                    <name>form-definition</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>&lt;component.+&gt;[\s\S]*?&lt;\/component&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <match>[\s\S]*?&lt;content-type&gt;([^&lt;]+)&lt;\/content-type&gt;[\s\S]*</match>
+                                    <replace>/config/studio/content-types$1/form-definition.xml</replace>
                                 </transform>
                             </transforms>
                         </pattern>
@@ -317,6 +332,29 @@
                                 <transform>
                                     <match>(.*)</match>
                                     <replace>$1</replace>
+                                </transform>
+                            </transforms>
+                        </pattern>
+                    </includes>
+                </dependency-type>
+            </dependency-types>
+        </item-type>
+        <item-type>
+            <name>content-type</name>
+            <includes>
+                <path-pattern>/config/studio/content-types/.*?/form-definition\.xml</path-pattern>
+            </includes>
+            <dependency-types>
+                <dependency-type>
+                    <name>form-definition</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>&lt;value&gt;\/(?:component|page).+?&lt;\/value&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <split>true</split>
+                                    <match>&lt;value&gt;(\/(?:component|page).+?)&lt;\/value&gt;</match>
+                                    <replace>/config/studio/content-types$1/form-definition.xml</replace>
                                 </transform>
                             </transforms>
                         </pattern>

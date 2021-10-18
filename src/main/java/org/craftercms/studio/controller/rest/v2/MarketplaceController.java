@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PLUGINS;
 
 /**
@@ -106,6 +108,69 @@ public class MarketplaceController {
         response.setResult(result);
 
         return response;
+    }
+
+    @GetMapping("/usage")
+    public ResponseBody getDependantItems(@RequestParam String siteId, @RequestParam String pluginId)
+            throws ServiceLayerException {
+        ResultList<String> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(RESULT_KEY_ITEMS, marketplaceService.getPluginUsage(siteId, pluginId));
+
+        ResponseBody response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
+    }
+
+    @PostMapping("/remove")
+    public ResponseBody removePlugin(@Valid @RequestBody RemovePluginRequest request) throws ServiceLayerException {
+        marketplaceService.removePlugin(request.getSiteId(), request.getPluginId(), request.isForce());
+
+        Result result = new Result();
+        result.setResponse(ApiResponse.OK);
+
+        ResponseBody response = new ResponseBody();
+        response.setResult(result);
+
+        return response;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    protected static class RemovePluginRequest {
+
+        @NotEmpty
+        protected String siteId;
+
+        @NotEmpty
+        protected String pluginId;
+
+        protected boolean force;
+
+        public String getSiteId() {
+            return siteId;
+        }
+
+        public void setSiteId(String siteId) {
+            this.siteId = siteId;
+        }
+
+        public String getPluginId() {
+            return pluginId;
+        }
+
+        public void setPluginId(String pluginId) {
+            this.pluginId = pluginId;
+        }
+
+        public boolean isForce() {
+            return force;
+        }
+
+        public void setForce(boolean force) {
+            this.force = force;
+        }
+
     }
 
     @PostMapping("copy")

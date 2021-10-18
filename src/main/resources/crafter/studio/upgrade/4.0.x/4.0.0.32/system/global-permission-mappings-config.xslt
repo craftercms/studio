@@ -15,12 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
-
-    <xsl:param name="pluginId"/>
-    <xsl:param name="newXml"/>
-
-    <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
     <!-- to keep the right formatting -->
     <xsl:output method="xml" indent="yes" />
@@ -41,13 +36,17 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- If the plugin is not present add it -->
-    <xsl:template match="/config/tools/tool[name='content-types' and not(controls/control/plugin/pluginId = $pluginId)]/controls">
-        <xsl:copy>
-            <xsl:apply-templates select="node() | @*"/>
 
-            <xsl:copy-of select="$newFragment"/>
+    <xsl:template match="permissions/role/rule/allowed-permissions">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates/>
+            <xsl:if test="not(permission = 'remove_plugins')">
+                <xsl:element name="permission">
+                    <xsl:text>remove_plugins</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
         </xsl:copy>
     </xsl:template>
-
 </xsl:stylesheet>

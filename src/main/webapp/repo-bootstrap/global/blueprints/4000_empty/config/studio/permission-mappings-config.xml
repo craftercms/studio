@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>20</version>
+    <version>21</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -254,6 +254,7 @@
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>remove_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
             </allowed-permissions>
@@ -332,6 +333,7 @@
                 <permission>edit_site</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>remove_plugins</permission>
                 <permission>get_children</permission>
                 <permission>item_unlock</permission>
             </allowed-permissions>

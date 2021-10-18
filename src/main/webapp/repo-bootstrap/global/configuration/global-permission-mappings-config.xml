@@ -84,6 +84,7 @@
                 <permission>manage_access_token</permission>
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
+                <permission>remove_plugins</permission>
                 <permission>site_delete</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
