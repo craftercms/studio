@@ -102,7 +102,7 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
             String content = yaml.dumpAsMap(descriptor);
 
             Files.writeString(context.getFile(descriptorPath), content);
-            trackChanges(descriptorPath);
+            trackChangedFiles(descriptorPath);
         } catch (Exception e) {
             throw new UpgradeException("Plugin descriptor can't be read for site " + site);
         }

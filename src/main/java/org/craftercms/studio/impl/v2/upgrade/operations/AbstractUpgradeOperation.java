@@ -58,6 +58,8 @@ public abstract class AbstractUpgradeOperation extends
 
     protected List<String> changedFiles;
 
+    protected List<String> deletedFiles;
+
     /**
      * Additional details for the commit message (optional)
      */
@@ -118,23 +120,32 @@ public abstract class AbstractUpgradeOperation extends
         return applicationContext.getResource(path);
     }
 
-    protected void trackChanges(String... files) {
+    protected void trackChangedFiles(String... files) {
         if (changedFiles == null) {
             changedFiles = new LinkedList<>();
         }
 
-        logger.debug("Tracking changes for files: {0}", Arrays.toString(files));
+        logger.debug("Tracking changed files: {0}", Arrays.toString(files));
         changedFiles.addAll(Arrays.asList(files));
     }
 
+    protected void trackDeletedFiles(String... files) {
+        if (deletedFiles == null) {
+            deletedFiles = new LinkedList<>();
+        }
+
+        logger.debug("Tracking deleted files: {0}", Arrays.toString(files));
+        deletedFiles.addAll(Arrays.asList(files));
+    }
+
     protected void commitAllChanges(StudioUpgradeContext context) throws Exception {
-        if (isEmpty(changedFiles)) {
+        if (isEmpty(changedFiles) && isEmpty(deletedFiles)) {
             logger.debug("No changes pending to commit");
             return;
         }
 
-        logger.debug("Committing {0} files", changedFiles.size());
-        context.commitChanges(getCommitMessage(), changedFiles.toArray(new String[0]));
+        logger.debug("Committing tracked files");
+        context.commitChanges(getCommitMessage(), changedFiles, deletedFiles);
     }
 
 }

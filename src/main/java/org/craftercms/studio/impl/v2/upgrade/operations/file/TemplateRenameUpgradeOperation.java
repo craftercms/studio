@@ -101,7 +101,7 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
                     }
                     logger.debug("Renaming file {0} to {1} in site {2}", matchedPath, actualPath, site);
                     renamePath(base.resolve(matchedPath), base.resolve(actualPath));
-                    trackChanges(matchedPath.toString(), actualPath);
+                    trackChangedFiles(matchedPath.toString(), actualPath);
                 }
             }
         } catch (IOException e) {

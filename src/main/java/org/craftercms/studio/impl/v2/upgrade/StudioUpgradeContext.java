@@ -15,10 +15,12 @@
  */
 package org.craftercms.studio.impl.v2.upgrade;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.Status;
@@ -33,7 +35,7 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Base64;
-import java.util.stream.Stream;
+import java.util.List;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -156,9 +158,10 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
     /**
      * Commits all changes for the given files in the repository of the site being upgraded.
      * @param message the commit message
-     * @param paths the list of files
+     * @param changedFiles the list of changed files
+     * @param deletedFiles the list of deleted files
      */
-    public void commitChanges(String message, String... paths) throws Exception {
+    public void commitChanges(String message, List<String> changedFiles, List<String> deletedFiles) throws Exception {
         Path repositoryPath = getRepositoryPath();
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
         Repository repo = builder
@@ -168,9 +171,20 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
                 .build();
 
         try (Git git = new Git(repo)) {
-            var add = git.add();
-            Stream.of(paths).map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
-            retryingRepositoryOperationFacade.call(add);
+            // Add new & updated files
+            if (CollectionUtils.isNotEmpty(changedFiles)) {
+                AddCommand add = git.add();
+                changedFiles.stream().map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
+                retryingRepositoryOperationFacade.call(add);
+            }
+
+            // Add deleted files
+            if (CollectionUtils.isNotEmpty(deletedFiles)) {
+                AddCommand add = git.add();
+                add.setUpdate(true);
+                deletedFiles.stream().map(path -> removeStart(path, File.separator)).forEach(add::addFilepattern);
+                retryingRepositoryOperationFacade.call(add);
+            }
 
             StatusCommand statusCommand = git.status();
             Status status = retryingRepositoryOperationFacade.call(statusCommand);
