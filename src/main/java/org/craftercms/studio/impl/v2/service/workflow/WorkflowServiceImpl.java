@@ -450,12 +450,12 @@ public class WorkflowServiceImpl implements WorkflowService {
             String rejectedBy = securityService.getCurrentUser();
             // set system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, true);
+            // notify rejection
+            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment);
             // cancel workflow
             cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
             // create audit log entries
             createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy);
-            // notify rejection
-            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment);
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, false);
