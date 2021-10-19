@@ -450,12 +450,31 @@ public class WorkflowServiceImpl implements WorkflowService {
             String rejectedBy = securityService.getCurrentUser();
             // set system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, true);
-            // notify rejection
-            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment);
+
+            // get submitters list
+            Set<String> submitterList = new HashSet<>();
+            pathsToCancelWorkflow.forEach(path -> {
+                WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(siteId, path);
+                if (Objects.nonNull(workflowItem)) {
+                    try {
+                        User submitter = userServiceInternal
+                                .getUserByIdOrUsername(workflowItem.getSubmitterId(), StringUtils.EMPTY);
+                        if (Objects.nonNull(submitter)) {
+                            submitterList.add(submitter.getUsername());
+                        }
+                    } catch (UserNotFoundException | ServiceLayerException e) {
+                        logger.debug("Didn't find submitter user for path {0}. Notification will not be sent.", e,
+                                path);
+                    }
+                }
+            });
+
             // cancel workflow
             cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
             // create audit log entries
             createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy);
+            // notify rejection
+            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, false);
@@ -484,25 +503,10 @@ public class WorkflowServiceImpl implements WorkflowService {
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason) {
-        Set<String> submitterList = new HashSet<String>();
-        pathsToCancelWorkflow.forEach(path -> {
-            WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(siteId, path);
-            if (Objects.nonNull(workflowItem)) {
-                try {
-                    User submitter =
-                            userServiceInternal.getUserByIdOrUsername(workflowItem.getSubmitterId(), StringUtils.EMPTY);
-                    if (Objects.nonNull(submitter)) {
-                        submitterList.add(submitter.getUsername());
-                    }
-                } catch (UserNotFoundException | ServiceLayerException e) {
-                    logger.debug("Didn't find submitter user for path " + path + ". Notification will not be " +
-                            "sent.", e);
-                }
-            }
-        });
-        notificationService.notifyContentRejection(siteId, List.copyOf(submitterList), pathsToCancelWorkflow,
-                reason, rejectedBy, Locale.ENGLISH);
+    private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
+                                 List<String> submitterList) {
+        notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy,
+                Locale.ENGLISH);
     }
 
     @Override
