@@ -429,11 +429,7 @@ public class UserServiceImpl implements UserService {
                     String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
                     String hashedToken = encryptToken(token);
                     logger.debug("Sending forgot password email to " + email);
-                    try {
-                        sendForgotPasswordEmail(email, hashedToken);
-                    } catch (MessagingException | IOException | TemplateException e) {
-                        throw new ServiceLayerException("Error while sending forgot password email", e);
-                    }
+                    sendForgotPasswordEmail(email, hashedToken);
                     success = true;
                 } else {
                     logger.info("User " + username + " does not have assigned email with account");
@@ -464,8 +460,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void sendForgotPasswordEmail(String emailAddress, String token)
-            throws MessagingException, IOException, TemplateException {
+    private void sendForgotPasswordEmail(String emailAddress, String token) {
         try {
             Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(
                     studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
@@ -497,9 +492,8 @@ public class UserServiceImpl implements UserService {
                 emailServiceNoAuth.send(mimeMessage);
             }
             logger.info("Password recovery message successfully sent to " + emailAddress);
-        } catch (MessagingException | IOException | TemplateException e) {
+        } catch (Exception e) {
             logger.error("Failed to send password recovery message to " + emailAddress, e);
-            throw e;
         }
     }
 
