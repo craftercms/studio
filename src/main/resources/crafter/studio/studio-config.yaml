@@ -406,6 +406,12 @@ studio.security.token.password.encrypt: fEo7tQCXX1RYHE2ODOtjtBzmL0zzonSI
 studio.security.token.cookie.name: refresh_token
 # Time in seconds for the expiration of the refresh token cookie
 studio.security.token.cookie.maxAge: 300
+# The path used to ser the refresh token cookie
+studio.security.token.cookie.path: /studio
+# Indicates if the refresh token cookie should be secure
+studio.security.token.cookie.secure: false
+# Indicates if the refresh token cookie should be HTTPOnly
+studio.security.token.cookie.httpOnly: true
 
 # Cron expression for the scheduled job that cleans expired refresh tokens
 studio.security.token.cleanup.cron: 0 * * * * ?

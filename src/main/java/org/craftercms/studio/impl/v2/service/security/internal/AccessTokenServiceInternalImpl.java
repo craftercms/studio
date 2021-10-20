@@ -190,11 +190,12 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
         retryingDatabaseOperationFacade.upsertRefreshToken(userId, refreshToken);
 
-        response.addCookie(createCookie(refreshToken));
+        addCookie(response, refreshToken);
     }
 
     @Override
     public AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException {
+        logger.debug("Creating tokens for {0}", auth.getName());
         var issuedAt = Instant.now();
         var expireAt = issuedAt.plus(accessTokenExpiration, MINUTES);
 
@@ -224,9 +225,10 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public void deleteExpiredRefreshTokens() {
         if (systemStatusProvider.isSystemReady()) {
+            logger.debug("Cleaning up refresh tokens");
             retryingDatabaseOperationFacade.deleteExpiredTokens(refreshTokenExpiration);
         } else {
-            logger.debug("System is not ready yet, skipping token cleanup");
+            logger.debug("System is not ready yet, skipping refresh token cleanup");
         }
     }
 

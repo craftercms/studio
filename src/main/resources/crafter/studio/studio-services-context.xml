@@ -1746,6 +1746,11 @@
         <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
         <property name="cookieMaxAge"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
+        <property name="cookiePath" value="#{studioConfiguration.getProperty('studio.security.token.cookie.path')}"/>
+        <property name="cookieSecure"
+                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.secure')}"/>
+        <property name="cookieHttpOnly"
+                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.httpOnly')}"/>
         <property name="audience" value="#{studioConfiguration.getProperty('studio.security.token.audience')}"/>
     </bean>
 
