@@ -169,18 +169,16 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var refreshToken = cookie != null? cookie.getValue() : null;
         var userId = getUserId(auth);
 
-        if (isNotEmpty(refreshToken)) {
-            if (securityDao.validateRefreshToken(userId, refreshToken)) {
-                return true;
-            } else {
-                // when an expired token is detected, clear the cookie & the auth
-                SecurityContextHolder.clearContext();
-                request.getSession().invalidate();
-                response.addCookie(createCookie(StringUtils.EMPTY));
-            }
+        boolean valid = isNotEmpty(refreshToken) && securityDao.validateRefreshToken(userId, refreshToken);
+
+        // clear the cookie & auth when the token is missing or expired
+        if (!valid) {
+            SecurityContextHolder.clearContext();
+            request.getSession().invalidate();
+            removeCookie(response);
         }
 
-        return false;
+        return valid;
     }
 
     @Override
