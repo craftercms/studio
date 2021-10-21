@@ -408,7 +408,7 @@ studio.security.token.cookie.name: refresh_token
 studio.security.token.cookie.maxAge: 300
 # The path used to ser the refresh token cookie
 studio.security.token.cookie.path: /studio
-# Indicates if the refresh token cookie should be secure
+# Indicates if the refresh token cookie should be secure (should be true for production environments behind HTTPS)
 studio.security.token.cookie.secure: false
 # Indicates if the refresh token cookie should be HTTPOnly
 studio.security.token.cookie.httpOnly: true
