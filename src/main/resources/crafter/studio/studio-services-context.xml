@@ -287,6 +287,7 @@
             parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService" />
+        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
