@@ -15,11 +15,13 @@
  */
 package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.model.clipboard.Operation;
@@ -32,6 +34,7 @@ import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.io.FilenameUtils.getName;
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
  * Default implementation of {@link ClipboardServiceInternal}
@@ -47,6 +50,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
 
     protected ContentService contentService;
     protected WorkflowService workflowService;
+    protected EventService eventService;
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
@@ -89,6 +93,11 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
                 throw err;
             }
         }
+
+        // trigger preview deploy
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(siteId);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     public String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
@@ -116,4 +125,9 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
     public void setWorkflowService(WorkflowService workflowService) {
         this.workflowService = workflowService;
     }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
 }
