@@ -111,4 +111,10 @@ public interface AccessTokenService {
      */
     String getUsername(String token);
 
+    /**
+     * Updates the user activity record to extend the timeout
+     * @param authentication the current authentication
+     */
+    void updateUserActivity(Authentication authentication);
+
 }

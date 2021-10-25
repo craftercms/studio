@@ -556,8 +556,8 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void deleteExpiredTokens(int maxAge) {
-        securityDao.deleteExpiredTokens(maxAge);
+    public int deleteExpiredTokens(int sessionTimeout, List<Long> inactiveUsers) {
+        return securityDao.deleteExpiredTokens(sessionTimeout, inactiveUsers);
     }
 
     // User API v2

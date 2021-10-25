@@ -311,7 +311,16 @@
     </delete>
 
     <delete id="deleteExpiredTokens">
-        DELETE FROM refresh_token WHERE TIMESTAMPDIFF(MINUTE, created_on, NOW()) &gt; #{maxAge}
+        DELETE FROM refresh_token
+        WHERE
+            TIMESTAMPDIFF(MINUTE, created_on, NOW()) &gt; #{sessionTimeout}
+        <if test="inactiveUsers != null and inactiveUsers.size() > 0">
+        OR
+            user_id in
+            <foreach item="userId" index="index" collection="inactiveUsers" open="(" separator="," close=")">
+                #{inactiveUsers}
+            </foreach>
+        </if>
     </delete>
 
     <select id="getAccessTokenById" resultMap="AccessTokenMap">

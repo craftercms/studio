@@ -83,16 +83,19 @@ public interface SecurityDAO {
 
     PersistentAccessToken getAccessTokenById(@Param("tokenId") long tokenId);
 
-    PersistentAccessToken getAccessTokenByUserIdAndTokenId(@Param("userId") long userId, @Param("tokenId") long tokenId);
+    PersistentAccessToken getAccessTokenByUserIdAndTokenId(@Param("userId") long userId,
+                                                           @Param("tokenId") long tokenId);
 
     void createAccessToken(@Param("userId") long userId, @Param("token") PersistentAccessToken token);
 
     List<PersistentAccessToken> getAccessTokens(@Param("userId") long userId);
 
-    void updateAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId, @Param("enabled") boolean enabled);
+    void updateAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId,
+                           @Param("enabled") boolean enabled);
 
     void deleteAccessToken(@Param("userId") long userId, @Param("tokenId") long tokenId);
 
-    void deleteExpiredTokens(@Param("maxAge") int maxAge);
+    int deleteExpiredTokens(@Param("sessionTimeout") int sessionTimeout,
+                            @Param("inactiveUsers") List<Long> inactiveUsers);
 
 }

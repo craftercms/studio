@@ -15,7 +15,8 @@
  */
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import org.apache.commons.lang.StringUtils;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -56,10 +57,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.lang.Long.parseLong;
+import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
@@ -80,6 +84,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         implements AccessTokenServiceInternal, InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(AccessTokenServiceInternalImpl.class);
+
+    public static final String ACTIVITY_CACHE_CONFIG_KEY = "studio.security.activity.cache.config";
 
     /**
      * The issuer for generation access tokens
@@ -112,9 +118,19 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected String encryptPassword;
 
     /**
-     * The time in minutes for the expiration of the refresh tokens
+     * Time in minutes after which active users will be required to login again
      */
-    protected int refreshTokenExpiration;
+    protected int sessionTimeout;
+
+    /**
+     * Time in minutes after which inactive users will be required to login again
+     */
+    protected int inactivityTimeout;
+
+    /**
+     * Cache used to track the activity of the users
+     */
+    protected Cache<Long, Instant> userActivity;
 
     protected Key jwtSignKey;
     protected Key jwtEncryptKey;
@@ -128,13 +144,13 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected SystemStatusProvider systemStatusProvider;
 
     @ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
-            "refreshTokenExpiration", "securityDao", "instanceService", "auditService", "studioConfiguration",
-            "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider"})
+            "sessionTimeout", "inactivityTimeout", "securityDao", "instanceService", "auditService",
+            "studioConfiguration", "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider"})
     public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
-                                          String signPassword, String encryptPassword, int refreshTokenExpiration,
-                                          SecurityDAO securityDao, InstanceService instanceService,
-                                          AuditServiceInternal auditService, StudioConfiguration studioConfiguration,
-                                          SiteService siteService,
+                                          String signPassword, String encryptPassword, int sessionTimeout,
+                                          int inactivityTimeout, SecurityDAO securityDao,
+                                          InstanceService instanceService, AuditServiceInternal auditService,
+                                          StudioConfiguration studioConfiguration, SiteService siteService,
                                           RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
                                           SystemStatusProvider systemStatusProvider) {
         this.issuer = issuer;
@@ -142,7 +158,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         this.accessTokenExpiration = accessTokenExpiration;
         this.signPassword = signPassword;
         this.encryptPassword = encryptPassword;
-        this.refreshTokenExpiration = refreshTokenExpiration;
+        this.sessionTimeout = sessionTimeout;
+        this.inactivityTimeout = inactivityTimeout;
         this.securityDao = securityDao;
         this.instanceService = instanceService;
         this.auditService = auditService;
@@ -158,6 +175,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
     @Override
     public void afterPropertiesSet() {
+        userActivity = CacheBuilder.from(studioConfiguration.getProperty(ACTIVITY_CACHE_CONFIG_KEY)).build();
         jwtSignKey = new HmacKey(signPassword.getBytes(StandardCharsets.UTF_8));
         jwtEncryptKey = new PbkdfKey(encryptPassword);
         setCookieHttpOnly(true); // Always HTTPOnly to protect the refresh token
@@ -194,7 +212,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException {
         logger.debug("Creating tokens for {0}", auth.getName());
-        var issuedAt = Instant.now();
+        var issuedAt = now();
         var expireAt = issuedAt.plus(accessTokenExpiration, MINUTES);
 
         String token = createToken(issuedAt, expireAt, auth.getName(), null);
@@ -211,12 +229,14 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public void deleteRefreshToken(Authentication auth) {
         var userId = getUserId(auth);
+        userActivity.invalidate(userId);
         retryingDatabaseOperationFacade.deleteRefreshToken(userId);
     }
 
     @Override
     public void deleteRefreshToken(User user) {
         logger.debug("Triggering re-authentication for user {0}", user.getUsername());
+        userActivity.invalidate(user.getId());
         retryingDatabaseOperationFacade.deleteRefreshToken(user.getId());
     }
 
@@ -224,7 +244,13 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     public void deleteExpiredRefreshTokens() {
         if (systemStatusProvider.isSystemReady()) {
             logger.debug("Cleaning up refresh tokens");
-            retryingDatabaseOperationFacade.deleteExpiredTokens(refreshTokenExpiration);
+            List<Long> inactiveUsers = userActivity.asMap().entrySet().stream()
+                                        .filter(entry -> MINUTES.between(entry.getValue(), now()) > inactivityTimeout)
+                                        .map(Map.Entry::getKey)
+                                        .collect(toList());
+            userActivity.invalidateAll(inactiveUsers);
+            int deleted = retryingDatabaseOperationFacade.deleteExpiredTokens(sessionTimeout, inactiveUsers);
+            logger.debug("Deleted {0} expired refresh tokens", deleted);
         } else {
             logger.debug("System is not ready yet, skipping refresh token cleanup");
         }
@@ -240,7 +266,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
         retryingDatabaseOperationFacade.createAccessToken(getUserId(auth), token);
 
-        token.setToken(createToken(Instant.now(), expiresAt, auth.getName(), token.getId()));
+        token.setToken(createToken(now(), expiresAt, auth.getName(), token.getId()));
 
         createAuditLog(auth, token.getId(), TARGET_TYPE_ACCESS_TOKEN, OPERATION_CREATE);
 
@@ -389,6 +415,12 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         } catch (SiteNotFoundException e) {
             // should never happen
         }
+    }
+
+    @Override
+    public void updateUserActivity(Authentication authentication) {
+        logger.debug("Updating user activity for {0}", authentication.getName());
+        userActivity.put(getUserId(authentication), now());
     }
 
 }

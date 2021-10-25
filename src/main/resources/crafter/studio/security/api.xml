@@ -23,6 +23,12 @@
 		http://www.springframework.org/schema/security
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
+    <bean id="userActivityFilter" class="org.craftercms.studio.impl.v2.security.UserActivityFilter">
+        <constructor-arg name="accessTokenService" ref="accessTokenService"/>
+        <constructor-arg name="excludedUrls"
+                         value="#{studioConfiguration.getProperty('studio.security.activity.excludeUrls')}"/>
+    </bean>
+
     <bean id="basicAuthenticationFilter"
           class="org.craftercms.studio.impl.v2.security.authentication.basic.ConditionalBasicAuthenticationFilter">
         <constructor-arg name="authenticationManager" ref="apiAuthenticationManager"/>
@@ -100,6 +106,7 @@
         <sec:custom-filter ref="basicAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
         <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
         <sec:custom-filter ref="accessTokenAuthenticationFilter" position="PRE_AUTH_FILTER"/>
+        <sec:custom-filter ref="userActivityFilter" position="LAST"/>
 
         <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
         <sec:intercept-url pattern="/**" access="isAuthenticated()" />
@@ -120,6 +127,7 @@
         <sec:custom-filter ref="basicAuthenticationFilter" position="BASIC_AUTH_FILTER"/>
         <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
         <sec:custom-filter ref="accessTokenAuthenticationFilter" position="PRE_AUTH_FILTER"/>
+        <sec:custom-filter ref="userActivityFilter" position="LAST"/>
 
         <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
         <sec:intercept-url pattern="/**" access="isAuthenticated()" />

@@ -269,8 +269,16 @@ studio.objectState.bulkOperationsBatchSize: 500
 ##########################################################
 ##                   Security Service                   ##
 ##########################################################
-# HTTP Session timeout for studio (value is in minutes).
-studio.security.sessionTimeout: 60
+# Time in minutes after which active users will be required to login again
+studio.security.sessionTimeout: 480
+# Time in minutes after which inactive users will be required to login again
+studio.security.inactivityTimeout: 30
+# Comma separated list of URLs that should not be tracked as user activity
+studio.security.activity.excludeUrls: >
+  /api/2/publish/status.*,/api/2/content/children_by_path.*,/api/2/content/sandbox_items_by_path.*
+# Configuration for the user activity cache
+studio.security.activity.cache.config: initialCapacity=25,maximumSize=50
+
 # Public URLs, comma separated list of regular expressions.
 # The regex should not include extension and should match the query string too.
 studio.security.publicUrls: >
