@@ -70,7 +70,7 @@ class ContentMonitoring {
 			config.contentMonitoring.monitor.each { monitor ->
 				def authoringBaseUrl = servicesConfig.getAuthoringUrl(site)
 
-				logger.info("executing monitor: ${monitor.name}")
+				logger.debug("executing monitor: ${monitor.name}")
 
 				if(monitor.paths !=null && monitor.paths.path!=null) {
 					if(monitor.paths.path instanceof Map) {
@@ -87,7 +87,7 @@ class ContentMonitoring {
 					def executedQuery = searchService.search(site, Collections.emptyList(), searchParams)
 					def itemsFound = executedQuery.total
 					def items = executedQuery.items
-					logger.info("content monitor (${monitor.name}) found $itemsFound items")
+					logger.debug("content monitor (${monitor.name}) found $itemsFound items")
 
 					monitor.paths.path.each { path ->
 						// there are paths, query for items and then match against paths patterns
