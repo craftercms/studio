@@ -1735,8 +1735,10 @@
                          value="#{studioConfiguration.getProperty('studio.security.token.password.sign')}"/>
         <constructor-arg name="encryptPassword"
                          value="#{studioConfiguration.getProperty('studio.security.token.password.encrypt')}"/>
-        <constructor-arg name="refreshTokenExpiration"
+        <constructor-arg name="sessionTimeout"
                          value="#{studioConfiguration.getProperty('studio.security.sessionTimeout')}"/>
+        <constructor-arg name="inactivityTimeout"
+                         value="#{studioConfiguration.getProperty('studio.security.inactivityTimeout')}"/>
         <constructor-arg name="securityMapper" ref="securityDao"/>
         <constructor-arg name="instanceService" ref="instanceService"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>

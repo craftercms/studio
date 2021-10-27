@@ -727,9 +727,10 @@ public interface RetryingDatabaseOperationFacade {
 
     /**
      * Delete expired tokens
-     * @param maxAge max age
+     * @param sessionTimeout the timeout in minutes for active users
+     * @param inactiveUsers the list of user ids that are inactive
      */
-    void deleteExpiredTokens(int maxAge);
+    int deleteExpiredTokens(int sessionTimeout, List<Long> inactiveUsers);
 
     // User API v2
     /**

@@ -105,4 +105,9 @@ public class AccessTokenServiceImpl implements AccessTokenService {
         return accessTokenServiceInternal.getUsername(token);
     }
 
+    @Override
+    public void updateUserActivity(Authentication authentication) {
+        accessTokenServiceInternal.updateUserActivity(authentication);
+    }
+
 }
