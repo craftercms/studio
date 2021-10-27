@@ -277,7 +277,7 @@ studio.security.inactivityTimeout: 30
 studio.security.activity.excludeUrls: >
   /api/2/publish/status.*,/api/2/content/children_by_path.*,/api/2/content/sandbox_items_by_path.*
 # Configuration for the user activity cache
-studio.security.activity.cache.config: initialCapacity=25,maximumSize=50
+studio.security.activity.cache.config: initialCapacity=25,maximumSize=100
 
 # Public URLs, comma separated list of regular expressions.
 # The regex should not include extension and should match the query string too.
