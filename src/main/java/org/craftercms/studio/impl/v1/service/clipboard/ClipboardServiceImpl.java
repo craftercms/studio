@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.clipboard;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -26,6 +27,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
+import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.DmDependencyTO;
 
@@ -34,6 +36,8 @@ import java.util.Set;
 import java.util.HashSet;
 
 import javax.servlet.http.HttpSession;
+
+import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
  * Clipboard service that tracks items clipped (COPY/CUT) by the caller and executes the 
@@ -135,6 +139,11 @@ implements ClipboardService {
                 logger.error("Paste operation failed for item '{0}' to dest path `{1}', isCut: '{2}'", err);
             }
         }
+
+        // trigger preview deploy
+        PreviewEventContext context = new PreviewEventContext();
+        context.setSite(site);
+        eventService.publish(EVENT_PREVIEW_SYNC, context);
     }
 
     /**
@@ -177,10 +186,16 @@ implements ClipboardService {
 
     protected ContentService contentService;
     protected WorkflowService workflowService;
+    protected EventService eventService;
 
     public ContentService getContentService() { return contentService; }
     public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
     public WorkflowService getWorkflowService() { return workflowService; }
     public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
+
+    public void setEventService(EventService eventService) {
+        this.eventService = eventService;
+    }
+
 }
