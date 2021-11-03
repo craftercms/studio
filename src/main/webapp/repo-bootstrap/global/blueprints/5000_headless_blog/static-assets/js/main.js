@@ -125,8 +125,11 @@
           return item.craftercms.id === args.modelId
         });
 
-        this.items.hits[itemIndex][args.fieldId] = args.value;
-        this.reRegisterItems();
+        if (this.items.hits[itemIndex][args.fieldId] !== args.value) {
+          this.items.hits[itemIndex][args.fieldId] = args.value;
+          this.reRegisterItems();
+          self.selectedItemNumUpdates++;
+        }
       },
       deregisterItems: function() {
         document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
@@ -170,7 +173,6 @@
         const sub = craftercms.guest?.contentController?.operations$.subscribe((op) => {
           if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
             self.updateItem(op.args);
-            self.selectedItemNumUpdates++;
           }
         });
       })
