@@ -716,7 +716,6 @@
                                     <executable>mvn</executable>
                                     <arguments>
                                         <argument>package</argument>
-                                        <argument>-q</argument>
                                     </arguments>
                                     <workingDirectory>${studio.ui.path}/</workingDirectory>
                                 </configuration>
