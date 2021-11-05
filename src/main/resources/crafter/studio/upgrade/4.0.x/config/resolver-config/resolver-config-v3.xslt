@@ -71,7 +71,7 @@
                             </xsl:element>
                         </xsl:for-each>
 
-                        <xsl:if test="(name = 'page' or name = 'component') and not(dependency-types/dependency-type/name = 'form-definition')">
+                        <xsl:if test="(name = 'page' or name = 'component' or name = 'item') and not(dependency-types/dependency-type/name = 'form-definition')">
                             <xsl:element name="dependency-type">
                                 <xsl:element name="name">
                                     <xsl:text>form-definition</xsl:text>
