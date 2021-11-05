@@ -556,7 +556,7 @@
   >
     ${item.itemField}
   </@crafter.div>
-</@crafter.renderRepeatCollection>]]></value>
+</@crafter.renderRepeatGroup>]]></value>
             </renderRepeatGroup>
             <navigation label="Navigation">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
