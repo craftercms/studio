@@ -42,7 +42,7 @@
           <@crafter.img $field='image_s' src="${image}" alt=""/>
         </span>
 
-        <@crafter.renderRepeatCollection
+        <@crafter.renderRepeatGroup
           $field="sections_o"
           $containerAttributes={'style': 'list-style: none; padding-left: 0;'};
           item, index
@@ -54,7 +54,7 @@
             ${item.section_html}
           </@crafter.div>
           <hr class="major" />
-        </@crafter.renderRepeatCollection>
+        </@crafter.renderRepeatGroup>
 			</section>
 		</div>
 	</div>

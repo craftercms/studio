@@ -541,23 +541,23 @@
             </specificHTMLTag>
             <renderComponentCollection label="Render Component Collection">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
-  <@crafter.renderComponentCollection $field="features_o" class="features-container" $itemAttrs={ "data-custom-attribute": "true" } />]]></value>
+<@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
             </renderComponentCollection>
-            <renderRepeatCollection label="Render Repeat Collection">
+            <renderRepeatGroup label="Render Repeat Group">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
-  <@crafter.renderRepeatCollection
-    $field="VARIABLE_NAME"
-    $containerAttributes={'attr': 'value'};
-    item, index
+<@crafter.renderRepeatGroup
+  $field="VARIABLE_NAME"
+  $containerAttributes={'attr': 'value'};
+  item, index
+>
+  <@crafter.div
+    $field="sections_o.section_html"
+    $index=index
   >
-    <@crafter.div
-      $field="sections_o.section_html"
-      $index=index
-    >
-      ${item.itemField}
-    </@crafter.div>
-  </@crafter.renderRepeatCollection>]]></value>
-            </renderRepeatCollection>
+    ${item.itemField}
+  </@crafter.div>
+</@crafter.renderRepeatCollection>]]></value>
+            </renderRepeatGroup>
             <navigation label="Navigation">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
   <@crafter.navigation

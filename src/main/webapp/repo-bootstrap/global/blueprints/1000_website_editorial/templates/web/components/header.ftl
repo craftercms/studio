@@ -16,9 +16,11 @@
     </#if>
     Howdy, ${name}
   </a>
-  <@crafter.renderRepeatCollection
+  <@crafter.renderRepeatGroup
     $field="social_media_links_o"
-    $containerAttributes={'class':'icons'};
+    $containerAttributes={'class':'icons'}
+    $containerTag="ul"
+    $itemTag="li";
     <#-- Nested content values passed down by the macro: -->
     item, index
   >
@@ -28,5 +30,5 @@
       $field="social_media_links_o.url_s,social_media_links_o.social_media_s"
       $index=index
     />
-  </@crafter.renderRepeatCollection>
+  </@crafter.renderRepeatGroup>
 </@crafter.componentRootTag>

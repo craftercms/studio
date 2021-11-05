@@ -48,7 +48,11 @@
             ${contentModel.features_title_t}
           </@crafter.h2>
         </header>
-        <@crafter.renderComponentCollection $field="features_o" class="features" $itemAttrs={ "class": "feature-container" }/>
+        <@crafter.renderComponentCollection
+          $field="features_o"
+          $containerAttributes={ "class": "features" }
+          $itemAttributes={ "class": "feature-container" }
+        />
       </section>
       <!-- /Section: Features -->
 
