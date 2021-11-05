@@ -36,5 +36,22 @@
                 </dependency-type>
             </dependency-types>
         </item-type>
+
+        <item-type>
+            <name>rendering-template</name>
+            <includes>
+                <path-pattern>/templates/([^&lt;"]+)\.ftl</path-pattern>
+            </includes>
+            <dependency-types>
+                <dependency-type>
+                    <name>asset</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+                        </pattern>
+                    </includes>
+                </dependency-type>
+            </dependency-types>
+        </item-type>
     </item-types>
 </dependency-resolver>

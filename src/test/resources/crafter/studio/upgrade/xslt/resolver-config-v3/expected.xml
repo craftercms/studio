@@ -51,6 +51,25 @@
             </dependency-types>
         </item-type>
         <item-type>
+            <name>rendering-template</name>
+            <includes>
+                <path-pattern>/templates/([^&lt;"]+)\.ftl</path-pattern>
+            </includes>
+            <excludes>
+                <path-pattern>/templates/system/plugins/.+</path-pattern>
+            </excludes>
+            <dependency-types>
+                <dependency-type>
+                    <name>asset</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>/static-assets/([^&lt;"'\)\?\]\#]+)</find-regex>
+                        </pattern>
+                    </includes>
+                </dependency-type>
+            </dependency-types>
+        </item-type>
+        <item-type>
             <name>content-type</name>
             <includes>
                 <path-pattern>/config/studio/content-types/.*?/form-definition\.xml</path-pattern>

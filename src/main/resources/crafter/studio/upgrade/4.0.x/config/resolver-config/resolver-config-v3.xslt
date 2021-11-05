@@ -46,6 +46,18 @@
                             <xsl:copy-of select="."/>
                         </xsl:for-each>
                     </xsl:element>
+                    <xsl:choose>
+                        <xsl:when test="name = 'rendering-template' and not(excludes/path-pattern)">
+                            <xsl:element name="excludes">
+                                <xsl:element name="path-pattern">
+                                    <xsl:text>/templates/system/plugins/.+</xsl:text>
+                                </xsl:element>
+                            </xsl:element>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:copy-of select="excludes"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                     <xsl:element name="dependency-types">
                         <xsl:for-each select="dependency-types/dependency-type">
                             <xsl:element name="dependency-type">
