@@ -175,6 +175,20 @@
                         </pattern>
                     </includes>
                 </dependency-type>
+                <dependency-type>
+                    <name>form-definition</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>&lt;component.+&gt;[\s\S]*?&lt;\/component&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <match>[\s\S]*?&lt;content-type&gt;([^&lt;]+)&lt;\/content-type&gt;[\s\S]*</match>
+                                    <replace>/config/studio/content-types$1/form-definition.xml</replace>
+                                </transform>
+                            </transforms>
+                        </pattern>
+                    </includes>
+                </dependency-type>
             </dependency-types>
         </item-type>
 		<item-type>
@@ -252,6 +266,20 @@
                         </pattern>
                     </includes>
                 </dependency-type>
+                <dependency-type>
+                    <name>form-definition</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>&lt;component.+&gt;[\s\S]*?&lt;\/component&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <match>[\s\S]*?&lt;content-type&gt;([^&lt;]+)&lt;\/content-type&gt;[\s\S]*</match>
+                                    <replace>/config/studio/content-types$1/form-definition.xml</replace>
+                                </transform>
+                            </transforms>
+                        </pattern>
+                    </includes>
+                </dependency-type>
             </dependency-types>
         </item-type>
         <item-type>
@@ -291,6 +319,9 @@
                 <!-- path pattern regexes (multiple) -->
                 <path-pattern>/templates/([^&lt;"]+)\.ftl</path-pattern>
             </includes>
+            <excludes>
+                <path-pattern>/templates/system/plugins/.+</path-pattern>
+            </excludes>
             <!-- how to find dependencies in these items -->
             <dependency-types>
                 <dependency-type>
