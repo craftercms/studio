@@ -938,15 +938,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
             List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
             if (StringUtils.isEmpty(firstCommitId)) {
-                logger.error("Creating global repository as cluster clone");
+                logger.debug("Creating global repository as cluster clone");
                 isCreated = studioClusterUtils.cloneGlobalRepository(clusterNodes);
             } else {
-                logger.error("Global repository exists syncing with cluster siblings");
+                logger.debug("Global repository exists syncing with cluster siblings");
                 isCreated = true;
                 Repository repo = helper.getRepository(EMPTY, GLOBAL);
                 try (Git git = new Git(repo)) {
                     for (ClusterMember remoteNode : clusterNodes) {
-                        syncFromRemote(git, remoteNode);
+                        try {
+                            syncFromRemote(git, remoteNode);
+                        } catch (Exception e) {
+                            logger.error("Error syncing global repository from cluster sibling " +
+                                    remoteNode.getGitRemoteName());
+                        }
                     }
                 }
             }
