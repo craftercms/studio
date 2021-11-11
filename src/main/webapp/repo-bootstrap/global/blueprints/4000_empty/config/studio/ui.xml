@@ -521,12 +521,6 @@
   </body>
 </html>]]></value>
       </htmlPage>
-      <baseComponent label="Base Component Template">
-        <value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
-<@crafter.componentRootTag $tag="section">
-  <#-- Insert your head markup here -->
-</@crafter.componentRootTag>]]></value>
-      </baseComponent>
       <specificHTMLTag label="Field (Specific HTML Tag)">
         <value><![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
       </specificHTMLTag>

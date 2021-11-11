@@ -1,6 +1,6 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 
-<@crafter.componentRootTag $tag="section">
+<@crafter.section>
   <header class="major">
     <@crafter.h2 $field="title_t">${contentModel.title_t}</@crafter.h2>
   </header>
@@ -18,4 +18,4 @@
       ${contentModel.address_html}
     </@crafter.li>
   </ul>
-</@crafter.componentRootTag>
+</@crafter.section>

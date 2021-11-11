@@ -1,6 +1,6 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 
-<@crafter.componentRootTag $tag="header" id="header">
+<@crafter.header id="header">
   <a href="/" class="logo">
     <#--
     TODO/FYI For docs...
@@ -31,4 +31,4 @@
       $index=index
     />
   </@crafter.renderRepeatGroup>
-</@crafter.componentRootTag>
+</@crafter.header>
