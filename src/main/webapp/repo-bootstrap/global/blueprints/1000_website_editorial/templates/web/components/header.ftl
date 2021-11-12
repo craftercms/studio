@@ -1,6 +1,6 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 
-<@crafter.componentRootTag $tag="header" id="header">
+<@crafter.header id="header">
   <a href="/" class="logo">
     <#--
     TODO/FYI For docs...
@@ -16,9 +16,11 @@
     </#if>
     Howdy, ${name}
   </a>
-  <@crafter.renderRepeatCollection
+  <@crafter.renderRepeatGroup
     $field="social_media_links_o"
-    $containerAttributes={'class':'icons'};
+    $containerAttributes={'class':'icons'}
+    $containerTag="ul"
+    $itemTag="li";
     <#-- Nested content values passed down by the macro: -->
     item, index
   >
@@ -28,5 +30,5 @@
       $field="social_media_links_o.url_s,social_media_links_o.social_media_s"
       $index=index
     />
-  </@crafter.renderRepeatCollection>
-</@crafter.componentRootTag>
+  </@crafter.renderRepeatGroup>
+</@crafter.header>

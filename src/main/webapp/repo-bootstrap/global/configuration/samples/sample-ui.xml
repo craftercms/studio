@@ -530,34 +530,28 @@
   </body>
 </html>]]></value>
             </htmlPage>
-            <baseComponent label="Base Component Template">
-              <value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
-  <@crafter.componentRootTag $tag="section">
-    <#-- Insert your head markup here -->
-  </@crafter.componentRootTag>]]></value>
-            </baseComponent>
             <specificHTMLTag label="Field (Specific HTML Tag)">
               <value><![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
             </specificHTMLTag>
             <renderComponentCollection label="Render Component Collection">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
-  <@crafter.renderComponentCollection $field="features_o" class="features-container" $itemAttrs={ "data-custom-attribute": "true" } />]]></value>
+<@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
             </renderComponentCollection>
-            <renderRepeatCollection label="Render Repeat Collection">
+            <renderRepeatGroup label="Render Repeat Group">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
-  <@crafter.renderRepeatCollection
-    $field="VARIABLE_NAME"
-    $containerAttributes={'attr': 'value'};
-    item, index
+<@crafter.renderRepeatGroup
+  $field="VARIABLE_NAME"
+  $containerAttributes={'attr': 'value'};
+  item, index
+>
+  <@crafter.div
+    $field="sections_o.section_html"
+    $index=index
   >
-    <@crafter.div
-      $field="sections_o.section_html"
-      $index=index
-    >
-      ${item.itemField}
-    </@crafter.div>
-  </@crafter.renderRepeatCollection>]]></value>
-            </renderRepeatCollection>
+    ${item.itemField}
+  </@crafter.div>
+</@crafter.renderRepeatGroup>]]></value>
+            </renderRepeatGroup>
             <navigation label="Navigation">
               <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
   <@crafter.navigation
