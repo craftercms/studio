@@ -28,7 +28,7 @@
       <#else>
         <#assign additionalModel = {} />
       </#if>
-      <@crafter.renderComponentCollection $field="widgets_o" arguments=additionalModel/>
+      <@crafter.renderComponentCollection $field="widgets_o" renderComponentArguments=additionalModel/>
     </#if>
     <!-- /Widgets -->
 
