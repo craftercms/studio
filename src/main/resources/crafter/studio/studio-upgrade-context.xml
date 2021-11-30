@@ -141,6 +141,9 @@
         <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
         <constructor-arg name="contentService" ref="cstudioContentService" />
         <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
+        <constructor-arg name="studioDBScriptRunnerFactory" ref="studio.dbScriptRunner"/>
+        <constructor-arg name="blobExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
+
     </bean>
 
     <bean id="migrateWorkflowUpgrader" scope="prototype" parent="upgradeOperation"

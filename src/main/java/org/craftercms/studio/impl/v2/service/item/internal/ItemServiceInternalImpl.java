@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -46,23 +45,15 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Queue;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -79,7 +70,6 @@ import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentIdSimple;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
 
@@ -110,47 +100,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void upsertEntries(String siteId, List<Item> items) {
         if (CollectionUtils.isNotEmpty(items)) {
             retryingDatabaseOperationFacade.upsertEntries(items);
-        }
-    }
-
-    @Override
-    public void updateParentIds(String siteId, String rootPath) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        String ldName = servicesConfig.getLevelDescriptorName(siteId);
-        try {
-            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
-            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
-
-            Item rootItem = getItem(siteId, rootPath, true);
-            Queue<Item> queue = new LinkedList<Item>();
-            queue.add(rootItem);
-
-            while (!queue.isEmpty()) {
-                Item parentItem = queue.poll();
-                List<Item> children = itemDao.getAllChildrenByPath(siteFeed.getId(),
-                        parentItem.getPath(), ldName);
-                if (CollectionUtils.isNotEmpty(children)) {
-                    for (Item item : children) {
-                        queue.add(item);
-                        Files.write(updateParentIdScriptPath, updateParentIdSimple(parentItem.getId(),
-                                item.getId()).getBytes(UTF_8), StandardOpenOption.APPEND);
-                        Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                    }
-                }
-            }
-
-            StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-            studioDBScriptRunner.openConnection();
-            try {
-                studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-            } finally {
-                studioDBScriptRunner.closeConnection();
-            }
-        } catch (IOException e) {
-            logger.error("Error while executing update parents ids script for site " + siteId + " and subtree of " +
-                    "path " + rootPath);
         }
     }
 
@@ -197,7 +146,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        DetailedItem item = null;
         List<Item> items = null;
         if (preferContent) {
             items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);

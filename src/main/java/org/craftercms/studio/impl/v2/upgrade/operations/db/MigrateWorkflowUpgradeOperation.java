@@ -34,6 +34,7 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
 public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperation {
@@ -72,7 +73,9 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         // create stored procedure from script
-        super.doExecute(context);
+        if (isNotEmpty(fileName)) {
+            super.doExecute(context);
+        }
         // get all sites from DB
         Map<Long, String> sites = new HashMap<Long, String>();
         try (Connection connection = context.getConnection()) {
@@ -86,20 +89,15 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
             }
             // loop over all sites
             for (Map.Entry<Long, String> site : sites.entrySet()) {
-                processSite(context, site.getKey(), site.getValue());
+                processSite(context, site.getValue());
             }
         } catch (SQLException e) {
             logger.error("Error getting DB connection", e);
         }
     }
 
-    private void processSite(final StudioUpgradeContext context, long siteId, String site) throws UpgradeException {
-        // check if data exists
-        logger.error("Processing site: " + site);
-        runSP(context, site);
-    }
-
-    private void runSP(final StudioUpgradeContext context, String siteId) throws UpgradeException {
+    private void processSite(final StudioUpgradeContext context, String site) throws UpgradeException {
+        logger.info("Processing site: " + site);
         try (Connection connection = context.getConnection()) {
             integrityValidator.validate(connection);
         } catch (SQLException e) {
@@ -112,8 +110,8 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
         try (Connection connection = context.getConnection()) {
             CallableStatement callableStatement = connection.prepareCall(
                     QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, spName)
-                            .replace(SP_PARAM_SITE, siteId));
-            logger.debug("Calling " + spName + " for " + siteId);
+                            .replace(SP_PARAM_SITE, site));
+            logger.debug("Calling " + spName + " for " + site);
             callableStatement.execute();
         } catch (SQLException e) {
             logger.error("Error populating data from DB", e);

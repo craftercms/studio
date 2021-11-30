@@ -22,7 +22,7 @@
 -->
 
 <dependency-resolver>
-    <version>2</version>
+    <version>4.0.1</version>
     <item-types>
         <item-type>
             <!-- name of type -->
