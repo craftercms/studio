@@ -140,8 +140,6 @@ public class StudioClockExecutor implements Job {
                     destroySitePreviewContext(siteFeed.getName());
                     contentRepositoryV1.deleteSite(siteFeed.getName());
                 }
-                StudioClusterSandboxRepoSyncTask.remotesMap.remove(siteFeed.getSiteId());
-                StudioClusterPublishedRepoSyncTask.remotesMap.remove(siteFeed.getSiteId());
                 deletedSitesMap.put(key, siteFeed.getName());
             }
         });
