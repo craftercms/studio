@@ -931,6 +931,14 @@ studio.marketplace.plugin.wire.mapping:
     module: studio
     path: administration/site-config-tools.xml
     template: crafter/studio/marketplace/wiring/datasource.xslt
+  site-filter:
+    module: engine
+    path: site-config.xml
+    template: crafter/studio/marketplace/wiring/engine-filter.xslt
+  site-context:
+    module: engine
+    path: application-context.xml
+    template: crafter/studio/marketplace/wiring/engine-context.xslt
 studio.marketplace.plugin.wire.remove: crafter/studio/marketplace/wiring/remove.xslt
 # Mapping used to wire plugin files into the site templates
 studio.marketplace.plugin.template.mapping:
