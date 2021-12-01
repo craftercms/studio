@@ -126,6 +126,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptySet;
 import static java.util.function.Predicate.not;
@@ -623,9 +624,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         String pluginIdPath = getPluginPath(plugin.getId());
 
         for(Map.Entry<String, String> mapping : folderMapping.entrySet()) {
-            var rootFolder = contains(mapping.getValue(), pluginsFolder)?
-                    mapping.getValue() : appendIfMissing(mapping.getValue(), "/" + pluginsFolder);
-            Path source = pluginDir.resolve(mapping.getKey());
+            var rootFolder = join("/", mapping.getValue(), pluginsFolder);
+            Path source = pluginDir.resolve(join("/", mapping.getKey(), pluginsFolder, pluginIdPath));
             if (Files.exists(source)) {
                 Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
                 Files.createDirectories(target);
@@ -707,9 +707,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     String pluginIdPath = getPluginPath(plugin.getId());
 
                     for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
-                        String rootFolder = contains(mapping.getValue(), pluginsFolder) ?
-                                mapping.getValue() : appendIfMissing(mapping.getValue(), "/" + pluginsFolder);
-                        Path source = pluginFolder.resolve(mapping.getKey());
+                        var rootFolder = join("/", mapping.getValue(), pluginsFolder);
+                        Path source = pluginFolder.resolve(join("/", mapping.getKey(), pluginsFolder, pluginIdPath));
                         if (Files.exists(source)) {
                             Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
                             Files.createDirectories(target);
