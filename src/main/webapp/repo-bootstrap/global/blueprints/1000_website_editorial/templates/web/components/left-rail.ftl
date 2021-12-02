@@ -1,6 +1,6 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 
-<@crafter.componentRootTag id="sidebar">
+<@crafter.div id="sidebar">
   <div class="inner">
 
     <!-- Search -->
@@ -42,4 +42,4 @@
     <!-- /Footer -->
 
   </div>
-</@crafter.componentRootTag>
+</@crafter.div>

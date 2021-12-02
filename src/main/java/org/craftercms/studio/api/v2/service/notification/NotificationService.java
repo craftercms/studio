@@ -62,7 +62,7 @@ public interface NotificationService {
      * @param toUsers List of recipients.
      * @param key key of the message wanted
      * @param locale Language of the message ,if null defaults to English.
-     * @param params parameters of the message this params will be use to process the message string.
+     * @param params parameters of the message this params will be used to process the message string.
      */
     @SuppressWarnings("unchecked")
     void notify(final String site , final List<String> toUsers ,final String key, final Locale
@@ -86,7 +86,7 @@ public interface NotificationService {
      * @param type Type of the message wanted.
      * @param key key of the message wanted
      * @param locale Language of the message ,if null defaults to English.
-     * @param params parameters of the message this params will be use to process the message string.
+     * @param params parameters of the message this params will be used to process the message string.
      * @return <p>the message in the given locale and processed with the given variables. </p><p>If message not found
      * either by key/locale it will <b>return a default string</b>) </p>
      */
@@ -97,10 +97,10 @@ public interface NotificationService {
     /**
      * Send to all given users a notification of content that need to be review.
      * @param site Site of the Content.
-     * @param usersToNotify List of users (username) to be notify.
+     * @param usersToNotify List of users (username) to be notified.
      * @param itemsSubmitted List of Item paths that where approve (can be null)
      * @param submitter User (username) that is submitting the content.
-     * @param scheduleDate When the content should go live (null if now (or as soon is approve)).
+     * @param scheduleDate When the content should go live (null if now (or as soon is approved)).
      * @param locale Language of the message ,if null defaults to English.
      * @param isADelete Is this submission a delete one.
      * @param submissionComments submission comments
@@ -122,7 +122,7 @@ public interface NotificationService {
                                 final String rejectionReason, final String userThatRejects,final Locale locale);
 
     /**
-     * Send email to admin that repository has merge conflict
+     * Send email to admin that repository has merged conflict
      *
      * @param site site with merge conflict
      * @param filesUnableToMerge files unable to merge

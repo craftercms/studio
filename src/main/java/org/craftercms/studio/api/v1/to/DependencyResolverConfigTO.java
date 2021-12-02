@@ -35,6 +35,7 @@ public class DependencyResolverConfigTO {
 
         private String name;
         private List<String> includes;
+        private List<String> excludes;
         private Map<String, DependencyType> dependencyTypes;
 
         public String getName() { return name; }
@@ -42,6 +43,14 @@ public class DependencyResolverConfigTO {
 
         public List<String> getIncludes() { return includes; }
         public void setIncludes(List<String> includes) { this.includes = includes; }
+
+        public List<String> getExcludes() {
+            return excludes;
+        }
+
+        public void setExcludes(List<String> excludes) {
+            this.excludes = excludes;
+        }
 
         public Map<String, DependencyType> getDependencyTypes() { return dependencyTypes; }
         public void setDependencyTypes(Map<String, DependencyType> dependencyTypes) { this.dependencyTypes = dependencyTypes; }

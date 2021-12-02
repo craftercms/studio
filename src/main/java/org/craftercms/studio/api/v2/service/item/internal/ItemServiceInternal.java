@@ -31,7 +31,7 @@ import java.util.Optional;
 public interface ItemServiceInternal {
 
     /**
-     * Insert record for item if does not exist, otherwise update it
+     * Insert record for item if it does not exist, otherwise update it
      *
      * @param item item to add or update
      */
@@ -44,13 +44,6 @@ public interface ItemServiceInternal {
      * @param items list of items to add or update
      */
     void upsertEntries(String siteId, List<Item> items);
-
-    /**
-     * Update parent ids for items in subtree for given root path
-     * @param siteId site identifier
-     * @param rootPath root path
-     */
-    void updateParentIds(String siteId, String rootPath);
 
     /**
      * Get item by given id
@@ -254,7 +247,7 @@ public interface ItemServiceInternal {
      *
      * @param siteId site identifier
      * @param path path of the item
-     * @param username user name of modifier
+     * @param username username of modifier
      * @param lastModifiedOn modified date
      * @param label label for the item
      * @param contentTypeId content type id
@@ -486,7 +479,7 @@ public interface ItemServiceInternal {
     boolean previousPathExists(String siteId, String path);
 
     /**
-     * Upadte commit id for item
+     * Update commit id for item
      * @param siteId site identifier
      * @param path path of the item
      * @param commitId commit id

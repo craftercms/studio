@@ -1,7 +1,7 @@
 <#import "/templates/system/common/crafter.ftl" as crafter />
 
 <#if articles?? && articles?size &gt; 0>
-  <@crafter.componentRootTag $tag="section">
+  <@crafter.section>
     <header class="major">
       <@crafter.h2 $field="title_t">${contentModel.title_t}</@crafter.h2>
     </header>
@@ -19,5 +19,5 @@
         </@crafter.article>
       </#list>
     </div>
-  </@crafter.componentRootTag>
+  </@crafter.section>
 </#if>

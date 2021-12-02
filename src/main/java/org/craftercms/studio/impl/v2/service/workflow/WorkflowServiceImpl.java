@@ -208,6 +208,9 @@ public class WorkflowServiceImpl implements WorkflowService {
             // create new workflow entries
             createWorkflowEntries(siteId, pathsToAddToWorkflow, submittedBy, publishingTarget, schedule, comment,
                     sendEmailNotifications);
+            // notify approvers
+            notificationService.notifyApprovesContentSubmission(
+                    siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment, null);
             // create audit log entries
             createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy);
         } finally {
@@ -447,15 +450,18 @@ public class WorkflowServiceImpl implements WorkflowService {
         // Create submission package
         List<String> pathsToCancelWorkflow = calculateSubmissionPackage(siteId, paths, null);
         try {
+            boolean shouldNotify = false;
+
             String rejectedBy = securityService.getCurrentUser();
             // set system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, true);
 
             // get submitters list
             Set<String> submitterList = new HashSet<>();
-            pathsToCancelWorkflow.forEach(path -> {
+            for (String path : pathsToCancelWorkflow) {
                 WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(siteId, path);
                 if (Objects.nonNull(workflowItem)) {
+                    shouldNotify = shouldNotify || workflowItem.getNotifySubmitter() == 1;
                     try {
                         User submitter = userServiceInternal
                                 .getUserByIdOrUsername(workflowItem.getSubmitterId(), StringUtils.EMPTY);
@@ -467,14 +473,16 @@ public class WorkflowServiceImpl implements WorkflowService {
                                 path);
                     }
                 }
-            });
+            }
 
             // cancel workflow
             cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
             // create audit log entries
             createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy);
             // notify rejection
-            notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
+            if (shouldNotify) {
+                notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
+            }
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, false);

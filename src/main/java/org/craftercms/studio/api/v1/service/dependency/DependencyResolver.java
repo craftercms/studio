@@ -28,6 +28,7 @@ public interface DependencyResolver {
     String XML_CONFIGURATION_ITEM_TYPE = "item-type";
     String XML_CONFIGURATION_NAME = "name";
     String XML_CONFIGURATION_INCLUDES = "includes";
+    String XML_CONFIGURATION_EXCLUDES = "excludes";
     String XML_CONFIGURATION_PATH_PATTERN = "path-pattern";
     String XML_CONFIGURATION_DEPENDENCY_TYPES = "dependency-types";
     String XML_CONFIGURATION_DEPENDENCY_TYPE = "dependency-type";

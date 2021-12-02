@@ -134,6 +134,20 @@ public class RegexDependencyResolver implements DependencyResolver {
                         itemTypeIncludes.add(pathPatternValue);
                     }
                     itemType.setIncludes(itemTypeIncludes);
+
+
+                    List<String> itemTypeExcludes = new ArrayList<String>();
+                    Element excludesIT = itemTypeEl.element(XML_CONFIGURATION_EXCLUDES);
+                    if (excludesIT != null) {
+                        iterPathPatterns = excludesIT.elementIterator(XML_CONFIGURATION_PATH_PATTERN);
+                        while (iterPathPatterns.hasNext()) {
+                            Element pathPattern = iterPathPatterns.next();
+                            String pathPatternValue = pathPattern.getStringValue();
+                            itemTypeExcludes.add(pathPatternValue);
+                        }
+                        itemType.setExcludes(itemTypeExcludes);
+                    }
+
                     Element dependencyTypesEl = itemTypeEl.element(XML_CONFIGURATION_DEPENDENCY_TYPES);
                     Iterator<Element> iterDependencyTypes = dependencyTypesEl.elementIterator(XML_CONFIGURATION_DEPENDENCY_TYPE);
                     logger.debug("Populate dependency types for " + typeName);
@@ -203,7 +217,8 @@ public class RegexDependencyResolver implements DependencyResolver {
             for (Map.Entry<String, DependencyResolverConfigTO.ItemType> entry : itemTypes.entrySet()) {
                 DependencyResolverConfigTO.ItemType it = entry.getValue();
                 List<String> includes = it.getIncludes();
-                if (ContentUtils.matchesPatterns(path, includes)) {
+                List<String> excludes = it.getExcludes();
+                if (ContentUtils.matchesPatterns(path, includes) && !ContentUtils.matchesPatterns(path, excludes)) {
                     itemType = it;
                     break;
                 }

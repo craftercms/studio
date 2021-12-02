@@ -22,7 +22,7 @@
 -->
 
 <dependency-resolver>
-    <version>3</version>
+    <version>4.0.1</version>
     <item-types>
         <item-type>
             <!-- name of type -->
@@ -319,6 +319,9 @@
                 <!-- path pattern regexes (multiple) -->
                 <path-pattern>/templates/([^&lt;"]+)\.ftl</path-pattern>
             </includes>
+            <excludes>
+                <path-pattern>/templates/system/plugins/.+</path-pattern>
+            </excludes>
             <!-- how to find dependencies in these items -->
             <dependency-types>
                 <dependency-type>

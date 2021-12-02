@@ -118,6 +118,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -126,6 +127,7 @@ import java.util.regex.Pattern;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptySet;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
@@ -818,14 +820,17 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException {
         logger.debug("Getting dependencies for plugin {0} in site {1}", pluginId, siteId);
         Optional<PluginRecord> record = getPluginRecord(siteId, pluginId);
-        // TODO: Extract
         Pattern contentTypeRegex = Pattern.compile(contentTypePattern);
+        Set<String> dependantItems = new TreeSet<>();
         List<String> contentTypePaths = record.get().getFiles().stream()
                 .map(FileRecord::getPath)
                 .map(p -> prependIfMissing(p, "/" ))
                 .filter(contentTypeRegex.asMatchPredicate())
                 .collect(toList());
-        Set<String> dependantItems = new HashSet<>(dependencyService.getDependentItems(siteId, contentTypePaths));
+
+        if (CollectionUtils.isNotEmpty(contentTypePaths)) {
+            dependantItems = new HashSet<>(dependencyService.getDependentItems(siteId, contentTypePaths));
+        }
 
         for(String contentTypePath : contentTypePaths) {
             Matcher contentTypeMatcher = contentTypeRegex.matcher(contentTypePath);

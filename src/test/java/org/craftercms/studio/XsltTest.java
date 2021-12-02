@@ -135,7 +135,7 @@ public class XsltTest {
 
                 // there should not be any differences
                 assertEquals(IterableUtils.size(diff.getDifferences()), 0,
-                        "The result XML shoud not change the second time");
+                        "The result XML should not change the second time");
             }
         }
     }
