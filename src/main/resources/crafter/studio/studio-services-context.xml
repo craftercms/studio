@@ -954,19 +954,6 @@
           class="org.craftercms.studio.impl.v2.repository.RetryingRepositoryOperationFacadeImpl" >
     </bean>
 
-    <!-- /////// -->
-    <!-- Cluster -->
-    <!-- /////// -->
-    <bean id="clusterNodeRegistration"
-          class="org.craftercms.studio.impl.v2.service.cluster.ClusterNodeRegistrationImpl"
-          destroy-method="destroy">
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="metaDao" ref="metaDAO" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-    </bean>
-
     <!-- ////////////////////////////////////// -->
     <!--       Object type filters                   -->
     <!-- ////////////////////////////////////// -->

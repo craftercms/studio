@@ -23,14 +23,8 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_NODE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_COMMIT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_SYNCED_GITLOG_COMMIT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NODE_LAST_VERIFIED_GITLOG_COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.REMOTE_REPOSITORY_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 
 public interface ClusterDAO {
 
