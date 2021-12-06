@@ -65,7 +65,6 @@
         <property name="commitMessage"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_COMMIT_MESSAGE)}"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="clusterSandboxRepoSyncTask" ref="studio.clockClusterSiteSandboxRepoSync" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>

@@ -254,38 +254,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         clusterDao.addClusterRemoteRepository(clusterId, remoteRepositoryId);
     }
 
-    @Override
-    public void insertClusterSiteSyncRepo(long clusterNodeId, long siteId, String nodeLastCommitId,
-                                          String nodeLastVerifiedGitlogCommitId, String nodeLastSyncedGitlogCommitId) {
-        clusterDao.insertClusterSiteSyncRepo(clusterNodeId, siteId, nodeLastCommitId, nodeLastVerifiedGitlogCommitId,
-                nodeLastSyncedGitlogCommitId);
-    }
-
-    @Override
-    public void updateClusterNodeLastVerifiedGitlogCommitId(long clusterNodeId, long siteId, String commitId) {
-        clusterDao.updateNodeLastVerifiedGitlogCommitId(clusterNodeId, siteId, commitId);
-    }
-
-    @Override
-    public void updateClusterNodeLastCommitId(long clusterNodeId, long siteId, String commitId) {
-        clusterDao.updateNodeLastCommitId(clusterNodeId, siteId, commitId);
-    }
-
-    @Override
-    public void setClusterNodeSiteState(long clusterNodeId, long siteId, String state) {
-        clusterDao.setSiteState(clusterNodeId, siteId, state);
-    }
-
-    @Override
-    public void setClusterNodePublishedRepoCreated(long clusterNodeId, long siteId) {
-        clusterDao.setPublishedRepoCreated(clusterNodeId, siteId);
-    }
-
-    @Override
-    public void updateClusterNodeLastSyncedGitlogCommitId(long clusterNodeId, long siteId, String commitId) {
-        clusterDao.updateNodeLastSyncedGitlogCommitId(clusterNodeId, siteId, commitId);
-    }
-
     // GitLog API v2
     @Override
     public void insertGitLog(Map params) {

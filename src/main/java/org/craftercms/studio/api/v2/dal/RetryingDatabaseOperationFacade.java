@@ -278,55 +278,6 @@ public interface RetryingDatabaseOperationFacade {
      */
     void addClusterRemoteRepository(long clusterId, long remoteRepositoryId);
 
-    /**
-     * Insert cluster node site sync repo record
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param nodeLastCommitId last commit id of local sandbox repository
-     * @param nodeLastVerifiedGitlogCommitId last verified git log commit id in local repo
-     */
-    void insertClusterSiteSyncRepo(long clusterNodeId, long siteId, String nodeLastCommitId,
-                                   String nodeLastVerifiedGitlogCommitId, String nodeLastSyncedGitlogCommitId);
-
-    /**
-     * Update local last verified git log commit id
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param commitId commit id
-     */
-    void updateClusterNodeLastVerifiedGitlogCommitId(long clusterNodeId, long siteId, String commitId);
-
-    /**
-     * Update local last git log commit id
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param commitId commit id
-     */
-    void updateClusterNodeLastCommitId(long clusterNodeId, long siteId, String commitId);
-
-    /**
-     * Set site state for cluster node
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param state state value
-     */
-    void setClusterNodeSiteState(long clusterNodeId, long siteId, String state);
-
-    /**
-     * Set flag for published repo if created on cluster node
-     * @param clusterNodeId Cluster node identifier
-     * @param siteId site identifier
-     */
-    void setClusterNodePublishedRepoCreated(long clusterNodeId, long siteId);
-
-    /**
-     * Update last synced git log commit id for site on given cluster node
-     * @param clusterNodeId Cluster node identifier
-     * @param siteId site identifier
-     * @param commitId commit id
-     */
-    void updateClusterNodeLastSyncedGitlogCommitId(long clusterNodeId, long siteId, String commitId);
-
     // GitLog API v2
     /**
      * Insert new gitlog table row
