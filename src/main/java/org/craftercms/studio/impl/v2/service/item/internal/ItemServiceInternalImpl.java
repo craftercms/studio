@@ -47,6 +47,7 @@ import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.ItemState.IN_PROGRESS_MASK;
@@ -392,7 +394,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public String getBrowserUrl(String site, String path) {
         String replacePattern;
         boolean isPage = false;
-        if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
+        if (ContentUtils.matchesPatterns(path, Arrays.asList(CONTENT_TYPE_TAXONOMY_REGEX))) {
+            return null;
+        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
                 StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
