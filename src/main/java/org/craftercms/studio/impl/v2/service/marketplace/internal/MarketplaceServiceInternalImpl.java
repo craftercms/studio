@@ -103,6 +103,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import javax.xml.transform.TransformerException;
 import java.beans.ConstructorProperties;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -624,8 +625,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         String pluginIdPath = getPluginPath(plugin.getId());
 
         for(Map.Entry<String, String> mapping : folderMapping.entrySet()) {
-            var rootFolder = join("/", mapping.getValue(), pluginsFolder);
-            Path source = pluginDir.resolve(join("/", mapping.getKey(), pluginsFolder, pluginIdPath));
+            var rootFolder = join(File.separator, mapping.getValue(), pluginsFolder);
+            Path source = pluginDir.resolve(join(File.separator, mapping.getKey(), pluginsFolder, pluginIdPath));
             if (Files.exists(source)) {
                 Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
                 Files.createDirectories(target);
@@ -707,8 +708,9 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     String pluginIdPath = getPluginPath(plugin.getId());
 
                     for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
-                        var rootFolder = join("/", mapping.getValue(), pluginsFolder);
-                        Path source = pluginFolder.resolve(join("/", mapping.getKey(), pluginsFolder, pluginIdPath));
+                        var rootFolder = join(File.separator, mapping.getValue(), pluginsFolder);
+                        Path source = pluginFolder.resolve(
+                                join(File.separator, mapping.getKey(), pluginsFolder, pluginIdPath));
                         if (Files.exists(source)) {
                             Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
                             Files.createDirectories(target);
