@@ -23,7 +23,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Holds the data for a installed plugin
+ * Holds the data for an installed plugin
  *
  * @author joseross
  * @since 4.0.0
@@ -60,6 +60,8 @@ public class PluginRecord {
      * The list of files installed for the plugin
      */
     private List<FileRecord> files;
+
+    private List<ConfigRecord> config;
 
     public String getId() {
         return id;
@@ -107,6 +109,14 @@ public class PluginRecord {
 
     public void setFiles(List<FileRecord> files) {
         this.files = files;
+    }
+
+    public List<ConfigRecord> getConfig() {
+        return config;
+    }
+
+    public void setConfig(List<ConfigRecord> config) {
+        this.config = config;
     }
 
 }

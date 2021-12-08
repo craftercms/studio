@@ -16,12 +16,15 @@
 
 package org.craftercms.studio.api.v2.service.marketplace;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
@@ -76,17 +79,20 @@ public interface MarketplaceService {
      * @param siteId the id of the site
      * @param pluginId the id of the plugin
      * @param pluginVersion the version of the plugin
+     * @param parameters the parameters for the plugin
      * @throws MarketplaceException if there is any error installing the plugin
      */
-    void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException;
+    void installPlugin(String siteId, String pluginId, Version pluginVersion, Map<String, String> parameters)
+            throws MarketplaceException;
 
     /**
      * Copy a plugin in a site
      * @param siteId the id of the site
      * @param path the path of the plugin folder
+     * @param parameters the parameters for the plugin
      * @throws MarketplaceException if there is any error copying the plugin
      */
-    void copyPlugin(String siteId, String path) throws MarketplaceException;
+    void copyPlugin(String siteId, String path, Map<String, String> parameters) throws MarketplaceException;
 
     /**
      * Removes a plugin from a site
@@ -104,5 +110,33 @@ public interface MarketplaceService {
      * @throws ServiceLayerException if there is any error getting the dependant items
      */
     List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException;
+
+    /**
+     * Load the configuration for a given plugin as an object
+     * @param siteId the id of the site
+     * @param pluginId the id of the plugin
+     * @return the configuration object
+     * @throws ConfigurationException if there is any error loading the configuration
+     */
+    HierarchicalConfiguration<?> getPluginConfiguration(String siteId, String pluginId) throws ConfigurationException;
+
+    /**
+     * Load the configuration for a given plugin as a string
+     * @param siteId the id of the site
+     * @param pluginId the id of the plugin
+     * @return the configuration string
+     */
+    String getPluginConfigurationAsString(String siteId, String pluginId);
+
+    /**
+     * Writes the configuration for a given plugin
+     * @param siteId the id of the site
+     * @param pluginId the id of the plugin
+     * @param content the new configuration
+     * @throws UserNotFoundException if there is any error authenticating the user
+     * @throws ServiceLayerException if there is any error writing the configuration
+     */
+    void writePluginConfiguration(String siteId, String pluginId, String content)
+            throws UserNotFoundException, ServiceLayerException;
 
 }

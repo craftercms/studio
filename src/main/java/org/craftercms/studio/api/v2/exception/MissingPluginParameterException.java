@@ -17,8 +17,8 @@
 package org.craftercms.studio.api.v2.exception;
 
 import org.craftercms.commons.plugin.model.Parameter;
-import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.commons.plugin.model.Plugin;
+import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 
 /**
  * Exception thrown when a required parameter is not provided for a plugin
@@ -26,20 +26,20 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
  * @author joseross
  * @since 3.1.4
  */
-public class MissingPluginParameterException extends ServiceLayerException {
+public class MissingPluginParameterException extends PluginInstallationException {
 
-    protected PluginDescriptor descriptor;
+    protected Plugin plugin;
     protected Parameter parameter;
 
-    public MissingPluginParameterException(final PluginDescriptor descriptor, final Parameter parameter) {
+    public MissingPluginParameterException(final Plugin plugin, final Parameter parameter) {
         super(String.format("Missing required parameter '%s' for plugin '%s'", parameter.getLabel(),
-                descriptor.getPlugin().getId()));
-        this.descriptor = descriptor;
+                plugin.getId()));
+        this.plugin = plugin;
         this.parameter = parameter;
     }
 
-    public PluginDescriptor getDescriptor() {
-        return descriptor;
+    public Plugin getPlugin() {
+        return plugin;
     }
 
     public Parameter getParameter() {

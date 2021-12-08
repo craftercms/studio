@@ -100,7 +100,7 @@ studio.blob.intercepted.paths:
 ##################################################
 # The max length for filenames (depends on the platform & filesystem used)
 studio.content.filename.maxSize: 255
-# The max length for the full path of files (this needs to be in sync the the db schema)
+# The max length for the full path of files (this needs to be in sync the db schema)
 studio.content.fullPath.maxSize: 1024
 
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
@@ -269,9 +269,9 @@ studio.objectState.bulkOperationsBatchSize: 500
 ##########################################################
 ##                   Security Service                   ##
 ##########################################################
-# Time in minutes after which active users will be required to login again
+# Time in minutes after which active users will be required to log in again
 studio.security.sessionTimeout: 480
-# Time in minutes after which inactive users will be required to login again
+# Time in minutes after which inactive users will be required to log in again
 studio.security.inactivityTimeout: 30
 # Comma separated list of URLs that should not be tracked as user activity
 studio.security.activity.excludeUrls: >
@@ -893,7 +893,7 @@ studio.marketplace.url: https://mp.craftercms.org
 # Indicates if the search should include plugins pending of approval
 studio.marketplace.search.pending: false
 # The path in the repository for the plugin registry file
-studio.marketplace.plugin.registry.path: config/plugins.yaml
+studio.marketplace.plugin.registry.path: config/plugins/registry.yaml
 # The list of plugin types that can be installed
 studio.marketplace.plugin.installable:
   - site
@@ -915,6 +915,12 @@ studio.marketplace.plugin.mapping:
   - authoring/scripts/classes: config/studio/scripts/classes
   - authoring/scripts/rest: config/studio/scripts/rest
   - sources: sources
+# The module used for the plugin configuration file
+studio.marketplace.plugin.config.module: plugins
+# The filename used for the plugin configuration file
+studio.marketplace.plugin.config.filename: config.xml
+# The pattern to use for loading plugins installed from the marketplace
+studio.marketplace.plugin.basePath: '/config/studio/plugins/js/${id}/${type}/${name}'
 # Mapping used to wire plugin files into the site configuration
 studio.marketplace.plugin.wire.mapping:
   preview-app:

@@ -22,6 +22,9 @@ import javax.validation.constraints.NotNull;
 import org.craftercms.commons.plugin.model.Version;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Holds the information needed to install a plugin from the Marketplace
  *
@@ -39,6 +42,8 @@ public class InstallPluginRequest {
 
     @NotNull
     private Version pluginVersion;
+
+    private Map<String, String> parameters = Collections.emptyMap();
 
     public String getSiteId() {
         return siteId;
@@ -62,6 +67,14 @@ public class InstallPluginRequest {
 
     public void setPluginVersion(final Version pluginVersion) {
         this.pluginVersion = pluginVersion;
+    }
+
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
     }
 
 }

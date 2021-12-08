@@ -20,6 +20,7 @@ import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -31,6 +32,8 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServiceInternal;
@@ -40,6 +43,7 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_INSTALL_PLUGINS;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LIST_PLUGINS;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_REMOVE_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -83,15 +87,17 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
-    public void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException {
-        marketplaceServiceInternal.installPlugin(siteId, pluginId, pluginVersion);
+    public void installPlugin(String siteId, String pluginId, Version pluginVersion, Map<String, String> parameters)
+            throws MarketplaceException {
+        marketplaceServiceInternal.installPlugin(siteId, pluginId, pluginVersion, parameters);
     }
 
     @Override
     @ValidateParams
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
-    public void copyPlugin(String siteId, @ValidateSecurePathParam(name = "path") String path) throws MarketplaceException {
-        marketplaceServiceInternal.copyPlugin(siteId, path);
+    public void copyPlugin(String siteId, @ValidateSecurePathParam(name = "path") String path,
+                           Map<String, String> parameters) throws MarketplaceException {
+        marketplaceServiceInternal.copyPlugin(siteId, path, parameters);
     }
 
     @Override
@@ -105,4 +111,23 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     public List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException {
         return marketplaceServiceInternal.getPluginUsage(siteId, pluginId);
     }
+
+    @Override
+    public HierarchicalConfiguration<?> getPluginConfiguration(String siteId, String pluginId)
+            throws ConfigurationException {
+        return marketplaceServiceInternal.getPluginConfiguration(siteId, pluginId);
+    }
+
+    @Override
+    public String getPluginConfigurationAsString(String siteId, String pluginId) {
+        return marketplaceServiceInternal.getPluginConfigurationAsString(siteId, pluginId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+    public void writePluginConfiguration(String siteId, String pluginId, String content)
+            throws UserNotFoundException, ServiceLayerException {
+        marketplaceServiceInternal.writePluginConfiguration(siteId, pluginId, content);
+    }
+
 }

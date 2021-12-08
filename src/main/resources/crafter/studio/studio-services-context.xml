@@ -1581,6 +1581,9 @@
                          value="#{studioConfiguration.getProperty('studio.scripting.restrictBeans')}"/>
         <constructor-arg name="allowedBeans"
                          value="#{studioConfiguration.getProperty('studio.scripting.allowedBeans')}"/>
+        <constructor-arg name="marketplaceService" ref="marketplaceService"/>
+        <constructor-arg name="contentService" ref="cstudioContentService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
 
     <bean id="scriptEngineManager" class="org.craftercms.studio.impl.v2.scripting.ScriptEngineManagerImpl">

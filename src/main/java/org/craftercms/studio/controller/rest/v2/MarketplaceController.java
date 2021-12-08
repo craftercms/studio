@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import java.beans.ConstructorProperties;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -99,7 +100,8 @@ public class MarketplaceController {
 
     @PostMapping("/install")
     public ResponseBody installPlugin(@Valid @RequestBody InstallPluginRequest request) throws MarketplaceException {
-        marketplaceService.installPlugin(request.getSiteId(), request.getPluginId(), request.getPluginVersion());
+        marketplaceService.installPlugin(request.getSiteId(), request.getPluginId(), request.getPluginVersion(),
+                                         request.getParameters());
 
         Result result = new Result();
         result.setResponse(ApiResponse.OK);
@@ -175,7 +177,7 @@ public class MarketplaceController {
 
     @PostMapping("copy")
     public ResponseBody copyPlugin(@Valid @RequestBody CopyPluginRequest request) throws MarketplaceException {
-        marketplaceService.copyPlugin(request.getSiteId(), request.getPath());
+        marketplaceService.copyPlugin(request.getSiteId(), request.getPath(), request.getParameters());
 
         Result result = new Result();
         result.setResponse(ApiResponse.OK);
@@ -195,6 +197,8 @@ public class MarketplaceController {
         @NotEmpty
         protected String path;
 
+        protected Map<String, String> parameters = new HashMap<>();
+
         public String getSiteId() {
             return siteId;
         }
@@ -209,6 +213,14 @@ public class MarketplaceController {
 
         public void setPath(String path) {
             this.path = path;
+        }
+
+        public Map<String, String> getParameters() {
+            return parameters;
+        }
+
+        public void setParameters(Map<String, String> parameters) {
+            this.parameters = parameters;
         }
 
     }
