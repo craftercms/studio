@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.repository.blob.s3;
 
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
@@ -317,6 +318,15 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 try {
                     getClient().copyObject(previewMapping.target, getKey(previewMapping, item.getPath()),
                             envMapping.target, getKey(envMapping, item.getPath()));
+                } catch (AmazonS3Exception s3e) {
+                    if (StringUtils.startsWith(s3e.getMessage(), "The specified key does not exist.")) {
+                        logger.error("Content " + item.getPath() + " does not exist in the S3 bucket at location "
+                                + getFullKey(previewMapping, item.getPath()));
+                    } else {
+                        throw new BlobStoreException("Error copying content from " +
+                                getFullKey(previewMapping, item.getPath()) + " to " +
+                                getFullKey(envMapping, item.getPath()), s3e);
+                    }
                 } catch (Exception e) {
                     throw new BlobStoreException("Error copying content from " +
                             getFullKey(previewMapping, item.getPath()) + " to " +
