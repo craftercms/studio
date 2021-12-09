@@ -3492,7 +3492,8 @@ paths:
     get:
       tags:
         - plugin
-      summary: Get configuration content for the given site and plugin
+      summary: Get configuration for the given site and plugin
+      description: 'Required permission "site member"'
       operationId: getPluginConfiguration
       parameters:
         - name: siteId
@@ -3534,7 +3535,7 @@ paths:
       tags:
         - plugin
       summary: Write configuration content a given site and plugin
-      description: 'Required permission "write_configuration"'
+      description: 'Required permission "write_configuration" and "site member"'
       operationId: writePluginConfiguration
       requestBody:
         description: write configuration request body

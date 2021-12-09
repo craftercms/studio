@@ -182,16 +182,16 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
     }
 
     protected String getPluginId(String siteId, String scriptUrl) {
-        String possibleId = null;
+        String pluginId = null;
         String path = scriptUrl;
         boolean idFound = false;
         while (!idFound && StringUtils.isNotEmpty(path)) {
             path = FilenameUtils.getPathNoEndSeparator(path);
-            possibleId = RegExUtils.replaceAll(path, File.separator, ".");
-            idFound = contentService.contentExists(siteId, getPluginConfigurationPath(studioConfiguration, possibleId));
+            pluginId = RegExUtils.replaceAll(path, File.separator, ".");
+            idFound = contentService.contentExists(siteId, getPluginConfigurationPath(studioConfiguration, pluginId));
         }
         if (idFound) {
-            return possibleId;
+            return pluginId;
         }
 
         return null;
