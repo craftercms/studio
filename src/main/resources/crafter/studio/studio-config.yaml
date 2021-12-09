@@ -211,7 +211,7 @@ studio.configuration.management.previewProtectedUrls: >-
   /api/1/site/cache/statistics
 
 # The pattern used to load plugins installed from the marketplaces
-studio.configuration.plugin.base.pattern: /config/studio/assets/plugins/${id}/${type}/${name}
+studio.configuration.plugin.base.pattern: /config/studio/static-assets/plugins/${id}/${type}/${name}
 # List of patterns to invalidate cache when changes are detected in the global repo (separated by commas)
 studio.configuration.cache.global.patterns: /?configuration/.+
 # List of patterns to invalidate cache when changes are detected in the site repo (separated by commas)
@@ -911,7 +911,7 @@ studio.marketplace.plugin.mapping:
   - delivery/scripts/controllers: scripts/controllers
   - authoring/content-types/component: config/studio/content-types/component
   - authoring/content-types/page: config/studio/content-types/page
-  - authoring/assets: config/studio/assets
+  - authoring/static-assets: config/studio/static-assets
   - authoring/scripts/classes: config/studio/scripts/classes
   - authoring/scripts/rest: config/studio/scripts/rest
   - sources: sources
