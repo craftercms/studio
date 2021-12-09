@@ -42,6 +42,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PA
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DUPLICATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_RENAME;
@@ -98,6 +99,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             result = result & ~CONTENT_DELETE;
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
+            result = result & ~CONTENT_DUPLICATE;
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
