@@ -195,7 +195,7 @@ public class DetailedItem {
         instance.systemType = item.getSystemType();
         instance.mimeType = item.getMimeType();
         instance.state = item.getState();
-        instance.lockOwner = item.getOwner();
+        instance.lockOwner = item.getLockOwner();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
         instance.sandbox.creator = item.getCreator();
@@ -225,7 +225,7 @@ public class DetailedItem {
         instance.systemType = item.getSystemType();
         instance.mimeType = item.getMimeType();
         instance.state = item.getState();
-        instance.lockOwner = item.getOwner();
+        instance.lockOwner = item.getLockOwner();
         instance.localeCode = item.getLocaleCode();
         instance.translationSourceId = item.getTranslationSourceId();
         instance.sandbox.creator = item.getCreator();

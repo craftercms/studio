@@ -267,6 +267,11 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.32-to-4.0.0.33.sql
+      - currentVersion: 4.0.0.33
+        nextVersion: 4.0.0.34
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.33-to-4.0.0.34.sql
 
   # Pipeline to upgrade site repositories
   site:

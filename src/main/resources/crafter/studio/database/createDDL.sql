@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.33', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.34', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -391,7 +391,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `path`                    VARCHAR(2048)   NOT NULL,
   `preview_url`             VARCHAR(2048)   NULL,
   `state`                   BIGINT          NOT NULL,
-  `owned_by`                BIGINT          NULL,
+  `locked_by`               BIGINT          NULL,
   `created_by`              BIGINT          NULL,
   `created_on`              TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
   `last_modified_by`        BIGINT          NULL,
@@ -411,7 +411,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),
-  FOREIGN KEY item_ix_owned_by(`owned_by`) REFERENCES `user` (`id`),
+  FOREIGN KEY item_ix_locked_by(`locked_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
   FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
   UNIQUE uq_i_site_path (`site_id`, `path`(900))
