@@ -319,8 +319,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                                 String contentTypeId, String systemType, String mimeType, String localeCode,
                                 Long translationSourceId, long size, Long parentId, String commitId) {
 
-        return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withOwnedBy(ownedBy)
-                .withOwner(owner).withCreatedBy(createdBy).withCreator(creator).withCreatedOn(createdOn)
+        return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withLockedBy(ownedBy)
+                .withLockOwner(owner).withCreatedBy(createdBy).withCreator(creator).withCreatedOn(createdOn)
                 .withLastModifiedBy(lastModifiedBy).withModifier(modifier).withLastModifiedOn(lastModifiedOn)
                 .withLabel(label).withContentTypeId(contentTypeId).withSystemType(systemType).withMimeType(mimeType)
                 .withLocaleCode(localeCode).withTranslationSourceId(translationSourceId).withSize(size)

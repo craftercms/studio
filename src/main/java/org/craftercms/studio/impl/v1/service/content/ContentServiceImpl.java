@@ -1813,10 +1813,10 @@ public class ContentServiceImpl implements ContentService {
         if (metadata != null) {
             // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
             // database if it's not null
-            if (StringUtils.isEmpty(metadata.getOwner())) {
+            if (StringUtils.isEmpty(metadata.getLockOwner())) {
                 item.setLockOwner("");
             } else {
-                item.setLockOwner(metadata.getOwner());
+                item.setLockOwner(metadata.getLockOwner());
             }
 
             // Set the scheduled date

@@ -32,8 +32,8 @@ public class DetailedItem {
     private String path;
     private String previewUrl;
     private long state;
-    private Long ownedBy;
-    private String owner;
+    private Long lockedBy;
+    private String lockOwner;
     private Long createdBy = null;
     private String creator;
     private ZonedDateTime createdOn;
@@ -75,8 +75,8 @@ public class DetailedItem {
         path = builder.path;
         previewUrl = builder.previewUrl;
         state = builder.state;
-        ownedBy = builder.ownedBy;
-        owner = builder.owner;
+        lockedBy = builder.lockedBy;
+        lockOwner = builder.lockOwner;
         createdBy = builder.createdBy;
         creator = builder.creator;
         createdOn = builder.createdOn;
@@ -148,20 +148,20 @@ public class DetailedItem {
         this.state = state;
     }
 
-    public Long getOwnedBy() {
-        return ownedBy;
+    public Long getLockedBy() {
+        return lockedBy;
     }
 
-    public void setOwnedBy(Long ownedBy) {
-        this.ownedBy = ownedBy;
+    public void setLockedBy(Long lockedBy) {
+        this.lockedBy = lockedBy;
     }
 
-    public String getOwner() {
-        return owner;
+    public String getLockOwner() {
+        return lockOwner;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setLockOwner(String lockOwner) {
+        this.lockOwner = lockOwner;
     }
 
     public Long getCreatedBy() {
@@ -409,8 +409,8 @@ public class DetailedItem {
         instance.path = item.getPath();
         instance.previewUrl = item.getPreviewUrl();
         instance.state = item.getState();
-        instance.ownedBy = item.getOwnedBy();
-        instance.owner = item.getOwner();
+        instance.lockedBy = item.getLockedBy();
+        instance.lockOwner = item.getLockOwner();
         instance.createdBy = item.getCreatedBy();
         instance.creator = item.getCreator();
         instance.createdOn = item.getCreatedOn();
@@ -443,8 +443,8 @@ public class DetailedItem {
         private String path;
         private String previewUrl;
         private long state;
-        private Long ownedBy;
-        private String owner;
+        private Long lockedBy;
+        private String lockOwner;
         private Long createdBy;
         private String creator;
         private ZonedDateTime createdOn;
@@ -484,8 +484,8 @@ public class DetailedItem {
             clone.path = item.path;
             clone.previewUrl = item.previewUrl;
             clone.state = item.state;
-            clone.ownedBy = item.ownedBy;
-            clone.owner = item.owner;
+            clone.lockedBy = item.lockedBy;
+            clone.lockOwner = item.lockOwner;
             clone.createdBy = item.createdBy;
             clone.creator = item.creator;
             clone.createdOn = item.createdOn;
@@ -549,13 +549,13 @@ public class DetailedItem {
             return this;
         }
 
-        public Builder withOwnedBy (Long ownedBy) {
-            this.ownedBy = ownedBy;
+        public Builder withLockedBy(Long lockedBy) {
+            this.lockedBy = lockedBy;
             return this;
         }
 
-        public Builder withOwner(String owner) {
-            this.owner = owner;
+        public Builder withLockOwner(String lockOwner) {
+            this.lockOwner = lockOwner;
             return this;
         }
 

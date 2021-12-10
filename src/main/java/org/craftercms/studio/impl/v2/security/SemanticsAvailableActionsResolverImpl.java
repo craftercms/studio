@@ -71,7 +71,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, item.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
         long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
-                StringUtils.equals(username, item.getOwner()));
+                StringUtils.equals(username, item.getLockOwner()));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
         long toReturn = applySpecialUseCaseFilters(username, siteId, item, result);
