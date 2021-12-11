@@ -235,17 +235,20 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                                     ObjectId.toString(commit), treeWalk.getNameString(), updateParentIdScriptPath);
                             treeWalk.enterSubtree();
                         } else {
-                            if (!ArrayUtils.contains(IGNORE_FILES, getName(treeWalk.getNameString()))) {
+                            if (StringUtils.containsAny(getName(treeWalk.getNameString()), IGNORE_FILES)) {
+                                logger.debug("Skipping ignored file {0} for site {1}", treeWalk.getPathString(),
+                                        siteName);
+                            } else {
                                 processFile(siteName, siteId, FILE_SEPARATOR + treeWalk.getPathString(),
                                         ObjectId.toString(commit), treeWalk.getNameString(), updateParentIdScriptPath);
                             }
                         }
                     } catch (IOException e) {
-                        logger.error("Unexpected error processing " + treeWalk.getPathString() + " for site " +
+                        logger.error("Unexpected error processing {0} for site {1}", treeWalk.getPathString(),
                                 siteName, e);
                     } catch (DocumentException e) {
-                        logger.error("Unexpected error processing file" + treeWalk.getPathString() +
-                                " for site " + siteName, e);
+                        logger.error("Unexpected error processing file {0} for site {1}", treeWalk.getPathString(),
+                                siteName, e);
                     }
                 }
             }

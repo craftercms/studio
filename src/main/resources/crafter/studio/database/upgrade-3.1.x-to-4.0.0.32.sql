@@ -191,20 +191,20 @@ BEGIN
     DECLARE v_finished INTEGER DEFAULT 0;
     DECLARE item_cursor CURSOR FOR
         SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
-               im.owner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+               im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
                im.modified as item_modified, im.commit_id as item_commit_id,
                submittedtoenvironment as item_wf_env
         FROM item_state ist
             LEFT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
-        WHERE ist.site = siteId
+        WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store'
         UNION
         SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
-               im.owner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+               im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
                im.modified as item_modified, im.commit_id as item_commit_id,
                submittedtoenvironment as item_wf_env
         FROM item_state ist
             RIGHT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
-        WHERE ist.site = siteId;
+        WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
     SELECT id INTO v_site_id FROM site WHERE site_id = siteId AND deleted = 0;
     DELETE FROM item WHERE site_id = v_site_id;
