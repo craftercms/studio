@@ -3488,6 +3488,95 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /plugin/get_configuration:
+    get:
+      tags:
+        - plugin
+      summary: Get configuration for the given site and plugin
+      description: 'Required permission "site member"'
+      operationId: getPluginConfiguration
+      parameters:
+        - name: siteId
+          in: query
+          description: The id of the site
+          required: true
+          schema:
+            type: string
+        - name: pluginId
+          in: query
+          description: The id of the plugin
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: configuration file content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plugin/write_configuration:
+    post:
+      tags:
+        - plugin
+      summary: Write configuration content a given site and plugin
+      description: 'Required permission "write_configuration" and "site member"'
+      operationId: writePluginConfiguration
+      requestBody:
+        description: write configuration request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                pluginId:
+                  type: string
+                  description: The id of the plugin
+                content:
+                  type: string
+                  description: configuration file content
+              required:
+                - siteId
+                - pluginId
+                - content
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/list_quick_create_content:
     get:
       tags:
@@ -4474,6 +4563,11 @@ paths:
                   type: string
                 pluginVersion:
                   $ref: '#/components/schemas/Version'
+                parameters:
+                  type: object
+                  description: Object containing all parameters for the plugin. It should include all required parameters from the descriptor
+                  additionalProperties:
+                    type: string
               required:
                 - siteId
                 - pluginId
@@ -4519,6 +4613,11 @@ paths:
                 path:
                   description: The path of the local plugin source folder
                   type: string
+                parameters:
+                  type: object
+                  description: Object containing all parameters for the plugin. It should include all required parameters from the descriptor
+                  additionalProperties:
+                    type: string
               required:
                 - siteId
                 - path
@@ -6716,6 +6815,7 @@ components:
           * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 40002, `MESSAGE:` Plugin is already installed, `REMEDIAL ACTION:` Check that the site id, plugin id and plugin version are correct
+          * `CODE:` 40003, `MESSAGE:` Error installing plugin, `REMEDIAL ACTION:` Check the plugin requirements
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found

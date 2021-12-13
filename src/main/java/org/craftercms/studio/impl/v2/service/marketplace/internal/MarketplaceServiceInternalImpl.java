@@ -21,12 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
@@ -46,12 +48,15 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.IncompatiblePluginException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
@@ -62,6 +67,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationExce
 import org.craftercms.studio.api.v2.exception.marketplace.PluginNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.RemovePluginException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
@@ -69,6 +75,7 @@ import org.craftercms.studio.api.v2.service.marketplace.MarketplacePlugin;
 import org.craftercms.studio.api.v2.service.marketplace.Paths;
 import org.craftercms.studio.api.v2.service.marketplace.PluginTreeCopier;
 import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServiceInternal;
+import org.craftercms.studio.api.v2.service.marketplace.registry.ConfigRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.FileRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRegistry;
@@ -76,6 +83,7 @@ import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.dom4j.Document;
@@ -100,6 +108,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import javax.ws.rs.HEAD;
 import javax.xml.transform.TransformerException;
 import java.beans.ConstructorProperties;
 import java.io.ByteArrayOutputStream;
@@ -107,6 +116,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -129,9 +139,8 @@ import java.util.regex.Pattern;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptySet;
+import static java.nio.file.StandardOpenOption.CREATE;
 import static java.util.function.Predicate.not;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang.text.StrSubstitutor.replace;
@@ -145,6 +154,9 @@ import static org.apache.commons.lang3.StringUtils.removeStart;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
 import static org.craftercms.studio.api.v2.service.marketplace.Constants.SOURCE_GIT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginPath;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
 import static org.craftercms.studio.impl.v2.utils.XsltUtils.executeTemplate;
 
 /**
@@ -169,6 +181,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     public static final String CONTENT_TYPE_PATTERN_CONFIG_KEY = "studio.marketplace.plugin.contentType.pattern";
 
+    public static final String PLUGIN_CONFIG_MODULE_CONFIG_KEY = "studio.marketplace.plugin.config.module";
+
+    public static final String PLUGIN_CONFIG_FILENAME_CONFIG_KEY = "studio.marketplace.plugin.config.filename";
+
     public static final String MODULE_CONFIG_KEY = "module";
 
     public static final String PATH_CONFIG_KEY = "path";
@@ -186,8 +202,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public static final String PARAM_PLUGIN_ID = "pluginId";
 
     public static final String PARAM_PLUGIN_PATH = "pluginPath";
-
-    public static final String WIRING_ATTR_NAME = "autoWiredFrom";
 
     protected final InstanceService instanceService;
 
@@ -214,6 +228,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected final Lock readLock = lock.readLock();
 
     protected final Lock writeLock = lock.writeLock();
+
+    protected final ConfigurationService configurationService;
 
     /**
      * The custom HTTP headers to sent with all requests
@@ -290,6 +306,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
      */
     protected String contentTypePattern;
 
+    protected String pluginConfigModule;
+
+    protected String pluginConfigFilename;
+
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     protected final DeploymentService deploymentService;
@@ -301,7 +321,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     @ConstructorProperties({ "instanceService", "siteService", "sitesServiceInternal", "contentService",
             "studioConfiguration", "pluginDescriptorReader", "gitRepositoryHelper",
             "pluginDescriptorFilename", "templateCode", "templateComment", "retryingRepositoryOperationFacade",
-            "deploymentService", "dependencyService", "contentTypeService"})
+            "deploymentService", "dependencyService", "contentTypeService", "configurationService"})
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
                                           SitesServiceInternal sitesServiceInternal, ContentService contentService,
                                           StudioConfiguration studioConfiguration,
@@ -310,7 +330,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                                           String templateCode, String templateComment,
                                           RetryingRepositoryOperationFacade retryingRepositoryOperationFacade,
                                           DeploymentService deploymentService, DependencyService dependencyService,
-                                          ContentTypeService contentTypeService) {
+                                          ContentTypeService contentTypeService,
+                                          ConfigurationService configurationService) {
         this.instanceService = instanceService;
         this.siteService = siteService;
         this.sitesServiceInternal = sitesServiceInternal;
@@ -325,6 +346,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         this.deploymentService = deploymentService;
         this.dependencyService = dependencyService;
         this.contentTypeService = contentTypeService;
+        this.configurationService = configurationService;
     }
 
     public void setUrl(final String url) {
@@ -372,7 +394,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         studioConfiguration.getSubConfigs(FOLDER_MAPPING_CONFIG_KEY).forEach(mapping ->
             mapping.getKeys().forEachRemaining(folder ->
-                folderMapping.put(folder.replace("\\/", "/"), mapping.getString(folder)))
+                folderMapping.put(folder.replace("\\/", File.separator), mapping.getString(folder)))
         );
 
         mapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER))
@@ -388,6 +410,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 templateMapping.put(config.getString(SYSTEM_PATH_KEY), config.getString(PLUGIN_PATTERN_KEY)));
 
         contentTypePattern = studioConfiguration.getProperty(CONTENT_TYPE_PATTERN_CONFIG_KEY);
+        pluginConfigModule = studioConfiguration.getProperty(PLUGIN_CONFIG_MODULE_CONFIG_KEY);
+        pluginConfigFilename = studioConfiguration.getProperty(PLUGIN_CONFIG_FILENAME_CONFIG_KEY);
     }
 
     @Override
@@ -474,7 +498,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         MarketplacePlugin plugin = getDescriptor(request.getBlueprintId(), request.getBlueprintVersion());
 
-        sitesServiceInternal.validateBlueprintParameters(PluginDescriptor.of(plugin), request.getSiteParams());
+        validatePluginParameters(plugin, request.getSiteParams());
 
         siteService.createSiteWithRemoteOption(request.getSiteId(), request.getName(), request.getSandboxBranch(),
             request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
@@ -510,9 +534,10 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
-    public void installPlugin(String siteId, String pluginId, Version pluginVersion) throws MarketplaceException {
+    public void installPlugin(String siteId, String pluginId, Version pluginVersion, Map<String, String> parameters)
+            throws MarketplaceException {
         writeLock.lock();
-        List<String> changedFiles = null;
+        List<String> changedFiles = new LinkedList<>();
         try {
             if (isPluginAlreadyInstalled(siteId, pluginId)) {
                 throw new PluginAlreadyInstalledException(format("Plugin %s is already installed in site %s",
@@ -527,6 +552,13 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 throw new IncompatiblePluginException(
                         format("Plugin '%s' of type '%s' can't be installed", pluginId, marketplacePlugin.getType()));
             }
+
+            Path siteDir = getRepoDirectory(siteId);
+            String pluginIdPath = getPluginPath(marketplacePlugin.getId());
+
+            validatePluginParameters(marketplacePlugin, parameters);
+
+            createPluginConfig(siteDir, pluginIdPath, parameters, changedFiles);
 
             Path temp = Files.createTempDirectory("plugin-" + marketplacePlugin.getId());
             switch (marketplacePlugin.getSource()) {
@@ -544,20 +576,22 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 Plugin localPlugin = pluginDescriptorReader.read(is).getPlugin();
 
                 // Copy the required files from the temp directory into the site repo
-                List<FileRecord> files = copyPluginFiles(temp, siteId, localPlugin);
+                List<FileRecord> files = copyPluginFiles(temp, siteId, localPlugin, parameters);
 
-                changedFiles = files.stream()
-                                    .map(FileRecord::getPath)
-                                    .collect(toCollection(LinkedList::new));
+                List<ConfigRecord> wiring = new LinkedList<>();
+
+                files.stream()
+                    .map(FileRecord::getPath)
+                    .forEach(changedFiles::add);
 
                 // Wire plugin to the site configuration
-                performConfigurationWiring(localPlugin, siteId, changedFiles);
+                performConfigurationWiring(localPlugin, siteId, changedFiles, wiring);
 
                 // Wire plugin to the freemarker hooks
                 performTemplateWiring(localPlugin, siteId, files, changedFiles);
 
                 // Update the plugin registry
-                addPluginToRegistry(siteId, localPlugin, files);
+                addPluginToRegistry(siteId, localPlugin, files, wiring);
                 changedFiles.add(pluginRegistryPath);
 
                 // Commit all changes
@@ -576,7 +610,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 }
             }
         } catch (IOException | TransformerException | ServiceLayerException | DocumentException | GitAPIException |
-                 PluginException e) {
+                 PluginException | org.apache.commons.configuration2.ex.ConfigurationException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -617,7 +651,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         }
     }
 
-    protected List<FileRecord> copyPluginFiles(Path pluginDir, String siteId, Plugin plugin)
+    protected List<FileRecord> copyPluginFiles(Path pluginDir, String siteId, Plugin plugin, Map<String, String> params)
         throws IOException {
         logger.info("Copying files from plugin {0} v{1} for site {2}", plugin.getId(), plugin.getVersion(), siteId);
         List<FileRecord> files = new LinkedList<>();
@@ -632,14 +666,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 Files.createDirectories(target);
 
                 Files.walkFileTree(source,
-                        new PluginTreeCopier(source, target, studioConfiguration, siteId, files, true));
+                        new PluginTreeCopier(source, target, studioConfiguration, siteId, params, files, true));
             }
         }
 
         return files;
     }
 
-    protected void addPluginToRegistry(String siteId, Plugin plugin, List<FileRecord> files)
+    protected void addPluginToRegistry(String siteId, Plugin plugin, List<FileRecord> files, List<ConfigRecord> wiring)
             throws MarketplaceRegistryException, IOException {
         PluginRecord record = new PluginRecord();
         record.setId(plugin.getId());
@@ -648,6 +682,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         record.setPluginUrl(plugin.getWebsite().getUrl());
         record.setInstallationDate(Instant.now());
         record.setFiles(files);
+        record.setConfig(wiring);
 
         PluginRegistry registry = getPluginRegistry(siteId);
         registry.getPlugins().add(record);
@@ -682,7 +717,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
-    public void copyPlugin(String siteId, String localPath) throws MarketplaceException {
+    public void copyPlugin(String siteId, String localPath, Map<String, String> parameters)
+            throws MarketplaceException {
         Path pluginFolder = Path.of(localPath);
         if (!Files.exists(pluginFolder)) {
             throw new PluginInstallationException("The provided path does not exist: " + localPath);
@@ -691,7 +727,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             throw new PluginInstallationException("The provided path is not a folder: " + localPath);
         }
 
-        List<String> changedFiles = null;
+        List<String> changedFiles = new LinkedList<>();
 
         try {
             logger.info("Copying plugin from {0} to site {1}", localPath, siteId);
@@ -699,44 +735,47 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             try (InputStream is = Files.newInputStream(descriptorFile)) {
                 PluginDescriptor descriptor = pluginDescriptorReader.read(is);
                 Plugin plugin = descriptor.getPlugin();
+                Path siteDir = getRepoDirectory(siteId);
+                String pluginIdPath = getPluginPath(plugin.getId());
+
+                validatePluginParameters(plugin, parameters);
+
+                createPluginConfig(siteDir, pluginIdPath, parameters, changedFiles);
+
                 var files = new LinkedList<FileRecord>();
 
                 logger.info("Copying files from plugin {0} v{1} for site {2}",
                         plugin.getId(), plugin.getVersion(), siteId);
-                Path siteDir = getRepoDirectory(siteId);
-                try (Git git = Git.open(siteDir.toFile())) {
-                    String pluginIdPath = getPluginPath(plugin.getId());
 
-                    for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
-                        var rootFolder = join(File.separator, mapping.getValue(), pluginsFolder);
-                        Path source = pluginFolder.resolve(
-                                join(File.separator, mapping.getKey(), pluginsFolder, pluginIdPath));
-                        if (Files.exists(source)) {
-                            Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
-                            Files.createDirectories(target);
+                for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
+                    var rootFolder = join(File.separator, mapping.getValue(), pluginsFolder);
+                    Path source = pluginFolder.resolve(
+                            join(File.separator, mapping.getKey(), pluginsFolder, pluginIdPath));
+                    if (Files.exists(source)) {
+                        Path target = siteDir.resolve(rootFolder).resolve(pluginIdPath);
+                        Files.createDirectories(target);
 
-                            Files.walkFileTree(source,
-                                    new PluginTreeCopier(source, target, studioConfiguration, siteId, files, false));
-                        }
+                        Files.walkFileTree(source, new PluginTreeCopier(source, target, studioConfiguration, siteId,
+                                parameters, files, false));
                     }
-
-                    changedFiles = files.stream()
-                                        .map(FileRecord::getPath)
-                                        .collect(toCollection(LinkedList::new));
-
-                    // Wire plugin to the site configuration
-                    performConfigurationWiring(plugin, siteId, changedFiles);
-
-                    // Wire plugin to the freemarker hooks
-                    performTemplateWiring(plugin, siteId, files, changedFiles);
-
-                    // Commit al changes
-                    commitChanges(siteId, changedFiles, false, false,
-                            format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()));
-
-                    logger.info("Copy of plugin {0} v{1} completed for site {2}",
-                            plugin.getId(), plugin.getVersion(), siteId);
                 }
+
+                files.stream()
+                        .map(FileRecord::getPath)
+                        .forEach(changedFiles::add);
+
+                // Wire plugin to the site configuration
+                performConfigurationWiring(plugin, siteId, changedFiles, null);
+
+                // Wire plugin to the freemarker hooks
+                performTemplateWiring(plugin, siteId, files, changedFiles);
+
+                // Commit al changes
+                commitChanges(siteId, changedFiles, false, false,
+                        format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()));
+
+                logger.info("Copy of plugin {0} v{1} completed for site {2}",
+                        plugin.getId(), plugin.getVersion(), siteId);
             }
         } catch (Exception e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
@@ -746,6 +785,9 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     throw new PluginInstallationException("Error during rollback for plugin removal", e2);
                 }
             }
+            if (e instanceof MissingPluginParameterException) {
+                throw (MissingPluginParameterException) e;
+            }
             throw new PluginInstallationException("Error copying plugin from " + localPath, e);
         }
     }
@@ -754,7 +796,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public void removePlugin(String siteId, String pluginId, boolean force) throws ServiceLayerException {
         logger.debug("Starting removal of plugin {0} from site {1}", pluginId, siteId);
         Optional<PluginRecord> record = getPluginRecord(siteId, pluginId);
-        // if the plugin is not installed do nothing
+        // if the plugin is not installed do anything
         if (record.isEmpty()) {
             logger.debug("Plugin {0} is not installed in site {1}, nothing to do", pluginId, siteId);
             return;
@@ -768,14 +810,17 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     format("Plugin %s in site %s is in used by one or more items", pluginId, siteId));
         }
 
-        // otherwise start the removal process
+        // otherwise, start the removal process
         writeLock.lock();
         List<String> changedFiles = new LinkedList<>();
         try {
             Path repoDir = getRepoDirectory(siteId);
 
+            // Remove configuration file
+            removePluginConfig(repoDir, pluginId, changedFiles);
+
             // Remove wiring from the site configuration
-            removeConfigurationWiring(pluginId, siteId, changedFiles);
+            removeConfigurationWiring(pluginId, siteId, changedFiles, record.get().getConfig());
 
             // Remove wiring from the freemarker hooks
             removeTemplateWiring(pluginId, siteId, changedFiles);
@@ -810,6 +855,57 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         }
     }
 
+
+
+    @Override
+    public HierarchicalConfiguration<?> getPluginConfiguration(String siteId, String pluginId)
+            throws ConfigurationException {
+        return configurationService.getXmlConfiguration(siteId,
+                                                        getPluginConfigurationPath(studioConfiguration, pluginId));
+    }
+
+    @Override
+    public String getPluginConfigurationAsString(String siteId, String pluginId) {
+        return configurationService.getConfigurationAsString(siteId, pluginConfigModule,
+                getPluginPath(pluginId) + File.separator + pluginConfigFilename, null);
+    }
+
+    @Override
+    public void writePluginConfiguration(String siteId, String pluginId, String content)
+            throws UserNotFoundException, ServiceLayerException {
+        configurationService.writeConfiguration(siteId, pluginConfigModule,
+                getPluginPath(pluginId) + File.separator + pluginConfigFilename, null,
+                IOUtils.toInputStream(content, UTF_8));
+    }
+
+    protected void createPluginConfig(Path siteDir, String pluginId, Map<String, String> parameters,
+                                      List<String> changedFiles) throws IOException,
+            org.apache.commons.configuration2.ex.ConfigurationException {
+        XMLConfiguration config = new XMLConfiguration();
+
+        if (MapUtils.isNotEmpty(parameters)) {
+            config.setRootElementName("config");
+            parameters.forEach(config::addProperty);
+        }
+
+        String configPath = removeStart(getPluginConfigurationPath(studioConfiguration, pluginId), File.separator);
+        Path configFile = siteDir.resolve(configPath);
+        Files.createDirectories(configFile.getParent());
+        try (Writer writer = Files.newBufferedWriter(configFile, CREATE)) {
+            config.write(writer);
+        }
+        changedFiles.add(configPath);
+    }
+
+    protected void removePluginConfig(Path siteDir, String pluginId,
+                                      List<String> changedFiles) throws IOException{
+
+        String configPath = removeStart(getPluginConfigurationPath(studioConfiguration, pluginId), File.separator);
+        Path configFile = siteDir.resolve(configPath);
+        Files.deleteIfExists(configFile);
+        changedFiles.add(configPath);
+    }
+
     protected Optional<PluginRecord> getPluginRecord(String siteId, String pluginId)
             throws MarketplaceRegistryException {
         // get the plugins from the registry
@@ -825,7 +921,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         Set<String> dependantItems = new TreeSet<>();
         List<String> contentTypePaths = record.get().getFiles().stream()
                 .map(FileRecord::getPath)
-                .map(p -> prependIfMissing(p, "/" ))
+                .map(p -> prependIfMissing(p, File.separator))
                 .filter(contentTypeRegex.asMatchPredicate())
                 .collect(toList());
 
@@ -880,7 +976,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         }
     }
 
-    protected void performConfigurationWiring(Plugin plugin, String siteId, List<String> changedFiles) throws
+    protected void performConfigurationWiring(Plugin plugin, String siteId, List<String> changedFiles,
+                                              List<ConfigRecord> wiring) throws
             TransformerException, IOException, ServiceLayerException, DocumentException {
         if (CollectionUtils.isNotEmpty(plugin.getInstallation())) {
             logger.info("Starting wiring for plugin {0} in site {1}", plugin.getId(), siteId);
@@ -907,10 +1004,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     Document document = DocumentHelper.parseText(config);
 
                     // check if the wiring has already been performed
-                    if (document.selectSingleNode(installation.getTestXpath()) != null) {
+                    if (document.selectSingleNode(installation.getElementXpath()) != null) {
                         logger.info("Wiring of type: {0} was already performed for plugin: {1}",
                                 installation.getType(), plugin.getId());
                         continue;
+                    }
+
+                    if (wiring != null) {
+                        wiring.add(ConfigRecord.from(installation));
                     }
 
                     // merge the new XML with the existing configuration (to avoid invalid XML)
@@ -922,7 +1023,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                         // if there is more than one child just add the new XML as a sibling
                         List<Node> children = docRoot.selectNodes(root.getName());
                         if (CollectionUtils.isNotEmpty(children) && children.size() == 1) {
-                            parentXpath += "/" + root.getName();
+                            parentXpath += File.separator + root.getName();
                             root = root.getChildren().get(0);
                             docRoot = children.get(0);
                         } else {
@@ -932,9 +1033,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
                     logger.info("Wiring widget of type {0}", installation.getType());
                     Element element = buildXml(root);
-
-                    // add the attribute used to remove
-                    element.addAttribute(WIRING_ATTR_NAME, plugin.getId());
 
                     String newXml = element.asXML();
                     logger.debug("New configuration: {0}", newXml);
@@ -976,10 +1074,6 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             String actualPath = replace(mapping.getValue(), Map.of(PARAM_PLUGIN_PATH, pluginPath));
             addIncludeIfNeeded(siteId, paths, mapping.getKey(), pluginIdComment, actualPath, changedFiles);
         }
-    }
-
-    protected String getPluginPath(String pluginId) {
-        return pluginId.replaceAll("\\.", "/");
     }
 
     protected void addIncludeIfNeeded(String siteId, List<String> paths, String includePath, String includeComment,
@@ -1053,42 +1147,46 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         logger.info("Completed removal of template wiring for plugin {0} in site {1}", pluginId, siteId);
     }
 
-    protected void removeConfigurationWiring(String pluginId, String siteId, List<String> changedFiles) throws
+    protected void removeConfigurationWiring(String pluginId, String siteId, List<String> changedFiles,
+                                             List<ConfigRecord> changedConfigurations) throws
             IOException, TransformerException {
-            logger.info("Removing configuration wiring for plugin {0} in site {1}", pluginId, siteId);
+            if (CollectionUtils.isNotEmpty(changedConfigurations)) {
+                logger.info("Removing configuration wiring for plugin {0} in site {1}", pluginId, siteId);
 
-            for (HierarchicalConfiguration<?> mapping : widgetMapping.childConfigurationsAt(EMPTY)) {
-                String module = mapping.getString(MODULE_CONFIG_KEY);
-                String filePath = mapping.getString(PATH_CONFIG_KEY);
-                String configPath = getConfigurationPath(module, filePath);
+                for (ConfigRecord record : changedConfigurations) {
+                    HierarchicalConfiguration<?> mapping = widgetMapping.configurationAt(record.getType());
+                    String module = mapping.getString(MODULE_CONFIG_KEY);
+                    String filePath = mapping.getString(PATH_CONFIG_KEY);
+                    String configPath = getConfigurationPath(module, filePath);
 
-                // load the existing configuration
-                Path repo = getRepoDirectory(siteId);
-                Path configFile = repo.resolve(configPath);
+                    // load the existing configuration
+                    Path repo = getRepoDirectory(siteId);
+                    Path configFile = repo.resolve(configPath);
 
-                String configContent = Files.readString(configFile);
-                if (contains(configContent, pluginId)) {
-                    Map<String, Object> params = Map.of(PARAM_PLUGIN_ID, pluginId);
+                    String configContent = Files.readString(configFile);
+                    Map<String, Object> params = Map.of("elementXpath", record.getElementXpath());
 
                     try (InputStream templateIs = widgetRemoveTemplate.getInputStream()) {
+                        String templateContent = IOUtils.toString(templateIs, UTF_8);
+                        templateContent = StringSubstitutor.replace(templateContent, params);
+
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        executeTemplate(templateIs, params, null, toInputStream(configContent, UTF_8), out);
+                        XsltUtils.executeTemplate(toInputStream(templateContent, UTF_8), null, null,
+                                                  toInputStream(configContent, UTF_8), out);
 
                         Files.write(configFile, out.toByteArray());
                         changedFiles.add(configPath);
                     }
                 }
 
-
+                logger.info("Completed removal of configuration wiring for plugin {0} in site {1}", pluginId, siteId);
             }
-
-            logger.info("Completed removal of configuration wiring for plugin {0} in site {1}", pluginId, siteId);
     }
 
     protected String getConfigurationPath(String module, String filePath) {
         String basePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
                                              .replaceAll(PATTERN_MODULE, module);
-        return Path.of(removeStart(basePath, "/"), filePath).toString();
+        return Path.of(removeStart(basePath, File.separator), filePath).toString();
     }
 
     

@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v2.service.scripting;
 
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,7 +42,7 @@ public interface ScriptingService {
      * @throws ScriptException if there is any error executing the script
      */
     Object executeRestScript(String siteId, String path, HttpServletRequest request, HttpServletResponse response)
-            throws ResourceException, ScriptException;
+            throws ResourceException, ScriptException, ConfigurationException;
 
     /**
      * Reloads the classpath for the given site

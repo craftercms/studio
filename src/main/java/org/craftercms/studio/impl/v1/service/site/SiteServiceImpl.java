@@ -163,6 +163,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
 
 /**
  * Note: consider renaming
@@ -268,7 +269,8 @@ public class SiteServiceImpl implements SiteService {
         }
 
         logger.debug("Validating blueprint parameters");
-        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+        validatePluginParameters(descriptor.getPlugin(), params);
+
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
 
         logger.debug("Validate site entitlements");
@@ -1081,7 +1083,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
-                                        boolean generateAuditLog) throws ServiceLayerException, UserNotFoundException {
+                                        boolean generateAuditLog) {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
         long startSyncRepoMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;

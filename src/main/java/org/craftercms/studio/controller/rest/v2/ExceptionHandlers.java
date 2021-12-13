@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
 import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
@@ -54,6 +55,7 @@ import org.craftercms.studio.api.v2.exception.configuration.InvalidConfiguration
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
+import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -154,6 +156,26 @@ public class ExceptionHandlers {
     public ResponseBody handlePluginAlreadyInstalledException(HttpServletRequest request,
                                                               PluginAlreadyInstalledException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_ALREADY_INSTALLED);
+        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(MissingPluginParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleMissingPluginParameterException(HttpServletRequest request,
+                                                              MissingPluginParameterException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
+        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PluginInstallationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handlePluginInstallationException(HttpServletRequest request,
+                                                              PluginInstallationException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
         response.setMessage(response.getMessage() + ": "+ e.getMessage());
 
         return handleExceptionInternal(request, e, response);

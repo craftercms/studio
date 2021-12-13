@@ -177,7 +177,7 @@ public class MarketplaceServiceInternalImplTest {
             Plugin plugin = MAPPER.readValue(pluginContent, Plugin.class);
 
             // execute the wiring
-            marketplaceService.performConfigurationWiring(plugin, SITE_ID, emptyList());
+            marketplaceService.performConfigurationWiring(plugin, SITE_ID, emptyList(), null);
 
             if (shouldUpdate) {
                 // check that the right service was called

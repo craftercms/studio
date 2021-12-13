@@ -17,8 +17,6 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
-    <xsl:param name="pluginId"/>
-
     <!-- to keep the right formatting -->
     <xsl:output method="xml" indent="yes" />
     <xsl:strip-space elements="*"/>
@@ -39,7 +37,7 @@
     </xsl:template>
 
     <!-- Remove any element autowired for the given plugin id -->
-    <xsl:template match="//*[@autoWiredFrom=$pluginId]">
+    <xsl:template match="${elementXpath}">
         <!-- Empty to remove the whole element -->
     </xsl:template>
 

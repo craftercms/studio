@@ -18,12 +18,21 @@ package org.craftercms.studio.impl.v2.service.scripting.internal;
 import groovy.lang.Binding;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.RegExUtils;
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.spring.context.RestrictedApplicationContext;
 import org.craftercms.engine.util.spring.ApplicationContextAccessor;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
+import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.SandboxInterceptor;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
@@ -33,6 +42,9 @@ import org.springframework.context.ApplicationContextAware;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.beans.ConstructorProperties;
+import java.io.File;
+
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
 
 /**
  * Default implementation of {@link ScriptingServiceInternal}
@@ -44,6 +56,14 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
         InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptingServiceInternalImpl.class);
+
+    public static final String KEY_SITE_ID = "siteId";
+
+    public static final String KEY_PARAMS = "params";
+
+    public static final String KEY_PLUGIN_ID = "pluginId";
+
+    public static final String KEY_PLUGIN_CONFIG = "pluginConfig";
 
     public static final String KEY_REQUEST = "request";
 
@@ -69,17 +89,29 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
 
     protected ApplicationContextAccessor applicationContextAccessor;
 
+    protected MarketplaceService marketplaceService;
+
+    protected ContentService contentService;
+
+    protected StudioConfiguration studioConfiguration;
+
     @ConstructorProperties({"scriptEngineManager", "sandboxInterceptor", "scriptExtension", "scriptPathFormat",
-            "enableVariableRestrictions", "allowedBeans"})
+            "enableVariableRestrictions", "allowedBeans", "marketplaceService", "contentService",
+            "studioConfiguration"})
     public ScriptingServiceInternalImpl(ScriptEngineManager scriptEngineManager, SandboxInterceptor sandboxInterceptor,
                                         String scriptExtension, String scriptPathFormat,
-                                        boolean enableVariableRestrictions, String[] allowedBeans) {
+                                        boolean enableVariableRestrictions, String[] allowedBeans,
+                                        MarketplaceService marketplaceService, ContentService contentService,
+                                        StudioConfiguration studioConfiguration) {
         this.scriptEngineManager = scriptEngineManager;
         this.sandboxInterceptor = sandboxInterceptor;
         this.scriptExtension = scriptExtension;
         this.scriptPathFormat = scriptPathFormat;
         this.enableVariableRestrictions = enableVariableRestrictions;
         this.allowedBeans = allowedBeans;
+        this.marketplaceService = marketplaceService;
+        this.contentService = contentService;
+        this.studioConfiguration = studioConfiguration;
     }
 
     @Override
@@ -88,7 +120,7 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         if (enableVariableRestrictions) {
             applicationContextAccessor = new ApplicationContextAccessor(
                     new RestrictedApplicationContext(applicationContext, allowedBeans));
@@ -99,7 +131,8 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
 
     @Override
     public Object executeRestScript(String siteId, String scriptUrl, HttpServletRequest request,
-                                    HttpServletResponse response) throws ResourceException, ScriptException {
+                                    HttpServletResponse response) throws ResourceException, ScriptException,
+                                                                         ConfigurationException {
 
         // Get the method of the request
         var requestMethod = request.getMethod().toLowerCase();
@@ -115,7 +148,7 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
         }
         try {
             // Execute the script and return the result
-            return scriptEngine.run(scriptPath, createBinding(request, response));
+            return scriptEngine.run(scriptPath, createBinding(siteId, scriptPath, request, response));
         } finally {
             if (sandboxInterceptor != null) {
                 sandboxInterceptor.unregister();
@@ -124,18 +157,48 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
 
     }
 
-    protected Binding createBinding(HttpServletRequest request, HttpServletResponse response) {
-        var binding = new Binding();
+    protected Binding createBinding(String siteId, String scriptUrl, HttpServletRequest request,
+                                    HttpServletResponse response) throws ConfigurationException {
+        Binding binding = new Binding();
+        binding.setVariable(KEY_SITE_ID, siteId);
+        binding.setVariable(KEY_PARAMS, HttpUtils.createRequestParamsMap(request));
         binding.setVariable(KEY_REQUEST, request);
         binding.setVariable(KEY_RESPONSE, response);
         binding.setVariable(KEY_LOGGER, logger);
         binding.setVariable(KEY_APP_CONTEXT, applicationContextAccessor);
+
+        String pluginId = getPluginId(siteId, scriptUrl);
+        binding.setVariable(KEY_PLUGIN_ID, pluginId);
+
+        Configuration pluginConfig = getPluginConfiguration(siteId, pluginId);
+        binding.setVariable(KEY_PLUGIN_CONFIG,  pluginConfig);
+
         return binding;
     }
 
     @Override
     public void reload(String siteId) {
         scriptEngineManager.reloadScriptEngine(siteId);
+    }
+
+    protected String getPluginId(String siteId, String scriptUrl) {
+        String pluginId = null;
+        String path = scriptUrl;
+        boolean idFound = false;
+        while (!idFound && StringUtils.isNotEmpty(path)) {
+            path = FilenameUtils.getPathNoEndSeparator(path);
+            pluginId = RegExUtils.replaceAll(path, File.separator, ".");
+            idFound = contentService.contentExists(siteId, getPluginConfigurationPath(studioConfiguration, pluginId));
+        }
+        if (idFound) {
+            return pluginId;
+        }
+
+        return null;
+    }
+
+    protected Configuration getPluginConfiguration(String siteId, String pluginId) throws ConfigurationException {
+        return marketplaceService.getPluginConfiguration(siteId, pluginId);
     }
 
 }
