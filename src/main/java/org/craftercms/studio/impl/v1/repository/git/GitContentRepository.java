@@ -142,6 +142,7 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.context.ServletContextAware;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -925,6 +926,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     /**
      * bootstrap the repository
      */
+    @Order(1)
     @EventListener(ContextRefreshedEvent.class)
     public void bootstrap() throws Exception {
         logger.debug("Bootstrap global repository.");

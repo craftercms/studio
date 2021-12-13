@@ -50,7 +50,7 @@ public class BootstrapManager implements SystemStatusProvider {
     }
 
     // the condition is needed to avoid a repeated event from a child app context
-    @Order
+    @Order(2)
     @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
     public Object onContextRefresh() {
         logger.info("Beans created and ready to be used");
