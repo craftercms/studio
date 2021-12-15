@@ -302,7 +302,7 @@ public class ContentController {
         ResponseBody responseBody = new ResponseBody();
         if (CollectionUtils.isEmpty(sandboxItems)) {
             Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);;
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
             apiResponse.setRemedialAction(
                     String.format("None of the requested content paths were found in site '%s'", siteId));
             result.setResponse(apiResponse);
@@ -317,7 +317,7 @@ public class ContentController {
             Collection<String> missing = CollectionUtils.subtract(paths, found);
             String missingPaths = missing.stream().collect(Collectors.joining(", "));
             Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);;
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
             apiResponse.setRemedialAction(
                     String.format("The following content paths [%s] were not found in site '%s'", missingPaths, siteId));
             result.setResponse(apiResponse);
@@ -347,7 +347,7 @@ public class ContentController {
         ResponseBody responseBody = new ResponseBody();
         if (CollectionUtils.isEmpty(sandboxItems)) {
             Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);;
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
             apiResponse.setRemedialAction(
                     String.format("None of sent content ids was found. Check that they are correct and it exist in " +
                             "site '%s'", siteId));
@@ -362,7 +362,7 @@ public class ContentController {
             Collection<Long> missing = CollectionUtils.subtract(ids, found);
             String missingIds = missing.stream().map(String::valueOf).collect(Collectors.joining(", "));
             Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);;
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
             apiResponse.setRemedialAction(
                     String.format("Following content ids [%s] were not found. Check that they are correct and it " +
                             "exist in site '%s'", missingIds, siteId));
