@@ -16,7 +16,7 @@
 
 ALTER TABLE `item` DROP FOREIGN KEY IF EXISTS `item_ix_owned_by` ;
 
-ALTER TABLE `item` CHANGE COLUMN `owned_by` `locked_by` BIGINT NULL ;
+ALTER TABLE `item` CHANGE COLUMN IF EXISTS `owned_by` `locked_by` BIGINT NULL ;
 
 ALTER TABLE `item` ADD FOREIGN KEY IF NOT EXISTS item_ix_locked_by(`locked_by`) REFERENCES `user` (`id`) ;
 
