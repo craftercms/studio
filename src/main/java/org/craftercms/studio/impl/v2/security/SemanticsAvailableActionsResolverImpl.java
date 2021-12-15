@@ -155,6 +155,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             result = result & ~CONTENT_DELETE;
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
+            result = result & ~CONTENT_DUPLICATE;
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
