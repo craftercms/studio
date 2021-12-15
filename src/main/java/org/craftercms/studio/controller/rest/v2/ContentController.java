@@ -304,8 +304,7 @@ public class ContentController {
             Result result = new Result();
             ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);;
             apiResponse.setRemedialAction(
-                    String.format("None of sent content paths was found. Check that they are correct and the exist in" +
-                            " site '%s'", siteId));
+                    String.format("None of the requested content paths were found in site '%s'", siteId));
             result.setResponse(apiResponse);
             responseBody.setResult(result);
             httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
@@ -320,8 +319,7 @@ public class ContentController {
             Result result = new Result();
             ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);;
             apiResponse.setRemedialAction(
-                    String.format("Following content paths [%s] were not found. Check that they are correct and it " +
-                            "exist in site '%s'", missingPaths, siteId));
+                    String.format("The following content paths [%s] were not found in site '%s'", missingPaths, siteId));
             result.setResponse(apiResponse);
             responseBody.setResult(result);
             httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
