@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -27,6 +29,7 @@ import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -56,14 +59,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_COMMIT_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
@@ -91,6 +99,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
+import static org.craftercms.studio.model.rest.ApiResponse.CONTENT_NOT_FOUND;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -280,34 +289,92 @@ public class ContentController {
     }
 
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
+    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request,
+                                              HttpServletResponse httpServletResponse)
             throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(request.getSiteId())) {
+        String siteId = request.getSiteId();
+        if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(request.getSiteId());
         }
-        List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(
-                request.getSiteId(), request.getPaths(), request.isPreferContent());
+        List<String> paths = request.getPaths();
+        boolean preferContent = request.isPreferContent();
+        List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
         ResponseBody responseBody = new ResponseBody();
-        ResultList<SandboxItem> result = new ResultList<SandboxItem>();
-        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
-        result.setResponse(OK);
-        responseBody.setResult(result);
+        if (CollectionUtils.isEmpty(sandboxItems)) {
+            Result result = new Result();
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
+            apiResponse.setRemedialAction(
+                    String.format("None of the requested content paths were found in site '%s'", siteId));
+            result.setResponse(apiResponse);
+            responseBody.setResult(result);
+            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        } else if (paths.size() != sandboxItems.size()) {
+            List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
+            if (preferContent) {
+                found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
+                        FILE_SEPARATOR + INDEX_FILE, "")).collect(Collectors.toList()));
+            }
+            Collection<String> missing = CollectionUtils.subtract(paths, found);
+            String missingPaths = missing.stream().collect(Collectors.joining(", "));
+            Result result = new Result();
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
+            apiResponse.setRemedialAction(
+                    String.format("The following content paths [%s] were not found in site '%s'", missingPaths, siteId));
+            result.setResponse(apiResponse);
+            responseBody.setResult(result);
+            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        } else {
+            ResultList<SandboxItem> result = new ResultList<SandboxItem>();
+            result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+            result.setResponse(OK);
+            responseBody.setResult(result);
+        }
         return responseBody;
     }
 
     @PostMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequestBody request)
+    public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequestBody request,
+                                            HttpServletResponse httpServletResponse)
             throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
         }
-        List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(
-                request.getSiteId(), request.getIds(), request.isPreferContent());
+        List<Long> ids = request.getIds();
+        String siteId = request.getSiteId();
+        boolean preferContent = request.isPreferContent();
+        List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(siteId, ids, preferContent);
+
         ResponseBody responseBody = new ResponseBody();
-        ResultList<SandboxItem> result = new ResultList<SandboxItem>();
-        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
-        result.setResponse(OK);
-        responseBody.setResult(result);
+        if (CollectionUtils.isEmpty(sandboxItems)) {
+            Result result = new Result();
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
+            apiResponse.setRemedialAction(
+                    String.format("None of sent content ids was found. Check that they are correct and it exist in " +
+                            "site '%s'", siteId));
+            result.setResponse(apiResponse);
+            responseBody.setResult(result);
+            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        } else if (ids.size() != sandboxItems.size()) {
+            List<Long> found = sandboxItems.stream().map(SandboxItem::getId).collect(Collectors.toList());
+            if (preferContent) {
+                found.addAll(sandboxItems.stream().map(SandboxItem::getParentId).collect(Collectors.toList()));
+            }
+            Collection<Long> missing = CollectionUtils.subtract(ids, found);
+            String missingIds = missing.stream().map(String::valueOf).collect(Collectors.joining(", "));
+            Result result = new Result();
+            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
+            apiResponse.setRemedialAction(
+                    String.format("Following content ids [%s] were not found. Check that they are correct and it " +
+                            "exist in site '%s'", missingIds, siteId));
+            result.setResponse(apiResponse);
+            responseBody.setResult(result);
+            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
+        } else {
+            ResultList<SandboxItem> result = new ResultList<SandboxItem>();
+            result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+            result.setResponse(OK);
+            responseBody.setResult(result);
+        }
         return responseBody;
     }
 
