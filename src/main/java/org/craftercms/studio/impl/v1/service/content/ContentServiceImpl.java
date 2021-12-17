@@ -131,7 +131,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_MODEL;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REVERT;
@@ -1421,7 +1421,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         ZonedDateTime now = ZonedDateTime.now();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_MODEL);
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_WORKFLOW_WITH_TZ);
         String nowFormatted = now.format(DateTimeFormatter.ofPattern(sdf.toPattern()));
 
         Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
