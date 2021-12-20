@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,7 +29,6 @@ public class DmXmlConstants {
     public static final String ELM_FOLDER_NAME = "folder-name";
     public static final String ELM_CONTENT_TYPE = StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
     public static final String ELM_DISPLAY_TEMPLATE = StudioXmlConstants.DOCUMENT_ELM_DISPLAY_TEMPLATE;
-    public static final String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";
     public static final String ELM_LAST_MODIFIED_BY = "lastModifiedBy";
     public static final String ELM_NAVIGATION = "navigation";
     public static final String ELM_ORDER = "order";
@@ -44,4 +43,8 @@ public class DmXmlConstants {
     public static final String ELM_PAGE_ID = "objectId";
     public static final String ELM_GROUP_ID= "objectGroupId";
     public static final String ELM_SKIP_DEPENDENCIES = "skipDependencies";
+    public final static String ELM_CREATED_DATE = "createdDate";
+    public final static String ELM_CREATED_DATE_DT = "createdDate_dt";
+    public final static String ELM_LAST_MODIFIED_DATE = "lastModifiedDate";
+    public final static String ELM_LAST_MODIFIED_DATE_DT = "lastModifiedDate_dt";
 }

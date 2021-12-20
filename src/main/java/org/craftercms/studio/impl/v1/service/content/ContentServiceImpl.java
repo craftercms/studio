@@ -17,6 +17,9 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -105,6 +108,17 @@ import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE_DT;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_FILE_NAME;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_FOLDER_NAME;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_GROUP_ID;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_LAST_MODIFIED_DATE;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_LAST_MODIFIED_DATE_DT;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
@@ -117,6 +131,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REVERT;
@@ -788,12 +803,12 @@ public class ContentServiceImpl implements ContentService {
 
                                 // try a simple substitution
                                 copyDepPath = copyDepPath.replaceAll(
-                                        fromPageIds.get(DmConstants.KEY_PAGE_ID),
-                                        copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+                                        fromPageIds.get(KEY_PAGE_ID),
+                                        copyObjectIds.get(KEY_PAGE_ID));
 
                                 copyDepPath = copyDepPath.replaceAll(
-                                        fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
-                                        copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+                                        fromPageIds.get(KEY_PAGE_GROUP_ID),
+                                        copyObjectIds.get(KEY_PAGE_GROUP_ID));
 
                                 ContentItemTO targetPathItem = getContentItem(site, copyDepPath);
                                 if (targetPathItem != null && targetPathItem.isFolder()) {
@@ -1234,7 +1249,7 @@ public class ContentServiceImpl implements ContentService {
             logger.debug("File already found at path {0}, creating new name", proposedDestPath);
             try {
                 Map<String,String> ids = contentItemIdGenerator.getIds();
-                String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+                String id = ids.get(KEY_PAGE_GROUP_ID);
 
                 if(proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
                     int pdpli = proposedDestPath.lastIndexOf(".");
@@ -1326,14 +1341,14 @@ public class ContentServiceImpl implements ContentService {
         Map<String, String> ids = new HashMap<String, String>();
         if (document != null) {
             Element root = document.getRootElement();
-            Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+            Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
             if (pageIdNode != null) {
-                ids.put(DmConstants.KEY_PAGE_ID, ((Element) pageIdNode).getText());
+                ids.put(KEY_PAGE_ID, ((Element) pageIdNode).getText());
             }
 
-            Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+            Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
             if (groupIdNode != null) {
-                ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
+                ids.put(KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
             }
         }
         return ids;
@@ -1349,42 +1364,42 @@ public class ContentServiceImpl implements ContentService {
         String originalPageId = null;
         String originalGroupId = null;
 
-        Node filenameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FILE_NAME);
+        Node filenameNode = root.selectSingleNode("//" + ELM_FILE_NAME);
         if (filenameNode != null) {
             filenameNode.setText(filename);
         }
 
-        Node folderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FOLDER_NAME);
+        Node folderNode = root.selectSingleNode("//" + ELM_FOLDER_NAME);
         if (folderNode != null) {
             folderNode.setText(folder);
         }
 
-        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+        Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
         if (pageIdNode != null) {
             originalPageId = pageIdNode.getText();
-            pageIdNode.setText(params.get(DmConstants.KEY_PAGE_ID));
+            pageIdNode.setText(params.get(KEY_PAGE_ID));
         }
 
         if(modifier != null) {
-            Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
+            Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
                 String internalNameValue = internalNameNode.getText();
                 internalNameNode.setText(internalNameValue + " " + modifier);
             }
         }
 
-        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+        Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
         if (groupIdNode != null) {
             originalGroupId = groupIdNode.getText();
-            groupIdNode.setText(params.get(DmConstants.KEY_PAGE_GROUP_ID));
+            groupIdNode.setText(params.get(KEY_PAGE_GROUP_ID));
         }
 
         List<Node> keys = root.selectNodes("//key");
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1396,13 +1411,37 @@ public class ContentServiceImpl implements ContentService {
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);
                 }
             }
+        }
+
+        ZonedDateTime now = ZonedDateTime.now();
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_WORKFLOW_WITH_TZ);
+        String nowFormatted = now.format(DateTimeFormatter.ofPattern(sdf.toPattern()));
+
+        Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
+        if (createdDateNode != null) {
+            createdDateNode.setText(nowFormatted);
+        }
+
+        Node createdDateDtNode = root.selectSingleNode("//" + ELM_CREATED_DATE_DT);
+        if (createdDateDtNode != null) {
+            createdDateDtNode.setText(nowFormatted);
+        }
+
+        Node lastModifiedDateNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE);
+        if (lastModifiedDateNode != null) {
+            lastModifiedDateNode.setText(nowFormatted);
+        }
+
+        Node lastModifiedDateDtNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE_DT);
+        if (lastModifiedDateDtNode != null) {
+            lastModifiedDateDtNode.setText(nowFormatted);
         }
 
         return document;
@@ -2502,7 +2541,7 @@ public class ContentServiceImpl implements ContentService {
 
         if (contentExists(site, targetPath)) {
             Map<String,String> ids = contentItemIdGenerator.getIds();
-            String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+            String id = ids.get(KEY_PAGE_GROUP_ID);
             targetPath += "-" + id;
         }
 
