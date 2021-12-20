@@ -43,6 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.beans.ConstructorProperties;
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
 
@@ -72,6 +74,8 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
     public static final String KEY_LOGGER = "logger";
 
     public static final String KEY_APP_CONTEXT = "applicationContext";
+
+    protected Pattern pattern = Pattern.compile(".*plugins/(.+)");
 
     protected ScriptEngineManager scriptEngineManager;
 
@@ -182,8 +186,13 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
     }
 
     protected String getPluginId(String siteId, String scriptUrl) {
+        Matcher matcher = pattern.matcher(scriptUrl);
+        if (!matcher.matches()) {
+            return null;
+        }
+
         String pluginId = null;
-        String path = scriptUrl;
+        String path = matcher.group(1);
         boolean idFound = false;
         while (!idFound && StringUtils.isNotEmpty(path)) {
             path = FilenameUtils.getPathNoEndSeparator(path);
