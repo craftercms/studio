@@ -84,6 +84,7 @@ public interface StudioConfiguration {
     String DB_DATA_PATH = "studio.db.dataPath";
     String DB_PORT = "studio.db.port";
     String DB_SOCKET = "studio.db.socket";
+    String DB_MAX_CONNECTIONS = "studio.db.maxConnections";
     String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
     String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
     String DB_SCRIPT_RUNNER_BUFFER_SIZE = "studio.db.scriptRunner.bufferSize";
