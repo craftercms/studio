@@ -43,7 +43,15 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_VALIDATION_QUERY)}" />
         <property name="validationQueryTimeout"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_VALIDATION_INTERVAL)}"/>
-
+        <property name="jmxName" value="org.apache.dbcp:DataSource=studio.dataSource"/>
+        <property name="removeAbandonedOnBorrow"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_ON_BORROW)}"/>
+        <property name="removeAbandonedTimeout"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_TIMEOUT)}"/>
+        <property name="removeAbandonedOnMaintenance"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_REMOVE_ABANDONED_ON_MAINTENANCE)}"/>
+        <property name="timeBetweenEvictionRunsMillis"
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_POOL_TIME_BETWEEN_EVICTION_RUNS_MILLIS)}"/>
     </bean>
 
     <bean id="transactionManager"
@@ -208,6 +216,7 @@
             <property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}" />
             <property name="driverClassName"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}" />
+            <property name="args"><list><value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value></list></property>
         </bean>
     </beans>
 

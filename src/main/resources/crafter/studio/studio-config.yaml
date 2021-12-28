@@ -470,6 +470,19 @@ studio.db.pool.maxIdleConnections: 30
 studio.db.pool.minIdleConnections: 10
 # Defines maximum waiting time for a database connection to become available (value is in milliseconds).
 studio.db.pool.maxWaitTime: 10000
+# Flags to remove abandoned connections if they exceed the removeAbandonedTimout.
+# If removeAbandonedOnBorrow is true, abandoned connections are removed each time a connection is borrowed from the pool, with the additional requirements that
+#    getNumActive() > getMaxTotal() - 3; and
+#    getNumIdle() < 2
+studio.db.pool.removeAbandonedOnBorrow: false
+# Timeout in seconds before an abandoned connection can be removed.
+studio.db.pool.removeAbandonedTimeout: 300
+# Setting removeAbandonedOnMaintenance to true removes abandoned connections on the maintenance cycle (when eviction ends).
+# This property has no effect unless maintenance is enabled by setting timeBetweenEvictionRunsMillis to a positive value
+studio.db.pool.removeAbandonedOnMaintenance: false
+# The number of milliseconds to sleep between runs of the idle object evictor thread.
+# When non-positive, no idle object evictor thread will be run.
+studio.db.pool.timeBetweenEvictionRunsMillis: -1
 # Turn database initializer on (value true) or off (value false).
 # When initializer is turned off, system will not try to initialize database on startup.
 # When system is starting for the first time initializer must be turned on.
@@ -504,6 +517,8 @@ studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+# Max DB connections for embedded database
+studio.db.maxConnections: 500
 # Max number of retries for retrying operation
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
