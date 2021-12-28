@@ -72,8 +72,10 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     @Override
     public void execute(File sqlScriptFile) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
-            connection = dataSource.getConnection();
-
+            if (Objects.isNull(connection)) {
+                openConnection();
+            }
+            boolean autoCommit = connection.getAutoCommit();
             connection.setAutoCommit(false);
 
             ScriptRunner scriptRunner = new ScriptRunner(connection);
@@ -102,6 +104,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
             }
 
             connection.commit();
+            connection.setAutoCommit(autoCommit);
         } catch (SQLException | IOException e) {
             logger.error("Error executing DB script", e);
             try {
