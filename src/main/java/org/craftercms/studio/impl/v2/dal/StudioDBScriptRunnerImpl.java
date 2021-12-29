@@ -51,7 +51,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 		if (Objects.isNull(connection)) {
 			try {
 				connection = dataSource.getConnection();
-				boolean autoCommit = connection.getAutoCommit();
+				autoCommit = connection.getAutoCommit();
 				connection.setAutoCommit(false);
 			} catch (SQLException throwables) {
 				logger.error("Failed to open connection with DB", throwables);
