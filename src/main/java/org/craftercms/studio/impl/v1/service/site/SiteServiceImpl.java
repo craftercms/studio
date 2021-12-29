@@ -424,8 +424,9 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Unexpected error during creation of items. User not found " + creator, e);
             return;
         }
+
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-        studioDBScriptRunner.openConnection();
+
         try {
             String createdFileScriptFilename = "createdFiles_" + UUID.randomUUID();
             Path createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, ".sql");
@@ -496,8 +497,6 @@ public class SiteServiceImpl implements SiteService {
             }
         } catch (IOException e) {
             logger.error("Error while creating db script file for processing created files for site " + siteId);
-        } finally {
-            studioDBScriptRunner.closeConnection();
         }
     }
 
@@ -1036,13 +1035,8 @@ public class SiteServiceImpl implements SiteService {
             toReturn = toReturn && success;
         }
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-        try {
-            studioDBScriptRunner.openConnection();
-            studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
-            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-        } finally {
-            studioDBScriptRunner.closeConnection();
-        }
+		studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
+		studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
 
         // At this point we have attempted to process all operations, some may have failed
         // We will update the lastCommitId of the database ignoring errors if any
@@ -1116,7 +1110,6 @@ public class SiteServiceImpl implements SiteService {
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         try {
-            studioDBScriptRunner.openConnection();
             String repoOperationsScriptFilename = "repoOperations_" + UUID.randomUUID();
             Path repoOperationsScriptPath = Files.createTempFile(repoOperationsScriptFilename, ".sql");
             String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
@@ -1127,9 +1120,8 @@ public class SiteServiceImpl implements SiteService {
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
         } catch (IOException e) {
             logger.error("Error while creating DB script file for processing created files for site " + site);
-        } finally {
-            studioDBScriptRunner.closeConnection();
         }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }

@@ -39,6 +39,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     protected DataSource dataSource;
     protected int scriptLinesBufferSize = 10000;
     protected Connection connection = null;
+	protected boolean autoCommit;
 
     protected StudioDBScriptRunnerImpl(String delimiter, DataSource dataSource, int scriptLinesBufferSize) {
         this.delimiter = delimiter;
@@ -46,21 +47,22 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
         this.scriptLinesBufferSize = scriptLinesBufferSize;
     }
 
-    @Override
-    public void openConnection() {
+    protected void openConnection() {
         if (Objects.isNull(connection)) {
             try {
                 connection = dataSource.getConnection();
+				boolean autoCommit = connection.getAutoCommit();
+				connection.setAutoCommit(false);
             } catch (SQLException throwables) {
                 logger.error("Failed to open connection with DB", throwables);
             }
         }
     }
 
-    @Override
-    public void closeConnection() {
+    protected void closeConnection() {
         if (!Objects.isNull(connection)) {
             try {
+				connection.setAutoCommit(autoCommit);
                 connection.close();
             } catch (SQLException throwables) {
                 logger.error("Failed to close connection with DB", throwables);
@@ -72,11 +74,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
     @Override
     public void execute(File sqlScriptFile) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
-            if (Objects.isNull(connection)) {
-                openConnection();
-            }
-            boolean autoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
+			openConnection();
 
             ScriptRunner scriptRunner = new ScriptRunner(connection);
             scriptRunner.setAutoCommit(false);
@@ -104,15 +102,16 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
             }
 
             connection.commit();
-            connection.setAutoCommit(autoCommit);
         } catch (SQLException | IOException e) {
-            logger.error("Error executing DB script", e);
-            try {
-                connection.rollback();
-            } catch (SQLException throwables) {
-                logger.error("Failed to rollback after error when running DB script", throwables);
-            }
-        }
+			logger.error("Error executing DB script", e);
+			try {
+				connection.rollback();
+			} catch (SQLException throwables) {
+				logger.error("Failed to rollback after error when running DB script", throwables);
+			}
+		} finally {
+			closeConnection();
+		}
     }
 
 }

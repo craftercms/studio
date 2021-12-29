@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -90,7 +89,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private ContentService contentService;
     private GeneralLockService generalLockService;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 
     @Override
     public boolean upsertEntry(Item item) {
@@ -828,14 +826,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
-    }
-
-    public StudioDBScriptRunnerFactory getStudioDBScriptRunnerFactory() {
-        return studioDBScriptRunnerFactory;
-    }
-
-    public void setStudioDBScriptRunnerFactory(StudioDBScriptRunnerFactory studioDBScriptRunnerFactory) {
-        this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
     }
 
     public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {

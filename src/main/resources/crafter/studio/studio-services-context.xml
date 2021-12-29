@@ -646,7 +646,6 @@
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="contentService" ref="cstudioContentService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="studioDBScriptRunnerFactory" ref="studio.dbScriptRunner" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
