@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -252,8 +251,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditServiceInternal.insertAuditLog(auditLog);
                 result.setSuccess(true);
                 result.setStatus(200);
-                result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
-                            .CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
+                result.setMessage(notificationService.getNotificationMessage(site,
+                        NotificationMessageType.CompleteMessages, COMPLETE_SUBMIT_TO_GO_LIVE_MSG));
                 itemServiceInternal.setSystemProcessingBulk(site, submittedPaths, false);
             }
         } catch (Exception e) {
@@ -279,9 +278,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
         }
-        notificationService.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),
-                submittedBy,scheduledDate,
-                submitForDeletion,submissionComment,Locale.ENGLISH);
+        notificationService.notifyApprovesContentSubmission(site,null, getDeploymentPaths(submittedItems),
+                submittedBy, scheduledDate, submitForDeletion, submissionComment);
         return errors;
     }
 
@@ -845,7 +843,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setSuccess(true);
             result.setStatus(200);
             result.setMessage(notificationService.getNotificationMessage(site,
-                    NotificationMessageType.CompleteMessages, responseMessageKey, Locale.ENGLISH));
+                    NotificationMessageType.CompleteMessages, responseMessageKey));
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
 
@@ -1034,8 +1032,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
-                    .CompleteMessages, responseMessageKey, Locale.ENGLISH));
+            result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType.CompleteMessages,
+                    responseMessageKey));
 
         } catch (JSONException | ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
@@ -1179,8 +1177,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            result.setMessage(notificationService.getNotificationMessage(site,NotificationMessageType
-                    .CompleteMessages,responseMessageKey,Locale.ENGLISH));
+            result.setMessage(notificationService.getNotificationMessage(site,
+                    NotificationMessageType.CompleteMessages,responseMessageKey));
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
 
@@ -2110,8 +2108,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 itemServiceInternal.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
-                result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
-                        .CompleteMessages, NotificationService.COMPLETE_REJECT, Locale.ENGLISH));
+                result.setMessage(notificationService.getNotificationMessage(site,
+                        NotificationMessageType.CompleteMessages, NotificationService.COMPLETE_REJECT));
             } else {
                 result.setSuccess(false);
                 result.setMessage("No items provided for preparation.");
@@ -2146,7 +2144,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 notificationService.notifyContentRejection(site, Collections.singletonList(whoToBlame),
-                        getDeploymentPaths(submittedItems), reason, approver, Locale.ENGLISH);
+                        getDeploymentPaths(submittedItems), reason, approver);
             }
         }
 

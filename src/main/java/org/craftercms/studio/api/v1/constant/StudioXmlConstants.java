@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,56 +21,13 @@ package org.craftercms.studio.api.v1.constant;
  * @author hyanghee
  *
  */
-public class StudioXmlConstants {
-
-	/** xml document root names **/
-	public static final String DOCUMENT_MODEL_DATA = "model-data";
-
-	/** xml document element names for readiness **/
-	public static final String DOCUMENT_ELM_ITEM = "item";
-	public static final String DOCUMENT_ELM_ITEMS = "items";
+public final class StudioXmlConstants {
 
 	/** xml document element names for cstudio **/
 	public static final String DOCUMENT_ELM_INTERNAL_TITLE = "internal-name";
 	public static final String DOCUMENT_ELM_CONTENT_TYPE = "content-type";
-    public static final String DOCUMENT_ELM_DISPLAY_TEMPLATE = "display-template";
 	public static final String DOCUMENT_ELM_FILE_NAME = "file-name";
-	public static final String DOCUMENT_ELM_CREATED_BY = "createdby";
-	public static final String DOCUMENT_ELM_MODIFIED_BY = "modifiedby";
-	public static final String DOCUMENT_ELM_CREATED_DATE= "createddate";
-	public static final String DOCUMENT_ELM_MODIFIED_DATE= "modifieddate";
 	public static final String DOCUMENT_ELM_DISABLED = "disabled";
-
-
-	/** xml document element for taxonomy **/
-	public static final String DOCUMENT_CATEGORY = "category";
-	public static final String DOCUMENT_CATEGORY_TYPE = "type";
-	public static final String DOCUMENT_CATEGORY_NAME = "name";
-	public static final String DOCUMENT_CATEGORY_ID = "id";
-	public static final String DOCUMENT_CATEGORY_DESCRIPTION = "description";
-	public static final String DOCUMENT_CATEGORY_ORDER = "order";
-	public static final String DOCUMENT_CATEGORY_ICON_PATH = "iconpath";
-	public static final String DOCUMENT_CATEGORY_IS_LIVE = "islive";
-	public static final String DOCUMENT_CATEGORY_DISABLED = "disabled";
-	public static final String DOCUMENT_CATEGORY_PARENT = "parent";
-	public static final String DOCUMENT_CATEGORY_PARENT_PRODUCT = "product";
-	public static final String DOCUMENT_CATEGORY_PARENT_PRODUCT_ID = "productid";
-	public static final String DOCUMENT_CATEGORY_PARENT_PRODUCT_FAMILY = "productfamily";
-	public static final String DOCUMENT_CATEGORY_PARENT_PRODUCT_FAMILY_ID = "productfamilyid";
-	public static final String DOCUMENT_CATEGORY_PARENT_GEO = "geo";
-	public static final String DOCUMENT_CATEGORY_PARENT_GEO_ID = "geoid";
-	public static final String DOCUMENT_CATEGORY_PARENT_LANGUAGE = "language";
-	public static final String DOCUMENT_CATEGORY_PARENT_LANGUAGE_ID = "languageid";
-	public static final String DOCUMENT_CATEGORY_PARENT_BANNER_SECTION = "bannersection";
-	public static final String DOCUMENT_CATEGORY_PARENT_BANNER_SECTION_ID = "bannersectionid";
-
-	/** xml document attribute names **/
-	public static final String DOCUMENT_ATTR_DESCRIPTION = "description";
-	public static final String DOCUMENT_ATTR_ID = "id";
-	public static final String DOCUMENT_ATTR_LABEL = "label";
-	public static final String DOCUMENT_ATTR_NAME = "name";
-	public static final String DOCUMENT_ATTR_URI = "uri";
-	public static final String DOCUMENT_ATTR_VALUE = "value";
 
 	/** xml type element names **/
 
@@ -85,22 +42,16 @@ public class StudioXmlConstants {
 	public static final String DOCUMENT_ELM_SITE = "site";
 	public static final String DOCUMENT_ATTR_REGEX= "@regex";
 	public static final String DOCUMENT_ATTR_PERMISSIONS_NAME= "@name";
-	public static final String DOCUMENT_ATTR_SITE_ID= "@id";
 
-    // Deployment config
-    public static final String DOCUMENT_ELM_ENDPOINT_ROOT = "endpoint";
-    public static final String DOCUMENT_ELM_ENDPOINT_NAME = "name";
-    public static final String DOCUMENT_ELM_ENDPOINT_TYPE = "type";
-    public static final String DOCUMENT_ELM_ENDPOINT_SERVER_URL = "server-url";
-    public static final String DOCUMENT_ELM_ENDPOINT_PASSWORD = "password";
-    public static final String DOCUMENT_ELM_ENDPOINT_TARGET = "target";
-    public static final String DOCUMENT_ELM_ENDPOINT_SITE_ID = "site-id";
-    public static final String DOCUMENT_ELM_ENDPOINT_SEND_METADATA = "send-metadata";
-    public static final String DOCUMENT_ELM_ENDPOINT_EXCLUDE_PATTERN = "exclude";
-    public static final String DOCUMENT_ELM_ENDPOINT_INCLUDE_PATTERN = "include";
-    public static final String DOCUMENT_ELM_ENDPOINT_PATTERN = "pattern";
-    public static final String DOCUMENT_ELM_ENDPOINT_BUCKET_SIZE = "bucket-size";
-    public static final String DOCUMENT_ELM_ENDPOINT_STATUS_URL = "status-url";
-    public static final String DOCUMENT_ELM_ENDPOINT_VERSION_URL = "version-url";
-    public static final String DOCUMENT_ELM_ENDPOINT_ORDER = "order";
+	// Notification config
+	public static final String DOCUMENT_ELEMENT_GENERAL_MESSAGES = "//generalMessages";
+	public static final String DOCUMENT_ELEMENT_COMPLETE_MESSAGES = "//completeMessages";
+	public static final String DOCUMENT_ELEMENT_EMAIL_TEMPLATES = "//emailTemplates";
+	public static final String DOCUMENT_ELEMENT_CANNED_MESSAGES = "//cannedMessages";
+	public static final String DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION = "//deploymentFailureNotification";
+	public static final String DOCUMENT_ELEMENT_APPROVER_EMAILS = "//approverEmails";
+	public static final String DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION =
+			"//repositoryMergeConflictNotification";
+
+	private StudioXmlConstants() { }
 }

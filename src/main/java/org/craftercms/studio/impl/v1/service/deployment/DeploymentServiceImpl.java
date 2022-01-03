@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -78,7 +78,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -226,7 +225,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                     notificationService.notifyContentApproval(listItem.getSite(), submitter.getUsername(),
                             getPathRelativeToSite(itemList), listItem.getUser(),
                             // Null == now, anything else is scheduled
-                            scheduleDateNow ? null : listItem.getScheduledDate(), Locale.ENGLISH);
+                            scheduleDateNow ? null : listItem.getScheduledDate());
                     // no point in looking further, quit looping
                     break;
                 }
