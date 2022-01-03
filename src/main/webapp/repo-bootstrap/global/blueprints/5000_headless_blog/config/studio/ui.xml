@@ -338,7 +338,7 @@
 						<configuration>
 							<title id="words.search" defaultMessage="Search"/>
 							<icon id="@mui/icons-material/SearchRounded"/>
-							<widget id="craftercms.components.EmbeddedSearchIframe"/>
+							<widget id="craftercms.components.Search" />
 						</configuration>
 					</widget>
 				</widgets>
