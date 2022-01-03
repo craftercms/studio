@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
@@ -1255,8 +1256,8 @@ public class ContentServiceImpl implements ContentService {
                                 proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
                     }
                     collisionFound = Stream.of(siblings)
-                                        .map(item -> item.path + "/" + item.name)
-                                        .anyMatch(proposedDestPath::equals);
+                                        .map(item -> item.path + File.separator + item.name)
+                                        .anyMatch((newPathOnly + File.separator + proposedDestPath_folder)::equals);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
