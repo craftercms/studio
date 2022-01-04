@@ -1255,9 +1255,13 @@ public class ContentServiceImpl implements ContentService {
                         proposedDestPath_folder =
                                 proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
                     }
+                    // for pages we have to check the parent folder, in any other case the full path
+                    String newCollisionCheck = fromFileIsIndex?
+                                                newPathOnly + File.separator + proposedDestPath_folder :
+                                                proposedDestPath;
                     collisionFound = Stream.of(siblings)
                                         .map(item -> item.path + File.separator + item.name)
-                                        .anyMatch((newPathOnly + File.separator + proposedDestPath_folder)::equals);
+                                        .anyMatch(newCollisionCheck::equals);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
