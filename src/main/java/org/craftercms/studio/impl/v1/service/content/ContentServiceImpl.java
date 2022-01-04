@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -633,6 +633,9 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
             Item parentItem = itemServiceInternal.getItem(site, path, true);
+            if (Objects.isNull(parentItem)) {
+                parentItem = createMissingParentItem(site, path, commitId);
+            }
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
                     commitId, parentItem.getId());
 
@@ -652,6 +655,19 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return toRet;
+    }
+
+    private Item createMissingParentItem(String site, String parentPath, String commitId) throws UserNotFoundException, ServiceLayerException {
+        String ancestorPath = ContentUtils.getParentUrl(parentPath);
+        String name = ContentUtils.getPageName(parentPath);
+        Item ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
+        if (Objects.isNull(ancestor)) {
+            createMissingParentItem(site, ancestorPath, commitId);
+            ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
+        }
+        itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, securityService.getCurrentUser(),
+                commitId, ancestor.getId());
+        return itemServiceInternal.getItem(site, parentPath, true);
     }
 
     @Override
