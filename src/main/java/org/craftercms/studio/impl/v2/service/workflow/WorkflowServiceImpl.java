@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -60,7 +60,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -210,7 +209,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     sendEmailNotifications);
             // notify approvers
             notificationService.notifyApprovesContentSubmission(
-                    siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment, null);
+                    siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment);
             // create audit log entries
             createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy);
         } finally {
@@ -513,8 +512,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
                                  List<String> submitterList) {
-        notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy,
-                Locale.ENGLISH);
+        notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy);
     }
 
     @Override

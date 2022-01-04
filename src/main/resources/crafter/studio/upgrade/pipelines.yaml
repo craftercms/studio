@@ -272,6 +272,14 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.33-to-4.0.0.34.sql
+      - currentVersion: 4.0.0.34
+        nextVersion: 4.0.0.35
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                dest: /configuration/samples/sample-notification-config.xml
+            commitDetails: Update sample files
 
   # Pipeline to upgrade site repositories
   site:
@@ -599,6 +607,12 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 3
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.2
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v4.0.2.xslt
+              commitDetails: Remove lang element
 
   code-editor-config:
     module: studio
