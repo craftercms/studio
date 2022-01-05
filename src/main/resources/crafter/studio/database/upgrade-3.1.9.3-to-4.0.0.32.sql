@@ -10,7 +10,7 @@ ADD COLUMN `publishing_status` VARCHAR(20) NULL DEFAULT NULL AFTER `publishing_e
 ADD COLUMN `publishing_lock_owner` VARCHAR(255) NULL DEFAULT NULL AFTER `published_repo_created`,
 ADD COLUMN `publishing_lock_heartbeat` TIMESTAMP NULL DEFAULT NULL AFTER `publishing_lock_owner`,
 ADD COLUMN `state` VARCHAR(50) NOT NULL DEFAULT 'INITIALIZING' AFTER `publishing_lock_heartbeat`,
-ADD COLUMN `last_synced_gitlog_commit_id` VARCHAR(50) NULL DEFAULT NULL AFTER `state`;
+ADD COLUMN `last_synced_gitlog_commit_id` VARCHAR(50) NULL DEFAULT NULL AFTER `state` ;
 
 UPDATE site SET publishing_status = TRIM(SUBSTRING_INDEX(publishing_status_message, '|', 1)) ;
 
@@ -41,7 +41,7 @@ ALTER TABLE `group_user`
 CHANGE COLUMN `record_last_updated` `record_last_updated` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ;
 
 ALTER TABLE `gitlog`
-ADD COLUMN `audited` INT(11) NOT NULL DEFAULT 0 AFTER `processed`;
+ADD COLUMN `audited` INT(11) NOT NULL DEFAULT 0 AFTER `processed` ;
 
 UPDATE gitlog SET audited = 1 ;
 
