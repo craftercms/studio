@@ -37,7 +37,7 @@
     </xsl:template>
 
     <!-- Update the legacy control -->
-    <xsl:template match="/form/sections/section/fields/field[type='rte' and properties/property/name='allowResize']">
+    <xsl:template match="//field[type='rte' and properties/property/name='allowResize']">
         <xsl:copy>
             <xsl:element name="type">
                 <xsl:text>rte</xsl:text>
@@ -91,7 +91,7 @@
     </xsl:template>
 
     <!-- Rename the current control -->
-    <xsl:template match="/form/sections/section/fields/field/type[text()='rte-tinymce5']">
+    <xsl:template match="//field/type[text()='rte-tinymce5']">
         <xsl:element name="type">
             <xsl:text>rte</xsl:text>
         </xsl:element>
