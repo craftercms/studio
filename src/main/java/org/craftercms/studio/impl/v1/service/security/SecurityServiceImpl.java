@@ -713,7 +713,7 @@ public class SecurityServiceImpl implements SecurityService {
     public boolean logout() throws SiteNotFoundException {
         String username = getCurrentUser();
         RequestContext context = RequestContext.getCurrent();
-        if (context != null) {
+        if (username != null && context != null) {
             HttpServletRequest httpServletRequest = context.getRequest();
             String ipAddress = httpServletRequest.getRemoteAddr();
 
