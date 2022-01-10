@@ -5033,6 +5033,33 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /publish/available_targets:
+    get:
+      tags:
+        - publishing
+      summary: Get available publishing targets for site
+      description: 'Required permission "publish"'
+      operationId: getAvailablePublishingTargets
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingStatus:
+                    $ref: '#/components/schemas/AvailablePublishingTargets'
+
   /security/encrypt:
     post:
       tags:
@@ -7897,6 +7924,9 @@ components:
         publishingTarget:
           type: string
           description: publishing target for package
+        published:
+          type: boolean
+          description: true if site has been published at least once (initial publish; published repository exist), otherwise false
 
       required:
         - enabled
@@ -8688,6 +8718,28 @@ components:
         - state
         - environment
         - items
+    
+    AvailablePublishingTargets:
+      type: object
+      properties:
+        targets:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Target name
+              order:
+                type: integer
+                format: int32
+                description: order for display in the dropdown
+        published:
+          type: boolean
+          description: true if site has been published at least once (initial publish; published repository exist), otherwise false
+      required:
+        - targets
+        - published    
 
   responses:
     NotFound:
