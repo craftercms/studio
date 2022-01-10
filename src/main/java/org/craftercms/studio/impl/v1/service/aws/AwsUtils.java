@@ -39,6 +39,8 @@ public abstract class AwsUtils {
 
     public static final int COPY_PART_SIZE = 1024 * 1024 * 1024;
 
+    public static final long MAX_COPY_FILE_SIZE = 5L * 1024 * 1024 * 1024;
+
     public static void uploadStream(String inputBucket, String inputKey, AmazonS3 s3Client, int partSize,
                                     String filename, InputStream content) throws AwsException {
         List<PartETag> etags = new LinkedList<>();
@@ -108,7 +110,7 @@ public abstract class AwsUtils {
         ObjectMetadata metadataResult = client.getObjectMetadata(metadataRequest);
         long objectSize = metadataResult.getContentLength();
 
-        if (objectSize >= 5L * 1024L * 1024L * 1024L) {
+        if (objectSize >= MAX_COPY_FILE_SIZE) {
             logger.debug("Starting multipart copy for {}/{}", sourceBucket, sourceKey);
             InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(destBucket, destKey);
             InitiateMultipartUploadResult initResult = client.initiateMultipartUpload(initRequest);
