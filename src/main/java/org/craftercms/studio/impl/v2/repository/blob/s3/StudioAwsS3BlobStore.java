@@ -38,7 +38,9 @@ import java.util.Map;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.COPY_PART_SIZE;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.MIN_PART_SIZE;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFile;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.uploadStream;
 
 /**
@@ -196,8 +198,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                             logger.debug("Moving content from {0} to {1}",
                                     getFullKey(previewMapping, key), getFullKey(previewMapping, toPath + "/" + filePath));
                             try {
-                                getClient().copyObject(previewMapping.target, key, previewMapping.target,
-                                        getKey(previewMapping, toPath + "/" + filePath));
+                                copyFile(previewMapping.target, key, previewMapping.target,
+                                        getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, getClient());
                             } catch (Exception e) {
                                 throw new BlobStoreException("Error copying content from " +
                                         getFullKey(previewMapping, key) + " to " +
@@ -217,8 +219,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 } while(isNotEmpty(request.getContinuationToken()));
             } else {
                 try {
-                    getClient().copyObject(previewMapping.target, getKey(previewMapping, fromPath),
-                            previewMapping.target, getKey(previewMapping, toPath));
+                    copyFile(previewMapping.target, getKey(previewMapping, fromPath),
+                            previewMapping.target, getKey(previewMapping, toPath), COPY_PART_SIZE, getClient());
                     getClient().deleteObject(previewMapping.target, getKey(previewMapping, fromPath));
                 } catch (Exception e) {
                     throw new BlobStoreException("Error moving content from " + getFullKey(previewMapping, fromPath)
@@ -257,8 +259,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                         logger.debug("Copying content from {0} to {1}",
                                 getFullKey(previewMapping, key), getFullKey(previewMapping, toPath + "/" + filePath));
                         try {
-                            getClient().copyObject(previewMapping.target, key, previewMapping.target,
-                                    getKey(previewMapping, toPath + "/" + filePath));
+                            copyFile(previewMapping.target, key, previewMapping.target,
+                                    getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, getClient());
                         } catch (Exception e) {
                             throw new BlobStoreException("Error copying content from " +
                                     getFullKey(previewMapping, key) + " to " +
@@ -271,8 +273,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             } while(isNotEmpty(request.getContinuationToken()));
         } else {
             try {
-                getClient().copyObject(previewMapping.target, getKey(previewMapping, fromPath),
-                                       previewMapping.target, getKey(previewMapping, toPath));
+                copyFile(previewMapping.target, getKey(previewMapping, fromPath), previewMapping.target,
+                        getKey(previewMapping, toPath), COPY_PART_SIZE, getClient());
             } catch (Exception e) {
                 throw new BlobStoreException("Error copying content from " + getFullKey(previewMapping, fromPath)
                         + " to " + getFullKey(previewMapping, toPath), e);
@@ -304,8 +306,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 logger.debug("Moving content from {0} to {1}",
                         getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
                 try {
-                    getClient().copyObject(envMapping.target, getKey(envMapping, item.getOldPath()),
-                            envMapping.target, getKey(envMapping, item.getPath()));
+                    copyFile(envMapping.target, getKey(envMapping, item.getOldPath()), envMapping.target,
+                            getKey(envMapping, item.getPath()), COPY_PART_SIZE, getClient());
                     getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
                 } catch (Exception e) {
                     throw new BlobStoreException("Error moving content from " +
@@ -316,8 +318,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 logger.debug("Copying content from {0} to {1}",
                         getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()));
                 try {
-                    getClient().copyObject(previewMapping.target, getKey(previewMapping, item.getPath()),
-                            envMapping.target, getKey(envMapping, item.getPath()));
+                    copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
+                            getKey(envMapping, item.getPath()), COPY_PART_SIZE, getClient());
                 } catch (AmazonS3Exception s3e) {
                     if (StringUtils.startsWith(s3e.getMessage(), "The specified key does not exist.")) {
                         logger.error("Content " + item.getPath() + " does not exist in the S3 bucket at location "
