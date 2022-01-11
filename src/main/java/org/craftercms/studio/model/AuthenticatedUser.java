@@ -38,6 +38,7 @@ public class AuthenticatedUser extends User {
         setFirstName(user.getFirstName());
         setLastName(user.getLastName());
         setEnabled(user.isEnabled());
+        setDeleted(user.isDeleted());
         setExternallyManaged(user.isExternallyManaged());
         setTimezone(user.getTimezone());
         setLocale(user.getLocale());
