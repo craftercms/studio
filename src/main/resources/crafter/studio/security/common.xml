@@ -65,12 +65,16 @@
           class="org.craftercms.studio.impl.v2.security.authentication.db.DbAuthenticationProvider">
         <property name="userDetailsService" ref="studioUserDetailsService"/>
         <property name="passwordEncoder" ref="passwordEncoder"/>
+        <property name="preAuthenticationChecks" ref="deletedUserDetailsChecker"/>
     </bean>
 
     <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
         <constructor-arg name="patterns"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
     </bean>
+
+    <bean id="deletedUserDetailsChecker"
+          class="org.craftercms.studio.impl.v2.security.authentication.DeletedUserDetailsChecker"/>
 
     <!-- Permissions -->
 

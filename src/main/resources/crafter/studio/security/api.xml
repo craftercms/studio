@@ -46,6 +46,7 @@
     <bean id="preAuthenticatedProvider"
           class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
         <property name="preAuthenticatedUserDetailsService" ref="daoAuthenticationUserDetailsService"/>
+        <property name="userDetailsChecker" ref="deletedUserDetailsChecker"/>
     </bean>
 
     <sec:authentication-manager id="apiAuthenticationManager">

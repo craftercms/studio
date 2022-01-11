@@ -16,8 +16,8 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
+import com.google.common.cache.Cache;
 import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -61,22 +61,22 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,6 +84,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.stream.Collectors.toSet;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -125,6 +126,8 @@ public class UserServiceImpl implements UserService {
     private InstanceService instanceService;
     private TextEncryptor encryptor;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
+    private SessionRegistry sessionRegistry;
+    private Cache<String, User> userCache;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
@@ -195,14 +198,14 @@ public class UserServiceImpl implements UserService {
             throws ServiceLayerException, AuthenticationException, UserNotFoundException {
         User currentUser = getCurrentUser();
 
-        if (CollectionUtils.containsAny(userIds, Arrays.asList(currentUser.getId())) ||
-                CollectionUtils.containsAny(usernames, Arrays.asList(currentUser.getUsername()))) {
+        if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
+                CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
             throw new ServiceLayerException("Cannot delete self.");
         }
 
         User gitRepoUser = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
-        if (CollectionUtils.containsAny(userIds, Arrays.asList(gitRepoUser.getId())) ||
-                CollectionUtils.containsAny(usernames, Arrays.asList(gitRepoUser.getUsername()))) {
+        if (CollectionUtils.containsAny(userIds, List.of(gitRepoUser.getId())) ||
+                CollectionUtils.containsAny(usernames, List.of(gitRepoUser.getUsername()))) {
             throw new ServiceLayerException("Cannot delete generic Git Repo User.");
         }
 
@@ -213,8 +216,7 @@ public class UserServiceImpl implements UserService {
                 List<User> members =
                         groupServiceInternal.getGroupMembers(g.getId(), 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<User> membersAfterRemove = new ArrayList<User>();
-                    membersAfterRemove.addAll(members);
+                    List<User> membersAfterRemove = new LinkedList<>(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {
                             if (userIds.contains(m.getId())) {
@@ -238,6 +240,26 @@ public class UserServiceImpl implements UserService {
 
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
+
+            logger.debug("Searching for current sessions for users: {0}", toDelete);
+            Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
+                    .map(principal -> (AuthenticatedUser) principal)
+                    .filter(authenticatedUser -> toDelete.stream()
+                                                    .anyMatch(user -> authenticatedUser.getId() == user.getId()))
+                    .collect(toSet());
+            principals.forEach(principal -> {
+                // Invalidate any open session
+                List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
+                sessions.forEach(session -> {
+                    logger.debug("Invalidating session {0} for user {1}",
+                                    session.getSessionId(), principal.getUsername());
+                    session.expireNow();
+                });
+
+                // Invalidate the cache
+                userCache.invalidate(principal.getUsername());
+            });
+
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
@@ -246,15 +268,15 @@ public class UserServiceImpl implements UserService {
             auditLog.setPrimaryTargetId(siteFeed.getSiteId());
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(siteFeed.getName());
-            List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
+            List<AuditLogParameter> parameters = new ArrayList<AuditLogParameter>();
             for (User deletedUser : toDelete) {
-                AuditLogParameter paramter = new AuditLogParameter();
-                paramter.setTargetId(Long.toString(deletedUser.getId()));
-                paramter.setTargetType(TARGET_TYPE_USER);
-                paramter.setTargetValue(deletedUser.getUsername());
-                paramters.add(paramter);
+                AuditLogParameter parameter = new AuditLogParameter();
+                parameter.setTargetId(Long.toString(deletedUser.getId()));
+                parameter.setTargetType(TARGET_TYPE_USER);
+                parameter.setTargetValue(deletedUser.getUsername());
+                parameters.add(parameter);
             }
-            auditLog.setParameters(paramters);
+            auditLog.setParameters(parameters);
             auditServiceInternal.insertAuditLog(auditLog);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
@@ -782,4 +804,13 @@ public class UserServiceImpl implements UserService {
     public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
         this.securityServiceV2 = securityServiceV2;
     }
+
+    public void setSessionRegistry(SessionRegistry sessionRegistry) {
+        this.sessionRegistry = sessionRegistry;
+    }
+
+    public void setUserCache(Cache<String, User> userCache) {
+        this.userCache = userCache;
+    }
+
 }
