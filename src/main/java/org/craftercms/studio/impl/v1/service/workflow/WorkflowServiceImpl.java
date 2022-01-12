@@ -95,6 +95,8 @@ import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
+import javax.servlet.http.HttpServletResponse;
+
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE_SCHEDULED;
@@ -1936,7 +1938,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             publishServiceInternal.initialPublish(site);
             ResultTO result = new ResultTO();
             result.setSuccess(true);
-            result.setStatus(200);
+            result.setStatus(HttpServletResponse.SC_OK);
             result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType.CompleteMessages,
                     NotificationService.COMPLETE_GO_LIVE));
             return result;
