@@ -63,10 +63,18 @@
         <property name="authenticationManager" ref="webAuthenticationManager"/>
     </bean>
 
+    <bean id="sessionExpiredStrategy"
+          class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>
+
     <sec:http
             pattern="/**"
             use-expressions="true"
             authentication-manager-ref="webAuthenticationManager">
+
+        <sec:session-management>
+            <sec:concurrency-control session-registry-alias="sessionRegistry"
+                                     expired-session-strategy-ref="sessionExpiredStrategy"/>
+        </sec:session-management>
 
         <sec:csrf token-repository-ref="csrfTokenRepository"/>
         <sec:headers disabled="true"/> <!-- Because we have a custom filter -->
