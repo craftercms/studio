@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -95,6 +95,7 @@ public final class RequestMappingConstants {
     public static final String CANCEL = "/cancel";
     public static final String CLEAR_LOCK = "/clear_lock";
     public static final String HISTORY = "/history";
+    public static final String AVAILABLE_TARGETS = "/available_targets";
 
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General default License version 3 as published by
@@ -372,6 +372,16 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default boolean publishedRepositoryExists(String siteId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default void initialPublish(String siteId) throws SiteNotFoundException {
         throw new UnsupportedOperationException();
     }
 }

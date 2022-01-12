@@ -82,6 +82,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -93,6 +94,8 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+
+import javax.servlet.http.HttpServletResponse;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
@@ -174,6 +177,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected UserServiceInternal userServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ContentServiceInternal contentServiceInternal;
+    protected PublishServiceInternal publishServiceInternal;
 
     @Override
     @ValidateParams
@@ -1930,15 +1934,25 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request)
             throws ServiceLayerException {
-        try {
-            if (isEnablePublishingWithoutDependencies()) {
-                return approveWithoutDependencies(site, request, Operation.GO_LIVE);
-            } else {
-                return approve_new(site, request, Operation.GO_LIVE);
+        if (!publishServiceInternal.isSitePublished(site)) {
+            publishServiceInternal.initialPublish(site);
+            ResultTO result = new ResultTO();
+            result.setSuccess(true);
+            result.setStatus(HttpServletResponse.SC_OK);
+            result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType.CompleteMessages,
+                    NotificationService.COMPLETE_GO_LIVE));
+            return result;
+        } else {
+            try {
+                if (isEnablePublishingWithoutDependencies()) {
+                    return approveWithoutDependencies(site, request, Operation.GO_LIVE);
+                } else {
+                    return approve_new(site, request, Operation.GO_LIVE);
+                }
+            } catch (RuntimeException e) {
+                logger.error("error making go live", e);
+                throw e;
             }
-        } catch (RuntimeException e) {
-            logger.error("error making go live", e);
-            throw e;
         }
     }
 
@@ -2284,6 +2298,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
+    }
+
+    public PublishServiceInternal getPublishServiceInternal() {
+        return publishServiceInternal;
+    }
+
+    public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

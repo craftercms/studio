@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_INITIAL_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
@@ -323,26 +324,31 @@ public class WorkflowServiceImpl implements WorkflowService {
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                         String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
-        // Create publish package
-        List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
-        try {
-            // Set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-            // Cancel scheduled items from publishing queue
-            publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
-            // Add to publishing queue
-            String publishedBy = securityService.getCurrentUser();
-            boolean scheduledDateIsNow = false;
-            if (schedule == null) {
-                scheduledDateIsNow = true;
-                schedule = ZonedDateTime.now(ZoneOffset.UTC);
+        if (!publishServiceInternal.isSitePublished(siteId)) {
+            publishServiceInternal.initialPublish(siteId);
+            createInitialPublishAuditLog(siteId);
+        } else {
+            // Create publish package
+            List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
+            try {
+                // Set system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
+                // Cancel scheduled items from publishing queue
+                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
+                // Add to publishing queue
+                String publishedBy = securityService.getCurrentUser();
+                boolean scheduledDateIsNow = false;
+                if (schedule == null) {
+                    scheduledDateIsNow = true;
+                    schedule = ZonedDateTime.now(ZoneOffset.UTC);
+                }
+                deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
+                // Insert audit log
+                createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);
+            } finally {
+                // Reset system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
             }
-            deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
-            // Insert audit log
-            createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);
-        } finally {
-            // Reset system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
         }
     }
 
@@ -396,26 +402,31 @@ public class WorkflowServiceImpl implements WorkflowService {
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                         String comment) throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        // Create publish package
-        List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
-        try {
-            // Set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-            // Cancel scheduled items from publishing queue
-            publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
-            // Add to publishing queue
-            String publishedBy = securityService.getCurrentUser();
-            boolean scheduledDateIsNow = false;
-            if (schedule == null) {
-                scheduledDateIsNow = true;
-                schedule = ZonedDateTime.now(ZoneOffset.UTC);
+        if (!publishServiceInternal.isSitePublished(siteId)) {
+            publishServiceInternal.initialPublish(siteId);
+            createInitialPublishAuditLog(siteId);
+        } else {
+            // Create publish package
+            List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
+            try {
+                // Set system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
+                // Cancel scheduled items from publishing queue
+                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
+                // Add to publishing queue
+                String publishedBy = securityService.getCurrentUser();
+                boolean scheduledDateIsNow = false;
+                if (schedule == null) {
+                    scheduledDateIsNow = true;
+                    schedule = ZonedDateTime.now(ZoneOffset.UTC);
+                }
+                deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
+                // Insert audit log
+                createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy);
+            } finally {
+                // Reset system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
             }
-            deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
-            // Insert audit log
-            createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy);
-        } finally {
-            // Reset system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
         }
     }
 
@@ -438,6 +449,19 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameters.add(auditLogParameter);
         });
         auditLog.setParameters(auditLogParameters);
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    private void createInitialPublishAuditLog(String siteId) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String user = securityService.getCurrentUser();
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_INITIAL_PUBLISH);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteId);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
