@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
@@ -127,4 +128,19 @@ public interface PublishServiceInternal {
      * @param paths list of paths of content items to be cancelled
      */
     void cancelScheduledQueueItems(String siteId, List<String> paths);
+
+    /**
+     * Check if site has ever been published.
+     *
+     * @param siteId site identifier
+     * @return true if site has been published at least once, otherwise false
+     */
+    boolean isSitePublished(String siteId);
+
+    /**
+     * Execute initial publish for given site.
+     *
+     * @param siteId site identifier
+     */
+    void initialPublish(String siteId) throws SiteNotFoundException;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,6 +23,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -39,6 +40,7 @@ public class SitesServiceImpl implements SitesService {
 
     private SitesServiceInternal sitesServiceInternal;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
+    private ContentRepository contentRepository;
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -79,6 +81,7 @@ public class SitesServiceImpl implements SitesService {
             publishStatus.setNumberOfItems(publishingProgressObserver.getNumberOfFilesCompleted());
             publishStatus.setTotalItems(publishingProgressObserver.getNumberOfFilesBeingPublished());
         }
+        publishStatus.setPublished(contentRepository.publishedRepositoryExists(siteId));
         return publishStatus;
     }
 
@@ -102,5 +105,13 @@ public class SitesServiceImpl implements SitesService {
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -31,6 +31,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -52,6 +53,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AVAILABLE_TARGETS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CLEAR_LOCK;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HISTORY;
@@ -61,6 +63,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.P
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_TARGETS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_HISTORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_STATUS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -186,6 +189,26 @@ public class PublishController {
         result.setOffset(0);
         result.setLimit(history.size());
         result.setTotal(history.size());
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = AVAILABLE_TARGETS, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getAvailablePublishingTargets(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+            throws SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+        var availableTargets = publishService.getAvailablePublishingTargets(siteId);
+        var published = publishService.isSitePublished(siteId);
+        AvailablePublishingTargets availablePublishingTargets = new AvailablePublishingTargets();
+        availablePublishingTargets.setTargets(availableTargets);
+        availablePublishingTargets.setPublished(published);
+
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<AvailablePublishingTargets> result = new ResultOne<AvailablePublishingTargets>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PUBLISHING_TARGETS, availablePublishingTargets);
         responseBody.setResult(result);
         return responseBody;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -700,5 +700,15 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
         localRepositoryV2.upsertGitLogList(siteId, commitIds, processed, audited);
+    }
+
+    @Override
+    public boolean publishedRepositoryExists(String siteId) {
+        return localRepositoryV2.publishedRepositoryExists(siteId);
+    }
+
+    @Override
+    public void initialPublish(String siteId) throws SiteNotFoundException {
+        localRepositoryV2.initialPublish(siteId);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -37,6 +37,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
+import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZoneId;
@@ -59,6 +60,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKA
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -227,6 +229,28 @@ public class PublishServiceImpl implements PublishService {
         taskItems.add(item);
         group.setNumOfChildren(taskItems.size());
         return group;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    public List<PublishingTarget> getAvailablePublishingTargets(
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        var availablePublishingTargets = new ArrayList<PublishingTarget>();
+        var liveTarget = new PublishingTarget();
+        liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
+        availablePublishingTargets.add(liveTarget);
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            var stagingTarget = new PublishingTarget();
+            stagingTarget.setName(servicesConfig.getStagingEnvironment(siteId));
+            availablePublishingTargets.add(stagingTarget);
+        }
+        return availablePublishingTargets;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        return publishServiceInternal.isSitePublished(siteId);
     }
 
     public PublishServiceInternal getPublishServiceInternal() {

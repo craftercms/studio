@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -46,6 +46,7 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_REMOVE_CLUSTER_NODE = "REMOVE_CLUSTER_NODE";
     public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
     public static final String OPERATION_PUBLISH = "PUBLISH";
+    public static final String OPERATION_INITIAL_PUBLISH = "INITIAL_PUBLISH";
     public static final String OPERATION_UNKNOWN = "UNKNOWN";
 
     /** Origin **/

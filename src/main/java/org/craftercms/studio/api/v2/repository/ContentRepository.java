@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -358,4 +358,19 @@ public interface ContentRepository {
      * @throws ContentNotFoundException content not found for given path and version
      */
     InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException;
+
+    /**
+     * Check if published repository exists for given site.
+     *
+     * @param siteId site identifier
+     * @return true if PUBLISHED repository exists, otherwise false
+     */
+    boolean publishedRepositoryExists(String siteId);
+
+    /**
+     * Execute initial publish for given site
+     *
+     * @param siteId site identifier
+     */
+    void initialPublish(String siteId) throws SiteNotFoundException;
 }

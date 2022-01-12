@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -191,6 +192,7 @@ public class GitContentRepository implements ContentRepository {
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
+    private ServicesConfig servicesConfig;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -1831,6 +1833,45 @@ public class GitContentRepository implements ContentRepository {
         return toReturn;
     }
 
+    @Override
+    public boolean publishedRepositoryExists(String siteId) {
+        return Objects.nonNull(helper.getRepository(siteId, PUBLISHED));
+    }
+
+    @Override
+    public void initialPublish(String siteId) throws SiteNotFoundException {
+        var siteFeed = siteService.getSite(siteId);
+        // Create published repo
+        var created = helper.createPublishedRepository(siteId, siteFeed.getSandboxBranch());
+        if (created) {
+            // Create staging branch
+            if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+                createEnvironmentBranch(siteId, siteFeed.getSandboxBranch(),
+                        servicesConfig.getStagingEnvironment(siteId));
+            }
+            // Create live branch
+            createEnvironmentBranch(siteId, siteFeed.getSandboxBranch(), servicesConfig.getLiveEnvironment(siteId));
+        }
+    }
+
+    private boolean createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
+        Repository repository = helper.getRepository(siteId, PUBLISHED);
+        try (Git git = new Git(repository)) {
+            CheckoutCommand checkoutCommand = git.checkout()
+                    .setOrphan(true)
+                    .setForceRefUpdate(true)
+                    .setStartPoint(sandboxBranchName)
+                    .setUpstreamMode(TRACK)
+                    .setName(environment);
+            retryingRepositoryOperationFacade.call(checkoutCommand);
+            return true;
+        } catch (GitAPIException e) {
+            logger.error("Failed to create environment " + environment + " branch in PUBLISHED repo for site " +
+                    siteId, e);
+            return false;
+        }
+    }
+
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
@@ -1973,5 +2014,13 @@ public class GitContentRepository implements ContentRepository {
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }
