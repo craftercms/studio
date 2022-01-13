@@ -81,6 +81,7 @@
             and path RLIKE #{path}
         </if>
         GROUP BY package_id
+        ORDER BY completed_date DESC, scheduleddate DESC
         LIMIT #{offset}, #{limit}
     </select>
 

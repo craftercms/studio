@@ -28,16 +28,20 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.RemoteRemoveCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
@@ -46,20 +50,24 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.FS;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_PUBLISHING_LOCK_OWNER_ID;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
@@ -75,11 +83,14 @@ public class StudioClusterUtils {
     private TextEncryptor encryptor;
     private ClusterDAO clusterDao;
     private StudioConfiguration studioConfiguration;
+    private GeneralLockService generalLockService;
 
-    public StudioClusterUtils(ClusterDAO clusterDao, StudioConfiguration studioConfiguration, TextEncryptor encryptor) {
+    public StudioClusterUtils(ClusterDAO clusterDao, StudioConfiguration studioConfiguration, TextEncryptor encryptor
+            , GeneralLockService generalLockService) {
         this.clusterDao = clusterDao;
         this.studioConfiguration = studioConfiguration;
         this.encryptor = encryptor;
+        this.generalLockService = generalLockService;
     }
 
     public HierarchicalConfiguration<ImmutableNode> getClusterConfiguration() {
@@ -252,5 +263,74 @@ public class StudioClusterUtils {
 
     public int getLockTTL() {
         return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+    }
+
+    public boolean cloneGlobalRepository(List<ClusterMember> clusterNodes)
+            throws CryptoException, ServiceLayerException {
+        // Clone from the first node in the cluster (it doesn't matter which one to clone from, so pick the first)
+        // we will eventually to catch up to the latest
+        boolean cloned = false;
+        int idx = 0;
+        String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
+        if (generalLockService.tryLock(gitLockKey)) {
+            try {
+                while (!cloned && idx < clusterNodes.size()) {
+                    ClusterMember remoteNode = clusterNodes.get(idx++);
+                    logger.debug("Cloning global repository from " + remoteNode.getLocalAddress());
+
+                    // prepare a new folder for the cloned repository
+                    Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH));
+                    File localPath = siteSandboxPath.toFile();
+                    localPath.delete();
+                    // then clone
+                    logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
+                    CloneCommand cloneCommand = Git.cloneRepository();
+                    Git cloneResult = null;
+
+                    try {
+                        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                        logger.debug("Add user credentials if provided");
+
+                        configureAuthenticationForCommand(remoteNode, cloneCommand, tempKey);
+
+                        String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
+
+                        logger.debug("Executing clone command");
+                        cloneResult = cloneCommand
+                                .setURI(cloneUrl)
+                                .setRemote(remoteNode.getGitRemoteName())
+                                .setDirectory(localPath)
+                                .setCloneAllBranches(true)
+                                .call();
+                        Files.deleteIfExists(tempKey);
+                        cloned = true;
+
+                    } catch (InvalidRemoteException e) {
+                        logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
+                                " (" + remoteNode.getGitUrl() + ")", e);
+                    } catch (TransportException e) {
+                        if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+                            logger.error("Bad credentials or read only repository: " + remoteNode.getGitRemoteName() +
+                                    " (" + remoteNode.getGitUrl() + ")", e);
+                        } else {
+                            logger.error("Remote repository not found: " + remoteNode.getGitRemoteName() +
+                                    " (" + remoteNode.getGitUrl() + ")", e);
+                        }
+                    } catch (GitAPIException | IOException e) {
+                        logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+                    } finally {
+                        if (cloneResult != null) {
+                            cloneResult.close();
+                        }
+                    }
+                }
+            } finally {
+                generalLockService.unlock(gitLockKey);
+            }
+        } else {
+            logger.debug("Failed to get lock " + gitLockKey);
+        }
+        return cloned;
     }
 }

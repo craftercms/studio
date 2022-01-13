@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -71,7 +71,6 @@ import java.util.UUID;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHED_PATH;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
@@ -271,7 +270,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 existingRemotes.put(member.getGitRemoteName(), StringUtils.EMPTY);
 
             } catch (IOException e) {
-                logger.error("Failed to open repository", e);
+                logger.error("Failed to open repository for site " + siteId, e);
             }
         }
     }
@@ -296,7 +295,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                 try {
                     removeRemote(git, member.getGitRemoteName().replaceFirst(CLUSTER_NODE_REMOTE_NAME_PREFIX, ""));
                 } catch (GitAPIException e) {
-                    logger.debug("Error while cleaning up remote repository", e);
+                    logger.debug("Error while cleaning up remote repository for site " + siteId, e);
                 }
             }
 

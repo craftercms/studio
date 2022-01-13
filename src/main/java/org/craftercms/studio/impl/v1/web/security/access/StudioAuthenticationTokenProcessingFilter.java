@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.security.UserDetailsManager;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.SessionTokenUtils;
 import org.craftercms.studio.impl.v2.service.security.Authentication;
@@ -101,7 +102,8 @@ public class StudioAuthenticationTokenProcessingFilter extends GenericFilterBean
             if (userName != null) {
                 UserDetails userDetails = this.userDetailsManager.loadUserByUsername(userName);
 
-                if (SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
+                if (!((User) userDetails).isDeleted() &&
+                        SessionTokenUtils.validateToken(authToken, userDetails.getUsername())) {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null,

@@ -89,6 +89,7 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -212,6 +213,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected GeneralLockService generalLockService;
     protected RetryingOperationFacade retryingOperationFacade;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+    protected StudioClusterUtils studioClusterUtils;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -453,32 +455,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
-        List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
-                    .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-        List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
-                .map(y -> y.getFileName().toString()).collect(Collectors.toList());
-        if (wasPage ||
-                (CollectionUtils.isEmpty(dirs) &&
-                        (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
-            if (CollectionUtils.isNotEmpty(dirs)) {
-                for (String child : dirs) {
-                    Path childToDelete = Paths.get(folderToDelete, child);
-                    deleteParentFolder(git, childToDelete, false);
-                    RmCommand rmCommand = git.rm()
-                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
-                            .setCached(false);
-                    retryingRepositoryOperationFacade.call(rmCommand);
+        if (toDelete.toFile().exists()) {
+            List<String> dirs = Files.walk(toDelete).filter(x -> !x.equals(toDelete)).filter(Files::isDirectory)
+                        .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+            List<String> files = Files.walk(toDelete, 1).filter(x -> !x.equals(toDelete)).filter(Files::isRegularFile)
+                        .map(y -> y.getFileName().toString()).collect(Collectors.toList());
+            if (wasPage ||
+                    (CollectionUtils.isEmpty(dirs) &&
+                            (CollectionUtils.isEmpty(files) || files.size() < 2 && files.get(0).equals(EMPTY_FILE)))) {
+                if (CollectionUtils.isNotEmpty(dirs)) {
+                    for (String child : dirs) {
+                        Path childToDelete = Paths.get(folderToDelete, child);
+                        deleteParentFolder(git, childToDelete, false);
+                        RmCommand rmCommand = git.rm()
+                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child + FILE_SEPARATOR + "*")
+                                .setCached(false);
+                        retryingRepositoryOperationFacade.call(rmCommand);
 
+                    }
                 }
-            }
 
-            if (CollectionUtils.isNotEmpty(files)) {
-                for (String child : files) {
-                    git.rm()
-                            .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
-                            .setCached(false)
-                            .call();
+                if (CollectionUtils.isNotEmpty(files)) {
+                    for (String child : files) {
+                        git.rm()
+                                .addFilepattern(folderToDelete + FILE_SEPARATOR + child)
+                                .setCached(false)
+                                .call();
 
+                    }
                 }
             }
         }
@@ -976,10 +980,35 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      * bootstrap the repository
      */
     public void bootstrap() throws Exception {
+        logger.debug("Bootstrap global repository.");
+
+        boolean bootstrapRepo = Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO));
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                 userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
 
-        if (Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO)) && helper.createGlobalRepo()) {
+        boolean isCreated = false;
+
+        HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
+        if (bootstrapRepo && registrationData != null && !registrationData.isEmpty()) {
+            String firstCommitId = getRepoFirstCommitId(StringUtils.EMPTY);
+            String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+            List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
+            if (StringUtils.isEmpty(firstCommitId)) {
+                logger.debug("Creating global repository as cluster clone");
+                isCreated = studioClusterUtils.cloneGlobalRepository(clusterNodes);
+            } else {
+                logger.debug("Global repository exists syncing with cluster siblings");
+                isCreated = true;
+                Repository repo = helper.getRepository(EMPTY, GLOBAL);
+                try (Git git = new Git(repo)) {
+                    for (ClusterMember remoteNode : clusterNodes) {
+                        syncFromRemote(git, remoteNode);
+                    }
+                }
+            }
+        }
+
+        if (bootstrapRepo && !isCreated && helper.createGlobalRepo()) {
             // Copy the global config defaults to the global site
             // Build a path to the bootstrap repo (the repo that ships with Studio)
             String bootstrapFolderPath = this.ctx.getRealPath(FILE_SEPARATOR + BOOTSTRAP_REPO_PATH +
@@ -1023,6 +1052,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Create global repository object
         if (!helper.buildGlobalRepo()) {
             logger.error("Failed to create global repository!");
+        }
+    }
+
+    private void syncFromRemote(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
+            IOException, ServiceLayerException {
+        if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
+            try {
+                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                PullCommand pullCommand = git.pull();
+                pullCommand.setRemote(remoteNode.getGitRemoteName());
+                pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+                pullCommand.call();
+
+                Files.delete(tempKey);
+            } finally {
+                generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
+            }
+        } else {
+            logger.debug("Failed to get lock " + GLOBAL_REPOSITORY_GIT_LOCK);
         }
     }
 
@@ -2093,5 +2141,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
     }
 }

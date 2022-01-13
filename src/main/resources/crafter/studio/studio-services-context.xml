@@ -287,6 +287,7 @@
             parent="cstudioRegistrableService">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService" />
+        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
@@ -830,6 +831,7 @@
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -1307,7 +1309,9 @@
 
     <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
         <constructor-arg name="clusterDao" ref="clusterDao" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="encryptor" ref="internalTextEncryptor"/>
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.EhCacheFactoryBean">
