@@ -33,83 +33,85 @@ import java.util.Objects;
 
 public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
-    private final static Logger logger = LoggerFactory.getLogger(StudioDBScriptRunnerImpl.class);
+	private final static Logger logger = LoggerFactory.getLogger(StudioDBScriptRunnerImpl.class);
 
-    protected String delimiter;
-    protected DataSource dataSource;
-    protected int scriptLinesBufferSize = 10000;
-    protected Connection connection = null;
+	protected String delimiter;
+	protected DataSource dataSource;
+	protected int scriptLinesBufferSize = 10000;
+	protected Connection connection = null;
+	protected boolean autoCommit;
 
-    protected StudioDBScriptRunnerImpl(String delimiter, DataSource dataSource, int scriptLinesBufferSize) {
-        this.delimiter = delimiter;
-        this.dataSource = dataSource;
-        this.scriptLinesBufferSize = scriptLinesBufferSize;
-    }
+	protected StudioDBScriptRunnerImpl(String delimiter, DataSource dataSource, int scriptLinesBufferSize) {
+		this.delimiter = delimiter;
+		this.dataSource = dataSource;
+		this.scriptLinesBufferSize = scriptLinesBufferSize;
+	}
 
-    @Override
-    public void openConnection() {
-        if (Objects.isNull(connection)) {
-            try {
-                connection = dataSource.getConnection();
-            } catch (SQLException throwables) {
-                logger.error("Failed to open connection with DB", throwables);
-            }
-        }
-    }
+	protected void openConnection() {
+		if (Objects.isNull(connection)) {
+			try {
+				connection = dataSource.getConnection();
+				autoCommit = connection.getAutoCommit();
+				connection.setAutoCommit(false);
+			} catch (SQLException throwables) {
+				logger.error("Failed to open connection with DB", throwables);
+			}
+		}
+	}
 
-    @Override
-    public void closeConnection() {
-        if (!Objects.isNull(connection)) {
-            try {
-                connection.close();
-            } catch (SQLException throwables) {
-                logger.error("Failed to close connection with DB", throwables);
-            }
-            connection = null;
-        }
-    }
+	protected void closeConnection() {
+		if (!Objects.isNull(connection)) {
+			try {
+				connection.setAutoCommit(autoCommit);
+				connection.close();
+			} catch (SQLException throwables) {
+				logger.error("Failed to close connection with DB", throwables);
+			}
+			connection = null;
+		}
+	}
 
-    @Override
-    public void execute(File sqlScriptFile) {
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
-            connection = dataSource.getConnection();
+	@Override
+	public void execute(File sqlScriptFile) {
+		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(sqlScriptFile))) {
+			openConnection();
 
-            connection.setAutoCommit(false);
+			ScriptRunner scriptRunner = new ScriptRunner(connection);
+			scriptRunner.setAutoCommit(false);
+			scriptRunner.setDelimiter(delimiter);
+			scriptRunner.setStopOnError(true);
+			scriptRunner.setLogWriter(null);
 
-            ScriptRunner scriptRunner = new ScriptRunner(connection);
-            scriptRunner.setAutoCommit(false);
-            scriptRunner.setDelimiter(delimiter);
-            scriptRunner.setStopOnError(true);
-            scriptRunner.setLogWriter(null);
+			StringBuilder sb = new StringBuilder();
+			String line = null;
+			boolean moreWork = true;
+			while (moreWork) {
+				for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
+					line = bufferedReader.readLine();
+					if (Objects.nonNull(line)) {
+						sb.append(line).append("\n");
+					} else {
+						moreWork = false;
+					}
+				}
 
-            StringBuilder sb = new StringBuilder();
-            String line = null;
-            boolean moreWork = true;
-            while (moreWork) {
-                for (int i = 0; i < scriptLinesBufferSize && moreWork; i++) {
-                    line = bufferedReader.readLine();
-                    if (Objects.nonNull(line)) {
-                        sb.append(line).append("\n");
-                    } else {
-                        moreWork = false;
-                    }
-                }
+				if (sb.length() > 0) {
+					scriptRunner.runScript(new StringReader(sb.toString()));
+					sb.setLength(0);
+				}
+			}
 
-                if (sb.length() > 0) {
-                    scriptRunner.runScript(new StringReader(sb.toString()));
-                    sb.setLength(0);
-                }
-            }
-
-            connection.commit();
-        } catch (SQLException | IOException e) {
-            logger.error("Error executing db script", e);
-            try {
-                connection.rollback();
-            } catch (SQLException throwables) {
-                logger.error("Failed to rollback after error when running DB script", throwables);
-            }
-        }
-    }
+			connection.commit();
+		} catch (SQLException | IOException e) {
+			logger.error("Error executing DB script", e);
+			try {
+				connection.rollback();
+			} catch (SQLException throwables) {
+				logger.error("Failed to rollback after error when running DB script", throwables);
+			}
+		} finally {
+			closeConnection();
+		}
+	}
 
 }

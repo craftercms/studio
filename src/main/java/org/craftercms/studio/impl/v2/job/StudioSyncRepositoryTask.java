@@ -83,37 +83,41 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastProcessedCommit)) {
-
-                logger.debug("Syncing database with repository for site " + site + " from last processed commit "
-                        + lastProcessedCommit);
                 GitLog gl = contentRepository.getGitLog(site, lastProcessedCommit);
                 if (Objects.nonNull(gl)) {
-                    List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
-                    if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
-                        siteService.syncDatabaseWithRepoUnprocessedCommits(site, unprocessedCommitIds);
-                        GitLog gitLog = unprocessedCommitIds.get(0);
-                        String commitBeforeUnprocessedCommit = contentRepository.getPreviousCommitId(site,
-                                gitLog.getCommitId());
-                        siteService.syncDatabaseWithRepo(site, commitBeforeUnprocessedCommit);
-                        unprocessedCommitIds.forEach(x -> {
-                            contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
-                        });
-
-                        // Sync all preview deployers
-                        try {
-                            logger.debug("Sync preview for site " + site);
-                            deploymentService.syncAllContentToPreview(site, false);
-                        } catch (ServiceLayerException e) {
-                            logger.error("Error synchronizing preview with repository for site: " + site, e);
-                        }
+                    String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+                    if (StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+                        contentRepository.markGitLogVerifiedProcessed(site, gl.getCommitId());
+                        contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                     } else {
-                        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                        GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
-                        if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
-                            siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
-                            contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
+                        logger.debug("Syncing database with repository for site " + site + " from last processed commit "
+                            + lastProcessedCommit);
+                        List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
+                        if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
+                            siteService.syncDatabaseWithRepoUnprocessedCommits(site, unprocessedCommitIds);
+                            GitLog gitLog = unprocessedCommitIds.get(0);
+                            String commitBeforeUnprocessedCommit = contentRepository.getPreviousCommitId(site,
+                                    gitLog.getCommitId());
+                            siteService.syncDatabaseWithRepo(site, commitBeforeUnprocessedCommit);
+                            unprocessedCommitIds.forEach(x -> {
+                                contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
+                            });
+
+                            // Sync all preview deployers
+                            try {
+                                logger.debug("Sync preview for site " + site);
+                                deploymentService.syncAllContentToPreview(site, false);
+                            } catch (ServiceLayerException e) {
+                                logger.error("Error synchronizing preview with repository for site: " + site, e);
+                            }
                         } else {
-                            contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
+                            GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
+                            if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+                                siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                                contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
+                            } else {
+                                contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
+                            }
                         }
                     }
                 }
@@ -134,7 +138,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID. Local copy will not be deleted");
+            logger.info("Invalid site UUID for site " + siteId + " . Local copy will not be deleted");
         }
         return toRet;
     }

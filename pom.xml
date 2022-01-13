@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.17-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.18-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -43,8 +43,8 @@
         <testng.version>6.9.10</testng.version>
         <studio.ui.path>target/ui/</studio.ui.path>
         <studio.ui.version>support/3.1.x-es-7</studio.ui.version><!-- craftercms ui version flag -->
-        <studio.ui.node.version>v13.6.0</studio.ui.node.version>
-        <studio.ui.yarn.version>v1.22.0</studio.ui.yarn.version>
+        <studio.ui.node.version>v15.0.1</studio.ui.node.version>
+        <studio.ui.yarn.version>v1.22.10</studio.ui.yarn.version>
         <spring.version>4.3.29.RELEASE</spring.version>
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
@@ -52,7 +52,7 @@
         <aws.version>1.11.1034</aws.version>
         <box.sdk.version>2.25.1</box.sdk.version>
         <tinify.version>1.5.1</tinify.version>
-        <mariadb4j.version>2.4.9</mariadb4j.version>
+        <mariadb4j.version>2.4.12.1</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
         <jackson.databind.version>2.10.5.1</jackson.databind.version>
         <bouncycastle.version>1.61</bouncycastle.version>
@@ -98,7 +98,7 @@
         <repository>
             <id>sonatype-snapshots</id>
             <name>sonatype Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
             <releases>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
@@ -300,7 +300,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>5.8.0.202006091008-r</version>
+            <version>5.13.0.202109080827-r</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.bouncycastle</groupId>
@@ -312,7 +312,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit.ssh.jsch</artifactId>
-            <version>5.8.0.202006091008-r</version>
+            <version>5.13.0.202109080827-r</version>
         </dependency>
 
         <!-- testing -->
@@ -630,6 +630,16 @@
                             <goal>install-node-and-yarn</goal>
                         </goals>
                         <phase>prepare-package</phase>
+                    </execution>
+                    <execution>
+                        <id>UI build: prep</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <workingDirectory>${studio.ui.path}</workingDirectory>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>yarn install sass</id>
@@ -969,11 +979,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>sonatype-nexus-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
             <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
