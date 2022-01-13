@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.24'
+  version: '4.0.0.25'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4238,6 +4238,87 @@ paths:
                   item:
                     description: the path of the new item
                     type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/items_lock_by_path:
+    post:
+      tags:
+        - content
+      summary: Lock items by path
+      description: 'Required permission "content_write"'
+      operationId: itemsLockByPath
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                paths:
+                  type: array
+                  items:
+                    type: string
+                    description: Paths of items to lock
+              required:
+                - siteId
+                - paths
+      responses:
+        '200':
+          description: OK
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/items_lock_by_id:
+    post:
+      tags:
+        - content
+      summary: Lock items by id
+      description: 'Required permission "content_write"'
+      operationId: itemsLockById
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                itemIds:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  description: Ids of items to lock
+              required:
+                - siteId
+                - itemIds
+      responses:
+        '200':
+          description: OK
+
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
