@@ -1161,6 +1161,13 @@ pipelines:
             - config/.*
           commitDetails: Update all encrypted properties
         - type: versionFileUpgrader
+    - currentVersion: 3.1.9
+      nextVersion: 3.1.18
+      operations:
+        - type: batchXsltUpgrader
+          regex: config/studio/content-types/.+/form-definition\.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.18/site/additional-fields.xslt
+          commitDetails: Update date-time & time controls with addititional fields
 
   # Pipeline to upgrade blueprints
   blueprint:

@@ -530,6 +530,9 @@
                             <type>boolean</type>
                         </constraint>
                     </constraints>
+                    <additionalFields>
+                        <id>date_dt_tz</id>
+                    </additionalFields>
                 </field>
                 <field>
                     <type>textarea</type>
