@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -96,6 +96,7 @@ import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.ParameterizedTypeReference;
@@ -108,7 +109,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.ws.rs.HEAD;
 import javax.xml.transform.TransformerException;
 import java.beans.ConstructorProperties;
 import java.io.ByteArrayOutputStream;
@@ -145,7 +145,6 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.apache.commons.lang.text.StrSubstitutor.replace;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -610,7 +609,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 }
             }
         } catch (IOException | TransformerException | ServiceLayerException | DocumentException | GitAPIException |
-                 PluginException | org.apache.commons.configuration2.ex.ConfigurationException e) {
+                PluginException | org.apache.commons.configuration2.ex.ConfigurationException |
+                UserNotFoundException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -841,7 +841,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             // commit all changes
             commitChanges(siteId, changedFiles, true, true, "Remove plugin " + pluginId);
         } catch (IOException | GitAPIException | CommitNotFoundException | EnvironmentNotFoundException |
-                 SiteNotFoundException | TransformerException e) {
+                SiteNotFoundException | TransformerException | UserNotFoundException e) {
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
@@ -956,8 +956,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected void commitChanges(String siteId, List<String> changedFiles, boolean update, boolean publish,
-                                 String message) throws IOException, GitAPIException, CommitNotFoundException,
-            EnvironmentNotFoundException, SiteNotFoundException {
+                                 String message) throws IOException, GitAPIException, ServiceLayerException,
+            UserNotFoundException {
         logger.debug("Committing changes on site {1}: {2}", siteId, message);
         Path siteDir = getRepoDirectory(siteId);
         try (Git git = Git.open(siteDir.toFile())) {
@@ -965,7 +965,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             changedFiles.forEach(add::addFilepattern);
             retryingRepositoryOperationFacade.call(add);
 
-            CommitCommand commitCommand = git.commit().setMessage(message);
+            PersonIdent user = gitRepositoryHelper.getCurrentUserIdent();
+            CommitCommand commitCommand = git.commit().setAuthor(user).setCommitter(user).setMessage(message);
             RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
 
             if (publish) {
