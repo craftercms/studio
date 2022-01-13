@@ -91,9 +91,14 @@ public class XsltTest {
                 new ClassPathResource("crafter/studio/upgrade/xslt/cdata/input.xml"),
                 new ClassPathResource("crafter/studio/upgrade/xslt/cdata/expected.xml"),
                 emptyMap()
+            },
+            new Object[]{
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/additional-fields/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/additional-fields/expected.xml"),
+                emptyMap()
             }
-
-    };
+        };
     }
 
     @Test(dataProvider = "xsltData")

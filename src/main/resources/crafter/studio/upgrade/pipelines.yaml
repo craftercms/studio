@@ -349,6 +349,13 @@ pipelines:
             oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
             newPath: config/studio/form-control-config/rte/rte-config.xml
             commitDetails: Rename the RTE configuration
+      - currentVersion: 4.0.0.2
+        nextVersion: 4.0.0.3
+        operations:
+          - type: batchXsltUpgrader
+            regex: config/studio/content-types/.+/form-definition\.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
+            commitDetails: Update date-time & time controls with addititional fields
 
   # Pipeline to upgrade blueprints
   blueprint:

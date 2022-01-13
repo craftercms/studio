@@ -187,6 +187,9 @@
                         <type>boolean</type>
                     </constraint>
                 </constraints>
+                <additionalFields>
+                    <id>expired_dt_tz</id>
+                </additionalFields>
             </field>
             <field>
                 <type>node-selector</type>
