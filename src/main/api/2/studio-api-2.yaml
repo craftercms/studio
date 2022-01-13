@@ -4249,7 +4249,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_lock_by_path:
+  /content/items_lock_by_path:
     post:
       tags:
         - content
@@ -4289,7 +4289,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_lock_by_id:
+  /content/items_lock_by_id:
     post:
       tags:
         - content
