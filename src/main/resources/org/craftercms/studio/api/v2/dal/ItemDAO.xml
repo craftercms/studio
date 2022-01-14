@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -1353,6 +1353,18 @@
         AND i.system_type &lt;&gt; #{systemTypeFolder}
     </update>
 
+    <update id="lockItemsByPath">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+            SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND i.path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+            #{path}
+        </foreach>
+          AND i.system_type &lt;&gt; #{systemTypeFolder}
+    </update>
+
     <update id="unlockItemByPath">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET i.locked_by = null, i.state = i.state &amp; #{lockedBitOff}
@@ -1365,6 +1377,16 @@
         UPDATE item i
         SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
         WHERE i.id =  #{id} AND i.system_type &lt;&gt; #{systemTypeFolder}
+    </update>
+
+    <update id="lockItemsById">
+        UPDATE item i
+        SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        WHERE i.id IN
+        <foreach collection="itemIds" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND i.system_type &lt;&gt; #{systemTypeFolder}
     </update>
 
     <update id="unlockItemById">

@@ -678,6 +678,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public void lockItemsByPath(String siteId, List<String> paths, String username)
+            throws UserNotFoundException, ServiceLayerException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        retryingDatabaseOperationFacade.lockItemsByPath(siteId, paths, user.getId(), USER_LOCKED.value,
+                CONTENT_TYPE_FOLDER);
+    }
+
+    @Override
     public void unlockItemByPath(String siteId, String path) {
         retryingDatabaseOperationFacade.unlockItemByPath(siteId, path, ~USER_LOCKED.value);
     }
@@ -686,6 +694,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         retryingDatabaseOperationFacade.lockItemById(itemId, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
+    }
+
+    @Override
+    public void lockItemsById(List<Long> itemIds, String username) throws UserNotFoundException, ServiceLayerException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        retryingDatabaseOperationFacade.lockItemsById(itemIds, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
     }
 
     @Override

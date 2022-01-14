@@ -2368,7 +2368,7 @@ public class ContentServiceImpl implements ContentService {
             throws UserNotFoundException, ServiceLayerException {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
         // TODO: SJ: Dejan to look into this
-        _contentRepository.lockItem(site, path);
+        contentRepository.lockItem(site, path);
         itemServiceInternal.lockItemByPath(site, path, securityService.getCurrentUser());
     }
 

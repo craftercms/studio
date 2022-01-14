@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -445,6 +445,12 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
+    public void lockItemsByPath(String siteId, List<String> paths, long lockOwnerId, long lockedBitOn,
+                               String systemTypeFolder) {
+        itemDao.lockItemsByPath(siteId, paths, lockOwnerId, lockedBitOn, systemTypeFolder);
+    }
+
+    @Override
     public void unlockItemByPath(String siteId, String path, long lockedBitOff) {
         itemDao.unlockItemByPath(siteId, path, lockedBitOff);
     }
@@ -452,6 +458,11 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     @Override
     public void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
         itemDao.lockItemById(itemId, lockOwnerId, lockedBitOn, systemTypeFolder);
+    }
+
+    @Override
+    public void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
+        itemDao.lockItemsById(itemIds, lockOwnerId, lockedBitOn, systemTypeFolder);
     }
 
     @Override

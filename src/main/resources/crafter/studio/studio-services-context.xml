@@ -557,6 +557,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="contentServiceInternal"
@@ -1110,6 +1111,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="contentRepositoryV1" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioExtractAssetDependencyProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractAssetDependencyProcessor">
@@ -1138,6 +1140,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="contentRepositoryV1" ref="contentRepository" />
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">
