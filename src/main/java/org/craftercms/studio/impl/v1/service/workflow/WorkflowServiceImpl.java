@@ -104,6 +104,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJEC
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
@@ -964,6 +965,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             auditLogParameter.setTargetValue(goLiveItem.getUri());
                             auditLogParameters.add(auditLogParameter);
                         }
+
                         goLive(site, goLiveItems, approver, mcpContext);
                         SiteFeed siteFeed = siteService.getSite(site);
                         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -972,6 +974,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                         auditLog.setPrimaryTargetId(site);
                         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                         auditLog.setPrimaryTargetValue(site);
+                        if (StringUtils.isNotEmpty(mcpContext.getSubmissionComment())) {
+                            AuditLogParameter auditLogParameter = new AuditLogParameter();
+                            auditLogParameter.setTargetId(site + ":submissionComment");
+                            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+                            auditLogParameter.setTargetValue(mcpContext.getSubmissionComment());
+                            auditLogParameters.add(auditLogParameter);
+                        }
                         auditLog.setParameters(auditLogParameters);
                         if (scheduledDate != null && !isNow) {
                             auditLog.setOperation(OPERATION_APPROVE_SCHEDULED);
@@ -1030,6 +1039,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                     auditLog.setPrimaryTargetId(site);
                     auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                     auditLog.setPrimaryTargetValue(site);
+                    if (StringUtils.isNotEmpty(mcpContext.getSubmissionComment())) {
+                        AuditLogParameter auditLogParameter = new AuditLogParameter();
+                        auditLogParameter.setTargetId(site + ":submissionComment");
+                        auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+                        auditLogParameter.setTargetValue(mcpContext.getSubmissionComment());
+                        auditLogParameters.add(auditLogParameter);
+                    }
                     auditLog.setParameters(auditLogParameters);
                     auditServiceInternal.insertAuditLog(auditLog);
 
@@ -2117,6 +2133,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setPrimaryTargetId(site);
                 auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                 auditLog.setPrimaryTargetValue(site);
+                if (StringUtils.isNotEmpty(reason)) {
+                    AuditLogParameter auditLogParameter = new AuditLogParameter();
+                    auditLogParameter.setTargetId(site + ":submissionComment");
+                    auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+                    auditLogParameter.setTargetValue(reason);
+                    auditLogParameters.add(auditLogParameter);
+                }
                 auditLog.setParameters(auditLogParameters);
                 auditServiceInternal.insertAuditLog(auditLog);
                 itemServiceInternal.setSystemProcessingBulk(site, paths, false);
