@@ -51,7 +51,7 @@
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
         <aws.version>1.11.1034</aws.version>
         <box.sdk.version>2.25.1</box.sdk.version>
-        <tinify.version>1.5.1</tinify.version>
+        <tinify.version>1.6.4</tinify.version>
         <mariadb4j.version>2.4.12.1</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
         <jackson.databind.version>2.10.5.1</jackson.databind.version>
