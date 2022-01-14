@@ -49,14 +49,14 @@
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-        <aws.version>1.11.1034</aws.version>
-        <box.sdk.version>2.25.1</box.sdk.version>
+	<aws.sdk.version>1.12.139</aws.sdk.version>
+	<box.sdk.version>2.58.0</box.sdk.version>
         <tinify.version>1.6.4</tinify.version>
         <mariadb4j.version>2.4.12.1</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
         <jackson.databind.version>2.10.5.1</jackson.databind.version>
         <bouncycastle.version>1.61</bouncycastle.version>
-        <sardine.version>5.9</sardine.version>
+        <sardine.version>5.10</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
         <apache.cxf.version>3.3.8</apache.cxf.version>
         <nekohtml.version>1.9.22</nekohtml.version>
