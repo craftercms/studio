@@ -72,6 +72,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJEC
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
@@ -422,7 +423,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
-                createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy);
+                createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy, comment);
             } finally {
                 // Reset system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
@@ -430,7 +431,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    private void createApproveAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy)
+    private void createApproveAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy,
+                                            String comment)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -448,6 +450,13 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
+        if (StringUtils.isNotEmpty(comment)) {
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":submissionComment");
+            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+            auditLogParameter.setTargetValue(comment);
+            auditLogParameters.add(auditLogParameter);
+        }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
@@ -501,7 +510,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // cancel workflow
             cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
             // create audit log entries
-            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy);
+            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy, comment);
             // notify rejection
             if (shouldNotify) {
                 notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
@@ -512,7 +521,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, String rejectedBy)
+    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, String rejectedBy,
+                                           String comment)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -530,6 +540,13 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
+        if (StringUtils.isNotEmpty(comment)) {
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":submissionComment");
+            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+            auditLogParameter.setTargetValue(comment);
+            auditLogParameters.add(auditLogParameter);
+        }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
