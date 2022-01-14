@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -299,6 +299,24 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             mimeType = StudioUtils.getMimeType(detailedItem.getPath());
         }
         return editableMimeTypes.contains(mimeType);
+    }
+
+    @Override
+    public void itemsLockByPath(String siteId, List<String> paths) {
+        paths.forEach(path -> {
+            contentRepository.lockItem(siteId, path);
+        });
+    }
+
+    @Override
+    public void itemsLockById(String siteId, List<Long> itemIds) {
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+        itemIds.forEach(itemId -> {
+            org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, siteId, CONTENT_TYPE_FOLDER,
+                    COMPLETED, stagingEnv, liveEnv);
+            contentRepository.lockItem(siteId, item.getPath());
+        });
     }
 
     @Override

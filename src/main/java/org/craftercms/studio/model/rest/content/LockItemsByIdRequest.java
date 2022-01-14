@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,13 +18,14 @@ package org.craftercms.studio.model.rest.content;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
+import java.util.List;
 
-public class UnlockItemByIdRequest {
+public class LockItemsByIdRequest {
 
     @NotEmpty
     private String siteId;
     @Positive
-    private long itemId;
+    private List<Long> itemIds;
 
     public String getSiteId() {
         return siteId;
@@ -34,11 +35,11 @@ public class UnlockItemByIdRequest {
         this.siteId = siteId;
     }
 
-    public long getItemId() {
-        return itemId;
+    public List<Long> getItemIds() {
+        return itemIds;
     }
 
-    public void setItemId(long itemId) {
-        this.itemId = itemId;
+    public void setItemIds(List<Long> itemIds) {
+        this.itemIds = itemIds;
     }
 }

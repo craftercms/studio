@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -805,35 +805,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         return toReturn;
-    }
-
-    @Override
-    public void lockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
-            try (TreeWalk tw = new TreeWalk(repo)) {
-                RevTree tree = helper.getTreeForLastCommit(repo);
-                tw.addTree(tree); // tree ‘0’
-                tw.setRecursive(false);
-                tw.setFilter(PathFilter.create(path));
-
-                if (!tw.next()) {
-                    return;
-                }
-
-                File repoRoot = repo.getWorkTree();
-                Paths.get(repoRoot.getPath(), tw.getPathString());
-                File file = new File(tw.getPathString());
-                LockFile lock = new LockFile(file);
-                lock.lock();
-
-                tw.close();
-
-            } catch (IOException e) {
-                logger.error("Error while locking file for site: " + site + " path: " + path, e);
-            }
-        }
     }
 
     @Override

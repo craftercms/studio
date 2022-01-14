@@ -330,6 +330,16 @@ public interface ContentRepository {
      */
     String getPreviousCommitId(String siteId, String commitId);
 
+
+    /**
+     * lock an item
+     * NOTE: site will be removed from this interface
+     *
+     * @param site site id where the operation will be executed
+     * @param path path of the item
+     */
+    void lockItem(String site, String path); // TODO: SJ: Change to have a return
+
     /**
      * unlock an item
      *

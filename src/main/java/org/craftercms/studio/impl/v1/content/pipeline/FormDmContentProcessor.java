@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -35,6 +34,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -62,6 +62,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ItemServiceInternal itemServiceInternal;
     protected SiteService siteService;
     protected UserServiceInternal userServiceInternal;
+    protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
 
     /**
      * default constructor
@@ -217,7 +218,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
             // unlock the content upon save
             if (unlock) {
-                contentRepository.unLockItem(site, itemPath);
+                contentRepositoryV1.unLockItem(site, itemPath);
             } else {
                 contentRepository.lockItem(site, itemPath);
             }
@@ -273,7 +274,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
         // unlock the content upon save if the flag is true
         if (unlock) {
-            contentRepository.unLockItem(site, path);
+            contentRepositoryV1.unLockItem(site, path);
             logger.debug("Unlocked the content site: " + site + " path: " + path);
         } else {
             contentRepository.lockItem(site, path);
@@ -425,5 +426,13 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepositoryV1() {
+        return contentRepositoryV1;
+    }
+
+    public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
+        this.contentRepositoryV1 = contentRepositoryV1;
     }
 }

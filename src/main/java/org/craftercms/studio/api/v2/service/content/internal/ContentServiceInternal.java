@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -179,6 +179,20 @@ public interface ContentServiceInternal {
      * @return true if item is editable
      */
     boolean isEditable(DetailedItem detailedItem);
+
+    /**
+     * Lock items by path for given site
+     * @param siteId site identifier
+     * @param paths list of item paths to lock
+     */
+    void itemsLockByPath(String siteId, List<String> paths);
+
+    /**
+     * Lock items by id for given site
+     * @param siteId site identifier
+     * @param itemIds list of item identifiers to lock
+     */
+    void itemsLockById(String siteId, List<Long> itemIds);
 
     /**
      * Unlock item by path for given site

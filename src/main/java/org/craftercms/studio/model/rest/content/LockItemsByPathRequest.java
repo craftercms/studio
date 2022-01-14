@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,13 +17,14 @@
 package org.craftercms.studio.model.rest.content;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
-public class UnlockItemByPathRequest {
+public class LockItemsByPathRequest {
 
     @NotEmpty
     private String siteId;
     @NotEmpty
-    private String path;
+    private List<String> paths;
 
     public String getSiteId() {
         return siteId;
@@ -33,11 +34,11 @@ public class UnlockItemByPathRequest {
         this.siteId = siteId;
     }
 
-    public String getPath() {
-        return path;
+    public List<String> getPaths() {
+        return paths;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void setPaths(List<String> paths) {
+        this.paths = paths;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -560,6 +560,16 @@ public interface RetryingDatabaseOperationFacade {
     void lockItemByPath(String siteId, String path, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
 
     /**
+     * Lock items
+     * @param siteId site identifier
+     * @param paths list of item paths
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
+     */
+    void lockItemsByPath(String siteId, List<String> paths, long lockOwnerId, long lockedBitOn,
+                         String systemTypeFolder);
+    /**
      * Lock item
      * @param siteId site identifier
      * @param path path of the item
@@ -577,7 +587,16 @@ public interface RetryingDatabaseOperationFacade {
     void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
 
     /**
-     * Lock item
+     * Lock items
+     * @param itemIds list of item identifiers
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
+     */
+    void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
+
+    /**
+     * Unlock item
      * @param itemId item identifier
      * @param lockedBitOff state bit mask with LOCKED bit off
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -176,15 +176,6 @@ public interface ContentRepository {
      * @return Commit ID if successful, empty string otherwise
      */
     String revertContent(String site, String path, String version, boolean major, String comment);
-
-    /**
-     * lock an item
-     * NOTE: site will be removed from this interface
-     *
-     * @param site site id where the operation will be executed
-     * @param path path of the item
-     */
-    void lockItem(String site, String path); // TODO: SJ: Change to have a return
 
     /**
      * lock an item

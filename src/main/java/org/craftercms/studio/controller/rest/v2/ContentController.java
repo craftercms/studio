@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -43,6 +43,8 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.GetDeletePackageRequestBody;
 import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequestBody;
 import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequestBody;
+import org.craftercms.studio.model.rest.content.LockItemsByIdRequest;
+import org.craftercms.studio.model.rest.content.LockItemsByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
@@ -88,6 +90,8 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.G
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEMS_LOCK_BY_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEMS_LOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
@@ -375,6 +379,28 @@ public class ContentController {
             result.setResponse(OK);
             responseBody.setResult(result);
         }
+        return responseBody;
+    }
+
+    @PostMapping(ITEMS_LOCK_BY_PATH)
+    public ResponseBody itemsLockByPath(@RequestBody @Valid LockItemsByPathRequest request)
+            throws UserNotFoundException, ServiceLayerException {
+        contentService.itemsLockByPath(request.getSiteId(), request.getPaths());
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(ITEMS_LOCK_BY_ID)
+    public ResponseBody itemsLockById(@RequestBody @Valid LockItemsByIdRequest request)
+            throws UserNotFoundException, ServiceLayerException {
+        contentService.itemsLockById(request.getSiteId(), request.getItemIds());
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
         return responseBody;
     }
 

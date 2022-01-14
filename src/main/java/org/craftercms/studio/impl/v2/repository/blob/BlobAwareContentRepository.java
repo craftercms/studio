@@ -369,7 +369,7 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public void lockItem(String site, String path) {
-        localRepositoryV1.lockItem(site, path);
+        localRepositoryV2.lockItem(site, path);
     }
 
     @Override
