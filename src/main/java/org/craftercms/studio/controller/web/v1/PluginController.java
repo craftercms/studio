@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,9 +44,12 @@ public class PluginController {
      */
     protected final ConfigurationService configurationService;
 
-    @ConstructorProperties({"configurationService"})
-    public PluginController(ConfigurationService configurationService) {
+    protected final CacheControl cacheControl;
+
+    @ConstructorProperties({"configurationService", "cacheControl"})
+    public PluginController(ConfigurationService configurationService, CacheControl cacheControl) {
         this.configurationService = configurationService;
+        this.cacheControl = cacheControl;
     }
 
     /**
@@ -61,7 +65,11 @@ public class PluginController {
 
         String contentType = StudioUtils.getMimeType(filename);
 
-        return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, contentType).body(resource);
+        return ResponseEntity
+                .ok()
+                .cacheControl(cacheControl)
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .body(resource);
     }
 
 }

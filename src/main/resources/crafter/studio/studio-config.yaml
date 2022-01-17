@@ -981,6 +981,10 @@ studio.marketplace.plugin.contentType.pattern: '/config/studio/content-types(/.+
 ##################################################
 # If Studio should cache its FreeMarker templates
 studio.cache.templates: true
+# Indicates if the browser should cache responses for static-assets
+studio.cache.assets.enabled: true
+# The max age in minutes that the browser should cache responses for static-assets
+studio.cache.assets.maxAge: 60
 
 ##################################################
 ##             Forwarded Headers                ##
