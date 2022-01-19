@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.25'
+  version: '4.0.0.26'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -4830,9 +4830,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: environment
+        - name: publishingTarget
           in: query
-          description: filter by publishing environment
+          description: filter by publishing target
           required: false
           schema:
             type: string
@@ -5488,9 +5488,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: environment
+        - name: publishingTarget
           in: query
-          description: environment
+          description: publishing target
           required: false
           schema:
             type: string
@@ -5852,9 +5852,9 @@ paths:
             type: array
             items:
               type: string
-        - name: environment
+        - name: publishingTarget
           in: query
-          description: environment
+          description: publishingTarget
           required: false
           schema:
             type: string
@@ -5997,7 +5997,7 @@ paths:
 #              - path - path of an item item
 #              - actor - user that last acted on the item
 #              - scheduledDate - data and time item is scheduled
-#              - environment - environment where item is scheduled
+#              - publishingTarget - publishing target where item is scheduled
 #              - contentType - content type of an item
 #          schema:
 #            type: string
@@ -6027,7 +6027,7 @@ paths:
 #              - scheduledDateFrom - filter items by scheduled date setting lower boudery for date range
 #              - scheduledDateTo - filter items by scheduled date setting upper boudery for date range
 #              - contentType - filter items by content type
-#              - environment - filter items by environment where scheduled
+#              - publishingTarget - filter items by publishing target where scheduled
 #              - state - filter items by state (state bitmap values)
 #          schema:
 #            type: array
@@ -7923,9 +7923,9 @@ components:
         state:
           type: string
           description: package state
-        environment:
+        publishingTarget:
           type: string
-          description: environment where package will be published
+          description: publishing target where package will be published
         comment:
           type: string
           description: submission comment
@@ -7935,7 +7935,7 @@ components:
         - schedule
         - approver
         - state
-        - environment
+        - publishingTarget
 
     PublishingPackageDetails:
       type: object
@@ -7956,9 +7956,9 @@ components:
         state:
           type: string
           description: package state
-        environment:
+        publishingTarget:
           type: string
-          description: environment where package will be published
+          description: publishing target where package will be published
         comment:
           type: string
           description: submission comment
@@ -7981,7 +7981,7 @@ components:
         - schedule
         - approver
         - state
-        - environment
+        - publishingTarget
         - items
 
     PublishingStatus:
@@ -8038,14 +8038,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ContentItem'
-        endpoint:
+        publishingTarget:
           type: string
-          description: publishing environment where item was published
+          description: publishing target where item was published
       required:
         - internalName
         - numberOfChildren
         - children
-        - endpoint
+        - publishingTarget
 
 
     SandboxItem:
@@ -8091,8 +8091,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8238,8 +8238,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8417,8 +8417,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8654,8 +8654,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishiing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8789,9 +8789,9 @@ components:
         state:
           type: string
           description: package state
-        environment:
+        publishingTarget:
           type: string
-          description: environment where package will be published
+          description: publishing target where package will be published
         comment:
           type: string
           description: submission comment
@@ -8805,7 +8805,7 @@ components:
         - schedule
         - approver
         - state
-        - environment
+        - publishingTarget
         - items
     
     AvailablePublishingTargets:
