@@ -18,7 +18,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
     <!-- to keep the right formatting -->
-    <xsl:output method="xml" indent="yes" cdata-section-elements="${cdataElements}"/>
+    <xsl:output method="xml" indent="yes"/>
     <xsl:strip-space elements="*"/>
 
     <!-- copy all elements -->
