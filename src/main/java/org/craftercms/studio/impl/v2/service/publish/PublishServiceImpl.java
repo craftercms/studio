@@ -59,6 +59,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKA
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
@@ -232,7 +233,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<PublishingTarget> getAvailablePublishingTargets(
             @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         var availablePublishingTargets = new ArrayList<PublishingTarget>();
