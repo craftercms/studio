@@ -17,20 +17,21 @@
 package org.craftercms.studio.model.rest.publish;
 
 import org.craftercms.studio.model.publish.PublishingTarget;
+import org.craftercms.studio.model.rest.Result;
 
 import java.util.List;
 
-public class AvailablePublishingTargets {
+public class AvailablePublishingTargets extends Result {
 
-    private List<PublishingTarget> targets;
+    private List<PublishingTarget> publishingTargets;
     private boolean published;
 
-    public List<PublishingTarget> getTargets() {
-        return targets;
+    public List<PublishingTarget> getPublishingTargets() {
+        return publishingTargets;
     }
 
-    public void setTargets(List<PublishingTarget> targets) {
-        this.targets = targets;
+    public void setPublishingTargets(List<PublishingTarget> publishingTargets) {
+        this.publishingTargets = publishingTargets;
     }
 
     public boolean isPublished() {

@@ -63,7 +63,6 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.P
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_TARGETS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_HISTORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_STATUS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -202,14 +201,12 @@ public class PublishController {
         var availableTargets = publishService.getAvailablePublishingTargets(siteId);
         var published = publishService.isSitePublished(siteId);
         AvailablePublishingTargets availablePublishingTargets = new AvailablePublishingTargets();
-        availablePublishingTargets.setTargets(availableTargets);
+        availablePublishingTargets.setPublishingTargets(availableTargets);
         availablePublishingTargets.setPublished(published);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<AvailablePublishingTargets> result = new ResultOne<AvailablePublishingTargets>();
-        result.setResponse(OK);
-        result.setEntity(RESULT_KEY_PUBLISHING_TARGETS, availablePublishingTargets);
-        responseBody.setResult(result);
+        availablePublishingTargets.setResponse(OK);
+        responseBody.setResult(availablePublishingTargets);
         return responseBody;
     }
 
