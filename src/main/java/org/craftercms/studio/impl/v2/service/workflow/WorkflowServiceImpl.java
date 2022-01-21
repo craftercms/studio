@@ -213,7 +213,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             notificationService.notifyApprovesContentSubmission(
                     siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment);
             // create audit log entries
-            createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy);
+            createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy, comment);
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, false);
@@ -297,7 +297,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy)
+    private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy,
+                                                   String comment)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -315,6 +316,13 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
+        if (StringUtils.isNotEmpty(comment)) {
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":submissionComment");
+            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+            auditLogParameter.setTargetValue(comment);
+            auditLogParameters.add(auditLogParameter);
+        }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
