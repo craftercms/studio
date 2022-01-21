@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -56,13 +56,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_M
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 /**
@@ -234,19 +229,15 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         try {
-            Map<String, Object> params = new HashMap<>();
-            params.put(ORG_ID, DEFAULT_ORGANIZATION_ID);
-            params.put(GROUP_NAME, groupName);
-            params.put(GROUP_DESCRIPTION, "Externally managed group - " + groupName);
-            retryingDatabaseOperationFacade.createGroup(params);
+            retryingDatabaseOperationFacade.createGroup(DEFAULT_ORGANIZATION_ID, groupName,
+                    "Externally managed group - " + groupName);
         } catch (Exception e) {
             logger.debug("Error creating group", e);
         }
 
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(GROUP_NAME, groupName);
-        Group group = groupDao.getGroupByName(params);
+        Group group = groupDao.getGroupByName(groupName);
         if (group != null) {
+            Map<String, Object> params = new HashMap<String, Object>();
             params = new HashMap<>();
             params.put(USER_ID, -1);
             params.put(USERNAME, username);
@@ -254,12 +245,8 @@ public class HeadersAuthenticationProvider implements AuthenticationProvider {
             List<Long> users = new ArrayList<Long>();
             users.add(user.getId());
 
-            params = new HashMap<>();
-            params.put(USER_IDS, users);
-            params.put(GROUP_ID, group.getId());
-
             try {
-                retryingDatabaseOperationFacade.addGroupMembers(params);
+                retryingDatabaseOperationFacade.addGroupMembers(group.getId(), users);
                 AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
                 auditLog.setOperation(OPERATION_ADD_MEMBERS);
                 auditLog.setSiteId(siteFeed.getId());

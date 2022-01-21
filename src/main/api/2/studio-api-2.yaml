@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.26'
+  version: '4.0.0.27'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -73,6 +73,12 @@ paths:
       operationId: getGroups
       description: 'Required Permission: "READ_GROUPS"'
       parameters:
+        - name: keyword
+          in: query
+          description: The keyword to filter groups
+          required: false
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset of first group in the response
@@ -5119,7 +5125,7 @@ paths:
       tags:
         - publishing
       summary: Get available publishing targets for site
-      description: 'Required permission "publish"'
+      description: 'Required permission "publish" '
       operationId: getAvailablePublishingTargets
       parameters:
         - name: siteId
