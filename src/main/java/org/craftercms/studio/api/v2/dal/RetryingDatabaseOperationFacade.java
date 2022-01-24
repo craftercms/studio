@@ -344,50 +344,54 @@ public interface RetryingDatabaseOperationFacade {
     /**
      * Create group
      *
-     * @param params SQL query parameters
+     * @param orgId organization id
+     * @param groupName group name
+     * @param groupDescription  group description
      * @return Number of affected rows in DB
      */
-    Integer createGroup(Map params);
+    Integer createGroup(long orgId, String groupName, String groupDescription);
 
     /**
      * Update group
      *
-     * @param params SQL query parameters
+     * @param group group to update
      * @return Number of affected rows in DB
      */
-    Integer updateGroup(Map params);
+    Integer updateGroup(Group group);
 
     /**
      * Delete group
      *
-     * @param params SQL query parameters
+     * @param groupId group identifier
      * @return Number of affected rows in DB
      */
-    Integer deleteGroup(Map params);
+    Integer deleteGroup(long groupId);
 
     /**
-     * Delete group
+     * Delete groups
      *
-     * @param params SQL query parameters
+     * @param groupIds ids of the groups to be deleted
      * @return Number of affected rows in DB
      */
-    Integer deleteGroups(Map params);
+    Integer deleteGroups(List<Long> groupIds);
 
     /**
      * Add users to the group
      *
-     * @param params SQL query parameters
+     * @param groupId group identifier
+     * @param userIds list of user identifiers
      * @return Number of rows affected in DB
      */
-    Integer addGroupMembers(Map params);
+    Integer addGroupMembers(long groupId, List<Long> userIds);
 
     /**
      * Remove users from the group
      *
-     * @param params SQL query parameters
+     * @param groupId group identifier
+     * @param userIds list of user identifiers
      * @return Number of rows affected in DB
      */
-    Integer removeGroupMembers(Map params);
+    Integer removeGroupMembers(long groupId, List<Long> userIds);
 
     // Item API v2
     /**

@@ -52,6 +52,10 @@ public final class RequestMappingConstants {
     public static final String ITEM_UNLOCK_BY_ID = "/item_unlock_by_id";
     public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
 
+    /** Groups controller */
+    public static final String GROUPS = "/groups";
+    public static final String MEMBERS = "/members";
+
     /** Users controller */
     public static final String USERS = "/users";
     public static final String PATH_PARAM_ID = "/{id}";

@@ -73,6 +73,12 @@ paths:
       operationId: getGroups
       description: 'Required Permission: "READ_GROUPS"'
       parameters:
+        - name: keyword
+          in: query
+          description: The keyword to filter groups
+          required: false
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset of first group in the response

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -55,6 +55,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDAT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_GROUP;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_READ_GROUPS;
 
 public class GroupServiceImpl implements GroupService {
 
@@ -69,22 +70,23 @@ public class GroupServiceImpl implements GroupService {
     private SiteService siteService;
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public List<Group> getAllGroups(long orgId, int offset, int limit, String sort)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
+    public List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
         // Security check
         if (organizationServiceInternal.organizationExists(orgId)) {
-            return groupServiceInternal.getAllGroups(orgId, offset, limit, sort);
+            return groupServiceInternal.getAllGroups(orgId, keyword, offset, limit, sort);
         } else {
             throw new OrganizationNotFoundException();
         }
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_groups")
-    public int getAllGroupsTotal(long orgId) throws ServiceLayerException, OrganizationNotFoundException {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
+    public int getAllGroupsTotal(long orgId, String keyword)
+            throws ServiceLayerException, OrganizationNotFoundException {
         if (organizationServiceInternal.organizationExists(orgId)) {
-            return groupServiceInternal.getAllGroupsTotal(orgId);
+            return groupServiceInternal.getAllGroupsTotal(orgId, keyword);
         } else {
             throw new OrganizationNotFoundException();
         }
