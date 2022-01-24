@@ -64,7 +64,8 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_ACCESS_TOKEN = "Access Token";
     public static final String TARGET_TYPE_REFRESH_TOKEN = "Refresh Token";
     public static final String TARGET_TYPE_BLUEPRINT = "Blueprint";
-    public static final String TARGET_TYPE_PUBLISHING_PACKAGE = "Publishing package";
-    public static final String TARGET_TYPE_SUBMISSION_COMMENT = "Submission comment";
+    public static final String TARGET_TYPE_PUBLISHING_PACKAGE = "Publishing Package";
+    public static final String TARGET_TYPE_SUBMISSION_COMMENT = "Submission Comment";
+    public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
     public static final String TARGET_TYPE_UNKNOWN = "unknown";
 }
