@@ -492,6 +492,12 @@ configurations:
         # Entry point for existing 4.0.x installations (before refactoring so just switch to the new version schema)
         - currentVersion: 21
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.2
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.2.xslt
+              commitDetails: Add content_read permission where it is missing
 
   role-mappings-config:
     module: studio

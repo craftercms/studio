@@ -61,7 +61,6 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -249,7 +248,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         return publishServiceInternal.isSitePublished(siteId);
     }
