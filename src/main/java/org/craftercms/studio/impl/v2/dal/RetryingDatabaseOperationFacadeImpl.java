@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -302,33 +303,33 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     // Group API v2
     @Override
-    public Integer createGroup(Map params) {
-        return groupDao.createGroup(params);
+    public Integer createGroup(long orgId, String groupName, String groupDescription) {
+        return groupDao.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public Integer updateGroup(Map params) {
-        return groupDao.updateGroup(params);
+    public Integer updateGroup(Group group) {
+        return groupDao.updateGroup(group);
     }
 
     @Override
-    public Integer deleteGroup(Map params) {
-        return groupDao.deleteGroup(params);
+    public Integer deleteGroup(long groupId) {
+        return groupDao.deleteGroup(groupId);
     }
 
     @Override
-    public Integer deleteGroups(Map params) {
-        return groupDao.deleteGroups(params);
+    public Integer deleteGroups(List<Long> groupIds) {
+        return groupDao.deleteGroups(groupIds);
     }
 
     @Override
-    public Integer addGroupMembers(Map params) {
-        return groupDao.addGroupMembers(params);
+    public Integer addGroupMembers(long groupId, List<Long> userIds) {
+        return groupDao.addGroupMembers(groupId, userIds);
     }
 
     @Override
-    public Integer removeGroupMembers(Map params) {
-        return groupDao.removeGroupMembers(params);
+    public Integer removeGroupMembers(long groupId, List<Long> userIds) {
+        return groupDao.removeGroupMembers(groupId, userIds);
     }
 
     // Item API v2

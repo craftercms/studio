@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,6 +32,7 @@ public interface GroupService {
     /**
      * Get all groups
      *
+     * @param keyword keyword to filter groups
      * @param orgId Organization identifier
      * @param offset Result set offset
      * @param limit Result set limit
@@ -41,19 +42,20 @@ public interface GroupService {
      * @throws ServiceLayerException general service error
      * @throws OrganizationNotFoundException organization not found
      */
-    List<Group> getAllGroups(long orgId, int offset, int limit, String sort)
+    List<Group> getAllGroups(long orgId, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException, OrganizationNotFoundException;
 
     /**
      * Get total number of all groups
      *
+     * @param keyword keyword to filter groups
      * @param orgId Organization identifier
      * @return Number of groups
      *
      * @throws ServiceLayerException general service error
      * @throws OrganizationNotFoundException organization not found
      */
-    int getAllGroupsTotal(long orgId) throws ServiceLayerException, OrganizationNotFoundException;
+    int getAllGroupsTotal(long orgId, String keyword) throws ServiceLayerException, OrganizationNotFoundException;
 
     /**
      * Create group
