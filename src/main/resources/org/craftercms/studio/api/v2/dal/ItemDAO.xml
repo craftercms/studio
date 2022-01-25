@@ -1071,12 +1071,18 @@
             #{path}
         </foreach>
     </update>
+
     <update id="updateStatesByIdBulk" >
         UPDATE item set state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
         WHERE id IN
         <foreach collection="itemIds" item="id" index="index" open="(" separator=","  close=")">
             #{id}
         </foreach>
+    </update>
+
+    <update id="updateStatesForSite">
+        UPDATE item set state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE site_id = #{siteId}
     </update>
 
     <delete id="deleteItemsForSite">
