@@ -75,6 +75,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
@@ -335,6 +337,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
         if (!publishServiceInternal.isSitePublished(siteId)) {
             publishServiceInternal.initialPublish(siteId);
+            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             createInitialPublishAuditLog(siteId);
         } else {
             // Create publish package
@@ -413,6 +417,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         String comment) throws UserNotFoundException, ServiceLayerException, DeploymentException {
         if (!publishServiceInternal.isSitePublished(siteId)) {
             publishServiceInternal.initialPublish(siteId);
+            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             createInitialPublishAuditLog(siteId);
         } else {
             // Create publish package

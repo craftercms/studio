@@ -320,6 +320,16 @@ public interface ItemDAO {
                                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param siteId site identifier
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void updateStatesForSite(@Param(SITE_ID) long siteId, @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                             @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+    /**
      * Delete all items for site
      * @param siteId site id
      */

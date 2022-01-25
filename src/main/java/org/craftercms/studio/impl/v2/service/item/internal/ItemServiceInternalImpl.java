@@ -788,6 +788,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         return itemDao.getSubtreeForDelete(siteId, likePath);
     }
 
+    @Override
+    public void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        retryingDatabaseOperationFacade.updateStatesForSite(siteFeed.getId(), onStateBitMap, offStateBitMap);
+    }
+
     public UserServiceInternal getUserServiceInternal() {
         return userServiceInternal;
     }
