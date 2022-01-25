@@ -115,6 +115,7 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -309,7 +310,7 @@ public class SiteServiceImpl implements SiteService {
             try {
                 logger.info("Copying site content from blueprint.");
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
-                ZonedDateTime now = ZonedDateTime.now();
+                ZonedDateTime now = DateUtils.getCurrentTime();
 
                 logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
@@ -747,7 +748,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         if (success) {
-            ZonedDateTime now = ZonedDateTime.now();
+            ZonedDateTime now = DateUtils.getCurrentTime();
             String creator = securityService.getCurrentUser();
             try {
                 logger.debug("Adding site UUID.");

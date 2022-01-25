@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -67,8 +68,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
@@ -514,7 +513,7 @@ public class SecurityServiceImpl implements SecurityService {
                     loadPermissions(site, root, config);
 
                     config.setKey(site + ":" + filename);
-                    config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+                    config.setLastUpdated(DateUtils.getCurrentTime());
 
                     cache.put(cacheKey, config);
                 }
@@ -596,7 +595,7 @@ public class SecurityServiceImpl implements SecurityService {
 
                     String globalPermissionsKey = "###GLOBAL###:" + getGlobalPermissionsFileName();
                     config.setKey(globalPermissionsKey);
-                    config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+                    config.setLastUpdated(DateUtils.getCurrentTime());
 
                     cache.put(cacheKey, config);
                 }
@@ -626,7 +625,7 @@ public class SecurityServiceImpl implements SecurityService {
 
             String globalRolesKey = "###GLOBAL###:" + getGlobalRoleMappingsFileName();
             config.setKey(globalRolesKey);
-            config.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+            config.setLastUpdated(DateUtils.getCurrentTime());
 
         } else {
             logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);

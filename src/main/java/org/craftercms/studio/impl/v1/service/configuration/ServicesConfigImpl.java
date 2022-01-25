@@ -38,14 +38,13 @@ import org.craftercms.studio.api.v1.to.SiteConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -377,7 +376,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 
                      loadSiteRepositoryConfiguration(siteConfig, configNode.selectSingleNode("repository"));
                      // set the last updated date
-                     siteConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+                     siteConfig.setLastUpdated(DateUtils.getCurrentTime());
 
                      loadSearchFields(configNode, siteConfig);
                      loadFacetConfiguration(configNode, siteConfig);

@@ -18,9 +18,6 @@ package org.craftercms.studio.impl.v1.service.content;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,8 +34,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
@@ -118,7 +115,7 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
-import static java.time.ZoneOffset.UTC;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE;
@@ -144,7 +141,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -168,6 +164,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
 import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 
 /**
  * Content Services that other services may use
@@ -262,7 +259,7 @@ public class ContentServiceImpl implements ContentService {
         try (InputStream is = _contentRepository.getContent(site, path)) {
             if (is != null) {
                 if (StringUtils.isEmpty(encoding)) {
-                    content = IOUtils.toString(is);
+                    content = IOUtils.toString(is, UTF_8);
                 } else {
                     content = IOUtils.toString(is, encoding);
                 }
@@ -1420,9 +1417,7 @@ public class ContentServiceImpl implements ContentService {
             }
         }
 
-        ZonedDateTime now = ZonedDateTime.now(UTC);
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_WORKFLOW_WITH_TZ);
-        String nowFormatted = now.format(DateTimeFormatter.ofPattern(sdf.toPattern()));
+        String nowFormatted = getCurrentTimeIso();
 
         Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
         if (createdDateNode != null) {
@@ -2037,7 +2032,7 @@ public class ContentServiceImpl implements ContentService {
         String content = null;
 
         try {
-            content = IOUtils.toString(getContentVersion(site, path, version));
+            content = IOUtils.toString(getContentVersion(site, path, version), UTF_8);
         }
         catch(Exception err) {
             logger.debug("Failed to get content as string for path {0}, exception {1}", path, err);

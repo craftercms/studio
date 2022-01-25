@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.workflow;
 
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -92,6 +91,7 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleO
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
@@ -821,7 +821,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1008,7 +1008,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1175,7 +1175,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1500,7 +1500,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         String user = securityService.getCurrentUser();
         // get web project information
         // Don't make go live an item if it is new and to be deleted
-        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        final ZonedDateTime now = DateUtils.getCurrentTime();
         List<String> itemsToDelete = new ArrayList<>();
         List<DmDependencyTO> deleteItems = new ArrayList<>();
         List<DmDependencyTO> scheItems = new ArrayList<>();
@@ -1993,7 +1993,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                           MultiChannelPublishingContext mcpContext)
             throws ServiceLayerException {
         // get web project information
-        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        final ZonedDateTime now = DateUtils.getCurrentTime();
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
             Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
