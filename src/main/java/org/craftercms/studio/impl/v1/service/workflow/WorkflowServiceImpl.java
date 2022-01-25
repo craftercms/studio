@@ -103,6 +103,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPRO
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REJECTION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
@@ -2135,8 +2136,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setPrimaryTargetValue(site);
                 if (StringUtils.isNotEmpty(reason)) {
                     AuditLogParameter auditLogParameter = new AuditLogParameter();
-                    auditLogParameter.setTargetId(site + ":submissionComment");
-                    auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+                    auditLogParameter.setTargetId(site + ":rejectionComment");
+                    auditLogParameter.setTargetType(TARGET_TYPE_REJECTION_COMMENT);
                     auditLogParameter.setTargetValue(reason);
                     auditLogParameters.add(auditLogParameter);
                 }
