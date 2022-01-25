@@ -28,7 +28,7 @@
     <url>https://github.com/craftercms/studio</url>
 
     <packaging>war</packaging>
-    <version>3.1.18-SNAPSHOT</version><!-- craftercms version flag -->
+    <version>3.1.19-SNAPSHOT</version><!-- craftercms version flag -->
     <organization>
         <name>CrafterCMS</name>
         <url>http://craftercms.org</url>
@@ -49,8 +49,8 @@
         <spring.security.version>4.2.19.RELEASE</spring.security.version>
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
-        <aws.version>1.12.139</aws.version>
-        <box.sdk.version>2.58.0</box.sdk.version>
+	<aws.version>1.12.139</aws.version>
+	<box.sdk.version>2.58.0</box.sdk.version>
         <tinify.version>1.6.4</tinify.version>
         <mariadb4j.version>2.4.12.1</mariadb4j.version>
         <jackson.version>2.10.5</jackson.version>
@@ -61,7 +61,7 @@
         <apache.cxf.version>3.3.8</apache.cxf.version>
         <nekohtml.version>1.9.22</nekohtml.version>
         <xerces.version>2.12.0</xerces.version>
-        <gson.version>2.8.9</gson.version>
+	<gson.version>2.8.9</gson.version>
     </properties>
 
     <licenses>

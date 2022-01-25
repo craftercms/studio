@@ -17,7 +17,7 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -1420,9 +1420,8 @@ public class ContentServiceImpl implements ContentService {
             }
         }
 
-        ZonedDateTime now = ZonedDateTime.now();
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN_WORKFLOW_WITH_TZ);
-        String nowFormatted = now.format(DateTimeFormatter.ofPattern(sdf.toPattern()));
+        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        String nowFormatted = now.format(DateTimeFormatter.ISO_INSTANT);
 
         Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
         if (createdDateNode != null) {
