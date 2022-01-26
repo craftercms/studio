@@ -68,9 +68,9 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -145,7 +145,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                        final boolean scheduleDateNow)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
 
-        if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+        if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, SCHEDULED.value, 0);
         }
         itemServiceInternal.updateStateBitsBulk(site, paths, 0, IN_WORKFLOW.value);
@@ -310,7 +310,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                     }
                     workflow.setState(STATE_APPROVED);
                     workflow.setTargetEnvironment(environment);
-                    if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                    if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
                         workflow.setSchedule(scheduledDate);
                     }
                     workflow.setReviewerComment(submissionComment);
@@ -333,7 +333,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                        @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
                        String submissionComment)
             throws DeploymentException, SiteNotFoundException {
-        if (scheduledDate != null && scheduledDate.isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+        if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
         Set<String> environments = getAllPublishedEnvironments(site);
@@ -470,7 +470,7 @@ public class DeploymentServiceImpl implements DeploymentService {
                 break;
         }
         return publishRequestDAO.getScheduledItems(site, PublishRequest.State.READY_FOR_LIVE, contentTypeClass,
-                ZonedDateTime.now(ZoneOffset.UTC));
+                DateUtils.getCurrentTime());
     }
 
     @Override
@@ -482,7 +482,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("path", path);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         retryingDatabaseOperationFacade.cancelWorkflow(params);
     }
 
@@ -494,7 +494,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("paths", paths);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         retryingDatabaseOperationFacade.cancelWorkflowBulk(params);
     }
 
@@ -744,7 +744,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         logger.debug("Creating publish request items for queue for site " + site + " environment " + environment);
         List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
-                ZonedDateTime.now(ZoneOffset.UTC), securityService.getCurrentUser(), comment);
+                DateUtils.getCurrentTime(), securityService.getCurrentUser(), comment);
         logger.debug("Insert publish request items to the queue");
         for (PublishRequest request : publishRequests) {
             retryingDatabaseOperationFacade.insertItemForDeployment(request);
@@ -857,7 +857,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         boolean scheduledDateIsNow = false;
         if (schedule == null) {
             scheduledDateIsNow = true;
-            schedule = ZonedDateTime.now(ZoneOffset.UTC);
+            schedule = DateUtils.getCurrentTime();
         }
         deploy(site, environment, asList, schedule, approver, submissionComment, scheduledDateIsNow);
     }

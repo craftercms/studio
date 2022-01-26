@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
@@ -49,8 +50,6 @@ import org.craftercms.studio.permissions.CompositePermission;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,7 +117,7 @@ public class ContentServiceImpl implements ContentService {
 
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
-                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
+                DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -136,7 +135,7 @@ public class ContentServiceImpl implements ContentService {
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
-                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
+                DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;

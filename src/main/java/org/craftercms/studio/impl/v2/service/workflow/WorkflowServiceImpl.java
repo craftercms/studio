@@ -51,11 +51,11 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -353,7 +353,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 boolean scheduledDateIsNow = false;
                 if (schedule == null) {
                     scheduledDateIsNow = true;
-                    schedule = ZonedDateTime.now(ZoneOffset.UTC);
+                    schedule = DateUtils.getCurrentTime();
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
@@ -433,7 +433,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 boolean scheduledDateIsNow = false;
                 if (schedule == null) {
                     scheduledDateIsNow = true;
-                    schedule = ZonedDateTime.now(ZoneOffset.UTC);
+                    schedule = DateUtils.getCurrentTime();
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
@@ -585,7 +585,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // cancel existing workflow
             cancelExistingWorkflowEntries(siteId, pathsToDelete);
             // add to publishing queue
-            deploymentService.delete(siteId, pathsToDelete, deletedBy, ZonedDateTime.now(ZoneOffset.UTC), comment);
+            deploymentService.delete(siteId, pathsToDelete, deletedBy, DateUtils.getCurrentTime(), comment);
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
         } finally {

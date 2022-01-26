@@ -36,12 +36,12 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -170,7 +170,7 @@ public class PublishServiceImpl implements PublishService {
     @Override
     public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) {
-        ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime toDate = DateUtils.getCurrentTime();
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
         List<String> environments = studioUtils.getEnvironmentNames(siteId);
         List<DeploymentHistoryItem> deploymentHistoryItems = publishServiceInternal.getDeploymentHistory(siteId,

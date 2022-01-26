@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
@@ -444,9 +445,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             Item item = instantiateItem(siteId, path)
                     .withPreviewUrl(getBrowserUrl(siteId, path))
                     .withCreatedBy(userObj.getId())
-                    .withCreatedOn(ZonedDateTime.now())
+                    .withCreatedOn(DateUtils.getCurrentTime())
                     .withLastModifiedBy(userObj.getId())
-                    .withLastModifiedOn(ZonedDateTime.now())
+                    .withLastModifiedOn(DateUtils.getCurrentTime())
                     .withLabel(label)
                     .withSystemType(contentService.getContentTypeClass(siteId, path))
                     .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
@@ -485,7 +486,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Item item = instantiateItem(siteId, path)
                 .withPreviewUrl(getBrowserUrl(siteId, path))
                 .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
+                .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(label)
                 .withSystemType(contentService.getContentTypeClass(siteId, path))
                 .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
@@ -514,7 +515,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, folderPath)
                 .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
+                .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(folderName)
                 .withCommitId(commitId)
                 .withParentId(parentId)
@@ -532,7 +533,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Item item = instantiateItem(siteId, folderPath)
                 .withPreviewUrl(null)
                 .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
+                .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(folderName)
                 .withCommitId(commitId)
                 .build();
