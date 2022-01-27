@@ -389,6 +389,12 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
+    public void updateStatesForSite(long siteId, long onStatesBitMap,
+                                             long offStatesBitMap) {
+        itemDao.updateStatesForSite(siteId, onStatesBitMap, offStatesBitMap);
+    }
+
+    @Override
     public void deleteItemsForSite(long siteId) {
         itemDao.deleteItemsForSite(siteId);
     }

@@ -33,12 +33,11 @@ import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -122,7 +121,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                     loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
                     loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
                     loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
-                    contentTypeConfig.setLastUpdated(ZonedDateTime.now(ZoneOffset.UTC));
+                    contentTypeConfig.setLastUpdated(DateUtils.getCurrentTime());
                     contentTypeConfig.setType(getContentTypeTypeByName(name));
                     boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
                     contentTypeConfig.setQuickCreate(quickCreate);

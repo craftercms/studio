@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -148,7 +149,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     @Override
     public void cancelScheduledQueueItems(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.cancelScheduledQueueItems(siteId, paths, ZonedDateTime.now(), CANCELLED,
+        retryingDatabaseOperationFacade.cancelScheduledQueueItems(siteId, paths, DateUtils.getCurrentTime(), CANCELLED,
                 READY_FOR_LIVE);
     }
 

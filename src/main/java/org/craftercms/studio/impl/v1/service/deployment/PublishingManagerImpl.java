@@ -17,7 +17,6 @@ package org.craftercms.studio.impl.v1.service.deployment;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +57,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -102,7 +102,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("state", READY_FOR_LIVE);
         params.put("environment", environment);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         return publishRequestMapper.getItemsReadyForDeployment(params);
     }
 
@@ -274,7 +274,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
                                    @ValidateStringParam(name = "environment") String environment,
                                    List<PublishRequest> processedItems) throws DeploymentException {
-        ZonedDateTime publishedOn = ZonedDateTime.now();
+        ZonedDateTime publishedOn = DateUtils.getCurrentTime();
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             item.setPublishedOn(publishedOn);
@@ -428,7 +428,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public boolean isPublishingBlocked(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         params.put("state", PublishRequest.State.BLOCKED);
         Integer result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
@@ -439,7 +439,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         params.put("state", READY_FOR_LIVE);
         Integer result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
@@ -450,7 +450,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public String getPublishingStatus(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         List<String> states = new ArrayList<String>() {{
             add(READY_FOR_LIVE);
             add(PublishRequest.State.BLOCKED);
@@ -467,7 +467,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public boolean isPublishingQueueEmpty(@ValidateStringParam(name = "site") String site) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("site", site);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
+        params.put("now", DateUtils.getCurrentTime());
         params.put("state", READY_FOR_LIVE);
         Integer result = publishRequestMapper.isPublishingQueueEmpty(params);
         return result < 1;

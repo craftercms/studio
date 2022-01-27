@@ -51,11 +51,11 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -75,6 +75,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
@@ -335,6 +337,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
         if (!publishServiceInternal.isSitePublished(siteId)) {
             publishServiceInternal.initialPublish(siteId);
+            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             createInitialPublishAuditLog(siteId);
         } else {
             // Create publish package
@@ -349,7 +353,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 boolean scheduledDateIsNow = false;
                 if (schedule == null) {
                     scheduledDateIsNow = true;
-                    schedule = ZonedDateTime.now(ZoneOffset.UTC);
+                    schedule = DateUtils.getCurrentTime();
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
@@ -413,6 +417,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                         String comment) throws UserNotFoundException, ServiceLayerException, DeploymentException {
         if (!publishServiceInternal.isSitePublished(siteId)) {
             publishServiceInternal.initialPublish(siteId);
+            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             createInitialPublishAuditLog(siteId);
         } else {
             // Create publish package
@@ -427,7 +433,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 boolean scheduledDateIsNow = false;
                 if (schedule == null) {
                     scheduledDateIsNow = true;
-                    schedule = ZonedDateTime.now(ZoneOffset.UTC);
+                    schedule = DateUtils.getCurrentTime();
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
@@ -579,7 +585,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // cancel existing workflow
             cancelExistingWorkflowEntries(siteId, pathsToDelete);
             // add to publishing queue
-            deploymentService.delete(siteId, pathsToDelete, deletedBy, ZonedDateTime.now(ZoneOffset.UTC), comment);
+            deploymentService.delete(siteId, pathsToDelete, deletedBy, DateUtils.getCurrentTime(), comment);
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
         } finally {

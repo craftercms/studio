@@ -24,14 +24,9 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -89,6 +84,7 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -734,9 +730,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     try (Git git = new Git(repo)) {
                         PersonIdent currentUserIdent = helper.getCurrentUserIdent();
-                        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
-                        Calendar cal = Calendar.getInstance();
-                        String versionLabel = dateFormat.format(cal.getTime());
+                        String versionLabel = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssX");
 
                         TagCommand tagCommand = git.tag()
                                 .setName(versionLabel)
@@ -1087,9 +1081,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // tag
                 PersonIdent authorIdent = helper.getAuthorIdent(author);
-                ZonedDateTime publishDate = ZonedDateTime.now(UTC);
-                String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
-                        "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
+                String tagName = publishDate + "_published_on_" + publishDate;
                 TagCommand tagCommand = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment);
                 retryingRepositoryOperationFacade.call(tagCommand);
             } catch (Exception e) {

@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.workflow;
 
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -92,6 +91,7 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleO
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
@@ -108,6 +108,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
@@ -821,7 +823,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1008,7 +1010,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1175,7 +1177,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1500,7 +1502,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         String user = securityService.getCurrentUser();
         // get web project information
         // Don't make go live an item if it is new and to be deleted
-        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        final ZonedDateTime now = DateUtils.getCurrentTime();
         List<String> itemsToDelete = new ArrayList<>();
         List<DmDependencyTO> deleteItems = new ArrayList<>();
         List<DmDependencyTO> scheItems = new ArrayList<>();
@@ -1953,6 +1955,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             throws ServiceLayerException {
         if (!publishServiceInternal.isSitePublished(site)) {
             publishServiceInternal.initialPublish(site);
+            itemServiceInternal.updateStatesForSite(site, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             ResultTO result = new ResultTO();
             result.setSuccess(true);
             result.setStatus(HttpServletResponse.SC_OK);
@@ -1993,7 +1997,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                           MultiChannelPublishingContext mcpContext)
             throws ServiceLayerException {
         // get web project information
-        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        final ZonedDateTime now = DateUtils.getCurrentTime();
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
             Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);

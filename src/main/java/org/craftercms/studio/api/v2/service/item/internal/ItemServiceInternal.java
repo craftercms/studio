@@ -631,4 +631,12 @@ public interface ItemServiceInternal {
      * @return list of items
      */
     List<String> getSubtreeForDelete(String siteId, String path);
+
+    /**
+     * Update states for all content in the given site
+     * @param siteId site identifier
+     * @param onStateBitMap states bitmap to flip on
+     * @param offStateBitMap states bitmap to flip off
+     */
+    void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap);
 }

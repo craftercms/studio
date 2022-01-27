@@ -478,6 +478,15 @@ public interface RetryingDatabaseOperationFacade {
     void updateStatesByIdBulk(List<Long> itemIds, long onStatesBitMap, long offStatesBitMap);
 
     /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param siteId site identifier
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void updateStatesForSite(long siteId, long onStatesBitMap, long offStatesBitMap);
+
+    /**
      * Delete all items for site
      * @param siteId site id
      */

@@ -64,6 +64,7 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressS
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.RingBuffer;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -114,7 +115,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -741,7 +741,7 @@ public class GitContentRepository implements ContentRepository {
                         if (toDate != null) {
                             filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
                         } else {
-                            filters.add(CommitTimeRevFilter.before(ZonedDateTime.now().toInstant().toEpochMilli()));
+                            filters.add(CommitTimeRevFilter.before(Instant.now().toEpochMilli()));
                         }
                         filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
                         if (StringUtils.isNotEmpty(publisher)) {
@@ -1010,7 +1010,7 @@ public class GitContentRepository implements ContentRepository {
 
                         addCommand.addFilepattern(path);
                         itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
-                                ZonedDateTime.now(UTC));
+                                DateUtils.getCurrentTime());
 
                         if (!StringUtils.equals(currentPackageId, deploymentItem.getPackageId())) {
                             currentPackageId = deploymentItem.getPackageId();
@@ -1036,7 +1036,7 @@ public class GitContentRepository implements ContentRepository {
                     commitMessage = commitMessage.replace("{username}", author);
                     commitMessage =
                             commitMessage.replace("{datetime}",
-                                    ZonedDateTime.now(UTC).format(
+                                    DateUtils.getCurrentTime().format(
                                             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
                     commitMessage = commitMessage.replace("{source}", "UI");
                     commitMessage = commitMessage.replace("{message}", comment);
@@ -1069,10 +1069,9 @@ public class GitContentRepository implements ContentRepository {
 
                     // tag
                     ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(UTC);
-                    ZonedDateTime publishDate = ZonedDateTime.now(UTC);
-                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
-                            "_published_on_" + publishDate.format(
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
+                    String tagName2 = DateUtils.formatDate(tagDate2, "yyyy-MM-dd'T'HHmmssSSSX") +
+                            "_published_on_" + publishDate;
                     logger.debug("Get Author Ident started.");
                     PersonIdent authorIdent2 = helper.getAuthorIdent(user);
                     logger.debug("Get Author Ident completed.");
@@ -1721,7 +1720,7 @@ public class GitContentRepository implements ContentRepository {
                 logger.error("error while getting repository properties for content item " + path);
             }
             environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
-                    PublishRequest.State.READY_FOR_LIVE, ZonedDateTime.now(ZoneOffset.UTC)));
+                    PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
         }
     }
 
