@@ -3,14 +3,14 @@ CREATE DATABASE IF NOT EXISTS @crafter_schema_name
 
 FLUSH PRIVILEGES ;
 
-CREATE USER 'crafter'@'localhost'
-  IDENTIFIED BY 'crafter' ;
+CREATE USER '@crafter_user'@'localhost'
+  IDENTIFIED BY '@crafter_password' ;
 
-GRANT ALL PRIVILEGES ON @crafter_schema_name.* TO 'crafter'@'localhost'
+GRANT ALL PRIVILEGES ON @crafter_schema_name.* TO '@crafter_user'@'localhost'
 WITH GRANT OPTION ;
 
-CREATE USER 'crafter'@'%'
-  IDENTIFIED BY 'crafter' ;
+CREATE USER '@crafter_user'@'%'
+  IDENTIFIED BY '@crafter_password' ;
 
-GRANT ALL PRIVILEGES ON @crafter_schema_name.* TO 'crafter'@'%'
+GRANT ALL PRIVILEGES ON @crafter_schema_name.* TO '@crafter_user'@'%'
 WITH GRANT OPTION ;

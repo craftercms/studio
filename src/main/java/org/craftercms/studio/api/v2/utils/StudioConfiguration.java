@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -64,6 +64,8 @@ public interface StudioConfiguration {
     /** Database */
     String DB_DRIVER = "studio.db.driver";
     String DB_SCHEMA = "studio.db.schema";
+    String DB_USER = "studio.db.user";
+    String DB_PASSWORD = "studio.db.password";
     String DB_URL = "studio.db.url";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
     String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
