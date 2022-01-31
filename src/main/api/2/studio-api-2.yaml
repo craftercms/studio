@@ -2223,6 +2223,17 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   status:
                     $ref: '#/components/schemas/StatusItem'
+        '202':
+          description: Replica responding status OK. Primary will respond with status 200 
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  status:
+                    $ref: '#/components/schemas/ClusterStatusItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -7706,6 +7717,31 @@ components:
           type: string
           format: date-time
           description: The date and time when the JVM started
+
+    ClusterStatusItem:
+      type: object
+      properties:
+        uptime:
+          type: integer
+          format: int64
+          description: The time in seconds that the JVM has been up
+        startup:
+          type: string
+          format: date-time
+          description: The date and time when the JVM started
+        age:
+          type: integer
+          format: int64
+          description: The time in seconds that the cluster node has been up
+        role:
+          type: string
+          description: Role that the node has in the cluster. Possible values PRIMARY, REPLICA, STARTING  
+        readyToTakeTraffic:
+          type: boolean
+          description: True if the cluster node is ready to take traffic. Typically it is a PRIMARY node 
+        readyToBecomePrimary:
+          type: boolean
+          description: True if the cluster node is replica and in sync with primary
 
     MemoryItem:
       type: object
