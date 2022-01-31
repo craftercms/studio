@@ -23,7 +23,7 @@ if (authToken) {
     segment = ProfileUtils.getSegment(authToken.principal, siteItemService)
 }
 
-def searchHelper = new SearchHelper(elasticsearch, urlTransformationService)
+def searchHelper = new SearchHelper(elasticsearchClient, urlTransformationService)
 def articles = searchHelper.searchArticles(false, null, segment, 0, 3)
 
 templateModel.articles = articles

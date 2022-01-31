@@ -16,36 +16,38 @@
 
 package org.craftercms.sites.editorial
 
-import org.elasticsearch.action.search.SearchRequest
-import org.elasticsearch.index.query.QueryBuilders
-import org.elasticsearch.search.builder.SearchSourceBuilder
+import co.elastic.clients.elasticsearch.core.SearchRequest
+import org.craftercms.search.elasticsearch.client.ElasticsearchClientWrapper
 
 class SuggestionHelper {
 	
 	static final String DEFAULT_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
 	static final String DEFAULT_SEARCH_FIELD = "subject_t"
-	
-	def elasticsearch
+
+	ElasticsearchClientWrapper elasticsearchClient
 	
 	String contentTypeQuery = DEFAULT_CONTENT_TYPE_QUERY
 	String searchField = DEFAULT_SEARCH_FIELD
 	
-	SuggestionHelper(elasticsearch) {
-		this.elasticsearch = elasticsearch
+	SuggestionHelper(elasticsearchClient) {
+		this.elasticsearchClient = elasticsearchClient
 	}
 	
 	def getSuggestions(String term) {
 		def queryStr = "${contentTypeQuery} AND ${searchField}:*${term}*"
-		def builder = new SearchSourceBuilder()
-			.query(QueryBuilders.queryStringQuery(queryStr))
-
-		def result = elasticsearch.search(new SearchRequest().source(builder))
+		def result = elasticsearchClient.search(SearchRequest.of(r -> r
+			.query(q -> q
+				.queryString(s -> s
+					.query(queryStr)
+				)
+			)
+		), Map)
 
 		return process(result)
 	}
 	
 	def process(result) {
-		def processed = result.hits.hits*.getSourceAsMap().collect { doc ->
+		def processed = result.hits.hits*.source().collect { doc ->
 			doc[searchField]
 		}
 		return processed
