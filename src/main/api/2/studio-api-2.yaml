@@ -7738,10 +7738,10 @@ components:
           description: Role that the node has in the cluster. Possible values PRIMARY, REPLICA, STARTING  
         readyToTakeTraffic:
           type: boolean
-          description: True if the cluster node is ready to take traffic. Typically it is a PRIMARY node 
+          description: True if the cluster node is ready to take traffic. Typically it is a Primary node 
         readyToBecomePrimary:
           type: boolean
-          description: True if the cluster node is replica and in sync with primary
+          description: True if the cluster node is a Replica and in sync with the Primary node
 
     MemoryItem:
       type: object
