@@ -2224,7 +2224,7 @@ paths:
                   status:
                     $ref: '#/components/schemas/StatusItem'
         '202':
-          description: Replica responding status OK. Primary will respond with status 200 
+          description: Replica responding status OK. Primary will respond with status 200
           content:
             application/json:
               schema:
@@ -7735,10 +7735,10 @@ components:
           description: The time in seconds that the cluster node has been up
         role:
           type: string
-          description: Role that the node has in the cluster. Possible values PRIMARY, REPLICA, STARTING  
+          description: Role that the node has in the cluster. Possible values PRIMARY, REPLICA, UNASSIGNED
         readyToTakeTraffic:
           type: boolean
-          description: True if the cluster node is ready to take traffic. Typically it is a Primary node 
+          description: True if the cluster node is ready to take traffic. Typically it is a Primary node
         readyToBecomePrimary:
           type: boolean
           description: True if the cluster node is a Replica and in sync with the Primary node
