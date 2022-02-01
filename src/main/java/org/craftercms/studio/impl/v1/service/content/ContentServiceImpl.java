@@ -108,6 +108,7 @@ import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
 
+import static java.time.ZoneOffset.UTC;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE;
@@ -187,6 +188,10 @@ public class ContentServiceImpl implements ContentService {
      */
     public final static Pattern COPY_FILE_PATTERN = Pattern.compile("(.+)-([0-9]+)\\.(.+)");
     public final static Pattern COPY_FOLDER_PATTERN = Pattern.compile("(.+)-([0-9]+)");
+
+    public static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter
+                                                            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+                                                            .withZone(UTC);
 
     @Override
     @ValidateParams
@@ -1420,7 +1425,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-        String nowFormatted = now.format(DateTimeFormatter.ISO_INSTANT);
+        String nowFormatted = now.format(ISO_FORMATTER);
 
         Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
         if (createdDateNode != null) {
