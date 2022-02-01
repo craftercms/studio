@@ -28,6 +28,10 @@ import static java.time.ZoneOffset.UTC;
  */
 public abstract class DateUtils {
 
+    public static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter
+                                                            .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+                                                            .withZone(UTC);
+
     /**
      * Returns the current time in UTC
      */
@@ -46,7 +50,7 @@ public abstract class DateUtils {
      * Returns the current time in UTC formatted using the ISO standard
      */
     public static String getCurrentTimeIso() {
-        return formatCurrentTime(DateTimeFormatter.ISO_INSTANT);
+        return formatCurrentTime(ISO_FORMATTER);
     }
 
     /**
