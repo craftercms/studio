@@ -127,13 +127,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
         try {
             retryingDatabaseOperationFacade.createGroup(orgId, groupName, groupDescription);
-
-            Group group = new Group();
-            group.setId(orgId);
-            group.setGroupName(groupName);
-            group.setGroupDescription(groupDescription);
-
-            return group;
+            return groupDao.getGroupByName(groupName);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
