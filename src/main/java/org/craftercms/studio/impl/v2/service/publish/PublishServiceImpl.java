@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
@@ -61,6 +62,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -232,7 +234,7 @@ public class PublishServiceImpl implements PublishService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(
             @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         var availablePublishingTargets = new ArrayList<PublishingTarget>();
