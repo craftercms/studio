@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.26'
+  version: '4.0.0.27'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -6920,6 +6920,307 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /workflow/packages:
+    get:
+      tags:
+        - workflow
+      summary: List workflow packages order by scheduled date
+      description: Required permission "requst_publish, publish"
+      operationId: workflowListPackage
+      parameters:
+        - name: siteId
+          in: query
+          description: filter workflow packages by site
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: Offset of the first package in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of packages to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: order
+          in: query
+          description: ascending or descending (ASC | DESC). Default ascending
+          required: false
+          schema:
+            type: string       
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  packages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkflowPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - workflow
+      summary: Create workflow package
+      description: Required permission "requst_publish, publish"
+      operationId: workflowCreatePackage
+      requestBody:
+        description: parameters to create new workflow package
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site identifier
+                paths:
+                  type: array
+                  description: paths of content items to add to package
+                  items:
+                    type: string
+                publishingTarget:
+                  type: string
+                  description: target where to publish content
+                schedule:
+                  type: string
+                  format: datetime
+                  description: schedule when publishing should be performed
+                authorComment:
+                  type: string
+                  description: author's comment about the package
+              required:
+                - siteId
+                - paths
+                - publishingTarget   
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - workflow
+      summary: Update workflow package
+      description: Required permission "requst_publish, publish"
+      operationId: workflowUpdatePackage
+      requestBody:
+        description: Workflow package entity to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowPackage'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/WorkflowPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/packages/{id}:
+    get:
+      tags:
+        - workflow
+      summary: Get workflow package by id
+      description: Required permission "requst_publish, publish"
+      operationId: workflowGetPackage
+      parameters:
+        - name: id
+          in: path
+          description: The workflow package ID
+          required: true
+          schema:
+            type: string
+            format: UUID                
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/WorkflowPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/packages/approve:
+    post:
+      tags:
+        - workflow
+      summary: Approve workflow package
+      description: Required permission "publish"
+      operationId: workflowApprovePackage
+      requestBody:
+        description: parameters to approve a workflow package
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site identifier
+                packageId:
+                  type: string
+                  description: Id of the workflow package to approve
+                schedule:
+                  type: string
+                  format: datetime
+                  description: approved scehedule when to publish package
+                approverComment:
+                  type: string
+                  description: approver's comment about approved workflow package
+              required:
+                - siteId
+                - packageId
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /workflow/packages/reject:
+    post:
+      tags:
+        - workflow
+      summary: Create workflow package
+      description: Required permission "requst_publish, publish"
+      operationId: workflowCreatePackage
+      requestBody:
+        description: parameters to create new workflow package
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site identifier
+                packageId:
+                  type: string
+                  description: Id of the workflow package to approve
+                rejectionComment:
+                  type: string
+                  description: approver's comment about approved workflow package
+              required:
+                - siteId
+                - packageId
+                - rejectionComment                
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
 components:
   schemas:
     ApiResponse:
@@ -8863,6 +9164,47 @@ components:
         - publishingTarget
         - items 
 
+    WorkflowPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          description: workflow package ID
+        siteId:
+          type: string
+          description: site identifier 
+        status:
+          type: string
+          description: workflow package status
+        author:
+          type: string
+          description: username of the author
+        reviewer:
+          type: string
+          description: username of the reviewer
+        schedule:
+          type: string
+          format: datetime
+          description: scheduled date and time to publish the package
+        publishingTarget:
+          type: string
+          description: name of the publishing target where package will be published
+        authorComment:
+          type: string
+          description: author's comment
+        reviewerComment: 
+          type: string
+          description: reviewer's comment
+        label: 
+          type: string
+          description: user friendly label for package
+      required:
+        - id
+        - siteId
+        - status
+        - author
+        - publishingTarget
+        
   responses:
     NotFound:
       description: Resource not found
