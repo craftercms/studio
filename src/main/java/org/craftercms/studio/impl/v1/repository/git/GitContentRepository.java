@@ -1069,7 +1069,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 pullCommand.call();
 
                 Files.delete(tempKey);
-            } catch (UnknownHostException e) {
+            } catch (UnknownHostException | TransportException e) {
                 logger.error("Unable to reach " + remoteNode.getGitRemoteName() + " to sync with remote repository." +
                         "Skipping sync with remote repository " + remoteNode.getGitRemoteName());
             } finally {
