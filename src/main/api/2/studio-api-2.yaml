@@ -6925,7 +6925,7 @@ paths:
       tags:
         - workflow
       summary: List workflow packages order by scheduled date
-      description: Required permission "requst_publish, publish"
+      description: Required permission "request_publish, publish"
       operationId: workflowListPackage
       parameters:
         - name: siteId
@@ -6994,7 +6994,7 @@ paths:
       tags:
         - workflow
       summary: Create workflow package
-      description: Required permission "requst_publish, publish"
+      description: Required permission "request_publish, publish"
       operationId: workflowCreatePackage
       requestBody:
         description: parameters to create new workflow package
@@ -7022,6 +7022,9 @@ paths:
                 authorComment:
                   type: string
                   description: author's comment about the package
+                label:
+                  type: string
+                  description: user friendly name for the package
               required:
                 - siteId
                 - paths
@@ -7050,7 +7053,7 @@ paths:
       tags:
         - workflow
       summary: Update workflow package
-      description: Required permission "requst_publish, publish"
+      description: Required permission "request_publish, publish"
       operationId: workflowUpdatePackage
       requestBody:
         description: Workflow package entity to update
@@ -9204,7 +9207,7 @@ components:
         - status
         - author
         - publishingTarget
-        
+
   responses:
     NotFound:
       description: Resource not found
