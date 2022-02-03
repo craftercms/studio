@@ -59,10 +59,4 @@ public class RemoteRepository implements Serializable {
     public String getRemotePrivateKey() { return remotePrivateKey; }
     public void setRemotePrivateKey(String remotePrivateKey) { this.remotePrivateKey = remotePrivateKey; }
 
-    public interface AuthenticationType {
-        String NONE = "none";
-        String BASIC = "basic";
-        String TOKEN = "token";
-        String PRIVATE_KEY = "key";
-    }
 }

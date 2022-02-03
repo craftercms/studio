@@ -29,6 +29,7 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
@@ -54,7 +55,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.IncompatiblePluginException;
@@ -501,7 +501,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         siteService.createSiteWithRemoteOption(request.getSiteId(), request.getName(), request.getSandboxBranch(),
             request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
-            plugin.getUrl(), plugin.getRef(), false, RemoteRepository.AuthenticationType.NONE, null,
+            plugin.getUrl(), plugin.getRef(), false, AuthenticationType.NONE, null,
             null, null, null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
             true);
 
