@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -109,7 +109,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -446,7 +445,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                         conflictFiles.add(m);
                     });
                 }
-                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles, Locale.ENGLISH);
+                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles);
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);

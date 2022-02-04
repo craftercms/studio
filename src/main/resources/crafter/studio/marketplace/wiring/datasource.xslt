@@ -17,7 +17,6 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="3.0">
 
-    <xsl:param name="pluginId"/>
     <xsl:param name="newXml"/>
 
     <xsl:variable name="newFragment" select="parse-xml-fragment($newXml)"/>
@@ -42,7 +41,7 @@
     </xsl:template>
 
     <!-- If the plugin is not present add it -->
-    <xsl:template match="/config/tools/tool[name='content-types' and not(datasources/datasource/plugin/id = $pluginId)]/datasources">
+    <xsl:template match="/config/tools/tool[name='content-types']/datasources">
         <xsl:copy>
             <xsl:apply-templates select="node() | @*"/>
 

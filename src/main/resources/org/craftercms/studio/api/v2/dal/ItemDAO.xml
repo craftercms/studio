@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -26,8 +26,8 @@
         <result property="path" column="path" />
         <result property="previewUrl" column="preview_url" />
         <result property="state" column="state" />
-        <result property="ownedBy" column="owned_by" />
-        <result property="owner" column="owner" />
+        <result property="lockedBy" column="locked_by" />
+        <result property="lockOwner" column="lock_owner" />
         <result property="createdBy" column="created_by" />
         <result property="creator" column="creator" />
         <result property="createdOn" column="created_on" />
@@ -56,8 +56,8 @@
         <result property="path" column="path" />
         <result property="previewUrl" column="preview_url" />
         <result property="state" column="state" />
-        <result property="ownedBy" column="owned_by" />
-        <result property="owner" column="owner" />
+        <result property="lockedBy" column="locked_by" />
+        <result property="lockOwner" column="lock_owner" />
         <result property="createdBy" column="created_by" />
         <result property="creator" column="creator" />
         <result property="createdOn" column="created_on" />
@@ -88,10 +88,10 @@
     </resultMap>
 
     <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
-        INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
+        INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
         last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code,
         translation_source_id, size, parent_id, commit_id, previous_path, ignored) VALUES
-        (#{siteId}, #{path}, #{previewUrl}, #{state}, #{ownedBy}, #{createdBy}, #{createdOn}, #{lastModifiedBy},
+        (#{siteId}, #{path}, #{previewUrl}, #{state}, #{lockedBy}, #{createdBy}, #{createdOn}, #{lastModifiedBy},
          #{lastModifiedOn}, #{lastPublishedOn}, #{label}, #{contentTypeId}, #{systemType}, #{mimeType},
          #{localeCode}, #{translationSourceId}, #{size}, #{parentId}, #{commitId}, #{previousPath}, #{ignoredAsInt})
         ON DUPLICATE KEY
@@ -100,7 +100,7 @@
         path = #{path},
         preview_url = #{previewUrl},
         state = #{state},
-        owned_by = #{ownedBy},
+        locked_by = #{lockedBy},
         last_modified_by = #{lastModifiedBy},
         last_modified_on = #{lastModifiedOn},
         last_published_on = #{lastPublishedOn},
@@ -118,11 +118,11 @@
     </insert>
 
     <insert id="upsertEntries" parameterType="java.util.List">
-        INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by,
+        INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by,
         last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code,
         translation_source_id, size, parent_id, commit_id, previous_path, ignored) VALUES
         <foreach collection="entries" item="entry" index="index" open="" separator=","  close="">
-            (#{entry.siteId}, #{entry.path}, #{entry.previewUrl}, #{entry.state}, #{entry.ownedBy},
+            (#{entry.siteId}, #{entry.path}, #{entry.previewUrl}, #{entry.state}, #{entry.lockedBy},
             #{entry.createdBy}, #{entry.createdOn}, #{entry.lastModifiedBy}, #{entry.lastModifiedOn},
             #{entry.lastPublishedOn}, #{entry.label}, #{entry.contentTypeId}, #{entry.systemType}, #{entry.mimeType},
             #{entry.localeCode}, #{entry.translationSourceId}, #{entry.size}, #{entry.parentId}, #{entry.commitId},
@@ -134,7 +134,7 @@
             path = VALUES(path),
             preview_url = VALUES(preview_url),
             state = VALUES(state),
-            owned_by = VALUES(owned_by),
+            locked_by = VALUES(locked_by),
             last_modified_by = VALUES(last_modified_by),
             last_modified_on = VALUES(last_modified_on),
             last_published_on = VALUES(last_published_on),
@@ -152,17 +152,18 @@
     </insert>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, 0 as children_count
+        SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier, 0 as children_count
         FROM item i
-        LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+        LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
         LEFT OUTER JOIN user u2 ON i.created_by = u2.id
         LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
         WHERE i.site_id = #{siteId} AND i.path = #{ldPath}
         UNION
-        (SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, COUNT(DISTINCT i3.id) as children_count
+        (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier, COUNT(DISTINCT i3.id)
+        as children_count
         FROM item i1
             left outer join item  i3 on i1.id = i3.parent_id
-        LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+        LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
         LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
         LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId}
@@ -203,10 +204,10 @@
     </select>
 
     <select id="getAllChildrenByPath" resultMap="ItemMap">
-        SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, COUNT(DISTINCT i3.id) as  children_count
+        SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier, COUNT(DISTINCT i3.id) as  children_count
         FROM item i1
             left outer join item i3 on i1.id = i3.parent_id
-            LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+            LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
             LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
             LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId}
@@ -240,16 +241,16 @@
     </select>
 
     <select id="getChildrenById" resultMap="ItemMap">
-        SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier, 0 AS children_count
+        SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier, 0 AS children_count
         FROM item i
-        LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+        LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
         LEFT OUTER JOIN user u2 ON i.created_by = u2.id
         LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
         WHERE i.site_id = #{siteId} AND i.parent_id = #{parentId} AND path LIKE '%/${ldName}'
         UNION
         ((SELECT i1.*, COUNT(DISTINCT i3.id) AS children_count FROM item i1
         LEFT OUTER JOIN item i3 ON i1.id = i3.parent_id
-        LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+        LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
         LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
         LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId} AND i1.parent_id = #{parentId} AND i1.path NOT LIKE '%/${ldName}'
@@ -302,7 +303,7 @@
     </select>
     
     <select id="getItemById" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                    w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                    staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                    w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -310,7 +311,7 @@
                    COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
                 LEFT OUTER JOIN user u2 ON i.created_by = u2.id
                 LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
                 LEFT OUTER JOIN (
@@ -363,7 +364,7 @@
     </select>
 
     <select id="getItemByIdPreferContent" resultMap="DetailedItemMap">
-            (SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+            (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                     w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                     staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                     w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -371,7 +372,7 @@
                     COUNT(DISTINCT i5.id) AS children_count
             FROM item i1 INNER JOIN site s1 ON i1.site_id = s1.id
                 LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-                LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+                LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
                 LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
                 LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
                 LEFT OUTER JOIN (
@@ -428,7 +429,7 @@
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = CONCAT(i5.path, '/index.xml')))
             GROUP BY i1.id)
             UNION
-            (SELECT i3.*, u4.username AS owner, u5.username AS creator, u6.username AS modifier,
+            (SELECT i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
                    w3.schedule AS staging_scheduleddate, staging2.published_on AS staging_published_on,
                    staging2.username AS staging_username, staging2.commit_id AS staging_commit_id,
                    w4.schedule AS live_scheduleddate, live2.published_on AS live_published_on,
@@ -436,7 +437,7 @@
                    COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
                 LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN user u4 ON i3.owned_by = u4.id
+                LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
                 LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
                 LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
                 LEFT OUTER JOIN (
@@ -494,7 +495,7 @@
     </select>
 
     <select id="getItemByPath" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                    w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                    staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                    w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -502,7 +503,7 @@
                    COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
                 LEFT OUTER JOIN user u2 ON i.created_by = u2.id
                 LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
                 LEFT OUTER JOIN (
@@ -559,7 +560,7 @@
     </select>
 
     <select id="getItemByPathPreferContent" resultMap="DetailedItemMap">
-            (SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+            (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                     w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                     staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                     w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -567,7 +568,7 @@
                     COUNT(DISTINCT i5.id) AS children_count
             FROM item i1 INNER join site s1 ON i1.site_id = s1.id
                 LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-                LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+                LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
                 LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
                 LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
                 LEFT OUTER JOIN (
@@ -623,7 +624,7 @@
                     (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
              GROUP BY i1.id)
             UNION
-            (select i3.*, u4.username AS owner, u5.username AS creator, u6.username AS modifier,
+            (select i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
                     w3.schedule AS staging_scheduleddate, staging2.published_on AS staging_published_on,
                     staging2.username AS staging_username, staging2.commit_id AS staging_commit_id,
                     w4.schedule AS live_scheduleddate, live2.published_on AS live_published_on,
@@ -631,7 +632,7 @@
                     COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
                 LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN user u4 ON i3.owned_by = u4.id
+                LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
                 LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
                 LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
                 LEFT OUTER JOIN (
@@ -688,11 +689,11 @@
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+        SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(DISTINCT i3.id) AS children_count
         FROM item i
             LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-            LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+            LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
             LEFT OUTER JOIN user u2 ON i.created_by = u2.id
             LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
         WHERE i.id IN
@@ -706,11 +707,11 @@
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
-        (SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+        (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(DISTINCT i5.id ) AS children_count
         FROM item i1
             LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-            LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+            LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
             LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
             LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id, item i2
         WHERE i2.id IN
@@ -724,11 +725,11 @@
             (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
         GROUP BY i1.id)
         UNION
-        (SELECT i3.*, u4.username AS owner, u5.username AS creator, u6.username AS modifier,
+        (SELECT i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
                COUNT(DISTINCT i6.id) AS children_count
         FROM item i3
             LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-            LEFT OUTER JOIN user u4 ON i3.owned_by = u4.id
+            LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
             LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
             LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
         WHERE i3.id IN
@@ -745,11 +746,11 @@
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+        SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(DISTINCT i3.id) AS children_count
         FROM item i
             LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-            LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+            LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
             LEFT OUTER JOIN user u2 ON i.created_by = u2.id
             LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
         WHERE i.site_id = #{siteId}
@@ -764,11 +765,11 @@
     </select>
 
     <select id="getSandboxItemsByPathPreferContent" resultMap="ItemMap">
-        (SELECT i1.*, u1.username as owner, u2.username AS creator, u3.username AS modifier,
+        (SELECT i1.*, u1.username as lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(DISTINCT i5.id) AS children_count
         FROM item i1
             LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-            LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+            LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
             LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
             LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id, item i2
         WHERE i2.site_id = #{siteId}
@@ -784,11 +785,11 @@
             (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
         GROUP BY i1.id)
         UNION
-        (SELECT i3.*, u4.username AS owner, u5.username AS creator, u6.username AS modifier,
+        (SELECT i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
                COUNT(DISTINCT i6.id) AS children_count
         FROM item i3
             LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-            LEFT OUTER JOIN user u4 ON i3.owned_by = u4.id
+            LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
             LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
             LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
         WHERE i3.site_id = #{siteId}
@@ -807,7 +808,7 @@
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                    w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                    staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                    w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -815,7 +816,7 @@
                    COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN user u1 ON i.owned_by = u1.id
+                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
                 LEFT OUTER JOIN user u2 ON i.created_by = u2.id
                 LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
                 LEFT OUTER JOIN (
@@ -871,7 +872,7 @@
     </select>
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="DetailedItemMap">
-            (SELECT i1.*, u1.username AS owner, u2.username AS creator, u3.username AS modifier,
+            (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                     w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                     staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                     w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -879,7 +880,7 @@
                     COUNT(DISTINCT i5.id) AS children_count
             FROM item i1 INNER JOIN site s1 ON i1.site_id = s1.id
                 LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-                LEFT OUTER JOIN user u1 ON i1.owned_by = u1.id
+                LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
                 LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
                 LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
                 LEFT OUTER JOIN (
@@ -936,7 +937,7 @@
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
             GROUP BY i1.id)
             UNION
-            (SELECT i3.*, u4.username AS owner, u5.username AS creator, u6.username AS modifier,
+            (SELECT i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
                     w3.schedule AS staging_scheduleddate, staging2.published_on AS staging_published_on,
                     staging2.username AS staging_username, staging2.commit_id AS staging_commit_id,
                     w4.schedule AS live_scheduleddate, live2.published_on AS live_published_on,
@@ -944,7 +945,7 @@
                     COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
                 LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN user u4 ON i3.owned_by = u4.id
+                LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
                 LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
                 LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
                 LEFT OUTER JOIN (
@@ -1007,7 +1008,7 @@
             path = #{path},
             preview_url = #{previewUrl},
             state = #{state},
-            owned_by = #{ownedBy},
+            locked_by = #{lockedBy},
             last_modified_by = #{lastModifiedBy},
             last_modified_on = #{lastModifiedOn},
             last_published_on = #{lastPublishedOn},
@@ -1070,12 +1071,18 @@
             #{path}
         </foreach>
     </update>
+
     <update id="updateStatesByIdBulk" >
         UPDATE item set state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
         WHERE id IN
         <foreach collection="itemIds" item="id" index="index" open="(" separator=","  close=")">
             #{id}
         </foreach>
+    </update>
+
+    <update id="updateStatesForSite">
+        UPDATE item set state = (state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap}
+        WHERE site_id = #{siteId}
     </update>
 
     <delete id="deleteItemsForSite">
@@ -1345,16 +1352,28 @@
 
     <update id="lockItemByPath">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
-        SET i.owned_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i.path =  #{path}
         AND i.system_type &lt;&gt; #{systemTypeFolder}
     </update>
 
+    <update id="lockItemsByPath">
+        UPDATE item i INNER JOIN site s ON i.site_id = s.id
+            SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        WHERE s.site_id = #{siteId}
+          AND s.deleted = 0
+          AND i.path IN
+        <foreach collection="paths" item="path" index="index" open="(" separator="," close=")">
+            #{path}
+        </foreach>
+          AND i.system_type &lt;&gt; #{systemTypeFolder}
+    </update>
+
     <update id="unlockItemByPath">
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
-        SET i.owned_by = null, i.state = i.state &amp; #{lockedBitOff}
+        SET i.locked_by = null, i.state = i.state &amp; #{lockedBitOff}
         WHERE s.site_id = #{siteId}
           AND s.deleted = 0
           AND i.path =  #{path}
@@ -1362,13 +1381,23 @@
 
     <update id="lockItemById">
         UPDATE item i
-        SET i.owned_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
         WHERE i.id =  #{id} AND i.system_type &lt;&gt; #{systemTypeFolder}
+    </update>
+
+    <update id="lockItemsById">
+        UPDATE item i
+        SET i.locked_by = #{lockOwnerId}, i.state = i.state | #{lockedBitOn}
+        WHERE i.id IN
+        <foreach collection="itemIds" item="id" index="index" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND i.system_type &lt;&gt; #{systemTypeFolder}
     </update>
 
     <update id="unlockItemById">
         UPDATE item i
-        SET i.owned_by = null, i.state = i.state &amp; #{lockedBitOff}
+        SET i.locked_by = null, i.state = i.state &amp; #{lockedBitOff}
         WHERE i.id =  #{id}
     </update>
 

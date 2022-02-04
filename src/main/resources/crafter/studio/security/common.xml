@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -65,12 +65,16 @@
           class="org.craftercms.studio.impl.v2.security.authentication.db.DbAuthenticationProvider">
         <property name="userDetailsService" ref="studioUserDetailsService"/>
         <property name="passwordEncoder" ref="passwordEncoder"/>
+        <property name="preAuthenticationChecks" ref="deletedUserDetailsChecker"/>
     </bean>
 
     <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">
         <constructor-arg name="patterns"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).SECURITY_PUBLIC_URLS)}"/>
     </bean>
+
+    <bean id="deletedUserDetailsChecker"
+          class="org.craftercms.studio.impl.v2.security.authentication.DeletedUserDetailsChecker"/>
 
     <!-- Permissions -->
 
@@ -111,6 +115,32 @@
                        value-ref="crafter.studioCompositePermissionEvaluator"/>
             </map>
         </property>
+    </bean>
+
+    <bean id="studio.HasAnyPermissionsAnnotationHandler"
+          class="org.craftercms.studio.api.v2.security.HasAnyPermissionsAnnotationHandler">
+        <property name="permissionEvaluators">
+            <map>
+                <entry key="org.craftercms.commons.security.permissions.DefaultPermission"
+                       value-ref="crafter.studioPermissionEvaluator"/>
+                <entry key="org.craftercms.studio.permissions.CompositePermission"
+                       value-ref="crafter.studioCompositePermissionEvaluator"/>
+            </map>
+        </property>
+        <property name="securityService" ref="cstudioSecurityService" />
+    </bean>
+
+    <bean id="studio.HasAllPermissionsAnnotationHandler"
+          class="org.craftercms.studio.api.v2.security.HasAllPermissionsAnnotationHandler">
+        <property name="permissionEvaluators">
+            <map>
+                <entry key="org.craftercms.commons.security.permissions.DefaultPermission"
+                       value-ref="crafter.studioPermissionEvaluator"/>
+                <entry key="org.craftercms.studio.permissions.CompositePermission"
+                       value-ref="crafter.studioCompositePermissionEvaluator"/>
+            </map>
+        </property>
+        <property name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- CORS -->

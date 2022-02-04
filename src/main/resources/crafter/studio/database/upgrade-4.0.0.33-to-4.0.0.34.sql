@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,16 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.craftercms.blueprints.headless.PostSearchHelper
+ALTER TABLE `item` DROP FOREIGN KEY IF EXISTS `item_ix_owned_by` ;
 
-def id = pathVars.id
+ALTER TABLE `item` CHANGE COLUMN IF EXISTS `owned_by` `locked_by` BIGINT NULL ;
 
-def posts = new PostSearchHelper(elasticsearch, siteItemService)
-						.filter("objectId: $id")
-						.getItems()
+ALTER TABLE `item` ADD FOREIGN KEY IF NOT EXISTS item_ix_locked_by(`locked_by`) REFERENCES `user` (`id`) ;
 
-if(!posts.items) {
-	return []
-}
-
-return posts.items[0]
+UPDATE _meta SET version = '4.0.0.34' ;

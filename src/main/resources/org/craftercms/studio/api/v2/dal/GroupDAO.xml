@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -86,16 +86,22 @@
         <result property="externallyManaged" column="externally_managed"/>
     </resultMap>
 
-    <select id="getAllGroupsForOrganization" resultMap="GroupMap" parameterType="java.util.Map">
+    <select id="getAllGroupsForOrganization" resultMap="GroupMap">
         SELECT * FROM `group`
         WHERE org_id = #{orgId}
+        <if test="keyword != null" >
+            AND group_name like '%${keyword}%'
+        </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
 
-    <select id="getAllGroupsForOrganizationTotal" resultType="Integer" parameterType="java.util.Map">
+    <select id="getAllGroupsForOrganizationTotal" resultType="Integer" >
         SELECT count(1) FROM `group`
         WHERE org_id = #{orgId}
+        <if test="keyword != null" >
+            AND group_name like '%${keyword}%'
+        </if>
     </select>
 
     <select id="selectOrganizationById" resultMap="OrganizationMap">
@@ -110,10 +116,9 @@
         </selectKey>
     </insert>
 
-    <update id="updateGroup" parameterType="java.util.Map">
+    <update id="updateGroup" parameterType="org.craftercms.studio.api.v2.dal.Group">
         UPDATE `group`
-        SET org_id = #{orgId},
-            group_name = #{groupName},
+        SET group_name = #{groupName},
             group_description = #{groupDescription},
             record_last_updated = CURRENT_TIMESTAMP
         WHERE id = #{id}
@@ -160,13 +165,6 @@
             (#{userId}, #{groupId})
         </foreach>
     </insert>
-
-    <select id="getUserIdsForUsernames" parameterType="java.util.Map" resultType="Long">
-        SELECT id FROM `user` WHERE username IN
-        <foreach collection="usernames" item="username" index="index" separator="," open="(" close=")">
-            #{username}
-        </foreach>
-    </select>
 
     <delete id="removeGroupMembers" parameterType="java.util.Map">
         DELETE FROM `group_user` WHERE group_id = #{groupId} AND user_id IN

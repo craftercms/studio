@@ -262,6 +262,24 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.32/system/global-permission-mappings-config.xslt
             commitDetails: Add new permission for removing plugins
+      - currentVersion: 4.0.0.32
+        nextVersion: 4.0.0.33
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.32-to-4.0.0.33.sql
+      - currentVersion: 4.0.0.33
+        nextVersion: 4.0.0.34
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.33-to-4.0.0.34.sql
+      - currentVersion: 4.0.0.34
+        nextVersion: 4.0.0.35
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                dest: /configuration/samples/sample-notification-config.xml
+            commitDetails: Update sample files
 
   # Pipeline to upgrade site repositories
   site:
@@ -331,6 +349,13 @@ pipelines:
             oldPath: config/studio/form-control-config/rte/rte-setup-tinymce5.xml
             newPath: config/studio/form-control-config/rte/rte-config.xml
             commitDetails: Rename the RTE configuration
+      - currentVersion: 4.0.0.2
+        nextVersion: 4.0.0.3
+        operations:
+          - type: batchXsltUpgrader
+            regex: config/studio/content-types/.+/form-definition\.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
+            commitDetails: Update date-time & time controls with addititional fields
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -467,6 +492,12 @@ configurations:
         # Entry point for existing 4.0.x installations (before refactoring so just switch to the new version schema)
         - currentVersion: 21
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.2
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.2.xslt
+              commitDetails: Add content_read permission where it is missing
 
   role-mappings-config:
     module: studio
@@ -589,6 +620,12 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 3
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.2
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v4.0.2.xslt
+              commitDetails: Remove lang element
 
   code-editor-config:
     module: studio

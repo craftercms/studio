@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -21,8 +21,7 @@
 
 -->
 <notificationConfig>
-    <version>4.0.1</version>
-    <lang name="en"> <!-- language specific notifications -->
+    <version>4.0.2</version>
         <deploymentFailureNotification> <!-- list of email addresses to notify in case of publishing failure -->
             <!--<email>admin@example.com</email>-->
             <!--<email>admin2@example.com</email>-->
@@ -238,7 +237,4 @@
                         </html>]]></body>
             </emailTemplate>
         </emailTemplates>
-
-
-    </lang>
 </notificationConfig>

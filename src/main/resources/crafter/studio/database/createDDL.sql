@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.32', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.35', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -391,7 +391,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `path`                    VARCHAR(2048)   NOT NULL,
   `preview_url`             VARCHAR(2048)   NULL,
   `state`                   BIGINT          NOT NULL,
-  `owned_by`                BIGINT          NULL,
+  `locked_by`               BIGINT          NULL,
   `created_by`              BIGINT          NULL,
   `created_on`              TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
   `last_modified_by`        BIGINT          NULL,
@@ -411,7 +411,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   PRIMARY KEY (`id`),
   FOREIGN KEY item_ix_created_by(`created_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_last_modified_by(`last_modified_by`) REFERENCES `user` (`id`),
-  FOREIGN KEY item_ix_owned_by(`owned_by`) REFERENCES `user` (`id`),
+  FOREIGN KEY item_ix_locked_by(`locked_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
   FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
   UNIQUE uq_i_site_path (`site_id`, `path`(900))
@@ -528,25 +528,6 @@ CREATE TABLE IF NOT EXISTS cluster_remote_repository
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
-
-CREATE TABLE IF NOT EXISTS cluster_site_sync_repo
-(
-    `cluster_node_id`                       BIGINT(20)      NOT NULL,
-    `site_id`                               BIGINT(20)      NOT NULL,
-    `node_last_commit_id`                   VARCHAR(50)     NULL,
-    `node_last_verified_gitlog_commit_id`   VARCHAR(50)     NULL,
-    `node_last_synced_gitlog_commit_id`    VARCHAR(50)   NULL,
-    `site_state`                                 VARCHAR(50)     NOT NULL DEFAULT 'CREATING',
-    `site_published_repo_created`                INT             NOT NULL DEFAULT 0,
-    PRIMARY KEY (`cluster_node_id`, `site_id`),
-    FOREIGN KEY cluster_site_ix_cluster_id(`cluster_node_id`) REFERENCES `cluster` (`id`)
-        ON DELETE CASCADE,
-    FOREIGN KEY cluster_site_ix_remote_id(`site_id`) REFERENCES `site` (`id`)
-        ON DELETE CASCADE
-)
-    ENGINE = InnoDB
-    DEFAULT CHARSET = utf8
-    ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `refresh_token`
 (

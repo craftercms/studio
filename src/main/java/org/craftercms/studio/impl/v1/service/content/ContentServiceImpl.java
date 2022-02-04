@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -33,8 +34,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
@@ -114,6 +115,18 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
+import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE_DT;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_FILE_NAME;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_FOLDER_NAME;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_GROUP_ID;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_LAST_MODIFIED_DATE;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_LAST_MODIFIED_DATE_DT;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
@@ -151,6 +164,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
 import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 
 /**
  * Content Services that other services may use
@@ -245,7 +259,7 @@ public class ContentServiceImpl implements ContentService {
         try (InputStream is = _contentRepository.getContent(site, path)) {
             if (is != null) {
                 if (StringUtils.isEmpty(encoding)) {
-                    content = IOUtils.toString(is);
+                    content = IOUtils.toString(is, UTF_8);
                 } else {
                     content = IOUtils.toString(is, encoding);
                 }
@@ -617,6 +631,9 @@ public class ContentServiceImpl implements ContentService {
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
             Item parentItem = itemServiceInternal.getItem(site, path, true);
+            if (Objects.isNull(parentItem)) {
+                parentItem = createMissingParentItem(site, path, commitId);
+            }
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
                     commitId, parentItem.getId());
 
@@ -636,6 +653,19 @@ public class ContentServiceImpl implements ContentService {
         }
 
         return toRet;
+    }
+
+    private Item createMissingParentItem(String site, String parentPath, String commitId) throws UserNotFoundException, ServiceLayerException {
+        String ancestorPath = ContentUtils.getParentUrl(parentPath);
+        String name = ContentUtils.getPageName(parentPath);
+        Item ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
+        if (Objects.isNull(ancestor)) {
+            createMissingParentItem(site, ancestorPath, commitId);
+            ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
+        }
+        itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, securityService.getCurrentUser(),
+                commitId, ancestor.getId());
+        return itemServiceInternal.getItem(site, parentPath, true);
     }
 
     @Override
@@ -791,12 +821,12 @@ public class ContentServiceImpl implements ContentService {
 
                                 // try a simple substitution
                                 copyDepPath = copyDepPath.replaceAll(
-                                        fromPageIds.get(DmConstants.KEY_PAGE_ID),
-                                        copyObjectIds.get(DmConstants.KEY_PAGE_ID));
+                                        fromPageIds.get(KEY_PAGE_ID),
+                                        copyObjectIds.get(KEY_PAGE_ID));
 
                                 copyDepPath = copyDepPath.replaceAll(
-                                        fromPageIds.get(DmConstants.KEY_PAGE_GROUP_ID),
-                                        copyObjectIds.get(DmConstants.KEY_PAGE_GROUP_ID));
+                                        fromPageIds.get(KEY_PAGE_GROUP_ID),
+                                        copyObjectIds.get(KEY_PAGE_GROUP_ID));
 
                                 ContentItemTO targetPathItem = getContentItem(site, copyDepPath);
                                 if (targetPathItem != null && targetPathItem.isFolder()) {
@@ -1238,9 +1268,13 @@ public class ContentServiceImpl implements ContentService {
                         proposedDestPath_folder =
                                 proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
                     }
+                    // for pages we have to check the parent folder, in any other case the full path
+                    String newCollisionCheck = fromFileIsIndex?
+                                                newPathOnly + File.separator + proposedDestPath_folder :
+                                                proposedDestPath;
                     collisionFound = Stream.of(siblings)
-                                        .map(item -> item.path + "/" + item.name)
-                                        .anyMatch(proposedDestPath::equals);
+                                        .map(item -> item.path + File.separator + item.name)
+                                        .anyMatch(newCollisionCheck::equals);
                 }
 
                 result.put("FILE_PATH", proposedDestPath);
@@ -1304,14 +1338,14 @@ public class ContentServiceImpl implements ContentService {
         Map<String, String> ids = new HashMap<String, String>();
         if (document != null) {
             Element root = document.getRootElement();
-            Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+            Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
             if (pageIdNode != null) {
-                ids.put(DmConstants.KEY_PAGE_ID, ((Element) pageIdNode).getText());
+                ids.put(KEY_PAGE_ID, ((Element) pageIdNode).getText());
             }
 
-            Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+            Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
             if (groupIdNode != null) {
-                ids.put(DmConstants.KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
+                ids.put(KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
             }
         }
         return ids;
@@ -1327,42 +1361,42 @@ public class ContentServiceImpl implements ContentService {
         String originalPageId = null;
         String originalGroupId = null;
 
-        Node filenameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FILE_NAME);
+        Node filenameNode = root.selectSingleNode("//" + ELM_FILE_NAME);
         if (filenameNode != null) {
             filenameNode.setText(filename);
         }
 
-        Node folderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_FOLDER_NAME);
+        Node folderNode = root.selectSingleNode("//" + ELM_FOLDER_NAME);
         if (folderNode != null) {
             folderNode.setText(folder);
         }
 
-        Node pageIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_PAGE_ID);
+        Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
         if (pageIdNode != null) {
             originalPageId = pageIdNode.getText();
-            pageIdNode.setText(params.get(DmConstants.KEY_PAGE_ID));
+            pageIdNode.setText(params.get(KEY_PAGE_ID));
         }
 
         if(StringUtils.isNotEmpty(modifier)) {
-            Node internalNameNode = root.selectSingleNode("//" + DmXmlConstants.ELM_INTERNAL_NAME);
+            Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
                 String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
                 internalNameNode.setText(String.format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
             }
         }
 
-        Node groupIdNode = root.selectSingleNode("//" + DmXmlConstants.ELM_GROUP_ID);
+        Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
         if (groupIdNode != null) {
             originalGroupId = groupIdNode.getText();
-            groupIdNode.setText(params.get(DmConstants.KEY_PAGE_GROUP_ID));
+            groupIdNode.setText(params.get(KEY_PAGE_GROUP_ID));
         }
 
         List<Node> keys = root.selectNodes("//key");
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1374,13 +1408,35 @@ public class ContentServiceImpl implements ContentService {
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(DmConstants.KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(DmConstants.KEY_PAGE_GROUP_ID));
+                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);
                 }
             }
+        }
+
+        String nowFormatted = getCurrentTimeIso();
+
+        Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
+        if (createdDateNode != null) {
+            createdDateNode.setText(nowFormatted);
+        }
+
+        Node createdDateDtNode = root.selectSingleNode("//" + ELM_CREATED_DATE_DT);
+        if (createdDateDtNode != null) {
+            createdDateDtNode.setText(nowFormatted);
+        }
+
+        Node lastModifiedDateNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE);
+        if (lastModifiedDateNode != null) {
+            lastModifiedDateNode.setText(nowFormatted);
+        }
+
+        Node lastModifiedDateDtNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE_DT);
+        if (lastModifiedDateDtNode != null) {
+            lastModifiedDateDtNode.setText(nowFormatted);
         }
 
         return document;
@@ -1813,10 +1869,10 @@ public class ContentServiceImpl implements ContentService {
         if (metadata != null) {
             // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
             // database if it's not null
-            if (StringUtils.isEmpty(metadata.getOwner())) {
+            if (StringUtils.isEmpty(metadata.getLockOwner())) {
                 item.setLockOwner("");
             } else {
-                item.setLockOwner(metadata.getOwner());
+                item.setLockOwner(metadata.getLockOwner());
             }
 
             // Set the scheduled date
@@ -1976,7 +2032,7 @@ public class ContentServiceImpl implements ContentService {
         String content = null;
 
         try {
-            content = IOUtils.toString(getContentVersion(site, path, version));
+            content = IOUtils.toString(getContentVersion(site, path, version), UTF_8);
         }
         catch(Exception err) {
             logger.debug("Failed to get content as string for path {0}, exception {1}", path, err);
@@ -2307,7 +2363,7 @@ public class ContentServiceImpl implements ContentService {
             throws UserNotFoundException, ServiceLayerException {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
         // TODO: SJ: Dejan to look into this
-        _contentRepository.lockItem(site, path);
+        contentRepository.lockItem(site, path);
         itemServiceInternal.lockItemByPath(site, path, securityService.getCurrentUser());
     }
 
@@ -2471,7 +2527,7 @@ public class ContentServiceImpl implements ContentService {
 
         if (contentExists(site, targetPath)) {
             Map<String,String> ids = contentItemIdGenerator.getIds();
-            String id = ids.get(DmConstants.KEY_PAGE_GROUP_ID);
+            String id = ids.get(KEY_PAGE_GROUP_ID);
             targetPath += "-" + id;
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -278,55 +278,6 @@ public interface RetryingDatabaseOperationFacade {
      */
     void addClusterRemoteRepository(long clusterId, long remoteRepositoryId);
 
-    /**
-     * Insert cluster node site sync repo record
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param nodeLastCommitId last commit id of local sandbox repository
-     * @param nodeLastVerifiedGitlogCommitId last verified git log commit id in local repo
-     */
-    void insertClusterSiteSyncRepo(long clusterNodeId, long siteId, String nodeLastCommitId,
-                                   String nodeLastVerifiedGitlogCommitId, String nodeLastSyncedGitlogCommitId);
-
-    /**
-     * Update local last verified git log commit id
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param commitId commit id
-     */
-    void updateClusterNodeLastVerifiedGitlogCommitId(long clusterNodeId, long siteId, String commitId);
-
-    /**
-     * Update local last git log commit id
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param commitId commit id
-     */
-    void updateClusterNodeLastCommitId(long clusterNodeId, long siteId, String commitId);
-
-    /**
-     * Set site state for cluster node
-     * @param clusterNodeId cluster node identifier
-     * @param siteId site identifier
-     * @param state state value
-     */
-    void setClusterNodeSiteState(long clusterNodeId, long siteId, String state);
-
-    /**
-     * Set flag for published repo if created on cluster node
-     * @param clusterNodeId Cluster node identifier
-     * @param siteId site identifier
-     */
-    void setClusterNodePublishedRepoCreated(long clusterNodeId, long siteId);
-
-    /**
-     * Update last synced git log commit id for site on given cluster node
-     * @param clusterNodeId Cluster node identifier
-     * @param siteId site identifier
-     * @param commitId commit id
-     */
-    void updateClusterNodeLastSyncedGitlogCommitId(long clusterNodeId, long siteId, String commitId);
-
     // GitLog API v2
     /**
      * Insert new gitlog table row
@@ -393,50 +344,54 @@ public interface RetryingDatabaseOperationFacade {
     /**
      * Create group
      *
-     * @param params SQL query parameters
+     * @param orgId organization id
+     * @param groupName group name
+     * @param groupDescription  group description
      * @return Number of affected rows in DB
      */
-    Integer createGroup(Map params);
+    Integer createGroup(long orgId, String groupName, String groupDescription);
 
     /**
      * Update group
      *
-     * @param params SQL query parameters
+     * @param group group to update
      * @return Number of affected rows in DB
      */
-    Integer updateGroup(Map params);
+    Integer updateGroup(Group group);
 
     /**
      * Delete group
      *
-     * @param params SQL query parameters
+     * @param groupId group identifier
      * @return Number of affected rows in DB
      */
-    Integer deleteGroup(Map params);
+    Integer deleteGroup(long groupId);
 
     /**
-     * Delete group
+     * Delete groups
      *
-     * @param params SQL query parameters
+     * @param groupIds ids of the groups to be deleted
      * @return Number of affected rows in DB
      */
-    Integer deleteGroups(Map params);
+    Integer deleteGroups(List<Long> groupIds);
 
     /**
      * Add users to the group
      *
-     * @param params SQL query parameters
+     * @param groupId group identifier
+     * @param userIds list of user identifiers
      * @return Number of rows affected in DB
      */
-    Integer addGroupMembers(Map params);
+    Integer addGroupMembers(long groupId, List<Long> userIds);
 
     /**
      * Remove users from the group
      *
-     * @param params SQL query parameters
+     * @param groupId group identifier
+     * @param userIds list of user identifiers
      * @return Number of rows affected in DB
      */
-    Integer removeGroupMembers(Map params);
+    Integer removeGroupMembers(long groupId, List<Long> userIds);
 
     // Item API v2
     /**
@@ -521,6 +476,15 @@ public interface RetryingDatabaseOperationFacade {
      * @param offStatesBitMap state bitmap to flip off
      */
     void updateStatesByIdBulk(List<Long> itemIds, long onStatesBitMap, long offStatesBitMap);
+
+    /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param siteId site identifier
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void updateStatesForSite(long siteId, long onStatesBitMap, long offStatesBitMap);
 
     /**
      * Delete all items for site
@@ -609,6 +573,16 @@ public interface RetryingDatabaseOperationFacade {
     void lockItemByPath(String siteId, String path, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
 
     /**
+     * Lock items
+     * @param siteId site identifier
+     * @param paths list of item paths
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
+     */
+    void lockItemsByPath(String siteId, List<String> paths, long lockOwnerId, long lockedBitOn,
+                         String systemTypeFolder);
+    /**
      * Lock item
      * @param siteId site identifier
      * @param path path of the item
@@ -626,7 +600,16 @@ public interface RetryingDatabaseOperationFacade {
     void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
 
     /**
-     * Lock item
+     * Lock items
+     * @param itemIds list of item identifiers
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
+     */
+    void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
+
+    /**
+     * Unlock item
      * @param itemId item identifier
      * @param lockedBitOff state bit mask with LOCKED bit off
      */

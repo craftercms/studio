@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_DRIVER;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_DB_SCRIPT_LOCATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_CREATE_SCHEMA_SCRIPT_LOCATION;
@@ -47,7 +48,9 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_RANDOM_ADMIN_PASSWORD_LENGTH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_INITIALIZER_URL;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_PASSWORD;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_USER;
 
 public class DataSourceInitializerImpl implements DataSourceInitializer {
 
@@ -58,6 +61,8 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
      */
     private final static String SCHEMA = "{schema}";
     private final static String CRAFTER_SCHEMA_NAME = "@crafter_schema_name";
+    private final static String CRAFTER_USER = "@crafter_user";
+    private final static String CRAFTER_PASSWORD = "@crafter_password";
     private final static String DB_QUERY_CHECK_SCHEMA_EXISTS =
             "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{schema}'";
     private final static String DB_QUERY_CHECK_TABLES = "SHOW TABLES FROM {schema}";
@@ -173,9 +178,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setStopOnError(true);
         sr.setLogWriter(null);
         InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
-        String scriptContent = IOUtils.toString(is);
+        String scriptContent = IOUtils.toString(is, UTF_8);
         Reader reader = new StringReader(
-                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
+                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA))
+                        .replaceAll(CRAFTER_USER, studioConfiguration.getProperty(DB_USER))
+                        .replaceAll(CRAFTER_PASSWORD, studioConfiguration.getProperty(DB_PASSWORD)));
         try {
             sr.runScript(reader);
         } catch (RuntimeSqlException e) {

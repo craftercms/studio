@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,14 +24,9 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -89,6 +84,7 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -126,8 +122,6 @@ import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -137,11 +131,14 @@ import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.eclipse.jgit.util.FS;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.context.ServletContextAware;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -733,9 +730,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     try (Git git = new Git(repo)) {
                         PersonIdent currentUserIdent = helper.getCurrentUserIdent();
-                        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
-                        Calendar cal = Calendar.getInstance();
-                        String versionLabel = dateFormat.format(cal.getTime());
+                        String versionLabel = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssX");
 
                         TagCommand tagCommand = git.tag()
                                 .setName(versionLabel)
@@ -804,35 +799,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         return toReturn;
-    }
-
-    @Override
-    public void lockItem(String site, String path) {
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
-            try (TreeWalk tw = new TreeWalk(repo)) {
-                RevTree tree = helper.getTreeForLastCommit(repo);
-                tw.addTree(tree); // tree ‘0’
-                tw.setRecursive(false);
-                tw.setFilter(PathFilter.create(path));
-
-                if (!tw.next()) {
-                    return;
-                }
-
-                File repoRoot = repo.getWorkTree();
-                Paths.get(repoRoot.getPath(), tw.getPathString());
-                File file = new File(tw.getPathString());
-                LockFile lock = new LockFile(file);
-                lock.lock();
-
-                tw.close();
-
-            } catch (IOException e) {
-                logger.error("Error while locking file for site: " + site + " path: " + path, e);
-            }
-        }
     }
 
     @Override
@@ -925,6 +891,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     /**
      * bootstrap the repository
      */
+    @Order(1)
     @EventListener(ContextRefreshedEvent.class)
     public void bootstrap() throws Exception {
         logger.debug("Bootstrap global repository.");
@@ -1114,9 +1081,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // tag
                 PersonIdent authorIdent = helper.getAuthorIdent(author);
-                ZonedDateTime publishDate = ZonedDateTime.now(UTC);
-                String tagName = publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
-                        "_published_on_" + publishDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
+                String tagName = publishDate + "_published_on_" + publishDate;
                 TagCommand tagCommand = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment);
                 retryingRepositoryOperationFacade.call(tagCommand);
             } catch (Exception e) {

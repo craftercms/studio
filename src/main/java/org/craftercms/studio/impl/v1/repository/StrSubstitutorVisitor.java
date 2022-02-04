@@ -28,11 +28,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrLookup;
-import org.apache.commons.lang3.text.StrMatcher;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.text.StringSubstitutor;
+import org.apache.commons.text.lookup.StringLookupFactory;
+import org.apache.commons.text.matcher.StringMatcher;
+import org.apache.commons.text.matcher.StringMatcherFactory;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -46,15 +47,15 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
 
     private static final Logger logger = LoggerFactory.getLogger(StrSubstitutorVisitor.class);
 
-    public static final StrMatcher PREFIX = StrMatcher.stringMatcher("${plugin:");
+    public static final StringMatcher PREFIX = StringMatcherFactory.INSTANCE.stringMatcher("${plugin:");
 
-    protected StrSubstitutor strSubstitutor;
+    protected StringSubstitutor strSubstitutor;
 
     public StrSubstitutorVisitor(Map<String, String> variables) {
         Map<String, String> escapedVars = new HashMap<>(variables.size());
         variables.forEach((key, value) -> escapedVars.put(key, StringEscapeUtils.escapeXml10(value)));
-        strSubstitutor = new StrSubstitutor(StrLookup.mapLookup(escapedVars), PREFIX, StrSubstitutor.DEFAULT_SUFFIX,
-            StrSubstitutor.DEFAULT_ESCAPE);
+        strSubstitutor = new StringSubstitutor(StringLookupFactory.INSTANCE.mapStringLookup(escapedVars), PREFIX,
+                                               StringSubstitutor.DEFAULT_SUFFIX, StringSubstitutor.DEFAULT_ESCAPE);
     }
 
     @Override
@@ -66,7 +67,7 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
         logger.debug("Replacing parameters in file: {0}", file);
         try (InputStream inputStream = Files.newInputStream(file)) {
-            String originalContent = IOUtils.toString(inputStream);
+            String originalContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             String updatedContent = strSubstitutor.replace(originalContent);
             if (!StringUtils.equals(originalContent, updatedContent)) {
                 logger.debug("Updating file {}", file);

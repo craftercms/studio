@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.workflow;
 
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,7 +24,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -83,6 +81,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -92,8 +91,11 @@ import org.craftercms.studio.impl.v1.service.workflow.operation.SubmitLifeCycleO
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+
+import javax.servlet.http.HttpServletResponse;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
@@ -101,9 +103,13 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPRO
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REJECTION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
@@ -175,6 +181,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected UserServiceInternal userServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ContentServiceInternal contentServiceInternal;
+    protected PublishServiceInternal publishServiceInternal;
 
     @Override
     @ValidateParams
@@ -252,8 +259,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditServiceInternal.insertAuditLog(auditLog);
                 result.setSuccess(true);
                 result.setStatus(200);
-                result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
-                            .CompleteMessages,COMPLETE_SUBMIT_TO_GO_LIVE_MSG,Locale.ENGLISH));
+                result.setMessage(notificationService.getNotificationMessage(site,
+                        NotificationMessageType.CompleteMessages, COMPLETE_SUBMIT_TO_GO_LIVE_MSG));
                 itemServiceInternal.setSystemProcessingBulk(site, submittedPaths, false);
             }
         } catch (Exception e) {
@@ -279,9 +286,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
         }
-        notificationService.notifyApprovesContentSubmission(site,null,getDeploymentPaths(submittedItems),
-                submittedBy,scheduledDate,
-                submitForDeletion,submissionComment,Locale.ENGLISH);
+        notificationService.notifyApprovesContentSubmission(site,null, getDeploymentPaths(submittedItems),
+                submittedBy, scheduledDate, submitForDeletion, submissionComment);
         return errors;
     }
 
@@ -817,7 +823,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -845,7 +851,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setSuccess(true);
             result.setStatus(200);
             result.setMessage(notificationService.getNotificationMessage(site,
-                    NotificationMessageType.CompleteMessages, responseMessageKey, Locale.ENGLISH));
+                    NotificationMessageType.CompleteMessages, responseMessageKey));
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
 
@@ -962,6 +968,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                             auditLogParameter.setTargetValue(goLiveItem.getUri());
                             auditLogParameters.add(auditLogParameter);
                         }
+
                         goLive(site, goLiveItems, approver, mcpContext);
                         SiteFeed siteFeed = siteService.getSite(site);
                         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -970,6 +977,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                         auditLog.setPrimaryTargetId(site);
                         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                         auditLog.setPrimaryTargetValue(site);
+                        if (StringUtils.isNotEmpty(mcpContext.getSubmissionComment())) {
+                            AuditLogParameter auditLogParameter = new AuditLogParameter();
+                            auditLogParameter.setTargetId(site + ":submissionComment");
+                            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+                            auditLogParameter.setTargetValue(mcpContext.getSubmissionComment());
+                            auditLogParameters.add(auditLogParameter);
+                        }
                         auditLog.setParameters(auditLogParameters);
                         if (scheduledDate != null && !isNow) {
                             auditLog.setOperation(OPERATION_APPROVE_SCHEDULED);
@@ -996,7 +1010,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1028,14 +1042,21 @@ public class WorkflowServiceImpl implements WorkflowService {
                     auditLog.setPrimaryTargetId(site);
                     auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                     auditLog.setPrimaryTargetValue(site);
+                    if (StringUtils.isNotEmpty(mcpContext.getSubmissionComment())) {
+                        AuditLogParameter auditLogParameter = new AuditLogParameter();
+                        auditLogParameter.setTargetId(site + ":submissionComment");
+                        auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+                        auditLogParameter.setTargetValue(mcpContext.getSubmissionComment());
+                        auditLogParameters.add(auditLogParameter);
+                    }
                     auditLog.setParameters(auditLogParameters);
                     auditServiceInternal.insertAuditLog(auditLog);
 
             }
             result.setSuccess(true);
             result.setStatus(200);
-            result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
-                    .CompleteMessages, responseMessageKey, Locale.ENGLISH));
+            result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType.CompleteMessages,
+                    responseMessageKey));
 
         } catch (JSONException | ServiceLayerException e) {
             logger.error("error performing operation " + operation + " " + e);
@@ -1156,7 +1177,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                         for(int i=0;i<renameItems.size();i++){
                             DmDependencyTO renamedItem = renameItems.get(i);
                             if (renamedItem.getScheduledDate() != null &&
-                                    renamedItem.getScheduledDate().isAfter(ZonedDateTime.now(ZoneOffset.UTC))) {
+                                    renamedItem.getScheduledDate().isAfter(DateUtils.getCurrentTime())) {
                                 renamedItem.setNow(false);
                             } else {
                                 renamedItem.setNow(true);
@@ -1179,8 +1200,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             }
             result.setSuccess(true);
             result.setStatus(200);
-            result.setMessage(notificationService.getNotificationMessage(site,NotificationMessageType
-                    .CompleteMessages,responseMessageKey,Locale.ENGLISH));
+            result.setMessage(notificationService.getNotificationMessage(site,
+                    NotificationMessageType.CompleteMessages,responseMessageKey));
         } catch (JSONException e) {
             logger.error("error performing operation " + operation + " " + e);
 
@@ -1481,7 +1502,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         String user = securityService.getCurrentUser();
         // get web project information
         // Don't make go live an item if it is new and to be deleted
-        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        final ZonedDateTime now = DateUtils.getCurrentTime();
         List<String> itemsToDelete = new ArrayList<>();
         List<DmDependencyTO> deleteItems = new ArrayList<>();
         List<DmDependencyTO> scheItems = new ArrayList<>();
@@ -1932,15 +1953,27 @@ public class WorkflowServiceImpl implements WorkflowService {
     @ValidateParams
     public ResultTO goLive(@ValidateStringParam(name = "site") final String site, final String request)
             throws ServiceLayerException {
-        try {
-            if (isEnablePublishingWithoutDependencies()) {
-                return approveWithoutDependencies(site, request, Operation.GO_LIVE);
-            } else {
-                return approve_new(site, request, Operation.GO_LIVE);
+        if (!publishServiceInternal.isSitePublished(site)) {
+            publishServiceInternal.initialPublish(site);
+            itemServiceInternal.updateStatesForSite(site, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+            ResultTO result = new ResultTO();
+            result.setSuccess(true);
+            result.setStatus(HttpServletResponse.SC_OK);
+            result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType.CompleteMessages,
+                    NotificationService.COMPLETE_GO_LIVE));
+            return result;
+        } else {
+            try {
+                if (isEnablePublishingWithoutDependencies()) {
+                    return approveWithoutDependencies(site, request, Operation.GO_LIVE);
+                } else {
+                    return approve_new(site, request, Operation.GO_LIVE);
+                }
+            } catch (RuntimeException e) {
+                logger.error("error making go live", e);
+                throw e;
             }
-        } catch (RuntimeException e) {
-            logger.error("error making go live", e);
-            throw e;
         }
     }
 
@@ -1964,7 +1997,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                           MultiChannelPublishingContext mcpContext)
             throws ServiceLayerException {
         // get web project information
-        final ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+        final ZonedDateTime now = DateUtils.getCurrentTime();
         if (submittedItems != null) {
             // group submitted items into packages by their scheduled date
             Map<ZonedDateTime, List<DmDependencyTO>> groupedPackages = groupByDate(submittedItems, now);
@@ -2105,13 +2138,20 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setPrimaryTargetId(site);
                 auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
                 auditLog.setPrimaryTargetValue(site);
+                if (StringUtils.isNotEmpty(reason)) {
+                    AuditLogParameter auditLogParameter = new AuditLogParameter();
+                    auditLogParameter.setTargetId(site + ":rejectionComment");
+                    auditLogParameter.setTargetType(TARGET_TYPE_REJECTION_COMMENT);
+                    auditLogParameter.setTargetValue(reason);
+                    auditLogParameters.add(auditLogParameter);
+                }
                 auditLog.setParameters(auditLogParameters);
                 auditServiceInternal.insertAuditLog(auditLog);
                 itemServiceInternal.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
-                result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType
-                        .CompleteMessages, NotificationService.COMPLETE_REJECT, Locale.ENGLISH));
+                result.setMessage(notificationService.getNotificationMessage(site,
+                        NotificationMessageType.CompleteMessages, NotificationService.COMPLETE_REJECT));
             } else {
                 result.setSuccess(false);
                 result.setMessage("No items provided for preparation.");
@@ -2146,7 +2186,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                 }
                 notificationService.notifyContentRejection(site, Collections.singletonList(whoToBlame),
-                        getDeploymentPaths(submittedItems), reason, approver, Locale.ENGLISH);
+                        getDeploymentPaths(submittedItems), reason, approver);
             }
         }
 
@@ -2286,6 +2326,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
+    }
+
+    public PublishServiceInternal getPublishServiceInternal() {
+        return publishServiceInternal;
+    }
+
+    public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,6 +43,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
@@ -71,7 +71,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         boolean scheduledDateIsNow = false;
         if (launchDate == null) {
             scheduledDateIsNow=true;
-            launchDate = ZonedDateTime.now(ZoneOffset.UTC);
+            launchDate = DateUtils.getCurrentTime();
         }
         final String approver = securityService.getCurrentUser();
         final ZonedDateTime ld = launchDate;
@@ -97,7 +97,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     public void unpublish(@ValidateStringParam(name = "site") String site, List<String> paths,
                           @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduleDate) {
         if (scheduleDate == null) {
-            scheduleDate = ZonedDateTime.now(ZoneOffset.UTC);
+            scheduleDate = DateUtils.getCurrentTime();
         }
         try {
             deploymentService.delete(site, paths, approver, scheduleDate, null);
@@ -138,7 +138,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path "
                 + queryPath);
         Set<String> processedPaths = new HashSet<String>();
-        ZonedDateTime launchDate = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime launchDate = DateUtils.getCurrentTime();
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
             logger.debug("Processing dependencies for site " + site + " path " + childPath);

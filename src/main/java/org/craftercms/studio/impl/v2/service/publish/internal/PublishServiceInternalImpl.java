@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,6 +17,8 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
@@ -27,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal {
 
@@ -145,8 +149,19 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     @Override
     public void cancelScheduledQueueItems(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.cancelScheduledQueueItems(siteId, paths, ZonedDateTime.now(), CANCELLED,
+        retryingDatabaseOperationFacade.cancelScheduledQueueItems(siteId, paths, DateUtils.getCurrentTime(), CANCELLED,
                 READY_FOR_LIVE);
+    }
+
+    @Override
+    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        // Site is published if PUBLISHED repo exists
+        return contentRepository.publishedRepositoryExists(siteId);
+    }
+
+    @Override
+    public void initialPublish(String siteId) throws SiteNotFoundException {
+        contentRepository.initialPublish(siteId);
     }
 
     public PublishRequestDAO getPublishRequestDao() {

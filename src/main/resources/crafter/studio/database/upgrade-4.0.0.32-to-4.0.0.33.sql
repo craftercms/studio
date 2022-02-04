@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -14,14 +14,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.craftercms.blueprints.headless.AuthorSearchHelper
+DROP TABLE IF EXISTS `cluster_site_sync_repo` ;
 
-def start = params.start?.toInteger() ?: 0
-def rows = params.rows?.toInteger() ?: 10
-
-def authors = new AuthorSearchHelper(elasticsearch, siteItemService)
-						.from(start)
-						.to(rows)
-						.getItems()
-
-return authors
+UPDATE _meta SET version = '4.0.0.33' ;

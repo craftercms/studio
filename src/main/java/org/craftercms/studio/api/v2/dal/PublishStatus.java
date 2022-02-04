@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,6 +40,8 @@ public class PublishStatus {
     private String submissionId;
     private int numberOfItems;
     private int totalItems;
+
+    private boolean published;
 
     @JsonIgnore
     public long getId() {
@@ -125,5 +127,13 @@ public class PublishStatus {
 
     public void setTotalItems(int totalItems) {
         this.totalItems = totalItems;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 }

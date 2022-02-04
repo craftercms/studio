@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -64,6 +64,8 @@ public interface StudioConfiguration {
     /** Database */
     String DB_DRIVER = "studio.db.driver";
     String DB_SCHEMA = "studio.db.schema";
+    String DB_USER = "studio.db.user";
+    String DB_PASSWORD = "studio.db.password";
     String DB_URL = "studio.db.url";
     String DB_POOL_INITIAL_CONNECTIONS = "studio.db.pool.initialConnections";
     String DB_POOL_MAX_ACTIVE_CONNECTIONS = "studio.db.pool.maxActiveConnections";
@@ -84,11 +86,15 @@ public interface StudioConfiguration {
     String DB_DATA_PATH = "studio.db.dataPath";
     String DB_PORT = "studio.db.port";
     String DB_SOCKET = "studio.db.socket";
+    String DB_MAX_CONNECTIONS = "studio.db.maxConnections";
     String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
     String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
     String DB_SCRIPT_RUNNER_BUFFER_SIZE = "studio.db.scriptRunner.bufferSize";
     String DB_BULK_OPERATIONS_BATCH_SIZE = "studio.db.bulkOperations.batchSize";
-
+    String DB_POOL_REMOVE_ABANDONED_ON_BORROW = "studio.db.pool.removeAbandonedOnBorrow";
+    String DB_POOL_REMOVE_ABANDONED_TIMEOUT = "studio.db.pool.removeAbandonedTimeout";
+    String DB_POOL_REMOVE_ABANDONED_ON_MAINTENANCE = "studio.db.pool.removeAbandonedOnMaintenance";
+    String DB_POOL_TIME_BETWEEN_EVICTION_RUNS_MILLIS = "studio.db.pool.timeBetweenEvictionRunsMillis";
 
     /** Configuration */
     String CONFIGURATION_GLOBAL_CONFIG_BASE_PATH = "studio.configuration.global.configBasePath";

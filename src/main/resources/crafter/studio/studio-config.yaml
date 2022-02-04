@@ -100,7 +100,7 @@ studio.blob.intercepted.paths:
 ##################################################
 # The max length for filenames (depends on the platform & filesystem used)
 studio.content.filename.maxSize: 255
-# The max length for the full path of files (this needs to be in sync the the db schema)
+# The max length for the full path of files (this needs to be in sync the db schema)
 studio.content.fullPath.maxSize: 1024
 
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
@@ -211,7 +211,7 @@ studio.configuration.management.previewProtectedUrls: >-
   /api/1/site/cache/statistics
 
 # The pattern used to load plugins installed from the marketplaces
-studio.configuration.plugin.base.pattern: /config/studio/plugins/js/${id}/${type}/${name}
+studio.configuration.plugin.base.pattern: /config/studio/static-assets/plugins/${id}/${type}/${name}
 # List of patterns to invalidate cache when changes are detected in the global repo (separated by commas)
 studio.configuration.cache.global.patterns: /?configuration/.+
 # List of patterns to invalidate cache when changes are detected in the site repo (separated by commas)
@@ -269,9 +269,9 @@ studio.objectState.bulkOperationsBatchSize: 500
 ##########################################################
 ##                   Security Service                   ##
 ##########################################################
-# Time in minutes after which active users will be required to login again
+# Time in minutes after which active users will be required to log in again
 studio.security.sessionTimeout: 480
-# Time in minutes after which inactive users will be required to login again
+# Time in minutes after which inactive users will be required to log in again
 studio.security.inactivityTimeout: 30
 # Comma separated list of URLs that should not be tracked as user activity
 studio.security.activity.excludeUrls: >
@@ -524,6 +524,10 @@ studio.publishingManager.publishingWithoutDependencies.enabled: false
 studio.db.driver: org.mariadb.jdbc.Driver
 # Database schema name
 studio.db.schema: crafter
+# Database user
+studio.db.user: ${env:MARIADB_USER}
+# Database password:
+studio.db.password: ${env:MARIADB_PASSWD}
 # Connection string used when connecting database with JDBC driver
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD
@@ -539,6 +543,20 @@ studio.db.pool.maxIdleConnections: 30
 studio.db.pool.minIdleConnections: 10
 # Defines maximum waiting time for a database connection to become available (value is in milliseconds).
 studio.db.pool.maxWaitTime: 10000
+# Flags to remove abandoned connections if they exceed the removeAbandonedTimout.
+# If removeAbandonedOnBorrow is true, abandoned connections are removed each time a connection is borrowed from the pool, with the additional requirements that
+#    getNumActive() > getMaxTotal() - 3; and
+#    getNumIdle() < 2
+studio.db.pool.removeAbandonedOnBorrow: false
+# Timeout in seconds before an abandoned connection can be removed.
+studio.db.pool.removeAbandonedTimeout: 300
+# Setting removeAbandonedOnMaintenance to true removes abandoned connections on the maintenance cycle (when eviction ends).
+# This property has no effect unless maintenance is enabled by setting timeBetweenEvictionRunsMillis to a positive value
+studio.db.pool.removeAbandonedOnMaintenance: false
+# The number of milliseconds to sleep between runs of the idle object evictor thread.
+# When non-positive, no idle object evictor thread will be run.
+studio.db.pool.timeBetweenEvictionRunsMillis: -1
+
 # Turn database initializer on (value true) or off (value false).
 # When initializer is turned off, system will not try to initialize database on startup.
 # When system is starting for the first time initializer must be turned on.
@@ -573,6 +591,8 @@ studio.db.dataPath: ${env:CRAFTER_DATA_DIR}/db
 studio.db.port: 33306
 # Socket path for the embedded database
 studio.db.socket: /tmp/MariaDB4j.33306.sock
+# Max DB connections for embedded database
+studio.db.maxConnections: 500
 # Max number of retries for retrying operation
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
@@ -893,7 +913,7 @@ studio.marketplace.url: https://mp.craftercms.org
 # Indicates if the search should include plugins pending of approval
 studio.marketplace.search.pending: false
 # The path in the repository for the plugin registry file
-studio.marketplace.plugin.registry.path: config/plugins.yaml
+studio.marketplace.plugin.registry.path: config/plugins/registry.yaml
 # The list of plugin types that can be installed
 studio.marketplace.plugin.installable:
   - site
@@ -911,11 +931,15 @@ studio.marketplace.plugin.mapping:
   - delivery/scripts/controllers: scripts/controllers
   - authoring/content-types/component: config/studio/content-types/component
   - authoring/content-types/page: config/studio/content-types/page
-  - authoring/js: config/studio/plugins/js
-  - authoring/scripts/classes: config/studio/plugins/classes
-  - authoring/scripts/rest: config/studio/plugins/rest
+  - authoring/static-assets: config/studio/static-assets
+  - authoring/scripts/classes: config/studio/scripts/classes
+  - authoring/scripts/rest: config/studio/scripts/rest
   - sources: sources
-# The patter to use for loading plugins installed from the marketplace
+# The module used for the plugin configuration file
+studio.marketplace.plugin.config.module: plugins
+# The filename used for the plugin configuration file
+studio.marketplace.plugin.config.filename: config.xml
+# The pattern to use for loading plugins installed from the marketplace
 studio.marketplace.plugin.basePath: '/config/studio/plugins/js/${id}/${type}/${name}'
 # Mapping used to wire plugin files into the site configuration
 studio.marketplace.plugin.wire.mapping:
@@ -931,6 +955,14 @@ studio.marketplace.plugin.wire.mapping:
     module: studio
     path: administration/site-config-tools.xml
     template: crafter/studio/marketplace/wiring/datasource.xslt
+  site-filter:
+    module: engine
+    path: site-config.xml
+    template: crafter/studio/marketplace/wiring/engine-filter.xslt
+  site-context:
+    module: engine
+    path: application-context.xml
+    template: crafter/studio/marketplace/wiring/engine-context.xslt
 studio.marketplace.plugin.wire.remove: crafter/studio/marketplace/wiring/remove.xslt
 # Mapping used to wire plugin files into the site templates
 studio.marketplace.plugin.template.mapping:
@@ -953,6 +985,10 @@ studio.marketplace.plugin.contentType.pattern: '/config/studio/content-types(/.+
 ##################################################
 # If Studio should cache its FreeMarker templates
 studio.cache.templates: true
+# Indicates if the browser should cache responses for static-assets
+studio.cache.assets.enabled: true
+# The max age in minutes that the browser should cache responses for static-assets
+studio.cache.assets.maxAge: 60
 
 ##################################################
 ##             Forwarded Headers                ##
@@ -1008,9 +1044,9 @@ studio.scripting.script.extension: groovy
 # The format for the name of the script files
 studio.scripting.script.path.format: '%s.%s.%s'
 # The base path for the classpath of the scripts
-studio.scripting.classes.path: /config/studio/plugins/classes
+studio.scripting.classes.path: /config/studio/scripts/classes
 # The base path for the rest scripts
-studio.scripting.rest.path: /config/studio/plugins/rest
+studio.scripting.rest.path: /config/studio/scripts/rest
 # Indicates if access to beans should be restricted
 studio.scripting.restrictBeans: false
 # List of patterns for bean names that should be accessible for the scripts (regexes separated by commas)

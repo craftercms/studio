@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -32,15 +32,17 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
+import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,7 +60,9 @@ import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKA
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -168,7 +172,7 @@ public class PublishServiceImpl implements PublishService {
     @Override
     public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
                                                              String filterType) {
-        ZonedDateTime toDate = ZonedDateTime.now(ZoneOffset.UTC);
+        ZonedDateTime toDate = DateUtils.getCurrentTime();
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
         List<String> environments = studioUtils.getEnvironmentNames(siteId);
         List<DeploymentHistoryItem> deploymentHistoryItems = publishServiceInternal.getDeploymentHistory(siteId,
@@ -227,6 +231,28 @@ public class PublishServiceImpl implements PublishService {
         taskItems.add(item);
         group.setNumOfChildren(taskItems.size());
         return group;
+    }
+
+    @Override
+    @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
+    public List<PublishingTarget> getAvailablePublishingTargets(
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        var availablePublishingTargets = new ArrayList<PublishingTarget>();
+        var liveTarget = new PublishingTarget();
+        liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
+        availablePublishingTargets.add(liveTarget);
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            var stagingTarget = new PublishingTarget();
+            stagingTarget.setName(servicesConfig.getStagingEnvironment(siteId));
+            availablePublishingTargets.add(stagingTarget);
+        }
+        return availablePublishingTargets;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        return publishServiceInternal.isSitePublished(siteId);
     }
 
     public PublishServiceInternal getPublishServiceInternal() {

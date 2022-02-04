@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
@@ -130,4 +131,19 @@ public interface PublishService {
      */
     List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
                                                       String filterType);
+
+    /**
+     * Get available publishing targets for given site
+     * @param siteId site identifier
+     * @return list of available publishing targets
+     */
+    List<PublishingTarget> getAvailablePublishingTargets(String siteId);
+
+    /**
+     * Check if site has ever been published.
+     *
+     * @param siteId site identifier
+     * @return true if site has been published at least once, otherwise false
+     */
+    boolean isSitePublished(String siteId);
 }

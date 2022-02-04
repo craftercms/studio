@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -543,6 +543,16 @@ public interface ItemServiceInternal {
     void lockItemByPath(String siteId, String path, String username)
             throws UserNotFoundException, ServiceLayerException;
 
+
+    /**
+     * Lock items for given lock owner
+     * @param siteId site identifier
+     * @param paths list of item paths
+     * @param username user that owns the lock
+     */
+    void lockItemsByPath(String siteId, List<String> paths, String username)
+            throws UserNotFoundException, ServiceLayerException;
+
     /**
      * Unlock item
      * @param siteId site identifier
@@ -556,6 +566,13 @@ public interface ItemServiceInternal {
      * @param username user that owns the lock
      */
     void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Lock items for given lock owner
+     * @param itemIds list of item identifiers
+     * @param username user that owns the lock
+     */
+    void lockItemsById(List<Long> itemIds, String username) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Unlock item
@@ -614,4 +631,12 @@ public interface ItemServiceInternal {
      * @return list of items
      */
     List<String> getSubtreeForDelete(String siteId, String path);
+
+    /**
+     * Update states for all content in the given site
+     * @param siteId site identifier
+     * @param onStateBitMap states bitmap to flip on
+     * @param offStateBitMap states bitmap to flip off
+     */
+    void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap);
 }

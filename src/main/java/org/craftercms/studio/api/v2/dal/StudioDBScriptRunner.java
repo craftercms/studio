@@ -19,10 +19,5 @@ package org.craftercms.studio.api.v2.dal;
 import java.io.File;
 
 public interface StudioDBScriptRunner {
-
-    void openConnection();
-
-    void closeConnection();
-
     void execute(File sqlScriptFile);
 }

@@ -29,15 +29,15 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_INSERT =
-            "INSERT INTO item (site_id, path, preview_url, state, owned_by, created_by, created_on, last_modified_by," +
+            "INSERT INTO item (site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by," +
                     " last_modified_on, last_published_on, label, content_type_id, system_type, mime_type," +
                     " locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored)" +
-                    " VALUES (#{siteId}, '#{path}', '#{previewUrl}', #{state}, #{ownedBy}, #{createdBy}," +
+                    " VALUES (#{siteId}, '#{path}', '#{previewUrl}', #{state}, #{lockedBy}, #{createdBy}," +
                     " '#{createdOn}', #{lastModifiedBy}, '#{lastModifiedOn}', '#{lastPublishedOn}', '#{label}'," +
                     " '#{contentTypeId}', '#{systemType}', '#{mimeType}', '#{localeCode}'," +
                     " #{translationSourceId}, #{size}, #{parentId}, '#{commitId}', '#{previousPath}', #{ignoredAsInt})" +
                     " ON DUPLICATE KEY UPDATE site_id = #{siteId}, path = '#{path}', preview_url = '#{previewUrl}'," +
-                    " state = #{state}, owned_by = #{ownedBy}, last_modified_by = #{lastModifiedBy}," +
+                    " state = #{state}, locked_by = #{lockedBy}, last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', last_published_on = '#{lastPublishedOn}'," +
                     " label = '#{label}', content_type_id = '#{contentTypeId}', system_type = '#{systemType}'," +
                     " mime_type = '#{mimeType}', locale_code = '#{localeCode}'," +
@@ -81,7 +81,7 @@ public final class SqlStatementGeneratorUtils {
     public static final String DEPENDENCIES_DELETE =
             "DELETE FROM dependency WHERE site = '#{site}' AND (source_path = '#{path}' OR target_path = '#{path}') ;";
 
-    public static String insertItemRow(long siteId, String path, String previewUrl, long state, Long ownedBy,
+    public static String insertItemRow(long siteId, String path, String previewUrl, long state, Long lockedBy,
                                        Long createdBy, ZonedDateTime createdOn, Long lastModifiedBy,
                                        ZonedDateTime lastModifiedOn, ZonedDateTime lastPublishedOn, String label,
                                        String contentTypeId, String systemType, String mimeType, String localeCode,
@@ -104,7 +104,7 @@ public final class SqlStatementGeneratorUtils {
             sql = StringUtils.replace(sql, "#{previewUrl}", StringUtils.replace(previewUrl, "'", "''"));
         }
         sql = StringUtils.replace(sql,"#{state}", Long.toString(state));
-        sql = StringUtils.replace(sql,"#{ownedBy}", Objects.isNull(ownedBy) ? "NULL" : Long.toString(ownedBy));
+        sql = StringUtils.replace(sql,"#{lockedBy}", Objects.isNull(lockedBy) ? "NULL" : Long.toString(lockedBy));
         sql = StringUtils.replace(sql,"#{createdBy}", Objects.isNull(createdBy) ? "NULL" : Long.toString(createdBy));
         sql = StringUtils.replace(sql, "#{createdOn}", sqlTsCreated.toString());
         sql = StringUtils.replace(sql,"#{lastModifiedBy}", Objects.isNull(lastModifiedBy) ? "NULL" :

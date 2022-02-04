@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -51,29 +51,33 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_INITIAL_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REJECTION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
@@ -210,9 +214,9 @@ public class WorkflowServiceImpl implements WorkflowService {
                     sendEmailNotifications);
             // notify approvers
             notificationService.notifyApprovesContentSubmission(
-                    siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment, null);
+                    siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment);
             // create audit log entries
-            createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy);
+            createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy, comment);
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, false);
@@ -296,7 +300,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy)
+    private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy,
+                                                   String comment)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -314,6 +319,13 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
+        if (StringUtils.isNotEmpty(comment)) {
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":submissionComment");
+            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+            auditLogParameter.setTargetValue(comment);
+            auditLogParameters.add(auditLogParameter);
+        }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
@@ -324,26 +336,33 @@ public class WorkflowServiceImpl implements WorkflowService {
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                         String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
-        // Create publish package
-        List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
-        try {
-            // Set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-            // Cancel scheduled items from publishing queue
-            publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
-            // Add to publishing queue
-            String publishedBy = securityService.getCurrentUser();
-            boolean scheduledDateIsNow = false;
-            if (schedule == null) {
-                scheduledDateIsNow = true;
-                schedule = ZonedDateTime.now(ZoneOffset.UTC);
+        if (!publishServiceInternal.isSitePublished(siteId)) {
+            publishServiceInternal.initialPublish(siteId);
+            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+            createInitialPublishAuditLog(siteId);
+        } else {
+            // Create publish package
+            List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
+            try {
+                // Set system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
+                // Cancel scheduled items from publishing queue
+                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
+                // Add to publishing queue
+                String publishedBy = securityService.getCurrentUser();
+                boolean scheduledDateIsNow = false;
+                if (schedule == null) {
+                    scheduledDateIsNow = true;
+                    schedule = DateUtils.getCurrentTime();
+                }
+                deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
+                // Insert audit log
+                createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);
+            } finally {
+                // Reset system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
             }
-            deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
-            // Insert audit log
-            createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);
-        } finally {
-            // Reset system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
         }
     }
 
@@ -397,30 +416,38 @@ public class WorkflowServiceImpl implements WorkflowService {
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                         String comment) throws UserNotFoundException, ServiceLayerException, DeploymentException {
-        // Create publish package
-        List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
-        try {
-            // Set system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
-            // Cancel scheduled items from publishing queue
-            publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
-            // Add to publishing queue
-            String publishedBy = securityService.getCurrentUser();
-            boolean scheduledDateIsNow = false;
-            if (schedule == null) {
-                scheduledDateIsNow = true;
-                schedule = ZonedDateTime.now(ZoneOffset.UTC);
+        if (!publishServiceInternal.isSitePublished(siteId)) {
+            publishServiceInternal.initialPublish(siteId);
+            itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+            createInitialPublishAuditLog(siteId);
+        } else {
+            // Create publish package
+            List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
+            try {
+                // Set system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, true);
+                // Cancel scheduled items from publishing queue
+                publishServiceInternal.cancelScheduledQueueItems(siteId, pathsToPublish);
+                // Add to publishing queue
+                String publishedBy = securityService.getCurrentUser();
+                boolean scheduledDateIsNow = false;
+                if (schedule == null) {
+                    scheduledDateIsNow = true;
+                    schedule = DateUtils.getCurrentTime();
+                }
+                deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
+                // Insert audit log
+                createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy, comment);
+            } finally {
+                // Reset system processing
+                itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
             }
-            deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
-            // Insert audit log
-            createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy);
-        } finally {
-            // Reset system processing
-            itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
         }
     }
 
-    private void createApproveAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy)
+    private void createApproveAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy,
+                                            String comment)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -438,7 +465,27 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
+        if (StringUtils.isNotEmpty(comment)) {
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":submissionComment");
+            auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
+            auditLogParameter.setTargetValue(comment);
+            auditLogParameters.add(auditLogParameter);
+        }
         auditLog.setParameters(auditLogParameters);
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    private void createInitialPublishAuditLog(String siteId) throws SiteNotFoundException {
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String user = securityService.getCurrentUser();
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_INITIAL_PUBLISH);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteId);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -478,7 +525,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // cancel workflow
             cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
             // create audit log entries
-            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy);
+            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy, comment);
             // notify rejection
             if (shouldNotify) {
                 notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
@@ -489,7 +536,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         }
     }
 
-    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, String rejectedBy)
+    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, String rejectedBy,
+                                           String comment)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -507,14 +555,20 @@ public class WorkflowServiceImpl implements WorkflowService {
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
+        if (StringUtils.isNotEmpty(comment)) {
+            AuditLogParameter auditLogParameter = new AuditLogParameter();
+            auditLogParameter.setTargetId(siteId + ":rejectionComment");
+            auditLogParameter.setTargetType(TARGET_TYPE_REJECTION_COMMENT);
+            auditLogParameter.setTargetValue(comment);
+            auditLogParameters.add(auditLogParameter);
+        }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
                                  List<String> submitterList) {
-        notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy,
-                Locale.ENGLISH);
+        notificationService.notifyContentRejection(siteId, submitterList, pathsToCancelWorkflow, reason, rejectedBy);
     }
 
     @Override
@@ -532,7 +586,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             // cancel existing workflow
             cancelExistingWorkflowEntries(siteId, pathsToDelete);
             // add to publishing queue
-            deploymentService.delete(siteId, pathsToDelete, deletedBy, ZonedDateTime.now(ZoneOffset.UTC), comment);
+            deploymentService.delete(siteId, pathsToDelete, deletedBy, DateUtils.getCurrentTime(), comment);
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
         } finally {

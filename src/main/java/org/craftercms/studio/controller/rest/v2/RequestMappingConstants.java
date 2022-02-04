@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -46,9 +46,15 @@ public final class RequestMappingConstants {
     public static final String ITEM_BY_ID = "/item_by_id";
     public static final String SANDBOX_ITEMS_BY_PATH = "/sandbox_items_by_path";
     public static final String SANDBOX_ITEMS_BY_ID = "/sandbox_items_by_id";
+    public static final String ITEMS_LOCK_BY_PATH = "/items_lock_by_path";
+    public static final String ITEMS_LOCK_BY_ID = "/items_lock_by_id";
     public static final String ITEM_UNLOCK_BY_PATH = "/item_unlock_by_path";
     public static final String ITEM_UNLOCK_BY_ID = "/item_unlock_by_id";
     public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
+
+    /** Groups controller */
+    public static final String GROUPS = "/groups";
+    public static final String MEMBERS = "/members";
 
     /** Users controller */
     public static final String USERS = "/users";
@@ -95,6 +101,7 @@ public final class RequestMappingConstants {
     public static final String CANCEL = "/cancel";
     public static final String CLEAR_LOCK = "/clear_lock";
     public static final String HISTORY = "/history";
+    public static final String AVAILABLE_TARGETS = "/available_targets";
 
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.AddGroupMembers;
-import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -44,6 +43,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,11 +53,16 @@ import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_KEYWORD;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USERNAME;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USER_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GROUPS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.MEMBERS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_GROUP;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_GROUPS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USERS;
@@ -65,6 +70,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
+@RequestMapping(API_2 + GROUPS)
 @RestController
 public class GroupsController {
 
@@ -75,20 +81,22 @@ public class GroupsController {
     /**
      * Get groups API
      *
+     * @param keyword keyword parameter
      * @param offset offset parameter
      * @param limit limit parameter
      * @param sort sort parameter
      * @return Response containing list of groups
      */
-    @GetMapping("/api/2/groups")
+    @GetMapping()
     public ResponseBody getAllGroups(
+            @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
         int total = 0;
-        total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID);
-        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, offset, limit, sort);
+        total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID, keyword);
+        List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, keyword, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<Group> result = new PaginatedResultList<>();
@@ -108,7 +116,7 @@ public class GroupsController {
      * @return Response object
      */
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody createGroup(@RequestBody Group group)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group newGroup =
@@ -127,7 +135,7 @@ public class GroupsController {
      * @param group Group to update
      * @return Response object
      */
-    @PatchMapping(value = "/api/2/groups", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody updateGroup(@RequestBody Group group)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
         ResponseBody responseBody = new ResponseBody();
@@ -146,7 +154,7 @@ public class GroupsController {
      * @param groupIds Group identifier
      * @return Response object
      */
-    @DeleteMapping("/api/2/groups")
+    @DeleteMapping()
     public ResponseBody deleteGroup(@RequestParam(REQUEST_PARAM_ID) List<Long> groupIds)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
         groupService.deleteGroup(groupIds);
@@ -164,7 +172,7 @@ public class GroupsController {
      * @param groupId Group identifier
      * @return Response containing requested group
      */
-    @GetMapping("/api/2/groups/{id}")
+    @GetMapping(PATH_PARAM_ID)
     public ResponseBody getGroup(@PathVariable(REQUEST_PARAM_ID) int groupId)
             throws ServiceLayerException, GroupNotFoundException {
         Group group = groupService.getGroup(groupId);
@@ -186,7 +194,7 @@ public class GroupsController {
      * @param sort Sort order
      * @return Response containing list od users
      */
-    @GetMapping("/api/2/groups/{id}/members")
+    @GetMapping(PATH_PARAM_ID + MEMBERS)
     public ResponseBody getGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
@@ -215,7 +223,7 @@ public class GroupsController {
      * @param addGroupMembers Add members request body (json representation)
      * @return Response object
      */
-    @PostMapping(value = "/api/2/groups/{id}/members", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = PATH_PARAM_ID + MEMBERS, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseBody addGroupMembers(@PathVariable(REQUEST_PARAM_ID) int groupId,
                                         @RequestBody AddGroupMembers addGroupMembers)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
@@ -241,7 +249,7 @@ public class GroupsController {
      * @param usernames List of usernames
      * @return Response object
      */
-    @DeleteMapping("/api/2/groups/{id}/members")
+    @DeleteMapping(PATH_PARAM_ID + MEMBERS)
     public ResponseBody removeGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @RequestParam(value = REQUEST_PARAM_USER_ID, required = false) List<Long> userIds,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -177,6 +177,20 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
+     * Lock items by paths for given site
+     * @param siteId site identifier
+     * @param paths list of paths to lock
+     */
+    void itemsLockByPath(String siteId, List<String> paths) throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Lock items by ids for given site
+     * @param siteId site identifier
+     * @param itemIds list of item identifiers
+     */
+    void itemsLockById(String siteId, List<Long> itemIds) throws UserNotFoundException, ServiceLayerException;
+
+    /**
      * Unlock item by path for given site
      * @param siteId site identifier
      * @param path item path
@@ -184,7 +198,7 @@ public interface ContentService {
     void itemUnlockByPath(String siteId, String path);
 
     /**
-     * Unlock item by path for given site
+     * Unlock item by id for given site
      * @param siteId site identifier
      * @param itemId item identifier
      */

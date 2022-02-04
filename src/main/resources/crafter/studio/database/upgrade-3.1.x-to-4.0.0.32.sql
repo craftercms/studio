@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   `path` VARCHAR(2048) NOT NULL,
   `preview_url` VARCHAR(2048) NULL DEFAULT NULL,
   `state` BIGINT(20) NOT NULL,
-  `owned_by` BIGINT(20) NULL DEFAULT NULL,
+  `locked_by` BIGINT(20) NULL DEFAULT NULL,
   `created_by` BIGINT(20) NULL DEFAULT NULL,
   `created_on` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_modified_by` BIGINT(20) NULL DEFAULT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS `item` (
   UNIQUE INDEX `uq_i_site_path` (`site_id` ASC, `path`(900) ASC),
   INDEX `item_ix_created_by` (`created_by` ASC),
   INDEX `item_ix_last_modified_by` (`last_modified_by` ASC),
-  INDEX `item_ix_owned_by` (`owned_by` ASC),
+  INDEX `item_ix_locked_by` (`locked_by` ASC),
   INDEX `item_ix_parent` (`parent_id` ASC),
   CONSTRAINT `item_ix_created_by`
     FOREIGN KEY (`created_by`)
@@ -63,8 +63,8 @@ CREATE TABLE IF NOT EXISTS `item` (
   CONSTRAINT `item_ix_last_modified_by`
     FOREIGN KEY (`last_modified_by`)
     REFERENCES `user` (`id`),
-  CONSTRAINT `item_ix_owned_by`
-    FOREIGN KEY (`owned_by`)
+  CONSTRAINT `item_ix_locked_by`
+    FOREIGN KEY (`locked_by`)
     REFERENCES `user` (`id`),
   CONSTRAINT `item_ix_site_id`
     FOREIGN KEY (`site_id`)
@@ -174,7 +174,7 @@ BEGIN
     DECLARE v_sys_process INT;
     DECLARE v_state BIGINT;
     DECLARE v_owner VARCHAR(255);
-    DECLARE v_owned_by BIGINT;
+    DECLARE v_locked_by BIGINT;
     DECLARE v_creator VARCHAR(255);
     DECLARE v_created_by BIGINT;
     DECLARE v_created_on TIMESTAMP;
@@ -191,20 +191,20 @@ BEGIN
     DECLARE v_finished INTEGER DEFAULT 0;
     DECLARE item_cursor CURSOR FOR
         SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
-               im.owner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+               im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
                im.modified as item_modified, im.commit_id as item_commit_id,
                submittedtoenvironment as item_wf_env
         FROM item_state ist
             LEFT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
-        WHERE ist.site = siteId
+        WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store'
         UNION
         SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
-               im.owner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+               im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
                im.modified as item_modified, im.commit_id as item_commit_id,
                submittedtoenvironment as item_wf_env
         FROM item_state ist
             RIGHT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
-        WHERE ist.site = siteId;
+        WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
     SELECT id INTO v_site_id FROM site WHERE site_id = siteId AND deleted = 0;
     DELETE FROM item WHERE site_id = v_site_id;
@@ -224,7 +224,7 @@ BEGIN
         SET v_dest = 0;
         SET v_stage = 0;
         SET v_live = 0;
-        SET v_owned_by = NULL;
+        SET v_locked_by = NULL;
         SET v_created_by = NULL;
         SET v_last_modified_by = NULL;
         SET v_wf_target = NULL;
@@ -360,7 +360,7 @@ BEGIN
             SELECT 0 INTO v_state;
         END CASE;
 
-        SELECT a.id INTO v_owned_by FROM
+        SELECT a.id INTO v_locked_by FROM
             (SELECT id FROM user WHERE username = v_owner UNION
              SELECT id from user WHERE username = v_owner LIMIT 1) as a;
 
@@ -373,10 +373,9 @@ BEGIN
              SELECT id from user WHERE username = v_modifier LIMIT 1) as a;
 
         INSERT INTO item
-            (site_id, path, state, owned_by, created_by, created_on, last_modified_by, last_modified_on, commit_id)
+            (site_id, path, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, commit_id)
         VALUES
-            (v_site_id, v_path, v_state, v_owned_by, v_created_by, v_created_on, v_last_modified_by, v_last_modified_on,
-             v_commit_id);
+            (v_site_id, v_path, v_state, v_locked_by, v_created_by, v_created_on, v_last_modified_by, v_last_modified_on, v_commit_id);
 
         SET v_finished = 0;
     end loop insert_item;

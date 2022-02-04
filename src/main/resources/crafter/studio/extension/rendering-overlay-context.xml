@@ -27,6 +27,18 @@
 
     <!-- STUDIO CHANGES -->
 
+    <bean id="cacheControl" class="org.craftercms.studio.impl.v2.utils.spring.CacheControlFactory">
+        <constructor-arg name="enabled" value="#{studioConfiguration.getProperty('studio.cache.assets.enabled')}"/>
+        <constructor-arg name="maxAge" value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge')}"/>
+    </bean>
+
+    <bean id="crafter.staticAssetsRequestHandler" class="org.craftercms.engine.controller.StaticAssetsRequestHandler"
+          init-method="init">
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        <property name="disableCaching" value="${crafter.engine.staticAssets.disableCaching}"/>
+        <property name="cacheControl" ref="cacheControl"/>
+    </bean>
+
      <util:map id="crafter.urlMappings">
         <entry key="/api/1/services/**" value-ref="crafter.restScriptsController"/>
         <entry key="/static-assets/**" value-ref="crafter.staticAssetsRequestHandler"/>
@@ -160,6 +172,7 @@
     <!-- Plugins -->
     <bean class="org.craftercms.studio.controller.web.v1.PluginController">
         <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="cacheControl" ref="cacheControl"/>
     </bean>
 
     <bean id="studio.binaryView" class="org.craftercms.studio.impl.v1.util.spring.mvc.BinaryView">

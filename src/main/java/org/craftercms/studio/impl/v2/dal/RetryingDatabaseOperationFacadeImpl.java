@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
@@ -254,38 +255,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         clusterDao.addClusterRemoteRepository(clusterId, remoteRepositoryId);
     }
 
-    @Override
-    public void insertClusterSiteSyncRepo(long clusterNodeId, long siteId, String nodeLastCommitId,
-                                          String nodeLastVerifiedGitlogCommitId, String nodeLastSyncedGitlogCommitId) {
-        clusterDao.insertClusterSiteSyncRepo(clusterNodeId, siteId, nodeLastCommitId, nodeLastVerifiedGitlogCommitId,
-                nodeLastSyncedGitlogCommitId);
-    }
-
-    @Override
-    public void updateClusterNodeLastVerifiedGitlogCommitId(long clusterNodeId, long siteId, String commitId) {
-        clusterDao.updateNodeLastVerifiedGitlogCommitId(clusterNodeId, siteId, commitId);
-    }
-
-    @Override
-    public void updateClusterNodeLastCommitId(long clusterNodeId, long siteId, String commitId) {
-        clusterDao.updateNodeLastCommitId(clusterNodeId, siteId, commitId);
-    }
-
-    @Override
-    public void setClusterNodeSiteState(long clusterNodeId, long siteId, String state) {
-        clusterDao.setSiteState(clusterNodeId, siteId, state);
-    }
-
-    @Override
-    public void setClusterNodePublishedRepoCreated(long clusterNodeId, long siteId) {
-        clusterDao.setPublishedRepoCreated(clusterNodeId, siteId);
-    }
-
-    @Override
-    public void updateClusterNodeLastSyncedGitlogCommitId(long clusterNodeId, long siteId, String commitId) {
-        clusterDao.updateNodeLastSyncedGitlogCommitId(clusterNodeId, siteId, commitId);
-    }
-
     // GitLog API v2
     @Override
     public void insertGitLog(Map params) {
@@ -334,33 +303,33 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     // Group API v2
     @Override
-    public Integer createGroup(Map params) {
-        return groupDao.createGroup(params);
+    public Integer createGroup(long orgId, String groupName, String groupDescription) {
+        return groupDao.createGroup(orgId, groupName, groupDescription);
     }
 
     @Override
-    public Integer updateGroup(Map params) {
-        return groupDao.updateGroup(params);
+    public Integer updateGroup(Group group) {
+        return groupDao.updateGroup(group);
     }
 
     @Override
-    public Integer deleteGroup(Map params) {
-        return groupDao.deleteGroup(params);
+    public Integer deleteGroup(long groupId) {
+        return groupDao.deleteGroup(groupId);
     }
 
     @Override
-    public Integer deleteGroups(Map params) {
-        return groupDao.deleteGroups(params);
+    public Integer deleteGroups(List<Long> groupIds) {
+        return groupDao.deleteGroups(groupIds);
     }
 
     @Override
-    public Integer addGroupMembers(Map params) {
-        return groupDao.addGroupMembers(params);
+    public Integer addGroupMembers(long groupId, List<Long> userIds) {
+        return groupDao.addGroupMembers(groupId, userIds);
     }
 
     @Override
-    public Integer removeGroupMembers(Map params) {
-        return groupDao.removeGroupMembers(params);
+    public Integer removeGroupMembers(long groupId, List<Long> userIds) {
+        return groupDao.removeGroupMembers(groupId, userIds);
     }
 
     // Item API v2
@@ -417,6 +386,12 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     @Override
     public void updateStatesByIdBulk(List<Long> itemIds, long onStatesBitMap, long offStatesBitMap) {
         itemDao.updateStatesByIdBulk(itemIds, onStatesBitMap, offStatesBitMap);
+    }
+
+    @Override
+    public void updateStatesForSite(long siteId, long onStatesBitMap,
+                                             long offStatesBitMap) {
+        itemDao.updateStatesForSite(siteId, onStatesBitMap, offStatesBitMap);
     }
 
     @Override
@@ -477,6 +452,12 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
+    public void lockItemsByPath(String siteId, List<String> paths, long lockOwnerId, long lockedBitOn,
+                               String systemTypeFolder) {
+        itemDao.lockItemsByPath(siteId, paths, lockOwnerId, lockedBitOn, systemTypeFolder);
+    }
+
+    @Override
     public void unlockItemByPath(String siteId, String path, long lockedBitOff) {
         itemDao.unlockItemByPath(siteId, path, lockedBitOff);
     }
@@ -484,6 +465,11 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     @Override
     public void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
         itemDao.lockItemById(itemId, lockOwnerId, lockedBitOn, systemTypeFolder);
+    }
+
+    @Override
+    public void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
+        itemDao.lockItemsById(itemIds, lockOwnerId, lockedBitOn, systemTypeFolder);
     }
 
     @Override

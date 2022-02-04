@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
@@ -40,6 +41,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
@@ -48,8 +50,6 @@ import org.craftercms.studio.permissions.CompositePermission;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,6 +60,8 @@ import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
 public class ContentServiceImpl implements ContentService {
 
@@ -71,6 +73,7 @@ public class ContentServiceImpl implements ContentService {
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
     private ItemServiceInternal itemServiceInternal;
+    private SecurityService securityService;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -114,7 +117,7 @@ public class ContentServiceImpl implements ContentService {
 
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
-                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
+                DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -132,7 +135,7 @@ public class ContentServiceImpl implements ContentService {
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
         AuthenticatedUser currentUser = userService.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
-                ZonedDateTime.now(ZoneOffset.UTC), submissionComment);
+                DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
         insertDeleteContentApprovedActivity(siteId, currentUser.getUsername(), contentToDelete);
         return true;
@@ -221,13 +224,33 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    public void itemUnlockByPath(String siteId, String path) {
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+    public void itemsLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                               @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
+            throws UserNotFoundException, ServiceLayerException {
+        contentServiceInternal.itemsLockByPath(siteId, paths);
+        itemServiceInternal.lockItemsByPath(siteId, paths, securityService.getCurrentUser());
+    }
+
+    @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+    public void itemsLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<Long> itemIds)
+            throws UserNotFoundException, ServiceLayerException {
+        contentServiceInternal.itemsLockById(siteId, itemIds);
+        itemServiceInternal.lockItemsById(itemIds, securityService.getCurrentUser());
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ITEM_UNLOCK)
+    public void itemUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         contentServiceInternal.itemUnlockByPath(siteId, path);
         itemServiceInternal.unlockItemByPath(siteId, path);
     }
 
     @Override
-    public void itemUnlockById(String siteId, long itemId) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ITEM_UNLOCK)
+    public void itemUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId) {
         contentServiceInternal.itemUnlockById(siteId, itemId);
         itemServiceInternal.unlockItemById(itemId);
     }
@@ -300,5 +323,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public SecurityService getSecurityService() {
+        return securityService;
+    }
+
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 }

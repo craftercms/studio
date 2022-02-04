@@ -33,7 +33,6 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-import org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.DeleteBranchCommand;
@@ -72,7 +71,6 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected String commitMessage;
     protected SiteService siteService;
     protected GeneralLockService generalLockService;
-    protected StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask;
     protected GitRepositoryHelper gitRepositoryHelper;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
@@ -122,8 +120,6 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
-            clusterSandboxRepoSyncTask.execute(site);
-
             Repository repository = gitRepositoryHelper.getRepository(site, GitRepositories.SANDBOX);
             String sandboxBranch = siteSandboxBranch;
             if (repository != null) {
@@ -182,14 +178,6 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
-    }
-
-    public StudioClusterSandboxRepoSyncTask getClusterSandboxRepoSyncTask() {
-        return clusterSandboxRepoSyncTask;
-    }
-
-    public void setClusterSandboxRepoSyncTask(StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask) {
-        this.clusterSandboxRepoSyncTask = clusterSandboxRepoSyncTask;
     }
 
     public GitRepositoryHelper getGitRepositoryHelper() {

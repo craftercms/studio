@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -40,6 +40,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -63,6 +64,7 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressS
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.RingBuffer;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -113,7 +115,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -191,6 +192,7 @@ public class GitContentRepository implements ContentRepository {
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
+    private ServicesConfig servicesConfig;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -739,7 +741,7 @@ public class GitContentRepository implements ContentRepository {
                         if (toDate != null) {
                             filters.add(CommitTimeRevFilter.before(toDate.toInstant().toEpochMilli()));
                         } else {
-                            filters.add(CommitTimeRevFilter.before(ZonedDateTime.now().toInstant().toEpochMilli()));
+                            filters.add(CommitTimeRevFilter.before(Instant.now().toEpochMilli()));
                         }
                         filters.add(NotRevFilter.create(MessageRevFilter.create("Initial commit.")));
                         if (StringUtils.isNotEmpty(publisher)) {
@@ -1008,7 +1010,7 @@ public class GitContentRepository implements ContentRepository {
 
                         addCommand.addFilepattern(path);
                         itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
-                                ZonedDateTime.now(UTC));
+                                DateUtils.getCurrentTime());
 
                         if (!StringUtils.equals(currentPackageId, deploymentItem.getPackageId())) {
                             currentPackageId = deploymentItem.getPackageId();
@@ -1034,7 +1036,7 @@ public class GitContentRepository implements ContentRepository {
                     commitMessage = commitMessage.replace("{username}", author);
                     commitMessage =
                             commitMessage.replace("{datetime}",
-                                    ZonedDateTime.now(UTC).format(
+                                    DateUtils.getCurrentTime().format(
                                             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
                     commitMessage = commitMessage.replace("{source}", "UI");
                     commitMessage = commitMessage.replace("{message}", comment);
@@ -1067,10 +1069,9 @@ public class GitContentRepository implements ContentRepository {
 
                     // tag
                     ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(UTC);
-                    ZonedDateTime publishDate = ZonedDateTime.now(UTC);
-                    String tagName2 = tagDate2.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")) +
-                            "_published_on_" + publishDate.format(
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX"));
+                    String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
+                    String tagName2 = DateUtils.formatDate(tagDate2, "yyyy-MM-dd'T'HHmmssSSSX") +
+                            "_published_on_" + publishDate;
                     logger.debug("Get Author Ident started.");
                     PersonIdent authorIdent2 = helper.getAuthorIdent(user);
                     logger.debug("Get Author Ident completed.");
@@ -1719,7 +1720,7 @@ public class GitContentRepository implements ContentRepository {
                 logger.error("error while getting repository properties for content item " + path);
             }
             environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
-                    PublishRequest.State.READY_FOR_LIVE, ZonedDateTime.now(ZoneOffset.UTC)));
+                    PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
         }
     }
 
@@ -1769,6 +1770,32 @@ public class GitContentRepository implements ContentRepository {
             logger.debug("Previous commit id for site " + siteId + " and commit id " + commitId + " is " + toReturn);
         }
         return toReturn;
+    }
+
+    @Override
+    public void lockItem(String site, String path) {
+        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+
+        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
+            try (TreeWalk tw = new TreeWalk(repo)) {
+                RevTree tree = helper.getTreeForLastCommit(repo);
+                tw.addTree(tree); // tree ‘0’
+                tw.setRecursive(false);
+                tw.setFilter(PathFilter.create(path));
+
+                if (!tw.next()) {
+                    return;
+                }
+
+                File repoRoot = repo.getWorkTree();
+                Paths.get(repoRoot.getPath(), tw.getPathString());
+                File file = new File(tw.getPathString());
+                LockFile lock = new LockFile(file);
+                lock.lock();
+            } catch (IOException e) {
+                logger.error("Error while locking file for site: " + site + " path: " + path, e);
+            }
+        }
     }
 
     @Override
@@ -1829,6 +1856,45 @@ public class GitContentRepository implements ContentRepository {
         }
 
         return toReturn;
+    }
+
+    @Override
+    public boolean publishedRepositoryExists(String siteId) {
+        return Objects.nonNull(helper.getRepository(siteId, PUBLISHED));
+    }
+
+    @Override
+    public void initialPublish(String siteId) throws SiteNotFoundException {
+        var siteFeed = siteService.getSite(siteId);
+        // Create published repo
+        var created = helper.createPublishedRepository(siteId, siteFeed.getSandboxBranch());
+        if (created) {
+            // Create staging branch
+            if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+                createEnvironmentBranch(siteId, siteFeed.getSandboxBranch(),
+                        servicesConfig.getStagingEnvironment(siteId));
+            }
+            // Create live branch
+            createEnvironmentBranch(siteId, siteFeed.getSandboxBranch(), servicesConfig.getLiveEnvironment(siteId));
+        }
+    }
+
+    private boolean createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
+        Repository repository = helper.getRepository(siteId, PUBLISHED);
+        try (Git git = new Git(repository)) {
+            CheckoutCommand checkoutCommand = git.checkout()
+                    .setOrphan(true)
+                    .setForceRefUpdate(true)
+                    .setStartPoint(sandboxBranchName)
+                    .setUpstreamMode(TRACK)
+                    .setName(environment);
+            retryingRepositoryOperationFacade.call(checkoutCommand);
+            return true;
+        } catch (GitAPIException e) {
+            logger.error("Failed to create environment " + environment + " branch in PUBLISHED repo for site " +
+                    siteId, e);
+            return false;
+        }
     }
 
     public StudioConfiguration getStudioConfiguration() {
@@ -1973,5 +2039,13 @@ public class GitContentRepository implements ContentRepository {
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
+    }
+
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
+
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
     }
 }

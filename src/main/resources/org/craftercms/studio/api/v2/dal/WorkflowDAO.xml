@@ -51,8 +51,8 @@
             <result property="path" column="item_path" />
             <result property="previewUrl" column="item_preview_url" />
             <result property="state" column="item_state" />
-            <result property="ownedBy" column="item_owned_by" />
-            <result property="owner" column="item_owner" />
+            <result property="lockedBy" column="item_locked_by" />
+            <result property="lockOwner" column="item_lock_owner" />
             <result property="createdBy" column="item_created_by" />
             <result property="creator" column="item_creator" />
             <result property="createdOn" column="item_created_on" />
@@ -89,8 +89,8 @@
             item.path as item_path,
             item.preview_url as item_preview_url,
             item.state as item_state,
-            item.owned_by as item_owned_by,
-            u1.username as item_owner,
+            item.locked_by as item_locked_by,
+            u1.username as item_lock_owner,
             item.created_by as item_created_by,
             u2.username as item_creator,
             item.created_on as item_created_on,
@@ -107,7 +107,7 @@
             item.parent_id as item_parent_id,
             item.commit_id as item_commit_id
         FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
-                      left outer join user u1 on item.owned_by = u1.id
+                      left outer join user u1 on item.locked_by = u1.id
                       left outer join user u2 on item.created_by = u2.id
                       left outer join user u3 on item.last_modified_by = u3.id
         WHERE site.site_id = #{siteId} AND site.deleted = 0
@@ -149,8 +149,8 @@
             item.path as item_path,
             item.preview_url as item_preview_url,
             item.state as item_state,
-            item.owned_by as item_owned_by,
-            u1.username as item_owner,
+            item.locked_by as item_locked_by,
+            u1.username as item_lock_owner,
             item.created_by as item_created_by,
             u2.username as item_creator,
             item.created_on as item_created_on,
@@ -167,7 +167,7 @@
             item.parent_id as item_parent_id,
             item.commit_id as item_commit_id
         FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
-            left outer join user u1 on item.owned_by = u1.id
+            left outer join user u1 on item.locked_by = u1.id
             left outer join user u2 on item.created_by = u2.id
             left outer join user u3 on item.last_modified_by = u3.id
         WHERE site.site_id = #{siteId} AND site.deleted = 0

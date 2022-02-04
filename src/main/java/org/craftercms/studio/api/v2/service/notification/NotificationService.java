@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.service.notification;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Locale;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
@@ -43,11 +42,9 @@ public interface NotificationService {
      * @param site Name of the site which the deployment fail.
      * @param throwable Throwable error which break the deployment. (Can be null)
      * @param filesUnableToPublish List of files that where unable to publish (can be null)
-     * @param locale Language of the notification ,if null defaults to English.
      *
      */
-    void notifyDeploymentError(final String site, final Throwable throwable, List<String> filesUnableToPublish,
-                               Locale locale);
+    void notifyDeploymentError(final String site, final Throwable throwable, List<String> filesUnableToPublish);
 
     /**
      * <p>Sends a email to configure emails when a deployment had fail</p>
@@ -61,12 +58,10 @@ public interface NotificationService {
      * @param site Site of the Content.
      * @param toUsers List of recipients.
      * @param key key of the message wanted
-     * @param locale Language of the message ,if null defaults to English.
      * @param params parameters of the message this params will be used to process the message string.
      */
     @SuppressWarnings("unchecked")
-    void notify(final String site , final List<String> toUsers ,final String key, final Locale
-        locale, final Pair<String,Object>...params);
+    void notify(final String site , final List<String> toUsers ,final String key, final Pair<String,Object>...params);
 
     /**
      * Sends Notification when content was approve.
@@ -75,24 +70,22 @@ public interface NotificationService {
      * @param itemsSubmitted List of Item paths that where approve (can be null)
      * @param approver User that approve the content.
      * @param scheduleDate scheduled date
-     * @param locale Language of the notification ,if null defaults to English.
      */
     void notifyContentApproval(final String site, final String submitterUser, final List<String> itemsSubmitted,
-                               final String approver, final ZonedDateTime scheduleDate, Locale locale);
+                               final String approver, final ZonedDateTime scheduleDate);
 
     /**
      * Gets and process notification message
      * @param site Site of the Content.
      * @param type Type of the message wanted.
      * @param key key of the message wanted
-     * @param locale Language of the message ,if null defaults to English.
      * @param params parameters of the message this params will be used to process the message string.
      * @return <p>the message in the given locale and processed with the given variables. </p><p>If message not found
      * either by key/locale it will <b>return a default string</b>) </p>
      */
     @SuppressWarnings("unchecked")
-    String getNotificationMessage(final String site , final NotificationMessageType type, final String key, final Locale
-        locale, final Pair<String,Object>...params);
+    String getNotificationMessage(final String site , final NotificationMessageType type, final String key,
+                                  final Pair<String,Object>...params);
 
     /**
      * Send to all given users a notification of content that need to be review.
@@ -101,13 +94,13 @@ public interface NotificationService {
      * @param itemsSubmitted List of Item paths that where approve (can be null)
      * @param submitter User (username) that is submitting the content.
      * @param scheduleDate When the content should go live (null if now (or as soon is approved)).
-     * @param locale Language of the message ,if null defaults to English.
      * @param isADelete Is this submission a delete one.
      * @param submissionComments submission comments
      */
-    void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify, final List<String>
-        itemsSubmitted, final String submitter, final ZonedDateTime scheduleDate,final boolean isADelete,final String
-        submissionComments,final Locale locale);
+    void notifyApprovesContentSubmission(final String site, final List<String> usersToNotify,
+                                         final List<String> itemsSubmitted, final String submitter,
+                                         final ZonedDateTime scheduleDate,final boolean isADelete,
+                                         final String submissionComments);
 
     /**
      * Notifies to the submitter that the content has been rejected.
@@ -116,19 +109,17 @@ public interface NotificationService {
      * @param rejectedItems Items that where rejected
      * @param rejectionReason  why the content was rejected.
      * @param userThatRejects User that is rejecting the content.
-     * @param locale Language of the message ,if null defaults to English.
      */
     void notifyContentRejection(final String site,final List<String> submittedByList,final List<String> rejectedItems,
-                                final String rejectionReason, final String userThatRejects,final Locale locale);
+                                final String rejectionReason, final String userThatRejects);
 
     /**
      * Send email to admin that repository has merged conflict
      *
      * @param site site with merge conflict
      * @param filesUnableToMerge files unable to merge
-     * @param locale language of the message ,if null defaults to English.
      */
     @ValidateParams
     void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") String site,
-                                       List<String> filesUnableToMerge, Locale locale);
+                                       List<String> filesUnableToMerge);
 }

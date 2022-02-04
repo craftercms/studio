@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,18 +35,19 @@ import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.ItemState.IN_PROGRESS_MASK;
@@ -88,7 +90,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     private ContentService contentService;
     private GeneralLockService generalLockService;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
 
     @Override
     public boolean upsertEntry(Item item) {
@@ -317,8 +318,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                                 String contentTypeId, String systemType, String mimeType, String localeCode,
                                 Long translationSourceId, long size, Long parentId, String commitId) {
 
-        return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withOwnedBy(ownedBy)
-                .withOwner(owner).withCreatedBy(createdBy).withCreator(creator).withCreatedOn(createdOn)
+        return instantiateItem(siteName, path).withPreviewUrl(previewUrl).withState(state).withLockedBy(ownedBy)
+                .withLockOwner(owner).withCreatedBy(createdBy).withCreator(creator).withCreatedOn(createdOn)
                 .withLastModifiedBy(lastModifiedBy).withModifier(modifier).withLastModifiedOn(lastModifiedOn)
                 .withLabel(label).withContentTypeId(contentTypeId).withSystemType(systemType).withMimeType(mimeType)
                 .withLocaleCode(localeCode).withTranslationSourceId(translationSourceId).withSize(size)
@@ -392,7 +393,11 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public String getBrowserUrl(String site, String path) {
         String replacePattern;
         boolean isPage = false;
-        if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
+        if (ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
+            return null;
+        } else if (ContentUtils.matchesPatterns(path, Arrays.asList(CONTENT_TYPE_TAXONOMY_REGEX))) {
+            return null;
+        } else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
                 StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
@@ -440,9 +445,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             Item item = instantiateItem(siteId, path)
                     .withPreviewUrl(getBrowserUrl(siteId, path))
                     .withCreatedBy(userObj.getId())
-                    .withCreatedOn(ZonedDateTime.now())
+                    .withCreatedOn(DateUtils.getCurrentTime())
                     .withLastModifiedBy(userObj.getId())
-                    .withLastModifiedOn(ZonedDateTime.now())
+                    .withLastModifiedOn(DateUtils.getCurrentTime())
                     .withLabel(label)
                     .withSystemType(contentService.getContentTypeClass(siteId, path))
                     .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
@@ -481,7 +486,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Item item = instantiateItem(siteId, path)
                 .withPreviewUrl(getBrowserUrl(siteId, path))
                 .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
+                .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(label)
                 .withSystemType(contentService.getContentTypeClass(siteId, path))
                 .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
@@ -510,7 +515,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, folderPath)
                 .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
+                .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(folderName)
                 .withCommitId(commitId)
                 .withParentId(parentId)
@@ -528,7 +533,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Item item = instantiateItem(siteId, folderPath)
                 .withPreviewUrl(null)
                 .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(ZonedDateTime.now())
+                .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(folderName)
                 .withCommitId(commitId)
                 .build();
@@ -674,6 +679,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
+    public void lockItemsByPath(String siteId, List<String> paths, String username)
+            throws UserNotFoundException, ServiceLayerException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        retryingDatabaseOperationFacade.lockItemsByPath(siteId, paths, user.getId(), USER_LOCKED.value,
+                CONTENT_TYPE_FOLDER);
+    }
+
+    @Override
     public void unlockItemByPath(String siteId, String path) {
         retryingDatabaseOperationFacade.unlockItemByPath(siteId, path, ~USER_LOCKED.value);
     }
@@ -682,6 +695,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         retryingDatabaseOperationFacade.lockItemById(itemId, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
+    }
+
+    @Override
+    public void lockItemsById(List<Long> itemIds, String username) throws UserNotFoundException, ServiceLayerException {
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        retryingDatabaseOperationFacade.lockItemsById(itemIds, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
     }
 
     @Override
@@ -770,6 +789,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         return itemDao.getSubtreeForDelete(siteId, likePath);
     }
 
+    @Override
+    public void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        retryingDatabaseOperationFacade.updateStatesForSite(siteFeed.getId(), onStateBitMap, offStateBitMap);
+    }
+
     public UserServiceInternal getUserServiceInternal() {
         return userServiceInternal;
     }
@@ -824,14 +851,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
-    }
-
-    public StudioDBScriptRunnerFactory getStudioDBScriptRunnerFactory() {
-        return studioDBScriptRunnerFactory;
-    }
-
-    public void setStudioDBScriptRunnerFactory(StudioDBScriptRunnerFactory studioDBScriptRunnerFactory) {
-        this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
     }
 
     public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {

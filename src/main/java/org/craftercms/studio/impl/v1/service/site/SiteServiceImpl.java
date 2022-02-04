@@ -91,7 +91,6 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
@@ -116,6 +115,7 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -164,6 +164,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
+import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
 
 /**
  * Note: consider renaming
@@ -269,7 +270,8 @@ public class SiteServiceImpl implements SiteService {
         }
 
         logger.debug("Validating blueprint parameters");
-        sitesServiceInternal.validateBlueprintParameters(descriptor, params);
+        validatePluginParameters(descriptor.getPlugin(), params);
+
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
 
         logger.debug("Validate site entitlements");
@@ -308,7 +310,7 @@ public class SiteServiceImpl implements SiteService {
             try {
                 logger.info("Copying site content from blueprint.");
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
-                ZonedDateTime now = ZonedDateTime.now();
+                ZonedDateTime now = DateUtils.getCurrentTime();
 
                 logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
@@ -323,13 +325,6 @@ public class SiteServiceImpl implements SiteService {
                 siteFeed.setPublishingStatus(READY);
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
-
-                String localeAddress = studioClusterUtils.getClusterNodeLocalAddress();
-                ClusterMember cm = clusterDao.getMemberByLocalAddress(localeAddress);
-                if (Objects.nonNull(cm)) {
-                    SiteFeed s = getSite(siteId);
-                    retryingDatabaseOperationFacade.insertClusterSiteSyncRepo(cm.getId(), s.getId(), null, null, null);
-                }
 
                 logger.info("Upgrading site.");
                 upgradeManager.upgrade(siteId);
@@ -430,8 +425,9 @@ public class SiteServiceImpl implements SiteService {
             logger.error("Unexpected error during creation of items. User not found " + creator, e);
             return;
         }
+
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-        studioDBScriptRunner.openConnection();
+
         try {
             String createdFileScriptFilename = "createdFiles_" + UUID.randomUUID();
             Path createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, ".sql");
@@ -502,8 +498,6 @@ public class SiteServiceImpl implements SiteService {
             }
         } catch (IOException e) {
             logger.error("Error while creating db script file for processing created files for site " + siteId);
-        } finally {
-            studioDBScriptRunner.closeConnection();
         }
     }
 
@@ -754,7 +748,7 @@ public class SiteServiceImpl implements SiteService {
         }
 
         if (success) {
-            ZonedDateTime now = ZonedDateTime.now();
+            ZonedDateTime now = DateUtils.getCurrentTime();
             String creator = securityService.getCurrentUser();
             try {
                 logger.debug("Adding site UUID.");
@@ -981,27 +975,10 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
                                    @ValidateStringParam(name = "commitId") String commitId) {
-
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
         retryingDatabaseOperationFacade.updateSiteLastCommitId(params);
-
-        String lockKey = "updateLastCommitId:" + site;
-        generalLockService.lock(lockKey);
-        try {
-            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
-            if (Objects.nonNull(clusterMember)) {
-                SiteFeed siteFeed = getSite(site);
-                retryingDatabaseOperationFacade.updateClusterNodeLastCommitId(clusterMember.getId(), siteFeed.getId(),
-                        commitId);
-            }
-        } catch (SiteNotFoundException e) {
-            logger.error("Site not found " + site);
-        } finally {
-            generalLockService.unlock(lockKey);
-        }
-
     }
 
     @Override
@@ -1010,17 +987,6 @@ public class SiteServiceImpl implements SiteService {
         params.put("siteId", site);
         params.put("commitId", commitId);
         retryingDatabaseOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
-
-        try {
-            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
-            if (Objects.nonNull(clusterMember)) {
-                SiteFeed siteFeed = getSite(site);
-                retryingDatabaseOperationFacade.updateClusterNodeLastVerifiedGitlogCommitId(clusterMember.getId(),
-                        siteFeed.getId(), commitId);
-            }
-        } catch (SiteNotFoundException e) {
-            logger.error("Site not found " + site);
-        }
     }
 
     @Override
@@ -1029,17 +995,6 @@ public class SiteServiceImpl implements SiteService {
         params.put("siteId", site);
         params.put("commitId", commitId);
         retryingDatabaseOperationFacade.updateSiteLastSyncedGitlogCommitId(params);
-
-        try {
-            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
-            if (Objects.nonNull(clusterMember)) {
-                SiteFeed siteFeed = getSite(site);
-                retryingDatabaseOperationFacade.updateClusterNodeLastSyncedGitlogCommitId(clusterMember.getId(),
-                        siteFeed.getId(), commitId);
-            }
-        } catch (SiteNotFoundException e) {
-            logger.error("Site not found " + site);
-        }
     }
 
     @Override
@@ -1081,13 +1036,8 @@ public class SiteServiceImpl implements SiteService {
             toReturn = toReturn && success;
         }
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-        try {
-            studioDBScriptRunner.openConnection();
-            studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
-            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-        } finally {
-            studioDBScriptRunner.closeConnection();
-        }
+		studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
+		studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
 
         // At this point we have attempted to process all operations, some may have failed
         // We will update the lastCommitId of the database ignoring errors if any
@@ -1128,7 +1078,7 @@ public class SiteServiceImpl implements SiteService {
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "fromCommitId") String fromCommitId,
-                                        boolean generateAuditLog) throws ServiceLayerException, UserNotFoundException {
+                                        boolean generateAuditLog) {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
         long startSyncRepoMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
@@ -1161,7 +1111,6 @@ public class SiteServiceImpl implements SiteService {
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
         try {
-            studioDBScriptRunner.openConnection();
             String repoOperationsScriptFilename = "repoOperations_" + UUID.randomUUID();
             Path repoOperationsScriptPath = Files.createTempFile(repoOperationsScriptFilename, ".sql");
             String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
@@ -1172,9 +1121,8 @@ public class SiteServiceImpl implements SiteService {
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
         } catch (IOException e) {
             logger.error("Error while creating DB script file for processing created files for site " + site);
-        } finally {
-            studioDBScriptRunner.closeConnection();
         }
+
         if (logger.isDebugEnabled()) {
             logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
@@ -1695,15 +1643,6 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public void setSiteState(String siteId, String state) {
         retryingDatabaseOperationFacade.setSiteState(siteId, state);
-        try {
-            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
-            if (Objects.nonNull(clusterMember)) {
-                SiteFeed siteFeed = getSite(siteId);
-                retryingDatabaseOperationFacade.setClusterNodeSiteState(clusterMember.getId(), siteFeed.getId(), state);
-            }
-        } catch (SiteNotFoundException e) {
-            logger.error("Site not found " + siteId);
-        }
     }
 
     @Override
@@ -1719,15 +1658,6 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public void setPublishedRepoCreated(String siteId) {
         retryingDatabaseOperationFacade.setSitePublishedRepoCreated(siteId);
-        try {
-            ClusterMember clusterMember = clusterDao.getMemberByLocalAddress(studioClusterUtils.getClusterNodeLocalAddress());
-            if (Objects.nonNull(clusterMember)) {
-                SiteFeed siteFeed = getSite(siteId);
-                retryingDatabaseOperationFacade.setClusterNodePublishedRepoCreated(clusterMember.getId(), siteFeed.getId());
-            }
-        } catch (SiteNotFoundException e) {
-            logger.error("Site not found " + siteId);
-        }
     }
 
     @Override

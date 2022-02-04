@@ -45,8 +45,8 @@ import static java.util.Collections.emptyList;
 import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.MODULE_CONFIG_KEY;
 import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.PATH_CONFIG_KEY;
 import static org.craftercms.studio.impl.v2.service.marketplace.internal.MarketplaceServiceInternalImpl.TEMPLATE_CONFIG_KEY;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -177,7 +177,7 @@ public class MarketplaceServiceInternalImplTest {
             Plugin plugin = MAPPER.readValue(pluginContent, Plugin.class);
 
             // execute the wiring
-            marketplaceService.performConfigurationWiring(plugin, SITE_ID, emptyList());
+            marketplaceService.performConfigurationWiring(plugin, SITE_ID, emptyList(), null);
 
             if (shouldUpdate) {
                 // check that the right service was called

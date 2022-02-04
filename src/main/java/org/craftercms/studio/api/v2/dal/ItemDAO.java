@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -320,6 +320,16 @@ public interface ItemDAO {
                                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
+     * Update states to flip on list off states and flip off another list of states for items
+     *
+     * @param siteId site identifier
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
+     */
+    void updateStatesForSite(@Param(SITE_ID) long siteId, @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                             @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+
+    /**
      * Delete all items for site
      * @param siteId site id
      */
@@ -605,6 +615,18 @@ public interface ItemDAO {
                         @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**
+     * Lock items
+     * @param siteId site identifier
+     * @param paths list of item paths
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
+     */
+    void lockItemsByPath(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
+                        @Param(LOCK_OWNER_ID) long lockOwnerId, @Param(LOCKED_BIT_ON) long lockedBitOn,
+                        @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
+
+    /**
      * Lock item
      * @param siteId site identifier
      * @param path path of the item
@@ -621,6 +643,16 @@ public interface ItemDAO {
      * @param systemTypeFolder value for system type folder
      */
     void lockItemById(@Param(ID) Long itemId, @Param(LOCK_OWNER_ID) long lockOwnerId,
+                      @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
+
+    /**
+     * Lock items
+     * @param itemIds list of item identifiers
+     * @param lockOwnerId lock owner
+     * @param lockedBitOn state bit mask with LOCKED bit on
+     * @param systemTypeFolder value for system type folder
+     */
+    void lockItemsById(@Param(ITEM_IDS) List<Long> itemIds, @Param(LOCK_OWNER_ID) long lockOwnerId,
                       @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
 
     /**

@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.0.23'
+  version: '4.0.0.26'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -73,6 +73,12 @@ paths:
       operationId: getGroups
       description: 'Required Permission: "READ_GROUPS"'
       parameters:
+        - name: keyword
+          in: query
+          description: The keyword to filter groups
+          required: false
+          schema:
+            type: string
         - name: offset
           in: query
           description: Offset of first group in the response
@@ -2217,6 +2223,17 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   status:
                     $ref: '#/components/schemas/StatusItem'
+        '202':
+          description: Replica responding status OK. Primary will respond with status 200
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  status:
+                    $ref: '#/components/schemas/ClusterStatusItem'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -3488,6 +3505,95 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /plugin/get_configuration:
+    get:
+      tags:
+        - plugin
+      summary: Get configuration for the given site and plugin
+      description: 'Required permission "site member"'
+      operationId: getPluginConfiguration
+      parameters:
+        - name: siteId
+          in: query
+          description: The id of the site
+          required: true
+          schema:
+            type: string
+        - name: pluginId
+          in: query
+          description: The id of the plugin
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: configuration file content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /plugin/write_configuration:
+    post:
+      tags:
+        - plugin
+      summary: Write configuration content a given site and plugin
+      description: 'Required permission "write_configuration" and "site member"'
+      operationId: writePluginConfiguration
+      requestBody:
+        description: write configuration request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                pluginId:
+                  type: string
+                  description: The id of the plugin
+                content:
+                  type: string
+                  description: configuration file content
+              required:
+                - siteId
+                - pluginId
+                - content
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/list_quick_create_content:
     get:
       tags:
@@ -4160,6 +4266,87 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/items_lock_by_path:
+    post:
+      tags:
+        - content
+      summary: Lock items by path
+      description: 'Required permission "content_write"'
+      operationId: itemsLockByPath
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                paths:
+                  type: array
+                  items:
+                    type: string
+                    description: Paths of items to lock
+              required:
+                - siteId
+                - paths
+      responses:
+        '200':
+          description: OK
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/items_lock_by_id:
+    post:
+      tags:
+        - content
+      summary: Lock items by id
+      description: 'Required permission "content_write"'
+      operationId: itemsLockById
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: The id of the site
+                itemIds:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  description: Ids of items to lock
+              required:
+                - siteId
+                - itemIds
+      responses:
+        '200':
+          description: OK
+
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/item_unlock_by_path:
     post:
       tags:
@@ -4474,6 +4661,11 @@ paths:
                   type: string
                 pluginVersion:
                   $ref: '#/components/schemas/Version'
+                parameters:
+                  type: object
+                  description: Object containing all parameters for the plugin. It should include all required parameters from the descriptor
+                  additionalProperties:
+                    type: string
               required:
                 - siteId
                 - pluginId
@@ -4519,6 +4711,11 @@ paths:
                 path:
                   description: The path of the local plugin source folder
                   type: string
+                parameters:
+                  type: object
+                  description: Object containing all parameters for the plugin. It should include all required parameters from the descriptor
+                  additionalProperties:
+                    type: string
               required:
                 - siteId
                 - path
@@ -4650,9 +4847,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: environment
+        - name: publishingTarget
           in: query
-          description: filter by publishing environment
+          description: filter by publishing target
           required: false
           schema:
             type: string
@@ -4925,6 +5122,54 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   publishingStatus:
                     $ref: '#/components/schemas/DeploymentHistoryGroup'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/available_targets:
+    get:
+      tags:
+        - publishing
+      summary: Get available publishing targets for site
+      description: 'Required permission "publish"'
+      operationId: getAvailablePublishingTargets
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingTargets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Target name
+                        order:
+                          type: integer
+                          format: int32
+                          description: order for display in the dropdown
+                  published:
+                    type: boolean
+                    description: true if site has been published at least once (initial publish; published repository exist), otherwise false
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5273,9 +5518,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: environment
+        - name: publishingTarget
           in: query
-          description: environment
+          description: publishing target
           required: false
           schema:
             type: string
@@ -5637,9 +5882,9 @@ paths:
             type: array
             items:
               type: string
-        - name: environment
+        - name: publishingTarget
           in: query
-          description: environment
+          description: publishingTarget
           required: false
           schema:
             type: string
@@ -5782,7 +6027,7 @@ paths:
 #              - path - path of an item item
 #              - actor - user that last acted on the item
 #              - scheduledDate - data and time item is scheduled
-#              - environment - environment where item is scheduled
+#              - publishingTarget - publishing target where item is scheduled
 #              - contentType - content type of an item
 #          schema:
 #            type: string
@@ -5812,7 +6057,7 @@ paths:
 #              - scheduledDateFrom - filter items by scheduled date setting lower boudery for date range
 #              - scheduledDateTo - filter items by scheduled date setting upper boudery for date range
 #              - contentType - filter items by content type
-#              - environment - filter items by environment where scheduled
+#              - publishingTarget - filter items by publishing target where scheduled
 #              - state - filter items by state (state bitmap values)
 #          schema:
 #            type: array
@@ -6716,6 +6961,7 @@ components:
           * `CODE:` 40000, `MESSAGE:` Marketplace service is not initialized, `REMEDIAL ACTION:` Contact your system administrator.
           * `CODE:` 40001, `MESSAGE:` Marketplace server is unreachable, `REMEDIAL ACTION:` Check the configuration to make sure the Marketplace URL is correct
           * `CODE:` 40002, `MESSAGE:` Plugin is already installed, `REMEDIAL ACTION:` Check that the site id, plugin id and plugin version are correct
+          * `CODE:` 40003, `MESSAGE:` Error installing plugin, `REMEDIAL ACTION:` Check the plugin requirements
           * `CODE:` 50000, `MESSAGE:` CMIS server is unreachable, `REMEDIAL ACTION:` Advise the user that the CMIS server is not reachable
           * `CODE:` 50001, `MESSAGE:` Request to CMIS server timed out, `REMEDIAL ACTION:` Advise the user that the request to CMIS server timed out
           * `CODE:` 50002, `MESSAGE:` CMIS server was not found, `REMEDIAL ACTION:` Advise the user that the CMIS server was not found
@@ -7472,6 +7718,31 @@ components:
           format: date-time
           description: The date and time when the JVM started
 
+    ClusterStatusItem:
+      type: object
+      properties:
+        uptime:
+          type: integer
+          format: int64
+          description: The time in seconds that the JVM has been up
+        startup:
+          type: string
+          format: date-time
+          description: The date and time when the JVM started
+        age:
+          type: integer
+          format: int64
+          description: The time in seconds that the cluster node has been up
+        role:
+          type: string
+          description: Role that the node has in the cluster. Possible values PRIMARY, REPLICA, UNASSIGNED
+        readyToTakeTraffic:
+          type: boolean
+          description: True if the cluster node is ready to take traffic. Typically it is a Primary node
+        readyToBecomePrimary:
+          type: boolean
+          description: True if the cluster node is a Replica and in sync with the Primary node
+
     MemoryItem:
       type: object
       properties:
@@ -7707,9 +7978,9 @@ components:
         state:
           type: string
           description: package state
-        environment:
+        publishingTarget:
           type: string
-          description: environment where package will be published
+          description: publishing target where package will be published
         comment:
           type: string
           description: submission comment
@@ -7719,7 +7990,7 @@ components:
         - schedule
         - approver
         - state
-        - environment
+        - publishingTarget
 
     PublishingPackageDetails:
       type: object
@@ -7740,9 +8011,9 @@ components:
         state:
           type: string
           description: package state
-        environment:
+        publishingTarget:
           type: string
-          description: environment where package will be published
+          description: publishing target where package will be published
         comment:
           type: string
           description: submission comment
@@ -7765,7 +8036,7 @@ components:
         - schedule
         - approver
         - state
-        - environment
+        - publishingTarget
         - items
 
     PublishingStatus:
@@ -7797,6 +8068,9 @@ components:
         publishingTarget:
           type: string
           description: publishing target for package
+        published:
+          type: boolean
+          description: true if site has been published at least once (initial publish; published repository exist), otherwise false
 
       required:
         - enabled
@@ -7819,14 +8093,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ContentItem'
-        endpoint:
+        publishingTarget:
           type: string
-          description: publishing environment where item was published
+          description: publishing target where item was published
       required:
         - internalName
         - numberOfChildren
         - children
-        - endpoint
+        - publishingTarget
 
 
     SandboxItem:
@@ -7872,8 +8146,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8019,8 +8293,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8198,8 +8472,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8435,8 +8709,8 @@ components:
               * `BIT ORDER (little-endian)`: 6, `FLAG`: Scheduled, `DESCRIPTION`: The item has been scheduled for review or publishing ounce approved
               * `BIT ORDER (little-endian)`: 7, `FLAG`: Publishing, `DESCRIPTION`: The item is being published
               * `BIT ORDER (little-endian)`: 8, `FLAG`: Destination, `DESCRIPTION`: If the item is being published, the destination is staging if 0, and live if 1
-              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging environment
-              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live environment
+              * `BIT ORDER (little-endian)`: 9, `FLAG`: Staged, `DESCRIPTION`: The item has been pushed to the staging publishing target
+              * `BIT ORDER (little-endian)`: 10, `FLAG`: Live, `DESCRIPTION`: The item has been pushed to the live publishiing target
               * `BIT ORDER (little-endian)`: 11, `FLAG`: Disabled, `DESCRIPTION`: The item has been disabled
               * `BIT ORDER (little-endian)`: 12, `FLAG`: Reserved 12, `DESCRIPTION`: Reserved value for future use
               * `BIT ORDER (little-endian)`: 13, `FLAG`: Reserved 11, `DESCRIPTION`: Reserved value for future use
@@ -8570,9 +8844,9 @@ components:
         state:
           type: string
           description: package state
-        environment:
+        publishingTarget:
           type: string
-          description: environment where package will be published
+          description: publishing target where package will be published
         comment:
           type: string
           description: submission comment
@@ -8586,8 +8860,8 @@ components:
         - schedule
         - approver
         - state
-        - environment
-        - items
+        - publishingTarget
+        - items 
 
   responses:
     NotFound:
