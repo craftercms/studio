@@ -6934,6 +6934,20 @@ paths:
           required: true
           schema:
             type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary for filtering results by scheduled date
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          description: upper boundary for filtering results by scheduled date
+          required: false
+          schema:
+            type: string
+            format: date
         - name: offset
           in: query
           description: Offset of the first package in the response
@@ -7090,7 +7104,7 @@ paths:
       tags:
         - workflow
       summary: Get workflow package by id
-      description: Required permission "requst_publish, publish"
+      description: Required permission "request_publish, publish"
       operationId: workflowGetPackage
       parameters:
         - name: id
@@ -7180,7 +7194,7 @@ paths:
       tags:
         - workflow
       summary: Create workflow package
-      description: Required permission "requst_publish, publish"
+      description: Required permission "request_publish, publish"
       operationId: workflowCreatePackage
       requestBody:
         description: parameters to create new workflow package
