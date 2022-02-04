@@ -19,7 +19,7 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.1.12.2-to-4.0.0.32.sql
-      # 3.1.17 & 3.1.18
+      # 3.1.17, 3.1.18, 3.1.19 & 3.1.20
       - currentVersion: 3.1.15
         nextVersion: 4.0-t
         operations:
@@ -283,10 +283,13 @@ pipelines:
 
   # Pipeline to upgrade site repositories
   site:
-    requires: '3.1.9 || >=4.0.0'
+    requires: '3.1.9 || 3.1.18 || >=4.0.0'
     versions:
       # Entry points for supported 3.1.x versions:
       - currentVersion: 3.1.9
+        nextVersion: 4.0-t
+
+      - currentVersion: 3.1.18
         nextVersion: 4.0-t
 
       # Common operations for all 3.1.x versions:
