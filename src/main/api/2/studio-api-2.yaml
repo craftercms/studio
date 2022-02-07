@@ -5356,153 +5356,153 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/tasks:
-    get:
-      tags:
-        - dashboard
-      summary: Get tasks by site, submitter and status
-      description: 'Required permission "get_tasks"'
-      operationId: getDashboardTasks
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: array
-            items:
-              type: string
-        - name: submitter
-          in: query
-          description: filter by submitters(s)
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-        - name: status
-          in: query
-          description: filter by task status
-          required: false
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: Offset for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          description: Limit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  tasks:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TaskItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+  # /dashboard/tasks:
+  #   get:
+  #     tags:
+  #       - dashboard
+  #     summary: Get tasks by site, submitter and status
+  #     description: 'Required permission "get_tasks"'
+  #     operationId: getDashboardTasks
+  #     parameters:
+  #       - name: siteId
+  #         in: query
+  #         description: site ID
+  #         required: true
+  #         schema:
+  #           type: array
+  #           items:
+  #             type: string
+  #       - name: submitter
+  #         in: query
+  #         description: filter by submitters(s)
+  #         required: false
+  #         schema:
+  #           type: array
+  #           items:
+  #             type: string
+  #       - name: status
+  #         in: query
+  #         description: filter by task status
+  #         required: false
+  #         schema:
+  #           type: string
+  #       - name: offset
+  #         in: query
+  #         description: Offset for pagination
+  #         required: false
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #       - name: limit
+  #         in: query
+  #         description: Limit for pagination
+  #         required: false
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #     responses:
+  #       '200':
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 response:
+  #                   $ref: '#/components/schemas/ApiResponse'
+  #                 total:
+  #                   type: integer
+  #                   format: int32
+  #                   description: Total records in the system
+  #                 offset:
+  #                   type: integer
+  #                   format: int32
+  #                   description: Offset of first record in this response
+  #                 limit:
+  #                   type: integer
+  #                   format: int32
+  #                   description: Number of records returned in this response
+  #                 tasks:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/TaskItem'
+  #       '400':
+  #         $ref: '#/components/responses/BadRequest'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound'
+  #       '500':
+  #         $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/me/tasks:
-    get:
-      tags:
-        - dashboard
-      summary: Get current user's tasks
-      description: 'Required permission "site member"'
-      operationId: getDashboardMyTasks
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: filter by task status
-          required: false
-          schema:
-            type: string
-        - name: offset
-          in: query
-          description: Offset for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: limit
-          in: query
-          description: Limit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  tasks:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TaskItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+  # /dashboard/me/tasks:
+  #   get:
+  #     tags:
+  #       - dashboard
+  #     summary: Get current user's tasks
+  #     description: 'Required permission "site member"'
+  #     operationId: getDashboardMyTasks
+  #     parameters:
+  #       - name: siteId
+  #         in: query
+  #         description: site ID
+  #         required: true
+  #         schema:
+  #           type: string
+  #       - name: status
+  #         in: query
+  #         description: filter by task status
+  #         required: false
+  #         schema:
+  #           type: string
+  #       - name: offset
+  #         in: query
+  #         description: Offset for pagination
+  #         required: false
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #       - name: limit
+  #         in: query
+  #         description: Limit for pagination
+  #         required: false
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #     responses:
+  #       '200':
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 response:
+  #                   $ref: '#/components/schemas/ApiResponse'
+  #                 total:
+  #                   type: integer
+  #                   format: int32
+  #                   description: Total records in the system
+  #                 offset:
+  #                   type: integer
+  #                   format: int32
+  #                   description: Offset of first record in this response
+  #                 limit:
+  #                   type: integer
+  #                   format: int32
+  #                   description: Number of records returned in this response
+  #                 tasks:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/TaskItem'
+  #       '400':
+  #         $ref: '#/components/responses/BadRequest'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound'
+  #       '500':
+  #         $ref: '#/components/responses/InternalServerError'
   
   /dashboard/scheduled:
     get:
@@ -7155,19 +7155,27 @@ paths:
                 siteId:
                   type: string
                   description: site identifier
-                packageId:
-                  type: string
-                  description: Id of the workflow package to approve
+                packages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      packageId:
+                        type: string
+                        description: Id of the workflow package to approve
+                      approverComment:
+                        type: string
+                        description: approver's comment about approved workflow package
+                    required:
+                      - packageId
+                      - approverComment
                 schedule:
                   type: string
                   format: datetime
                   description: approved scehedule when to publish package
-                approverComment:
-                  type: string
-                  description: approver's comment about approved workflow package
               required:
                 - siteId
-                - packageId
+                - packages
       responses:
         '201':
           description: OK
@@ -7207,16 +7215,23 @@ paths:
                 siteId:
                   type: string
                   description: site identifier
-                packageId:
-                  type: string
-                  description: Id of the workflow package to approve
-                rejectionComment:
-                  type: string
-                  description: approver's comment about approved workflow package
+                packages:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      packageId:
+                        type: string
+                        description: Id of the workflow package to approve
+                      rejectionComment:
+                        type: string
+                        description: approver's comment about approved workflow package
+                    required:
+                      - packageId
+                      - rejectionComment
               required:
                 - siteId
-                - packageId
-                - rejectionComment                
+                - packages              
       responses:
         '200':
           description: OK
