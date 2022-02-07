@@ -53,6 +53,7 @@ import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManage
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -103,7 +104,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -115,6 +115,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
@@ -305,7 +306,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         if (remoteRepository != null) {
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
             FetchCommand fetchCommand = git.fetch().setRemote(conf.getName());
-            fetchCommand = gitRepositoryHelper.setAuthenticationForCommand(fetchCommand,
+            gitRepositoryHelper.setAuthenticationForCommand(fetchCommand,
                     remoteRepository.getAuthenticationType(), remoteRepository.getRemoteUsername(),
                     remoteRepository.getRemotePassword(), remoteRepository.getRemoteToken(),
                     remoteRepository.getRemotePrivateKey(), tempKey, true);
@@ -403,7 +404,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+            throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
+                    RemoteRepositoryNotFoundException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
@@ -418,7 +420,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             logger.debug("Set branch to be " + remoteBranch);
             pullCommand.setRemoteBranchName(remoteBranch);
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-            pullCommand = gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
+            gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
             switch (mergeStrategy) {
@@ -449,7 +451,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
-                contentRepositoryV2.upsertGitLogList(siteId, Arrays.asList(lastCommitId), false, false);
+                contentRepositoryV2.upsertGitLogList(siteId, List.of(lastCommitId), false, false);
 
                 List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
                 List<String> commitIds = new ArrayList<String>();
@@ -480,18 +482,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
-            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteName + " (" +
-                                remoteRepository.getRemoteUrl() + ")", e);
-                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteName + " (" + remoteRepository.getRemoteUrl() + ") for username " +
-                        remoteRepository.getRemoteUsername(), e);
-            } else {
-                logger.error("Remote repository not found: " + remoteName + " (" +
-                        remoteRepository.getRemoteUrl() + ")", e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
-                        remoteRepository.getRemoteUrl() + ")");
-            }
+            GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
+                                        remoteRepository.getRemoteUsername());
+            return false;
         } catch (GitAPIException e) {
             logger.error("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
@@ -545,7 +538,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
-            throws CryptoException, ServiceLayerException, InvalidRemoteUrlException, InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+            throws ServiceLayerException, InvalidRemoteUrlException, InvalidRemoteRepositoryCredentialsException,
+                    RemoteRepositoryNotFoundException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 
@@ -562,7 +556,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     Constants.R_HEADS +  remoteBranch);
             pushCommand.setRefSpecs(r);
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-            pushCommand = gitRepositoryHelper.setAuthenticationForCommand(pushCommand, remoteRepository.getAuthenticationType(),
+            gitRepositoryHelper.setAuthenticationForCommand(pushCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
             pushCommand.setForce(force);
@@ -606,18 +600,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
-            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteName + " (" +
-                        remoteRepository.getRemoteUrl() + ")", e);
-                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteName + " (" + remoteRepository.getRemoteUrl() + ") for username " +
-                        remoteRepository.getRemoteUsername(), e);
-            } else {
-                logger.error("Remote repository not found: " + remoteName + " (" +
-                        remoteRepository.getRemoteUrl() + ")", e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
-                        remoteRepository.getRemoteUrl() + ")");
-            }
+            GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
+                                        remoteRepository.getRemoteUsername());
+            return false;
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
             logger.error("Error while pushing to remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
@@ -627,7 +612,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    public boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException {
+    public boolean removeRemote(String siteId, String remoteName) throws RemoteNotRemovableException {
         if (!isRemovableRemote(siteId, remoteName)) {
             throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
         }
@@ -781,10 +766,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             ObjectId mergeCommitId = mergeHeads.get(0);
             logger.debug("Get content for studio version of conflicted file " + path + " for site " + siteId);
             InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD);
-            diffResult.setStudioVersion(IOUtils.toString(studioVersionIs));
+            diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
             logger.debug("Get content for remote version of conflicted file " + path + " for site " + siteId);
             InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName());
-            diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs));
+            diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
             logger.debug("Get diff between studio and remote version of conflicted file " + path + " for site "
@@ -879,7 +864,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    public boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException {
+    public boolean unlockRepository(String siteId, GitRepositories repositoryType) {
         boolean toRet = false;
         Repository repo = gitRepositoryHelper.getRepository(siteId, repositoryType);
         if (Objects.nonNull(repo)) {
