@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -90,19 +90,6 @@ public interface SecurityService {
     int getAllUsersTotal() throws ServiceLayerException;
 
     /**
-     * Forgot password token to validate
-     *
-     * @param token token
-     * @return true if given token is valid
-     *
-     * @throws UserNotFoundException user ont found
-     * @throws UserExternallyManagedException user is externally managed
-     * @throws ServiceLayerException general service error
-     */
-    boolean validateToken(String token) throws UserNotFoundException, UserExternallyManagedException,
-        ServiceLayerException;
-
-    /**
      * Change password
      *
      * @param username username
@@ -117,19 +104,6 @@ public interface SecurityService {
     boolean changePassword(String username, String current, String newPassword) throws
             PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
-    /**
-     * Set user password - forgot password token
-     *
-     * @param token forgot password token
-     * @param newPassword new password
-     * @return true if uses's password is successfully set
-     *
-     * @throws UserNotFoundException user not found
-     * @throws UserExternallyManagedException user is externally managed
-     * @throws ServiceLayerException general service error
-     */
-    Map<String, Object> setUserPassword(String token, String newPassword) throws UserNotFoundException,
-        UserExternallyManagedException, ServiceLayerException;
 
     /**
      * Reset user password
