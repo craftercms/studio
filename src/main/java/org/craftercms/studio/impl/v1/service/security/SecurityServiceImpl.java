@@ -76,7 +76,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
@@ -638,38 +637,6 @@ public class SecurityServiceImpl implements SecurityService {
         return userServiceInternal.getAllUsersTotal(null);
     }
 
-
-    @Override
-    @ValidateParams
-    public boolean validateToken(@ValidateStringParam(name = "token") String token) throws UserNotFoundException,
-        UserExternallyManagedException, ServiceLayerException {
-        boolean toRet = false;
-        String decryptedToken = decryptToken(token);
-        if (StringUtils.isNotEmpty(decryptedToken)) {
-            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 3) {
-                String username = tokenElements.nextToken();
-                User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (userProfile == null) {
-                    logger.info("User profile not found for " + username);
-                    throw new UserNotFoundException();
-                } else {
-                    if (userProfile.isExternallyManaged()) {
-                        throw new UserExternallyManagedException();
-                    } else {
-                        long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-                        if (tokenTimestamp < System.currentTimeMillis()) {
-                            toRet = false;
-                        } else {
-                            toRet = true;
-                        }
-                    }
-                }
-            }
-        }
-        return toRet;
-    }
-
     private String decryptToken(String token) {
         try {
             SecretKeySpec key = new SecretKeySpec(studioConfiguration.getProperty(SECURITY_CIPHER_KEY).getBytes(),
@@ -693,45 +660,6 @@ public class SecurityServiceImpl implements SecurityService {
                                   @ValidateStringParam(name = "newPassword") String newPassword)
         throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         return userServiceInternal.changePassword(username, current, newPassword);
-    }
-
-    @Override
-    @ValidateParams
-    public Map<String, Object> setUserPassword(@ValidateStringParam(name = "token") String token,
-                                               @ValidateStringParam(name = "newPassword") String newPassword)
-        throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
-        Map<String, Object> toRet = new HashMap<String, Object>();
-        toRet.put("username", StringUtils.EMPTY);
-        toRet.put("success", false);
-        if (validateToken(token)) {
-            String username = getUsernameFromToken(token);
-            if (StringUtils.isNotEmpty(username)) {
-                toRet.put("username", username);
-                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (user != null ) {
-                    if (user.isEnabled()) {
-                        toRet.put("success", userServiceInternal.setUserPassword(username, newPassword));
-                    }
-                } else {
-                    throw new UserNotFoundException("User not found");
-                }
-            } else {
-                throw new UserNotFoundException("User not found");
-            }
-        }
-        return toRet;
-    }
-
-    private String getUsernameFromToken(String token) {
-        String toRet = StringUtils.EMPTY;
-        String decryptedToken = decryptToken(token);
-        if (StringUtils.isNotEmpty(decryptedToken)) {
-            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 3) {
-                toRet = tokenElements.nextToken();
-            }
-        }
-        return toRet;
     }
 
     @Override
