@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.35', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.36', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -453,6 +453,76 @@ CREATE TABLE IF NOT EXISTS workflow
     FOREIGN KEY `workflow_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `workflow_ix_submitter`(`submitter_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `workflow_ix_reviewer`(`reviewer_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS workflow_package
+(
+    `id`                    VARCHAR(50)     NOT NULL,
+    `site_id`               BIGINT(20)      NOT NULL,
+    `label`                 VARCHAR(256)    NOT NULL,
+    `status`                VARCHAR(20)     NOT NULL,
+    `author`                BIGINT(20)      NULL,
+    `reviewer`              BIGINT(20)      NULL,
+    `schedule`              TIMESTAMP       NULL,
+    `publishing_target`     VARCHAR(50)     NOT NULL,
+    `author_comment`        TEXT            NULL,
+    `reviewer_comment`      TEXT            NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `workflow_package_ix_site`(`site_id`) REFERENCES `site` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `workflow_package_ix_author`(`author`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `workflow_package_ix_reviewer`(`reviewer`) REFERENCES `user` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS workflow_package_item
+(
+    `id`                        BIGINT(20)          NOT NULL AUTO_INCREMENT,
+    `workflow_package_id`       VARCHAR(50)         NOT NULL,
+    `item_id`                   BIGINT(20)          NOT NULL,
+    `commit_id`                 VARCHAR(128)        NOT NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `workflow_package_item_ix_package`(`workflow_package_id`) REFERENCES `workflow_package` (`id`) ON DELETE CASCADE,
+    FOREING KEY `workflow_package_item_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS publishing_queue
+(
+    `id`                        BIGINT(20)          NOT NULL AUTO_INCREMENT,
+    `workflow_package_id`       VARCHAR(50)         NULL,
+    `site_id`                   BIGINT(20)          NOT NULL,
+    `status`                    VARCHAR(50)         NOT NULL,
+    `operation`                 VARCHAR(20)         NULL,
+    `publishing_target`         VARCHAR(50)         NOT NULL,
+    `schedule`                  TIMESTAMP           NOT NULL,
+    `initiator`                 BIGINT(20)          NOT NULL,
+    `publishing_comment`        TEXT                NULL,
+    `completed_on`              TIMESTAMP           NULL,
+    `number_of_retries`         INT                 NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `publishing_queue_ix_package`(`workflow|_package_id`) REFERENCES `workflow_package` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `publisging_queue_ix_site`(`site_id`) REFERENCES `site` (`id`) ON DELETE CASCADE
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS publishing_queue_parameters
+(
+    `id`                        BIGINT(20)          NOT NULL AUTO_INCREMENT,
+    `publishing_queue_id`       BIGINT(20)          NOT NULL,
+    `operation`                 VARCHAR(20)         NULL,
+    `parameter_type`            VARCHAR(50)         NOT NULL,
+    `parameter_value`           TEXT            NOT NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `publishing_queue_parameter_ix_queue`(`publishing_queue_id`) REFERENCES `publishing_queue` (`id`) ON DELETE CASCADE
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
