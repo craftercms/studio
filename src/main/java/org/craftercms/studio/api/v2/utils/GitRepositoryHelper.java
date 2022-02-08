@@ -16,9 +16,6 @@
 
 package org.craftercms.studio.api.v2.utils;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -26,6 +23,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
+import org.craftercms.commons.git.utils.AuthenticationType;
+import org.craftercms.commons.git.utils.TypeBasedAuthConfiguratorBuilder;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -45,6 +44,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -59,7 +59,6 @@ import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.StatusCommand;
 import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
@@ -78,14 +77,7 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.util.FS;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
@@ -109,7 +101,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.UUID;
 
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -151,6 +142,7 @@ public class GitRepositoryHelper {
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+    private AuthConfiguratorFactory authConfiguratorFactory;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -230,8 +222,7 @@ public class GitRepositoryHelper {
                 toReturn = true;
             }
         } catch (IOException e) {
-            logger.error("Failed to create sandbox repo for site: " + siteId + " using path " + siteSandboxRepoPath
-                    .toString(), e);
+            logger.error("Failed to create sandbox repo for site: " + siteId + " using path " + siteSandboxRepoPath, e);
         }
 
         try {
@@ -244,7 +235,7 @@ public class GitRepositoryHelper {
             }
         } catch (IOException e) {
             logger.error("Failed to create published repo for site: " + siteId + " using path " +
-                    sitePublishedRepoPath.toString(), e);
+                    sitePublishedRepoPath, e);
         }
 
         return toReturn;
@@ -316,42 +307,17 @@ public class GitRepositoryHelper {
         LsRemoteCommand lsRemoteCommand = git.lsRemote();
         lsRemoteCommand.setRemote(remote);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-        lsRemoteCommand = setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername,
+        setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey, tempKey, false);
         retryingRepositoryOperationFacade.call(lsRemoteCommand);
         Files.deleteIfExists(tempKey);
         return true;
     }
 
-    public SshSessionFactory getSshSessionFactory(String privateKey, final Path tempKey)  {
-        try {
-            Files.write(tempKey, privateKey.getBytes());
-            SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
-                @Override
-                protected void configure(OpenSshConfig.Host hc, Session session) {
-                    Properties config = new Properties();
-                    config.put("StrictHostKeyChecking", "no");
-                    session.setConfig(config);
-                }
-
-                @Override
-                protected JSch createDefaultJSch(FS fs) throws JSchException {
-                    JSch defaultJSch = new JSch();
-                    defaultJSch.addIdentity(tempKey.toAbsolutePath().toString());
-                    return defaultJSch;
-                }
-            };
-            return sshSessionFactory;
-        } catch (IOException e) {
-            logger.error("Failed to create private key for SSH connection.", e);
-        }
-        return null;
-    }
-
-    public <T extends TransportCommand> T setAuthenticationForCommand(T gitCommand, String authenticationType,
-                                                                      String username, String password, String token,
-                                                                      String privateKey, Path tempKey, boolean decrypt)
-            throws CryptoException, ServiceLayerException {
+    public void setAuthenticationForCommand(TransportCommand<?,?> gitCommand, String authenticationType,
+                                            String username, String password, String token, String privateKey,
+                                            Path tempKey, boolean decrypt)
+            throws CryptoException, ServiceLayerException, IOException {
         String passwordValue = password;
         String tokenValue = token;
         String privateKeyValue = privateKey;
@@ -366,40 +332,33 @@ public class GitRepositoryHelper {
                 privateKeyValue = encryptor.decrypt(privateKey);
             }
         }
-        final String pk = privateKeyValue;
+        TypeBasedAuthConfiguratorBuilder builder = authConfiguratorFactory.forType(authenticationType);
         switch (authenticationType) {
-            case RemoteRepository.AuthenticationType.NONE:
+            case AuthenticationType.NONE:
                 logger.debug("No authentication");
                 break;
-            case RemoteRepository.AuthenticationType.BASIC:
+            case AuthenticationType.BASIC:
                 logger.debug("Basic authentication");
-                UsernamePasswordCredentialsProvider credentialsProviderUP =
-                        new UsernamePasswordCredentialsProvider(username, passwordValue);
-                gitCommand.setCredentialsProvider(credentialsProviderUP);
+                builder
+                    .withUsername(username)
+                    .withPassword(passwordValue);
                 break;
-            case RemoteRepository.AuthenticationType.TOKEN:
+            case AuthenticationType.TOKEN:
                 logger.debug("Token based authentication");
-                UsernamePasswordCredentialsProvider credentialsProvider =
-                        new UsernamePasswordCredentialsProvider(tokenValue, StringUtils.EMPTY);
-                gitCommand.setCredentialsProvider(credentialsProvider);
+                builder
+                    .withUsername(tokenValue);
                 break;
-            case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+            case AuthenticationType.PRIVATE_KEY:
                 logger.debug("Private key authentication");
+                Files.writeString(tempKey, privateKeyValue);
                 tempKey.toFile().deleteOnExit();
-                gitCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                    @Override
-                    public void configure(Transport transport) {
-                        SshTransport sshTransport = (SshTransport)transport;
-                        sshTransport.setSshSessionFactory(getSshSessionFactory(pk, tempKey));
-                    }
-                });
-
+                builder
+                    .withPrivateKeyPath(tempKey.toString());
                 break;
             default:
                 throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
         }
-
-        return gitCommand;
+        builder.build().configureAuthentication(gitCommand);
     }
 
     public String getGitPath(String path) {
@@ -584,11 +543,11 @@ public class GitRepositoryHelper {
                         .setMessage(getCommitMessage(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE));
                 retryingRepositoryOperationFacade.call(commitCommand);
             } catch (GitAPIException e) {
-                logger.error("Error while creating repository for site with path" + path.toString(), e);
+                logger.error("Error while creating repository for site with path" + path, e);
                 toReturn = null;
             }
         } catch (IOException e) {
-            logger.error("Error while creating repository for site with path" + path.toString(), e);
+            logger.error("Error while creating repository for site with path" + path, e);
             toReturn = null;
         }
 
@@ -656,7 +615,7 @@ public class GitRepositoryHelper {
                 CheckoutCommand checkoutCommand = git.checkout()
                         .setCreateBranch(createBranch)
                         .setName(sandboxBranchName)
-                        .setForce(false);
+                        .setForceRefUpdate(true);
                 retryingRepositoryOperationFacade.call(checkoutCommand);
             }
             return true;
@@ -713,12 +672,12 @@ public class GitRepositoryHelper {
         Charset charset = StandardCharsets.UTF_8;
         String content = null;
         try {
-            content = new String(Files.readAllBytes(path), charset);
+            content = Files.readString(path, charset);
             content = content.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
             Files.write(path, content.getBytes(charset));
             toReturn = true;
         } catch (IOException e) {
-            logger.error("Error replacing sitename variable inside configuration file " + path.toString() +
+            logger.error("Error replacing sitename variable inside configuration file " + path +
                     " for site " + site);
             toReturn = false;
         }
@@ -822,79 +781,46 @@ public class GitRepositoryHelper {
         logger.debug("Add user credentials if provided");
         // then clone
         logger.debug("Cloning from " + remoteUrl + " to " + localPath);
-        CloneCommand cloneCommand = Git.cloneRepository();
+        CloneCommand cloneCommand = Git.cloneRepository()
+                .setURI(remoteUrl)
+                .setDirectory(localPath)
+                .setRemote(remoteName)
+                .setCloneAllBranches(!singleBranch);
+        if (StringUtils.isNotEmpty(remoteBranch)) {
+            cloneCommand.setBranch(remoteBranch);
+        }
         Git cloneResult = null;
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
-            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
-            switch (authenticationType) {
-                case RemoteRepository.AuthenticationType.NONE:
-                    logger.debug("No authentication");
-                    break;
-                case RemoteRepository.AuthenticationType.BASIC:
-                    logger.debug("Basic authentication");
-                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteUsername,
-                            remotePassword));
-                    break;
-                case RemoteRepository.AuthenticationType.TOKEN:
-                    logger.debug("Token based authentication");
-                    cloneCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteToken,
-                            StringUtils.EMPTY));
-                    break;
-                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
-                    logger.debug("Private key authentication");
-                    tempKey.toFile().deleteOnExit();
-                    cloneCommand.setTransportConfigCallback(new TransportConfigCallback() {
-                        @Override
-                        public void configure(Transport transport) {
-                            SshTransport sshTransport = (SshTransport)transport;
-                            sshTransport.setSshSessionFactory(getSshSessionFactory(remotePrivateKey, tempKey));
-                        }
-                    });
+            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+            try {
+                setAuthenticationForCommand(cloneCommand, authenticationType, remoteUsername, remotePassword,
+                        remoteToken, remotePrivateKey, tempKey, false);
 
-                    break;
-                default:
-                    throw new ServiceLayerException("Unsupported authentication type " + authenticationType);
-            }
-            if (StringUtils.isNotEmpty(remoteBranch)) {
-                cloneCommand.setBranch(remoteBranch);
-            }
+                cloneResult = retryingRepositoryOperationFacade.call(cloneCommand);
 
-            cloneCommand
-                    .setURI(remoteUrl)
-                    .setDirectory(localPath)
-                    .setRemote(remoteName)
-                    .setCloneAllBranches(!singleBranch);
-            cloneResult = retryingRepositoryOperationFacade.call(cloneCommand);
-            Files.deleteIfExists(tempKey);
-            Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl) ;
+                Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl);
 
-            sandboxRepo = optimizeRepository(sandboxRepo);
+                sandboxRepo = optimizeRepository(sandboxRepo);
 
-            // Make repository orphan if needed
-            if (createAsOrphan) {
-                makeRepoOrphan(sandboxRepo, siteId);
-            }
+                // Make repository orphan if needed
+                if (createAsOrphan) {
+                    makeRepoOrphan(sandboxRepo, siteId);
+                }
 
-            sandboxes.put(siteId, sandboxRepo);
-        } catch (InvalidRemoteException e) {
-            logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
-            throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" +
-                    remoteUrl + ")");
-        } catch (TransportException e) {
-            if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-                logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
-                        e);
-                throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                        remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
-            } else {
-                logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
-                throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
+                sandboxes.put(siteId, sandboxRepo);
+            } catch (InvalidRemoteException e) {
+                logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
+                throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" +
                         remoteUrl + ")");
+            } catch (TransportException e) {
+                GitUtils.translateException(e, logger, remoteName, remoteUrl, remoteUsername);
+            } finally {
+                Files.deleteIfExists(tempKey);
             }
-        } catch (GitAPIException | IOException | UserNotFoundException e) {
-            logger.error("Error while creating repository for site with path" + siteSandboxPath.toString(), e);
+        } catch (GitAPIException | IOException | UserNotFoundException | CryptoException e) {
+            logger.error("Error while creating repository for site with path" + siteSandboxPath, e);
             toRet = false;
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1079,7 +1005,7 @@ public class GitRepositoryHelper {
             logger.debug("Deleted site: " + site + " at path: " + sitePath);
         } catch (IOException e) {
             logger.error("Failed to delete site: " + site + " at path: " + sitePath + " exception " +
-                    e.toString());
+                    e);
             toReturn = false;
         } finally {
             generalLockService.unlock(gitLockKeyPublished);
@@ -1089,7 +1015,7 @@ public class GitRepositoryHelper {
         return toReturn;
     }
 
-    public boolean writeFile(Repository repo, String site, String path, InputStream content) throws ServiceLayerException {
+    public boolean writeFile(Repository repo, String site, String path, InputStream content) {
         boolean result = true;
 
         try {
@@ -1177,7 +1103,6 @@ public class GitRepositoryHelper {
                 commitId = commit.getName();
             }
 
-            git.close();
         } catch (GitAPIException e) {
             logger.error("error adding and committing file to git: site: " + site + " path: " + path, e);
         } finally {
@@ -1263,6 +1188,10 @@ public class GitRepositoryHelper {
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
+    public void setAuthConfiguratorFactory(AuthConfiguratorFactory authConfiguratorFactory) {
+        this.authConfiguratorFactory = authConfiguratorFactory;
     }
 
 }

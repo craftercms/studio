@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -47,12 +48,12 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
 
     protected final String REMOTE_REPOSITORIES_QUERY = "select id, remote_password, remote_token, " +
             "remote_private_key, authentication_type from remote_repository where authentication_type != '" +
-            RemoteRepository.AuthenticationType.NONE + "'";
+            AuthenticationType.NONE + "'";
     protected final String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = " +
             ":remotePassword, remote_token = :remoteToken, remote_private_key = :remotePrivateKey where id = :id";
 
     protected final String CLUSTER_MEMBERS_QUERY = "select id, git_password, git_token, git_private_key, " +
-            "git_auth_type from cluster where git_auth_type != '" + RemoteRepository.AuthenticationType.NONE + "'";
+            "git_auth_type from cluster where git_auth_type != '" + AuthenticationType.NONE + "'";
     protected final String CLUSTER_MEMBERS_UPDATE = "update cluster set git_password = :gitPassword, git_token = " +
             ":gitToken, git_private_key = :gitPrivateKey where id = :id";
 
@@ -93,13 +94,13 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         for (RemoteRepository remote : remotes) {
             logger.debug("Upgrading remote repository with id: {0}", remote.getId());
             switch (remote.getAuthenticationType()) {
-                case RemoteRepository.AuthenticationType.BASIC:
+                case AuthenticationType.BASIC:
                     remote.setRemotePassword(upgradeValue(remote.getRemotePassword()));
                     break;
-                case RemoteRepository.AuthenticationType.TOKEN:
+                case AuthenticationType.TOKEN:
                     remote.setRemoteToken(upgradeValue(remote.getRemoteToken()));
                     break;
-                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                case AuthenticationType.PRIVATE_KEY:
                     remote.setRemotePrivateKey(upgradeValue(remote.getRemotePrivateKey()));
                     break;
                 default:
@@ -126,13 +127,13 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         for (ClusterMember member : members) {
             logger.debug("Upgrading cluster member with id: {0}", member.getId());
             switch (member.getGitAuthType()) {
-                case RemoteRepository.AuthenticationType.BASIC:
+                case AuthenticationType.BASIC:
                     member.setGitPassword(upgradeValue(member.getGitPassword()));
                     break;
-                case RemoteRepository.AuthenticationType.TOKEN:
+                case AuthenticationType.TOKEN:
                     member.setGitToken(upgradeValue(member.getGitToken()));
                     break;
-                case RemoteRepository.AuthenticationType.PRIVATE_KEY:
+                case AuthenticationType.PRIVATE_KEY:
                     member.setGitPrivateKey(upgradeValue(member.getGitPrivateKey()));
                     break;
                 default:

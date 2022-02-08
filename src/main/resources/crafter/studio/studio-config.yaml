@@ -424,6 +424,9 @@ studio.security.token.cookie.httpOnly: true
 # Cron expression for the scheduled job that cleans expired refresh tokens
 studio.security.token.cleanup.cron: 0 * * * * ?
 
+# The path of the folder used for the SSH configuration
+studio.security.ssh.config: ./ssh
+
 ###############################################################
 ##               Page Navigation Order Service               ##
 ###############################################################
@@ -940,7 +943,7 @@ studio.marketplace.plugin.config.module: plugins
 # The filename used for the plugin configuration file
 studio.marketplace.plugin.config.filename: config.xml
 # The pattern to use for loading plugins installed from the marketplace
-studio.marketplace.plugin.basePath: '/config/studio/plugins/js/${id}/${type}/${name}'
+studio.marketplace.plugin.basePath: '/config/studio/static-assets/plugins/${id}/${type}/${name}'
 # Mapping used to wire plugin files into the site configuration
 studio.marketplace.plugin.wire.mapping:
   preview-app:

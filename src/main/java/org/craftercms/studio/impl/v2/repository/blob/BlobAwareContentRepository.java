@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -440,16 +439,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public void deleteGitLogForSite(String siteId) {
         localRepositoryV1.deleteGitLogForSite(siteId);
-    }
-
-    @Override
-    public boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl,
-                                          String authenticationType, String remoteUsername, String remotePassword,
-                                          String remoteToken, String remotePrivateKey, boolean createAsOrphan)
-            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, ServiceLayerException {
-        return localRepositoryV1.createSitePushToRemote(siteId, remoteName, remoteUrl, authenticationType,
-                remoteUsername, remotePassword, remoteToken, remotePrivateKey, createAsOrphan);
     }
 
     @Override

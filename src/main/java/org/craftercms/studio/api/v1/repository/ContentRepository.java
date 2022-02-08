@@ -19,11 +19,7 @@ package org.craftercms.studio.api.v1.repository;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -222,10 +218,9 @@ public interface ContentRepository {
      * @param comment comment
      *
      * @throws DeploymentException deployment error
-     * @throws CryptoException git repository helper error
      */
     void initialPublish(String site, String sandboxBranch, String environment, String author, String comment)
-            throws DeploymentException, CryptoException;
+            throws DeploymentException;
 
     /**
      * Get last commit id from repository for given site.
@@ -268,32 +263,6 @@ public interface ContentRepository {
      * @param siteId site identifier
      */
     void deleteGitLogForSite(String siteId);
-
-    /**
-     * Push new site to remote repository
-     *
-     * @param siteId         site identifier
-     * @param remoteName     remote name
-     * @param remoteUrl      remote repository url
-     * @param authenticationType type of authentication to use to connect to remote repository
-     * @param remoteUsername remote username
-     * @param remotePassword remote password
-     * @param remoteToken    remote token
-     * @param remotePrivateKey remote private key
-     * @param createAsOrphan create as orphan
-     * @return true if success
-     *
-     * @throws InvalidRemoteRepositoryException invalid remote repository
-     * @throws InvalidRemoteRepositoryCredentialsException invalid credentials to access remote repository
-     * @throws RemoteRepositoryNotFoundException remote repository not found
-     * @throws RemoteRepositoryNotBareException remote repository is not bare
-     * @throws ServiceLayerException general service error creating site and pushing to remote
-     */
-    boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
-                                   String remoteUsername, String remotePassword, String remoteToken,
-                                   String remotePrivateKey, boolean createAsOrphan)
-            throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
-            RemoteRepositoryNotFoundException, RemoteRepositoryNotBareException, ServiceLayerException;
 
     /**
      * Add remote repository for site content repository
@@ -381,9 +350,8 @@ public interface ContentRepository {
      * @param siteId site identifier to use for resetting
      *
      * @throws ServiceLayerException general service error
-     * @throws CryptoException git repository helper error
      */
-    void resetStagingRepository(String siteId) throws ServiceLayerException, CryptoException;
+    void resetStagingRepository(String siteId) throws ServiceLayerException;
 
     /**
      * Reload repository for given site
