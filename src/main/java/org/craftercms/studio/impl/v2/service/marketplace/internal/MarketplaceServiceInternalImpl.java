@@ -1073,12 +1073,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         // Check if the plugin contains templates to be wired
         for(Map.Entry<String, String> mapping : templateMapping.entrySet()) {
             String actualPath = replace(mapping.getValue(), Map.of(PARAM_PLUGIN_PATH, pluginPath));
-            addIncludeIfNeeded(siteId, paths, mapping.getKey(), pluginIdComment, actualPath, changedFiles);
+            addIncludeIfNeeded(siteId, plugin.getId(), paths, mapping.getKey(), pluginIdComment, actualPath,
+                                changedFiles);
         }
     }
 
-    protected void addIncludeIfNeeded(String siteId, List<String> paths, String includePath, String includeComment,
-                                      String pluginPath, List<String> changedFiles) throws IOException {
+    protected void addIncludeIfNeeded(String siteId, String pluginId, List<String> paths, String includePath,
+                                      String includeComment, String pluginPath, List<String> changedFiles)
+            throws IOException {
         if (paths.contains(pluginPath)) {
             logger.debug("Detected template {}", pluginPath);
             String fileContent = EMPTY;
@@ -1091,7 +1093,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             if (isEmpty(fileContent) || !contains(fileContent, includeComment)) {
                 logger.debug("Wiring plugin template {} in {} for site {}", pluginPath, includePath, siteId);
                 String newLine =
-                        format("\n%s%s\n", replace(templateCode, Map.of(PATH_CONFIG_KEY, pluginPath)), includeComment);
+                        format("\n%s%s\n", replace(templateCode,
+                                Map.of(PATH_CONFIG_KEY, pluginPath, PARAM_PLUGIN_ID, pluginId)), includeComment);
                 fileContent += newLine;
 
                 Path repo = getRepoDirectory(siteId);
