@@ -5591,77 +5591,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/content/expiring:
-    get:
-      tags:
-        - dashboard
-      summary: Get content items that are expiring soon
-      description: 'Required permission "read_item" and "site member"'
-      operationId: getDashboardExpiringContent
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: expireLimit
-          in: query
-          description: limit the results to items expiring with this number of days, default 90 days
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: offset
-          in: query
-          description: offset for pagination 
-          required: false
-          schema:
-            type: integer
-            format: int32
-        - name: limit
-          in: query
-          description: limit for pagination
-          required: false
-          schema:
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
   /dashboard/audit:
     get:
@@ -5861,106 +5790,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /dashboard/publishing/history:
-    get:
-      tags:
-        - dashboard
-      summary: Get publish history narrowed down by a variety of filters
-      description: 'Required permission "get_publishing_queue" and "site member"'
-      operationId: getPublishingDashboard
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: path
-          in: query
-          description: filter results by path regexes
-          schema:
-            type: array
-            items:
-              type: string
-        - name: publishingTarget
-          in: query
-          description: publishingTarget
-          required: false
-          schema:
-            type: string
-        - name: submitter
-          in: query
-          description: user that submitted the item
-          required: false
-          schema:
-            type: string
-        - name: approver
-          in: query
-          description: user that approved the item
-          required: false
-          schema:
-            type: string
-        - name: dateFrom
-          in: query
-          description: lower boundary to filter by date-time range
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: dateTo
-          in: query
-          description: upper boundary to filter by date-time range
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /dashboard/publishing/package:
     get:
       tags:
@@ -6104,6 +5933,782 @@ paths:
 #          $ref: '#/components/responses/NotFound'
 #        '500':
 #          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/activity:
+    get:
+      tags:
+        - dashboard
+      summary: Get user activities
+      description: 'Required permission "site_member"'
+      operationId: getDashboardActivities
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: usernames
+          in: query
+          description: filter activities for given users only
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/activity/me:
+    get:
+      tags:
+        - dashboard
+      summary: Get current user's activities
+      description: 'Required permission "site_member"'
+      operationId: getDashboardMyActivities
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  activities:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/pending_approval:
+    get:
+      tags:
+        - dashboard
+      summary: Get publishing packages that are pending for approval
+      description: 'Required permission "site_member"'
+      operationId: getDashboardContentPendingApproval
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  publishingPackages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DashboardPublishingPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/pending_approval/{id}:
+    get:
+      tags:
+        - dashboard
+      summary: Get content items of the package that is pending for approval
+      description: 'Required permission "site_member"'
+      operationId: getDashboardContentPendingApprovalDetail
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingPackageItems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/unpublished:
+    get:
+      tags:
+        - dashboard
+      summary: Get unpublished items for site
+      description: 'Required permission "site_member"'
+      operationId: getDashboardContentUnpublished
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  unPublishedItems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/scheduled:
+    get:
+      tags:
+        - dashboard
+      summary: Get scheduled publishing packages 
+      description: 'Required permission "site_member"'
+      operationId: getDashboardPublishingScheduled
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: publishingTarget
+          in: query
+          description: publishing target to filter results
+          required: false
+          schema:
+            type: string
+        - name: approver
+          in: query
+          description: apporver user to filter results
+          required: false
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  publishingPackages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DashboardPublishingPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/scheduled/{id}:
+    get:
+      tags:
+        - dashboard
+      summary: Get content items of the package that is scheduled
+      description: 'Required permission "site_member"'
+      operationId: getDashboardPublishingScheduledDetail
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingPackageItems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/history:
+    get:
+      tags:
+        - dashboard
+      summary: Get history of published packages 
+      description: 'Required permission "site_member"'
+      operationId: getDashboardPublishingHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: publishingTarget
+          in: query
+          description: publishing target to filter results
+          required: false
+          schema:
+            type: string
+        - name: approver
+          in: query
+          description: apporver user to filter results
+          required: false
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          description: lower boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  total:
+                    type: integer
+                    format: int32
+                    description: Total records in the system
+                  offset:
+                    type: integer
+                    format: int32
+                    description: Offset of first record in this response
+                  limit:
+                    type: integer
+                    format: int32
+                    description: Number of records returned in this response
+                  publishingPackages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DashboardPublishingPackage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/history/{id}:
+    get:
+      tags:
+        - dashboard
+      summary: Get content items of the package that was published
+      description: 'Required permission "site_member"'
+      operationId: getDashboardPublishingHistoryDetail
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingPackageItems:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SandboxItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/publishing/stats:
+    get:
+      tags:
+        - dashboard
+      summary: Get publishing stats
+      description: 'Required permission "site_member"'
+      operationId: getDashboardPublishingStats
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: unitOfTime
+          in: path
+          description: package ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  publishingStats:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PublishingStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/expiring:
+    get:
+      tags:
+        - dashboard
+      summary: Get content that is expiring
+      description: 'Required permission "site_member"'
+      operationId: getDashboardContentExpiring
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: dateRange
+          in: query
+          description: date range (typically Tomorrow, Week, Month, Two Months)
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        itemName:
+                          type: string
+                          description: internal name
+                        itemPath:
+                          type: string
+                          description: content path 
+                        expireDateTime:
+                          type: string
+                          format: date-time
+                          description: date and time when content expires
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /dashboard/content/expired:
+    get:
+      tags:
+        - dashboard
+      summary: Get content that expired
+      description: 'Required permission "site_member"'
+      operationId: getDashboardContentExpired
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: offset
+          in: query
+          description: offset of the first result item, default 0
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          description: number of results to return, default 10
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        itemName:
+                          type: string
+                          description: internal name
+                        itemPath:
+                          type: string
+                          description: content path 
+                        expiredDateTime:
+                          type: string
+                          format: date-time
+                          description: date and time when content expired
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /translation/list:
     get:
@@ -9236,6 +9841,120 @@ components:
         - status
         - author
         - publishingTarget
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: activity ID
+        person:
+          $ref: '#/components/schemas/Person'
+        action:
+          type: string
+          description: >-
+            operation performed by user
+              * CREATE
+              * UPDATE
+              * DELETE
+              * MOVE
+              * REQUEST_PUBLISH
+              * APPROVE
+              * APPROVE_SCHEDULED
+              * REJECT
+              * REVERT
+              * PUBLISH
+              * INITIAL_PUBLISH
+              * UNKNOWN
+        itemId:
+          type: integer
+          format: int64
+          description: item ID that operation was performed against
+        packageId:
+          type: integer
+          format: int64
+          description: package ID that operation was performed against
+      required:
+        - id
+        - person
+        - action
+
+    Person:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: user ID
+        username:
+          type: string
+          description: user's username
+        firstName:
+          type: string
+          description: user's first name
+        lastName:
+          type: string
+          description: user's last name
+        avatar:
+          type: string
+          format: CLOB
+          description: user's avatar
+      required:
+        - id
+        - username
+        - firstName
+        - lastName    
+
+    DashboardPublishingPackage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: UUID
+          description: package id
+        label:
+          type: string
+          description: user friendly name of the package
+        submitter:
+          $ref: '#/components/schemas/Person'
+        size:
+          type: integer
+          format: int32
+          description: number of items in the package
+        publishingTarget:
+          type: string
+          description: publishing target where package will be published
+        schedule:
+          type: string
+          format: date-time
+          description: date and time when package will be published
+      required:
+        - id
+        - label
+        - submitter
+        - size
+        - publishingTarget
+
+    PublishingStats:
+      type: object
+      properties:
+        numberOfPublishes:
+          type: integer
+          format: int32
+          description: Number of published content for given unit of time
+        numberOfNewAndPublishedItems:
+          type: integer
+          format: int32
+          description: Number of newly created and published items for given unit of time
+        numberOfEditedAndPublishedItems:
+          type: integer
+          format: int32
+          description: Number of editied and published items for given unit of time
+      required: 
+        - numberOfPublishes
+        - numberOfNewAndPublishedItems
+        - numberOfEditedAndPublishedItems
 
   responses:
     NotFound:
