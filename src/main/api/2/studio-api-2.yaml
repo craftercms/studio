@@ -5595,7 +5595,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: packageId
+        - name: id
           in: path
           description: package ID
           required: true
@@ -5792,7 +5792,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: packageId
+        - name: id
           in: path
           description: package ID
           required: true
@@ -5926,7 +5926,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: packageId
+        - name: id
           in: path
           description: package ID
           required: true
@@ -5972,7 +5972,7 @@ paths:
           schema:
             type: string
         - name: days
-          in: path
+          in: query
           description: number of days to display stats for
           required: true
           schema:
