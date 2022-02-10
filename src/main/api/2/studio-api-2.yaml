@@ -5973,7 +5973,7 @@ paths:
             type: string
         - name: unitOfTime
           in: path
-          description: package ID
+          description: unit of time to display stats for (24 hours, 30 days, 90 days, 1 year)
           required: true
           schema:
             type: string
@@ -6016,12 +6016,20 @@ paths:
           required: true
           schema:
             type: string
-        - name: dateRange
+        - name: dateFrom
           in: query
-          description: date range (typically Tomorrow, Week, Month, Two Months)
-          required: true
+          description: lower boundary to filter by date-time range
+          required: false
           schema:
             type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: upper boundary to filter by date-time range
+          required: false
+          schema:
+            type: string
+            format: date-time
         - name: offset
           in: query
           description: offset of the first result item, default 0
