@@ -5595,7 +5595,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: packageId
+        - name: id
           in: path
           description: package ID
           required: true
@@ -5693,7 +5693,7 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get scheduled publishing packages 
+      summary: Get scheduled publishing packages
       description: 'Required permission "site_member"'
       operationId: getDashboardPublishingScheduled
       parameters:
@@ -5792,7 +5792,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: packageId
+        - name: id
           in: path
           description: package ID
           required: true
@@ -5827,7 +5827,7 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get history of published packages 
+      summary: Get history of published packages
       description: 'Required permission "site_member"'
       operationId: getDashboardPublishingHistory
       parameters:
@@ -5926,7 +5926,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: packageId
+        - name: id
           in: path
           description: package ID
           required: true
@@ -5971,9 +5971,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: unitsOfTime
-          in: path
-          description: number of unit of time to display stats for. Unit of time is day.
+        - name: days
+          in: query
+          description: number of days to display stats for
           required: true
           schema:
             type: integer
@@ -6063,7 +6063,7 @@ paths:
                           description: internal name
                         itemPath:
                           type: string
-                          description: content path 
+                          description: content path
                         expireDateTime:
                           type: string
                           format: date-time
@@ -6125,7 +6125,7 @@ paths:
                           description: internal name
                         itemPath:
                           type: string
-                          description: content path 
+                          description: content path
                         expiredDateTime:
                           type: string
                           format: date-time
@@ -9118,7 +9118,7 @@ components:
         - id
         - username
         - firstName
-        - lastName    
+        - lastName
 
     DashboardPublishingPackage:
       type: object
@@ -9165,7 +9165,7 @@ components:
           type: integer
           format: int32
           description: Number of editied and published items for given unit of time
-      required: 
+      required:
         - numberOfPublishes
         - numberOfNewAndPublishedItems
         - numberOfEditedAndPublishedItems

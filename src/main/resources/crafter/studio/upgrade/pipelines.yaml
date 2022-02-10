@@ -359,6 +359,15 @@ pipelines:
             regex: config/studio/content-types/.+/form-definition\.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
             commitDetails: Update date-time & time controls with addititional fields
+      - currentVersion: 4.0.0.3
+        nextVersion: 4.0.0.4
+        operations:
+          - type: findAndReplaceUpgrader
+            includedPaths:
+              - templates/system/plugins/.*\.ftl
+            pattern: '<#include "([^"]+)" ignore_missing=true\/><#-- pluginId:([^\s]+) -->'
+            replacement: '<@plugin_include "$2" "$1"/><#-- pluginId:$2 -->'
+            commitDetails: Update plugin includes to use new macro
 
   # Pipeline to upgrade blueprints
   blueprint:
