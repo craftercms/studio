@@ -5971,12 +5971,13 @@ paths:
           required: true
           schema:
             type: string
-        - name: unitOfTime
+        - name: unitsOfTime
           in: path
-          description: unit of time to display stats for (24 hours, 30 days, 90 days, 1 year)
+          description: number of unit of time to display stats for. Unit of time is day.
           required: true
           schema:
-            type: string
+            type: integer
+            format: int32
       responses:
         '200':
           description: OK
