@@ -5971,9 +5971,9 @@ paths:
           required: true
           schema:
             type: string
-        - name: unitsOfTime
+        - name: days
           in: path
-          description: number of unit of time to display stats for. Unit of time is day.
+          description: number of days to display stats for
           required: true
           schema:
             type: integer
