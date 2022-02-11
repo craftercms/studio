@@ -19,7 +19,7 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-3.1.12.2-to-4.0.0.32.sql
-      # 3.1.17 & 3.1.18
+      # 3.1.17, 3.1.18, 3.1.19 & 3.1.20
       - currentVersion: 3.1.15
         nextVersion: 4.0-t
         operations:
@@ -283,10 +283,13 @@ pipelines:
 
   # Pipeline to upgrade site repositories
   site:
-    requires: '3.1.9 || >=4.0.0'
+    requires: '3.1.9 || 3.1.18 || >=4.0.0'
     versions:
       # Entry points for supported 3.1.x versions:
       - currentVersion: 3.1.9
+        nextVersion: 4.0-t
+
+      - currentVersion: 3.1.18
         nextVersion: 4.0-t
 
       # Common operations for all 3.1.x versions:
@@ -356,6 +359,15 @@ pipelines:
             regex: config/studio/content-types/.+/form-definition\.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
             commitDetails: Update date-time & time controls with addititional fields
+      - currentVersion: 4.0.0.3
+        nextVersion: 4.0.0.4
+        operations:
+          - type: findAndReplaceUpgrader
+            includedPaths:
+              - templates/system/plugins/.*\.ftl
+            pattern: '<#include "([^"]+)" ignore_missing=true\/><#-- pluginId:([^\s]+) -->'
+            replacement: '<@plugin_include "$2" "$1"/><#-- pluginId:$2 -->'
+            commitDetails: Update plugin includes to use new macro
 
   # Pipeline to upgrade blueprints
   blueprint:

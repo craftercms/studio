@@ -156,6 +156,13 @@ public class StudioUpgradeContext extends UpgradeContext<String> {
     }
 
     /**
+     * Returns the relative path of the file based on the site repository
+     */
+    public String getRelativePath(Path file) {
+        return getRepositoryPath().relativize(file).toString();
+    }
+
+    /**
      * Commits all changes for the given files in the repository of the site being upgraded.
      * @param message the commit message
      * @param changedFiles the list of changed files

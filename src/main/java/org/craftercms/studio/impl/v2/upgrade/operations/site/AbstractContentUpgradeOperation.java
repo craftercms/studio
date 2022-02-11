@@ -78,8 +78,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
             if (CollectionUtils.isNotEmpty(filteredPaths)) {
                 for (Path file : filteredPaths) {
                     updateFile(context, file);
-                    // TODO: check if those are relative
-                    trackChangedFiles(file.toString());
+                    trackChangedFiles(context.getRelativePath(file));
                 }
             }
         } catch (IOException e) {
