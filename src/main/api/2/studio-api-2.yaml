@@ -7708,15 +7708,6 @@ components:
                 $ref: '#/components/schemas/Link'
             company:
               $ref: '#/components/schemas/Link'
-        build:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Build id of the plugin
-            date:
-              type: string
-              description: Build date of the plugin
         license:
           $ref: '#/components/schemas/Link'
         crafterCmsVersions:
