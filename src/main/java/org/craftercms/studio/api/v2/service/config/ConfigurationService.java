@@ -58,7 +58,7 @@ public interface ConfigurationService {
      * Get configuration as string for given parameters
      *
      * @param siteId site id to use
-     * @param module crafter CMS module
+     * @param module CrafterCMS module
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return String content of configuration file
@@ -69,7 +69,7 @@ public interface ConfigurationService {
      * Get configuration as DOM document for given parameters
      *
      * @param siteId site id to use
-     * @param module crafter CMS module
+     * @param module CrafterCMS module
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return DOM document representing configuration file
@@ -115,7 +115,7 @@ public interface ConfigurationService {
      * Write configuration file for given parameters
      *
      * @param siteId site id to use
-     * @param module crafter CMS module
+     * @param module CrafterCMS module
      * @param path path where to store configuration file
      * @param environment environment to use. if empty using default
      * @param content content of configuration file
@@ -141,7 +141,7 @@ public interface ConfigurationService {
      * Get configuration history for given parameters
      *
      * @param siteId site id to use
-     * @param module crafter CMS module
+     * @param module CrafterCMS module
      * @param path path of configuration file
      * @param environment environment to use. if empty using default
      * @return configuration history
