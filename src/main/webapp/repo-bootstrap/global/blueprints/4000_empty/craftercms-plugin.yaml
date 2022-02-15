@@ -27,16 +27,16 @@ plugin:
         url: /studio/static-assets/images/blueprints/empty/bp_empty.png
   developer:
     company:
-      name: Crafter Software
-      email: info@craftersoftware.com
-      url: https://craftersoftware.com/
+      name: CrafterCMS
+      email: info@craftercms.com
+      url: https://craftercms.com/
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
   crafterCmsVersions:
-    - major: 3
-      minor: 1
-      patch: 1
+    - major: 4
+      minor: 0
+      patch: 0
   crafterCmsEditions:
     - community
     - enterprise
