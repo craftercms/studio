@@ -24,6 +24,7 @@ public interface GitContentRepositoryConstants {
     String GIT_COMMIT_ALL_ITEMS = ".";
     String EMPTY_FILE = ".keep";
     String IGNORE_FILE = ".gitignore";
+    String SOURCES_FOLDER = "sources";
     String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
 
     /** Configuration */
