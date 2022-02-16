@@ -56,7 +56,6 @@ import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -627,30 +626,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         dateItem.timezone = timeZone;
         dateItem.addChild(itemToAdd, comparator, false);
         return dateItem;
-    }
-
-    @Override
-    @ValidateParams
-    public Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(
-            @ValidateStringParam(name = "site") String site,
-            @ValidateSecurePathParam(name = "path") String path) {
-        List<PublishingChannelTO> channelsTO = getPublishedEnvironments(site);
-        Map<String, List<PublishingChannelTO>> result = new HashMap<>();
-        result.put("availablePublishChannels", channelsTO);
-        return result;
-    }
-
-    protected List<PublishingChannelTO> getPublishedEnvironments(String site) {
-        List<PublishingChannelTO> channelTOs = new ArrayList<PublishingChannelTO>();
-        Set<String> environments = getAllPublishedEnvironments(site);
-        for (String ch : environments) {
-            PublishingChannelTO chTO = new PublishingChannelTO();
-            chTO.setName(ch);
-            chTO.setPublish(true);
-            chTO.setUpdateStatus(false);
-            channelTOs.add(chTO);
-        }
-        return channelTOs;
     }
 
     protected Set<String> getAllPublishedEnvironments(String site) {

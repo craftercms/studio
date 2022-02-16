@@ -37,11 +37,6 @@ class DeploymentServices {
         deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
     }
 
-    static getAvailablePublishingChannelGroups(context, site, path) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path)
-    }
-
     static bulkGoLive(context, site, environment, path, comment) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.bulkGoLive(site, environment, path, comment)
