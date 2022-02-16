@@ -53,8 +53,8 @@
 	<box.sdk.version>2.58.0</box.sdk.version>
         <tinify.version>1.6.4</tinify.version>
         <mariadb4j.version>2.4.12.1</mariadb4j.version>
-        <jackson.version>2.10.5</jackson.version>
-        <jackson.databind.version>2.10.5.1</jackson.databind.version>
+        <jackson.version>2.13.1</jackson.version>
+        <jackson.databind.version>2.13.1</jackson.databind.version>
         <bouncycastle.version>1.61</bouncycastle.version>
         <sardine.version>5.10</sardine.version>
         <saxon.version>9.8.0-14</saxon.version>
