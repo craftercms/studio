@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,12 +23,10 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v2.dal.PublishRequest;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -64,8 +62,6 @@ public interface DeploymentService {
 
     List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
                                           boolean subAscending, String filterType) throws ServiceLayerException;
-
-    Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 
     void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceLayerException;
 
