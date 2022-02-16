@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,7 @@
 }(this, (function (exports, rxjs, operators, utils, models, ajax) { 'use strict';
 
     /*
-     * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+     * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
      *
      * This program is free software: you can redistribute it and/or modify
      * it under the terms of the GNU General Public License version 3 as published by
@@ -36,7 +36,7 @@
      */
 
     /*
-     * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+     * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
      *
      * This program is free software: you can redistribute it and/or modify
      * it under the terms of the GNU Lesser General Public License version 3
@@ -498,7 +498,7 @@
     })(typeof commonjsGlobal !== 'undefined' ? commonjsGlobal : (typeof window !== 'undefined' ? window : commonjsGlobal));
 
     /*
-     * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+     * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
      *
      * This program is free software: you can redistribute it and/or modify
      * it under the terms of the GNU Lesser General Public License version 3
@@ -553,7 +553,7 @@
     };
 
     /*
-     * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+     * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
      *
      * This program is free software: you can redistribute it and/or modify
      * it under the terms of the GNU Lesser General Public License version 3

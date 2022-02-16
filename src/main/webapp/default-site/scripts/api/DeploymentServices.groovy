@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -35,11 +35,6 @@ class DeploymentServices {
     static getScheduledItems(context, site, sort, ascending, subSort, subAscending, filterType) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
-    }
-
-    static getAvailablePublishingChannelGroups(context, site, path) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.getAvailablePublishingChannelGroups(site, path)
     }
 
     static bulkGoLive(context, site, environment, path, comment) {

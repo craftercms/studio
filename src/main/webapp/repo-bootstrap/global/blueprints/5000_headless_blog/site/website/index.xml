@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -24,7 +24,7 @@
 	<internal-name>Item Explorer</internal-name>
 	<orderDefault_f>-1</orderDefault_f>
 	<body_html>&lt;p&gt;This sample site allows you to manage a blog using multiple authors, categories and tags for the posts.&lt;/p&gt;
-		&lt;p&gt;All content is retrieved using &lt;a href="https://github.com/craftercms/craftercms-sdk-js/tree/master/packages/search" target="_blank" rel="noopener"&gt;Crafter CMS SDK&lt;/a&gt; for javascript (search package).&lt;/p&gt;
+		&lt;p&gt;All content is retrieved using &lt;a href="https://github.com/craftercms/craftercms-sdk-js/tree/master/packages/search" target="_blank" rel="noopener"&gt;CrafterCMS SDK&lt;/a&gt; for javascript (search package).&lt;/p&gt;
 		&lt;p&gt;To search for content (documentation in &lt;a href="https://github.com/craftercms/craftercms-sdk-js/tree/master/packages/search" target="_blank" rel="noopener"&gt;here&lt;/a&gt;) using Elasticsearch,&amp;nbsp; use the following content types in query:&lt;/p&gt;
 		&lt;ul&gt;
 		&lt;li&gt;'/component/author'&lt;/li&gt;

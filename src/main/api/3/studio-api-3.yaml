@@ -14,7 +14,7 @@ info:
     name: GPL 3.0
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
-  description: Crafter CMS - Studio
+  description: CrafterCMS - Studio
   url: 'https://docs.craftercms.org/en/3.0/developers/projects/studio/index.html'
 tags:
   - name: user
