@@ -17,7 +17,7 @@ package org.craftercms.studio.api.v1.constant;
 
 
 /**
- * Tag names used by Crafter CMS XML representation of content objects
+ * Tag names used by CrafterCMS XML representation of content objects
  */
 public final class DmXmlConstants {
 
