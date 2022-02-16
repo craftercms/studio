@@ -29,6 +29,7 @@
       class="icon ${item.social_media_s}"
       $field="social_media_links_o.url_s,social_media_links_o.social_media_s"
       $index=index
+      target="_blank"
     />
   </@crafter.renderRepeatGroup>
 </@crafter.header>
