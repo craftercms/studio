@@ -633,9 +633,8 @@
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
     </bean>
 
     <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,10 +17,12 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.APPROVER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CANCELLED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE_CLASS;
@@ -34,7 +36,9 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_TARGET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCHEDULED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES;
@@ -153,4 +157,74 @@ public interface PublishRequestDAO {
     void cancelScheduledQueueItems(@Param(SITE_ID) String siteId, @Param(PATHS) List<String> paths,
                                    @Param(NOW) ZonedDateTime now, @Param(CANCELLED_STATE) String cancelledState,
                                    @Param(READY_STATE) String readyState);
+
+    /**
+     * Get number of scheduled publishing packages results for given filters
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param scheduledState scheduled state
+     * @param fromDate get history from date
+     * @param toDate get history to date
+     * @return total number of results
+     */
+    int getPublishingPackagesScheduledTotal(@Param(SITE_ID) String siteId,
+                                            @Param(PUBLISHING_TARGET) String publishingTarget,
+                                            @Param(SCHEDULED_STATE) String scheduledState,
+                                            @Param(FROM_DATE) ZonedDateTime fromDate,
+                                            @Param(TO_DATE) ZonedDateTime toDate);
+    /**
+     * Get scheduled publishing packages
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param scheduledState scheduled state
+     * @param fromDate get history from date
+     * @param toDate get history to date
+     * @param offset offset for pagination
+     * @param limit number of records to return
+     * @return
+     */
+    List<DashboardPublishingPackage> getPublishingPackagesScheduled(@Param(SITE_ID) String siteId,
+                                                                    @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                                    @Param(SCHEDULED_STATE) String scheduledState,
+                                                                    @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                                    @Param(TO_DATE) ZonedDateTime toDate,
+                                                                    @Param(OFFSET) int offset,
+                                                                    @Param(LIMIT) int limit);
+
+    /**
+     * Get number of publishing packages history results for given filters
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param approver approver
+     * @param completedState completed state
+     * @param fromDate get history from date
+     * @param toDate get history to date
+     * @return total number of results
+     */
+    int getPublishingPackagesHistoryTotal(@Param(SITE_ID) String siteId,
+                                          @Param(PUBLISHING_TARGET) String publishingTarget,
+                                          @Param(APPROVER) String approver,
+                                          @Param(COMPLETED_STATE) String completedState,
+                                          @Param(FROM_DATE) ZonedDateTime fromDate,
+                                          @Param(TO_DATE) ZonedDateTime toDate);
+    /**
+     * Get deployment history
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param approver approver
+     * @param completedState completed state
+     * @param fromDate get history from date
+     * @param toDate get history to date
+     * @param offset offset for pagination
+     * @param limit number of records to return
+     * @return
+     */
+    List<DashboardPublishingPackage> getPublishingPackagesHistory(@Param(SITE_ID) String siteId,
+                                                                  @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                                  @Param(APPROVER) String approver,
+                                                                  @Param(COMPLETED_STATE) String completedState,
+                                                                  @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                                  @Param(TO_DATE) ZonedDateTime toDate,
+                                                                  @Param(OFFSET) int offset,
+                                                                  @Param(LIMIT) int limit);
 }

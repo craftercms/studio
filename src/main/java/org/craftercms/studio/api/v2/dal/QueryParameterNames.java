@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -170,6 +170,12 @@ public final class  QueryParameterNames {
     public static final String STAGING_ENVIRONMENT = "stagingEnvironment";
 
     public static final String LIVE_ENVIRONMENT = "liveEnvironment";
+
+    public static final String APPROVER = "approver";
+
+    public static final String PUBLISHING_TARGET = "publishingTarget";
+
+    public static final String SCHEDULED_STATE  = "scheduledState";
 
     /* Audit */
     public static final String ACTIONS = "actions";

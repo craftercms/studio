@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -46,6 +46,22 @@
         <result property="scheduledDate" column="scheduleddate" />
         <result property="user" column="username" />
         <result property="comment" column="submissioncomment"/>
+    </resultMap>
+
+    <resultMap id="DashboardPublishingPackageMap" type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
+        <result property="id" column="package_id" />
+        <result property="label" column="label" />
+        <result property="size" column="site" />
+        <result property="publishingTarget" column="environment" />
+        <result property="schedule" column="published_on" />
+        <association property="person" resultMap="PersonMap" />
+    </resultMap>
+
+    <resultMap id="PersonMap" type="org.craftercms.studio.model.rest.Person">
+        <result property="username" column="username"/>
+        <result property="firstName" column="first_name" />
+        <result property="lastName" column="last_name" />
+        <result property="avatar" column="avatar" />
     </resultMap>
 
     <select id="getPublishingPackagesTotal" resultType="int">
@@ -157,4 +173,80 @@
             #{path}
         </foreach>
     </update>
+
+    <select id="getPublishingPackagesScheduledTotal" resultType="int">
+        SELECT count(pr.package_id)
+        FROM publish_request pr
+        WHERE pr.site = #{siteId}
+        AND pr.state = #{scheduledState}
+        <if test="toDate != null" >
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
+        </if>
+        <if test="fromDate != null">
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
+        </if>
+        <if test="environment != null">
+            AND pr.environment = #{publishingTarget}
+        </if>
+        GROUP BY pr.package_id
+    </select>
+
+    <select id="getPublishingPackagesScheduled" resultMap="DashboardPublishingPackageMap">
+        SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id,
+        IFNULL(pr.published_on, pr.scheduleddate) as published_on, u.first_name, u.last_name, u.avatar
+        FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
+        WHERE pr.site = #{siteId}
+        AND pr.state = #{scheduledState}
+        <if test="toDate != null" >
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
+        </if>
+        <if test="fromDate != null">
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
+        </if>
+        <if test="environment != null">
+            AND pr.environment = #{publishingTarget}
+        </if>
+        GROUP BY pr.package_id
+        ORDER BY IFNULL(pr.published_on, pr.scheduleddate) DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="getPublishingPackagesHistoryTotal" resultType="int">
+        SELECT count(pr.package_id)
+        FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
+        WHERE pr.site = #{siteId}
+        AND pr.username = #{approver}
+        AND pr.state = #{completedState}
+        <if test="toDate != null" >
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
+        </if>
+        <if test="fromDate != null">
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
+        </if>
+        <if test="environment != null">
+            AND pr.environment = #{publishingTarget}
+        </if>
+        GROUP BY pr.package_id
+    </select>
+
+    <select id="getPublishingPackagesHistory" resultMap="DashboardPublishingPackageMap">
+        SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id,
+        IFNULL(pr.published_on, pr.scheduleddate) as published_on, u.first_name, u.last_name, u.avatar
+        FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
+        WHERE pr.site = #{siteId}
+        AND pr.username = #{approver}
+        AND pr.state = #{completedState}
+        <if test="toDate != null" >
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
+        </if>
+        <if test="fromDate != null">
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
+        </if>
+        <if test="environment != null">
+        AND pr.environment = #{publishingTarget}
+        </if>
+        GROUP BY pr.package_id
+        ORDER BY IFNULL(pr.published_on, pr.scheduleddate) DESC
+        LIMIT #{offset}, #{limit}
+    </select>
 </mapper>

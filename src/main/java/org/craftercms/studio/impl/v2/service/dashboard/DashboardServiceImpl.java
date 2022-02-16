@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,89 +16,91 @@
 
 package org.craftercms.studio.impl.v2.service.dashboard;
 
+
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
-import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
-import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
+import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public class DashboardServiceImpl implements DashboardService {
 
-    private AuditServiceInternal auditServiceInternal;
     private PublishServiceInternal publishServiceInternal;
-    private ItemServiceInternal itemServiceInternal;
+    private ContentServiceInternal contentServiceInternal;
 
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getAuditDashboardTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String user,
-                                      List<String> operations, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                      String target) {
-        return auditServiceInternal.getAuditDashboardTotal(siteId, user, operations, dateFrom, dateTo, target);
+    public int getPublishingScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
+                                           ZonedDateTime dateTo) {
+        return publishServiceInternal.getPublishingPackagesScheduledTotal(siteId, publishingTarget, dateFrom, dateTo);
     }
 
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<AuditLog> getAuditDashboard(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset,
-                                            int limit, String user, List<String> operations, ZonedDateTime dateFrom,
-                                            ZonedDateTime dateTo, String target, String sort, String order) {
-        return auditServiceInternal.getAuditDashboard(siteId, offset, limit, user, operations, dateFrom, dateTo, target,
-                sort, order);
+    public List<DashboardPublishingPackage> getPublishingScheduled(String siteId, String publishingTarget,
+                                                                   ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                                   int offset, int limit) {
+        return publishServiceInternal.getPublishingPackagesScheduled(siteId, publishingTarget, dateFrom, dateTo,
+                offset, limit);
     }
 
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getContentDashboardTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
-                                        String modifier, String contentType, long state, ZonedDateTime dateFrom,
-                                        ZonedDateTime dateTo) {
-        return itemServiceInternal.getContentDashboardTotal(siteId, path, modifier, contentType, state, dateFrom,
+    public List<SandboxItem> getPublishingScheduledDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String sitId,
+                                                        String publishingPackageId) throws UserNotFoundException, ServiceLayerException {
+        var publishingPackageDetails =
+                publishServiceInternal.getPublishingPackageDetails(sitId, publishingPackageId);
+        var paths = publishingPackageDetails.getItems().stream()
+                .map(PublishingPackageDetails.PublishingPackageItem::getPath)
+                .collect(Collectors.toList());
+        return contentServiceInternal.getSandboxItemsByPath(sitId, paths, true);
+    }
+
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    @Override
+    public int getPublishingHistoryTotal(String siteId, String publishingTarget, String approver,
+                                         ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return publishServiceInternal.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, dateFrom,
                 dateTo);
     }
 
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<ContentDashboardItem> getContentDashboard(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                          String path, String modifier, String contentType, long state,
-                                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, String sortBy,
-                                                          String order, int offset, int limit) {
-        return itemServiceInternal.getContentDashboard(siteId, path, modifier, contentType, state, dateFrom, dateTo,
-                sortBy, order, offset, limit);
+    public List<DashboardPublishingPackage> getPublishingHistory(String siteId, String publishingTarget,
+                                                                 String approver, ZonedDateTime dateFrom,
+                                                                 ZonedDateTime dateTo, int offset, int limit) {
+        return publishServiceInternal.getPublishingPackagesHistory(siteId, publishingTarget, approver, dateFrom,
+                dateTo, offset, limit);
     }
 
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getPublishingHistoryTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
-                                         String path, String publisher, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                         String contentType, long state) {
-        return publishServiceInternal.getPublishingHistoryTotal(siteId, environment, path, publisher, dateFrom, dateTo,
-                contentType, state);
-    }
-
-    @Override
-    public List<PublishingDashboardItem> getPublishingHistory(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                              String environment, String path, String publisher,
-                                                              ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                              String contentType, long state, String sortBy,
-                                                              String order, int offset, int limit) {
-        List<PublishingHistoryItem> publishingHistoryItems = publishServiceInternal.getPublishingHistory(siteId,
-                environment, path, publisher, dateFrom, dateTo, contentType, state, sortBy, order, offset, limit);
-        return publishingHistoryItems
-                .stream()
-                .map(itemServiceInternal::convertHistoryItemToDashboardItem)
+    public List<SandboxItem> getPublishingHistoryDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String sitId,
+                                                        String publishingPackageId) throws UserNotFoundException, ServiceLayerException {
+        var publishingPackageDetails =
+                publishServiceInternal.getPublishingPackageDetails(sitId, publishingPackageId);
+        var paths = publishingPackageDetails.getItems().stream()
+                .map(PublishingPackageDetails.PublishingPackageItem::getPath)
                 .collect(Collectors.toList());
+        return contentServiceInternal.getSandboxItemsByPath(sitId, paths, true);
     }
 
+    @Override
+    public void getPublishingStats() {
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
-    public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
-        this.auditServiceInternal = auditServiceInternal;
     }
 
     public PublishServiceInternal getPublishServiceInternal() {
@@ -109,11 +111,11 @@ public class DashboardServiceImpl implements DashboardService {
         this.publishServiceInternal = publishServiceInternal;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
+    public ContentServiceInternal getContentServiceInternal() {
+        return contentServiceInternal;
     }
 
-    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
-        this.itemServiceInternal = itemServiceInternal;
+    public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
     }
 }
