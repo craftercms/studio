@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -22,7 +22,6 @@ import java.util.Arrays;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.Asset;
 import org.craftercms.commons.plugin.model.BlueprintDescriptor;
-import org.craftercms.commons.plugin.model.Build;
 import org.craftercms.commons.plugin.model.Contact;
 import org.craftercms.commons.plugin.model.CrafterCmsEditions;
 import org.craftercms.commons.plugin.model.Developer;
@@ -68,11 +67,6 @@ public class DescriptorV2UpgradeOperation extends AbstractPluginDescriptorUpgrad
         pluginVersion.setMinor(blueprint.getVersion().getMinor());
         pluginVersion.setPatch(blueprint.getVersion().getPatch());
         plugin.setVersion(pluginVersion);
-
-        Build build = new Build();
-        build.setId(blueprint.getBuild().getId());
-        build.setDate(blueprint.getBuild().getDate());
-        plugin.setBuild(build);
 
         Link license = new Link();
         license.setName(blueprint.getLicense().getName());

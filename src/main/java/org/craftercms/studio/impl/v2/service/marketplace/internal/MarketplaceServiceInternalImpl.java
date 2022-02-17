@@ -236,12 +236,12 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected HttpHeaders httpHeaders;
 
     /**
-     * The current Crafter CMS version, sent with all requests
+     * The current CrafterCMS version, sent with all requests
      */
     protected String version;
 
     /**
-     * The current Crafter CMS edition, sent with all requests
+     * The current CrafterCMS edition, sent with all requests
      */
     protected String edition;
 

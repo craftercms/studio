@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -306,12 +306,12 @@
               <iceId>hero</iceId>
               <title>Social Media</title>
               <description></description>
-              <defaultValue></defaultValue>
+              <defaultValue>fa solid fa-exclamation-circle</defaultValue>
               <help></help>
               <properties>
                 <property>
                   <name>datasource</name>
-                  <value>brandIcons</value>
+                  <value>socialMediaIcons</value>
                   <type>datasource:item</type>
                 </property>
                 <property>
@@ -339,7 +339,7 @@
               <iceId>hero</iceId>
               <title>URL</title>
               <description></description>
-              <defaultValue></defaultValue>
+              <defaultValue>#</defaultValue>
               <help></help>
               <properties>
                 <property>
@@ -410,21 +410,19 @@
     </datasource>
     <datasource>
       <type>site-component</type>
-      <id>brandIcons</id>
-      <title>Brand Icons</title>
+      <id>socialMediaIcons</id>
+      <title>Social Media Icons</title>
       <interface>item</interface>
       <properties>
         <property>
           <name>dataType</name>
-          <value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;Data
-            Type&quot;,&quot;selected&quot;:false}]
-          </value>
-          <type>undefined</type>
+          <value>[{&quot;value&quot;:&quot;value&quot;,&quot;label&quot;:&quot;&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_s&quot;,&quot;label&quot;:&quot;String&quot;,&quot;selected&quot;:true},{&quot;value&quot;:&quot;value_i&quot;,&quot;label&quot;:&quot;Integer&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_f&quot;,&quot;label&quot;:&quot;Float&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_dt&quot;,&quot;label&quot;:&quot;Date&quot;,&quot;selected&quot;:false},{&quot;value&quot;:&quot;value_html&quot;,&quot;label&quot;:&quot;Data Type&quot;,&quot;selected&quot;:false}]</value>
+          <type>dropdown</type>
         </property>
         <property>
           <name>componentPath</name>
-          <value>/site/taxonomy/brand-icons.xml</value>
-          <type>undefined</type>
+          <value>/site/taxonomy/social-media-networks.xml</value>
+          <type>string</type>
         </property>
       </properties>
     </datasource>

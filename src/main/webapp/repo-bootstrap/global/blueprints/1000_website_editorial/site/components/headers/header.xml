@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -36,8 +36,8 @@
       <social_media_s>brands fa-twitter</social_media_s>
     </item>
     <item>
-      <social_media_s>brands fa-google-plus</social_media_s>
-      <url_s>http://plus.google.com</url_s>
+      <social_media_s>brands fa-github</social_media_s>
+      <url_s>http://github.com</url_s>
     </item>
   </social_media_links_o>
   <createdDate>2017-2-3T23:27:50.000Z</createdDate>

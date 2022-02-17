@@ -13,7 +13,7 @@ info:
     name: GPL 3.0
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
-  description: Crafter CMS - Studio
+  description: CrafterCMS - Studio
   url: 'https://docs.craftercms.org/en/3.1/developers/projects/studio/index.html'
 tags:
   - name: groups
@@ -7708,25 +7708,16 @@ components:
                 $ref: '#/components/schemas/Link'
             company:
               $ref: '#/components/schemas/Link'
-        build:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Build id of the plugin
-            date:
-              type: string
-              description: Build date of the plugin
         license:
           $ref: '#/components/schemas/Link'
         crafterCmsVersions:
           type: array
-          description: The supported Crafter CMS versions of the plugin
+          description: The supported CrafterCMS versions of the plugin
           items:
             $ref: '#/components/schemas/Version'
         crafterCmsEditions:
           type: array
-          description: The supported Crafter CMS editions of the plugin
+          description: The supported CrafterCMS editions of the plugin
           items:
             type: string
         parameters:
@@ -8644,7 +8635,7 @@ components:
         systemType:
           type: string
           format: page, component, asset, levelDescriptor, folder
-          description: type of item in crafter CMS domain
+          description: type of item in CrafterCMS domain
         mimeType:
           type: string
           description: mime-type of content item file
