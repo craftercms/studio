@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+  <content-type>/taxonomy</content-type>
+  <display-template/>
+  <no-template-required/>
+  <merge-strategy>inherit-levels</merge-strategy>
+  <objectGroupId>7561</objectGroupId>
+  <objectId>7561cc78-860d-d91c-4ddc-6800cc5322ee</objectId>
+  <items item-list="true">
+    <item>
+      <key>brands fa-facebook</key>
+      <value>Facebook</value>
+    </item>
+    <item>
+      <key>brands fa-twitter</key>
+      <value>Twitter</value>
+    </item>
+    <item>
+      <key>brands fa-linkedin</key>
+      <value>LinkedIn</value>
+    </item>
+    <item>
+      <key>brands fa-github</key>
+      <value>Github</value>
+    </item>
+    <item>
+      <key>brands fa-instagram</key>
+      <value>Instagram</value>
+    </item>
+    <item>
+      <key>brands fa-pinterest</key>
+      <value>Pinterest</value>
+    </item>
+    <item>
+      <key>brands fa-youtube</key>
+      <value>Youtube</value>
+    </item>
+    <item>
+      <key>brands fa-snapchat</key>
+      <value>Snapchat</value>
+    </item>
+    <item>
+      <key>brands fa-vimeo</key>
+      <value>Vimeo</value>
+    </item>
+  </items>
+  <internal-name>Social Media Networks</internal-name>
+  <file-name>social-media-networks.xml</file-name>
+  <folder-name/>
+  <createdDate>2022-02-15T22:37:27.071Z</createdDate>
+  <createdDate_dt>2022-02-15T22:37:27.071Z</createdDate_dt>
+  <lastModifiedDate>2022-02-15T22:37:27.071Z</lastModifiedDate>
+  <lastModifiedDate_dt>2022-02-15T22:37:27.071Z</lastModifiedDate_dt>
+</component>
