@@ -47,6 +47,7 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
+import org.craftercms.studio.permissions.PermissionOrOwnership;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -241,7 +242,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ITEM_UNLOCK)
+    @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
     public void itemUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         contentServiceInternal.itemUnlockByPath(siteId, path);
@@ -249,7 +250,7 @@ public class ContentServiceImpl implements ContentService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ITEM_UNLOCK)
+    @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
     public void itemUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId) {
         contentServiceInternal.itemUnlockById(siteId, itemId);
         itemServiceInternal.unlockItemById(itemId);

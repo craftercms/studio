@@ -37,11 +37,6 @@ class SpringDeploymentServices {
         return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
     }
 
-    def getAvailablePublishingChannelGroups(site, path) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.getAvailablePublishingChannelGroups(site, path)
-    }
-
     def syncAllContentToPreview(site) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.syncAllContentToPreview(site, false)
