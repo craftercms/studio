@@ -820,7 +820,7 @@ public class GitContentRepository implements ContentRepository {
             }
 
             if (toReturn) {
-                toReturn = helper.addGitIgnoreFile(site);
+                toReturn = helper.addGitIgnoreFiles(site);
             }
 
             if (toReturn) {
