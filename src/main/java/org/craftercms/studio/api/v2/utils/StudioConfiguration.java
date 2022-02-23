@@ -57,7 +57,7 @@ public interface StudioConfiguration {
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";
     String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
             "studio.repo.pullFromRemote.conflict.notificationEnabled";
-    String REPO_DEFAULT_IGNORE_FILE = "studio.repo.defaultIgnoreFile";
+    String REPO_IGNORE_FILES = "studio.repo.ignoreFiles";
     String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
     String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
 

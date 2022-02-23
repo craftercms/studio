@@ -17,9 +17,11 @@
 package org.craftercms.studio.api.v2.utils;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -79,12 +81,12 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -94,7 +96,6 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -119,8 +120,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -133,6 +134,9 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
 public class GitRepositoryHelper {
+
+    public static final String CONFIG_KEY_RESOURCE = "resource";
+    public static final String CONFIG_KEY_FOLDER = "folder";
 
     private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
 
@@ -702,30 +706,45 @@ public class GitRepositoryHelper {
         }
     }
 
-    public boolean addGitIgnoreFile(String siteId) {
-        String defaultFileLocation = studioConfiguration.getProperty(REPO_DEFAULT_IGNORE_FILE);
-        ClassPathResource defaultFile = new ClassPathResource(defaultFileLocation);
-        if (defaultFile.exists()) {
-            logger.debug("Adding ignore file for site {0}", siteId);
-            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
-            Path sourcesFolder = siteSandboxPath.resolve(GitContentRepositoryConstants.SOURCES_FOLDER);
-            if (Files.exists(sourcesFolder)) {
-                Path ignoreFile = sourcesFolder.resolve(GitContentRepositoryConstants.IGNORE_FILE);
-                if (!Files.exists(ignoreFile)) {
-                    try (OutputStream out = Files.newOutputStream(ignoreFile, StandardOpenOption.CREATE);
-                         InputStream in = defaultFile.getInputStream()) {
-                        IOUtils.copy(in, out);
-                    } catch (IOException e) {
-                        logger.error("Error writing ignore file for site {0}", e, siteId);
-                        return false;
-                    }
-                } else {
-                    logger.debug("Repository already contains an ignore file for site {0}", siteId);
-                }
-            }
-        } else {
-            logger.warn("Could not find the default ignore file at {0}", defaultFileLocation);
+    public boolean addGitIgnoreFiles(String siteId) {
+        List<HierarchicalConfiguration<ImmutableNode>> ignores = studioConfiguration.getSubConfigs(REPO_IGNORE_FILES);
+        if (CollectionUtils.isEmpty(ignores)) {
+            logger.debug("No ignore files will be added to site {0}", siteId);
+            return true;
         }
+
+        logger.debug("Adding ignore files for site {0}", siteId);
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
+
+        for (HierarchicalConfiguration<ImmutableNode> ignore : ignores) {
+            String ignoreLocation = ignore.getString(CONFIG_KEY_RESOURCE);
+            Resource ignoreFile = new ClassPathResource(ignoreLocation);
+            if (!ignoreFile.exists()) {
+                logger.warn("Couldn't find ignore file at {0}", ignoreLocation);
+                continue;
+            }
+
+            String repoFolder = ignore.getString(CONFIG_KEY_FOLDER);
+            Path actualFolder = StringUtils.isEmpty(repoFolder)? siteSandboxPath : siteSandboxPath.resolve(repoFolder);
+            if (!Files.exists(actualFolder)) {
+                logger.debug("Repository doesn't contain a {0} folder for site {1}", repoFolder, siteId);
+                continue;
+            }
+
+            Path actualFile = actualFolder.resolve(GitContentRepositoryConstants.IGNORE_FILE);
+            if (!Files.exists(actualFile)) {
+                logger.debug("Adding ignore file at {0} for site {1}", repoFolder, siteId);
+                try (InputStream in = ignoreFile.getInputStream()) {
+                    Files.copy(in, actualFile);
+                } catch (IOException e) {
+                    logger.error("Error writing ignore file at {0} for site {1}", e, repoFolder, siteId);
+                    return false;
+                }
+            } else {
+                logger.debug("Repository already contains an ignore file at {0} for site {1}", actualFolder, siteId);
+            }
+        }
+
         return true;
     }
 
