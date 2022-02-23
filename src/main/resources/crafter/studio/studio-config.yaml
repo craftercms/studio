@@ -57,6 +57,8 @@ studio.repo.createRepository.commitMessage: "Create new repository."
 studio.repo.createSandboxBranch.commitMessage: "Create {sandbox} branch."
 # Initial commit message
 studio.repo.initialCommit.commitMessage: "Initial commit."
+# Initial publish commit message
+studio.repo.initialPublish.commitMessage: "Initial publish."
 # Create as orphan commit message
 studio.repo.createAsOrphan.commitMessage: "Created as orphan."
 # Blueprints updated commit message
