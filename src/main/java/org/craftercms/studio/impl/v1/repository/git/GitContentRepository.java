@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1002,7 +1003,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 Repository repo = helper.getRepository(EMPTY, GLOBAL);
                 try (Git git = new Git(repo)) {
                     for (ClusterMember remoteNode : clusterNodes) {
-                        syncFromRemote(git, remoteNode);
+                        if (remoteNode.getState().equals(ClusterMember.State.ACTIVE)) {
+                            syncFromRemote(git, remoteNode);
+                        }
                     }
                 }
             }
@@ -1066,6 +1069,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 pullCommand.call();
 
                 Files.delete(tempKey);
+            } catch (UnknownHostException | TransportException e) {
+                logger.error("Unable to reach " + remoteNode.getGitRemoteName() + " to sync with remote repository." +
+                        "Skipping sync with remote repository " + remoteNode.getGitRemoteName());
             } finally {
                 generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
             }
