@@ -20,6 +20,7 @@ package org.craftercms.studio.api.v2.service.dashboard;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
@@ -29,6 +30,79 @@ import java.util.List;
  * Service that process requests for Dashboard API
  */
 public interface DashboardService {
+
+    /**
+     * Get total number of result for activities of given users
+     *
+     * @param siteId site identifier
+     * @param usernames list of usernames
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of results
+     */
+    int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    /**
+     * Get activities for users
+     *
+     * @param siteId site identifier
+     * @param usernames list of usernames
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return
+     */
+    List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateFrom,
+                                          ZonedDateTime dateTo, int offset, int limit);
+
+    /**
+     * Get total number of result for my activities
+     *
+     * @param siteId site identifier
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of results
+     */
+    int getMyActivitiesTotal(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    /**
+     * Get my activities
+     *
+     * @param siteId site identifier
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return
+     */
+    List<Activity> getMyActivities(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+
+    /**
+     * Get total number of content packages pending approval
+     * @param siteId site identifier
+     * @return number of results to return
+     */
+    int getContentPendingApprovalTotal(String siteId);
+
+    /**
+     * Get content packages 
+     * @param siteId
+     * @param offset
+     * @param limit
+     * @return
+     */
+    List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit);
+
+    /**
+     * Get content pending approval package details
+     *
+     * @param sitId site identifier
+     * @param publishingPackageId publishing package identifier
+     * @return list of sandbox items included in given package
+     */
+    List<SandboxItem> getContentPendingApprovalDetail(String sitId, String publishingPackageId)
+            throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Get total number of result for publishing scheduled with given filters

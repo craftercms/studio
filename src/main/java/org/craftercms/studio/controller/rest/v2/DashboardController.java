@@ -24,6 +24,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -59,6 +60,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.P
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SCHEDULED;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UNPUBLISHED;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ACTIVITIES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGE_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -81,7 +83,18 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
-        ResponseBody response = new ResponseBody();
+        var total = dashboardService.getActivitiesForUsersTotal(siteId, usernames, dateFrom, dateTo);
+        var activities =
+                dashboardService.getActivitiesForUsers(siteId, usernames, dateFrom, dateTo, offset, limit);
+
+        var response = new ResponseBody();
+        var result = new PaginatedResultList<Activity>();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isNotEmpty(activities) ? activities.size() : 0);
+        result.setEntities(RESULT_KEY_ACTIVITIES, activities);
+        result.setResponse(OK);
+        response.setResult(result);
         return response;
     }
 
@@ -95,7 +108,18 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
-        ResponseBody response = new ResponseBody();
+        var total = dashboardService.getMyActivitiesTotal(siteId, dateFrom, dateTo);
+        var activities =
+                dashboardService.getMyActivities(siteId, dateFrom, dateTo, offset, limit);
+
+        var response = new ResponseBody();
+        var result = new PaginatedResultList<Activity>();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isNotEmpty(activities) ? activities.size() : 0);
+        result.setEntities(RESULT_KEY_ACTIVITIES, activities);
+        result.setResponse(OK);
+        response.setResult(result);
         return response;
     }
 
@@ -105,16 +129,31 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
-        ResponseBody response = new ResponseBody();
+        var total = dashboardService.getContentPendingApprovalTotal(siteId);
+        var packages = dashboardService.getContentPendingApproval(siteId, offset, limit);
+
+        var response = new ResponseBody();
+        var result = new PaginatedResultList<DashboardPublishingPackage>();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isNotEmpty(packages) ? packages.size() : 0);
+        result.setEntities(RESULT_KEY_PUBLISHING_PACKAGES, packages);
+        result.setResponse(OK);
+        response.setResult(result);
         return response;
     }
 
     @GetMapping(value = CONTENT + PENDING_APPROVAL + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentPendingApprovalDetail(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @PathVariable(REQUEST_PARAM_ID) String packageId) {
+            @PathVariable(REQUEST_PARAM_ID) String packageId) throws UserNotFoundException, ServiceLayerException {
 
-        ResponseBody response = new ResponseBody();
+        var items = dashboardService.getContentPendingApprovalDetail(siteId, packageId);
+        var response = new ResponseBody();
+        var result = new ResultList<SandboxItem>();
+        result.setEntities(RESULT_KEY_PUBLISHING_PACKAGE_ITEMS, items);
+        result.setResponse(OK);
+        response.setResult(result);
         return response;
     }
 

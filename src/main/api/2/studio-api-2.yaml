@@ -9077,8 +9077,8 @@ components:
           format: int64
           description: item ID that operation was performed against
         packageId:
-          type: integer
-          format: int64
+          type: string
+          format: UUID
           description: package ID that operation was performed against
       required:
         - id

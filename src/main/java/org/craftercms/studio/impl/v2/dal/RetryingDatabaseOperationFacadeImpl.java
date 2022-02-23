@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
+import org.craftercms.studio.api.v2.dal.ActivityStreamDAO;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
@@ -63,6 +64,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     private SecurityDAO securityDao;
     private UserDAO userDao;
     private WorkflowDAO workflowDao;
+    private ActivityStreamDAO activityStreamDAO;
 
     // Dependency API v1
     @Override
@@ -623,6 +625,13 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         workflowDao.deleteWorkflowEntriesForSite(siteId);
     }
 
+    // Activity Stream
+    @Override
+    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, long itemId,
+                               String packageId) {
+        activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, itemId, packageId);
+    }
+
     public DependencyMapper getDependencyMapper() {
         return dependencyMapper;
     }
@@ -733,5 +742,13 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     public void setWorkflowDao(WorkflowDAO workflowDao) {
         this.workflowDao = workflowDao;
+    }
+
+    public ActivityStreamDAO getActivityStreamDAO() {
+        return activityStreamDAO;
+    }
+
+    public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
+        this.activityStreamDAO = activityStreamDAO;
     }
 }

@@ -76,6 +76,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -182,6 +183,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ContentServiceInternal contentServiceInternal;
     protected PublishServiceInternal publishServiceInternal;
+    protected ActivityStreamServiceInternal activityStreamServiceInternal;
 
     @Override
     @ValidateParams
@@ -257,6 +259,13 @@ public class WorkflowServiceImpl implements WorkflowService {
                 auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                 auditLog.setPrimaryTargetValue(site);
                 auditServiceInternal.insertAuditLog(auditLog);
+
+                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(site, submittedPaths.get(0));
+                User user = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
+                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(),
+                        OPERATION_REQUEST_PUBLISH, DateUtils.getCurrentTime(), null,
+                        workflow.getPublishingPackageId());
+
                 result.setSuccess(true);
                 result.setStatus(200);
                 result.setMessage(notificationService.getNotificationMessage(site,
@@ -991,6 +1000,16 @@ public class WorkflowServiceImpl implements WorkflowService {
                             auditLog.setOperation(OPERATION_APPROVE);
                         }
                         auditServiceInternal.insertAuditLog(auditLog);
+
+                        User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
+                        List<String> workflowPackages = goLivePaths.stream().map(path -> {
+                            WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(site, path);
+                            return wi.getPublishingPackageId();
+                        }).distinct().collect(Collectors.toList());
+                        workflowPackages.forEach( packageId ->
+                            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(),
+                                    auditLog.getOperation(), DateUtils.getCurrentTime(), null, packageId)
+                        );
                     }
 
                     if (!renameItems.isEmpty()) {
@@ -1058,7 +1077,7 @@ public class WorkflowServiceImpl implements WorkflowService {
             result.setMessage(notificationService.getNotificationMessage(site, NotificationMessageType.CompleteMessages,
                     responseMessageKey));
 
-        } catch (JSONException | ServiceLayerException e) {
+        } catch (JSONException | ServiceLayerException | UserNotFoundException e) {
             logger.error("error performing operation " + operation + " " + e);
 
             result.setSuccess(false);
@@ -2126,6 +2145,10 @@ public class WorkflowServiceImpl implements WorkflowService {
                     auditLogParameters.add(auditLogParameter);
                 }
                 itemServiceInternal.setSystemProcessingBulk(site, paths, true);
+                List<String> workflowPackages = paths.stream().map(path -> {
+                    WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(site, path);
+                    return wi.getPublishingPackageId();
+                }).distinct().collect(Collectors.toList());
                 Set<String> cancelPaths = new HashSet<String>();
                 cancelPaths.addAll(paths);
                 deploymentService.cancelWorkflowBulk(site, cancelPaths);
@@ -2147,6 +2170,11 @@ public class WorkflowServiceImpl implements WorkflowService {
                 }
                 auditLog.setParameters(auditLogParameters);
                 auditServiceInternal.insertAuditLog(auditLog);
+
+                User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
+                workflowPackages.forEach(packageId ->
+                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REJECT,
+                                DateUtils.getCurrentTime(), null, packageId));
                 itemServiceInternal.setSystemProcessingBulk(site, paths, false);
                 result.setSuccess(true);
                 result.setStatus(200);
@@ -2163,7 +2191,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         return result;
     }
 
-    protected void reject(String site, List<DmDependencyTO> submittedItems, String reason, String approver) throws ServiceLayerException, UserNotFoundException {
+    protected void reject(String site, List<DmDependencyTO> submittedItems, String reason, String approver)
+            throws ServiceLayerException, UserNotFoundException {
         if (submittedItems != null) {
             // for each top level items submitted
             // add its children and dependencies that must go with the top level
@@ -2334,6 +2363,14 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
+    }
+
+    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
+        return activityStreamServiceInternal;
+    }
+
+    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

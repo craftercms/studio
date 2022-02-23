@@ -118,6 +118,7 @@
         <property name="securityDao" ref="securityDao" />
         <property name="userDao" ref="userDao" />
         <property name="workflowDao" ref="workflowDao" />
+        <property name="activityStreamDAO" ref="activityStreamDao" />
     </bean>
 
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
@@ -197,6 +198,11 @@
 
     <bean id="workflowDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.WorkflowDAO" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="activityStreamDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.ActivityStreamDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 

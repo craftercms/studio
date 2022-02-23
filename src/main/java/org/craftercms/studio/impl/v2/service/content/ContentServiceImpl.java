@@ -110,7 +110,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                  String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException {
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.addAll(getChildItems(siteId, path));
         contentToDelete.add(path);
@@ -129,7 +129,7 @@ public class ContentServiceImpl implements ContentService {
     public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException {
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         List<String> contentToDelete = new ArrayList<String>();
         contentToDelete.addAll(getChildItems(siteId, paths));
         contentToDelete.addAll(paths);

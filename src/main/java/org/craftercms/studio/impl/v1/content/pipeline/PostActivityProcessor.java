@@ -18,15 +18,22 @@ package org.craftercms.studio.impl.v1.content.pipeline;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -41,6 +48,9 @@ public class PostActivityProcessor extends BaseContentProcessor {
     protected SiteService siteService;
     protected ContentService contentService;
     protected ContentRepository contentRepository;
+    protected ActivityStreamServiceInternal activityStreamServiceInternal;
+    protected UserServiceInternal userServiceInternal;
+    protected ItemServiceInternal itemServiceInternal;
 
     /**
      * default constructor
@@ -58,7 +68,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
         super(name);
     }
 
-    public void process(PipelineContent content, ResultTO result) throws SiteNotFoundException {
+    public void process(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException {
         if (result.getCommitId() != null) {
             String site = content.getProperty(DmConstants.KEY_SITE);
             boolean skipAuditLogInsert =
@@ -87,6 +97,11 @@ public class PostActivityProcessor extends BaseContentProcessor {
                 auditLog.setPrimaryTargetValue(uri);
                 auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
                 auditServiceInternal.insertAuditLog(auditLog);
+
+                User u = userServiceInternal.getUserByIdOrUsername(-1, user);
+                Item item = itemServiceInternal.getItem(site, uri);
+                activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), activityType,
+                        DateUtils.getCurrentTime(), item.getId(), null);
             }
             contentRepository.markGitLogAudited(site, result.getCommitId());
         }
@@ -122,5 +137,29 @@ public class PostActivityProcessor extends BaseContentProcessor {
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
+        return activityStreamServiceInternal;
+    }
+
+    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

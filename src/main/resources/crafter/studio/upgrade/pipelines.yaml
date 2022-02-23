@@ -280,6 +280,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
                 dest: /configuration/samples/sample-notification-config.xml
             commitDetails: Update sample files
+      - currentVersion: 4.0.0.35
+        nextVersion: 4.0.0.36
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.35-to-4.0.0.36.sql
 
   # Pipeline to upgrade site repositories
   site:
