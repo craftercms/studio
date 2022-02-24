@@ -111,6 +111,7 @@ public enum ItemState {
     public static final long MODIFIED_MASK = MODIFIED.value;
     public static final long SUBMITTED_MASK = IN_WORKFLOW.value;
     public static final long IN_PROGRESS_MASK = NEW.value + MODIFIED.value + IN_WORKFLOW.value;
+    public static final long UNPUBLISHED_MASK = NEW.value + MODIFIED.value;
 
     private static long applyMask(long value, long onBits, long offBits) {
         return (value | onBits) & ~offBits;

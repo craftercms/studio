@@ -23,11 +23,13 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -38,6 +40,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
@@ -48,6 +51,9 @@ public class DashboardServiceImpl implements DashboardService {
     private ContentServiceInternal contentServiceInternal;
     private SecurityService securityService;
     private WorkflowServiceInternal workflowServiceInternal;
+    private ItemServiceInternal itemServiceInternal;
+
+    private static final String ALL_CONTENT_REGEX = ".*";
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
@@ -106,6 +112,24 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
+    public int getContentUnpublishedTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK);
+    }
+
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    @Override
+    public List<SandboxItem> getContentUnpublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                   int offset, int limit)
+            throws UserNotFoundException, ServiceLayerException {
+        var items =
+                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, offset, limit);
+        var ids = items.stream().map(Item::getId)
+                .collect(Collectors.toList());
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
+    }
+
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    @Override
     public int getPublishingScheduledTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                            String publishingTarget, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         return publishServiceInternal.getPublishingPackagesScheduledTotal(siteId, publishingTarget, dateFrom, dateTo);
@@ -122,15 +146,15 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<SandboxItem> getPublishingScheduledDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String sitId,
+    public List<SandboxItem> getPublishingScheduledDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                         String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException {
         var publishingPackageDetails =
-                publishServiceInternal.getPublishingPackageDetails(sitId, publishingPackageId);
+                publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
         var paths = publishingPackageDetails.getItems().stream()
                 .map(PublishingPackageDetails.PublishingPackageItem::getPath)
                 .collect(Collectors.toList());
-        return contentServiceInternal.getSandboxItemsByPath(sitId, paths, true);
+        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -207,5 +231,13 @@ public class DashboardServiceImpl implements DashboardService {
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
+    }
+
+    public ItemServiceInternal getItemServiceInternal() {
+        return itemServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

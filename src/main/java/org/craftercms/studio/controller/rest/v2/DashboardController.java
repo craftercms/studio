@@ -63,6 +63,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.U
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ACTIVITIES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGE_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_UNPUBLISHED_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -161,9 +162,19 @@ public class DashboardController {
     public ResponseBody getContentUnpublished(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
+            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws UserNotFoundException, ServiceLayerException {
 
-        ResponseBody response = new ResponseBody();
+        var total = dashboardService.getContentUnpublishedTotal(siteId);
+        var unpublishedContent = dashboardService.getContentUnpublished(siteId, offset, limit);
+
+        var response = new ResponseBody();
+        var result = new PaginatedResultList<SandboxItem>();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isNotEmpty(unpublishedContent) ? unpublishedContent.size() : 0);
+        result.setEntities(RESULT_KEY_UNPUBLISHED_ITEMS, unpublishedContent);
+        result.setResponse(OK);
+        response.setResult(result);
         return response;
     }
 

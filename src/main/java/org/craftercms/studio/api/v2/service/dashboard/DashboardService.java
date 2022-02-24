@@ -105,6 +105,23 @@ public interface DashboardService {
             throws UserNotFoundException, ServiceLayerException;
 
     /**
+     * Get total number of unpublished content
+     * @param siteId site identifier
+     * @return number of results to return
+     */
+    int getContentUnpublishedTotal(String siteId);
+
+    /**
+     * Get unpublished content items
+     * @param siteId
+     * @param offset
+     * @param limit
+     * @return
+     */
+    List<SandboxItem> getContentUnpublished(String siteId, int offset, int limit)
+            throws UserNotFoundException, ServiceLayerException;
+
+    /**
      * Get total number of result for publishing scheduled with given filters
      *
      * @param siteId site identifier

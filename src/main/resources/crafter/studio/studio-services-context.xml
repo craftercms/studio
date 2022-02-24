@@ -642,6 +642,7 @@
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">
