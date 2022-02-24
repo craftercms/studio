@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -177,32 +178,32 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * Lock items by paths for given site
+     * Lock item by path for given site
      * @param siteId site identifier
-     * @param paths list of paths to lock
+     * @param path path to lock
      */
-    void itemsLockByPath(String siteId, List<String> paths) throws UserNotFoundException, ServiceLayerException;
+    void itemLockByPath(String siteId, String path) throws UserNotFoundException, ServiceLayerException;
 
     /**
-     * Lock items by ids for given site
+     * Lock item by id for given site
      * @param siteId site identifier
-     * @param itemIds list of item identifiers
+     * @param itemId item identifier
      */
-    void itemsLockById(String siteId, List<Long> itemIds) throws UserNotFoundException, ServiceLayerException;
+    void itemLockById(String siteId, Long itemId) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Unlock item by path for given site
      * @param siteId site identifier
      * @param path item path
      */
-    void itemUnlockByPath(String siteId, String path);
+    void itemUnlockByPath(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException;
 
     /**
      * Unlock item by id for given site
      * @param siteId site identifier
      * @param itemId item identifier
      */
-    void itemUnlockById(String siteId, long itemId);
+    void itemUnlockById(String siteId, long itemId) throws ContentAlreadyUnlockedException, ContentNotFoundException;
 
     /**
      * Get content for commit id

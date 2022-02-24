@@ -85,6 +85,10 @@ public class ApiResponse {
             "Check if you sent in the right Content Id", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_ALREADY_EXISTS = new ApiResponse(7001, "Content already exists",
             "Advise the user that the content already exists", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_ALREADY_LOCKED = new ApiResponse(7002, "Content already locked",
+            "Advise the user that the content already locked", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_ALREADY_UNLOCKED = new ApiResponse(7003, "Content already unlocked",
+            "Advise the user that the content already unlocked", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",

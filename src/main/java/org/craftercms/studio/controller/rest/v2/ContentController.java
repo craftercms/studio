@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
@@ -43,8 +44,8 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.GetDeletePackageRequestBody;
 import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequestBody;
 import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequestBody;
-import org.craftercms.studio.model.rest.content.LockItemsByIdRequest;
-import org.craftercms.studio.model.rest.content.LockItemsByPathRequest;
+import org.craftercms.studio.model.rest.content.LockItemByIdRequest;
+import org.craftercms.studio.model.rest.content.LockItemByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByIdRequest;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
@@ -90,8 +91,8 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.G
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEMS_LOCK_BY_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEMS_LOCK_BY_PATH;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_LOCK_BY_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_LOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
@@ -382,10 +383,13 @@ public class ContentController {
         return responseBody;
     }
 
-    @PostMapping(ITEMS_LOCK_BY_PATH)
-    public ResponseBody itemsLockByPath(@RequestBody @Valid LockItemsByPathRequest request)
+    @PostMapping(ITEM_LOCK_BY_PATH)
+    public ResponseBody itemLockByPath(@RequestBody @Valid LockItemByPathRequest request)
             throws UserNotFoundException, ServiceLayerException {
-        contentService.itemsLockByPath(request.getSiteId(), request.getPaths());
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
+        contentService.itemLockByPath(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -393,10 +397,13 @@ public class ContentController {
         return responseBody;
     }
 
-    @PostMapping(ITEMS_LOCK_BY_ID)
-    public ResponseBody itemsLockById(@RequestBody @Valid LockItemsByIdRequest request)
+    @PostMapping(ITEM_LOCK_BY_ID)
+    public ResponseBody itemLockById(@RequestBody @Valid LockItemByIdRequest request)
             throws UserNotFoundException, ServiceLayerException {
-        contentService.itemsLockById(request.getSiteId(), request.getItemIds());
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
+        contentService.itemLockById(request.getSiteId(), request.getItemId());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -405,7 +412,11 @@ public class ContentController {
     }
 
     @PostMapping(ITEM_UNLOCK_BY_PATH)
-    public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request) {
+    public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
+            throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         contentService.itemUnlockByPath(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
@@ -415,7 +426,11 @@ public class ContentController {
     }
 
     @PostMapping(ITEM_UNLOCK_BY_ID)
-    public ResponseBody itemUnlockById(@RequestBody @Valid UnlockItemByIdRequest request) {
+    public ResponseBody itemUnlockById(@RequestBody @Valid UnlockItemByIdRequest request)
+            throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+        if (!siteService.exists(request.getSiteId())) {
+            throw new SiteNotFoundException(request.getSiteId());
+        }
         contentService.itemUnlockById(request.getSiteId(), request.getItemId());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();

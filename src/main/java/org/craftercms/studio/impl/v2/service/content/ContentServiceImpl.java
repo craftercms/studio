@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.content;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -34,6 +35,8 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -53,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
@@ -226,34 +230,82 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void itemsLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                               @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
+    public void itemLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws UserNotFoundException, ServiceLayerException {
-        contentServiceInternal.itemsLockByPath(siteId, paths);
-        itemServiceInternal.lockItemsByPath(siteId, paths, securityService.getCurrentUser());
+        var item = itemServiceInternal.getItem(siteId, path);
+        if (Objects.nonNull(item)) {
+            var username = securityService.getCurrentUser();
+            if (StringUtils.isEmpty(item.getLockOwner())) {
+                contentServiceInternal.itemLockByPath(siteId, path);
+                itemServiceInternal.lockItemByPath(siteId, path, username);
+            } else {
+                if (!StringUtils.equals(item.getLockOwner(), username)) {
+                    var e = new ContentLockedByAnotherUserException();
+                    e.setLockOwner(username);
+                    throw e;
+                }
+            }
+        } else {
+            throw new ContentNotFoundException();
+        }
     }
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void itemsLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<Long> itemIds)
+    public void itemLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, Long itemId)
             throws UserNotFoundException, ServiceLayerException {
-        contentServiceInternal.itemsLockById(siteId, itemIds);
-        itemServiceInternal.lockItemsById(itemIds, securityService.getCurrentUser());
+        var item = itemServiceInternal.getItem(siteId, itemId);
+        if (Objects.nonNull(item)) {
+            String username = securityService.getCurrentUser();
+            if (StringUtils.isEmpty(item.getLockOwner())) {
+                contentServiceInternal.itemLockById(siteId, itemId);
+                itemServiceInternal.lockItemById(itemId, username);
+            } else {
+                if (!StringUtils.equals(item.getLockOwner(), username)) {
+                    var e = new ContentLockedByAnotherUserException();
+                    e.setLockOwner(username);
+                    throw e;
+                }
+            }
+        } else {
+            throw new ContentNotFoundException();
+        }
     }
 
     @Override
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
     public void itemUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
-        contentServiceInternal.itemUnlockByPath(siteId, path);
-        itemServiceInternal.unlockItemByPath(siteId, path);
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+            throws ContentNotFoundException, ContentAlreadyUnlockedException {
+        var item = itemServiceInternal.getItem(siteId, path);
+        if (Objects.nonNull(item)) {
+            if (StringUtils.isEmpty(item.getLockOwner())) {
+                throw new ContentAlreadyUnlockedException();
+            } else {
+                contentServiceInternal.itemUnlockByPath(siteId, path);
+                itemServiceInternal.unlockItemByPath(siteId, path);
+            }
+        } else {
+            throw new ContentNotFoundException();
+        }
     }
 
     @Override
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
-    public void itemUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId) {
-        contentServiceInternal.itemUnlockById(siteId, itemId);
-        itemServiceInternal.unlockItemById(itemId);
+    public void itemUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId)
+            throws ContentAlreadyUnlockedException, ContentNotFoundException {
+        var item = itemServiceInternal.getItem(siteId, itemId);
+        if (Objects.nonNull(item)) {
+            if (StringUtils.isEmpty(item.getLockOwner())) {
+                throw new ContentAlreadyUnlockedException();
+            } else {
+                contentServiceInternal.itemUnlockById(siteId, itemId);
+                itemServiceInternal.unlockItemById(itemId);
+            }
+        } else {
+            throw new ContentNotFoundException();
+        }
     }
 
     @Override

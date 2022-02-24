@@ -17,14 +17,13 @@
 package org.craftercms.studio.model.rest.content;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.List;
 
-public class LockItemsByPathRequest {
+public class LockItemByPathRequest {
 
     @NotEmpty
     private String siteId;
     @NotEmpty
-    private List<String> paths;
+    private String path;
 
     public String getSiteId() {
         return siteId;
@@ -34,11 +33,11 @@ public class LockItemsByPathRequest {
         this.siteId = siteId;
     }
 
-    public List<String> getPaths() {
-        return paths;
+    public String getPath() {
+        return path;
     }
 
-    public void setPaths(List<String> paths) {
-        this.paths = paths;
+    public void setPaths(String path) {
+        this.path = path;
     }
 }
