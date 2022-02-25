@@ -232,11 +232,10 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void contentLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+    public void lockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                            @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws UserNotFoundException, ServiceLayerException {
-        String lockKey = siteId + ":" + path;
-        generalLockService.lock(lockKey);
+        generalLockService.lockContentItem(siteId, path);
         try {
             var item = itemServiceInternal.getItem(siteId, path);
             if (Objects.nonNull(item)) {
@@ -255,29 +254,16 @@ public class ContentServiceImpl implements ContentService {
                 throw new ContentNotFoundException();
             }
         } finally {
-            generalLockService.unlock(lockKey);
-        }
-    }
-
-    @Override
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void contentLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, Long itemId)
-            throws UserNotFoundException, ServiceLayerException {
-        var item = itemServiceInternal.getItem(siteId, itemId);
-        if (Objects.nonNull(item)) {
-            contentLockByPath(siteId, item.getPath());
-        } else {
-            throw new ContentNotFoundException();
+            generalLockService.unlockContentItem(siteId, path);
         }
     }
 
     @Override
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
-    public void contentUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                    @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+    public void unlockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                              @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException {
-        String lockKey = siteId + ":" + path;
-        generalLockService.lock(lockKey);
+        generalLockService.lockContentItem(siteId, path);
         try {
             var item = itemServiceInternal.getItem(siteId, path);
             if (Objects.nonNull(item)) {
@@ -291,19 +277,7 @@ public class ContentServiceImpl implements ContentService {
                 throw new ContentNotFoundException();
             }
         } finally {
-            generalLockService.unlock(lockKey);
-        }
-    }
-
-    @Override
-    @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
-    public void contentUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId)
-            throws ContentAlreadyUnlockedException, ContentNotFoundException {
-        var item = itemServiceInternal.getItem(siteId, itemId);
-        if (Objects.nonNull(item)) {
-            contentUnlockByPath(siteId, item.getPath());
-        } else {
-            throw new ContentNotFoundException();
+            generalLockService.unlockContentItem(siteId, path);
         }
     }
 
