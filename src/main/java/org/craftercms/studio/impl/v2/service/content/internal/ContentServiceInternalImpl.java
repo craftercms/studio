@@ -302,21 +302,17 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public void itemsLockByPath(String siteId, List<String> paths) {
-        paths.forEach(path -> {
-            contentRepository.lockItem(siteId, path);
-        });
+    public void itemLockByPath(String siteId, String path) {
+        contentRepository.lockItem(siteId, path);
     }
 
     @Override
-    public void itemsLockById(String siteId, List<Long> itemIds) {
+    public void itemLockById(String siteId, Long itemId) {
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        itemIds.forEach(itemId -> {
-            org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, siteId, CONTENT_TYPE_FOLDER,
+        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, siteId, CONTENT_TYPE_FOLDER,
                     COMPLETED, stagingEnv, liveEnv);
-            contentRepository.lockItem(siteId, item.getPath());
-        });
+        contentRepository.lockItem(siteId, item.getPath());
     }
 
     @Override
