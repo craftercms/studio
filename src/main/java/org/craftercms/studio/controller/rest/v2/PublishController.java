@@ -17,7 +17,9 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
@@ -126,7 +128,8 @@ public class PublishController {
 
     @PostMapping(CANCEL)
     public ResponseBody cancelPublishingPackages(
-            @RequestBody CancelPublishingPackagesRequest cancelPublishingPackagesRequest) throws SiteNotFoundException {
+            @RequestBody CancelPublishingPackagesRequest cancelPublishingPackagesRequest)
+            throws ServiceLayerException, UserNotFoundException {
         String siteId = cancelPublishingPackagesRequest.getSiteId();
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);

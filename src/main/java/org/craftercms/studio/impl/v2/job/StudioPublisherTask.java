@@ -280,7 +280,7 @@ public class StudioPublisherTask extends StudioClockTask {
 
     private void processPublishingRequest(String siteId, String environment, PublishRequest item,
                                           List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
-            throws ServiceLayerException, DeploymentException {
+            throws ServiceLayerException, DeploymentException, UserNotFoundException {
         List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
         Set<String> missingDependenciesPaths = new HashSet<String>();
         try {

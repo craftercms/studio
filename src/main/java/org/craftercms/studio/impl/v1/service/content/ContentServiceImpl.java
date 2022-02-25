@@ -339,7 +339,8 @@ public class ContentServiceImpl implements ContentService {
                              InputStream input,
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
-                             @ValidateStringParam(name = "unlock") String unlock) throws ServiceLayerException {
+                             @ValidateStringParam(name = "unlock") String unlock)
+            throws ServiceLayerException, UserNotFoundException {
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
 
@@ -354,7 +355,7 @@ public class ContentServiceImpl implements ContentService {
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock,
-                             boolean skipAuditLogInsert) throws ServiceLayerException {
+                             boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
         path = path.replaceAll("//", "/");
         try {
             entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
@@ -453,7 +454,7 @@ public class ContentServiceImpl implements ContentService {
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(site);
             eventService.publish(EVENT_PREVIEW_SYNC, context);
-        }  catch (RuntimeException e) {
+        }  catch (RuntimeException | UserNotFoundException e) {
             logger.error("error writing content", e);
 
             // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
@@ -487,7 +488,7 @@ public class ContentServiceImpl implements ContentService {
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
             moveContent(site, path, targetPath);
-        } catch (ServiceLayerException | RuntimeException e) {
+        } catch (ServiceLayerException | RuntimeException | UserNotFoundException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                     + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         }
@@ -2199,7 +2200,7 @@ public class ContentServiceImpl implements ContentService {
     public ResultTO processContent(@ValidateStringParam(name = "id") String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
                                    @ValidateStringParam(name = "contentChainForm") String contentChainForm)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain

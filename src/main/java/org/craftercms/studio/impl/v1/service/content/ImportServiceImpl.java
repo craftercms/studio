@@ -447,7 +447,7 @@ public class ImportServiceImpl implements ImportService {
         } catch (FileNotFoundException e) {
             logger.warn("[IMPORT] " + filePath + " does not exist.");
 
-        } catch (ServiceLayerException e) {
+        } catch (ServiceLayerException | UserNotFoundException e) {
             logger.error("[IMPORT] failed to import " + filePath, e);
         } finally {
             ContentUtils.release(in);

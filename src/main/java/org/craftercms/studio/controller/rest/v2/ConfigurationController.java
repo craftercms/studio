@@ -162,7 +162,7 @@ public class ConfigurationController {
 
     @PostMapping("content-type/delete")
     public ResponseBody deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
-            throws ServiceLayerException, AuthenticationException, DeploymentException {
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
 
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
                 request.isDeleteDependencies());

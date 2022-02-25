@@ -262,7 +262,8 @@ public interface ContentService {
      * @throws ServiceLayerException general service error
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                      String createFolders, String edit, String unlock) throws ServiceLayerException;
+                      String createFolders, String edit, String unlock)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * write content
@@ -282,7 +283,7 @@ public interface ContentService {
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
                       String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
-            throws ServiceLayerException;
+            throws ServiceLayerException, UserNotFoundException;
 
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
                                final String contentType, final InputStream input, final String createFolders,
@@ -311,7 +312,7 @@ public interface ContentService {
     String getContentTypeClass(String site, String uri);
 
     ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
-                            String contentChainForm) throws ServiceLayerException;
+                            String contentChainForm) throws ServiceLayerException, UserNotFoundException;
 
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
