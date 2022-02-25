@@ -389,7 +389,7 @@ public class ContentController {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
         }
-        contentService.itemLockByPath(request.getSiteId(), request.getPath());
+        contentService.contentLockByPath(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -403,7 +403,7 @@ public class ContentController {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
         }
-        contentService.itemLockById(request.getSiteId(), request.getItemId());
+        contentService.contentLockById(request.getSiteId(), request.getItemId());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -417,7 +417,7 @@ public class ContentController {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
         }
-        contentService.itemUnlockByPath(request.getSiteId(), request.getPath());
+        contentService.contentUnlockByPath(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
@@ -431,7 +431,7 @@ public class ContentController {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
         }
-        contentService.itemUnlockById(request.getSiteId(), request.getItemId());
+        contentService.contentUnlockById(request.getSiteId(), request.getItemId());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);

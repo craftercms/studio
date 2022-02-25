@@ -182,28 +182,28 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path path to lock
      */
-    void itemLockByPath(String siteId, String path) throws UserNotFoundException, ServiceLayerException;
+    void contentLockByPath(String siteId, String path) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Lock item by id for given site
      * @param siteId site identifier
      * @param itemId item identifier
      */
-    void itemLockById(String siteId, Long itemId) throws UserNotFoundException, ServiceLayerException;
+    void contentLockById(String siteId, Long itemId) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Unlock item by path for given site
      * @param siteId site identifier
      * @param path item path
      */
-    void itemUnlockByPath(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException;
+    void contentUnlockByPath(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException;
 
     /**
      * Unlock item by id for given site
      * @param siteId site identifier
      * @param itemId item identifier
      */
-    void itemUnlockById(String siteId, long itemId) throws ContentAlreadyUnlockedException, ContentNotFoundException;
+    void contentUnlockById(String siteId, long itemId) throws ContentAlreadyUnlockedException, ContentNotFoundException;
 
     /**
      * Get content for commit id

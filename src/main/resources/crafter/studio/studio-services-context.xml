@@ -558,6 +558,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="contentServiceInternal"

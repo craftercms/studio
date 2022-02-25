@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -79,6 +80,7 @@ public class ContentServiceImpl implements ContentService {
     private AuditServiceInternal auditServiceInternal;
     private ItemServiceInternal itemServiceInternal;
     private SecurityService securityService;
+    private GeneralLockService generalLockService;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -230,44 +232,40 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void itemLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+    public void contentLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws UserNotFoundException, ServiceLayerException {
-        var item = itemServiceInternal.getItem(siteId, path);
-        if (Objects.nonNull(item)) {
-            var username = securityService.getCurrentUser();
-            if (StringUtils.isEmpty(item.getLockOwner())) {
-                contentServiceInternal.itemLockByPath(siteId, path);
-                itemServiceInternal.lockItemByPath(siteId, path, username);
-            } else {
-                if (!StringUtils.equals(item.getLockOwner(), username)) {
-                    var e = new ContentLockedByAnotherUserException();
-                    e.setLockOwner(username);
-                    throw e;
+        String lockKey = siteId + ":" + path;
+        generalLockService.lock(lockKey);
+        try {
+            var item = itemServiceInternal.getItem(siteId, path);
+            if (Objects.nonNull(item)) {
+                var username = securityService.getCurrentUser();
+                if (StringUtils.isEmpty(item.getLockOwner())) {
+                    contentServiceInternal.itemLockByPath(siteId, path);
+                    itemServiceInternal.lockItemByPath(siteId, path, username);
+                } else {
+                    if (!StringUtils.equals(item.getLockOwner(), username)) {
+                        var e = new ContentLockedByAnotherUserException();
+                        e.setLockOwner(username);
+                        throw e;
+                    }
                 }
+            } else {
+                throw new ContentNotFoundException();
             }
-        } else {
-            throw new ContentNotFoundException();
+        } finally {
+            generalLockService.unlock(lockKey);
         }
     }
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void itemLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, Long itemId)
+    public void contentLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, Long itemId)
             throws UserNotFoundException, ServiceLayerException {
         var item = itemServiceInternal.getItem(siteId, itemId);
         if (Objects.nonNull(item)) {
-            String username = securityService.getCurrentUser();
-            if (StringUtils.isEmpty(item.getLockOwner())) {
-                contentServiceInternal.itemLockById(siteId, itemId);
-                itemServiceInternal.lockItemById(itemId, username);
-            } else {
-                if (!StringUtils.equals(item.getLockOwner(), username)) {
-                    var e = new ContentLockedByAnotherUserException();
-                    e.setLockOwner(username);
-                    throw e;
-                }
-            }
+            contentLockByPath(siteId, item.getPath());
         } else {
             throw new ContentNotFoundException();
         }
@@ -275,34 +273,35 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
-    public void itemUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+    public void contentUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                    @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException {
-        var item = itemServiceInternal.getItem(siteId, path);
-        if (Objects.nonNull(item)) {
-            if (StringUtils.isEmpty(item.getLockOwner())) {
-                throw new ContentAlreadyUnlockedException();
+        String lockKey = siteId + ":" + path;
+        generalLockService.lock(lockKey);
+        try {
+            var item = itemServiceInternal.getItem(siteId, path);
+            if (Objects.nonNull(item)) {
+                if (StringUtils.isEmpty(item.getLockOwner())) {
+                    throw new ContentAlreadyUnlockedException();
+                } else {
+                    contentServiceInternal.itemUnlockByPath(siteId, path);
+                    itemServiceInternal.unlockItemByPath(siteId, path);
+                }
             } else {
-                contentServiceInternal.itemUnlockByPath(siteId, path);
-                itemServiceInternal.unlockItemByPath(siteId, path);
+                throw new ContentNotFoundException();
             }
-        } else {
-            throw new ContentNotFoundException();
+        } finally {
+            generalLockService.unlock(lockKey);
         }
     }
 
     @Override
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
-    public void itemUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId)
+    public void contentUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId)
             throws ContentAlreadyUnlockedException, ContentNotFoundException {
         var item = itemServiceInternal.getItem(siteId, itemId);
         if (Objects.nonNull(item)) {
-            if (StringUtils.isEmpty(item.getLockOwner())) {
-                throw new ContentAlreadyUnlockedException();
-            } else {
-                contentServiceInternal.itemUnlockById(siteId, itemId);
-                itemServiceInternal.unlockItemById(itemId);
-            }
+            contentUnlockByPath(siteId, item.getPath());
         } else {
             throw new ContentNotFoundException();
         }
@@ -384,5 +383,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }
