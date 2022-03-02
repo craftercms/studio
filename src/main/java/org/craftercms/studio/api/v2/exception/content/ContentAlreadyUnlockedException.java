@@ -14,32 +14,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.content;
+package org.craftercms.studio.api.v2.exception.content;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
-import java.util.List;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-public class LockItemsByIdRequest {
+public class ContentAlreadyUnlockedException extends ServiceLayerException {
 
-    @NotEmpty
-    private String siteId;
-    @Positive
-    private List<Long> itemIds;
-
-    public String getSiteId() {
-        return siteId;
+    public ContentAlreadyUnlockedException() {
+        super();
     }
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
+    public ContentAlreadyUnlockedException(Throwable e) {
+        super(e);
     }
 
-    public List<Long> getItemIds() {
-        return itemIds;
+    public ContentAlreadyUnlockedException(String message) {
+        super(message);
     }
 
-    public void setItemIds(List<Long> itemIds) {
-        this.itemIds = itemIds;
+    public ContentAlreadyUnlockedException(String message, Exception e) {
+        super(message, e);
     }
 }
