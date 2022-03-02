@@ -993,7 +993,8 @@ public class ContentServiceImpl implements ContentService {
 
             if (commitIds != null) {
                 // Update the database with the commitId for the target item
-                updateDatabaseOnMove(site, fromPath, movePath);
+                var newParent = itemServiceInternal.getItem(site, toPath, true);
+                updateDatabaseOnMove(site, fromPath, movePath, newParent.getId());
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
@@ -1019,6 +1020,10 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
+        updateDatabaseOnMove(site, fromPath, movePath, null);
+    }
+
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId) throws SiteNotFoundException {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -1040,7 +1045,7 @@ public class ContentServiceImpl implements ContentService {
                 fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
         String targetPath = (movePath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
                 movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR)) : movePath;
-        itemServiceInternal.moveItems(site, sourcePath, targetPath);
+        itemServiceInternal.moveItems(site, sourcePath, targetPath, parentId);
 
         // write activity stream
         SiteFeed siteFeed = siteService.getSite(site);

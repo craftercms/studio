@@ -394,8 +394,9 @@ public interface ItemServiceInternal {
      * @param siteId site identifier
      * @param oldPath old path
      * @param newPath new path
+     * @param parentId new parent id, if null it will not be updated
      */
-    void moveItems(String siteId, String oldPath, String newPath);
+    void moveItems(String siteId, String oldPath, String newPath, Long parentId);
 
     /**
      * Check if item is new
