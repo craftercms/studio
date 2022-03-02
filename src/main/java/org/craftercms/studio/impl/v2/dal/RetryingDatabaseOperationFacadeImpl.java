@@ -420,9 +420,10 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void moveItems(String siteId, String oldPath, String newPath, String oldPreviewUrl, String newPreviewUrl,
-                          long onStatesBitMap, long offStatesBitMap) {
-        itemDao.moveItems(siteId, oldPath, newPath, oldPreviewUrl, newPreviewUrl, onStatesBitMap, offStatesBitMap);
+    public void moveItems(String siteId, String oldPath, String newPath, Long parentId, String oldPreviewUrl,
+                          String newPreviewUrl, long onStatesBitMap, long offStatesBitMap) {
+        itemDao.moveItems(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, onStatesBitMap,
+                offStatesBitMap);
     }
 
     @Override
