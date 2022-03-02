@@ -61,6 +61,7 @@ public class DashboardServiceImpl implements DashboardService {
     private SearchService searchService;
 
     private String contentExpiringQuery;
+    private String contentExpiredQuery;
 
     private static final String ALL_CONTENT_REGEX = ".*";
     private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
@@ -152,6 +153,18 @@ public class DashboardServiceImpl implements DashboardService {
         return searchService.search(siteId, searchParams);
     }
 
+    @Override
+    public SearchResult getContentExpired(String siteId, int offset, int limit)
+            throws AuthenticationException, ServiceLayerException {
+        var searchParams = new SearchParams();
+        var query = contentExpiredQuery;
+        searchParams.setQuery(query);
+        searchParams.setSortBy();
+        searchParams.setOffset(offset);
+        searchParams.setLimit(limit);
+        return searchService.search(siteId, searchParams);
+    }
+
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
     public int getPublishingScheduledTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
@@ -217,6 +230,10 @@ public class DashboardServiceImpl implements DashboardService {
 
     }
 
+    private String getContentExpiringQuery() {
+        return contentExpiringQuery;
+    }
+
     public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
         return activityStreamServiceInternal;
     }
@@ -273,11 +290,4 @@ public class DashboardServiceImpl implements DashboardService {
         this.searchService = searchService;
     }
 
-    public String getContentExpiringQuery() {
-        return contentExpiringQuery;
-    }
-
-    public void setContentExpiringQuery(String contentExpiringQuery) {
-        this.contentExpiringQuery = contentExpiringQuery;
-    }
 }

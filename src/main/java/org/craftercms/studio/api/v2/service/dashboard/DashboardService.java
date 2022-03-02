@@ -136,6 +136,16 @@ public interface DashboardService {
                                     int limit) throws AuthenticationException, ServiceLayerException;
 
     /**
+     * Get content that expired
+     * @param siteId site identifier
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return list of content items that expired
+     */
+    SearchResult getContentExpired(String siteId, int offset, int limit)
+            throws AuthenticationException, ServiceLayerException;
+
+    /**
      * Get total number of result for publishing scheduled with given filters
      *
      * @param siteId site identifier

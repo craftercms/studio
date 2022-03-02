@@ -644,8 +644,6 @@
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="searchService" ref="searchService" />
-        <property name="contentExpiringQuery"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY)}" />
     </bean>
 
     <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">

@@ -350,6 +350,7 @@ public interface StudioConfiguration {
 
     // Dashboard Service
     String CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY = "studio.configuration.dashboard.contentExpiringQuery";
+    String CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY = "studio.configuration.dashboard.contentExpiredQuery";
 
     void loadConfig();
 

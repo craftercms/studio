@@ -1069,3 +1069,7 @@ studio.scripting.allowedBeans: ''
 
 # Elasticsearch query to retrieve content expiring
 studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateTo} TO {dateFrom}]
+# Elasticsearch query to retrieve content expired
+studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO NOW]
+# Elasticsearch query to retrieve content expired
+studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt

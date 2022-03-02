@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
@@ -190,7 +191,8 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
+            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+            throws AuthenticationException, ServiceLayerException {
 
         var contentExpiring = dashboardService.getContentExpiring(siteId, dateFrom, dateTo, offset,
                 limit);
