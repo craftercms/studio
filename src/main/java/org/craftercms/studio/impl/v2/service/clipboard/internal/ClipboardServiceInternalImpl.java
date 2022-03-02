@@ -15,17 +15,20 @@
  */
 package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -34,7 +37,6 @@ import java.util.List;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.io.FilenameUtils.getName;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 
 /**
  * Default implementation of {@link ClipboardServiceInternal}
@@ -44,13 +46,13 @@ import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC
  * @author joseross
  * @since 3.2
  */
-public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
+public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ClipboardServiceInternalImpl.class);
 
     protected ContentService contentService;
     protected WorkflowService workflowService;
-    protected EventService eventService;
+    protected ApplicationContext applicationContext;
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
@@ -95,9 +97,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
         }
 
         // trigger preview deploy
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(siteId);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        applicationContext.publishEvent(new ContentEvent(auth, siteId, targetPath));
     }
 
     public String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
@@ -108,6 +109,11 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
                                                             : getFullPathNoEndSeparator(path);
         var item = contentService.getContentItem(siteId, parentUrl, 0);
         return contentService.copyContent(siteId, path, item.uri);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public ContentService getContentService() {
@@ -124,10 +130,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal {
 
     public void setWorkflowService(WorkflowService workflowService) {
         this.workflowService = workflowService;
-    }
-
-    public void setEventService(EventService eventService) {
-        this.eventService = eventService;
     }
 
 }

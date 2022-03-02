@@ -13,20 +13,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v1.service.event;
+package org.craftercms.studio.api.v2.event;
 
-import org.craftercms.studio.api.v1.ebus.DeploymentEventContext;
-import org.craftercms.studio.api.v1.ebus.DeploymentItem;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
+/**
+ * All events that implement this interface will be automatically sent to the message broker
+ *
+ * @see org.craftercms.studio.impl.v2.event.EventBroadcaster
+ * @author joseross
+ * @since 4.0.0
+ */
+public interface BroadcastEvent {
 
-import java.lang.reflect.Method;
-import java.util.List;
+    String getEventType();
 
-public interface EventService {
-
-    void publish(String event, Object... args);
-
-    void subscribe(String event, String listener, Method method);
-
-    void unSubscribe(String event, String listener);
 }
