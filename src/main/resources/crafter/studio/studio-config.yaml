@@ -1062,3 +1062,10 @@ studio.scripting.rest.path: /config/studio/scripts/rest
 studio.scripting.restrictBeans: false
 # List of patterns for bean names that should be accessible for the scripts (regexes separated by commas)
 studio.scripting.allowedBeans: ''
+
+##################################################
+##           Dashboard Service                  ##
+##################################################
+
+# Elasticsearch query to retrieve content expiring
+studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateTo} TO {dateFrom}]

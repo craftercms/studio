@@ -21,6 +21,7 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -31,16 +32,21 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.search.SearchParams;
+import org.craftercms.studio.model.search.SearchResult;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
@@ -52,8 +58,13 @@ public class DashboardServiceImpl implements DashboardService {
     private SecurityService securityService;
     private WorkflowServiceInternal workflowServiceInternal;
     private ItemServiceInternal itemServiceInternal;
+    private SearchService searchService;
+
+    private String contentExpiringQuery;
 
     private static final String ALL_CONTENT_REGEX = ".*";
+    private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
+    private static final String DATE_TO_REGEX = "\\{dateTo\\}";
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
@@ -126,6 +137,19 @@ public class DashboardServiceImpl implements DashboardService {
         var ids = items.stream().map(Item::getId)
                 .collect(Collectors.toList());
         return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
+    }
+
+    @Override
+    public SearchResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                           int offset, int limit)
+            throws AuthenticationException, ServiceLayerException {
+        var searchParams = new SearchParams();
+        var query = contentExpiringQuery.replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
+                .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
+        searchParams.setQuery(query);
+        searchParams.setOffset(offset);
+        searchParams.setLimit(limit);
+        return searchService.search(siteId, searchParams);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -239,5 +263,21 @@ public class DashboardServiceImpl implements DashboardService {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
+    }
+
+    public SearchService getSearchService() {
+        return searchService;
+    }
+
+    public void setSearchService(SearchService searchService) {
+        this.searchService = searchService;
+    }
+
+    public String getContentExpiringQuery() {
+        return contentExpiringQuery;
+    }
+
+    public void setContentExpiringQuery(String contentExpiringQuery) {
+        this.contentExpiringQuery = contentExpiringQuery;
     }
 }

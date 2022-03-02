@@ -348,6 +348,9 @@ public interface StudioConfiguration {
     // Content Service
     String CONTENT_ITEM_EDITABLE_TYPES = "studio.content.item.editableTypes";
 
+    // Dashboard Service
+    String CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY = "studio.configuration.dashboard.contentExpiringQuery";
+
     void loadConfig();
 
     String getProperty(String key);

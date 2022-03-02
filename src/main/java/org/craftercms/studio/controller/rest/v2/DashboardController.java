@@ -26,6 +26,7 @@ import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.search.SearchResultItem;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -61,8 +62,10 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.S
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UNPUBLISHED;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ACTIVITIES;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGE_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_UNPUBLISHED_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -189,8 +192,17 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
-        ResponseBody response = new ResponseBody();
-        return response;
+        var contentExpiring = dashboardService.getContentExpiring(siteId, dateFrom, dateTo, offset,
+                limit);
+        var responseBody = new ResponseBody();
+        var result = new PaginatedResultList<SearchResultItem>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_ITEMS, contentExpiring.getItems());
+        result.setTotal(contentExpiring.getTotal());
+        result.setLimit(contentExpiring.getItems().size());
+        result.setOffset(offset);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     @GetMapping(value = CONTENT + EXPIRED, produces = APPLICATION_JSON_VALUE)

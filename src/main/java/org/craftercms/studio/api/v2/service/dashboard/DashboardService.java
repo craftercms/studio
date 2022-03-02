@@ -18,10 +18,12 @@ package org.craftercms.studio.api.v2.service.dashboard;
 
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.search.SearchResult;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -120,6 +122,18 @@ public interface DashboardService {
      */
     List<SandboxItem> getContentUnpublished(String siteId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Get content that is expiring
+     * @param siteId site identifier
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return list of content items that is expiring
+     */
+    SearchResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
+                                    int limit) throws AuthenticationException, ServiceLayerException;
 
     /**
      * Get total number of result for publishing scheduled with given filters
