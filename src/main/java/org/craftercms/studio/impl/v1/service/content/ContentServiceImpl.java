@@ -1040,12 +1040,12 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath)
-            throws SiteNotFoundException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         updateDatabaseOnMove(site, fromPath, movePath, null);
     }
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId)
-    throws SiteNotFoundException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
