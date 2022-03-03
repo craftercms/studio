@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.craftercms.studio.model.search.SearchResult;
 
 import java.time.ZonedDateTime;
@@ -221,5 +222,11 @@ public interface DashboardService {
     List<SandboxItem> getPublishingHistoryDetail(String sitId, String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
 
-    void getPublishingStats();
+    /**
+     * Get publishing stats for site for given time period
+     * @param siteId site identifier
+     * @param days number of days
+     * @return publishing stats
+     */
+    PublishingStats getPublishingStats(String siteId, int days);
 }

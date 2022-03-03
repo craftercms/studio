@@ -39,6 +39,8 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
@@ -193,6 +195,21 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                                                                          ZonedDateTime dateTo, int offset, int limit) {
         return publishRequestDao.getPublishingPackagesHistory(siteId, publishingTarget, approver, COMPLETED, dateFrom,
                 dateTo, offset, limit);
+    }
+
+    @Override
+    public int getNumberOfPublishes(String siteId, int days) {
+        return publishRequestDao.getNumberOfPublishes(siteId, days);
+    }
+
+    @Override
+    public int getNumberOfNewAndPublishedItems(String siteId, int days) {
+        return publishRequestDao.getNumberOfNewAndPublishedItems(siteId, days, NEW_MASK);
+    }
+
+    @Override
+    public int getNumberOfEditedAndPublishedItems(String siteId, int days) {
+        return publishRequestDao.getNumberOfEditedAndPublishedItems(siteId, days, NEW_MASK, MODIFIED_MASK);
     }
 
     public PublishRequestDAO getPublishRequestDao() {

@@ -34,10 +34,12 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
@@ -46,6 +48,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
@@ -59,9 +64,7 @@ public class DashboardServiceImpl implements DashboardService {
     private WorkflowServiceInternal workflowServiceInternal;
     private ItemServiceInternal itemServiceInternal;
     private SearchService searchService;
-
-    private String contentExpiringQuery;
-    private String contentExpiredQuery;
+    private StudioConfiguration studioConfiguration;
 
     private static final String ALL_CONTENT_REGEX = ".*";
     private static final String DATE_FROM_REGEX = "\\{dateFrom\\}";
@@ -145,7 +148,8 @@ public class DashboardServiceImpl implements DashboardService {
                                            int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
         var searchParams = new SearchParams();
-        var query = contentExpiringQuery.replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
+        var query = getContentExpiringQuery()
+                .replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
                 .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
         searchParams.setQuery(query);
         searchParams.setOffset(offset);
@@ -157,9 +161,9 @@ public class DashboardServiceImpl implements DashboardService {
     public SearchResult getContentExpired(String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
         var searchParams = new SearchParams();
-        var query = contentExpiredQuery;
+        var query = getContentExpiredQuery();
         searchParams.setQuery(query);
-        searchParams.setSortBy();
+        searchParams.setSortBy(getContentExpiredSortBy());
         searchParams.setOffset(offset);
         searchParams.setLimit(limit);
         return searchService.search(siteId, searchParams);
@@ -226,12 +230,26 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public void getPublishingStats() {
-
+    public PublishingStats getPublishingStats(String siteId, int days) {
+        var publishingStats = new PublishingStats();
+        publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
+        publishingStats.setNumberOfNewAndPublishedItems(
+                publishServiceInternal.getNumberOfNewAndPublishedItems(siteId, days));
+        publishingStats.setNumberOfEditedAndPublishedItems(
+                publishServiceInternal.getNumberOfEditedAndPublishedItems(siteId, days));
+        return publishingStats;
     }
 
     private String getContentExpiringQuery() {
-        return contentExpiringQuery;
+        return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY);
+    }
+
+    private String getContentExpiredQuery() {
+        return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY);
+    }
+
+    private String getContentExpiredSortBy() {
+        return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY);
     }
 
     public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
@@ -290,4 +308,11 @@ public class DashboardServiceImpl implements DashboardService {
         this.searchService = searchService;
     }
 
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
+    }
 }

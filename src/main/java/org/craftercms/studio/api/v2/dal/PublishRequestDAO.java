@@ -26,10 +26,13 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.APPROVER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CANCELLED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE_CLASS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DAYS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENTS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FROM_DATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NOW;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
@@ -227,4 +230,33 @@ public interface PublishRequestDAO {
                                                                   @Param(TO_DATE) ZonedDateTime toDate,
                                                                   @Param(OFFSET) int offset,
                                                                   @Param(LIMIT) int limit);
+
+    /**
+     * Get number of publishes for site in given number of days
+     * @param siteId site identifiers
+     * @param days number of days
+     * @return number of publishes
+     */
+    int getNumberOfPublishes(@Param(SITE_ID) String siteId, @Param(DAYS) int days);
+
+    /**
+     * Get number of newly created and published items for site in given number of days
+     * @param siteId site identifier
+     * @param days number of days
+     * @param newMask mask for NEW state
+     * @return number of newly created <nd published items
+     */
+    int getNumberOfNewAndPublishedItems(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
+                                        @Param(NEW_MASK) long newMask);
+
+    /**
+     * Get number of edited and published items for site in given number of days
+     * @param siteId site identifier
+     * @param days number of days
+     * @param newMask mask for NEW state
+     * @param modifiedMask mask for MODIFIED state
+     * @return number of edited and published items
+     */
+    int getNumberOfEditedAndPublishedItems(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
+                                           @Param(NEW_MASK) long newMask, @Param(MODIFIED_MASK) long modifiedMask);
 }

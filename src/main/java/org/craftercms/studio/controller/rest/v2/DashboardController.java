@@ -24,9 +24,11 @@ import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.craftercms.studio.model.search.SearchResultItem;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,7 +68,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_PACKAGE_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISHING_STATS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_UNPUBLISHED_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
@@ -211,10 +213,19 @@ public class DashboardController {
     public ResponseBody getContentExpired(
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
+            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+            throws AuthenticationException, ServiceLayerException {
 
-        ResponseBody response = new ResponseBody();
-        return response;
+        var contentExpired = dashboardService.getContentExpired(siteId, offset, limit);
+        var responseBody = new ResponseBody();
+        var result = new PaginatedResultList<SearchResultItem>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_ITEMS, contentExpired.getItems());
+        result.setTotal(contentExpired.getTotal());
+        result.setLimit(contentExpired.getItems().size());
+        result.setOffset(offset);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     @GetMapping(value = PUBLISHING + SCHEDULED, produces = APPLICATION_JSON_VALUE)
@@ -305,8 +316,13 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
             @RequestParam(value = REQUEST_PARAM_DAYS, required = true) int days) {
 
-        ResponseBody response = new ResponseBody();
-        return response;
+        var publishingStats = dashboardService.getPublishingStats(siteId, days);
+        var responseBody = new ResponseBody();
+        var result = new ResultOne<PublishingStats>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_PUBLISHING_STATS, publishingStats);
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     public DashboardService getDashboardService() {

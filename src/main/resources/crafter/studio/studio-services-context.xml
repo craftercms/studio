@@ -644,6 +644,7 @@
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="searchService" ref="searchService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">

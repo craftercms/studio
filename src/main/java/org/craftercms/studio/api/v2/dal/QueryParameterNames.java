@@ -177,6 +177,8 @@ public final class  QueryParameterNames {
 
     public static final String SCHEDULED_STATE  = "scheduledState";
 
+    public static final String DAYS = "days";
+
     /* Audit */
     public static final String ACTIONS = "actions";
 

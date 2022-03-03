@@ -200,4 +200,28 @@ public interface PublishServiceInternal {
     List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget,
                                                                   String approver, ZonedDateTime dateFrom,
                                                                   ZonedDateTime dateTo, int offset, int limit);
+
+    /**
+     * Get number of publishes for site in given number of days
+     * @param siteId site identifiers
+     * @param days number of days
+     * @return number of publishes
+     */
+    int getNumberOfPublishes(String siteId, int days);
+
+    /**
+     * Get number of newly created and published items for site in given number of days
+     * @param siteId site identifier
+     * @param days number of days
+     * @return number of newly created <nd published items
+     */
+    int getNumberOfNewAndPublishedItems(String siteId, int days);
+
+    /**
+     * Get number of edited and published items for site in given number of days
+     * @param siteId site identifier
+     * @param days number of days
+     * @return number of edited and published items
+     */
+    int getNumberOfEditedAndPublishedItems(String siteId, int days);
 }

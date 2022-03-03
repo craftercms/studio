@@ -38,7 +38,7 @@
         VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP), #{itemId}, #{packageId});
     </insert>
 
-    <select id="getActivitiesForUsers" resultType="int" >
+    <select id="getActivitiesForUsersTotal" resultType="int" >
         SELECT COUNT(1)
         FROM activity_stream as INNER JOIN user u ON as.user_id = u.id
         WHERE as.site_id = #{siteId}

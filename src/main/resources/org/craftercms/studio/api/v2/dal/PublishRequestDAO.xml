@@ -249,4 +249,32 @@
         ORDER BY IFNULL(pr.published_on, pr.scheduleddate) DESC
         LIMIT #{offset}, #{limit}
     </select>
+
+    <select id="getNumberOfPublishes" resultType="int">
+        SELECT COUNT(DISTINCT package_id)
+        FROM publish_request
+        WHERE site = #{siteId}
+        AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)
+    </select>
+
+    <select id="getNumberOfNewAndPublished" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+            INNER JOIN publish_request pr ON pr.site = s.site_id AND i.path = pr.path
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND (i.state &amp; #{newMask}) &gt; 0
+        AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)
+    </select>
+
+    <select id="getNumberOfEditedAndPublishedItems" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM item i INNER JOIN site s ON i.site_id = s.id
+                    INNER JOIN publish_request pr ON pr.site = s.site_id AND i.path = pr.path
+        WHERE s.site_id = #{siteId}
+        AND s.deleted = 0
+        AND (i.state &amp; #{modifiedMask}) &gt; 0
+        AND (i.state &amp; #{newMask}) = 0
+        AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)
+    </select>
 </mapper>
