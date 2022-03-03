@@ -216,8 +216,7 @@
         <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
-    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
-          parent="cstudioRegistrableService" />
+    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
 
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
@@ -560,6 +559,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="contentServiceInternal"

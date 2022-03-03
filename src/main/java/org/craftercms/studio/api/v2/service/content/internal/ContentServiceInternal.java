@@ -181,18 +181,18 @@ public interface ContentServiceInternal {
     boolean isEditable(DetailedItem detailedItem);
 
     /**
-     * Lock items by path for given site
+     * Lock item by path for given site
      * @param siteId site identifier
-     * @param paths list of item paths to lock
+     * @param path item path to lock
      */
-    void itemsLockByPath(String siteId, List<String> paths);
+    void itemLockByPath(String siteId, String path);
 
     /**
-     * Lock items by id for given site
+     * Lock item by id for given site
      * @param siteId site identifier
-     * @param itemIds list of item identifiers to lock
+     * @param itemId item identifier to lock
      */
-    void itemsLockById(String siteId, List<Long> itemIds);
+    void itemLockById(String siteId, Long itemId);
 
     /**
      * Unlock item by path for given site

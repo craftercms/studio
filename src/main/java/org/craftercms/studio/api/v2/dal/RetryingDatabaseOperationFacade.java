@@ -521,15 +521,18 @@ public interface RetryingDatabaseOperationFacade {
     void moveItem(String siteId, String oldPath, String newPath);
 
     /**
-     * Move item
+     * Move items
      * @param siteId site identifier
      * @param oldPath old path
      * @param newPath new path
+     * @param parentId new parent id, if null parent will not be changed
+     * @param oldPreviewUrl old preview url
+     * @param newPreviewUrl new preview url
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
-    void moveItems(String siteId, String oldPath, String newPath, String oldPreviewUrl, String newPreviewUrl,
-                   long onStatesBitMap, long offStatesBitMap);
+    void moveItems(String siteId, String oldPath, String newPath, Long parentId, String oldPreviewUrl,
+                   String newPreviewUrl, long onStatesBitMap, long offStatesBitMap);
 
     /**
      * Clear previous path of the content

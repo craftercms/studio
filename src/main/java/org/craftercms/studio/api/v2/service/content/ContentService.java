@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -177,32 +178,18 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * Lock items by paths for given site
+     * Lock item by path for given site
      * @param siteId site identifier
-     * @param paths list of paths to lock
+     * @param path path to lock
      */
-    void itemsLockByPath(String siteId, List<String> paths) throws UserNotFoundException, ServiceLayerException;
-
-    /**
-     * Lock items by ids for given site
-     * @param siteId site identifier
-     * @param itemIds list of item identifiers
-     */
-    void itemsLockById(String siteId, List<Long> itemIds) throws UserNotFoundException, ServiceLayerException;
+    void lockContent(String siteId, String path) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Unlock item by path for given site
      * @param siteId site identifier
      * @param path item path
      */
-    void itemUnlockByPath(String siteId, String path);
-
-    /**
-     * Unlock item by id for given site
-     * @param siteId site identifier
-     * @param itemId item identifier
-     */
-    void itemUnlockById(String siteId, long itemId);
+    void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException;
 
     /**
      * Get content for commit id
