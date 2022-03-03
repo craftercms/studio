@@ -439,16 +439,20 @@ public interface ItemDAO {
 
 
     /**
-     * Move item
+     * Move items
      * @param siteId site identifier
      * @param oldPath old path
      * @param newPath new path
+     * @param parentId new parent id, if null parent will not be changed
+     * @param oldPreviewUrl old preview url
+     * @param newPreviewUrl new preview url
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
     void moveItems(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
-                   @Param(OLD_PREVIEW_URL) String oldPreviewUrl, @Param(NEW_PREVIEW_URL) String newPreviewUrl,
-                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap, @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
+                   @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
+                   @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                   @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
      * Get sandbox items for given paths with prefer content option
