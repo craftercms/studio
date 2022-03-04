@@ -956,7 +956,15 @@ pipelines:
             - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
               dest: /configuration/samples/sample-permission-mappings-config.xml
           commitDetails: Update sample files
-
+        - type: dbVersionUpgrader
+    - currentVersion: 3.1.15
+      nextVersion: 3.1.23
+      operations:
+        - type: xsltFileUpgrader
+          path: /configuration/global-permission-mappings-config.xml
+          template: crafter/studio/upgrade/3.1.x/3.1.23/system/global-permission-mappings-config.xslt
+          commitDetails: Added site_delete permissions for system_admin
+        - type: dbVersionUpgrader
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
