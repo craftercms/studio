@@ -86,7 +86,6 @@ import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNA
 import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SECURITY_AUTHENTICATION_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
@@ -101,7 +100,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_KEY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_TYPE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_TYPE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 /**
@@ -165,8 +163,6 @@ public class SecurityServiceImpl implements SecurityService {
             toRet.put(KEY_LASTNAME, u.getLastName());
             toRet.put(KEY_EMAIL, u.getEmail());
             toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
-            String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
-            toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
         }
         return toRet;
     }
@@ -183,8 +179,6 @@ public class SecurityServiceImpl implements SecurityService {
             toRet.put(KEY_LASTNAME, u.getLastName());
             toRet.put(KEY_EMAIL, u.getEmail());
             toRet.put(KEY_EXTERNALLY_MANAGED, u.isExternallyManaged());
-            String authenticationType = studioConfiguration.getProperty(SECURITY_TYPE);
-            toRet.put(SECURITY_AUTHENTICATION_TYPE, authenticationType);
         } else {
             throw new UserNotFoundException("User " + gitName + " not found");
         }
