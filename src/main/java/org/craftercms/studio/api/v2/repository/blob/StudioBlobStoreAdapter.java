@@ -180,15 +180,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default boolean createSitePushToRemote(String siteId, String remoteName, String remoteUrl,
-                                           String authenticationType, String remoteUsername,
-                                           String remotePassword, String remoteToken, String remotePrivateKey,
-                                           boolean createAsOrphan) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                               String remoteUsername, String remotePassword, String remoteToken,
                               String remotePrivateKey) {
@@ -327,7 +318,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
+    default void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
@@ -381,7 +372,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void initialPublish(String siteId) throws SiteNotFoundException {
+    default void initialPublish(String siteId) {
         throw new UnsupportedOperationException();
     }
 }

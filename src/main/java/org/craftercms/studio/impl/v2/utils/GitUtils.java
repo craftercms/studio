@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,9 +15,14 @@
  */
 package org.craftercms.studio.impl.v2.utils;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.lib.ObjectId;
 
 import java.io.IOException;
@@ -60,6 +65,26 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
             throws GitAPIException, IOException {
         return getChangedFiles(git, git.getRepository().resolve(initialId),
                 git.getRepository().resolve(finalId), patterns);
+    }
+
+    public static void translateException(TransportException e, Logger logger, String remoteName, String remoteUrl,
+                                          String remoteUsername) throws RemoteRepositoryNotFoundException,
+                                                                        InvalidRemoteRepositoryCredentialsException {
+        if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
+            logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
+                    e);
+            throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
+                    remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+        } else if (StringUtils.endsWithIgnoreCase(e.getMessage(), "key did not validate")) {
+            logger.error("Invalid private key: " + remoteName + " (" + remoteUrl + ")",
+                    e);
+            throw new InvalidRemoteRepositoryCredentialsException("Invalid private key for repository: " +
+                    remoteName + " (" + remoteUrl + ")", e);
+        } else {
+            logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
+            throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
+                    remoteUrl + ")");
+        }
     }
 
 }

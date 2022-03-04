@@ -214,8 +214,7 @@
         <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
-    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
-          parent="cstudioRegistrableService" />
+    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
 
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
@@ -558,6 +557,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="contentServiceInternal"
@@ -953,10 +953,16 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="encryptor" ref="internalTextEncryptor" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
+        <property name="authConfiguratorFactory" ref="studio.authConfiguratorBuilderFactory"/>
     </bean>
 
     <bean id="studio.retryingRepositoryOperationFacade"
           class="org.craftercms.studio.impl.v2.repository.RetryingRepositoryOperationFacadeImpl" >
+    </bean>
+
+    <bean id="studio.authConfiguratorBuilderFactory"
+          class="org.craftercms.commons.git.utils.AuthConfiguratorFactory">
+        <constructor-arg name="sshConfig" value="#{studioConfiguration.getProperty('studio.security.ssh.config')}"/>
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1410,6 +1416,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="helper" ref="studio.gitRepositoryHelper"/>
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">

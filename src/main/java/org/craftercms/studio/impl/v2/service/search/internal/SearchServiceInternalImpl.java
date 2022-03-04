@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -373,9 +373,15 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                     RangeQuery.Builder rangeQuery = new RangeQuery.Builder();
                     Map<String, Object> range = (Map<String, Object>) value;
                     rangeQuery
-                        .field(fieldName)
-                        .gte(JsonData.of(range.get(FACET_RANGE_MIN)))
-                        .lt(JsonData.of(range.get(FACET_RANGE_MAX)));
+                        .field(fieldName);
+                    Object min = range.get(FACET_RANGE_MIN);
+                    if (min != null) {
+                        rangeQuery.gte(JsonData.of(min));
+                    }
+                    Object max = range.get(FACET_RANGE_MAX);
+                    if (max != null) {
+                        rangeQuery.lt(JsonData.of(max));
+                    }
 
                     if (params.isOrOperator()) {
                         builder.should(rangeQuery.build()._toQuery());
@@ -447,6 +453,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         result.setTotal(response.hits().total().value());
 
         List<SearchResultItem> items = response.hits().hits().stream()
+            .filter(hit -> Objects.nonNull(hit.source()))
             .map(hit -> processSearchHit(hit.source(), hit.highlight()))
             .collect(Collectors.toList());
 
@@ -656,7 +663,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the field name from the configured facets, if its not found returns the same value.
+     * Maps the field name from the configured facets, if it's not found returns the same value.
      * @param name the facet name
      * @return name of the field to sort
      */
@@ -712,12 +719,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                         RangeBucket bucket = entry.getValue();
                         SearchFacetRange rangeValues = new SearchFacetRange();
                         rangeValues.setCount(bucket.docCount());
-                        if (bucket.from() != null) {
+                        if (bucket.from() != null && bucket.fromAsString() != null) {
                             Instant instant = Instant.parse(bucket.fromAsString());
                             LocalDate date = LocalDateTime.ofInstant(instant, ZoneOffset.UTC).toLocalDate();
                             rangeValues.setFrom(date.toString());
                         }
-                        if (bucket.to() != null) {
+                        if (bucket.to() != null && bucket.toAsString() != null) {
                             Instant instant2 = Instant.parse(bucket.toAsString());
                             LocalDate date2 = LocalDateTime.ofInstant(instant2, ZoneOffset.UTC).toLocalDate();
                             rangeValues.setTo(date2.toString());

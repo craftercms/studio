@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -52,6 +52,8 @@ import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
@@ -59,6 +61,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationExce
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -78,6 +81,7 @@ import static org.craftercms.studio.api.v1.log.Logger.LEVEL_ERROR;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_INFO;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_OFF;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_WARN;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -422,6 +426,26 @@ public class ExceptionHandlers {
             RemoteRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_FOUND);
         response.setMessage(response.getMessage() + ": " + e.getMessage());
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ContentLockedByAnotherUserException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleException(HttpServletRequest request, ContentLockedByAnotherUserException e) {
+        var response = new ApiResponse(ApiResponse.CONTENT_ALREADY_LOCKED);
+        handleExceptionInternal(request, e, response);
+        var result = new ResultOne<String>();
+        result.setResponse(response);
+        result.setEntity(RESULT_KEY_PERSON, e.getLockOwner());
+        var responseBody = new ResponseBody();
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @ExceptionHandler(ContentAlreadyUnlockedException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleException(HttpServletRequest request, ContentAlreadyUnlockedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_UNLOCKED);
         return handleExceptionInternal(request, e, response);
     }
 

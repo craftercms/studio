@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -59,10 +59,4 @@ public class RemoteRepository implements Serializable {
     public String getRemotePrivateKey() { return remotePrivateKey; }
     public void setRemotePrivateKey(String remotePrivateKey) { this.remotePrivateKey = remotePrivateKey; }
 
-    public interface AuthenticationType {
-        String NONE = "none";
-        String BASIC = "basic";
-        String TOKEN = "token";
-        String PRIVATE_KEY = "key";
-    }
 }

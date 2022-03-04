@@ -1,4 +1,4 @@
-# This file describes a plugin for use in Crafter CMS
+# This file describes a plugin for use in CrafterCMS
 
 # The version of the format for this file
 descriptorVersion: 2
@@ -43,20 +43,16 @@ plugin:
         url: /studio/static-assets/images/blueprints/website_editorial/bp_editorial_article.png
   developer:
     company:
-      name: Crafter Software
-      email: info@craftersoftware.com
-      url: https://craftersoftware.com/
-  build:
-    id: c3d2a5444e6a24b5e0481d6ba87901d0b02716c8
-    date: 2019-01-23T00:00:00Z
+      name: CrafterCMS
+      email: info@craftercms.com
+      url: https://craftercms.com/
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
   crafterCmsVersions:
-    - major: 3
-      minor: 1
-      patch: 1
+    - major: 4
+      minor: 0
+      patch: 0
   crafterCmsEditions:
     - community
     - enterprise
-  searchEngine: Elasticsearch

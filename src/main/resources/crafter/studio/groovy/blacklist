@@ -108,5 +108,5 @@ staticMethod org.codehaus.groovy.runtime.ScriptBytecodeAdapter castToType java.l
 new org.kohsuke.groovy.sandbox.impl.Checker$SuperConstructorWrapper java.lang.Object[]
 new org.kohsuke.groovy.sandbox.impl.Checker$ThisConstructorWrapper java.lang.Object[]
 
-# Custom for Crafter CMS
+# Custom for CrafterCMS
 field org.craftercms.studio.impl.v2.service.scripting.internal.ScriptingServiceInternalImpl sandboxInterceptor

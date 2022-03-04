@@ -1,0 +1,12 @@
+# IDEA
+*.iml
+.idea/*
+
+# Gradle
+.gradle/*
+
+# Mac ignore list
+.DS_Store
+
+# Maven
+target/*

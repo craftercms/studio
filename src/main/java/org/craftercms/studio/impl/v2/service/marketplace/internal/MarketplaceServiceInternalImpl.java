@@ -29,6 +29,7 @@ import org.apache.commons.configuration2.ex.ConfigurationRuntimeException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringSubstitutor;
+import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
@@ -54,7 +55,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.IncompatiblePluginException;
@@ -236,12 +236,12 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected HttpHeaders httpHeaders;
 
     /**
-     * The current Crafter CMS version, sent with all requests
+     * The current CrafterCMS version, sent with all requests
      */
     protected String version;
 
     /**
-     * The current Crafter CMS edition, sent with all requests
+     * The current CrafterCMS edition, sent with all requests
      */
     protected String edition;
 
@@ -501,7 +501,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         siteService.createSiteWithRemoteOption(request.getSiteId(), request.getName(), request.getSandboxBranch(),
             request.getDescription(), request.getBlueprintId(), request.getRemoteName(),
-            plugin.getUrl(), plugin.getRef(), false, RemoteRepository.AuthenticationType.NONE, null,
+            plugin.getUrl(), plugin.getRef(), false, AuthenticationType.NONE, null,
             null, null, null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
             true);
 
@@ -1073,12 +1073,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         // Check if the plugin contains templates to be wired
         for(Map.Entry<String, String> mapping : templateMapping.entrySet()) {
             String actualPath = replace(mapping.getValue(), Map.of(PARAM_PLUGIN_PATH, pluginPath));
-            addIncludeIfNeeded(siteId, paths, mapping.getKey(), pluginIdComment, actualPath, changedFiles);
+            addIncludeIfNeeded(siteId, plugin.getId(), paths, mapping.getKey(), pluginIdComment, actualPath,
+                                changedFiles);
         }
     }
 
-    protected void addIncludeIfNeeded(String siteId, List<String> paths, String includePath, String includeComment,
-                                      String pluginPath, List<String> changedFiles) throws IOException {
+    protected void addIncludeIfNeeded(String siteId, String pluginId, List<String> paths, String includePath,
+                                      String includeComment, String pluginPath, List<String> changedFiles)
+            throws IOException {
         if (paths.contains(pluginPath)) {
             logger.debug("Detected template {}", pluginPath);
             String fileContent = EMPTY;
@@ -1091,7 +1093,8 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             if (isEmpty(fileContent) || !contains(fileContent, includeComment)) {
                 logger.debug("Wiring plugin template {} in {} for site {}", pluginPath, includePath, siteId);
                 String newLine =
-                        format("\n%s%s\n", replace(templateCode, Map.of(PATH_CONFIG_KEY, pluginPath)), includeComment);
+                        format("\n%s%s\n", replace(templateCode,
+                                Map.of(PATH_CONFIG_KEY, pluginPath, PARAM_PLUGIN_ID, pluginId)), includeComment);
                 fileContent += newLine;
 
                 Path repo = getRepoDirectory(siteId);

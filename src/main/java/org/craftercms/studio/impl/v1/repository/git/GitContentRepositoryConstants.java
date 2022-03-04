@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,7 @@ public final class  GitContentRepositoryConstants {
     public static final String GIT_COMMIT_ALL_ITEMS = ".";
     public static final String EMPTY_FILE = ".keep";
     public static final String IGNORE_FILE = ".gitignore";
+    public static final String SOURCES_FOLDER = "sources";
     public static final String[] IGNORE_FILES = new String[] { ".keep", ".DS_Store" };
 
     /** Configuration */

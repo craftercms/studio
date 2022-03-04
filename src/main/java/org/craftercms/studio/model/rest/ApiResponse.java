@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -84,7 +84,11 @@ public class ApiResponse {
     public static final ApiResponse CONTENT_NOT_FOUND = new ApiResponse(7000, "Content not found",
             "Check if you sent in the right Content Id", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_ALREADY_EXISTS = new ApiResponse(7001, "Content already exists",
-            "Advise the user that the content already exists", StringUtils.EMPTY);
+            "Edit the existing item or delete it before creating it again", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_ALREADY_LOCKED = new ApiResponse(7002, "Content already locked",
+            "The user that locked the item or the administrator must unlock the item first", StringUtils.EMPTY);
+    public static final ApiResponse CONTENT_ALREADY_UNLOCKED = new ApiResponse(7003, "Content already unlocked",
+            "The item is already unlocked", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",

@@ -92,5 +92,8 @@ public final class ResultConstants {
     public static final String RESULT_KEY_TOKENS = "tokens";
     public static final String RESULT_KEY_TOKEN = "token";
 
+    /** Exception Handler */
+    public static final String RESULT_KEY_PERSON = "person";
+
     private ResultConstants() { }
 }

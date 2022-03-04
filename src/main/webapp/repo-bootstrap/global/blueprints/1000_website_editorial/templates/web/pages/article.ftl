@@ -29,9 +29,9 @@
           <@crafter.h1 $field="subject_t">
             ${contentModel.subject_t!""}
           </@crafter.h1>
-          <@crafter.h2 $field="author_s">
-            by ${contentModel.author_s!""}
-          </@crafter.h2>
+          <div>
+            by <@crafter.span $field"author_s">${contentModel.author_s!""}</@crafter.span>
+          </div>
 				</header>
 				<#if contentModel.image_s??>
 					<#assign image = contentModel.image_s/>
