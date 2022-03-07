@@ -47,6 +47,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_INSTALL_PLUGINS;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LIST_PLUGINS;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_REMOVE_PLUGINS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_SEARCH_PLUGINS;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
 
 /**
@@ -66,7 +67,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_SITE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_SEARCH_PLUGINS)
     public Map<String, Object> searchPlugins(@ValidateStringParam(name = "type") String type,
                                              @ValidateStringParam(name = "keywords") String keywords,
                                              boolean showIncompatible, long offset, long limit)
