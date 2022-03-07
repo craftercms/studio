@@ -69,14 +69,6 @@
 						<locale>en</locale>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.PathNavigatorTree">
-					<configuration>
-						<label>Scripts</label>
-						<icon id="@mui/icons-material/CodeRounded"/>
-						<rootPath>/scripts</rootPath>
-						<locale>en</locale>
-					</configuration>
-				</widget>
 				<widget id="craftercms.components.ToolsPanelEmbeddedAppViewButton">
 					<permittedRoles>
 						<role>admin</role>
