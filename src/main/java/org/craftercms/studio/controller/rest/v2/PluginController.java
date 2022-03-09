@@ -100,7 +100,7 @@ public class PluginController extends ManagementTokenAware {
      * Reloads the groovy classes for the given site
      */
     @GetMapping("/script/reload")
-    public ResponseBody reload(@RequestParam String siteId, @RequestParam String token)
+    public ResponseBody reloadClasses(@RequestParam String siteId, @RequestParam String token)
             throws InvalidParametersException, InvalidManagementTokenException {
         validateToken(token);
 
