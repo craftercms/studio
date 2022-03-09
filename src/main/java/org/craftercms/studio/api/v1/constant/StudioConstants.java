@@ -150,11 +150,6 @@ public final class StudioConstants {
 
     public static final String HOME_PAGE_PATH = "/site/website/index.xml";
 
-    public static final String SECURITY_AUTHENTICATION_TYPE = "authentication_type";
-    public static final String SECURITY_AUTHENTICATION_TYPE_DB = "db";
-    public static final String SECURITY_AUTHENTICATION_TYPE_LDAP = "ldap";
-    public static final String SECURITY_AUTHENTICATION_TYPE_HEADERS = "headers";
-
     public static final String JSON_PROPERTY_ITEM = "item";
     public static final String JSON_PROPERTY_DEPENDENCIES = "dependencies";
 

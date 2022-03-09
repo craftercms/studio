@@ -22,8 +22,6 @@ package org.craftercms.studio.model;
  */
 public enum AuthenticationType {
 
-    DB,
-    LDAP,
-    AUTH_HEADERS
+    DB
 
 }
