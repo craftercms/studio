@@ -1316,6 +1316,12 @@ public class SiteServiceImpl implements SiteService {
                     Files.write(repoOperationsScriptPath,
                             deleteItemRow(siteFeed.getId(), repoOperation.getPath()).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
+                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
+                    if (!contentRepositoryV2.contentExists(siteId, folder)) {
+                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+                        Files.write(repoOperationsScriptPath,
+                                deleteItemRow(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    }
                     Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                     Files.write(repoOperationsScriptPath,
                             deleteDependencyRows(siteId, repoOperation.getPath()).getBytes(UTF_8),
