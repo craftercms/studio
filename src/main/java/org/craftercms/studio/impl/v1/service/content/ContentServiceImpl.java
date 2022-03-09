@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -47,7 +46,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -68,7 +66,6 @@ import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
@@ -92,6 +89,8 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.event.content.ContentEvent;
+import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -112,6 +111,8 @@ import org.dom4j.Element;
 import org.dom4j.DocumentException;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
@@ -142,7 +143,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -171,7 +171,7 @@ import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
  * @author russdanner
  * @author Sumer Jabri
  */
-public class ContentServiceImpl implements ContentService {
+public class ContentServiceImpl implements ContentService, ApplicationContextAware {
     // TODO: SJ: Refactor in 2.7.x to leverage Crafter Core as this will automatically enable inheritance, caching and
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
@@ -188,7 +188,6 @@ public class ContentServiceImpl implements ContentService {
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected EventService eventService;
     protected SiteService siteService;
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected StudioConfiguration studioConfiguration;
@@ -200,6 +199,7 @@ public class ContentServiceImpl implements ContentService {
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
+    protected ApplicationContext applicationContext;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -372,10 +372,6 @@ public class ContentServiceImpl implements ContentService {
         String id = site + ":" + path + ":" + fileName + ":" + contentType;
         String relativePath = path;
         boolean contentExists = contentExists(site, path);
-        String lockKey = id;
-        if (contentExists) {
-            lockKey = site + ":" + path;
-        }
         try {
             // Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
             // If "unlock" is empty, it means it's a save and close operation
@@ -447,9 +443,7 @@ public class ContentServiceImpl implements ContentService {
 
 
             // Sync preview
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }  catch (RuntimeException e) {
             logger.error("error writing content", e);
 
@@ -472,10 +466,9 @@ public class ContentServiceImpl implements ContentService {
                                       @ValidateStringParam(name = "createFolders") final String createFolders,
                                       @ValidateStringParam(name = "edit") final  String edit,
                                       @ValidateStringParam(name = "unlock") final String unlock,
-                                      final boolean createFolder) throws ServiceLayerException {
+                                      final boolean createFolder) {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
-        String id = site + ":" + path + ":" + fileName + ":" + contentType;
 
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
@@ -575,9 +568,7 @@ public class ContentServiceImpl implements ContentService {
             item.setSizeUnit(assetInfoTO.getSizeUnit());
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -700,10 +691,7 @@ public class ContentServiceImpl implements ContentService {
             contentRepository.insertGitLog(site, commitId, 1);
         }
 
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(site);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
-
+        applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
 
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
 
@@ -724,13 +712,6 @@ public class ContentServiceImpl implements ContentService {
         boolean exists = contentExists(site, path);
         if (exists) {
             ContentItemTO item = getContentItem(site, path, 0);
-
-            Map<String, String> extraInfo = new HashMap<String, String>();
-            if (item.isFolder()) {
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, CONTENT_TYPE_FOLDER);
-            } else {
-                extraInfo.put(DmConstants.KEY_CONTENT_TYPE, getContentTypeClass(site, path));
-            }
             logger.debug("[DELETE] posting delete activity on " + path + " by " + approver + " in " + site);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -904,7 +885,6 @@ public class ContentServiceImpl implements ContentService {
         return retNewFileName;
     }
 
-    @SuppressWarnings("unchecked")
     protected Document replaceCopyDependency(Document document, String depPath, String copyDepPath) {
         Element root = document.getRootElement();
         List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));
@@ -1007,9 +987,7 @@ public class ContentServiceImpl implements ContentService {
                 movePath = fromPath;
             }
 
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
         }
         catch(ServiceLayerException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
@@ -1299,7 +1277,6 @@ public class ContentServiceImpl implements ContentService {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     protected Map<String, String> getItemSpecificDependencies(String site, String path, Document document,
                                                               Map<String, String> copyDependencies)
             throws ServiceLayerException {
@@ -1356,7 +1333,6 @@ public class ContentServiceImpl implements ContentService {
         return ids;
     }
 
-    @SuppressWarnings("unchecked")
     protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
         String> params, String modifier)
             throws ServiceLayerException {
@@ -1489,7 +1465,6 @@ public class ContentServiceImpl implements ContentService {
         return item;
     }
 
-    @SuppressWarnings("unchecked")
     protected ContentItemTO populateContentDrivenProperties(String site, ContentItemTO item)
             throws Exception {
         // This method load an XML content item and populates properties in the TO from the XML
@@ -2012,9 +1987,7 @@ public class ContentServiceImpl implements ContentService {
         }
 
         if (toReturn) {
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }
 
         return toReturn;
@@ -2145,7 +2118,7 @@ public class ContentServiceImpl implements ContentService {
             return CONTENT_TYPE_RENDERING_TEMPLATE;
         } else if (StringUtils.startsWith(uri, contentTypeService.getConfigPath())) {
             return CONTENT_TYPE_CONTENT_TYPE;
-        } else if (matchesPatterns(uri, Arrays.asList(CONTENT_TYPE_TAXONOMY_REGEX))) {
+        } else if (matchesPatterns(uri, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
             return CONTENT_TYPE_TAXONOMY;
         } else if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
             return CONTENT_TYPE_SCRIPT;
@@ -2178,8 +2151,6 @@ public class ContentServiceImpl implements ContentService {
         // get sandbox if not provided
         long start = System.currentTimeMillis();
         try {
-
-            String[] strings = id.split(":");
             long startTime = System.currentTimeMillis();
             ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
             long duration = System.currentTimeMillis() - startTime;
@@ -2370,6 +2341,7 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Dejan to look into this
         contentRepository.lockItem(site, path);
         itemServiceInternal.lockItemByPath(site, path, securityService.getCurrentUser());
+        applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, true));
     }
 
     @Override
@@ -2378,6 +2350,7 @@ public class ContentServiceImpl implements ContentService {
                               @ValidateSecurePathParam(name = "path") String path) {
         _contentRepository.unLockItem(site, path);
         itemServiceInternal.unlockItemByPath(site, path);
+        applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, false));
     }
 
     @Override
@@ -2555,10 +2528,8 @@ public class ContentServiceImpl implements ContentService {
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
-            PreviewEventContext context = new PreviewEventContext();
-            context.setSite(site);
-            eventService.publish(EVENT_PREVIEW_SYNC, context);
-             toRet = true;
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+            toRet = true;
 
         } else {
             logger.error("Repository move failed site {0} from {1} to {2}", site, path, targetPath);
@@ -2605,6 +2576,11 @@ public class ContentServiceImpl implements ContentService {
         auditServiceInternal.insertAuditLog(auditLog);
         
         return toRet;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public ContentRepository getContentRepository() {
@@ -2662,13 +2638,6 @@ public class ContentServiceImpl implements ContentService {
     }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) {
         this.dmContentLifeCycleService = dmContentLifeCycleService;
-    }
-
-    public EventService getEventService() {
-        return eventService;
-    }
-    public void setEventService(EventService eventService) {
-        this.eventService = eventService;
     }
 
     public SiteService getSiteService() {

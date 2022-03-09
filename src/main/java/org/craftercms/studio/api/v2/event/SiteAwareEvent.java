@@ -13,26 +13,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.event;
 
-package org.craftercms.studio.api.v1.ebus;
+import org.springframework.security.core.Authentication;
 
-import java.io.Serializable;
+/**
+ * Base class for all events related to a specific site
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
+public abstract class SiteAwareEvent extends StudioEvent {
 
-public class PreviewEventContext extends EventContext implements Serializable {
+    protected final String siteId;
 
-    private static final long serialVersionUID = 6915982832841499939L;
-
-    private boolean waitTillDeploymentIsDone;
-
-    public PreviewEventContext() {
+    public SiteAwareEvent(Authentication authentication, String siteId) {
+        super(authentication);
+        this.siteId = siteId;
     }
 
-    public PreviewEventContext(boolean waitTillDeploymentIsDone) {
-        this.waitTillDeploymentIsDone = waitTillDeploymentIsDone;
+    public SiteAwareEvent(Person person, String siteId) {
+        super(person);
+        this.siteId = siteId;
     }
 
-    public boolean isWaitTillDeploymentIsDone() {
-        return waitTillDeploymentIsDone;
+    public SiteAwareEvent(String siteId) {
+        this.siteId = siteId;
+    }
+
+    public String getSiteId() {
+        return siteId;
     }
 
 }

@@ -13,34 +13,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.event.site;
 
-package org.craftercms.studio.api.v1.ebus;
-
-import java.util.List;
+import org.craftercms.studio.api.v2.event.Person;
+import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.springframework.security.core.Authentication;
 
 /**
- * Repository Event Message for bulk operations.
+ * Event triggered when there is a change in a site
  *
- * @author Dejan Brkic
+ * @implNote For now this is only triggered when a site creation is complete
+ *
+ * @author joseross
+ * @since 4.0.0
  */
-public class RepositoryEventBulkOpMessage {
+public class SiteEvent extends SiteAwareEvent {
 
-    private String site;
-    private List<String> affectedPaths;
-
-    public String getSite() {
-        return site;
+    public SiteEvent(Authentication authentication, String siteId) {
+        this(Person.from(authentication), siteId);
     }
 
-    public void setSite(final String site) {
-        this.site = site;
+    public SiteEvent(Person person, String siteId) {
+        super(person, siteId);
     }
 
-    public List<String> getAffectedPaths() {
-        return affectedPaths;
+    public SiteEvent(String siteId) {
+        super(siteId);
     }
 
-    public void setAffectedPaths(final List<String> affectedPaths) {
-        this.affectedPaths = affectedPaths;
-    }
 }

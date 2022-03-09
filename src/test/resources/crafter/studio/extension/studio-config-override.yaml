@@ -12,6 +12,10 @@ studio.security.encryption.salt: DgGN9xhq3GOn6zxg
 studio.db.driver: org.mariadb.jdbc.Driver
 # Database schema name
 studio.db.schema: crafter
+# Database user
+studio.db.user: crafter
+# Database password:
+studio.db.password: crafter
 # Connection string used when connecting database with JDBC driver
 # Format:
 # jdbc:DATABASE_PLATFORM;databaseName=DATABASE_NAME;create=true;user=DATABASE_USERNAME;password=DATABASE_USER_PASSWORD

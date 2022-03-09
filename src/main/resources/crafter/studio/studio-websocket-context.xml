@@ -16,13 +16,23 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:ws="http://www.springframework.org/schema/websocket"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd">
+                            http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/websocket
+                            http://www.springframework.org/schema/websocket/spring-websocket.xsd">
 
-    <import resource="classpath:crafter/studio/security/common.xml"/>
-    <import resource="classpath:crafter/studio/security/api.xml"/>
-    <import resource="classpath:crafter/studio/security/web.xml"/>
-    <import resource="classpath:crafter/studio/security/websocket.xml"/>
+    <!-- Event listener -->
+    <bean id="eventBroadcaster" class="org.craftercms.studio.impl.v2.event.EventBroadcaster"/>
+
+    <!-- Main configuration -->
+    <ws:message-broker>
+        <!-- Enable the STOMP controller in this URL -->
+        <ws:stomp-endpoint path="/events"/>
+
+        <!-- Enable the in-memory broker with the given prefixes -->
+        <ws:simple-broker prefix="/topic"/>
+    </ws:message-broker>
 
 </beans>

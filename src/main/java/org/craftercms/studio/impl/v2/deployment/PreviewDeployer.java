@@ -16,25 +16,22 @@
 package org.craftercms.studio.impl.v2.deployment;
 
 import org.craftercms.commons.rest.RestServiceException;
-import org.craftercms.studio.api.v1.ebus.EventListener;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v1.service.event.EventService;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.annotation.Required;
+import org.craftercms.studio.api.v2.event.content.ContentEvent;
+import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
+import org.craftercms.studio.api.v2.event.site.SiteEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.web.client.RestClientException;
 
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_DISABLE_DEPLOY_CRON;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_REPLACE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
@@ -58,41 +55,32 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_TEM
  *
  * @author avasquez
  */
-public class PreviewDeployer extends AbstractDeployer implements BeanNameAware {
+public class PreviewDeployer extends AbstractDeployer {
 
     private final static Logger logger = LoggerFactory.getLogger(PreviewDeployer.class);
 
-    private final static String METHOD_PREVIEW_SYNC_LISTENER = "onPreviewSync";
     private final static String ENV_PREVIEW = "preview";
     private final static String ENV_AUTHORING = "authoring";
 
-    protected EventService eventService;
-    protected String beanName;
 
-    @Required
-    public void setEventService(EventService eventService) {
-        this.eventService = eventService;
+    @EventListener
+    public void onSiteCreateComplete(SiteEvent event) {
+        doPreviewSync(event.getSiteId(), true);
     }
 
-    @Override
-    public void setBeanName(String beanName) {
-        this.beanName = beanName;
+    @EventListener
+    public void onRepositorySyncComplete(RepositoryEvent event) {
+        doPreviewSync(event.getSiteId(), false);
     }
 
-    public void subscribeToPreviewSyncEvents() {
-        try {
-            Method subscribeMethod = PreviewDeployer.class.getMethod(METHOD_PREVIEW_SYNC_LISTENER,
-                                                                     PreviewEventContext.class);
-            eventService.subscribe(EVENT_PREVIEW_SYNC, beanName, subscribeMethod);
-        } catch (NoSuchMethodException e) {
-            logger.error("Could not subscribe to preview sync events", e);
-        }
+    @EventListener
+    public void onContentChange(ContentEvent event) {
+        doPreviewSync(event.getSiteId(), event.isWaitForCompletion());
     }
 
-    @EventListener(EVENT_PREVIEW_SYNC)
-    public void onPreviewSync(PreviewEventContext context) {
-        doDeployment(context.getSite(), ENV_AUTHORING, false);
-        doDeployment(context.getSite(), ENV_PREVIEW, context.isWaitTillDeploymentIsDone());
+    protected void doPreviewSync(String siteId, boolean waitTillDone) {
+        doDeployment(siteId, ENV_AUTHORING, false);
+        doDeployment(siteId, ENV_PREVIEW, waitTillDone);
     }
 
     @Override
