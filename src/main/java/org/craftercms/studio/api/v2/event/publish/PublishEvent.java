@@ -13,34 +13,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.impl.v2.security.authentication.headers;
+package org.craftercms.studio.api.v2.event.publish;
 
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.craftercms.studio.api.v2.event.BroadcastEvent;
+import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 
 /**
- * Extension of {@link AbstractAuthenticationToken} used for Studio's header authentication.
+ * Event triggered when items are published
+ *
+ * @implNote For now this only triggered when items are processed in the publishing queue
  *
  * @author joseross
- * @since 4.0
+ * @since 4.0.0
  */
-public class HeadersAuthenticationToken extends AbstractAuthenticationToken {
+public class PublishEvent extends SiteAwareEvent implements BroadcastEvent {
 
-    private Object principal;
-
-    public HeadersAuthenticationToken(Object principal) {
-        super(null);
-        this.principal = principal;
-        setAuthenticated(true);
+    public PublishEvent(String siteId) {
+        super(siteId);
     }
 
     @Override
-    public Object getCredentials() {
-        return "N/A";
+    public String getEventType() {
+        return "PUBLISH_EVENT";
     }
 
     @Override
-    public Object getPrincipal() {
-        return principal;
+    public String toString() {
+        return "PublishEvent{" +
+                "siteId='" + siteId + '\'' +
+                ", timestamp=" + timestamp +
+                ", user=" + user +
+                '}';
     }
 
 }

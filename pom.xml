@@ -193,6 +193,24 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-websocket</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-messaging</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-messaging</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+
         <!-- Commons -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -309,6 +327,14 @@
             <groupId>org.xmlunit</groupId>
             <artifactId>xmlunit-core</artifactId>
             <version>${org.xmlunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Required by spring-websocket -->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-websocket</artifactId>
+            <version>${tomcat.version}</version>
             <scope>test</scope>
         </dependency>
 

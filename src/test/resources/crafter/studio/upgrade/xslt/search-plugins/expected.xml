@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+    <role name="system_admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>search_plugins</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="site_admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>search_plugins</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+</permissions>

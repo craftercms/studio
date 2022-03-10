@@ -13,18 +13,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.event.content;
 
-package org.craftercms.studio.api.v1.ebus;
+import org.springframework.security.core.Authentication;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+/**
+ * Event triggered when a configuration file is changed
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
+public class ConfigurationEvent extends ContentEvent {
 
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+    public ConfigurationEvent(Authentication authentication, String siteId, String targetPath) {
+        super(authentication, siteId, targetPath);
+    }
 
-@Target({METHOD})
-@Retention(RUNTIME)
-public @interface EventListener {
+    @Override
+    public String getEventType() {
+        return "CONFIGURATION_EVENT";
+    }
 
-    String[] value();
 }

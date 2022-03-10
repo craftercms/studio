@@ -618,7 +618,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     throw new PluginInstallationException("Error during rollback for plugin removal", e2);
                 }
             }
-            throw new PluginInstallationException("Error wiring plugin " + pluginId + " in site " + siteId, e);
+            if (e instanceof PluginInstallationException) {
+                throw (PluginInstallationException) e;
+            } else {
+                throw new PluginInstallationException("Error wiring plugin " + pluginId + " in site " + siteId, e);
+            }
         } finally {
             writeLock.unlock();
         }

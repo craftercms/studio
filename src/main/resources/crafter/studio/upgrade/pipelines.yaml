@@ -280,6 +280,25 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
                 dest: /configuration/samples/sample-notification-config.xml
             commitDetails: Update sample files
+      - currentVersion: 4.0.0.35
+        nextVersion: 4.0.0.36
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permission for searching plugins
+          - type: xsltFileUpgrader
+            path: /configuration/global-role-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-role-mappings-config.xslt
+            commitDetails: Add new mapping for site_admin
+      - currentVersion: 4.0.0.36
+        nextVersion: 4.0.0.37
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file
 
   # Pipeline to upgrade site repositories
   site:

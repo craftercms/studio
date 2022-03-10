@@ -29,7 +29,6 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -39,12 +38,12 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ContentItemVersion;
+import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -61,6 +60,8 @@ import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.Yaml;
@@ -94,7 +95,6 @@ import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
@@ -110,7 +110,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESO
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 
-public class ConfigurationServiceImpl implements ConfigurationService {
+public class ConfigurationServiceImpl implements ConfigurationService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigurationServiceImpl.class);
 
@@ -128,16 +128,15 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private SiteService siteService;
     private SecurityService securityService;
     private ServicesConfig servicesConfig;
-    private EventService eventService;
     private EncryptionAwareConfigurationReader configurationReader;
     private ItemServiceInternal itemServiceInternal;
-    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private ContentRepository contentRepository;
     private DependencyService dependencyService;
 
     private String translationConfig;
     private Cache<String, Object> configurationCache;
     private List<CacheInvalidator<String, Object>> cacheInvalidators;
+    private ApplicationContext applicationContext;
 
     @Override
     public Map<String, List<String>> getRoleMappings(String siteId) throws ServiceLayerException {
@@ -345,9 +344,9 @@ public class ConfigurationServiceImpl implements ConfigurationService {
             throws ServiceLayerException, UserNotFoundException {
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
-        PreviewEventContext context = new PreviewEventContext();
-        context.setSite(siteId);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
+        applicationContext.publishEvent(
+                new ConfigurationEvent(securityService.getAuthentication(), siteId,
+                        getConfigurationPath(siteId, module, path, environment)));
     }
 
     public String getCacheKey(String siteId, String module, String path, String environment, String suffix) {
@@ -485,6 +484,25 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         } catch (IOException e) {
             throw new ServiceLayerException("Error validating configuration", e);
         }
+    }
+
+    private String getConfigurationPath(String siteId, String module, String path, String environment) {
+        String configBasePath = null;
+        if (!isEmpty(environment)) {
+            configBasePath =
+                    studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
+                            .replaceAll(PATTERN_MODULE, module)
+                            .replaceAll(PATTERN_ENVIRONMENT, environment);
+            if (!contentService.contentExists(siteId, configBasePath)) {
+                configBasePath = null;
+            }
+        }
+
+        if (isEmpty(configBasePath)) {
+            configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
+                    .replaceAll(PATTERN_MODULE, module);
+        }
+        return Paths.get(configBasePath, path).toString();
     }
 
     private void writeEnvironmentConfiguration(String siteId, String module, String path, String environment,
@@ -722,6 +740,12 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     }
     // --- end of copied code ---
 
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
@@ -744,10 +768,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public void setEventService(EventService eventService) {
-        this.eventService = eventService;
     }
 
     public void setConfigurationReader(EncryptionAwareConfigurationReader configurationReader) {
