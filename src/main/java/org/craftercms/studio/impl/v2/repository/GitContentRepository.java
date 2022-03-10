@@ -1183,14 +1183,13 @@ public class GitContentRepository implements ContentRepository {
     public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
         boolean toRet = false;
         try {
-            try (Repository repo = helper.getRepository(site, repoType)) {
-                if (repo != null) {
-                    ObjectId objCommitId = repo.resolve(commitId);
-                    if (objCommitId != null) {
-                        RevCommit revCommit = repo.parseCommit(objCommitId);
-                        if (revCommit != null) {
-                            toRet = true;
-                        }
+            Repository repo = helper.getRepository(site, repoType);
+            if (repo != null) {
+                ObjectId objCommitId = repo.resolve(commitId);
+                if (objCommitId != null) {
+                    RevCommit revCommit = repo.parseCommit(objCommitId);
+                    if (revCommit != null) {
+                        toRet = true;
                     }
                 }
             }
