@@ -17,7 +17,6 @@ package org.craftercms.studio.api.v2.repository.blob;
 
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -371,8 +370,4 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    default void initialPublish(String siteId) {
-        throw new UnsupportedOperationException();
-    }
 }

@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.repository.blob;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
@@ -38,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.mockito.Mockito.*;
@@ -104,6 +104,8 @@ public class BlobAwareContentRepositoryTest {
         when(resolver.getByPaths(SITE, FOLDER_PATH, NEW_FOLDER_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, NO_EXT_PATH)).thenReturn(store);
         when(resolver.getByPaths(SITE, CONFIG_PATH)).thenReturn(null);
+
+        when(resolver.getAll(SITE)).thenReturn(List.of(store));
 
         when(localV1.isFolder(SITE, FOLDER_PATH)).thenReturn(true);
         when(localV1.isFolder(SITE, NEW_FOLDER_PATH)).thenReturn(true);
@@ -371,6 +373,14 @@ public class BlobAwareContentRepositoryTest {
         assertEquals(map.size(), 2);
         map.forEach((key, value) -> assertFalse(key.endsWith(BLOB_EXT) || value.endsWith(BLOB_EXT),
                 "The changeSet should not contain pointer paths"));
+    }
+
+    @Test
+    public void initialPublishTest() throws SiteNotFoundException {
+        proxy.initialPublish(SITE);
+
+        verify(store).initialPublish(SITE);
+        verify(localV2).initialPublish(SITE);
     }
 
 }
