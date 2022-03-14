@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -39,6 +40,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -72,20 +74,22 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceInternalImpl.class);
 
-    private UserDAO userDao;
-    private GroupServiceInternal groupServiceInternal;
-    private StudioConfiguration studioConfiguration;
-    private SiteService siteService;
-    private AccessTokenServiceInternal accessTokenService;
-    private SecurityService securityService;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final UserDAO userDao;
+    private final GroupServiceInternal groupServiceInternal;
+    private final StudioConfiguration studioConfiguration;
+    private final SiteService siteService;
+    private final AccessTokenServiceInternal accessTokenService;
+    private final SecurityService securityService;
+    private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final Cache<String, User> userCache;
 
     @ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
-            "accessTokenService", "retryingDatabaseOperationFacade"})
+            "accessTokenService", "retryingDatabaseOperationFacade", "userCache"})
     public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
                                    StudioConfiguration studioConfiguration, SiteService siteService,
                                    SecurityService securityService, AccessTokenServiceInternal accessTokenService,
-                                   RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
+                                   RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+                                   Cache<String, User> userCache) {
         this.userDao = userDao;
         this.groupServiceInternal = groupServiceInternal;
         this.studioConfiguration = studioConfiguration;
@@ -93,6 +97,19 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         this.securityService = securityService;
         this.accessTokenService= accessTokenService;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+        this.userCache = userCache;
+    }
+
+    protected void invalidateCache(String username) {
+        userCache.invalidate(username);
+    }
+
+    protected void invalidateCache(List<String> usernames) {
+        userCache.invalidateAll(usernames);
+    }
+
+    protected void invalidateCache(Collection<User> users) {
+        invalidateCache(users.stream().map(User::getUsername).collect(Collectors.toList()));
     }
 
     @Override
@@ -125,7 +142,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
         for(String username : usernames) {
             Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
-            if(!user.isPresent()) {
+            if(user.isEmpty()) {
                 users.add(getUserByIdOrUsername(-1, username));
             }
         }
@@ -234,7 +251,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
         try {
             retryingDatabaseOperationFacade.updateUser(params);
-
+            invalidateCache(oldUser.getUsername());
             // Force a re-authentication if the user is currently logged-in
             accessTokenService.deleteRefreshToken(oldUser);
         } catch (Exception e) {
@@ -253,7 +270,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
         try {
             retryingDatabaseOperationFacade.deleteUsers(params);
-
+            invalidateCache(users);
             // Cleanup user properties...
             retryingDatabaseOperationFacade.deleteUserPropertiesByUserIds(ids);
         } catch (Exception e) {
@@ -272,7 +289,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
         try {
             retryingDatabaseOperationFacade.enableUsers(params);
-
+            invalidateCache(users);
             return getUsersByIdOrUsername(userIds, usernames);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -334,6 +351,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                         params.put(USERNAME, username);
                         params.put(PASSWORD, hashedPassword);
                         retryingDatabaseOperationFacade.setUserPassword(params);
+                        invalidateCache(username);
                         return true;
                     } else {
                         throw new PasswordRequirementsFailedException();
@@ -367,6 +385,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                         params.put(USERNAME, username);
                         params.put(PASSWORD, hashedPassword);
                         retryingDatabaseOperationFacade.setUserPassword(params);
+                        invalidateCache(username);
                         return true;
                     }
                 } catch (Exception e) {

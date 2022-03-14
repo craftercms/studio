@@ -27,6 +27,7 @@
     <import resource="classpath:crafter/studio/studio-upgrade-context.xml"/>
     <import resource="classpath:crafter/studio/studio-search-context.xml"/>
     <import resource="classpath:crafter/studio/studio-store-context.xml"/>
+    <import resource="classpath:crafter/studio/studio-websocket-context.xml"/>
 
     <aop:aspectj-autoproxy proxy-target-class="true"/>
 
@@ -56,7 +57,6 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-        <property name="eventService" ref="studioEventService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator" />
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -112,7 +112,6 @@
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="syncDatabaseWithRepository" ref="studioSyncDatabaseWithRepository" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
-        <property name="eventService" ref="studioEventService"/>
         <property name="deployer" ref="allDeployers"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="groupServiceInternal" ref="groupServiceInternal" />
@@ -175,7 +174,6 @@
          <property name="dmPublishService" ref="cstudioDmPublishService"/>
          <property name="securityService" ref="cstudioSecurityService"/>
          <property name="notificationService" ref="cstudioNotificationService"/>
-         <property name="eventService" ref="studioEventService"/>
          <property name="studioConfiguration" ref="studioConfiguration" />
          <property name="publishRequestMapper" ref="publishRequestMapper" />
          <property name="auditServiceInternal" ref="auditServiceInternal" />
@@ -214,8 +212,7 @@
         <property name="dependencyService" ref="studioDependencyService" />
     </bean>
 
-    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"
-          parent="cstudioRegistrableService" />
+    <bean id="cstudioGeneralLockService" class="org.craftercms.studio.impl.v1.service.GeneralLockServiceImpl"/>
 
     <bean id="cstudioSecurityService" class="org.craftercms.studio.impl.v1.service.security.SecurityServiceImpl">
         <property name="contentService" ref="cstudioContentService"/>
@@ -293,14 +290,11 @@
           class="org.craftercms.studio.impl.v2.service.clipboard.internal.ClipboardServiceInternalImpl">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="workflowService" ref="cstudioWorkflowService"/>
-        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
         <property name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
     </bean>
-
-    <bean id="studioEventService" class="org.craftercms.studio.impl.v1.service.event.EventServiceImpl" />
 
     <bean id="defaultCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.DefaultCacheInvalidator"/>
 
@@ -383,7 +377,6 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
-        <property name="eventService" ref="studioEventService" />
         <property name="configurationReader" ref="crafter.configurationReader"/>
         <property name="translationConfig"
                   value="#{studioConfiguration.getProperty('studio.configuration.site.translation')}"/>
@@ -431,7 +424,6 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="securityServiceV2" ref="studio.securityService" />
         <property name="sessionRegistry" ref="sessionRegistry"/>
-        <property name="userCache" ref="userDetailsCache"/>
     </bean>
 
     <bean id="userServiceInternal"
@@ -443,6 +435,7 @@
         <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
         <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="userCache" ref="userDetailsCache"/>
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -558,6 +551,7 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="contentServiceInternal"
@@ -1177,9 +1171,8 @@
     <!-- ////////////////////////////////////// -->
     <!--          Crafter Deployers             -->
     <!-- ////////////////////////////////////// -->
-    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer" init-method="subscribeToPreviewSyncEvents">
+    <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer">
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="eventService" ref="studioEventService"/>
     </bean>
 
     <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer">
@@ -1193,15 +1186,6 @@
                 <ref bean="serverlessDeliveryDeployer"/>
             </list>
         </property>
-    </bean>
-
-    <!-- ////////////////////////////////////////// -->
-    <!--          Environment deployer              -->
-    <!-- ////////////////////////////////////////// -->
-    <bean id="environmentDeployer" class="org.craftercms.studio.impl.v1.deployment.EnvironmentDeployer" init-method="subscribeToPublishToEnvironmentEvents">
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="eventService" ref="studioEventService" />
-        <property name="beanName" value="environmentDeployer" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1219,11 +1203,6 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-    </bean>
-
-    <bean id="cstudioDeploymentEventLoggerListener" class="org.craftercms.studio.impl.v1.ebus.DeploymentEventLoggerListener" init-method="subscribeToDeploymentEngineDeployEvents">
-        <property name="eventService" ref="studioEventService"/>
-        <property name="beanName" value="cstudioDeploymentEventLoggerListener" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1420,7 +1399,7 @@
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
-        <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
+        <!-- These properties can't be externalized because the bean is created before the yaml is loaded -->
         <property name="maxSize" value="100"/>
     </bean>
 

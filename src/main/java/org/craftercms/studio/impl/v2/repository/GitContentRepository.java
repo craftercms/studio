@@ -151,6 +151,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_PUBLISH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
@@ -820,7 +821,7 @@ public class GitContentRepository implements ContentRepository {
             }
 
             if (toReturn) {
-                toReturn = helper.addGitIgnoreFile(site);
+                toReturn = helper.addGitIgnoreFiles(site);
             }
 
             if (toReturn) {
@@ -1182,14 +1183,13 @@ public class GitContentRepository implements ContentRepository {
     public boolean commitIdExists(String site, GitRepositories repoType, String commitId) {
         boolean toRet = false;
         try {
-            try (Repository repo = helper.getRepository(site, repoType)) {
-                if (repo != null) {
-                    ObjectId objCommitId = repo.resolve(commitId);
-                    if (objCommitId != null) {
-                        RevCommit revCommit = repo.parseCommit(objCommitId);
-                        if (revCommit != null) {
-                            toRet = true;
-                        }
+            Repository repo = helper.getRepository(site, repoType);
+            if (repo != null) {
+                ObjectId objCommitId = repo.resolve(commitId);
+                if (objCommitId != null) {
+                    RevCommit revCommit = repo.parseCommit(objCommitId);
+                    if (revCommit != null) {
+                        toRet = true;
                     }
                 }
             }
@@ -1889,6 +1889,12 @@ public class GitContentRepository implements ContentRepository {
                     .setUpstreamMode(TRACK)
                     .setName(environment);
             retryingRepositoryOperationFacade.call(checkoutCommand);
+
+            CommitCommand commitCommand = git.commit()
+                    .setMessage(helper.getCommitMessage(REPO_INITIAL_PUBLISH_COMMIT_MESSAGE))
+                    .setAllowEmpty(true);
+            retryingRepositoryOperationFacade.call(commitCommand);
+
             return true;
         } catch (GitAPIException e) {
             logger.error("Failed to create environment " + environment + " branch in PUBLISHED repo for site " +

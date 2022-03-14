@@ -76,6 +76,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -94,6 +95,8 @@ import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -129,7 +132,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PU
 /**
  * workflow service implementation
  */
-public class WorkflowServiceImpl implements WorkflowService {
+public class WorkflowServiceImpl implements WorkflowService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImpl.class);
 
@@ -182,6 +185,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ContentServiceInternal contentServiceInternal;
     protected PublishServiceInternal publishServiceInternal;
+    protected ApplicationContext applicationContext;
 
     @Override
     @ValidateParams
@@ -639,6 +643,7 @@ public class WorkflowServiceImpl implements WorkflowService {
         if (CollectionUtils.isNotEmpty(paths)) {
             workflowServiceInternal.deleteWorkflowEntries(site, paths);
             itemServiceInternal.updateStateBitsBulk(site, paths, CANCEL_WORKFLOW_ON_MASK, CANCEL_WORKFLOW_OFF_MASK);
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
         }
     }
 
@@ -2207,6 +2212,10 @@ public class WorkflowServiceImpl implements WorkflowService {
     // End Rename Service Methods
      /* ================ */
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     public ServicesConfig getServicesConfig() {
         return servicesConfig;

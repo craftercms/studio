@@ -3594,6 +3594,44 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /plugin/script/reload:
+    get:
+      tags:
+        - plugin
+      summary: Reloads groovy classes for all plugins in a given site
+      operationId: reloadClasses
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: token
+          in: query
+          description: Management token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/list_quick_create_content:
     get:
       tags:
@@ -4266,13 +4304,13 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/items_lock_by_path:
+  /content/item_lock_by_path:
     post:
       tags:
         - content
-      summary: Lock items by path
+      summary: Lock item by path
       description: 'Required permission "content_write"'
-      operationId: itemsLockByPath
+      operationId: itemLockByPath
       requestBody:
         required: true
         content:
@@ -4283,14 +4321,12 @@ paths:
                 siteId:
                   type: string
                   description: The id of the site
-                paths:
-                  type: array
-                  items:
-                    type: string
-                    description: Paths of items to lock
+                path:
+                  type: string
+                  description: Path of item to lock
               required:
                 - siteId
-                - paths
+                - path
       responses:
         '200':
           description: OK
@@ -4303,16 +4339,27 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Item already locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  person:
+                    $ref: '#/components/schemas/Person'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/items_lock_by_id:
+  /content/item_lock_by_id:
     post:
       tags:
         - content
-      summary: Lock items by id
+      summary: Lock item by id
       description: 'Required permission "content_write"'
-      operationId: itemsLockById
+      operationId: itemLockById
       requestBody:
         required: true
         content:
@@ -4323,15 +4370,13 @@ paths:
                 siteId:
                   type: string
                   description: The id of the site
-                itemIds:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                  description: Ids of items to lock
+                itemId:
+                  type: integer
+                  format: int64
+                  description: Id of item to lock
               required:
                 - siteId
-                - itemIds
+                - itemId
       responses:
         '200':
           description: OK
@@ -4344,6 +4389,17 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Item already locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  person:
+                    $ref: '#/components/schemas/Person'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -4382,6 +4438,15 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Item already unlocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -4412,7 +4477,6 @@ paths:
       responses:
         '200':
           description: OK
-
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4421,6 +4485,15 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Item already unlocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -7313,7 +7386,9 @@ components:
           * `CODE:` 6003, `MESSAGE:` User password does not fullfill requirements, `REMEDIAL ACTION:` Use password that will fullfill password requirements
           * `CODE:` 6004, `MESSAGE:` User current password does not match, `REMEDIAL ACTION:` Use correct current password
           * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
-          * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Advise the user that the content already exists
+          * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Edit the existing item or delete it before creating it again
+          * `CODE:` 7002, `MESSAGE:` Content already locked, `REMEDIAL ACTION:` The user that locked the item or the administrator must unlock the item first
+          * `CODE:` 7003, `MESSAGE:` Content already unlocked, `REMEDIAL ACTION:` The item is already unlocked
           * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
           * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
           * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id

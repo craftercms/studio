@@ -49,6 +49,7 @@ public interface StudioConfiguration {
     String REPO_CREATE_REPOSITORY_COMMIT_MESSAGE = "studio.repo.createRepository.commitMessage";
     String REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE = "studio.repo.createSandboxBranch.commitMessage";
     String REPO_INITIAL_COMMIT_COMMIT_MESSAGE = "studio.repo.initialCommit.commitMessage";
+    String REPO_INITIAL_PUBLISH_COMMIT_MESSAGE = "studio.repo.initialPublish.commitMessage";
     String REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE = "studio.repo.createAsOrphan.commitMessage";
     String REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE = "studio.repo.blueprintsUpdated.commitMessage";
     String REPO_CREATE_FOLDER_COMMIT_MESSAGE = "studio.repo.createFolder.commitMessage";
@@ -57,7 +58,7 @@ public interface StudioConfiguration {
     String REPO_COPY_CONTENT_COMMIT_MESSAGE = "studio.repo.copyContent.commitMessage";
     String REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED =
             "studio.repo.pullFromRemote.conflict.notificationEnabled";
-    String REPO_DEFAULT_IGNORE_FILE = "studio.repo.defaultIgnoreFile";
+    String REPO_IGNORE_FILES = "studio.repo.ignoreFiles";
     String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
     String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
 
@@ -135,7 +136,6 @@ public interface StudioConfiguration {
     String CONFIGURATION_SITE_ASSET_PROCESSING_CONFIGURATION_PATH =
             "studio.configuration.site.asset.processing.configurationPath";
 
-    String CONFIGURATION_AUTHENTICATION_CHAIN_CONFIG = "studio.authentication.chain";
     String CONFIGURATION_ENVIRONMENT_ACTIVE = "studio.configuration.environment.active";
     String CONFIGURATION_SITE_DEFAULT_PREVIEW_URL = "studio.configuration.site.defaultPreviewUrl";
     String CONFIGURATION_SITE_DEFAULT_AUTHORING_URL = "studio.configuration.site.defaultAuthoringUrl";
@@ -169,7 +169,6 @@ public interface StudioConfiguration {
     /** Security Service */
     String SECURITY_SESSION_TIMEOUT = "studio.security.sessionTimeout";
     String SECURITY_PUBLIC_URLS = "studio.security.publicUrls";
-    String SECURITY_TYPE = "studio.security.type";
     String SECURITY_CIPHER_SALT = "studio.security.cipher.salt";
     String SECURITY_CIPHER_KEY = "studio.security.cipher.key";
     String SECURITY_CIPHER_TYPE = "studio.security.cipher.type";
@@ -180,9 +179,6 @@ public interface StudioConfiguration {
     String SECURITY_RESET_PASSWORD_SERVICE_URL = "studio.security.resetPassword.serviceUrl";
     String SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX = "studio.security.passwordRequirements.validationRegex";
     String SECURITY_SET_PASSWORD_DELAY = "studio.security.setPasswordDelay";
-
-    /** Authentication headers **/
-    String AUTHENTICATION_HEADERS_LOGOUT_ENABLED = "studio.authentication.headers.logout.enabled";
 
     /** Page Navigation Order Service */
     String PAGE_NAVIGATION_ORDER_INCREMENT = "studio.pageNavigationOrder.increment";
@@ -233,36 +229,6 @@ public interface StudioConfiguration {
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED =
             "studio.publishingManager.publishingWithoutDependencies.enabled";
-
-    /** Authentication Chain properties **/
-    String AUTHENTICATION_CHAIN_PROVIDER_TYPE = "provider";
-    String AUTHENTICATION_CHAIN_PROVIDER_ENABLED = "enabled";
-    /** DB **/
-    String AUTHENTICATION_CHAIN_PROVIDER_TYPE_DB = "DB";
-    /** LDAP **/
-    String AUTHENTICATION_CHAIN_PROVIDER_TYPE_LDAP = "LDAP";
-    String AUTHENTICATION_CHAIN_PROVIDER_LDAP_URL = "ldapUrl";
-    String AUTHENTICATION_CHAIN_PROVIDER_LDAP_USERNAME = "ldapUsername";
-    String AUTHENTICATION_CHAIN_PROVIDER_LDAP_PASSWORD = "ldapPassword";
-    String AUTHENTICATION_CHAIN_PROVIDER_LDAP_BASE_CONTEXT = "ldapBaseContext";
-    String AUTHENTICATION_CHAIN_PROVIDER_USERNAME_LDAP_ATTIBUTE = "usernameLdapAttribute";
-    String AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_LDAP_ATTRIBUTE = "firstNameLdapAttribute";
-    String AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_LDAP_ATTRIBUTE = "lastNameLdapAttribute";
-    String AUTHENTICATION_CHAIN_PROVIDER_EMAIL_LDAP_ATTRIBUTE = "emailLdapAttribute";
-    String AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_LDAP_ATTRIBUTE = "groupNameLdapAttribute";
-    String AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_REGEX_LDAP_ATTRIBUTE = "groupNameLdapAttributeRegex";
-    String AUTHENTICATION_CHAIN_PROVIDER_GROUP_NAME_MATCH_INDEX_LDAP_ATTRIBUTE = "groupNameLdapAttributeMatchIndex";
-    /** HEADERS **/
-    String AUTHENTICATION_CHAIN_PROVIDER_TYPE_HEADERS = "HEADERS";
-    String AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER = "secureKeyHeader";
-    String AUTHENTICATION_CHAIN_PROVIDER_SECURE_KEY_HEADER_VALUE = "secureKeyHeaderValue";
-    String AUTHENTICATION_CHAIN_PROVIDER_USERNAME_HEADER = "usernameHeader";
-    String AUTHENTICATION_CHAIN_PROVIDER_FIRST_NAME_HEADER = "firstNameHeader";
-    String AUTHENTICATION_CHAIN_PROVIDER_LAST_NAME_HEADER = "lastNameHeader";
-    String AUTHENTICATION_CHAIN_PROVIDER_EMAIL_HEADER = "emailHeader";
-    String AUTHENTICATION_CHAIN_PROVIDER_GROUPS_HEADER = "groupsHeader";
-    String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_ENABLED = "logoutEnabled";
-    String AUTHENTICATION_CHAIN_PROVIDER_LOGOUT_URL = "logoutUrl";
 
     /** Publishing Thread Pool **/
     String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";

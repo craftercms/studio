@@ -16,10 +16,14 @@
 
 package org.craftercms.studio.api.v2.utils;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -71,20 +75,20 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.RepositoryCache;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -94,15 +98,16 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
@@ -119,8 +124,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_REPOSITORY_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_DEFAULT_IGNORE_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -132,7 +137,10 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
-public class GitRepositoryHelper {
+public class GitRepositoryHelper implements DisposableBean {
+
+    public static final String CONFIG_KEY_RESOURCE = "resource";
+    public static final String CONFIG_KEY_FOLDER = "folder";
 
     private static final Logger logger = LoggerFactory.getLogger(GitRepositoryHelper.class);
 
@@ -144,70 +152,72 @@ public class GitRepositoryHelper {
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private AuthConfiguratorFactory authConfiguratorFactory;
 
-    private Map<String, Repository> sandboxes = new HashMap<>();
-    private Map<String, Repository> published = new HashMap<>();
-    private Repository globalRepo = null;
+    private final Cache<String, Repository> repositoryCache = CacheBuilder.newBuilder().build();
+
+    @Override
+    public void destroy() throws Exception {
+        repositoryCache.asMap().values().forEach(Repository::close);
+        repositoryCache.invalidateAll();
+        repositoryCache.cleanUp();
+    }
+
+    protected String getRepoCacheKey(String siteId, GitRepositories type) {
+        return String.join(":", type.toString(), siteId);
+    }
 
     public Repository getRepository(String siteId, GitRepositories gitRepository) {
         return getRepository(siteId, gitRepository, null);
     }
 
-    public Repository getRepository(String siteId, GitRepositories gitRepository, String sandboxBranch) {
-        Repository repo;
+    public Repository getRepository(String siteId, GitRepositories repoType, String sandboxBranch) {
+        String cacheKey = getRepoCacheKey(siteId, repoType);
+        Repository repo = repositoryCache.getIfPresent(cacheKey);
 
-        logger.debug("getRepository invoked with site" + siteId + "Repository Type: " + gitRepository.toString());
+        logger.debug("getRepository invoked with site {0}, type: {1}", siteId, repoType);
 
-        switch (gitRepository) {
-            case SANDBOX:
-                repo = sandboxes.get(siteId);
-                if (repo == null) {
+        if (repo == null) {
+            logger.debug("cache miss for site {0}, type {1}", siteId, repoType);
+            switch (repoType) {
+                case SANDBOX:
                     if (buildSiteRepo(siteId)) {
-                        repo = sandboxes.get(siteId);
+                        repo = repositoryCache.getIfPresent(cacheKey);
                         if (StringUtils.isNotEmpty(sandboxBranch)) {
                             checkoutSandboxBranch(siteId, repo, sandboxBranch);
                         }
                     } else {
                         logger.warn("Couldn't get the sandbox repository for site: " + siteId);
                     }
-                }
-                break;
-            case PUBLISHED:
-                repo = published.get(siteId);
-                if (repo == null) {
+                    break;
+                case PUBLISHED:
                     if (buildSiteRepo(siteId)) {
-                        repo = published.get(siteId);
+                        repo = repositoryCache.getIfPresent(cacheKey);
                     } else {
                         logger.warn("Couldn't get the published repository for site: " + siteId);
                     }
-                }
-                break;
-            case GLOBAL:
-                if (globalRepo == null) {
+                    break;
+                case GLOBAL:
                     Path globalConfigRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
                     try {
-                        globalRepo = openRepository(globalConfigRepoPath);
+                        repo = openRepository(globalConfigRepoPath);
                     } catch (IOException e) {
                         logger.error("Error getting the global repository.", e);
                     }
-                }
-                repo = globalRepo;
-                break;
-            default:
-                repo = null;
-                break;
-        }
+                    break;
+            }
 
-        if (repo != null) {
-            logger.debug("success in getting the repository for site: " + siteId);
-        } else {
-            logger.debug("failure in getting the repository for site: " + siteId);
+            if (repo != null) {
+                repositoryCache.put(cacheKey, repo);
+                logger.debug("success in getting the repository for site: " + siteId);
+            } else {
+                logger.debug("failure in getting the repository for site: " + siteId);
+            }
         }
 
         return repo;
     }
 
     public boolean buildSiteRepo(String siteId) {
-        boolean toReturn = false;
+        boolean toReturn = true;
         Repository sandboxRepo;
         Repository publishedRepo;
 
@@ -217,25 +227,30 @@ public class GitRepositoryHelper {
         try {
             if (Files.exists(siteSandboxRepoPath)) {
                 // Build and put in cache
-                sandboxRepo = openRepository(siteSandboxRepoPath);
-                sandboxes.put(siteId, sandboxRepo);
-                toReturn = true;
+                sandboxRepo = repositoryCache.getIfPresent(getRepoCacheKey(siteId, SANDBOX));
+                if (sandboxRepo == null) {
+                    sandboxRepo = openRepository(siteSandboxRepoPath);
+                    repositoryCache.put(getRepoCacheKey(siteId, SANDBOX), sandboxRepo);
+                }
             }
         } catch (IOException e) {
-            logger.error("Failed to create sandbox repo for site: " + siteId + " using path " + siteSandboxRepoPath, e);
+            toReturn = false;
+            logger.error("Failed to create sandbox repo for site: {0} using path {1}", e, siteId, siteSandboxRepoPath);
         }
 
         try {
             if (toReturn && Files.exists(sitePublishedRepoPath)) {
                 // Build and put in cache
-                publishedRepo = openRepository(sitePublishedRepoPath);
-                published.put(siteId, publishedRepo);
-
-                toReturn = true;
+                publishedRepo = repositoryCache.getIfPresent(getRepoCacheKey(siteId, PUBLISHED));
+                if (publishedRepo == null) {
+                    publishedRepo = openRepository(sitePublishedRepoPath);
+                    repositoryCache.put(getRepoCacheKey(siteId, PUBLISHED), publishedRepo);
+                }
             }
         } catch (IOException e) {
-            logger.error("Failed to create published repo for site: " + siteId + " using path " +
-                    sitePublishedRepoPath, e);
+            toReturn = false;
+            logger.error("Failed to create published repo for site: {0} using path {1}", e, siteId,
+                    sitePublishedRepoPath);
         }
 
         return toReturn;
@@ -248,7 +263,7 @@ public class GitRepositoryHelper {
      * @return repository path
      */
     public Path buildRepoPath(GitRepositories repoType) {
-        return buildRepoPath(repoType, StringUtils.EMPTY);
+        return buildRepoPath(repoType, EMPTY);
     }
 
     /**
@@ -486,7 +501,7 @@ public class GitRepositoryHelper {
             if (toReturn) {
                 toReturn = checkoutSandboxBranch(site, sandboxRepo, sandboxBranch);
                 if (toReturn) {
-                    sandboxes.put(site, sandboxRepo);
+                    repositoryCache.put(getRepoCacheKey(site, SANDBOX), sandboxRepo);
                 }
             }
         } finally {
@@ -516,7 +531,7 @@ public class GitRepositoryHelper {
                 .setDirectory(sitePublishedPath.normalize().toAbsolutePath().toFile())
                 .call()) {
             Repository publishedRepo = publishedGit.getRepository();
-            publishedRepo = optimizeRepository(publishedRepo);
+            optimizeRepository(publishedRepo);
             checkoutSandboxBranch(siteId, publishedRepo, sandboxBranch);
             publishedRepo.close();
             publishedGit.close();
@@ -536,7 +551,7 @@ public class GitRepositoryHelper {
             toReturn = FileRepositoryBuilder.create(path.toFile());
             toReturn.create();
 
-            toReturn = optimizeRepository(toReturn);
+            optimizeRepository(toReturn);
             try (Git git = new Git(toReturn)) {
                 CommitCommand commitCommand = git.commit()
                         .setAllowEmpty(true)
@@ -554,7 +569,7 @@ public class GitRepositoryHelper {
         return toReturn;
     }
 
-    private Repository optimizeRepository(Repository repo) throws IOException {
+    private void optimizeRepository(Repository repo) throws IOException {
         // Get git configuration
         StoredConfig config = repo.getConfig();
         // Set compression level (core.compression)
@@ -568,8 +583,6 @@ public class GitRepositoryHelper {
                 CONFIG_PARAMETER_FILE_MODE_DEFAULT);
         // Save configuration changes
         config.save();
-
-        return repo;
     }
 
     public String getCommitMessage(String commitMessageKey) {
@@ -647,7 +660,6 @@ public class GitRepositoryHelper {
 
     public boolean updateSiteNameConfigVar(String site) {
         boolean toReturn = true;
-        String siteConfigFolder = "/config/studio";
         if (!replaceSiteNameVariable(site,
                 Paths.get(buildRepoPath(GitRepositories.SANDBOX, site).toAbsolutePath().toString(),
                         studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH),
@@ -702,27 +714,45 @@ public class GitRepositoryHelper {
         }
     }
 
-    public boolean addGitIgnoreFile(String siteId) {
-        String defaultFileLocation = studioConfiguration.getProperty(REPO_DEFAULT_IGNORE_FILE);
-        ClassPathResource defaultFile = new ClassPathResource(defaultFileLocation);
-        if (defaultFile.exists()) {
-            logger.debug("Adding ignore file for site {0}", siteId);
-            Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
-            Path ignoreFile = siteSandboxPath.resolve(GitContentRepositoryConstants.IGNORE_FILE);
-            if (!Files.exists(ignoreFile)) {
-                try (OutputStream out = Files.newOutputStream(ignoreFile, StandardOpenOption.CREATE);
-                     InputStream in = defaultFile.getInputStream()) {
-                    IOUtils.copy(in, out);
+    public boolean addGitIgnoreFiles(String siteId) {
+        List<HierarchicalConfiguration<ImmutableNode>> ignores = studioConfiguration.getSubConfigs(REPO_IGNORE_FILES);
+        if (CollectionUtils.isEmpty(ignores)) {
+            logger.debug("No ignore files will be added to site {0}", siteId);
+            return true;
+        }
+
+        logger.debug("Adding ignore files for site {0}", siteId);
+        Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
+
+        for (HierarchicalConfiguration<ImmutableNode> ignore : ignores) {
+            String ignoreLocation = ignore.getString(CONFIG_KEY_RESOURCE);
+            Resource ignoreFile = new ClassPathResource(ignoreLocation);
+            if (!ignoreFile.exists()) {
+                logger.warn("Couldn't find ignore file at {0}", ignoreLocation);
+                continue;
+            }
+
+            String repoFolder = ignore.getString(CONFIG_KEY_FOLDER);
+            Path actualFolder = StringUtils.isEmpty(repoFolder)? siteSandboxPath : siteSandboxPath.resolve(repoFolder);
+            if (!Files.exists(actualFolder)) {
+                logger.debug("Repository doesn't contain a {0} folder for site {1}", repoFolder, siteId);
+                continue;
+            }
+
+            Path actualFile = actualFolder.resolve(GitContentRepositoryConstants.IGNORE_FILE);
+            if (!Files.exists(actualFile)) {
+                logger.debug("Adding ignore file at {0} for site {1}", repoFolder, siteId);
+                try (InputStream in = ignoreFile.getInputStream()) {
+                    Files.copy(in, actualFile);
                 } catch (IOException e) {
-                    logger.error("Error writing ignore file for site {0}", e, siteId);
+                    logger.error("Error writing ignore file at {0} for site {1}", e, repoFolder, siteId);
                     return false;
                 }
             } else {
-                logger.debug("Repository already contains an ignore file for site {0}", siteId);
+                logger.debug("Repository already contains an ignore file at {0} for site {1}", actualFolder, siteId);
             }
-        } else {
-            logger.warn("Could not find the default ignore file at {0}", defaultFileLocation);
         }
+
         return true;
     }
 
@@ -802,14 +832,14 @@ public class GitRepositoryHelper {
 
                 Repository sandboxRepo = checkIfCloneWasOk(cloneResult, remoteName, remoteUrl);
 
-                sandboxRepo = optimizeRepository(sandboxRepo);
+                optimizeRepository(sandboxRepo);
 
                 // Make repository orphan if needed
                 if (createAsOrphan) {
                     makeRepoOrphan(sandboxRepo, siteId);
                 }
 
-                sandboxes.put(siteId, sandboxRepo);
+                repositoryCache.put(getRepoCacheKey(siteId, SANDBOX), sandboxRepo);
             } catch (InvalidRemoteException e) {
                 logger.error("Invalid remote repository: " + remoteName + " (" + remoteUrl + ")", e);
                 throw new InvalidRemoteRepositoryException("Invalid remote repository: " + remoteName + " (" +
@@ -914,7 +944,12 @@ public class GitRepositoryHelper {
     }
 
     public void removeSandbox(String siteId) {
-        sandboxes.remove(siteId);
+        String cacheKey = getRepoCacheKey(siteId, SANDBOX);
+        Repository repo = repositoryCache.getIfPresent(cacheKey);
+        if (repo != null) {
+            repositoryCache.invalidate(cacheKey);
+            repo.close();
+        }
     }
 
     // --------------------------------------------------------------------------------------------
@@ -930,7 +965,8 @@ public class GitRepositoryHelper {
         Path siteRepoPath = buildRepoPath(GitRepositories.GLOBAL).resolve(GIT_ROOT);
 
         if (Files.exists(siteRepoPath)) {
-            globalRepo = openRepository(siteRepoPath);
+            Repository repo = openRepository(siteRepoPath);
+            repositoryCache.put(getRepoCacheKey(EMPTY, GLOBAL), repo);
             toReturn = true;
         }
 
@@ -952,7 +988,8 @@ public class GitRepositoryHelper {
                     Files.deleteIfExists(globalConfigPath);
                     logger.info("Bootstrapping repository...");
                     Files.createDirectories(globalConfigPath);
-                    globalRepo = createGitRepository(globalConfigPath);
+                    Repository repo = createGitRepository(globalConfigPath);
+                    repositoryCache.put(getRepoCacheKey(EMPTY, GLOBAL), repo);
                     toReturn = true;
                 } catch (IOException e) {
                     // Something very wrong has happened
@@ -960,7 +997,6 @@ public class GitRepositoryHelper {
                 }
             } else {
                 logger.info("Detected existing global repository, will not create new one.");
-                toReturn = false;
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -984,19 +1020,17 @@ public class GitRepositoryHelper {
         generalLockService.lock(gitLockKeySandbox);
         generalLockService.lock(gitLockKeyPublished);
         try {
-            Repository sboxRepo = sandboxes.get(site);
-            if (sboxRepo != null) {
-                sboxRepo.close();
-                sandboxes.remove(site);
-                RepositoryCache.close(sboxRepo);
-                sboxRepo = null;
+            String sandboxCacheKey = getRepoCacheKey(site, SANDBOX);
+            Repository sandboxRepo = repositoryCache.getIfPresent(sandboxCacheKey);
+            if (sandboxRepo != null) {
+                repositoryCache.invalidate(sandboxCacheKey);
+                sandboxRepo.close();
             }
-            Repository pubRepo = published.get(site);
-            if (pubRepo != null) {
-                pubRepo.close();
-                published.remove(site);
-                RepositoryCache.close(pubRepo);
-                pubRepo = null;
+            String publishedCacheKey = getRepoCacheKey(site, PUBLISHED);
+            Repository publishedRepo = repositoryCache.getIfPresent(publishedCacheKey);
+            if (publishedRepo != null) {
+                repositoryCache.invalidate(publishedCacheKey);
+                publishedRepo.close();
             }
             FileUtils.deleteDirectory(siteFolder);
 

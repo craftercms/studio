@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.content;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -27,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -34,6 +36,9 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -47,11 +52,15 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
+import org.craftercms.studio.permissions.PermissionOrOwnership;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
@@ -63,7 +72,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
-public class ContentServiceImpl implements ContentService {
+public class ContentServiceImpl implements ContentService, ApplicationContextAware {
 
     private ContentServiceInternal contentServiceInternal;
     private ContentTypeServiceInternal contentTypeServiceInternal;
@@ -74,6 +83,8 @@ public class ContentServiceImpl implements ContentService {
     private AuditServiceInternal auditServiceInternal;
     private ItemServiceInternal itemServiceInternal;
     private SecurityService securityService;
+    private GeneralLockService generalLockService;
+    private ApplicationContext applicationContext;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -169,7 +180,7 @@ public class ContentServiceImpl implements ContentService {
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
                                                String keyword, List<String> excludes, String sortStrategy, String order,
                                                int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, excludes, sortStrategy, order,
                 offset, limit);
     }
@@ -225,40 +236,68 @@ public class ContentServiceImpl implements ContentService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void itemsLockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                               @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
+    public void lockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                            @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws UserNotFoundException, ServiceLayerException {
-        contentServiceInternal.itemsLockByPath(siteId, paths);
-        itemServiceInternal.lockItemsByPath(siteId, paths, securityService.getCurrentUser());
+        generalLockService.lockContentItem(siteId, path);
+        try {
+            var item = itemServiceInternal.getItem(siteId, path);
+            if (Objects.nonNull(item)) {
+                var username = securityService.getCurrentUser();
+                if (StringUtils.isEmpty(item.getLockOwner())) {
+                    contentServiceInternal.itemLockByPath(siteId, path);
+                    itemServiceInternal.lockItemByPath(siteId, path, username);
+                    applicationContext.publishEvent(
+                            new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
+                } else {
+                    if (!StringUtils.equals(item.getLockOwner(), username)) {
+                        var e = new ContentLockedByAnotherUserException();
+                        e.setLockOwner(username);
+                        throw e;
+                    }
+                }
+            } else {
+                throw new ContentNotFoundException();
+            }
+        } finally {
+            generalLockService.unlockContentItem(siteId, path);
+        }
     }
 
     @Override
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void itemsLockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<Long> itemIds)
-            throws UserNotFoundException, ServiceLayerException {
-        contentServiceInternal.itemsLockById(siteId, itemIds);
-        itemServiceInternal.lockItemsById(itemIds, securityService.getCurrentUser());
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ITEM_UNLOCK)
-    public void itemUnlockByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
-        contentServiceInternal.itemUnlockByPath(siteId, path);
-        itemServiceInternal.unlockItemByPath(siteId, path);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_ITEM_UNLOCK)
-    public void itemUnlockById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long itemId) {
-        contentServiceInternal.itemUnlockById(siteId, itemId);
-        itemServiceInternal.unlockItemById(itemId);
+    @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
+    public void unlockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                              @ProtectedResourceId(PATH_RESOURCE_ID) String path)
+            throws ContentNotFoundException, ContentAlreadyUnlockedException {
+        generalLockService.lockContentItem(siteId, path);
+        try {
+            var item = itemServiceInternal.getItem(siteId, path);
+            if (Objects.nonNull(item)) {
+                if (StringUtils.isEmpty(item.getLockOwner())) {
+                    throw new ContentAlreadyUnlockedException();
+                } else {
+                    contentServiceInternal.itemUnlockByPath(siteId, path);
+                    itemServiceInternal.unlockItemByPath(siteId, path);
+                    applicationContext.publishEvent(
+                            new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
+                }
+            } else {
+                throw new ContentNotFoundException();
+            }
+        } finally {
+            generalLockService.unlockContentItem(siteId, path);
+        }
     }
 
     @Override
     public InputStream getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
                                             String commitId) throws ContentNotFoundException, IOException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public ContentServiceInternal getContentServiceInternal() {
@@ -331,5 +370,13 @@ public class ContentServiceImpl implements ContentService {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public GeneralLockService getGeneralLockService() {
+        return generalLockService;
+    }
+
+    public void setGeneralLockService(GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 }

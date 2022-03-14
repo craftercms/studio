@@ -24,7 +24,10 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v2.dal.GitLog;
+import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,12 +41,13 @@ import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
-public class StudioSyncRepositoryTask extends StudioClockTask {
+public class StudioSyncRepositoryTask extends StudioClockTask implements ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioSyncRepositoryTask.class);
     private static int threadCounter = 0;
     private ContentRepository contentRepository;
     private DeploymentService deploymentService;
+    private ApplicationContext applicationContext;
 
     public void init() {
         threadCounter++;
@@ -96,8 +100,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                             // Sync all preview deployers
                             try {
                                 logger.debug("Sync preview for site " + site);
-                                deploymentService.syncAllContentToPreview(site, false);
-                            } catch (ServiceLayerException e) {
+                                applicationContext.publishEvent(new RepositoryEvent(site));
+                            } catch (Exception e) {
                                 logger.error("Error synchronizing preview with repository for site: " + site, e);
                             }
                         } else {
@@ -131,6 +135,11 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             logger.info("Invalid site UUID for site " + siteId + " . Local copy will not be deleted");
         }
         return toRet;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public ContentRepository getContentRepository() {
