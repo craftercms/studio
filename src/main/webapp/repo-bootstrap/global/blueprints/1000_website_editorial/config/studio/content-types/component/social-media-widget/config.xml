@@ -1,0 +1,13 @@
+<content-type name="/component/social-media-widget" is-wcm-type="true">
+	<label>Social Media Widget</label>
+	<form>/component/social-media-widget</form>
+	<form-path>simple</form-path>
+	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>false</content-as-folder>
+	<previewable>false</previewable>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath />
+	<noThumbnail>true</noThumbnail>
+	<image-thumbnail />
+</content-type>

@@ -8,39 +8,39 @@
   <objectId>7561cc78-860d-d91c-4ddc-6800cc5322ee</objectId>
   <items item-list="true">
     <item>
-      <key>brands fa-facebook</key>
+      <key>facebook</key>
       <value>Facebook</value>
     </item>
     <item>
-      <key>brands fa-twitter</key>
+      <key>twitter</key>
       <value>Twitter</value>
     </item>
     <item>
-      <key>brands fa-linkedin</key>
+      <key>linkedin</key>
       <value>LinkedIn</value>
     </item>
     <item>
-      <key>brands fa-github</key>
+      <key>github</key>
       <value>Github</value>
     </item>
     <item>
-      <key>brands fa-instagram</key>
+      <key>instagram</key>
       <value>Instagram</value>
     </item>
     <item>
-      <key>brands fa-pinterest</key>
+      <key>pinterest</key>
       <value>Pinterest</value>
     </item>
     <item>
-      <key>brands fa-youtube</key>
+      <key>youtube</key>
       <value>Youtube</value>
     </item>
     <item>
-      <key>brands fa-snapchat</key>
+      <key>snapchat</key>
       <value>Snapchat</value>
     </item>
     <item>
-      <key>brands fa-vimeo</key>
+      <key>vimeo</key>
       <value>Vimeo</value>
     </item>
   </items>
@@ -49,6 +49,6 @@
   <folder-name/>
   <createdDate>2022-02-15T22:37:27.071Z</createdDate>
   <createdDate_dt>2022-02-15T22:37:27.071Z</createdDate_dt>
-  <lastModifiedDate>2022-02-15T22:37:27.071Z</lastModifiedDate>
-  <lastModifiedDate_dt>2022-02-15T22:37:27.071Z</lastModifiedDate_dt>
+  <lastModifiedDate>2022-03-14T22:40:30.124Z</lastModifiedDate>
+  <lastModifiedDate_dt>2022-03-14T22:40:30.124Z</lastModifiedDate_dt>
 </component>
