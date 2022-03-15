@@ -16,20 +16,5 @@
     </#if>
     Howdy, ${name}
   </a>
-  <@crafter.renderRepeatGroup
-    $field="social_media_links_o"
-    $containerAttributes={'class':'icons'}
-    $containerTag="ul"
-    $itemTag="li";
-    <#-- Nested content values passed down by the macro: -->
-    item, index
-  >
-    <@crafter.a
-      href="${item.url_s}"
-      class="icon ${item.social_media_s}"
-      $field="social_media_links_o.url_s,social_media_links_o.social_media_s"
-      $index=index
-      target="_blank"
-    />
-  </@crafter.renderRepeatGroup>
+  <@crafter.renderComponentCollection $field="socialMediaWidget_o" />
 </@crafter.header>
