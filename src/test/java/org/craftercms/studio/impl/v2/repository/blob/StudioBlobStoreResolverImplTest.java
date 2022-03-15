@@ -36,10 +36,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNotNull;
@@ -150,6 +152,14 @@ public class StudioBlobStoreResolverImplTest {
         assertFalse(resolver.isBlob(SITE_ID, CONFIG_PATH));
         assertFalse(resolver.isBlob(SITE_ID,LOCAL_PATH));
         assertTrue(resolver.isBlob(SITE_ID, REMOTE_PATH));
+    }
+
+    @Test
+    public void getAllTest() throws ServiceLayerException {
+        List<StudioBlobStore> stores = resolver.getAll(SITE_ID);
+        assertNotNull(stores);
+        assertFalse(stores.isEmpty());
+        assertEquals(stores.size(), 2);
     }
 
 }
