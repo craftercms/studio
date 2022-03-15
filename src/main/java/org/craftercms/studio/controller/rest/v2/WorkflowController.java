@@ -45,6 +45,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
@@ -85,7 +86,10 @@ public class WorkflowController {
 
         String path = rpPath.isPresent() ? rpPath.get() : null;
         Long states = rpStates.isPresent() ? rpStates.get() : null;
-        int total = workflowService.getItemStatesTotal(siteId, path, states);
+        int total = 0;
+        if (isPathRegexValid(path)) {
+            total = workflowService.getItemStatesTotal(siteId, path, states);
+        }
         List<SandboxItem> items = new ArrayList<SandboxItem>();
 
         if (total > 0) {
@@ -101,6 +105,16 @@ public class WorkflowController {
         responseBody.setResult(result);
         result.setEntities(RESULT_KEY_ITEMS, items);
         return responseBody;
+    }
+
+    private boolean isPathRegexValid(String pathRegex) {
+        boolean toRet = true;
+        try {
+            Pattern.compile(pathRegex);
+        } catch (Exception e) {
+            toRet = false;
+        }
+        return toRet;
     }
 
     @PostMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
