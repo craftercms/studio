@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.aws;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.io.IOUtils;
+import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.slf4j.Logger;
@@ -30,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.removeStart;
 
 public abstract class AwsUtils {
 
@@ -102,6 +105,24 @@ public abstract class AwsUtils {
         }
     }
 
+    public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
+                                  int partSize, AmazonS3 client) {
+        logger.debug("Copying all files from {}/{} to {}/{}", sourceBucket, sourcePrefix, destBucket, destPrefix);
+        ListObjectsV2Request request = new ListObjectsV2Request()
+                .withBucketName(sourceBucket)
+                .withPrefix(sourcePrefix);
+        do {
+            ListObjectsV2Result result = client.listObjectsV2(sourceBucket, sourcePrefix);
+            request.setContinuationToken(result.getContinuationToken());
+            for (S3ObjectSummary object : result.getObjectSummaries()) {
+                String relativePrefix = removeStart(object.getKey(), sourcePrefix);
+                String newKey = removeStart(UrlUtils.concat(destPrefix, relativePrefix), "/");
+                copyFile(sourceBucket, object.getKey(), destBucket, newKey, partSize, client);
+            }
+        } while (isNotEmpty(request.getContinuationToken()));
+        logger.debug("Completed copy from {}/{} to {}/{}", sourceBucket, sourcePrefix, destBucket, destPrefix);
+    }
+
     public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
                                 int partSize, AmazonS3 client) {
         logger.debug("Copying file from {}/{} to {}/{}", sourceBucket, sourceKey, destBucket, destKey);
@@ -152,8 +173,6 @@ public abstract class AwsUtils {
                 }
                 throw e;
             }
-
-
         } else {
             logger.debug("Starting copy operation for {}/{}", sourceBucket, sourceKey);
             client.copyObject(sourceBucket, sourceKey, destBucket, destKey);

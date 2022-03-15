@@ -424,7 +424,6 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="securityServiceV2" ref="studio.securityService" />
         <property name="sessionRegistry" ref="sessionRegistry"/>
-        <property name="userCache" ref="userDetailsCache"/>
     </bean>
 
     <bean id="userServiceInternal"
@@ -436,6 +435,7 @@
         <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
         <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="userCache" ref="userDetailsCache"/>
     </bean>
 
     <bean id="organizationServiceInternal"
@@ -886,7 +886,9 @@
                   value="#{studioConfiguration.getArray('studio.blob.intercepted.paths', T(java.lang.String))}"/>
     </bean>
 
-    <bean id="s3BlobStore" class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore" scope="prototype">
+    <bean id="s3BlobStore" scope="prototype"
+          class="org.craftercms.studio.impl.v2.repository.blob.s3.StudioAwsS3BlobStore">
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="publishingTargetResolver" ref="crafter.publishingTargetResolver"/>
@@ -1399,7 +1401,7 @@
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">
-        <!-- This properties can't be externalized because the bean is created before the yaml is loaded -->
+        <!-- These properties can't be externalized because the bean is created before the yaml is loaded -->
         <property name="maxSize" value="100"/>
     </bean>
 

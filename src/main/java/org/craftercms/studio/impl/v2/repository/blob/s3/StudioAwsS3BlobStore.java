@@ -20,8 +20,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -39,6 +41,7 @@ import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.COPY_PART_SIZE;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.MIN_PART_SIZE;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFile;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFolder;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.uploadStream;
 
 /**
@@ -52,6 +55,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     private static final Logger logger = LoggerFactory.getLogger(StudioAwsS3BlobStore.class);
 
     public static final String OK = "OK";
+
+    protected ServicesConfig servicesConfig;
+
+    public StudioAwsS3BlobStore(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
 
     protected boolean isFolder(String path) {
         return isEmpty(getExtension(path));
@@ -324,6 +333,26 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                             getFullKey(envMapping, item.getPath()), e);
                 }
             }
+        }
+    }
+
+    @Override
+    public void initialPublish(String siteId) throws SiteNotFoundException {
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
+        Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
+
+        logger.debug("Performing initial publish for site {0}", siteId);
+
+        logger.debug("Performing initial publish for site {0} to live", siteId);
+        copyFolder(previewMapping.target, previewMapping.prefix, liveMapping.target, liveMapping.prefix,
+                MIN_PART_SIZE, getClient());
+
+        if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            Mapping statingMapping = getMapping(servicesConfig.getStagingEnvironment(siteId));
+
+            logger.debug("Performing initial publish for site {0} to staging", siteId);
+            copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
+                    MIN_PART_SIZE, getClient());
         }
     }
 
