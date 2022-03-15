@@ -965,6 +965,16 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.23/system/global-permission-mappings-config.xslt
           commitDetails: Added site_delete permissions for system_admin
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.23
+      nextVersion: 3.1.23.1
+      operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-aws.xml
+              dest: /configuration/samples/sample-aws.xml
+          commitDetails: Update sample file for AWS
+        - type: dbVersionUpgrader
+
   # Pipeline to upgrade site repositories
   site:
     - currentVersion: 3.0.x
