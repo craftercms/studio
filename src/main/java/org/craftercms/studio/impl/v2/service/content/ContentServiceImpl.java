@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -52,6 +53,8 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +72,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
-public class ContentServiceImpl implements ContentService {
+public class ContentServiceImpl implements ContentService, ApplicationContextAware {
 
     private ContentServiceInternal contentServiceInternal;
     private ContentTypeServiceInternal contentTypeServiceInternal;
@@ -81,6 +84,7 @@ public class ContentServiceImpl implements ContentService {
     private ItemServiceInternal itemServiceInternal;
     private SecurityService securityService;
     private GeneralLockService generalLockService;
+    private ApplicationContext applicationContext;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -176,7 +180,7 @@ public class ContentServiceImpl implements ContentService {
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
                                                String keyword, List<String> excludes, String sortStrategy, String order,
                                                int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, excludes, sortStrategy, order,
                 offset, limit);
     }
@@ -243,6 +247,8 @@ public class ContentServiceImpl implements ContentService {
                 if (StringUtils.isEmpty(item.getLockOwner())) {
                     contentServiceInternal.itemLockByPath(siteId, path);
                     itemServiceInternal.lockItemByPath(siteId, path, username);
+                    applicationContext.publishEvent(
+                            new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
                 } else {
                     if (!StringUtils.equals(item.getLockOwner(), username)) {
                         var e = new ContentLockedByAnotherUserException();
@@ -272,6 +278,8 @@ public class ContentServiceImpl implements ContentService {
                 } else {
                     contentServiceInternal.itemUnlockByPath(siteId, path);
                     itemServiceInternal.unlockItemByPath(siteId, path);
+                    applicationContext.publishEvent(
+                            new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
                 }
             } else {
                 throw new ContentNotFoundException();
@@ -285,6 +293,11 @@ public class ContentServiceImpl implements ContentService {
     public InputStream getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
                                             String commitId) throws ContentNotFoundException, IOException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public ContentServiceInternal getContentServiceInternal() {

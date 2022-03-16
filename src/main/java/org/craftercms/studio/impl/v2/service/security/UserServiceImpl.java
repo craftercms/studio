@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import com.google.common.cache.Cache;
 import freemarker.template.Template;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -127,7 +126,6 @@ public class UserServiceImpl implements UserService {
     private TextEncryptor encryptor;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private SessionRegistry sessionRegistry;
-    private Cache<String, User> userCache;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
@@ -255,9 +253,6 @@ public class UserServiceImpl implements UserService {
                                     session.getSessionId(), principal.getUsername());
                     session.expireNow();
                 });
-
-                // Invalidate the cache
-                userCache.invalidate(principal.getUsername());
             });
 
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
@@ -807,10 +802,6 @@ public class UserServiceImpl implements UserService {
 
     public void setSessionRegistry(SessionRegistry sessionRegistry) {
         this.sessionRegistry = sessionRegistry;
-    }
-
-    public void setUserCache(Cache<String, User> userCache) {
-        this.userCache = userCache;
     }
 
 }

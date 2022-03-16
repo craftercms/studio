@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+    <role name="system_admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+</permissions>

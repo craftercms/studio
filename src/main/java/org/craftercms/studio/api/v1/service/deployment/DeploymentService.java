@@ -63,8 +63,6 @@ public interface DeploymentService {
     List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
                                           boolean subAscending, String filterType) throws ServiceLayerException;
 
-    void syncAllContentToPreview(String site, boolean waitTillDone) throws ServiceLayerException;
-
     /**
      * Start executing bulk publish for given site, path on given environment
      *

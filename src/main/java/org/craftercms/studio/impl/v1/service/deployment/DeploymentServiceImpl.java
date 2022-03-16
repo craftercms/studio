@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.ebus.PreviewEventContext;
 import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -52,7 +51,6 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -88,7 +86,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
@@ -122,7 +119,6 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected ContentRepository contentRepository;
     protected DmPublishService dmPublishService;
     protected SecurityService securityService;
-    protected EventService eventService;
     protected NotificationService notificationService;
     protected StudioConfiguration studioConfiguration;
     protected PublishRequestMapper publishRequestMapper;
@@ -640,15 +636,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     @ValidateParams
-    public void syncAllContentToPreview(@ValidateStringParam(name = "site") String site, boolean waitTillDone)
-            throws ServiceLayerException {
-        PreviewEventContext context = new PreviewEventContext(waitTillDone);
-        context.setSite(site);
-        eventService.publish(EVENT_PREVIEW_SYNC, context);
-    }
-
-    @Override
-    @ValidateParams
     public void bulkGoLive(@ValidateStringParam(name = "site") String site,
                            @ValidateStringParam(name = "environment") String environment,
                            @ValidateSecurePathParam(name = "path") String path,
@@ -827,8 +814,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         cancelWorkflowBulk(site, allPaths);
 
         // send to deployment queue
-        List<String> asList = new ArrayList<String>();
-        asList.addAll(allPaths);
+        List<String> asList = new ArrayList<>(allPaths);
         String approver = securityService.getCurrentUser();
         boolean scheduledDateIsNow = false;
         if (schedule == null) {
@@ -897,14 +883,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
-    }
-
-    public EventService getEventService() {
-        return eventService;
-    }
-
-    public void setEventService(EventService eventService) {
-        this.eventService = eventService;
     }
 
     public StudioConfiguration getStudioConfiguration() {

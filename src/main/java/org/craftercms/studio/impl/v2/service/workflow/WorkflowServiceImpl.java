@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
@@ -55,6 +56,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -97,7 +100,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
-public class WorkflowServiceImpl implements WorkflowService {
+public class WorkflowServiceImpl implements WorkflowService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImpl.class);
 
@@ -115,6 +118,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     private PublishServiceInternal publishServiceInternal;
     private ServicesConfig servicesConfig;
     private StudioConfiguration studioConfiguration;
+    private ApplicationContext applicationContext;
     private ActivityStreamServiceInternal activityStreamServiceInternal;
 
     @Override
@@ -218,6 +222,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                     siteId, null, pathsToAddToWorkflow, submittedBy, schedule, false, comment);
             // create audit log entries
             createPublishRequestAuditLogEntry(siteId, pathsToAddToWorkflow, submittedBy, comment);
+            // trigger event
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToAddToWorkflow, false);
@@ -351,6 +357,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
                     PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             createInitialPublishAuditLog(siteId);
+            // trigger event
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
         } else {
             // Create publish package
             List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
@@ -369,6 +377,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
                 createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);
+                // Trigger event
+                applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
             } finally {
                 // Reset system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
@@ -440,6 +450,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
                     PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
             createInitialPublishAuditLog(siteId);
+            // trigger event
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
         } else {
             // Create publish package
             List<String> pathsToPublish = calculatePublishPackage(siteId, paths, optionalDependencies);
@@ -458,6 +470,8 @@ public class WorkflowServiceImpl implements WorkflowService {
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
                 createApproveAuditLogEntry(siteId, pathsToPublish, publishedBy, comment);
+                // Trigger event
+                applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
             } finally {
                 // Reset system processing
                 itemServiceInternal.setSystemProcessingBulk(siteId, pathsToPublish, false);
@@ -562,6 +576,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             if (shouldNotify) {
                 notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
             }
+            // trigger event
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToCancelWorkflow, false);
@@ -630,6 +646,8 @@ public class WorkflowServiceImpl implements WorkflowService {
             deploymentService.delete(siteId, pathsToDelete, deletedBy, DateUtils.getCurrentTime(), comment);
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
+            // trigger event
+            applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), siteId));
         } finally {
             // clear system processing
             itemServiceInternal.setSystemProcessingBulk(siteId, pathsToDelete, false);
@@ -656,6 +674,11 @@ public class WorkflowServiceImpl implements WorkflowService {
         Set<String> dependencies = dependencyService.getDeleteDependencies(siteId, deletePackage);
         deletePackage.addAll(dependencies);
         return deletePackage;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public ItemServiceInternal getItemServiceInternal() {

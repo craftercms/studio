@@ -82,7 +82,6 @@ import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService
 import org.craftercms.studio.api.v1.service.content.ImportService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.event.EventService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -99,6 +98,7 @@ import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.event.site.SiteEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -120,6 +120,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.ROOT_PATTERN_ASSETS;
@@ -173,11 +175,9 @@ import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginPara
  *
  * @author russdanner
  */
-public class SiteServiceImpl implements SiteService {
+public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
-
-	private final static int batchSize = 1000;
 
     protected Deployer deployer;
     protected SiteServiceDAL _siteServiceDAL;
@@ -193,7 +193,6 @@ public class SiteServiceImpl implements SiteService {
     protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
-    protected EventService eventService;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected StudioUpgradeManager upgradeManager;
@@ -206,6 +205,7 @@ public class SiteServiceImpl implements SiteService {
     protected ClusterDAO clusterDao;
     protected UserDAO userDao;
     protected WorkflowServiceInternal workflowServiceInternal;
+    protected ApplicationContext applicationContext;
 
     @Autowired
     protected SiteFeedMapper siteFeedMapper;
@@ -371,8 +371,8 @@ public class SiteServiceImpl implements SiteService {
             logger.info("Syncing all content to preview.");
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
-                deploymentService.syncAllContentToPreview(siteId, true);
-            } catch (ServiceLayerException e) {
+                applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+            } catch (Exception e) {
                 logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
 
@@ -512,7 +512,7 @@ public class SiteServiceImpl implements SiteService {
         if (CollectionUtils.isNotEmpty(parts)) {
             for (Path ancestor : parts) {
                 if (StringUtils.isNotEmpty(ancestor.toString())) {
-                    currentPath = currentPath + FILE_SEPARATOR + ancestor.toString();
+                    currentPath = currentPath + FILE_SEPARATOR + ancestor;
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                             , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
                             Locale.US.toString(), null, 0L, null, commitId, null).getBytes(UTF_8),
@@ -809,8 +809,8 @@ public class SiteServiceImpl implements SiteService {
             // Now that everything is created, we can sync the preview deployer with the new content
             logger.info("Sync all site content to preview for " + siteId);
             try {
-                deploymentService.syncAllContentToPreview(siteId, true);
-            } catch (ServiceLayerException e) {
+                applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+            } catch (Exception e) {
                 logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
 
@@ -1316,6 +1316,12 @@ public class SiteServiceImpl implements SiteService {
                     Files.write(repoOperationsScriptPath,
                             deleteItemRow(siteFeed.getId(), repoOperation.getPath()).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
+                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
+                    if (!contentRepositoryV2.contentExists(siteId, folder)) {
+                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+                        Files.write(repoOperationsScriptPath,
+                                deleteItemRow(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    }
                     Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                     Files.write(repoOperationsScriptPath,
                             deleteDependencyRows(siteId, repoOperation.getPath()).getBytes(UTF_8),
@@ -1677,6 +1683,11 @@ public class SiteServiceImpl implements SiteService {
         return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
     }
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
     /**
      * getter site service dal
      */
@@ -1785,14 +1796,6 @@ public class SiteServiceImpl implements SiteService {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public EventService getEventService() {
-        return eventService;
-    }
-
-    public void setEventService(EventService eventService) {
-        this.eventService = eventService;
     }
 
     public Deployer getDeployer() {

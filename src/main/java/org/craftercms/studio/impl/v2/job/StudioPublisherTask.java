@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -42,11 +43,12 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressS
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.springframework.jdbc.UncategorizedSQLException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,7 +67,7 @@ import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 
-public class StudioPublisherTask extends StudioClockTask {
+public class StudioPublisherTask extends StudioClockTask implements ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
 
@@ -85,6 +87,7 @@ public class StudioPublisherTask extends StudioClockTask {
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
     private UserServiceInternal userServiceInternal;
     private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private ApplicationContext applicationContext;
 
     @Override
     protected void executeInternal(String siteId) {
@@ -148,6 +151,7 @@ public class StudioPublisherTask extends StudioClockTask {
                                                         itemsToDeploy.size());
                                         publishingProgressServiceInternal.addObserver(observer);
                                         doPublishing(siteId, itemsToDeploy, environment);
+                                        applicationContext.publishEvent(new PublishEvent(siteId));
                                         retryCounter.remove(siteId);
                                         dbErrorNotifiedSites.remove(siteId);
                                         siteService.updatePublishingLockHeartbeatForSite(siteId);
@@ -308,14 +312,14 @@ public class StudioPublisherTask extends StudioClockTask {
             completeDeploymentItemList.addAll(deploymentItemList);
         } catch (DeploymentException err) {
             logger.error("Error while executing deployment to environment store for site \"{0}\",", err, siteId);
-            publishingManager.markItemsReady(siteId, environment, Arrays.asList(item));
+            publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
         } catch (Exception err){
             logger.error("Unexpected error while executing deployment to environment " +
                     "store for site \"{0}\", ", err, siteId);
-            publishingManager.markItemsReady(siteId, environment, Arrays.asList(item));
+            publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
@@ -378,6 +382,11 @@ public class StudioPublisherTask extends StudioClockTask {
             environments.add(servicesConfig.getStagingEnvironment(site));
         }
         return environments;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public StudioConfiguration getStudioConfiguration() {

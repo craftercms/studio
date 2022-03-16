@@ -26,20 +26,51 @@
   <folder-name/>
   <internal-name>Header</internal-name>
   <business_name_s>Editorial</business_name_s>
-  <social_media_links_o item-list="true">
-    <item>
-      <social_media_s>brands fa-facebook</social_media_s>
-      <url_s>http://facebook.com</url_s>
+  <socialMediaWidget_o item-list="true">
+    <item inline="true">
+      <key>c646ba89-a4c3-308f-3492-93be61429fec</key>
+      <value>Social Media Networks</value>
+      <component id="c646ba89-a4c3-308f-3492-93be61429fec">
+        <content-type>/component/social-media-widget</content-type>
+        <display-template>/templates/web/components/social-media-widget.ftl</display-template>
+        <no-template-required/>
+        <merge-strategy>inherit-levels</merge-strategy>
+        <objectGroupId>c646</objectGroupId>
+        <objectId>c646ba89-a4c3-308f-3492-93be61429fec</objectId>
+        <file-name>c646ba89-a4c3-308f-3492-93be61429fec.xml</file-name>
+        <folder-name/>
+        <internal-name>Social Media Networks</internal-name>
+        <header_s/>
+        <iconsWidth_i>24</iconsWidth_i>
+        <iconsHeight_i>24</iconsHeight_i>
+        <showItemsInline_b>true</showItemsInline_b>
+        <accounts_o item-list="true">
+          <item>
+            <network_s>facebook</network_s>
+            <title_s/>
+            <url_s>#</url_s>
+            <icon_s />
+          </item>
+          <item>
+            <network_s>twitter</network_s>
+            <title_s/>
+            <url_s>#</url_s>
+            <icon_s/>
+          </item>
+          <item>
+            <title_s/>
+            <url_s>#</url_s>
+            <network_s>github</network_s>
+            <icon_s/>
+          </item>
+        </accounts_o>
+        <createdDate>2022-02-22T19:04:47.646Z</createdDate>
+        <createdDate_dt>2022-02-22T19:04:47.646Z</createdDate_dt>
+        <lastModifiedDate>2022-03-14T22:41:09.371Z</lastModifiedDate>
+        <lastModifiedDate_dt>2022-03-14T22:41:09.371Z</lastModifiedDate_dt>
+      </component>
     </item>
-    <item>
-      <url_s>http://twitter.com</url_s>
-      <social_media_s>brands fa-twitter</social_media_s>
-    </item>
-    <item>
-      <social_media_s>brands fa-github</social_media_s>
-      <url_s>http://github.com</url_s>
-    </item>
-  </social_media_links_o>
+  </socialMediaWidget_o>
   <createdDate>2017-2-3T23:27:50.000Z</createdDate>
   <createdDate_dt>2017-2-3T23:27:50.000Z</createdDate_dt>
   <lastModifiedDate>2019-12-20T13:47:32.168Z</lastModifiedDate>
