@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -79,7 +80,7 @@ public class WorkflowController {
                                       @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
                                                   int offset,
                                       @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
-                                                  int limit) throws SiteNotFoundException {
+                                                  int limit) throws SiteNotFoundException, InvalidParametersException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
@@ -89,6 +90,8 @@ public class WorkflowController {
         int total = 0;
         if (isPathRegexValid(path)) {
             total = workflowService.getItemStatesTotal(siteId, path, states);
+        } else {
+            throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
         }
         List<SandboxItem> items = new ArrayList<SandboxItem>();
 
