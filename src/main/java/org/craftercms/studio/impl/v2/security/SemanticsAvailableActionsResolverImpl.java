@@ -40,6 +40,7 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DUPLICATE;
@@ -100,6 +101,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
             result = result & ~CONTENT_DUPLICATE;
+            result = result & ~CONTENT_COPY;
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
@@ -156,6 +158,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
             result = result & ~CONTENT_DUPLICATE;
+            result = result & ~CONTENT_COPY;
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);

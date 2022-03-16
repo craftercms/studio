@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -45,6 +46,7 @@ import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
@@ -78,14 +80,19 @@ public class WorkflowController {
                                       @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
                                                   int offset,
                                       @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
-                                                  int limit) throws SiteNotFoundException {
+                                                  int limit) throws SiteNotFoundException, InvalidParametersException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
 
         String path = rpPath.isPresent() ? rpPath.get() : null;
         Long states = rpStates.isPresent() ? rpStates.get() : null;
-        int total = workflowService.getItemStatesTotal(siteId, path, states);
+        int total = 0;
+        if (isPathRegexValid(path)) {
+            total = workflowService.getItemStatesTotal(siteId, path, states);
+        } else {
+            throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
+        }
         List<SandboxItem> items = new ArrayList<SandboxItem>();
 
         if (total > 0) {
@@ -101,6 +108,16 @@ public class WorkflowController {
         responseBody.setResult(result);
         result.setEntities(RESULT_KEY_ITEMS, items);
         return responseBody;
+    }
+
+    private boolean isPathRegexValid(String pathRegex) {
+        boolean toRet = true;
+        try {
+            Pattern.compile(pathRegex);
+        } catch (Exception e) {
+            toRet = false;
+        }
+        return toRet;
     }
 
     @PostMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
