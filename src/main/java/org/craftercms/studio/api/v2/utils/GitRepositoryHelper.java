@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
+import org.craftercms.studio.impl.v2.utils.CGit;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
@@ -1152,7 +1153,14 @@ public class GitRepositoryHelper {
                     }
                 }
 
-                // Add the file to git
+				try {
+					logger.error("Calling CGit add");
+					CGit.add(generalLockService, site, repo.getWorkTree().getAbsolutePath(), getGitPath(path));
+					logger.error("Done calling CGit add");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+/*				// Add the file to git
                 try (Git git = new Git(repo)) {
                     AddCommand addCommand = git.add().addFilepattern(getGitPath(path));
                     retryingRepositoryOperationFacade.call(addCommand);
@@ -1168,6 +1176,7 @@ public class GitRepositoryHelper {
                     logger.error("error adding file to git: site: " + site + " path: " + path, e);
                     result = false;
                 }
+ */
             }
         } catch (IOException e) {
             logger.error("error writing file: site: " + site + " path: " + path, e);
@@ -1179,6 +1188,15 @@ public class GitRepositoryHelper {
 
     public String commitFile(Repository repo, String site, String path, String comment, PersonIdent user) {
         String commitId = null;
+		String gitPath = getGitPath(path);
+
+		try {
+			commitId = CGit.commit(generalLockService, site, repo.getWorkTree().getAbsolutePath(),
+					new String(user.getName() + " <" + user.getEmailAddress()) + ">", comment, gitPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+/*
         String gitPath = getGitPath(path);
         Status status;
 
@@ -1201,7 +1219,7 @@ public class GitRepositoryHelper {
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-
+*/
         return commitId;
     }
 
