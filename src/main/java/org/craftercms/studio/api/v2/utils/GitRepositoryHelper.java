@@ -1191,6 +1191,7 @@ public class GitRepositoryHelper {
 		String gitPath = getGitPath(path);
 
 		try {
+			// TODO: wrap in a retrying facade
 			commitId = CGit.commit(generalLockService, site, repo.getWorkTree().getAbsolutePath(),
 					new String(user.getName() + " <" + user.getEmailAddress()) + ">", comment, gitPath);
 		} catch (Exception e) {
