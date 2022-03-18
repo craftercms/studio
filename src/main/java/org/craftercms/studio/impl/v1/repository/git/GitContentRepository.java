@@ -248,7 +248,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
-    @Override
+	@Override
+	public boolean shallowContentExists(String site, String path) {
+		GitRepositoryHelper helper = null;
+		try {
+			helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+					userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
+			return Files.exists(helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path)));
+		} catch (CryptoException e) {
+			logger.error("Failed to get GitRepoHelper for site: " + site + " path: " + path, e);
+			return false;
+		}
+	}
+
+	@Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException, CryptoException {
         InputStream toReturn = null;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,

@@ -172,7 +172,21 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         }
     }
 
-    @Override
+	@Override
+	public boolean shallowContentExists(String site, String path) {
+		logger.debug("Checking if {0} exists in site {1}", path, site);
+		try {
+			if (!isFolder(site, path)) {
+				return localRepositoryV1.shallowContentExists(site, getPointerPath(site, path));
+			}
+			return localRepositoryV1.shallowContentExists(site, path);
+		} catch (Exception e) {
+			logger.error("Error checking if content {0} exist in site {1}", e, path, site);
+			return false;
+		}
+	}
+
+	@Override
     public InputStream getContent(String site, String path) {
         logger.debug("Getting content of {0} in site {1}", path, site);
         try {

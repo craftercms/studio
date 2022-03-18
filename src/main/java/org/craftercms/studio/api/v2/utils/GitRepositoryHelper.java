@@ -801,7 +801,6 @@ public class GitRepositoryHelper {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-
             Status status = git.status().call();
 
             if (status.hasUncommittedChanges() || !status.isClean()) {

@@ -201,6 +201,14 @@ public class ContentServiceImpl implements ContentService {
         return this._contentRepository.contentExists(site, path);
     }
 
+	@Override
+	@ValidateParams
+	public boolean shallowContentExists(@ValidateStringParam(name = "site") String site,
+								 @ValidateSecurePathParam(name = "path") String path) {
+		// TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
+		return this._contentRepository.shallowContentExists(site, path);
+	}
+
     @Override
     @ValidateParams
     public InputStream getContent(@ValidateStringParam(name = "site") String site,
