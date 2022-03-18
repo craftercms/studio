@@ -273,6 +273,10 @@ public final class  QueryParameterNames {
 
     public static final String ITEM_ID = "itemId";
 
+    public static final String TYPE = "type";
+
+    public static final String SOURCE_PATH = "sourcePath";
+
     private QueryParameterNames() {
     }
 }

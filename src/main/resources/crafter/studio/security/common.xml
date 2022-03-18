@@ -213,5 +213,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
     </bean>
 </beans>

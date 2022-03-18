@@ -20,13 +20,17 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.log.Logger;
+import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
@@ -38,13 +42,19 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE_CONTROLLER;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE_TEMPLATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DUPLICATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT_CONTROLLER;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT_TEMPLATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_RENAME;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
@@ -58,6 +68,8 @@ import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsCo
 
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
+    private static final Logger logger = LoggerFactory.getLogger(SemanticsAvailableActionsResolverImpl.class);
+
     private SecurityService securityService;
     private ContentServiceInternal contentServiceInternal;
     private ServicesConfig servicesConfig;
@@ -65,6 +77,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private UserServiceInternal userServiceInternal;
     private StudioBlobStoreResolver studioBlobStoreResolver;
     private StudioConfiguration studioConfiguration;
+    private DependencyServiceInternal dependencyServiceInternal;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -143,6 +156,49 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 }
             }
 
+            // controller and template
+            List<Dependency> controllers = dependencyServiceInternal.getDependenciesByType(siteId, item.getPath(),
+                    CONTENT_TYPE_SCRIPT);
+            if (CollectionUtils.isNotEmpty(controllers)) {
+                for (Dependency c : controllers) {
+                    try {
+                        long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
+                                c.getTargetPath());
+                        if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
+                            result = result & CONTENT_EDIT_CONTROLLER;
+                        }
+                        if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
+                            result = result & CONTENT_DELETE_CONTROLLER;
+                        }
+                    } catch (ServiceLayerException | UserNotFoundException e) {
+                        logger.info("Unable to get available actions for content type controller of content " +
+                                item.getPath() + " for site " + siteId);
+                        result = result & ~CONTENT_EDIT_CONTROLLER;
+                        result = result & ~CONTENT_DELETE_CONTROLLER;
+                    }
+                }
+            }
+            List<Dependency> templates = dependencyServiceInternal.getDependenciesByType(siteId, item.getPath(),
+                    CONTENT_TYPE_RENDERING_TEMPLATE);
+            if (CollectionUtils.isNotEmpty(templates)) {
+                for (Dependency t : templates) {
+                    try {
+                        long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
+                                t.getTargetPath());
+                        if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
+                            result = result & CONTENT_EDIT_TEMPLATE;
+                        }
+                        if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
+                            result = result & CONTENT_DELETE_TEMPLATE;
+                        }
+                    } catch (ServiceLayerException | UserNotFoundException e) {
+                        logger.info("Unable to get available actions for rendering template of content " +
+                                item.getPath() + " for site " + siteId);
+                        result = result & ~CONTENT_EDIT_TEMPLATE;
+                        result = result & ~CONTENT_DELETE_TEMPLATE;
+                    }
+                }
+            }
         }
 
         return result;
@@ -202,6 +258,49 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
         }
 
+        // controller and template
+        List<Dependency> controllers = dependencyServiceInternal.getDependenciesByType(siteId, detailedItem.getPath(),
+                CONTENT_TYPE_SCRIPT);
+        if (CollectionUtils.isNotEmpty(controllers)) {
+            for (Dependency c : controllers) {
+                try {
+                    long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
+                            c.getTargetPath());
+                    if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
+                        result = result & CONTENT_EDIT_CONTROLLER;
+                    }
+                    if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
+                        result = result & CONTENT_DELETE_CONTROLLER;
+                    }
+                } catch (ServiceLayerException | UserNotFoundException e) {
+                    logger.info("Unable to get available actions for content type controller of content " +
+                            detailedItem.getPath() + " for site " + siteId);
+                    result = result & ~CONTENT_EDIT_CONTROLLER;
+                    result = result & ~CONTENT_DELETE_CONTROLLER;
+                }
+            }
+        }
+        List<Dependency> templates = dependencyServiceInternal.getDependenciesByType(siteId, detailedItem.getPath(),
+                CONTENT_TYPE_RENDERING_TEMPLATE);
+        if (CollectionUtils.isNotEmpty(templates)) {
+            for (Dependency t : templates) {
+                try {
+                    long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
+                            t.getTargetPath());
+                    if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
+                        result = result & CONTENT_EDIT_TEMPLATE;
+                    }
+                    if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
+                        result = result & CONTENT_DELETE_TEMPLATE;
+                    }
+                } catch (ServiceLayerException | UserNotFoundException e) {
+                    logger.info("Unable to get available actions for rendering template of content " +
+                            detailedItem.getPath() + " for site " + siteId);
+                    result = result & ~CONTENT_EDIT_TEMPLATE;
+                    result = result & ~CONTENT_DELETE_TEMPLATE;
+                }
+            }
+        }
         return result;
     }
 
@@ -259,5 +358,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public DependencyServiceInternal getDependencyServiceInternal() {
+        return dependencyServiceInternal;
+    }
+
+    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
+        this.dependencyServiceInternal = dependencyServiceInternal;
     }
 }

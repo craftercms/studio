@@ -17,32 +17,23 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
-import org.craftercms.studio.api.v1.service.objectstate.State;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SOURCE_PATH;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TYPE;
 
 /**
  * @author Dejan Brkic
  */
 public interface DependencyDAO {
 
-    String SITE_PARAM = "site";
-    String SITE_ID_PARAM = "siteId";
-    String PATH_PARAM = "path";
-    String PATHS_PARAM = "paths";
-    String OLD_PATH_PARAM = "oldPath";
-    String NEW_PATH_PARAM = "newPath";
-    String REGEX_PARAM = "regex";
-    String EDITED_STATES_PARAM = "editedStates";
-    String NEW_STATES_PARAM = "newStates";
-
-    String SORUCE_PATH_COLUMN_NAME = "source_path";
+    String SOURCE_PATH_COLUMN_NAME = "source_path";
     String TARGET_PATH_COLUMN_NAME = "target_path";
 
     /**
@@ -97,4 +88,13 @@ public interface DependencyDAO {
     List<String> getItemSpecificDependencies(@Param("siteId") String siteId, @Param("paths") List<String> paths,
                                              @Param("regex") List<String> regex);
 
+    /**
+     * Get dependencies for content path by type
+     * @param siteId site identifier
+     * @param sourcePath content path
+     * @param dependencyType dependency type
+     * @return list of dependencies
+     */
+    List<Dependency> getDependenciesByType(@Param(SITE_ID) String siteId, @Param(SOURCE_PATH) String sourcePath,
+                                           @Param(TYPE) String dependencyType);
 }
