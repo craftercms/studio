@@ -23,8 +23,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
-import org.craftercms.studio.model.search.SearchResult;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -100,11 +100,11 @@ public interface DashboardService {
     /**
      * Get content pending approval package details
      *
-     * @param sitId site identifier
+     * @param siteId site identifier
      * @param publishingPackageId publishing package identifier
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getContentPendingApprovalDetail(String sitId, String publishingPackageId)
+    List<SandboxItem> getContentPendingApprovalDetail(String siteId, String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
@@ -133,8 +133,8 @@ public interface DashboardService {
      * @param limit number of results to return
      * @return list of content items that is expiring
      */
-    SearchResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                    int limit) throws AuthenticationException, ServiceLayerException;
+    ExpiringContentResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
+                                                 int limit) throws AuthenticationException, ServiceLayerException;
 
     /**
      * Get content that expired
@@ -143,7 +143,7 @@ public interface DashboardService {
      * @param limit number of results to return
      * @return list of content items that expired
      */
-    SearchResult getContentExpired(String siteId, int offset, int limit)
+    ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException;
 
     /**
@@ -176,11 +176,11 @@ public interface DashboardService {
     /**
      * Get publishing package details
      *
-     * @param sitId site identifier
+     * @param siteId site identifier
      * @param publishingPackageId publishing package identifier
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getPublishingScheduledDetail(String sitId, String publishingPackageId)
+    List<SandboxItem> getPublishingScheduledDetail(String siteId, String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
@@ -215,11 +215,11 @@ public interface DashboardService {
     /**
      * Get publishing package details
      *
-     * @param sitId site identifier
+     * @param siteId site identifier
      * @param publishingPackageId publishing package identifier
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getPublishingHistoryDetail(String sitId, String publishingPackageId)
+    List<SandboxItem> getPublishingHistoryDetail(String siteId, String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
 
     /**

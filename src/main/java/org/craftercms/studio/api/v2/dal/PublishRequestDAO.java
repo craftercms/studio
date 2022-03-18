@@ -22,6 +22,7 @@ import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIVITY_ACTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.APPROVER;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CANCELLED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
@@ -40,6 +41,8 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_IDS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_TARGET;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISH_ACTION;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISH_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCHEDULED_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
@@ -204,7 +207,7 @@ public interface PublishRequestDAO {
      * @param toDate get history to date
      * @return total number of results
      */
-    int getPublishingPackagesHistoryTotal(@Param(SITE_ID) String siteId,
+    Integer getPublishingPackagesHistoryTotal(@Param(SITE_ID) String siteId,
                                           @Param(PUBLISHING_TARGET) String publishingTarget,
                                           @Param(APPROVER) String approver,
                                           @Param(COMPLETED_STATE) String completedState,
@@ -240,23 +243,16 @@ public interface PublishRequestDAO {
     int getNumberOfPublishes(@Param(SITE_ID) String siteId, @Param(DAYS) int days);
 
     /**
-     * Get number of newly created and published items for site in given number of days
+     * Get number of published items for site in given number of days filtered by their previous state
      * @param siteId site identifier
      * @param days number of days
-     * @param newMask mask for NEW state
+     * @param activityAction the activity action to filter
+     * @param publishState  the publishing state to filter
+     * @param publishAction the publishing action to filter
      * @return number of newly created <nd published items
      */
-    int getNumberOfNewAndPublishedItems(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
-                                        @Param(NEW_MASK) long newMask);
-
-    /**
-     * Get number of edited and published items for site in given number of days
-     * @param siteId site identifier
-     * @param days number of days
-     * @param newMask mask for NEW state
-     * @param modifiedMask mask for MODIFIED state
-     * @return number of edited and published items
-     */
-    int getNumberOfEditedAndPublishedItems(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
-                                           @Param(NEW_MASK) long newMask, @Param(MODIFIED_MASK) long modifiedMask);
+    int getNumberOfPublishedItemsByState(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
+                                        @Param(ACTIVITY_ACTION) String activityAction,
+                                        @Param(PUBLISH_STATE) String publishState,
+                                        @Param(PUBLISH_ACTION) String publishAction);
 }

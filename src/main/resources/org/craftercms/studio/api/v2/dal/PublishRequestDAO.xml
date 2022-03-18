@@ -48,20 +48,14 @@
         <result property="comment" column="submissioncomment"/>
     </resultMap>
 
-    <resultMap id="DashboardPublishingPackageMap" type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
+    <resultMap id="DashboardPublishingPackageMap"
+               type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
         <result property="id" column="package_id" />
         <result property="label" column="label" />
-        <result property="size" column="site" />
+        <result property="size" column="size" />
         <result property="publishingTarget" column="environment" />
         <result property="schedule" column="published_on" />
-        <association property="person" resultMap="PersonMap" />
-    </resultMap>
-
-    <resultMap id="PersonMap" type="org.craftercms.studio.model.rest.Person">
-        <result property="username" column="username"/>
-        <result property="firstName" column="first_name" />
-        <result property="lastName" column="last_name" />
-        <result property="avatar" column="avatar" />
+        <association property="submitter" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap" />
     </resultMap>
 
     <select id="getPublishingPackagesTotal" resultType="int">
@@ -185,12 +179,35 @@
         <if test="fromDate != null">
             AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
         </if>
-        <if test="environment != null">
+        <if test="publishingTarget != null">
             AND pr.environment = #{publishingTarget}
         </if>
         GROUP BY pr.package_id
     </select>
 
+    <!-- Can we use <sql> to avoid repeating the WHERE from above -->
+    <!-- This needs to use Integer instead of int because count() + GROUP BY could return null -->
+    <select id="getPublishingPackagesHistoryTotal" resultType="Integer">
+        SELECT count(pr.package_id)
+        FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
+        WHERE pr.site = #{siteId}
+        AND pr.state = #{completedState}
+        <if test="approver != null">
+            AND pr.username = #{approver}
+        </if>
+        <if test="toDate != null" >
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
+        </if>
+        <if test="fromDate != null">
+            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
+        </if>
+        <if test="publishingTarget != null">
+            AND pr.environment = #{publishingTarget}
+        </if>
+        GROUP BY pr.package_id
+    </select>
+
+    <!-- Can we use <sql> to avoid repeating the WHERE from above -->
     <select id="getPublishingPackagesScheduled" resultMap="DashboardPublishingPackageMap">
         SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id,
         IFNULL(pr.published_on, pr.scheduleddate) as published_on, u.first_name, u.last_name, u.avatar
@@ -203,7 +220,7 @@
         <if test="fromDate != null">
             AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
         </if>
-        <if test="environment != null">
+        <if test="publishingTarget != null">
             AND pr.environment = #{publishingTarget}
         </if>
         GROUP BY pr.package_id
@@ -211,38 +228,23 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <select id="getPublishingPackagesHistoryTotal" resultType="int">
-        SELECT count(pr.package_id)
-        FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
-        WHERE pr.site = #{siteId}
-        AND pr.username = #{approver}
-        AND pr.state = #{completedState}
-        <if test="toDate != null" >
-            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
-        </if>
-        <if test="fromDate != null">
-            AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
-        </if>
-        <if test="environment != null">
-            AND pr.environment = #{publishingTarget}
-        </if>
-        GROUP BY pr.package_id
-    </select>
-
+    <!-- Can we use <sql> to avoid repeating the WHERE from above -->
     <select id="getPublishingPackagesHistory" resultMap="DashboardPublishingPackageMap">
         SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id,
         IFNULL(pr.published_on, pr.scheduleddate) as published_on, u.first_name, u.last_name, u.avatar
         FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
         WHERE pr.site = #{siteId}
-        AND pr.username = #{approver}
         AND pr.state = #{completedState}
+        <if test="approver != null">
+            AND pr.username = #{approver}
+        </if>
         <if test="toDate != null" >
             AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &lt;= DATE(#{toDate})
         </if>
         <if test="fromDate != null">
             AND DATE(IFNULL(pr.published_on, pr.scheduleddate)) &gt;= DATE(#{fromDate})
         </if>
-        <if test="environment != null">
+        <if test="publishingTarget != null">
         AND pr.environment = #{publishingTarget}
         </if>
         GROUP BY pr.package_id
@@ -257,24 +259,16 @@
         AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)
     </select>
 
-    <select id="getNumberOfNewAndPublished" resultType="int">
+    <select id="getNumberOfPublishedItemsByState" resultType="int">
         SELECT COUNT(DISTINCT i.id)
-        FROM item i INNER JOIN site s ON i.site_id = s.id
-            INNER JOIN publish_request pr ON pr.site = s.site_id AND i.path = pr.path
-        WHERE s.site_id = #{siteId}
+        FROM activity_stream a
+        LEFT JOIN site s ON s.id = a.site_id
+        LEFT JOIN item i ON a.item_id = i.id
+        LEFT JOIN publish_request pr ON pr.path = i.path
+        WHERE a.action_timestamp &gt;= NOW() - INTERVAL ${days} DAY
+        AND a.action = #{activityAction}
+        AND s.site_id = #{siteId}
         AND s.deleted = 0
-        AND (i.state &amp; #{newMask}) &gt; 0
-        AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)
-    </select>
-
-    <select id="getNumberOfEditedAndPublishedItems" resultType="int">
-        SELECT COUNT(DISTINCT i.id)
-        FROM item i INNER JOIN site s ON i.site_id = s.id
-                    INNER JOIN publish_request pr ON pr.site = s.site_id AND i.path = pr.path
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-        AND (i.state &amp; #{modifiedMask}) &gt; 0
-        AND (i.state &amp; #{newMask}) = 0
-        AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)
+        AND pr.state = #{publishState} AND pr.action = #{publishAction};
     </select>
 </mapper>

@@ -18,7 +18,10 @@ package org.craftercms.studio.model.search;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
 import java.util.Map;
+
+import static java.util.Collections.emptyList;
 
 /**
  * Holds the data needed to perform a search operation
@@ -67,7 +70,15 @@ public class SearchParams {
      */
     protected Map<String, Object> filters;
 
+    /**
+     * Indicates if OR should be used instead of AND
+     */
     protected boolean orOperator;
+
+    /**
+     * List of additional fields to include for each item
+     */
+    protected List<String> additionalFields = emptyList();
 
     public String getKeywords() {
         return keywords;
@@ -139,6 +150,14 @@ public class SearchParams {
 
     public void setOrOperator(boolean orOperator) {
         this.orOperator = orOperator;
+    }
+
+    public List<String> getAdditionalFields() {
+        return additionalFields;
+    }
+
+    public void setAdditionalFields(List<String> additionalFields) {
+        this.additionalFields = additionalFields;
     }
 
 }

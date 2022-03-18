@@ -633,6 +633,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     commitId, parentItem.getId());
 
             String username = securityService.getCurrentUser();
+            // TODO: This is not necessary, the current user is already on memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -1064,6 +1065,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         auditServiceInternal.insertAuditLog(auditLog);
 
         Item item = itemServiceInternal.getItem(site, movePath);
+        // This is not required, the current user is already loaded in memory
         User u = userService.getUserByIdOrUsername(-1, user);
         activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
                 DateUtils.getCurrentTime(), item.getId(), null);
@@ -2000,6 +2002,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             itemServiceInternal.updateCommitId(site, path, commitId);
 
             String username = securityService.getCurrentUser();
+            // This is not required, the current user is already loaded in memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();

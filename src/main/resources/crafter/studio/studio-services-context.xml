@@ -825,6 +825,7 @@
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
     </bean>
 
     <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask">

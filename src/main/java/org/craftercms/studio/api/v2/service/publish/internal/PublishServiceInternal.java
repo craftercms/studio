@@ -210,18 +210,15 @@ public interface PublishServiceInternal {
     int getNumberOfPublishes(String siteId, int days);
 
     /**
-     * Get number of newly created and published items for site in given number of days
+     * Get number of published items for site in given number of days filtered by their previous state
      * @param siteId site identifier
      * @param days number of days
+     * @param activityAction the activity action to filter
+     * @param publishState  the publishing state to filter
+     * @param publishAction the publishing action to filter
      * @return number of newly created <nd published items
      */
-    int getNumberOfNewAndPublishedItems(String siteId, int days);
+    int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
+                                         String publishAction);
 
-    /**
-     * Get number of edited and published items for site in given number of days
-     * @param siteId site identifier
-     * @param days number of days
-     * @return number of edited and published items
-     */
-    int getNumberOfEditedAndPublishedItems(String siteId, int days);
 }

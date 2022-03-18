@@ -28,8 +28,8 @@ import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
-import org.craftercms.studio.model.search.SearchResultItem;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -185,9 +185,10 @@ public class DashboardController {
     }
 
 
+    // TODO: Should the dates be required? the query doesn't make sense without them
     @GetMapping(value = CONTENT + EXPIRING, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentExpiring(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
@@ -199,11 +200,11 @@ public class DashboardController {
         var contentExpiring = dashboardService.getContentExpiring(siteId, dateFrom, dateTo, offset,
                 limit);
         var responseBody = new ResponseBody();
-        var result = new PaginatedResultList<SearchResultItem>();
+        var result = new PaginatedResultList<ExpiringContentItem>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS, contentExpiring.getItems());
         result.setTotal(contentExpiring.getTotal());
-        result.setLimit(contentExpiring.getItems().size());
+        result.setLimit(limit);
         result.setOffset(offset);
         responseBody.setResult(result);
         return responseBody;
@@ -211,18 +212,18 @@ public class DashboardController {
 
     @GetMapping(value = CONTENT + EXPIRED, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentExpired(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
             throws AuthenticationException, ServiceLayerException {
 
         var contentExpired = dashboardService.getContentExpired(siteId, offset, limit);
         var responseBody = new ResponseBody();
-        var result = new PaginatedResultList<SearchResultItem>();
+        var result = new PaginatedResultList<ExpiringContentItem>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS, contentExpired.getItems());
         result.setTotal(contentExpired.getTotal());
-        result.setLimit(contentExpired.getItems().size());
+        result.setLimit(limit);
         result.setOffset(offset);
         responseBody.setResult(result);
         return responseBody;

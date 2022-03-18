@@ -16,20 +16,30 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.model.AuthenticatedUser;
+import org.springframework.security.core.Authentication;
+
+/**
+ * Simplified version of {@link User}
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
 public class Person {
 
-    private long id;
-    private String username;
-    private String firstName;
-    private String lastName;
-    private String avatar;
+    protected String username;
+    protected String firstName;
+    protected String lastName;
+    protected String avatar;
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
+    public static Person from(Authentication authentication) {
+        AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
+        Person person = new Person();
+        person.setUsername(user.getUsername());
+        person.setFirstName(user.getFirstName());
+        person.setLastName(user.getLastName());
+        return person;
     }
 
     public String getUsername() {
@@ -63,4 +73,15 @@ public class Person {
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "username='" + username + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", avatar='" + avatar + '\'' +
+                '}';
+    }
+
 }

@@ -13,37 +13,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.event;
+package org.craftercms.studio.model.rest.dashboard;
 
-import org.craftercms.studio.model.rest.Person;
-import org.springframework.security.core.Authentication;
+import java.util.List;
 
 /**
- * Base class for all events related to a specific site
+ * Holds a set of expiring or expired content items
  *
  * @author joseross
  * @since 4.0.0
  */
-public abstract class SiteAwareEvent extends StudioEvent {
+public class ExpiringContentResult {
 
-    protected final String siteId;
+    protected List<ExpiringContentItem> items;
 
-    public SiteAwareEvent(Authentication authentication, String siteId) {
-        super(authentication);
-        this.siteId = siteId;
+    protected long total;
+
+    public ExpiringContentResult(List<ExpiringContentItem> items, long total) {
+        this.items = items;
+        this.total = total;
     }
 
-    public SiteAwareEvent(Person person, String siteId) {
-        super(person);
-        this.siteId = siteId;
+    public List<ExpiringContentItem> getItems() {
+        return items;
     }
 
-    public SiteAwareEvent(String siteId) {
-        this.siteId = siteId;
-    }
-
-    public String getSiteId() {
-        return siteId;
+    public long getTotal() {
+        return total;
     }
 
 }

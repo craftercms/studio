@@ -39,19 +39,28 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.NEW;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.parseDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
@@ -115,14 +124,14 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<SandboxItem> getContentPendingApprovalDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String sitId,
+    public List<SandboxItem> getContentPendingApprovalDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                              String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException {
-        var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(sitId, publishingPackageId);
+        var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(siteId, publishingPackageId);
         var ids = workflowEntries.stream()
                 .map(Workflow::getItemId)
-                .collect(Collectors.toList());
-        return contentServiceInternal.getSandboxItemsById(sitId, ids, true);
+                .collect(toList());
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, true);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -138,35 +147,51 @@ public class DashboardServiceImpl implements DashboardService {
             throws UserNotFoundException, ServiceLayerException {
         var items =
                 itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, offset, limit);
+        if (items.isEmpty()) {
+            return emptyList();
+        }
         var ids = items.stream().map(Item::getId)
-                .collect(Collectors.toList());
+                .collect(toList());
         return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
     }
 
     @Override
-    public SearchResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                           int offset, int limit)
+    public ExpiringContentResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                    int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
         var searchParams = new SearchParams();
         var query = getContentExpiringQuery()
                 .replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
                 .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
         searchParams.setQuery(query);
+        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
+        searchParams.setSortBy(getExpireFieldName());
         searchParams.setOffset(offset);
         searchParams.setLimit(limit);
-        return searchService.search(siteId, searchParams);
+        SearchResult result = searchService.search(siteId, searchParams);
+        return processResults(result);
     }
 
     @Override
-    public SearchResult getContentExpired(String siteId, int offset, int limit)
+    public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
         var searchParams = new SearchParams();
         var query = getContentExpiredQuery();
         searchParams.setQuery(query);
-        searchParams.setSortBy(getContentExpiredSortBy());
+        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
+        searchParams.setSortBy(getExpireFieldName());
         searchParams.setOffset(offset);
         searchParams.setLimit(limit);
-        return searchService.search(siteId, searchParams);
+        SearchResult result = searchService.search(siteId, searchParams);
+        return processResults(result);
+    }
+
+    protected ExpiringContentResult processResults(SearchResult results) {
+        List<ExpiringContentItem> items = results.getItems().stream()
+                .map(result -> new ExpiringContentItem(result.getName(), result.getPath(),
+                                    parseDateIso((String) result.getAdditionalFields().get(getExpireFieldName()))))
+                .collect(toList());
+        return new ExpiringContentResult(items, results.getTotal());
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -194,7 +219,7 @@ public class DashboardServiceImpl implements DashboardService {
                 publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
         var paths = publishingPackageDetails.getItems().stream()
                 .map(PublishingPackageDetails.PublishingPackageItem::getPath)
-                .collect(Collectors.toList());
+                .collect(toList());
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
@@ -218,15 +243,16 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<SandboxItem> getPublishingHistoryDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String sitId,
+    public List<SandboxItem> getPublishingHistoryDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                         String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException {
+        // TODO: Try to do a single query
         var publishingPackageDetails =
-                publishServiceInternal.getPublishingPackageDetails(sitId, publishingPackageId);
+                publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
         var paths = publishingPackageDetails.getItems().stream()
                 .map(PublishingPackageDetails.PublishingPackageItem::getPath)
-                .collect(Collectors.toList());
-        return contentServiceInternal.getSandboxItemsByPath(sitId, paths, true);
+                .collect(toList());
+        return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
     @Override
@@ -234,9 +260,9 @@ public class DashboardServiceImpl implements DashboardService {
         var publishingStats = new PublishingStats();
         publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
         publishingStats.setNumberOfNewAndPublishedItems(
-                publishServiceInternal.getNumberOfNewAndPublishedItems(siteId, days));
+                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_CREATE, COMPLETED, NEW));
         publishingStats.setNumberOfEditedAndPublishedItems(
-                publishServiceInternal.getNumberOfEditedAndPublishedItems(siteId, days));
+                publishServiceInternal.getNumberOfPublishedItemsByState(siteId, days, OPERATION_UPDATE, COMPLETED, UPDATE));
         return publishingStats;
     }
 
@@ -248,7 +274,7 @@ public class DashboardServiceImpl implements DashboardService {
         return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY);
     }
 
-    private String getContentExpiredSortBy() {
+    private String getExpireFieldName() {
         return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY);
     }
 

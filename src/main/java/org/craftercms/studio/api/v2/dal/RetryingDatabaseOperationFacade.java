@@ -829,14 +829,13 @@ public interface RetryingDatabaseOperationFacade {
     // Activity stream
     /**
      * Insert record into activity stream
-     *
-     * @param siteId site identifier
+     *  @param siteId site identifier
      * @param userId user identifier
      * @param action action that was performed
      * @param actionTimestamp timestamp when action was performed
      * @param itemId item identifier that was actioned upon
      * @param packageId package identifier that was actioned upon
      */
-    void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, long itemId,
+    void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
                         String packageId);
 }

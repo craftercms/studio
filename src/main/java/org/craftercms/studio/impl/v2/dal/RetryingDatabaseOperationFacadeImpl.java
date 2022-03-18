@@ -628,7 +628,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     // Activity Stream
     @Override
-    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, long itemId,
+    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
                                String packageId) {
         activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, itemId, packageId);
     }

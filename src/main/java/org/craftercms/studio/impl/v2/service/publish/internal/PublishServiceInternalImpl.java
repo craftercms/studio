@@ -185,8 +185,10 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     @Override
     public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
                                                  ZonedDateTime dateFrom, ZonedDateTime dateTo) {
-        return publishRequestDao.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, COMPLETED,
-                dateFrom, dateTo);
+        // Need to check if null because of COUNT + GROUP BY
+        Integer total = publishRequestDao.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver,
+                                                                            COMPLETED, dateFrom, dateTo);
+        return total == null? 0 : total;
     }
 
     @Override
@@ -203,13 +205,10 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     }
 
     @Override
-    public int getNumberOfNewAndPublishedItems(String siteId, int days) {
-        return publishRequestDao.getNumberOfNewAndPublishedItems(siteId, days, NEW_MASK);
-    }
-
-    @Override
-    public int getNumberOfEditedAndPublishedItems(String siteId, int days) {
-        return publishRequestDao.getNumberOfEditedAndPublishedItems(siteId, days, NEW_MASK, MODIFIED_MASK);
+    public int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
+                                                String publishAction) {
+        return publishRequestDao.getNumberOfPublishedItemsByState(siteId, days, activityAction, publishState,
+                                                                    publishAction);
     }
 
     public PublishRequestDAO getPublishRequestDao() {

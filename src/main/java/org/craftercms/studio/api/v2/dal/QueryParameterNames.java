@@ -179,6 +179,12 @@ public final class  QueryParameterNames {
 
     public static final String DAYS = "days";
 
+    public static final String ACTIVITY_ACTION = "activityAction";
+
+    public static final String PUBLISH_STATE = "publishState";
+
+    public static final String PUBLISH_ACTION = "publishAction";
+
     /* Audit */
     public static final String ACTIONS = "actions";
 

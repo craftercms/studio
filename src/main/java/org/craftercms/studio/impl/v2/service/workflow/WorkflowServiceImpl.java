@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -255,6 +256,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                        boolean sendEmailNotifications)
             throws UserNotFoundException, ServiceLayerException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
+        String packageId = UUID.randomUUID().toString();
         var workflowEntries = new ArrayList<Workflow>();
         paths.forEach(path -> {
             Item it = itemServiceInternal.getItem(siteId, path);
@@ -270,6 +272,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             }
             workflow.setState(STATE_OPENED);
             workflow.setTargetEnvironment(publishingTarget);
+            workflow.setPublishingPackageId(packageId);
             workflowEntries.add(workflow);
         });
         workflowServiceInternal.insertWorkflowEntries(workflowEntries);
@@ -337,13 +340,14 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        List<String> workflowPackages = submittedPaths.stream().map(path -> {
-            WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
-            return wi.getPublishingPackageId();
-        }).distinct().collect(Collectors.toList());
-        workflowPackages.forEach( packageId ->
-        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REQUEST_PUBLISH,
-                DateUtils.getCurrentTime(), null, packageId));
+        // This is repeated
+        // Can we do a bulk getWorkflowEntries?
+        submittedPaths.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                .forEach(workflowEntry ->
+                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(),
+                                OPERATION_REQUEST_PUBLISH, DateUtils.getCurrentTime(),
+                                workflowEntry.getItem().getId(), workflowEntry.getPublishingPackageId()));
     }
 
     @Override
@@ -430,13 +434,13 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        List<String> workflowPackages = pathsToPublish.stream().map(path -> {
-            WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
-            return wi.getPublishingPackageId();
-        }).distinct().collect(Collectors.toList());
-        workflowPackages.forEach( packageId ->
-                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
-                        DateUtils.getCurrentTime(), null, packageId));
+        // This is repeated
+        pathsToPublish.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                .filter(Objects::nonNull) // there is no workflow entry for direct publishes
+                .forEach( workflowItem ->
+                    activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
+                        DateUtils.getCurrentTime(), workflowItem.getItem().getId(), workflowItem.getPublishingPackageId()));
     }
 
     @Override
@@ -509,13 +513,12 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        List<String> workflowPackages = pathsToPublish.stream().map(path -> {
-            WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
-            return wi.getPublishingPackageId();
-        }).distinct().collect(Collectors.toList());
-        workflowPackages.forEach( packageId ->
-                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
-                        DateUtils.getCurrentTime(), null, packageId));
+        pathsToPublish.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                .forEach(workflowItem ->
+                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
+                                DateUtils.getCurrentTime(), workflowItem.getItem().getId(),
+                                workflowItem.getPublishingPackageId()));
     }
 
     private void createInitialPublishAuditLog(String siteId) throws ServiceLayerException, UserNotFoundException {
@@ -614,6 +617,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
+        // This is repeated
         List<String> workflowPackages = submittedPaths.stream().map(path -> {
             WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
             return wi.getPublishingPackageId();

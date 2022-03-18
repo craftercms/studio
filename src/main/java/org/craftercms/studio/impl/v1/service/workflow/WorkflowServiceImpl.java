@@ -240,7 +240,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 for (int index = 0; index < length; index++) {
                     String stringItem = items.optString(index);
                     DmDependencyTO submittedItem = getSubmittedItem(site, stringItem, format, schDate,null);
-                    String user = submittedBy;
                     submittedItems.add(submittedItem);
                     if (delete) {
                         submittedItem.setSubmittedForDeletion(true);
@@ -1007,6 +1006,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         auditServiceInternal.insertAuditLog(auditLog);
 
                         User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
+                        // This is repeated
                         List<String> workflowPackages = goLivePaths.stream().map(path -> {
                             WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(site, path);
                             return wi.getPublishingPackageId();
@@ -2150,6 +2150,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     auditLogParameters.add(auditLogParameter);
                 }
                 itemServiceInternal.setSystemProcessingBulk(site, paths, true);
+                // TODO: do a bulk getWorkflowEntries
                 List<String> workflowPackages = paths.stream().map(path -> {
                     WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(site, path);
                     return wi.getPublishingPackageId();

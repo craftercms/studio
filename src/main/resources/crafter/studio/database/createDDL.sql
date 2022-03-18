@@ -167,23 +167,6 @@ CREATE TABLE IF NOT EXISTS `audit_parameters` (
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS `activity_stream` (
-    `id`                        BIGINT(20)      NOT NULL AUTO_INCREMENT,
-    `site_id`                   BIGINT(20)      NOT NULL,
-    `user_id`                   BIGINT(20)      NOT NULL,
-    `action`                    VARCHAR(32)     NOT NULL,
-    `action_timestamp`          TIMESTAMP       NOT NULL,
-    `item_id`                   BIGINT(20)      NULL,
-    `package_id`                VARCHAR(50)     NULL,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY `activity_user_idx` (`user_id`) REFERENCES `user`(`id`),
-    FOREIGN KEY `activity_site_idx` (`site_id`) REFERENCES `site`(`id`),
-    INDEX `activity_action_idx` (`action` ASC)
-)
-    ENGINE = InnoDB
-    DEFAULT CHARSET = utf8
-    ROW_FORMAT = DYNAMIC ;
-
 CREATE TABLE IF NOT EXISTS `dependency` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
   `site`        VARCHAR(50) NOT NULL,
@@ -280,7 +263,7 @@ CREATE TABLE IF NOT EXISTS `user`
   `email`                 VARCHAR(255) NOT NULL,
   `enabled`               INT          NOT NULL,
   `deleted`               INT          NOT NULL DEFAULT 0,
-  `avatar`                TEXT         NULL,
+  `avatar`                TEXT         NULL, -- TODO: update the user service to include this new field
   PRIMARY KEY (`id`),
   INDEX `user_ix_record_last_updated` (`record_last_updated` DESC),
   UNIQUE INDEX `user_ix_username` (`username`),
@@ -290,6 +273,23 @@ CREATE TABLE IF NOT EXISTS `user`
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `activity_stream` (
+    `id`                        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `site_id`                   BIGINT(20)      NOT NULL,
+    `user_id`                   BIGINT(20)      NOT NULL,
+    `action`                    VARCHAR(32)     NOT NULL,
+    `action_timestamp`          TIMESTAMP       NOT NULL,
+    `item_id`                   BIGINT(20)      NULL,
+    `package_id`                VARCHAR(50)     NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `activity_user_idx` (`user_id`) REFERENCES `user`(`id`),
+    FOREIGN KEY `activity_site_idx` (`site_id`) REFERENCES `site`(`id`),
+    INDEX `activity_action_idx` (`action` ASC)
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
                            externally_managed, timezone, locale, email, enabled, deleted)
