@@ -23,5 +23,6 @@
     <import resource="classpath:crafter/studio/security/common.xml"/>
     <import resource="classpath:crafter/studio/security/api.xml"/>
     <import resource="classpath:crafter/studio/security/web.xml"/>
+    <import resource="classpath:crafter/studio/security/websocket.xml"/>
 
 </beans>

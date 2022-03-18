@@ -3594,6 +3594,44 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /plugin/script/reload:
+    get:
+      tags:
+        - plugin
+      summary: Reloads groovy classes for all plugins in a given site
+      operationId: reloadClasses
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: token
+          in: query
+          description: Management token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/list_quick_create_content:
     get:
       tags:

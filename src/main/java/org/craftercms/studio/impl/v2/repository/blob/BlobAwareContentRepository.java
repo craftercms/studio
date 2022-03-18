@@ -84,8 +84,6 @@ public class BlobAwareContentRepository implements ContentRepository,
      */
     protected String fileExtension;
 
-
-
     protected GitContentRepository localRepositoryV1;
 
     protected org.craftercms.studio.impl.v2.repository.GitContentRepository localRepositoryV2;
@@ -698,6 +696,14 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public void initialPublish(String siteId) throws SiteNotFoundException {
-        localRepositoryV2.initialPublish(siteId);
+        try {
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            for (StudioBlobStore blobStore : blobStores) {
+                blobStore.initialPublish(siteId);
+            }
+            localRepositoryV2.initialPublish(siteId);
+        } catch (Exception e) {
+            logger.error("Error performing initial publish for site {0}", e, siteId);
+        }
     }
 }

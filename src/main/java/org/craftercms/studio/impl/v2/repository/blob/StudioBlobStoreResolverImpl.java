@@ -26,6 +26,7 @@ import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -33,11 +34,14 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import static com.rometools.utils.Strings.isNotEmpty;
 import static java.lang.String.join;
+import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_ID;
 import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
 
 /**
@@ -46,7 +50,7 @@ import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
  * @author joseross
  * @since 3.1.6
  */
-@SuppressWarnings("rawtypes")
+@SuppressWarnings("rawtypes, unchecked")
 public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implements StudioBlobStoreResolver {
 
     public static final String CACHE_KEY_STORE = "blob-store";
@@ -93,6 +97,40 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         return config;
     }
 
+    protected HierarchicalConfiguration getConfiguration(String siteId) throws ExecutionException {
+        String cacheKey1 = configurationService.getCacheKey(siteId, configModule, configPath, getEnvironment());
+        return (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
+            logger.debug("Cache miss: {}", cacheKey1);
+            return getConfiguration(new ConfigurationProviderImpl(siteId));
+        });
+    }
+
+    protected StudioBlobStore getBlobStore(String siteId, String storeId, HierarchicalConfiguration config)
+            throws ExecutionException {
+        String cacheKey2 = join(":", siteId, CACHE_KEY_STORE, storeId);
+        return (StudioBlobStore) cache.get(cacheKey2, () -> {
+            logger.debug("Cache miss: {}", cacheKey2);
+            return getById(config, storeId);
+        });
+    }
+
+    @Override
+    public List<StudioBlobStore> getAll(String siteId) throws ServiceLayerException {
+        logger.debug("Looking all blob stores for site {}", siteId);
+        List<StudioBlobStore> result = new LinkedList<>();
+        try {
+            HierarchicalConfiguration config = getConfiguration(siteId);
+            List<HierarchicalConfiguration> stores = config.configurationsAt(CONFIG_KEY_STORE);
+            for (HierarchicalConfiguration store : stores) {
+                String storeId = store.getString(CONFIG_KEY_ID);
+                result.add(getBlobStore(siteId, storeId, config));
+            }
+            return result;
+        } catch (ExecutionException e) {
+            throw new ServiceLayerException("Error looking for blob store", e);
+        }
+    }
+
     @Override
     public BlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException {
@@ -103,20 +141,11 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         }
 
         logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
-        HierarchicalConfiguration config;
         try {
-            var cacheKey1 = configurationService.getCacheKey(site, configModule, configPath, getEnvironment());
-            config = (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
-                logger.debug("Cache miss: {}", cacheKey1);
-                return getConfiguration(new ConfigurationProviderImpl(site));
-            });
+            HierarchicalConfiguration config = getConfiguration(site);
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
             if (isNotEmpty(storeId)) {
-                var cacheKey2 = join(":", site, CACHE_KEY_STORE, storeId);
-                BlobStore blobStore = (BlobStore) cache.get(cacheKey2, () -> {
-                    logger.debug("Cache miss: {}", cacheKey2);
-                    return getById(config, storeId);
-                });
+                BlobStore blobStore = getBlobStore(site, storeId, config);
                 // We have to compare each one to know if the exception should be thrown
                 if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
                     throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));

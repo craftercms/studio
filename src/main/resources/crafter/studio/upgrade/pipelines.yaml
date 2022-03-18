@@ -283,8 +283,35 @@ pipelines:
       - currentVersion: 4.0.0.35
         nextVersion: 4.0.0.36
         operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permission for searching plugins
+          - type: xsltFileUpgrader
+            path: /configuration/global-role-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.36/system/global-role-mappings-config.xslt
+            commitDetails: Add new mapping for site_admin
+      - currentVersion: 4.0.0.36
+        nextVersion: 4.0.0.37
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file
+      - currentVersion: 4.0.0.37
+        nextVersion: 4.0.0.38
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-aws.xml
+                dest: /configuration/samples/sample-aws.xml
+            commitDetails: Update sample file for AWS
+      - currentVersion: 4.0.0.38
+        nextVersion: 4.0.0.39
+        operations:
           - type: dbScriptUpgrader
-            filename: upgrade-4.0.0.35-to-4.0.0.36.sql
+            filename: upgrade-4.0.0.38-to-4.0.0.39.sql
 
   # Pipeline to upgrade site repositories
   site:
