@@ -43,26 +43,32 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DATE_FROM;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DATE_TO;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AFFECTED_PATHS;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.APPROVE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_STATES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REJECT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REQUEST_PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UPDATE_ITEM_STATES_BY_QUERY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.WORKFLOW;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -227,6 +233,28 @@ public class WorkflowController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
+    }
+
+    @GetMapping(value = PACKAGES, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getPackages(@RequestParam(REQUEST_PARAM_SITEID) String siteId,
+                                    @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
+                                            ZonedDateTime dateFrom,
+                                    @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
+                                                ZonedDateTime dateTo,
+                                    @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
+                                                int offset,
+                                    @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
+                                                int limit,
+                                    @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "ASC")
+                                                String sort) {
+        
+
+        var responseBody = new ResponseBody();
+        var result = new PaginatedResultList<>();
+        result.setOffset(offset);
+        result.setLimit(limit);
+        result.setTotal(total);
+        result.setEntities(RESULT_KEY_PACKAGES, packages);
     }
 
     public WorkflowService getWorkflowService() {

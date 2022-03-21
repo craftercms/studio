@@ -7043,6 +7043,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: status
+          in: query
+          description: filter workflow packages by status
+          required: false
+          schema:
+            type: string
         - name: dateFrom
           in: query
           description: lower boundary for filtering results by scheduled date
@@ -7310,11 +7316,11 @@ paths:
     post:
       tags:
         - workflow
-      summary: Create workflow package
+      summary: Reject workflow package
       description: Required permission "request_publish, publish"
       operationId: workflowRejectPackage
       requestBody:
-        description: parameters to create new workflow package
+        description: parameters to reject new workflow package
         required: true
         content:
           application/json:
@@ -7331,10 +7337,10 @@ paths:
                     properties:
                       packageId:
                         type: string
-                        description: Id of the workflow package to approve
+                        description: Id of the workflow package to reject
                       rejectionComment:
                         type: string
-                        description: approver's comment about approved workflow package
+                        description: approver's comment about rejected workflow package
                     required:
                       - packageId
                       - rejectionComment

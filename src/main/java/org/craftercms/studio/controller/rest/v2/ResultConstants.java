@@ -95,5 +95,7 @@ public final class ResultConstants {
     /** Exception Handler */
     public static final String RESULT_KEY_PERSON = "person";
 
+    /** Workflow controller */
+
     private ResultConstants() { }
 }
