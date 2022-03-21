@@ -340,8 +340,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        // This is repeated
-        // Can we do a bulk getWorkflowEntries?
+        // TODO: This is repeated, can we do a bulk getWorkflowEntries?
         submittedPaths.stream()
                 .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
                 .forEach(workflowEntry ->
@@ -434,7 +433,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        // This is repeated
+        //TODO: This is repeated
         pathsToPublish.stream()
                 .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
                 .filter(Objects::nonNull) // there is no workflow entry for direct publishes
@@ -617,7 +616,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        // This is repeated
+        //TODO: This is repeated
         List<String> workflowPackages = submittedPaths.stream().map(path -> {
             WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
             return wi.getPublishingPackageId();

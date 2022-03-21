@@ -1006,7 +1006,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         auditServiceInternal.insertAuditLog(auditLog);
 
                         User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
-                        // This is repeated
+                        //TODO: This is repeated
                         List<String> workflowPackages = goLivePaths.stream().map(path -> {
                             WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(site, path);
                             return wi.getPublishingPackageId();
