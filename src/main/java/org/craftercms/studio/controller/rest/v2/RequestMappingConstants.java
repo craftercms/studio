@@ -28,9 +28,14 @@ public final class RequestMappingConstants {
 
     /** Dashboard Controller */
     public static final String DASHBOARD = "/dashboard";
-    public static final String AUDIT_DASHBOARD = "/audit";
-    public static final String PUBLISHING_DASHBOARD = "/publishing";
-    public static final String CONTENT_DASHBOARD = "/content";
+    public static final String ACTIVITY = "/activity";
+    public static final String PENDING_APPROVAL = "/pending_approval";
+    public static final String UNPUBLISHED = "/unpublished";
+    public static final String PUBLISHING = "/publishing";
+    public static final String SCHEDULED = "/scheduled";
+    public static final String STATS = "/stats";
+    public static final String EXPIRING = "/expiring";
+    public static final String EXPIRED = "/expired";
 
     /** Content controller */
     public static final String CONTENT = "/content";

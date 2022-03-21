@@ -17,11 +17,15 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_PACKAGE_ID;
@@ -112,4 +116,32 @@ public interface WorkflowDAO {
      * @param siteId site id
      */
     void deleteWorkflowEntriesForSite(long siteId);
+
+    /**
+     * Get total number of workflow packages pending approval
+     * @param siteId site identifier
+     * @param openedState value for OPENED state
+     * @return total number of workflow packages pending approval
+     */
+    int getContentPendingApprovalTotal(@Param(SITE_ID) String siteId, @Param(STATE) String openedState);
+
+    /**
+     * Get workflow packages pending approval
+     * @param siteId site identifier
+     * @param openedState value for OPENED state
+     * @param offset offset of the first record in the result
+     * @param limit limit number of results
+     * @return list of workflow packages pending approval
+     */
+    List<DashboardPublishingPackage> getContentPendingApproval(@Param(SITE_ID) String siteId,
+                                                               @Param(STATE) String openedState,
+                                                               @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+
+    /**
+     * Get content pending approval for given workflow package id
+     * @param siteId site identifier
+     * @param packageId workflow package identifier
+     * @return List of workflow entries
+     */
+    List<Workflow> getContentPendingApprovalDetail(@Param(SITE_ID) String siteId, @Param(PACKAGE_ID) String packageId);
 }

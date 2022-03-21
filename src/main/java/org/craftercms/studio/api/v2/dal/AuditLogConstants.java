@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import java.util.List;
+
 public abstract class AuditLogConstants {
 
     /** Operation **/
@@ -68,4 +70,10 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_SUBMISSION_COMMENT = "Submission Comment";
     public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";
     public static final String TARGET_TYPE_UNKNOWN = "unknown";
+
+    public static final List<String> ACTIVITY_STREAM_OPERATIONS = List.of(
+            OPERATION_CREATE, OPERATION_UPDATE, OPERATION_DELETE, OPERATION_MOVE, OPERATION_REQUEST_PUBLISH,
+            OPERATION_APPROVE, OPERATION_APPROVE_SCHEDULED, OPERATION_REJECT, OPERATION_REVERT, OPERATION_PUBLISH,
+            OPERATION_INITIAL_PUBLISH, OPERATION_UNKNOWN);
+
 }

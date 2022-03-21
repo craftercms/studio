@@ -50,7 +50,7 @@ public interface DeploymentService {
      * @throws SiteNotFoundException if site does not exist
      */
     void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate, String submissionComment)
-            throws DeploymentException, SiteNotFoundException;
+            throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
     List<PublishRequest> getScheduledItems(String site, String filterType);
 

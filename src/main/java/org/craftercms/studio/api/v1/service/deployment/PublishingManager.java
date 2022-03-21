@@ -19,7 +19,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public interface PublishingManager {
 
     List<PublishRequest> getItemsReadyForDeployment(String site, String environment);
 
-    DeploymentItemTO processItem(PublishRequest item) throws DeploymentException, SiteNotFoundException;
+    DeploymentItemTO processItem(PublishRequest item) throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
     void markItemsCompleted(String site, String environment, List<PublishRequest> processedItems)
         throws DeploymentException;
@@ -48,7 +48,7 @@ public interface PublishingManager {
 
     List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy,
                                                         Set<String> missingDependenciesPaths)
-            throws DeploymentException, ServiceLayerException;
+            throws DeploymentException, ServiceLayerException, UserNotFoundException;
 
     boolean isPublishingBlocked(String site);
 

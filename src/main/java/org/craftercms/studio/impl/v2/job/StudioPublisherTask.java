@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -31,16 +32,20 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.springframework.jdbc.UncategorizedSQLException;
 
 import java.util.ArrayList;
@@ -80,6 +85,8 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
     private int maxRetryCounter;
     private StudioClusterUtils studioClusterUtils;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
+    private UserServiceInternal userServiceInternal;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
     private ApplicationContext applicationContext;
 
     @Override
@@ -208,7 +215,8 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         }
     }
 
-    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment) throws DeploymentException, ServiceLayerException {
+    private void doPublishing(String siteId, List<PublishRequest> itemsToDeploy, String environment)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
         siteService.updatePublishingStatus(siteId, PROCESSING);
         String status;
         String author = itemsToDeploy.get(0).getUser();
@@ -276,7 +284,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
 
     private void processPublishingRequest(String siteId, String environment, PublishRequest item,
                                           List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
-            throws ServiceLayerException, DeploymentException {
+            throws ServiceLayerException, DeploymentException, UserNotFoundException {
         List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
         Set<String> missingDependenciesPaths = new HashSet<String>();
         try {
@@ -334,7 +342,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
     }
 
     protected void generateWorkflowActivity(String site, String environment, Set<String> packageIds, String username,
-                                            String operation) throws SiteNotFoundException {
+                                            String operation) throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(operation);
@@ -353,6 +361,12 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        packageIds.forEach(packageId ->
+                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), operation,
+                        DateUtils.getCurrentTime(), null, packageId)
+        );
     }
 
     private boolean isMandatoryDependenciesCheckEnabled() {
@@ -453,5 +467,21 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
+        return activityStreamServiceInternal;
+    }
+
+    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 }
