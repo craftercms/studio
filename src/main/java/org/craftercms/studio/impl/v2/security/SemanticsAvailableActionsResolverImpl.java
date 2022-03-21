@@ -166,9 +166,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                                 c.getTargetPath());
                         if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
                             result = result & CONTENT_EDIT_CONTROLLER;
+                        } else {
+                            result = result & ~CONTENT_EDIT_CONTROLLER;
                         }
                         if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
                             result = result & CONTENT_DELETE_CONTROLLER;
+                        } else {
+                            result = result & ~CONTENT_DELETE_CONTROLLER;
                         }
                     } catch (ServiceLayerException | UserNotFoundException e) {
                         logger.info("Unable to get available actions for content type controller of content " +
@@ -187,9 +191,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                                 t.getTargetPath());
                         if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
                             result = result & CONTENT_EDIT_TEMPLATE;
+                        } else {
+                            result = result & ~CONTENT_EDIT_TEMPLATE;
                         }
                         if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
                             result = result & CONTENT_DELETE_TEMPLATE;
+                        } else {
+                            result = result & ~CONTENT_DELETE_TEMPLATE;
                         }
                     } catch (ServiceLayerException | UserNotFoundException e) {
                         logger.info("Unable to get available actions for rendering template of content " +
@@ -268,9 +276,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                             c.getTargetPath());
                     if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
                         result = result & CONTENT_EDIT_CONTROLLER;
+                    } else {
+                        result = result & ~CONTENT_EDIT_CONTROLLER;
                     }
                     if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
                         result = result & CONTENT_DELETE_CONTROLLER;
+                    } else {
+                        result = result & ~CONTENT_DELETE_CONTROLLER;
                     }
                 } catch (ServiceLayerException | UserNotFoundException e) {
                     logger.info("Unable to get available actions for content type controller of content " +
@@ -289,9 +301,13 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                             t.getTargetPath());
                     if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
                         result = result & CONTENT_EDIT_TEMPLATE;
+                    } else {
+                        result = result & ~CONTENT_EDIT_TEMPLATE;
                     }
                     if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
                         result = result & CONTENT_DELETE_TEMPLATE;
+                    } else {
+                        result = result & ~CONTENT_DELETE_TEMPLATE;
                     }
                 } catch (ServiceLayerException | UserNotFoundException e) {
                     logger.info("Unable to get available actions for rendering template of content " +
