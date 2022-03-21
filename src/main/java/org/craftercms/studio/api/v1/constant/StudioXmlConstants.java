@@ -28,6 +28,7 @@ public final class StudioXmlConstants {
 	public static final String DOCUMENT_ELM_CONTENT_TYPE = "content-type";
 	public static final String DOCUMENT_ELM_FILE_NAME = "file-name";
 	public static final String DOCUMENT_ELM_DISABLED = "disabled";
+	public static final String DOCUMENT_ELM_DISPLAY_TEMPLATE = "display-template";
 
 	/** xml type element names **/
 

@@ -280,23 +280,12 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public boolean isEditable(Item item) {
+    public boolean isEditable(String itemPath, String itemMimeType) {
         List<String> editableMimeTypes =
                 Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
-        String mimeType = item.getMimeType();
+        String mimeType = itemMimeType;
         if (StringUtils.isEmpty(mimeType)) {
-            mimeType = StudioUtils.getMimeType(item.getPath());
-        }
-        return editableMimeTypes.contains(mimeType);
-    }
-
-    @Override
-    public boolean isEditable(DetailedItem detailedItem) {
-        List<String> editableMimeTypes =
-                Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
-        String mimeType = detailedItem.getMimeType();
-        if (StringUtils.isEmpty(mimeType)) {
-            mimeType = StudioUtils.getMimeType(detailedItem.getPath());
+            mimeType = StudioUtils.getMimeType(itemPath);
         }
         return editableMimeTypes.contains(mimeType);
     }

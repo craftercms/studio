@@ -23,14 +23,13 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v2.dal.Dependency;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
-import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
@@ -38,13 +37,17 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
 
 import java.util.List;
 
+import static org.craftercms.studio.api.v1.constant.DmConstants.XML_PATTERN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_DISPLAY_TEMPLATE;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
@@ -70,6 +73,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
     private static final Logger logger = LoggerFactory.getLogger(SemanticsAvailableActionsResolverImpl.class);
 
+    private static final String CONTROLLER_PATH_FORMAT = "/scripts/%s/%s.groovy/";
+    private static final String PAGE = "page";
+    private static final String PAGES = "pages";
+
     private SecurityService securityService;
     private ContentServiceInternal contentServiceInternal;
     private ServicesConfig servicesConfig;
@@ -77,7 +84,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private UserServiceInternal userServiceInternal;
     private StudioBlobStoreResolver studioBlobStoreResolver;
     private StudioConfiguration studioConfiguration;
-    private DependencyServiceInternal dependencyServiceInternal;
+    private ContentService contentService;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -88,7 +95,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 StringUtils.equals(username, item.getLockOwner()));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-        long toReturn = applySpecialUseCaseFilters(username, siteId, item, result);
+        long toReturn = applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
+                item.getSystemType(), item.getContentTypeId(), item.getModifier(), item.getState(), result);
         return toReturn;
     }
 
@@ -101,15 +109,21 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 StringUtils.equals(username, detailedItem.getLockOwner()));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-        long toReturn = applySpecialUseCaseFilters(username, siteId, detailedItem, result);
+        long toReturn = applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
+                detailedItem.getSystemType(), detailedItem.getContentTypeId(), detailedItem.getSandbox().getModifier(),
+                detailedItem.getState(),
+                result);
         return toReturn;
     }
 
-    private long applySpecialUseCaseFilters(String username, String siteId, Item item, long availableActions)
+    private long applySpecialUseCaseFilters(String username, String siteId, String itemPath, String itemMimeType,
+                                            String itemSystemType, String itemContentTypeId, String itemModifier,
+                                            long itemState,
+                                            long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
 
-        if (StringUtils.equals(item.getPath(), HOME_PAGE_PATH)) {
+        if (StringUtils.equals(itemPath, HOME_PAGE_PATH)) {
             result = result & ~CONTENT_DELETE;
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
@@ -119,35 +133,35 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
         if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-                ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns)) {
+                ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
             result = result & ~CONTENT_DELETE;
             result = result & ~CONTENT_CUT;
             result = result & ~CONTENT_RENAME;
         }
 
-        if (studioBlobStoreResolver.isBlob(siteId, item.getPath())) {
+        if (studioBlobStoreResolver.isBlob(siteId, itemPath)) {
             result = result & ~CONTENT_READ_VERSION_HISTORY;
             result = result & ~CONTENT_REVERT;
         }
 
-        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
+        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(itemPath, itemMimeType))) {
             result = result & ~CONTENT_EDIT;
         }
 
         if ((result & CONTENT_UPLOAD) > 0 &&
-                (!StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER) ||
-                        !StudioUtils.matchesPatterns(item.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
+                (!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
+                        !StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
             result = result & ~CONTENT_UPLOAD;
         }
 
         if (servicesConfig.isRequirePeerReview(siteId)) {
-            if (StringUtils.equals(username, item.getModifier())) {
+            if (StringUtils.equals(username, itemModifier)) {
                 result = result & ~PUBLISH_SCHEDULE;
                 result = result & ~PUBLISH;
             }
 
-            if (isInWorkflow(item.getState())) {
-                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, item.getPath());
+            if (isInWorkflow(itemState)) {
+                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, itemPath);
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user.getId() == workflow.getId()) {
                     result = result & ~PUBLISH_APPROVE;
@@ -157,167 +171,72 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             }
 
             // controller and template
-            List<Dependency> controllers = dependencyServiceInternal.getDependenciesByType(siteId, item.getPath(),
-                    CONTENT_TYPE_SCRIPT);
-            if (CollectionUtils.isNotEmpty(controllers)) {
-                for (Dependency c : controllers) {
-                    try {
-                        long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
-                                c.getTargetPath());
-                        if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
-                            result = result & CONTENT_EDIT_CONTROLLER;
-                        } else {
-                            result = result & ~CONTENT_EDIT_CONTROLLER;
-                        }
-                        if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
-                            result = result & CONTENT_DELETE_CONTROLLER;
-                        } else {
-                            result = result & ~CONTENT_DELETE_CONTROLLER;
-                        }
-                    } catch (ServiceLayerException | UserNotFoundException e) {
-                        logger.info("Unable to get available actions for content type controller of content " +
-                                item.getPath() + " for site " + siteId);
-                        result = result & ~CONTENT_EDIT_CONTROLLER;
-                        result = result & ~CONTENT_DELETE_CONTROLLER;
-                    }
-                }
+            String controllerPath = calculateControllerPath(itemContentTypeId);
+            if (StringUtils.isNotEmpty(controllerPath)) {
+                long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
+                        controllerPath);
+                result = applyFilterForDependency(result, controllerAvailableActions, CONTENT_EDIT_CONTROLLER,
+                        CONTENT_EDIT);
+                result = applyFilterForDependency(result, controllerAvailableActions, CONTENT_DELETE_CONTROLLER,
+                        CONTENT_DELETE);
+            } else {
+                result = result & ~CONTENT_EDIT_CONTROLLER;
+                result = result & ~CONTENT_DELETE_CONTROLLER;
             }
-            List<Dependency> templates = dependencyServiceInternal.getDependenciesByType(siteId, item.getPath(),
-                    CONTENT_TYPE_RENDERING_TEMPLATE);
-            if (CollectionUtils.isNotEmpty(templates)) {
-                for (Dependency t : templates) {
-                    try {
-                        long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
-                                t.getTargetPath());
-                        if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
-                            result = result & CONTENT_EDIT_TEMPLATE;
-                        } else {
-                            result = result & ~CONTENT_EDIT_TEMPLATE;
-                        }
-                        if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
-                            result = result & CONTENT_DELETE_TEMPLATE;
-                        } else {
-                            result = result & ~CONTENT_DELETE_TEMPLATE;
-                        }
-                    } catch (ServiceLayerException | UserNotFoundException e) {
-                        logger.info("Unable to get available actions for rendering template of content " +
-                                item.getPath() + " for site " + siteId);
-                        result = result & ~CONTENT_EDIT_TEMPLATE;
-                        result = result & ~CONTENT_DELETE_TEMPLATE;
-                    }
-                }
+            String templatePath = getTemplatePath(siteId, itemPath);
+            if (StringUtils.isNotEmpty(templatePath)) {
+                long templateAvailableActions = securityService.getAvailableActions(username, siteId,
+                        templatePath);
+                result = applyFilterForDependency(result, templateAvailableActions, CONTENT_EDIT_TEMPLATE,
+                        CONTENT_EDIT);
+                result = applyFilterForDependency(result, templateAvailableActions, CONTENT_DELETE_TEMPLATE,
+                        CONTENT_DELETE);
+            } else {
+                result = result & ~CONTENT_EDIT_TEMPLATE;
+                result = result & ~CONTENT_DELETE_TEMPLATE;
             }
         }
 
         return result;
     }
 
-    private long applySpecialUseCaseFilters(String username, String siteId, DetailedItem detailedItem,
-                                            long availableActions)
-            throws ServiceLayerException, UserNotFoundException {
-        long result = availableActions;
-
-        if (StringUtils.equals(detailedItem.getPath(), HOME_PAGE_PATH)) {
-            result = result & ~CONTENT_DELETE;
-            result = result & ~CONTENT_CUT;
-            result = result & ~CONTENT_RENAME;
-            result = result & ~CONTENT_DUPLICATE;
-            result = result & ~CONTENT_COPY;
+    private String calculateControllerPath(String contentTypeId) {
+        if (StringUtils.isNotEmpty(contentTypeId)) {
+            String[] tokens = StringUtils.split(contentTypeId, FILE_SEPARATOR);
+            String type = tokens[tokens.length - 2];
+            return String.format(CONTROLLER_PATH_FORMAT,
+                    PAGE.equals(type) ? PAGES : type,
+                    tokens[tokens.length - 1]);
+        } else {
+            return null;
         }
+    }
 
-        List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
-        if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-                ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns)) {
-            result = result & ~CONTENT_DELETE;
-            result = result & ~CONTENT_CUT;
-            result = result & ~CONTENT_RENAME;
-        }
-
-        if (studioBlobStoreResolver.isBlob(siteId, detailedItem.getPath())) {
-            result = result & ~CONTENT_READ_VERSION_HISTORY;
-            result = result & ~CONTENT_REVERT;
-        }
-
-        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(detailedItem))) {
-            result = result & ~CONTENT_EDIT;
-        }
-
-        if ((result & CONTENT_UPLOAD) > 0 &&
-                (!StringUtils.equals(detailedItem.getSystemType(), CONTENT_TYPE_FOLDER) ||
-                        !StudioUtils.matchesPatterns(detailedItem.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
-            result = result & ~CONTENT_UPLOAD;
-        }
-
-        if (servicesConfig.isRequirePeerReview(siteId)) {
-            if (StringUtils.equals(username, detailedItem.getSandbox().getModifier())) {
-                result = result & ~PUBLISH_SCHEDULE;
-                result = result & ~PUBLISH;
-            }
-
-            if (isInWorkflow(detailedItem.getState())) {
-                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, detailedItem.getPath());
-                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (user.getId() == workflow.getId()) {
-                    result = result & ~PUBLISH_APPROVE;
-                    result = result & ~PUBLISH_SCHEDULE;
-                    result = result & ~PUBLISH_REJECT;
+    private String getTemplatePath(String siteId, String itemPath) {
+        String templatePath = null;
+        if (contentService.contentExists(siteId, itemPath) && StringUtils.endsWith(itemPath, XML_PATTERN)) {
+            try {
+                Document document = contentService.getContentAsDocument(siteId, itemPath);
+                if (document != null) {
+                    Element root = document.getRootElement();
+                    templatePath = root.valueOf(DOCUMENT_ELM_DISPLAY_TEMPLATE);
                 }
+            } catch (DocumentException e) {
+                logger.info("Could not get rendering template for content at path " + itemPath + " site " + siteId);
+                templatePath = null;
             }
+        }
+        return templatePath;
+    }
 
+    private long applyFilterForDependency(long itemAvailableActions, long dependencyAvailableActions,
+                                          long itemActionMask, long dependencyActionMask) {
+        if ((dependencyAvailableActions & dependencyActionMask) > 0) {
+            itemAvailableActions = itemAvailableActions & itemActionMask;
+        } else {
+            itemAvailableActions = itemAvailableActions & ~itemActionMask;
         }
-
-        // controller and template
-        List<Dependency> controllers = dependencyServiceInternal.getDependenciesByType(siteId, detailedItem.getPath(),
-                CONTENT_TYPE_SCRIPT);
-        if (CollectionUtils.isNotEmpty(controllers)) {
-            for (Dependency c : controllers) {
-                try {
-                    long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
-                            c.getTargetPath());
-                    if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
-                        result = result & CONTENT_EDIT_CONTROLLER;
-                    } else {
-                        result = result & ~CONTENT_EDIT_CONTROLLER;
-                    }
-                    if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
-                        result = result & CONTENT_DELETE_CONTROLLER;
-                    } else {
-                        result = result & ~CONTENT_DELETE_CONTROLLER;
-                    }
-                } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.info("Unable to get available actions for content type controller of content " +
-                            detailedItem.getPath() + " for site " + siteId);
-                    result = result & ~CONTENT_EDIT_CONTROLLER;
-                    result = result & ~CONTENT_DELETE_CONTROLLER;
-                }
-            }
-        }
-        List<Dependency> templates = dependencyServiceInternal.getDependenciesByType(siteId, detailedItem.getPath(),
-                CONTENT_TYPE_RENDERING_TEMPLATE);
-        if (CollectionUtils.isNotEmpty(templates)) {
-            for (Dependency t : templates) {
-                try {
-                    long controllerAvailableActions = securityService.getAvailableActions(username, siteId,
-                            t.getTargetPath());
-                    if ((controllerAvailableActions & CONTENT_EDIT) > 0) {
-                        result = result & CONTENT_EDIT_TEMPLATE;
-                    } else {
-                        result = result & ~CONTENT_EDIT_TEMPLATE;
-                    }
-                    if ((controllerAvailableActions & CONTENT_DELETE) > 0) {
-                        result = result & CONTENT_DELETE_TEMPLATE;
-                    } else {
-                        result = result & ~CONTENT_DELETE_TEMPLATE;
-                    }
-                } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.info("Unable to get available actions for rendering template of content " +
-                            detailedItem.getPath() + " for site " + siteId);
-                    result = result & ~CONTENT_EDIT_TEMPLATE;
-                    result = result & ~CONTENT_DELETE_TEMPLATE;
-                }
-            }
-        }
-        return result;
+        return itemAvailableActions;
     }
 
     public SecurityService getSecurityService() {
@@ -376,11 +295,11 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         this.studioConfiguration = studioConfiguration;
     }
 
-    public DependencyServiceInternal getDependencyServiceInternal() {
-        return dependencyServiceInternal;
+    public ContentService getContentService() {
+        return contentService;
     }
 
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
-        this.dependencyServiceInternal = dependencyServiceInternal;
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
     }
 }
