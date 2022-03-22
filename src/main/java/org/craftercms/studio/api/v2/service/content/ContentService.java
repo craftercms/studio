@@ -78,7 +78,7 @@ public interface ContentService {
      * @throws DeploymentException deployment error caused by delete
      */
     boolean deleteContent(String siteId, String path, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException;
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
 
     /**
      * Delete content for given paths. Following content will be deleted:
@@ -94,7 +94,7 @@ public interface ContentService {
      * @throws DeploymentException deployment error caused by delete
      */
     boolean deleteContent(String siteId, List<String> paths, String submissionComment)
-            throws ServiceLayerException, AuthenticationException, DeploymentException;
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
 
     /**
      * Get list of children for given path

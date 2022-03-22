@@ -92,6 +92,13 @@ public final class ResultConstants {
     public static final String RESULT_KEY_TOKENS = "tokens";
     public static final String RESULT_KEY_TOKEN = "token";
 
+    /** Dashboard Controller */
+    public static final String RESULT_KEY_ACTIVITIES = "activities";
+    public static final String RESULT_KEY_PUBLISHING_PACKAGES = "publishingPackages";
+    public static final String RESULT_KEY_PUBLISHING_PACKAGE_ITEMS = "publishingPackageItems";
+    public static final String RESULT_KEY_UNPUBLISHED_ITEMS = "unPublishedItems";
+    public static final String RESULT_KEY_PUBLISHING_STATS = "publishingStats";
+
     /** Exception Handler */
     public static final String RESULT_KEY_PERSON = "person";
 

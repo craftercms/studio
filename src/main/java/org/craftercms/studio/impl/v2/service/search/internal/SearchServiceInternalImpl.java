@@ -69,6 +69,8 @@ import org.craftercms.studio.model.search.SearchResult;
 import org.springframework.beans.factory.annotation.Required;
 
 import static java.lang.String.format;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Default implementation of {@link SearchServiceInternal}
@@ -338,7 +340,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @return the search item object
      */
     //TODO: Implement previewUrl for supported types
-    protected SearchResultItem processSearchHit(Map<String, Object> source, Map<String, List<String>> highlights) {
+    protected SearchResultItem processSearchHit(Map<String, Object> source, Map<String, List<String>> highlights,
+                                                List<String> additionalFields) {
         SearchResultItem item = new SearchResultItem();
         item.setPath((String) source.get(pathFieldName));
         item.setName((String) source.get(internalNameFieldName));
@@ -348,6 +351,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         item.setType(getItemType(source));
         item.setMimeType(getMimeType(source));
         item.setSnippets(getItemSnippets(highlights));
+        item.setAdditionalFields(additionalFields.stream().collect(toMap(identity(), source::get)));
         return item;
     }
 
@@ -448,13 +452,14 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * @return the search result object
      */
     @SuppressWarnings("unchecked,rawtypes")
-    protected SearchResult processResults(SearchResponse<Map> response, Map<String, FacetTO> siteFacets) {
+    protected SearchResult processResults(SearchResponse<Map> response, Map<String, FacetTO> siteFacets,
+                                          List<String> additionalFields) {
         SearchResult result = new SearchResult();
         result.setTotal(response.hits().total().value());
 
         List<SearchResultItem> items = response.hits().hits().stream()
             .filter(hit -> Objects.nonNull(hit.source()))
-            .map(hit -> processSearchHit(hit.source(), hit.highlight()))
+            .map(hit -> processSearchHit(hit.source(), hit.highlight(), additionalFields))
             .collect(Collectors.toList());
 
         result.setItems(items);
@@ -591,7 +596,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
 
         try {
             SearchResponse<Map> response = elasticsearchService.search(siteId, allowedPaths, request, Map.class);
-            return processResults(response, siteFacets);
+            return processResults(response, siteFacets, params.getAdditionalFields());
         } catch (IOException e) {
             throw new ServiceLayerException("Error connecting to Elasticsearch", e);
         } catch (Exception e) {

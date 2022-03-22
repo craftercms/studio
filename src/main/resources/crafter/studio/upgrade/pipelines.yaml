@@ -307,6 +307,11 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-aws.xml
                 dest: /configuration/samples/sample-aws.xml
             commitDetails: Update sample file for AWS
+      - currentVersion: 4.0.0.38
+        nextVersion: 4.0.0.39
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.38-to-4.0.0.39.sql
 
   # Pipeline to upgrade site repositories
   site:

@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.util.List;
 
@@ -79,6 +80,21 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     @Override
     public void deleteWorkflowEntriesForSite(long siteId) {
         retryingDatabaseOperationFacade.deleteWorkflowEntriesForSite(siteId);
+    }
+
+    @Override
+    public int getContentPendingApprovalTotal(String siteId) {
+        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED);
+    }
+
+    @Override
+    public List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit) {
+        return workflowDao.getContentPendingApproval(siteId, STATE_OPENED, offset, limit);
+    }
+
+    @Override
+    public List<Workflow> getContentPendingApprovalDetail(String siteId, String packageId) {
+        return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
     }
 
     public WorkflowDAO getWorkflowDao() {

@@ -18,6 +18,7 @@ package org.craftercms.studio.model.search;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Holds the data of a single search result
@@ -69,6 +70,11 @@ public class SearchResultItem {
      * Snippets relevant to the search query
      */
     protected List<String> snippets;
+
+    /**
+     * Additional fields requested
+     */
+    protected Map<String, Object> additionalFields;
 
     public String getPath() {
         return path;
@@ -140,6 +146,14 @@ public class SearchResultItem {
 
     public void setSnippets(final List<String> snippets) {
         this.snippets = snippets;
+    }
+
+    public Map<String, Object> getAdditionalFields() {
+        return additionalFields;
+    }
+
+    public void setAdditionalFields(Map<String, Object> additionalFields) {
+        this.additionalFields = additionalFields;
     }
 
 }

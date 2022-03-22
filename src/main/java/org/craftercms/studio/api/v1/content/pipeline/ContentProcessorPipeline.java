@@ -16,8 +16,8 @@
 
 package org.craftercms.studio.api.v1.content.pipeline;
 
-import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 /**
@@ -31,5 +31,5 @@ public interface ContentProcessorPipeline {
      * @param content
      * @param result
      */
-    public void processContent(PipelineContent content, ResultTO result) throws ContentProcessException, SiteNotFoundException;
+    void processContent(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException;
 }

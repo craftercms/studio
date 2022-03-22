@@ -16,7 +16,9 @@
 
 package org.craftercms.studio.api.v2.service.publish;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
@@ -80,7 +82,8 @@ public interface PublishService {
      *
      * @throws SiteNotFoundException site not found
      */
-    void cancelPublishingPackages(String siteId, List<String> packageIds) throws SiteNotFoundException;
+    void cancelPublishingPackages(String siteId, List<String> packageIds)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get total number of publishing history items for given search parameters

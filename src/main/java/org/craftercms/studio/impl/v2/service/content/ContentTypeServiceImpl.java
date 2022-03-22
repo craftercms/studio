@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.service.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
@@ -64,7 +65,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
      */
     @Override
     public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, DeploymentException {
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
     }
 

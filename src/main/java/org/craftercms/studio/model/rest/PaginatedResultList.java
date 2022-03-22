@@ -26,21 +26,21 @@ package org.craftercms.studio.model.rest;
  */
 public class PaginatedResultList<T> extends ResultList<T> {
 
-    protected int total;
+    protected long total;
     protected int offset;
     protected int limit;
 
     /**
      * Returns the total of results.
      */
-    public int getTotal() {
+    public long getTotal() {
         return total;
     }
 
     /**
      * Sets the total of results.
      */
-    public void setTotal(int total) {
+    public void setTotal(long total) {
         this.total = total;
     }
 

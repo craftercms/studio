@@ -13,22 +13,33 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.model.rest.dashboard;
 
-package org.craftercms.studio.api.v1.executor;
-
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.to.ResultTO;
-
-import java.io.InputStream;
-import java.util.Map;
+import java.util.List;
 
 /**
- * @author Dejan Brkic
+ * Holds a set of expiring or expired content items
+ *
+ * @author joseross
+ * @since 4.0.0
  */
-public interface ProcessContentExecutor {
+public class ExpiringContentResult {
 
-    ResultTO processContent(final String id, final InputStream input, final boolean isXml,
-                            final Map<String, String> params, final String chainName)
-            throws ServiceLayerException, UserNotFoundException;
+    protected List<ExpiringContentItem> items;
+
+    protected long total;
+
+    public ExpiringContentResult(List<ExpiringContentItem> items, long total) {
+        this.items = items;
+        this.total = total;
+    }
+
+    public List<ExpiringContentItem> getItems() {
+        return items;
+    }
+
+    public long getTotal() {
+        return total;
+    }
+
 }

@@ -327,7 +327,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
                        @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
                        String submissionComment)
-            throws DeploymentException, SiteNotFoundException {
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
@@ -350,7 +350,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
                                                    String approver, ZonedDateTime scheduledDate,
                                                    String submissionComment)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
         for (String path : paths) {
@@ -419,7 +419,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         return newItems;
     }
 
-    private void deleteFolder(String site, String path, String user) throws SiteNotFoundException {
+    private void deleteFolder(String site, String path, String user)
+            throws ServiceLayerException, UserNotFoundException {
         String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         SiteFeed siteFeed = siteService.getSite(site);
         if (contentService.contentExists(site, path)) {

@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.workflow.internal;
 
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.util.List;
 
@@ -91,4 +92,28 @@ public interface WorkflowServiceInternal {
      * @param siteId site id
      */
     void deleteWorkflowEntriesForSite(long siteId);
+
+    /**
+     * Get total number of workflow packages pending approval
+     * @param siteId site identifier
+     * @return total number of workflow packages
+     */
+    int getContentPendingApprovalTotal(String siteId);
+
+    /**
+     * Get workflow packages pending approval
+     * @param siteId site identifier
+     * @param offset offset of the first record in the result
+     * @param limit limit number of records in the result
+     * @return list of workflow packages
+     */
+    List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit);
+
+    /**
+     * Get items from workflow package pending approval
+     * @param siteId site identifier
+     * @param packageId workflow package identifier
+     * @return list of workflow entries
+     */
+    List<Workflow> getContentPendingApprovalDetail(String siteId, String packageId);
 }

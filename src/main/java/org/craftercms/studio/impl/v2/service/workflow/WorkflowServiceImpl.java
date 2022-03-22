@@ -25,7 +25,6 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -41,6 +40,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -65,6 +65,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -119,6 +120,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private ServicesConfig servicesConfig;
     private StudioConfiguration studioConfiguration;
     private ApplicationContext applicationContext;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -254,6 +256,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                        boolean sendEmailNotifications)
             throws UserNotFoundException, ServiceLayerException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
+        String packageId = UUID.randomUUID().toString();
         var workflowEntries = new ArrayList<Workflow>();
         paths.forEach(path -> {
             Item it = itemServiceInternal.getItem(siteId, path);
@@ -269,6 +272,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             }
             workflow.setState(STATE_OPENED);
             workflow.setTargetEnvironment(publishingTarget);
+            workflow.setPublishingPackageId(packageId);
             workflowEntries.add(workflow);
         });
         workflowServiceInternal.insertWorkflowEntries(workflowEntries);
@@ -308,8 +312,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy,
                                                    String comment)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_REQUEST_PUBLISH);
         auditLog.setActorId(submittedBy);
@@ -334,6 +339,14 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+
+        // TODO: This is repeated, can we do a bulk getWorkflowEntries?
+        submittedPaths.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                .forEach(workflowEntry ->
+                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(),
+                                OPERATION_REQUEST_PUBLISH, DateUtils.getCurrentTime(),
+                                workflowEntry.getItem().getId(), workflowEntry.getPublishingPackageId()));
     }
 
     @Override
@@ -399,8 +412,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     private void createPublishAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, publishedBy);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PUBLISH);
         auditLog.setActorId(publishedBy);
@@ -418,6 +432,14 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         });
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+
+        //TODO: This is repeated
+        pathsToPublish.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                .filter(Objects::nonNull) // there is no workflow entry for direct publishes
+                .forEach( workflowItem ->
+                    activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
+                        DateUtils.getCurrentTime(), workflowItem.getItem().getId(), workflowItem.getPublishingPackageId()));
     }
 
     @Override
@@ -462,8 +484,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     private void createApproveAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy,
                                             String comment)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, publishedBy);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PUBLISH);
         auditLog.setActorId(publishedBy);
@@ -488,26 +511,37 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+
+        pathsToPublish.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                .forEach(workflowItem ->
+                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
+                                DateUtils.getCurrentTime(), workflowItem.getItem().getId(),
+                                workflowItem.getPublishingPackageId()));
     }
 
-    private void createInitialPublishAuditLog(String siteId) throws SiteNotFoundException {
+    private void createInitialPublishAuditLog(String siteId) throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
-        String user = securityService.getCurrentUser();
+        String username = securityService.getCurrentUser();
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_INITIAL_PUBLISH);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(user);
+        auditLog.setActorId(username);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteId);
         auditServiceInternal.insertAuditLog(auditLog);
+
+        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_INITIAL_PUBLISH,
+                DateUtils.getCurrentTime(), null, null);
     }
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public void reject(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
-                       String comment) throws ServiceLayerException, DeploymentException {
+                       String comment) throws ServiceLayerException, DeploymentException, UserNotFoundException {
         // Create submission package
         List<String> pathsToCancelWorkflow = calculateSubmissionPackage(siteId, paths, null);
         try {
@@ -554,8 +588,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, String rejectedBy,
                                            String comment)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
+        User user = userServiceInternal.getUserByIdOrUsername(-1, rejectedBy);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_REJECT);
         auditLog.setActorId(rejectedBy);
@@ -580,6 +615,15 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
+
+        //TODO: This is repeated
+        List<String> workflowPackages = submittedPaths.stream().map(path -> {
+            WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
+            return wi.getPublishingPackageId();
+        }).distinct().collect(Collectors.toList());
+        workflowPackages.forEach( packageId ->
+                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REQUEST_PUBLISH,
+                        DateUtils.getCurrentTime(), null, packageId));
     }
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
@@ -750,5 +794,13 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
+        return activityStreamServiceInternal;
+    }
+
+    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 }
