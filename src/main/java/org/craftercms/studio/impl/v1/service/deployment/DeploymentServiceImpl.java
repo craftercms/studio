@@ -58,6 +58,7 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -66,6 +67,8 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -105,7 +108,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 
 /**
  */
-public class DeploymentServiceImpl implements DeploymentService {
+public class DeploymentServiceImpl implements DeploymentService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
@@ -130,6 +133,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected PublishingManager publishingManager;
     protected PublishRequestDAO publishRequestDAO;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    protected ApplicationContext applicationContext;
 
     @Override
     @ValidateParams
@@ -206,6 +210,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
+        applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
     }
 
     protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow)
@@ -830,6 +835,11 @@ public class DeploymentServiceImpl implements DeploymentService {
             throw new SiteNotFoundException(siteId);
         }
         contentRepository.resetStagingRepository(siteId);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

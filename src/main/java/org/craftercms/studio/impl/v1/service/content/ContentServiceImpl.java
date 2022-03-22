@@ -609,6 +609,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             itemServiceInternal.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }
 
         return result;
