@@ -16,12 +16,9 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:sec="http://www.springframework.org/schema/security"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/security
-		http://www.springframework.org/schema/security/spring-security.xsd">
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <!-- Custom expression handler -->
     <bean id="studioMessagingSecurityExpressionHandler"
@@ -31,18 +28,6 @@
     </bean>
 
     <!-- Main configuration -->
-    <sec:websocket-message-broker>
-        <!-- Add support for Studio's expressions -->
-        <sec:expression-handler ref="studioMessagingSecurityExpressionHandler"/>
-
-        <!-- Only allow users to subscribe if they are system admins -->
-        <sec:intercept-message type="SUBSCRIBE" pattern="/topic/studio" access="isSystemAdmin()"/>
-
-        <!-- Only allow users to subscribe if they are site members -->
-        <sec:intercept-message type="SUBSCRIBE" pattern="/topic/studio/*" access="isSiteMember()"/>
-
-        <!-- Reject any other incoming message from users -->
-        <sec:intercept-message pattern="/**" access="denyAll()"/>
-    </sec:websocket-message-broker>
+    <bean class="org.craftercms.studio.config.WebsocketSecurityConfig"/>
 
 </beans>

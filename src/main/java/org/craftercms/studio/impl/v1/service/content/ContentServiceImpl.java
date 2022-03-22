@@ -90,6 +90,7 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
+import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -651,6 +652,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
             toRet = true;
         }
 
@@ -705,7 +707,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             contentRepository.insertGitLog(site, commitId, 1);
         }
 
-        applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+        applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
 
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
 

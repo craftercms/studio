@@ -27,12 +27,6 @@
     <bean id="eventBroadcaster" class="org.craftercms.studio.impl.v2.event.EventBroadcaster"/>
 
     <!-- Main configuration -->
-    <ws:message-broker>
-        <!-- Enable the STOMP controller in this URL -->
-        <ws:stomp-endpoint path="/events"/>
-
-        <!-- Enable the in-memory broker with the given prefixes -->
-        <ws:simple-broker prefix="/topic"/>
-    </ws:message-broker>
+    <bean class="org.craftercms.studio.config.WebsocketConfig"/>
 
 </beans>
