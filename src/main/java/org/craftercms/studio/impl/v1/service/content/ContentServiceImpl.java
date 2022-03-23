@@ -201,6 +201,14 @@ public class ContentServiceImpl implements ContentService {
         return this._contentRepository.contentExists(site, path);
     }
 
+	@Override
+	@ValidateParams
+	public boolean shallowContentExists(@ValidateStringParam(name = "site") String site,
+								 @ValidateSecurePathParam(name = "path") String path) {
+		// TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
+		return this._contentRepository.shallowContentExists(site, path);
+	}
+
     @Override
     @ValidateParams
     public InputStream getContent(@ValidateStringParam(name = "site") String site,
@@ -1402,8 +1410,12 @@ public class ContentServiceImpl implements ContentService {
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1415,8 +1427,12 @@ public class ContentServiceImpl implements ContentService {
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);

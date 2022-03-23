@@ -21,6 +21,8 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.util.concurrent.Callable;
+
 @RetryingRepositoryOperation
 public class RetryingRepositoryOperationFacadeImpl implements RetryingRepositoryOperationFacade {
 
@@ -28,4 +30,10 @@ public class RetryingRepositoryOperationFacadeImpl implements RetryingRepository
     public <T> T call(GitCommand<T> gitCommand) throws GitAPIException {
         return gitCommand.call();
     }
+
+    @Override
+    public <T> T call(Callable<T> gitCommand) throws Exception {
+        return gitCommand.call();
+    }
+
 }

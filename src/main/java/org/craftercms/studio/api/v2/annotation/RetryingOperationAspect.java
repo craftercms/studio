@@ -56,6 +56,8 @@ public class RetryingOperationAspect {
 
     @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingOperation) ||" +
             " @annotation(org.craftercms.studio.api.v2.annotation.RetryingOperation)")
+    // TODO: AV - This has the same problem as the old RetryingRepositoryOperationAspect. We can just copy the fixed
+    // code or consolidate the code
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
 
