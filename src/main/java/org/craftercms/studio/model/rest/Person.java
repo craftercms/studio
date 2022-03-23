@@ -13,48 +13,65 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.event;
 
+package org.craftercms.studio.model.rest;
+
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.springframework.security.core.Authentication;
 
 /**
- * Holds the data for a specific person
- *
- * @implNote This class could be enhanced and moved to a more general API later
+ * Simplified version of {@link User}
  *
  * @author joseross
  * @since 4.0.0
  */
 public class Person {
 
-    protected final String username;
-
-    protected final String firstName;
-
-    protected final String lastName;
+    protected String username;
+    protected String firstName;
+    protected String lastName;
+    protected String avatar;
 
     public static Person from(Authentication authentication) {
         AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
-        return new Person(user.getUsername(), user.getFirstName(), user.getLastName());
-    }
-
-    public Person(String username, String firstName, String lastName) {
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        Person person = new Person();
+        person.setUsername(user.getUsername());
+        person.setFirstName(user.getFirstName());
+        person.setLastName(user.getLastName());
+        return person;
     }
 
     public String getUsername() {
         return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public String getFirstName() {
         return firstName;
     }
 
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
     public String getLastName() {
         return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     @Override
@@ -63,6 +80,7 @@ public class Person {
                 "username='" + username + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", avatar='" + avatar + '\'' +
                 '}';
     }
 

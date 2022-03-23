@@ -126,7 +126,7 @@ public interface WorkflowService {
      * @param comment rejection comment
      */
     void reject(String siteId, List<String> paths, String comment)
-            throws ServiceLayerException, DeploymentException;
+            throws ServiceLayerException, DeploymentException, UserNotFoundException;
 
     /**
      * Delete content items

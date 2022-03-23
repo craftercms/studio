@@ -139,10 +139,10 @@ public interface ContentService {
      *
      * @throws SiteNotFoundException site not found
      */
-    boolean deleteContent(String site, String path, String approver) throws SiteNotFoundException;
+    boolean deleteContent(String site, String path, String approver) throws ServiceLayerException, UserNotFoundException;
 
     boolean deleteContent(String site, String path, boolean generateActivity, String approver)
-            throws SiteNotFoundException;
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * copy content fromPath to toPath
@@ -219,7 +219,7 @@ public interface ContentService {
      * @throws SiteNotFoundException site not found
      */
     boolean revertContentItem(String site, String path, String version, boolean major, String comment)
-            throws SiteNotFoundException;
+            throws ServiceLayerException, UserNotFoundException;
 
 	/**
      * return the content for a given version
@@ -262,7 +262,8 @@ public interface ContentService {
      * @throws ServiceLayerException general service error
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                      String createFolders, String edit, String unlock) throws ServiceLayerException;
+                      String createFolders, String edit, String unlock)
+            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * write content
@@ -281,7 +282,8 @@ public interface ContentService {
      * @throws ServiceLayerException general service error
      */
     void writeContent(String site, String path, String fileName, String contentType, InputStream input,
-                      String createFolders, String edit, String unlock, boolean skipAuditLogInsert) throws ServiceLayerException;
+                      String createFolders, String edit, String unlock, boolean skipAuditLogInsert)
+            throws ServiceLayerException, UserNotFoundException;
 
     void writeContentAndRename(final String site, final String path, final String targetPath, final String fileName,
                                final String contentType, final InputStream input, final String createFolders,
@@ -310,7 +312,7 @@ public interface ContentService {
     String getContentTypeClass(String site, String uri);
 
     ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
-                            String contentChainForm) throws ServiceLayerException;
+                            String contentChainForm) throws ServiceLayerException, UserNotFoundException;
 
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 

@@ -36,7 +36,7 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -107,7 +107,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    public DeploymentItemTO processItem(PublishRequest item) throws DeploymentException, SiteNotFoundException {
+    public DeploymentItemTO processItem(PublishRequest item)
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
 
         if (item == null) {
             throw new DeploymentException("Cannot process item, item is null.");
@@ -252,7 +253,7 @@ public class PublishingManagerImpl implements PublishingManager {
         return deploymentItem;
     }
 
-    private void deleteFolder(String site, String path, String user) throws SiteNotFoundException {
+    private void deleteFolder(String site, String path, String user) throws ServiceLayerException, UserNotFoundException {
         String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         if (contentService.contentExists(site, path)) {
             // TODO: SJ: This bypasses the Content Service, fix
@@ -319,7 +320,7 @@ public class PublishingManagerImpl implements PublishingManager {
     public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item,
                                                                Set<String> pathsToDeploy,
                                                                Set<String> missingDependenciesPaths)
-            throws DeploymentException, ServiceLayerException {
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
         List<DeploymentItemTO> mandatoryDependencies = new ArrayList<DeploymentItemTO>();
         String site = item.getSite();
         String path = item.getPath();

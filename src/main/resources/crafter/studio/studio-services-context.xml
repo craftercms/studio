@@ -69,6 +69,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -162,6 +163,7 @@
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -611,6 +613,8 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioUtils" ref="studio.utils" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
     </bean>
 
     <bean id="publishServiceInternal"
@@ -627,9 +631,14 @@
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
+        <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="searchService" ref="searchService" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">
@@ -663,12 +672,20 @@
         <property name="publishServiceInternal" ref="publishServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
     </bean>
 
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
         <property name="workflowDao" ref="workflowDao" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+    </bean>
+
+    <bean id="studio.activityStreamServiceInternal"
+          class="org.craftercms.studio.impl.v2.service.audit.internal.ActivityStreamServiceInternalImpl">
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="activityStreamDAO" ref="activityStreamDao" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -807,6 +824,8 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
     </bean>
 
     <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask">
@@ -1126,6 +1145,9 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService" />
         <property name="contentRepository" ref="contentRepository" />
+        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="cstudioInvalidateCacheProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.InvalidateCacheProcessor">

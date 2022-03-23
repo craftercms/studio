@@ -16,9 +16,15 @@
 
 package org.craftercms.studio.api.v2.service.dashboard;
 
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
-import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
+
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.dashboard.Activity;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
+import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -29,109 +35,198 @@ import java.util.List;
 public interface DashboardService {
 
     /**
-     * Get total number of audit log entries for audit dashboard
-     *
-     * @param siteId filter logs by given site id
-     * @param user filter logs by given user
-     * @param operations filter logs by given operations
-     * @param dateFrom filter logs by date starting from given date
-     * @param dateTo filter logs by date until given date
-     * @param target filter logs by given operation target
-     * @return number of audit log entries
-     */
-    int getAuditDashboardTotal(String siteId, String user, List<String> operations, ZonedDateTime dateFrom,
-                         ZonedDateTime dateTo, String target);
-
-    /**
-     * Get content for audit dashboard
-     *
-     * @param siteId filter logs by given site id
-     * @param offset offset of the first record
-     * @param limit number of records to return
-     * @param user filter logs by given user
-     * @param operations filter logs by given operations
-     * @param dateFrom filter logs by date starting from given date
-     * @param dateTo filter logs by date until given date
-     * @param target filter logs by given operation target
-     * @param sort sort logs by given sort type
-     * @param order order logs
-     *
-     * @return audit log result set
-     */
-    List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
-                               ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort, String order);
-
-    /**
-     * Get total number of records for content dashboard
+     * Get total number of result for activities of given users
      *
      * @param siteId site identifier
-     * @param path path regular expression to apply as filter
-     * @param modifier filter by user (modifier)
-     * @param contentType filter by content type
-     * @param state filter by state
-     * @param dateFrom lower boundary for modified date
-     * @param dateTo upper boundary for modified date
-     * @return total number of records
+     * @param usernames list of usernames
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of results
      */
-    int getContentDashboardTotal(String siteId, String path, String modifier, String contentType,
-                                                   long state, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+    int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateFrom, ZonedDateTime dateTo);
 
     /**
-     * Get result set for content dashboard
+     * Get activities for users
      *
      * @param siteId site identifier
-     * @param path path regular expression to apply as filter
-     * @param modifier filter by user (modifier)
-     * @param contentType filter by content type
-     * @param state filter by state
-     * @param dateFrom lower boundary for modified date
-     * @param dateTo upper boundary for modified date
-     * @param sortBy sort results by column
-     * @param order order results
-     * @param offset offset of the first record in result set
-     * @param limit number of records to return as result set
-     * @return list of items for content dashboard
+     * @param usernames list of usernames
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return
      */
-    List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier, String contentType,
-                                                   long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                   String sortBy, String order, int offset, int limit);
+    List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateFrom,
+                                          ZonedDateTime dateTo, int offset, int limit);
 
     /**
-     * Get total number of publishing history items for given search parameters
+     * Get total number of result for my activities
      *
      * @param siteId site identifier
-     * @param environment environment to get publishing history
-     * @param path regular expression to filter paths
-     * @param publisher filter publishing history for specified user
-     * @param dateFrom lower boundary for date range
-     * @param dateTo upper boundary for date range
-     * @param contentType publishing history for specified content type
-     * @param state filter items by their state
-     *
-     * @return total number of deployment history items
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of results
      */
-    int getPublishingHistoryTotal(String siteId, String environment, String path, String publisher,
-                                  ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType, long state);
+    int getMyActivitiesTotal(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo);
 
     /**
-     * Get deployment history items for given search parameters
+     * Get my activities
      *
      * @param siteId site identifier
-     * @param environment environment to get publishing history
-     * @param path regular expression to filter paths
-     * @param publisher filter publishing history for specified user
-     * @param dateFrom lower boundary for date range
-     * @param dateTo upper boundary for date range
-     * @param contentType publishing history for specified content type
-     * @param state filter items by their state
-     * @param sortBy sort publishing history
-     * @param order apply order to publishing history
-     * @param offset offset of the first item in the result set
-     * @param limit number of items to return
-     *
-     * @return total number of publishing packages
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return
      */
-    List<PublishingDashboardItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
-                                                       ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
-                                                       long state, String sortBy, String order, int offset, int limit);
+    List<Activity> getMyActivities(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+
+    /**
+     * Get total number of content packages pending approval
+     * @param siteId site identifier
+     * @return number of results to return
+     */
+    int getContentPendingApprovalTotal(String siteId);
+
+    /**
+     * Get content packages 
+     * @param siteId
+     * @param offset
+     * @param limit
+     * @return
+     */
+    List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit);
+
+    /**
+     * Get content pending approval package details
+     *
+     * @param siteId site identifier
+     * @param publishingPackageId publishing package identifier
+     * @return list of sandbox items included in given package
+     */
+    List<SandboxItem> getContentPendingApprovalDetail(String siteId, String publishingPackageId)
+            throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Get total number of unpublished content
+     * @param siteId site identifier
+     * @return number of results to return
+     */
+    int getContentUnpublishedTotal(String siteId);
+
+    /**
+     * Get unpublished content items
+     * @param siteId
+     * @param offset
+     * @param limit
+     * @return
+     */
+    List<SandboxItem> getContentUnpublished(String siteId, int offset, int limit)
+            throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Get content that is expiring
+     * @param siteId site identifier
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return list of content items that is expiring
+     */
+    ExpiringContentResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
+                                                 int limit) throws AuthenticationException, ServiceLayerException;
+
+    /**
+     * Get content that expired
+     * @param siteId site identifier
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return list of content items that expired
+     */
+    ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
+            throws AuthenticationException, ServiceLayerException;
+
+    /**
+     * Get total number of result for publishing scheduled with given filters
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of results
+     */
+    int getPublishingScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
+                                    ZonedDateTime dateTo);
+
+    /**
+     * Get publishing scheduled
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return
+     */
+    List<DashboardPublishingPackage> getPublishingScheduled(String siteId, String publishingTarget,
+                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
+                                                            int limit);
+
+    /**
+     * Get publishing package details
+     *
+     * @param siteId site identifier
+     * @param publishingPackageId publishing package identifier
+     * @return list of sandbox items included in given package
+     */
+    List<SandboxItem> getPublishingScheduledDetail(String siteId, String publishingPackageId)
+            throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Get total number of result for publishing history with given filters
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target to filter by
+     * @param approver approver user to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of results
+     */
+    int getPublishingHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
+                                  ZonedDateTime dateTo);
+
+    /**
+     * Get publishing history
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target to filter by
+     * @param approver approver user to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @return
+     */
+    List<DashboardPublishingPackage> getPublishingHistory(String siteId, String publishingTarget, String approver,
+                                                          ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
+                                                          int limit);
+
+    /**
+     * Get publishing package details
+     *
+     * @param siteId site identifier
+     * @param publishingPackageId publishing package identifier
+     * @return list of sandbox items included in given package
+     */
+    List<SandboxItem> getPublishingHistoryDetail(String siteId, String publishingPackageId)
+            throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Get publishing stats for site for given time period
+     * @param siteId site identifier
+     * @param days number of days
+     * @return publishing stats
+     */
+    PublishingStats getPublishingStats(String siteId, int days);
 }

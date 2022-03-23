@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -143,4 +144,81 @@ public interface PublishServiceInternal {
      * @param siteId site identifier
      */
     void initialPublish(String siteId) throws SiteNotFoundException;
+
+    /**
+     * Get total number of scheduled publishing packages for given filters
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param dateFrom lower boundary for schedule
+     * @param dateTo upper boundary for schedule
+     * @return total number of results
+     */
+    int getPublishingPackagesScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
+                                            ZonedDateTime dateTo);
+
+    /**
+     * Get scheduled publishing packages
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param dateFrom lower boundary for schedule
+     * @param dateTo upper boundary for schedule
+     * @param offset offset of the first result
+     * @param limit limit number of results
+     * @return list of dashboard publishing packages
+     */
+    List<DashboardPublishingPackage> getPublishingPackagesScheduled(String siteId, String publishingTarget,
+                                                                    ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                                    int offset, int limit);
+
+    /**
+     * Get total number of publishing packages for given filters
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param approver approver
+     * @param dateFrom lower boundary for history
+     * @param dateTo upper boundary for history
+     * @return total number of results
+     */
+    int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
+                                          ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    /**
+     * Get publishing packages history
+     *
+     * @param siteId site identifier
+     * @param publishingTarget publishing target
+     * @param approver approver
+     * @param dateFrom lower boundary for history
+     * @param dateTo upper boundary for history
+     * @param offset offset of the first result
+     * @param limit limit number of results
+     * @return list of dashboard publishing packages
+     */
+    List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget,
+                                                                  String approver, ZonedDateTime dateFrom,
+                                                                  ZonedDateTime dateTo, int offset, int limit);
+
+    /**
+     * Get number of publishes for site in given number of days
+     * @param siteId site identifiers
+     * @param days number of days
+     * @return number of publishes
+     */
+    int getNumberOfPublishes(String siteId, int days);
+
+    /**
+     * Get number of published items for site in given number of days filtered by their previous state
+     * @param siteId site identifier
+     * @param days number of days
+     * @param activityAction the activity action to filter
+     * @param publishState  the publishing state to filter
+     * @param publishAction the publishing action to filter
+     * @return number of newly created <nd published items
+     */
+    int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
+                                         String publishAction);
+
 }

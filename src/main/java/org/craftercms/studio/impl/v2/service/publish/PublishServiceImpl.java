@@ -20,7 +20,9 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -32,11 +34,14 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
@@ -73,6 +78,8 @@ public class PublishServiceImpl implements PublishService {
     private ItemServiceInternal itemServiceInternal;
     private StudioUtils studioUtils;
     private ServicesConfig servicesConfig;
+    private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private UserServiceInternal userServiceInternal;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
@@ -109,10 +116,13 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
     public void cancelPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                         List<String> packageIds) throws SiteNotFoundException {
+                                         List<String> packageIds) throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String username = securityService.getCurrentUser();
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         publishServiceInternal.cancelPublishingPackages(siteId, packageIds);
         List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
         for (String pId : packageIds) {
@@ -130,20 +140,23 @@ public class PublishServiceImpl implements PublishService {
             itemServiceInternal.updateStateBitsBulk(siteId, paths, CANCEL_PUBLISHING_PACKAGE_ON_MASK,
                     CANCEL_PUBLISHING_PACKAGE_OFF_MASK);
 
-            createAuditLogEntry(siteId, auditLogParameters);
+            createAuditLogEntry(siteFeed, username, auditLogParameters);
+
+            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(),
+                    OPERATION_CANCEL_PUBLISHING_PACKAGE, DateUtils.getCurrentTime(), null, pId);
         }
     }
 
-    private void createAuditLogEntry(String siteId, List<AuditLogParameter> auditLogParameters)
+    private void createAuditLogEntry(SiteFeed siteFeed, String username, List<AuditLogParameter> auditLogParameters)
             throws SiteNotFoundException {
-        SiteFeed siteFeed = siteService.getSite(siteId);
+
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
-        auditLog.setActorId(securityService.getCurrentUser());
+        auditLog.setActorId(username);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetId(siteFeed.getSiteId());
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
-        auditLog.setPrimaryTargetValue(siteId);
+        auditLog.setPrimaryTargetValue(siteFeed.getSiteId());
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
@@ -309,5 +322,21 @@ public class PublishServiceImpl implements PublishService {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
+        return activityStreamServiceInternal;
+    }
+
+    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public UserServiceInternal getUserServiceInternal() {
+        return userServiceInternal;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 }

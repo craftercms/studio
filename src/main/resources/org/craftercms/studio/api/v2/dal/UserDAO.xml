@@ -55,6 +55,14 @@
         <result property="value" column="property_value"/>
     </resultMap>
 
+    <!-- Simplified version of User exposed for new APIs -->
+    <resultMap id="PersonMap" type="org.craftercms.studio.model.rest.Person">
+        <result property="username" column="username"/>
+        <result property="firstName" column="first_name" />
+        <result property="lastName" column="last_name" />
+        <result property="avatar" column="avatar" />
+    </resultMap>
+
     <select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
         SELECT u.*
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)

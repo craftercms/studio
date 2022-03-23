@@ -224,7 +224,7 @@ public class WorkflowController {
 
     @PostMapping(value = REJECT, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody reject(@RequestBody RejectRequestBody rejectRequestBody)
-            throws ServiceLayerException, DeploymentException {
+            throws ServiceLayerException, DeploymentException, UserNotFoundException {
         workflowService.reject(rejectRequestBody.getSiteId(), rejectRequestBody.getItems(),
                 rejectRequestBody.getComment());
 

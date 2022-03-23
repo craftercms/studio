@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
+import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
@@ -162,6 +165,50 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     @Override
     public void initialPublish(String siteId) throws SiteNotFoundException {
         contentRepository.initialPublish(siteId);
+    }
+
+    @Override
+    public int getPublishingPackagesScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
+                                                   ZonedDateTime dateTo) {
+        return publishRequestDao.getPublishingPackagesScheduledTotal(siteId, publishingTarget, READY_FOR_LIVE,
+                dateFrom, dateTo);
+    }
+
+    @Override
+    public List<DashboardPublishingPackage> getPublishingPackagesScheduled(String siteId, String publishingTarget,
+                                                                           ZonedDateTime dateFrom,
+                                                                           ZonedDateTime dateTo, int offset, int limit) {
+        return publishRequestDao.getPublishingPackagesScheduled(siteId, publishingTarget, READY_FOR_LIVE, dateFrom,
+                dateTo, offset, limit);
+    }
+
+    @Override
+    public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
+                                                 ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        // Need to check if null because of COUNT + GROUP BY
+        Integer total = publishRequestDao.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver,
+                                                                            COMPLETED, dateFrom, dateTo);
+        return total == null? 0 : total;
+    }
+
+    @Override
+    public List<DashboardPublishingPackage> getPublishingPackagesHistory(String siteId, String publishingTarget,
+                                                                         String approver, ZonedDateTime dateFrom,
+                                                                         ZonedDateTime dateTo, int offset, int limit) {
+        return publishRequestDao.getPublishingPackagesHistory(siteId, publishingTarget, approver, COMPLETED, dateFrom,
+                dateTo, offset, limit);
+    }
+
+    @Override
+    public int getNumberOfPublishes(String siteId, int days) {
+        return publishRequestDao.getNumberOfPublishes(siteId, days);
+    }
+
+    @Override
+    public int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
+                                                String publishAction) {
+        return publishRequestDao.getNumberOfPublishedItemsByState(siteId, days, activityAction, publishState,
+                                                                    publishAction);
     }
 
     public PublishRequestDAO getPublishRequestDao() {
