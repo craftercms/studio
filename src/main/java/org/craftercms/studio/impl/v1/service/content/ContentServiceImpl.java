@@ -1410,8 +1410,12 @@ public class ContentServiceImpl implements ContentService {
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1423,8 +1427,12 @@ public class ContentServiceImpl implements ContentService {
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);

@@ -60,6 +60,7 @@ public interface StudioConfiguration {
     String REPO_DEFAULT_IGNORE_FILE = "studio.repo.defaultIgnoreFile";
     String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
     String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
+    String REPO_USE_GIT_CLI = "studio.repo.useGitCli";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
