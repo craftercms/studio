@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v2.exception.git.cli;
 import java.io.IOException;
 
 /**
- * Thrown when the Git CLI exists with a non-zero value. The output of the command is in the message.
+ * Thrown when the Git CLI exits with a non-zero value. The output of the command is in the message.
  *
  * @author Alfonso Vasquez
  * @since 3.1.23
