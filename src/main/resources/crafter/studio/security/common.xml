@@ -205,14 +205,13 @@
     </bean>
     
     <bean id="studio.semanticsAvailableActionsResolver" 
-          class="org.craftercms.studio.impl.v2.security.SemanticsAvailableActionsResolverImpl" >
+          class="org.craftercms.studio.impl.v2.security.SemanticsAvailableActionsResolverImpl">
         <property name="securityService" ref="studio.securityService" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="contentService" ref="cstudioContentService" />
+        <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
     </bean>
 </beans>
