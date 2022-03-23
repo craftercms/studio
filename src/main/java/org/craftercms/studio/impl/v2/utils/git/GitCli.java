@@ -38,7 +38,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Allows doing Git operations throw the CLI.
  *
- * This class is thread-safe
+ * If you ever use this class, please lock/synchronize the calls (hopefully with the
+ * {@link org.craftercms.studio.api.v1.service.GeneralLockService})
  *
  * @author Sumer Jabri
  * @author Alfonso Vasquez
