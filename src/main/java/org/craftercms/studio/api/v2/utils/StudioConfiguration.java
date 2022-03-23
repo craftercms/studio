@@ -319,6 +319,9 @@ public interface StudioConfiguration {
     String CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY =
             "studio.configuration.dashboard.contentExpiredQuery.sortBy";
 
+    // CORS
+    String CONFIGURATION_CORS_ALLOWED_ORIGINS = "studio.cors.origins";
+
     void loadConfig();
 
     String getProperty(String key);
