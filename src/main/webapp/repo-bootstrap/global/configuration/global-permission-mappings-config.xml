@@ -43,6 +43,7 @@
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>folder_create</permission>
                 <permission>publish</permission>
