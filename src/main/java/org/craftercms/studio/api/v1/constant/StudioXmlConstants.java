@@ -29,8 +29,6 @@ public final class StudioXmlConstants {
 	public static final String DOCUMENT_ELM_FILE_NAME = "file-name";
 	public static final String DOCUMENT_ELM_DISABLED = "disabled";
 
-	/** xml type element names **/
-
 	/** xml document root and element names for roles-mapping and permissions-mapping xmls */
 	public static final String DOCUMENT_ROLE_MAPPINGS = "role-mappings";
 	public static final String DOCUMENT_PERMISSIONS = "permissions";

@@ -105,4 +105,10 @@
             target_path RLIKE #{pattern}
         </foreach>
     </select>
+
+    <select id="getDependenciesByType" resultMap="DependencyMap">
+        SELECT site, source_path, target_path, type
+        FROM dependency
+        WHERE source_path = #{sourcePath} AND site = #{siteId} AND type = #{type}
+    </select>
 </mapper>

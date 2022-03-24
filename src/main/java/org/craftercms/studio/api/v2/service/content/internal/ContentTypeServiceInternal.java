@@ -58,4 +58,20 @@ public interface ContentTypeServiceInternal {
     void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException;
 
+    /**
+     * Builds the path of the Groovy controller for a given content type id
+     * @param contentTypeId the id of the content type
+     * @return the path of the controller or null
+     */
+    String getContentTypeControllerPath(String contentTypeId);
+
+    /**
+     * Extracts the path of the Freemarker template for a given content type id
+     * @param siteId the id of the site
+     * @param contentTypeId the id of the content type
+     * @return the path of the template or null
+     * @throws ServiceLayerException if there is any error reading the content type definition
+     */
+    String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException;
+
 }

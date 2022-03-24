@@ -27,24 +27,29 @@ import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
+import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE_CONTROLLER;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE_TEMPLATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DUPLICATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT_CONTROLLER;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT_TEMPLATE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_RENAME;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
@@ -64,7 +69,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     private WorkflowServiceInternal workflowServiceInternal;
     private UserServiceInternal userServiceInternal;
     private StudioBlobStoreResolver studioBlobStoreResolver;
-    private StudioConfiguration studioConfiguration;
+    private ContentTypeServiceInternal contentTypeServiceInternal;
 
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
@@ -75,8 +80,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 StringUtils.equals(username, item.getLockOwner()));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-        long toReturn = applySpecialUseCaseFilters(username, siteId, item, result);
-        return toReturn;
+        return applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
+                item.getSystemType(), item.getContentTypeId(), item.getModifier(), item.getState(), result);
     }
 
     @Override
@@ -88,176 +93,134 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                 StringUtils.equals(username, detailedItem.getLockOwner()));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
-        long toReturn = applySpecialUseCaseFilters(username, siteId, detailedItem, result);
-        return toReturn;
+        return applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
+                detailedItem.getSystemType(), detailedItem.getContentTypeId(), detailedItem.getSandbox().getModifier(),
+                detailedItem.getState(),
+                result);
     }
 
-    private long applySpecialUseCaseFilters(String username, String siteId, Item item, long availableActions)
-            throws ServiceLayerException, UserNotFoundException {
-        long result = availableActions;
-
-        if (StringUtils.equals(item.getPath(), HOME_PAGE_PATH)) {
-            result = result & ~CONTENT_DELETE;
-            result = result & ~CONTENT_CUT;
-            result = result & ~CONTENT_RENAME;
-            result = result & ~CONTENT_DUPLICATE;
-            result = result & ~CONTENT_COPY;
-        }
-
-        List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
-        if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-                ContentUtils.matchesPatterns(item.getPath(), protectedFolderPatterns)) {
-            result = result & ~CONTENT_DELETE;
-            result = result & ~CONTENT_CUT;
-            result = result & ~CONTENT_RENAME;
-        }
-
-        if (studioBlobStoreResolver.isBlob(siteId, item.getPath())) {
-            result = result & ~CONTENT_READ_VERSION_HISTORY;
-            result = result & ~CONTENT_REVERT;
-        }
-
-        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(item))) {
-            result = result & ~CONTENT_EDIT;
-        }
-
-        if ((result & CONTENT_UPLOAD) > 0 &&
-                (!StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER) ||
-                        !StudioUtils.matchesPatterns(item.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
-            result = result & ~CONTENT_UPLOAD;
-        }
-
-        if (servicesConfig.isRequirePeerReview(siteId)) {
-            if (StringUtils.equals(username, item.getModifier())) {
-                result = result & ~PUBLISH_SCHEDULE;
-                result = result & ~PUBLISH;
-            }
-
-            if (isInWorkflow(item.getState())) {
-                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, item.getPath());
-                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (user.getId() == workflow.getId()) {
-                    result = result & ~PUBLISH_APPROVE;
-                    result = result & ~PUBLISH_SCHEDULE;
-                    result = result & ~PUBLISH_REJECT;
-                }
-            }
-
-        }
-
-        return result;
-    }
-
-    private long applySpecialUseCaseFilters(String username, String siteId, DetailedItem detailedItem,
+    private long applySpecialUseCaseFilters(String username, String siteId, String itemPath, String itemMimeType,
+                                            String itemSystemType, String itemContentTypeId, String itemModifier,
+                                            long itemState,
                                             long availableActions)
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
 
-        if (StringUtils.equals(detailedItem.getPath(), HOME_PAGE_PATH)) {
-            result = result & ~CONTENT_DELETE;
-            result = result & ~CONTENT_CUT;
-            result = result & ~CONTENT_RENAME;
-            result = result & ~CONTENT_DUPLICATE;
-            result = result & ~CONTENT_COPY;
+        if (StringUtils.equals(itemPath, HOME_PAGE_PATH)) {
+            result &= ~CONTENT_DELETE;
+            result &= ~CONTENT_CUT;
+            result &= ~CONTENT_RENAME;
+            result &= ~CONTENT_DUPLICATE;
+            result &= ~CONTENT_COPY;
         }
 
         List<String> protectedFolderPatterns = servicesConfig.getProtectedFolderPatterns(siteId);
         if (CollectionUtils.isNotEmpty(protectedFolderPatterns) &&
-                ContentUtils.matchesPatterns(detailedItem.getPath(), protectedFolderPatterns)) {
-            result = result & ~CONTENT_DELETE;
-            result = result & ~CONTENT_CUT;
-            result = result & ~CONTENT_RENAME;
+                ContentUtils.matchesPatterns(itemPath, protectedFolderPatterns)) {
+            result &= ~CONTENT_DELETE;
+            result &= ~CONTENT_CUT;
+            result &= ~CONTENT_RENAME;
         }
 
-        if (studioBlobStoreResolver.isBlob(siteId, detailedItem.getPath())) {
-            result = result & ~CONTENT_READ_VERSION_HISTORY;
-            result = result & ~CONTENT_REVERT;
+        if (studioBlobStoreResolver.isBlob(siteId, itemPath)) {
+            result &= ~CONTENT_READ_VERSION_HISTORY;
+            result &= ~CONTENT_REVERT;
         }
 
-        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(detailedItem))) {
-            result = result & ~CONTENT_EDIT;
+        if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(itemPath, itemMimeType))) {
+            result &= ~CONTENT_EDIT;
         }
 
         if ((result & CONTENT_UPLOAD) > 0 &&
-                (!StringUtils.equals(detailedItem.getSystemType(), CONTENT_TYPE_FOLDER) ||
-                        !StudioUtils.matchesPatterns(detailedItem.getPath(), servicesConfig.getAssetPatterns(siteId)))) {
-            result = result & ~CONTENT_UPLOAD;
+                (!StringUtils.equals(itemSystemType, CONTENT_TYPE_FOLDER) ||
+                        !StudioUtils.matchesPatterns(itemPath, servicesConfig.getAssetPatterns(siteId)))) {
+            result &= ~CONTENT_UPLOAD;
         }
 
         if (servicesConfig.isRequirePeerReview(siteId)) {
-            if (StringUtils.equals(username, detailedItem.getSandbox().getModifier())) {
-                result = result & ~PUBLISH_SCHEDULE;
-                result = result & ~PUBLISH;
+            if (StringUtils.equals(username, itemModifier)) {
+                result &= ~PUBLISH_SCHEDULE;
+                result &= ~PUBLISH;
             }
 
-            if (isInWorkflow(detailedItem.getState())) {
-                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, detailedItem.getPath());
+            if (isInWorkflow(itemState)) {
+                WorkflowItem workflow = workflowServiceInternal.getWorkflowEntry(siteId, itemPath);
                 User user = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (user.getId() == workflow.getId()) {
-                    result = result & ~PUBLISH_APPROVE;
-                    result = result & ~PUBLISH_SCHEDULE;
-                    result = result & ~PUBLISH_REJECT;
+                    result &= ~PUBLISH_APPROVE;
+                    result &= ~PUBLISH_SCHEDULE;
+                    result &= ~PUBLISH_REJECT;
                 }
             }
+        }
 
+        // controller and template
+        if (isNotEmpty(itemContentTypeId)) {
+            String controllerPath = contentTypeServiceInternal.getContentTypeControllerPath(itemContentTypeId);
+            result = checkActionForDependency(siteId, username, controllerPath, result,
+                    CONTENT_EDIT_CONTROLLER, CONTENT_EDIT, CONTENT_DELETE_CONTROLLER, CONTENT_DELETE);
+            String templatePath = contentTypeServiceInternal.getContentTypeTemplatePath(siteId, itemContentTypeId);
+            result = checkActionForDependency(siteId, username, templatePath, result,
+                    CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
         }
 
         return result;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
+    private long checkActionForDependency(String siteId, String username, String dependencyPath,
+                                          long actions, long itemEditMask, long depEditMask,
+                                          long itemDeleteMask, long depDeleteMask)
+            throws UserNotFoundException, ServiceLayerException {
+        if (isNotEmpty(dependencyPath)) {
+            long depAvailableActions = securityService.getAvailableActions(username, siteId, dependencyPath);
+            actions = updateForDependency(actions, depAvailableActions, itemEditMask, depEditMask);
+            actions = updateForDependency(actions, depAvailableActions, itemDeleteMask, depDeleteMask);
+        } else {
+            actions &= ~itemEditMask;
+            actions &= ~itemDeleteMask;
+        }
+        return actions;
+    }
+
+    private long updateForDependency(long itemActions, long dependencyActions, long itemActionMask,
+                                     long dependencyActionMask) {
+        // Check if the available actions for the dependency contain the required bit
+        if ((dependencyActions & dependencyActionMask) > 0) {
+            // If so, turn on the bit for the item too
+            itemActions |= itemActionMask;
+        } else {
+            // Otherwise, turn off the bit for the item
+            itemActions &= ~itemActionMask;
+        }
+        return itemActions;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public ContentServiceInternal getContentServiceInternal() {
-        return contentServiceInternal;
-    }
-
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public StudioBlobStoreResolver getStudioBlobStoreResolver() {
-        return studioBlobStoreResolver;
-    }
-
     public void setStudioBlobStoreResolver(StudioBlobStoreResolver studioBlobStoreResolver) {
         this.studioBlobStoreResolver = studioBlobStoreResolver;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
+    public void setContentTypeServiceInternal(ContentTypeServiceInternal contentTypeServiceInternal) {
+        this.contentTypeServiceInternal = contentTypeServiceInternal;
     }
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
 }

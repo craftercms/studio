@@ -571,10 +571,9 @@
     <bean id="contentTypeServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
         <constructor-arg name="cstudioContentTypeService" ref="cstudioContentTypeService" />
-        <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService" />
+        <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="itemDao" ref="itemDao"/>
-        <constructor-arg name="contentService" ref="contentService"/>
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="contentTypeBasePathPattern"
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
@@ -586,6 +585,9 @@
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.pattern')}"/>
         <constructor-arg name="controllerFormat"
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.format')}"/>
+
+        <!-- TODO: Break circular dependency with this bean -->
+        <property name="contentService" ref="contentService"/>
      </bean>
 
     <bean id="contentTypeService" class="org.craftercms.studio.impl.v2.service.content.ContentTypeServiceImpl">
