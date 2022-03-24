@@ -38,6 +38,7 @@ import org.dom4j.Document;
 import org.dom4j.Node;
 
 import java.beans.ConstructorProperties;
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -175,7 +176,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
             throw new SiteNotFoundException("Site " + siteId + " does not exist");
         }
 
-        String definitionPath = getContentTypePath(contentTypeId) + "/" + contentTypeDefinitionFilename;
+        String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
         Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
 
         if (definition == null) {
