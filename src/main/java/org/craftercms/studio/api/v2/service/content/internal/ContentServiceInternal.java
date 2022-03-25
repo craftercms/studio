@@ -168,17 +168,11 @@ public interface ContentServiceInternal {
 
     /**
      * Check if item is editable
-     * @param item item object
+     * @param itemPath item path
+     * @param itemMimeType item mime type
      * @return true if item is editable
      */
-    boolean isEditable(org.craftercms.studio.api.v2.dal.Item item);
-
-    /**
-     * Check if item is editable
-     * @param detailedItem item object
-     * @return true if item is editable
-     */
-    boolean isEditable(DetailedItem detailedItem);
+    boolean isEditable(String itemPath, String itemMimeType);
 
     /**
      * Lock item by path for given site

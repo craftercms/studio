@@ -59,12 +59,6 @@
         </foreach>
     </insert>
 
-    <select id="getDependenciesByType" parameterType="java.util.Map" resultMap="DependencyMap">
-        SELECT site, source_path, target_path, type
-        FROM dependency
-        WHERE source_path = #{sourcePath} AND site = #{site} AND type = #{type}
-    </select>
-
     <delete id="deleteDependenciesForSite" parameterType="java.util.Map">
         DELETE FROM dependency
         WHERE site = #{site}

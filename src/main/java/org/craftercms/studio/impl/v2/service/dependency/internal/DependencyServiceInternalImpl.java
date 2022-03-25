@@ -25,8 +25,8 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
-import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v2.dal.DependencyDAO.SORUCE_PATH_COLUMN_NAME;
+import static org.craftercms.studio.api.v2.dal.DependencyDAO.SOURCE_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.TARGET_PATH_COLUMN_NAME;
 import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
@@ -99,7 +98,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             List<Map<String, String>> deps = getSoftDependenciesForListFromDB(site, pathsParams);
             List<String> targetPaths = new ArrayList<String>();
             for (Map<String, String> d : deps) {
-                String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
+                String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
                 if (!softDeps.keySet().contains(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
                     softDeps.put(targetPath, softDeps.get(srcPath));
@@ -184,7 +183,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             List<Map<String, String>> deps = calculateHardDependenciesForListFromDB(site, pathsParams);
             List<String> targetPaths = new ArrayList<String>();
             for (Map<String, String> d : deps) {
-                String srcPath = d.get(SORUCE_PATH_COLUMN_NAME);
+                String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
                 if (!ancestors.keySet().contains(targetPath) &&
                         !StringUtils.equals(targetPath, ancestors.get(srcPath))) {
@@ -273,6 +272,11 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             dependencies = dependencyResolver.resolve(siteId, path);
         }
         return dependencies;
+    }
+
+    @Override
+    public List<Dependency> getDependenciesByType(String siteId, String path, String dependencyType) {
+        return dependencyDao.getDependenciesByType(siteId, path, dependencyType);
     }
 
     public SiteService getSiteService() {
