@@ -40,6 +40,8 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.dal.WorkflowPackage;
+import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -99,6 +101,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESO
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
 public class WorkflowServiceImpl implements WorkflowService, ApplicationContextAware {
@@ -677,6 +680,31 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         Set<String> dependencies = dependencyService.getDeleteDependencies(siteId, deletePackage);
         deletePackage.addAll(dependencies);
         return deletePackage;
+    }
+
+    @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_WRITE})
+    @Override
+    public int getWorkflowPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String status,
+                                        ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return workflowServiceInternal.getWorkflowPackagesTotal(siteId, status, dateFrom, dateTo);
+    }
+
+    @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_WRITE})
+    @Override
+    public List<WorkflowPackage> getWorkflowPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                     String status, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                     int offset, int limit, String order) {
+        return workflowServiceInternal.getWorkflowPackages(siteId, status, dateFrom, dateTo, offset, limit, order);
+    }
+
+    @HasAnyPermissions(type = CompositePermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_WRITE})
+    @Override
+    public void createWorkflowPackage(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, String status,
+                                      String publishingTarget, ZonedDateTime schedule, String authorComment,
+                                      String label) {
+        workflowServiceInternal.createWorkflowPackage(siteId, paths, status, publishingTarget,
+                schedule, authorComment, label);
     }
 
     @Override

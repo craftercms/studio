@@ -55,6 +55,7 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_USERNAMES = "usernames";
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
+    public static final String REQUEST_PARAM_STATUS = "status";
 
     private RequestConstants() { }
 }

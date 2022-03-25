@@ -20,9 +20,12 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.dal.WorkflowPackage;
+import org.craftercms.studio.api.v2.dal.WorkflowPackageDAO;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
@@ -30,6 +33,7 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     private WorkflowDAO workflowDao;
+    private WorkflowPackageDAO workflowPackageDao;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
@@ -97,6 +101,24 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
     }
 
+    @Override
+    public int getWorkflowPackagesTotal(String siteId, String status, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return workflowPackageDao.getWorkflowPackagesTotal(siteId, status, dateFrom, dateTo);
+    }
+
+    @Override
+    public List<WorkflowPackage> getWorkflowPackages(String siteId, String status, ZonedDateTime dateFrom,
+                                                     ZonedDateTime dateTo, int offset, int limit, String order) {
+        return workflowPackageDao.getWorkflowPackages(siteId, status, dateFrom, dateTo, offset, limit, order);
+    }
+
+    @Override
+    public void createWorkflowPackage(String siteId, List<String> paths, String publishingTarget,
+                                      String publishingTarget1, ZonedDateTime schedule, String authorComment,
+                                      String label) {
+
+    }
+
     public WorkflowDAO getWorkflowDao() {
         return workflowDao;
     }
@@ -107,6 +129,14 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
         return retryingDatabaseOperationFacade;
+    }
+
+    public WorkflowPackageDAO getWorkflowPackageDao() {
+        return workflowPackageDao;
+    }
+
+    public void setWorkflowPackageDao(WorkflowPackageDAO workflowPackageDao) {
+        this.workflowPackageDao = workflowPackageDao;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

@@ -291,6 +291,9 @@ public final class  QueryParameterNames {
     public static final String ACTION = "action";
     public static final String ACTION_TIMESTAMP = "actionTimestamp";
 
+    /** Workflow Package */
+    public static final String STATUS = "status";
+
     private QueryParameterNames() {
     }
 }

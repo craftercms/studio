@@ -678,6 +678,7 @@
     <bean id="studio.workflowServiceInternal"
           class="org.craftercms.studio.impl.v2.service.workflow.internal.WorkflowServiceInternalImpl">
         <property name="workflowDao" ref="workflowDao" />
+        <property name="workflowPackageDao" ref="workflowPackageDao" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 

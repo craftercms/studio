@@ -7141,6 +7141,9 @@ paths:
                   description: paths of content items to add to package
                   items:
                     type: string
+                status:
+                  type: string
+                  description: PENDING_APPROVAL for request publish or APPROVED for direct publish
                 publishingTarget:
                   type: string
                   description: target where to publish content
@@ -7157,6 +7160,7 @@ paths:
               required:
                 - siteId
                 - paths
+                - status
                 - publishingTarget   
       responses:
         '201':

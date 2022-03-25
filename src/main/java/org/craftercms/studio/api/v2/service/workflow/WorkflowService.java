@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.workflow;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v2.dal.WorkflowPackage;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 
 import java.time.ZonedDateTime;
@@ -137,4 +138,41 @@ public interface WorkflowService {
      */
     void delete(String siteId, List<String> paths, List<String> optionalDependencies, String comment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Get total number of workflow packages for site
+     * @param siteId site identifier
+     * @param status package status to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @return number of workflow packages
+     */
+    int getWorkflowPackagesTotal(String siteId, String status, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+
+    /**
+     * Get  workflow packages for site ordered by schedule
+     * @param siteId site identifier
+     * @param status package status to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
+     * @param offset offset of the first result item
+     * @param limit number of results to return
+     * @param order ascending or descending
+     * @return paginated list of workflow packages
+     */
+    List<WorkflowPackage> getWorkflowPackages(String siteId, String status, ZonedDateTime dateFrom,
+                                              ZonedDateTime dateTo, int offset, int limit, String order);
+
+    /**
+     * Create workflow package
+     * @param siteId site identifier
+     * @param paths list of paths contained within package
+     * @param status status of workflow package
+     * @param publishingTarget publishing target
+     * @param schedule schedule for publishing
+     * @param authorComment author's comment
+     * @param label label for package
+     */
+    void createWorkflowPackage(String siteId, List<String> paths, String status, String publishingTarget,
+                               ZonedDateTime schedule, String authorComment, String label);
 }
