@@ -23,7 +23,7 @@ public class StudioScriptingClassLoader extends ClassLoader {
         Class<?> toRet = null;
         try {
             toRet = super.loadClass(name);
-        } catch (ClassNotFoundException exc) {
+        } catch (ClassNotFoundException e) {
 
         }
         return toRet;

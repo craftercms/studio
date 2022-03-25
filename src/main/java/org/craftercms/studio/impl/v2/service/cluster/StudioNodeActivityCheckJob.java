@@ -67,7 +67,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
                     if (CollectionUtils.isNotEmpty(inactiveMembersToRemove)) {
                         removeInactiveMembers(inactiveMembersToRemove);
                     }
-                } catch (Exception error) {
+                } catch (Exception e) {
                     logger.error("Error while executing node activity check job", error);
                 } finally {
                     singleWorkerLock.unlock();

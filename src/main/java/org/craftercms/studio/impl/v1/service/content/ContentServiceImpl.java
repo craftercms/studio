@@ -297,7 +297,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                     saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                     saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                }catch (SAXException ex){
+                }catch (SAXException e){
                     logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
                 }
                 retDocument = saxReader.read(is);
@@ -308,7 +308,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         is.close();
                     }
                 }
-                catch (IOException err) {
+                catch (IOException e) {
                     logger.debug("Error closing stream for path {}", err, path);
                 }
             }
@@ -1774,7 +1774,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             try {
                 item = populateContentDrivenProperties(site, item);
-            } catch (Exception err) {
+            } catch (Exception e) {
                 logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
             }
         } else {

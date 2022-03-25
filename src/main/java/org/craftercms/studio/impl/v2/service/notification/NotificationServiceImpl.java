@@ -313,7 +313,7 @@ public class NotificationServiceImpl implements NotificationService {
                     logger.debug("User not found by username " + submittedBy);
                     try {
                         userProfile = securityService.getUserProfileByGitName(submittedBy);
-                    } catch (ServiceLayerException | UserNotFoundException ex) {
+                    } catch (ServiceLayerException | UserNotFoundException e) {
                         logger.debug("Didn't find user " + submittedBy + ". Notification will not be sent " +
                                 "to that user.", ex);
                     }
@@ -334,7 +334,7 @@ public class NotificationServiceImpl implements NotificationService {
                 logger.info("Unable to notify content rejection. User(s) " +
                         StringUtils.join(submittedByList, ", ") + " not found.");
             }
-        } catch (Exception ex) {
+        } catch (Exception e) {
             logger.error("Unable to notify content rejection", ex);
         }
     }
@@ -483,7 +483,7 @@ public class NotificationServiceImpl implements NotificationService {
             Template t = new Template(templateName, new StringReader(message), configuration);
             t.process(templateModel, out);
             return out.toString();
-        } catch (TemplateException | IOException ex) {
+        } catch (TemplateException | IOException e) {
             logger.error("Unable to process notification message " + templateName, ex);
         }
         return null;

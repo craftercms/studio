@@ -53,7 +53,7 @@ public class StudioNodeHeartbeatJob implements Runnable {
             if (singleWorkerLock.tryLock()) {
                 try {
                     updateHeartbeat();
-                } catch (Exception error) {
+                } catch (Exception e) {
                     logger.error("Error during execution of node heartbeat job", error);
                 } finally {
                     singleWorkerLock.unlock();

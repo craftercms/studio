@@ -196,7 +196,7 @@ public class CmisServiceImpl implements CmisService {
                 HostnameVerifier hv = (hostname, session) -> true;
                 HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
                 HttpsURLConnection.setDefaultHostnameVerifier(hv);
-            } catch (KeyManagementException | NoSuchAlgorithmException  e) {
+            } catch (KeyManagementException | NoSuchAlgorithmException e) {
                 logger.error("Error initializing SSL context", e);
             }
         }

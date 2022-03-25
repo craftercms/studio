@@ -89,7 +89,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                 }
 
                 pastedItems.add(newPath);
-            } catch (Exception err) {
+            } catch (Exception e) {
                 logger.error("Paste operation {} failed for item {} to dest path {}", err, operation,
                         item.getPath(), targetPath);
                 throw err;

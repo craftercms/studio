@@ -158,7 +158,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
                             .setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE));
                     retryingRepositoryOperationFacade.call(commitCommand);
                 }
-            } catch (GitAPIException err) {
+            } catch (GitAPIException e) {
                 logger.error("error creating initial commit for global configuration", err);
             }
         } catch (Exception e) {

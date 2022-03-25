@@ -215,7 +215,7 @@ public class WebDavServiceImpl implements WebDavService {
                 fileUrl = StringUtils.replaceFirst(fileUrl, profile.getBaseUrl(), profile.getDeliveryBaseUrl());
             }
             return fileUrl;
-        } catch (Exception e ) {
+        } catch (Exception e) {
             throw new WebDavException("Error uploading file", e);
         }
     }

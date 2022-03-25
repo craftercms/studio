@@ -789,7 +789,7 @@ public class GitContentRepository implements ContentRepository {
                 }
                 git.close();
                 toRet.sort((o1, o2) -> o2.getPublishedDate().compareTo(o1.getPublishedDate()));
-            } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e1) {
+            } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e) {
                 logger.error("Error while getting deployment history for site " + siteId, e1);
             }
         }

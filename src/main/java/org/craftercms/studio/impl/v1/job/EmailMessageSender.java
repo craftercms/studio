@@ -116,7 +116,7 @@ public class EmailMessageSender implements Runnable {
             } else {
                 emailServiceNoAuth.send(preparator);
             }
-        } catch (MailException ex) {
+        } catch (MailException e) {
             // simply log it and go on...
             logger.error("Error sending email notification to:" + userEmailAddress, ex);
 

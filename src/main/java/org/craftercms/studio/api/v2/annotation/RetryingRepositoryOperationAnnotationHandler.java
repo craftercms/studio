@@ -71,7 +71,7 @@ public class RetryingRepositoryOperationAnnotationHandler {
                     logger.debug("Retrying repository operation attempt " + (numAttempts - 1));
                 }
                 return pjp.proceed();
-            } catch (JGitInternalException ex) {
+            } catch (JGitInternalException e) {
                 if (Objects.nonNull(ex.getCause()) && ex.getCause() instanceof LockFailedException) {
                     logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
                     if (numAttempts > maxRetries) {

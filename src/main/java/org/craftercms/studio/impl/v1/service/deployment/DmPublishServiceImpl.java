@@ -100,7 +100,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
         try {
             deploymentService.delete(site, paths, approver, scheduleDate, null);
-        } catch (DeploymentException | ServiceLayerException | UserNotFoundException ex) {
+        } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
             logger.error("Unable to delete files due a error ",ex);
         }
     }

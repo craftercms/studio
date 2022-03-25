@@ -650,7 +650,7 @@ public class GitRepositoryHelper implements DisposableBean {
         TreeCopier tc = new TreeCopier(blueprintPath, siteRepoPath);
         try {
             Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
-        } catch (IOException err) {
+        } catch (IOException e) {
             logger.error("Error copping files from blueprint", err);
             toReturn = false;
         }
@@ -786,7 +786,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 retryingRepositoryOperationFacade.call(commitCommand);
             }
             checkoutSandboxBranch(site, repo, sandboxBranch);
-        } catch (GitAPIException | UserNotFoundException | ServiceLayerException err) {
+        } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
             logger.error("error creating initial commit for site:  " + site, err);
             toReturn = false;
         } finally {
@@ -1099,7 +1099,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
                     git.close();
                     result = true;
-                } catch (JGitInternalException internalException) {
+                } catch (JGitInternalException e) {
                     if (internalException.getCause() instanceof LockFailedException) {
                         throw new RepositoryLockedException("Writing file " + path + " for site " + site + " failed because " +
                                 "repository was locked.");

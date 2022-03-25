@@ -53,7 +53,7 @@ public class TreeCopier  implements FileVisitor<Path> {
         Path newdir = target.resolve(source.relativize(dir));
         try {
             Files.copy(dir, newdir, options);
-        } catch (FileAlreadyExistsException x) {
+        } catch (FileAlreadyExistsException e) {
             // ignore
         } catch (IOException e) {
             logger.error("Dir: " + dir.toString() + " NewDir: " + newdir.toString());
@@ -69,7 +69,7 @@ public class TreeCopier  implements FileVisitor<Path> {
         CopyOption[] options = new CopyOption[] { REPLACE_EXISTING };
         try {
             Files.copy(file, target.resolve(source.relativize(file)), options);
-        } catch (IOException err) {
+        } catch (IOException e) {
             logger.error("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
         }
         return CONTINUE;

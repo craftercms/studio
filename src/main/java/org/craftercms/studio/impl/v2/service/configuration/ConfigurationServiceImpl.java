@@ -238,7 +238,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                         saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                         saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                         saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                    } catch (SAXException ex) {
+                    } catch (SAXException e) {
                         logger.error("Unable to turn off external entity loading, this could be a security risk.", ex);
                     }
                     try (InputStream is = IOUtils.toInputStream(content, UTF_8)) {

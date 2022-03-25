@@ -201,7 +201,7 @@ public class WebDavServiceImpl implements WebDavService {
 
 
             return new WebDavItem(filename, getRemoteAssetUrl(profileId, path, filename), false);
-        } catch (Exception e ) {
+        } catch (Exception e) {
             throw new WebDavException("Error uploading file", e);
         }
     }

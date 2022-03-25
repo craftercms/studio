@@ -177,14 +177,14 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
 
                                 }
                             }
-                        } catch (UncategorizedSQLException  dbErr) {
+                        } catch (UncategorizedSQLException e) {
                             logger.error("DB error while executing deployment to environment store for site "
                                             + siteId, dbErr);
                             if (!dbErrorNotifiedSites.add(siteId)) {
                                 notificationService.notifyDeploymentError(siteId, dbErr);
                             }
                             publishingManager.resetProcessingQueue(siteId, env);
-                        } catch (Exception err) {
+                        } catch (Exception e) {
                             logger.error("Error while executing deployment to environment store for site: "
                                     + siteId, err);
                             publishingManager.resetProcessingQueue(siteId, env);
@@ -197,13 +197,13 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                     logger.debug("Publishing is disabled for site {}", siteId);
                 }
             }
-        } catch (UncategorizedSQLException  dbErr) {
+        } catch (UncategorizedSQLException e) {
             logger.error("DB error while executing deployment to environment store for site " + siteId, dbErr);
             if (!dbErrorNotifiedSites.add(siteId)) {
                 notificationService.notifyDeploymentError(siteId, dbErr);
             }
             publishingManager.resetProcessingQueue(siteId, env);
-        } catch (Exception err) {
+        } catch (Exception e) {
             logger.error("Error while executing deployment to environment store for site " + siteId, err);
             notificationService.notifyDeploymentError(siteId, err);
             publishingManager.resetProcessingQueue(siteId, env);
@@ -263,7 +263,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                 status = QUEUED;
             }
             siteService.updatePublishingStatus(siteId, status);
-        } catch (DeploymentException err) {
+        } catch (DeploymentException e) {
             logger.error("Error while executing deployment to environment store " +
                             "for site \"{}\", number of items \"{}\"", err, siteId,
                     itemsToDeploy.size());
@@ -271,7 +271,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
-        } catch (Exception err) {
+        } catch (Exception e) {
             logger.error("Unexpected error while executing deployment to environment " +
                             "store for site \"{}\", number of items \"{}\"", err, siteId,
                     itemsToDeploy.size());
@@ -310,13 +310,13 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             }
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
-        } catch (DeploymentException err) {
+        } catch (DeploymentException e) {
             logger.error("Error while executing deployment to environment store for site \"{}\",", err, siteId);
             publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
-        } catch (Exception err){
+        } catch (Exception e){
             logger.error("Unexpected error while executing deployment to environment " +
                     "store for site \"{}\", ", err, siteId);
             publishingManager.markItemsReady(siteId, environment, List.of(item));

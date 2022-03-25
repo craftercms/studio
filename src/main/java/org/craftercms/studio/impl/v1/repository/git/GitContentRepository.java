@@ -716,7 +716,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                         toReturn = versionLabel;
 
-                    } catch (GitAPIException | ServiceLayerException | UserNotFoundException err) {
+                    } catch (GitAPIException | ServiceLayerException | UserNotFoundException e) {
                         logger.error("error creating new version for site:  " + site + " path: " + path, err);
                     }
                 }
@@ -928,7 +928,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             git.commit().setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE));
                     retryingRepositoryOperationFacade.call(commitCommand);
                 }
-            } catch (GitAPIException err) {
+            } catch (GitAPIException e) {
                 logger.error("error creating initial commit for global configuration", err);
             }
         }

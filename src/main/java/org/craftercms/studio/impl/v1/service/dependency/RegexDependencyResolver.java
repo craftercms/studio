@@ -85,7 +85,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                 logger.error("Failed to load Dependency Resolver configuration. Verify that configuration exists" +
                         " and it is valid XML file: " + configLocation);
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             logger.error("Unexpected error resolving dependencies for site: " + site + " path: " + path, exc);
         }
         return toRet;

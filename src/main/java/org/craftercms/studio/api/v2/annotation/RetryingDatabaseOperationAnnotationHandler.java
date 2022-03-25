@@ -70,7 +70,7 @@ public class RetryingDatabaseOperationAnnotationHandler {
                     logger.debug("Retrying operation attempt " + (numAttempts - 1));
                 }
                 return pjp.proceed();
-            } catch (DeadlockLoserDataAccessException | JGitInternalException ex) {
+            } catch (DeadlockLoserDataAccessException | JGitInternalException e) {
                 logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
                 if (numAttempts > maxRetries) {
                     //log failure information, and throw exception
