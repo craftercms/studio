@@ -614,7 +614,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
-                } catch (IOException | GitAPIException e) {
+                } catch (IOException | GitAPIException e2) {
                     throw new PluginInstallationException("Error during rollback for plugin removal", e2);
                 }
             }
@@ -785,7 +785,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
-                } catch (IOException | GitAPIException e) {
+                } catch (IOException | GitAPIException e2) {
                     throw new PluginInstallationException("Error during rollback for plugin removal", e2);
                 }
             }
@@ -849,7 +849,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 try {
                     resetChanges(siteId, changedFiles);
-                } catch (IOException | GitAPIException e) {
+                } catch (IOException | GitAPIException e2) {
                     throw new PluginInstallationException("Error during rollback for plugin removal", e2);
                 }
             }
