@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v1.util;
 
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.job.CronJobContext;
-import org.craftercms.studio.api.v1.log.Logger;
+import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 

@@ -17,8 +17,8 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.springframework.beans.factory.annotation.Required;

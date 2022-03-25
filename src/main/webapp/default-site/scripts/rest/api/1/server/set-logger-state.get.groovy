@@ -14,11 +14,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.ContentServices;
+
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.core.config.Configurator
 
 def result = [:]
 
-def cstudioLogging = applicationContext.get("cstudioLogProvider")
-def loggerMap = cstudioLogging.setLoggerLevel(params.logger, params.level)
+Configurator.setLevel(params.logger, Level.valueOf(params.level))
 
 return result 

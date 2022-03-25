@@ -42,8 +42,8 @@ import org.craftercms.studio.api.v1.asset.processing.ProcessorPipelineConfigurat
 import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.asset.processing.AssetProcessingService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;

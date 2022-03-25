@@ -37,8 +37,8 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.User;
@@ -173,7 +173,7 @@ public class GitRepositoryHelper implements DisposableBean {
         String cacheKey = getRepoCacheKey(siteId, repoType);
         Repository repo = repositoryCache.getIfPresent(cacheKey);
 
-        logger.debug("getRepository invoked with site {0}, type: {1}", siteId, repoType);
+        logger.debug("getRepository invoked with site {}, type: {}", siteId, repoType);
 
         if (repo == null) {
             logger.debug("cache miss for site {0}, type {1}", siteId, repoType);

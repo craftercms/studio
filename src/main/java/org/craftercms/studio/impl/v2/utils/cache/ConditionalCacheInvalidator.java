@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.utils.cache;
 
 import com.google.common.cache.Cache;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
 import java.beans.ConstructorProperties;
