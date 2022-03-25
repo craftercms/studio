@@ -313,6 +313,15 @@ public interface StudioConfiguration {
     // Content Service
     String CONTENT_ITEM_EDITABLE_TYPES = "studio.content.item.editableTypes";
 
+    // Dashboard Service
+    String CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY = "studio.configuration.dashboard.contentExpiringQuery";
+    String CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY = "studio.configuration.dashboard.contentExpiredQuery";
+    String CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY =
+            "studio.configuration.dashboard.contentExpiredQuery.sortBy";
+
+    // CORS
+    String CONFIGURATION_CORS_ALLOWED_ORIGINS = "studio.cors.origins";
+
     void loadConfig();
 
     String getProperty(String key);

@@ -90,7 +90,9 @@ import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
+import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -102,6 +104,7 @@ import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
+import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.dom4j.Node;
@@ -200,6 +203,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected WorkflowServiceInternal workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected ApplicationContext applicationContext;
+    protected ActivityStreamServiceInternal activityStreamServiceInternal;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -336,7 +340,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                              InputStream input,
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
-                             @ValidateStringParam(name = "unlock") String unlock) throws ServiceLayerException {
+                             @ValidateStringParam(name = "unlock") String unlock)
+            throws ServiceLayerException, UserNotFoundException {
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
 
@@ -351,7 +356,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                              @ValidateStringParam(name = "createFolders") String createFolders,
                              @ValidateStringParam(name = "edit") String edit,
                              @ValidateStringParam(name = "unlock") String unlock,
-                             boolean skipAuditLogInsert) throws ServiceLayerException {
+                             boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
         path = path.replaceAll("//", "/");
         try {
             entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
@@ -477,7 +482,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
             moveContent(site, path, targetPath);
-        } catch (ServiceLayerException | RuntimeException e) {
+        } catch (ServiceLayerException | RuntimeException | UserNotFoundException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
                     + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
         }
@@ -604,6 +609,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             itemServiceInternal.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }
 
         return result;
@@ -628,25 +634,34 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
                     commitId, parentItem.getId());
 
+            String username = securityService.getCurrentUser();
+            // TODO: This is not necessary, the current user is already on memory
+            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
             auditLog.setSiteId(siteFeed.getId());
-            auditLog.setActorId(securityService.getCurrentUser());
+            auditLog.setActorId(username);
             auditLog.setPrimaryTargetId(site + ":" + folderPath);
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
 
+            Item item = itemServiceInternal.getItem(site, folderPath);
+            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_CREATE,
+                    DateUtils.getCurrentTime(), item.getId(), null);
+
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
             toRet = true;
         }
 
         return toRet;
     }
 
-    private Item createMissingParentItem(String site, String parentPath, String commitId) throws UserNotFoundException, ServiceLayerException {
+    private Item createMissingParentItem(String site, String parentPath, String commitId)
+            throws UserNotFoundException, ServiceLayerException {
         String ancestorPath = ContentUtils.getParentUrl(parentPath);
         String name = ContentUtils.getPageName(parentPath);
         Item ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
@@ -663,7 +678,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @ValidateParams
     public boolean deleteContent(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path,
-                                 @ValidateStringParam(name = "approver") String approver) throws SiteNotFoundException {
+                                 @ValidateStringParam(name = "approver") String approver)
+            throws ServiceLayerException, UserNotFoundException {
         return deleteContent(site, path, true, approver);
     }
 
@@ -671,7 +687,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @ValidateParams
     public boolean deleteContent(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path, boolean generateActivity,
-                                 @ValidateStringParam(name = "approver") String approver) throws SiteNotFoundException {
+                                 @ValidateStringParam(name = "approver") String approver)
+            throws ServiceLayerException, UserNotFoundException {
         String commitId;
         boolean toReturn = false;
         if (generateActivity) {
@@ -691,7 +708,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             contentRepository.insertGitLog(site, commitId, 1);
         }
 
-        applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+        applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
 
         // TODO: SJ: Add commitId to database for this item in version 2.7.x
 
@@ -702,7 +719,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return toReturn;
     }
 
-    protected void generateDeleteActivity(String site, String path, String approver) throws SiteNotFoundException {
+    protected void generateDeleteActivity(String site, String path, String approver)
+            throws ServiceLayerException, UserNotFoundException {
         // This method creates a database record to show the activity of deleting a file
         // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
         // TODO: SJ: activities. Fix in 3.1+ by introducing the audit service and refactoring accordingly
@@ -711,6 +729,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
         boolean exists = contentExists(site, path);
         if (exists) {
+            User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
+            Item it = itemServiceInternal.getItem(site, path);
             ContentItemTO item = getContentItem(site, path, 0);
             logger.debug("[DELETE] posting delete activity on " + path + " by " + approver + " in " + site);
             SiteFeed siteFeed = siteService.getSite(site);
@@ -723,6 +743,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditLog.setPrimaryTargetValue(path);
             auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
             auditServiceInternal.insertAuditLog(auditLog);
+
+            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_DELETE,
+                    DateUtils.getCurrentTime(), it.getId(), null);
+
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
 
@@ -989,7 +1013,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
         }
-        catch(ServiceLayerException eMoveErr) {
+        catch(ServiceLayerException | UserNotFoundException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
                     eMoveErr, site, fromPath, toPath, movePath);
         }
@@ -997,11 +1021,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return movePath;
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath)
+            throws ServiceLayerException, UserNotFoundException {
         updateDatabaseOnMove(site, fromPath, movePath, null);
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId) throws SiteNotFoundException {
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId)
+            throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
@@ -1041,6 +1067,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, movePath));
         auditServiceInternal.insertAuditLog(auditLog);
 
+        Item item = itemServiceInternal.getItem(site, movePath);
+        // This is not required, the current user is already loaded in memory
+        User u = userService.getUserByIdOrUsername(-1, user);
+        activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
+                DateUtils.getCurrentTime(), item.getId(), null);
+
         updateDependenciesOnMove(site, fromPath, movePath);
     }
 
@@ -1058,7 +1090,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected void updateChildrenOnMove(String site, String fromPath, String movePath) throws SiteNotFoundException {
+    protected void updateChildrenOnMove(String site, String fromPath, String movePath)
+            throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
 
         // get the list of children
@@ -1837,7 +1870,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected void populateMetadata(String site, ContentItemTO item) throws ServiceLayerException, UserNotFoundException {
+    protected void populateMetadata(String site, ContentItemTO item)
+            throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Refactor to return a ContentItemTO instead of changing the parameter
         // TODO: SJ: Change method name to be getContentItemMetadata or similar
         // TODO: SJ: 3.1+
@@ -1952,7 +1986,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public boolean revertContentItem(@ValidateStringParam(name = "site") String site,
                                      @ValidateSecurePathParam(name = "path") String path,
                                      @ValidateStringParam(name = "version") String version, boolean major,
-                                     @ValidateStringParam(name = "comment") String comment) throws SiteNotFoundException {
+                                     @ValidateStringParam(name = "comment") String comment)
+            throws ServiceLayerException, UserNotFoundException {
         boolean toReturn = false;
         String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
@@ -1969,16 +2004,23 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             itemServiceInternal.updateCommitId(site, path, commitId);
 
+            String username = securityService.getCurrentUser();
+            // This is not required, the current user is already loaded in memory
+            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_REVERT);
             auditLog.setSiteId(siteFeed.getId());
-            auditLog.setActorId(securityService.getCurrentUser());
+            auditLog.setActorId(username);
             auditLog.setPrimaryTargetId(site + ":" + path);
             auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
             auditLog.setPrimaryTargetValue(path);
             auditLog.setPrimaryTargetSubtype(getContentTypeClass(site, path));
             auditServiceInternal.insertAuditLog(auditLog);
+
+            Item item = itemServiceInternal.getItem(site, path);
+            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
+                    DateUtils.getCurrentTime(), item.getId(), null);
 
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
@@ -2143,7 +2185,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public ResultTO processContent(@ValidateStringParam(name = "id") String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
                                    @ValidateStringParam(name = "contentChainForm") String contentChainForm)
-            throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
         // TODO: SJ: Presently, this takes action and performs the action as a side effect of the processor chain
@@ -2300,13 +2342,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         DependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
         List<String> removedDep = diffResponse.getRemovedDependencies();
         if(matchDeletePattern){
-            removedDep = filterDependenicesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),
+            removedDep = filterDependenciesMatchingDeletePattern(diffRequest.getSite(), diffRequest.getSourcePath(),
                     diffResponse.getRemovedDependencies());
         }
         return removedDep;
     }
 
-    protected List<String> filterDependenicesMatchingDeletePattern(String site, String sourcePath,
+    protected List<String> filterDependenciesMatchingDeletePattern(String site, String sourcePath,
                                                                    List<String> dependencies) throws ServiceLayerException {
         List<String> matchingDep = new ArrayList<String>();
         if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
@@ -2497,7 +2539,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @ValidateParams
     public boolean renameFolder(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name) throws ServiceLayerException, UserNotFoundException {
+                                @ValidateStringParam(name = "name") String name)
+            throws ServiceLayerException, UserNotFoundException {
         boolean toRet = false;
 
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
@@ -2725,5 +2768,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
+        return activityStreamServiceInternal;
+    }
+
+    public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
+        this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 }

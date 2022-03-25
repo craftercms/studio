@@ -58,6 +58,7 @@ import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -66,6 +67,8 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -105,7 +108,7 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 
 /**
  */
-public class DeploymentServiceImpl implements DeploymentService {
+public class DeploymentServiceImpl implements DeploymentService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
@@ -130,6 +133,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     protected PublishingManager publishingManager;
     protected PublishRequestDAO publishRequestDAO;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    protected ApplicationContext applicationContext;
 
     @Override
     @ValidateParams
@@ -206,6 +210,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         } catch (SiteNotFoundException e) {
             logger.error("Error updating publishing status for site " + site);
         }
+        applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
     }
 
     protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow)
@@ -327,7 +332,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
                        @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
                        String submissionComment)
-            throws DeploymentException, SiteNotFoundException {
+            throws DeploymentException, ServiceLayerException, UserNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
             itemServiceInternal.updateStateBitsBulk(site, paths, DELETE_ON_MASK, DELETE_OFF_MASK);
         }
@@ -350,7 +355,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     private List<PublishRequest> createDeleteItems(String site, String environment, List<String> paths,
                                                    String approver, ZonedDateTime scheduledDate,
                                                    String submissionComment)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
         String packageId = UUID.randomUUID().toString();
         for (String path : paths) {
@@ -419,7 +424,8 @@ public class DeploymentServiceImpl implements DeploymentService {
         return newItems;
     }
 
-    private void deleteFolder(String site, String path, String user) throws SiteNotFoundException {
+    private void deleteFolder(String site, String path, String user)
+            throws ServiceLayerException, UserNotFoundException {
         String folderPath = path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         SiteFeed siteFeed = siteService.getSite(site);
         if (contentService.contentExists(site, path)) {
@@ -829,6 +835,11 @@ public class DeploymentServiceImpl implements DeploymentService {
             throw new SiteNotFoundException(siteId);
         }
         contentRepository.resetStagingRepository(siteId);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

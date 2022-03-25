@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.executor;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 import java.io.InputStream;
@@ -28,5 +29,6 @@ import java.util.Map;
 public interface ProcessContentExecutor {
 
     ResultTO processContent(final String id, final InputStream input, final boolean isXml,
-                            final Map<String, String> params, final String chainName) throws ServiceLayerException;
+                            final Map<String, String> params, final String chainName)
+            throws ServiceLayerException, UserNotFoundException;
 }

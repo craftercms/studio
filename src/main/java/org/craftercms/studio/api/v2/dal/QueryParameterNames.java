@@ -171,6 +171,20 @@ public final class  QueryParameterNames {
 
     public static final String LIVE_ENVIRONMENT = "liveEnvironment";
 
+    public static final String APPROVER = "approver";
+
+    public static final String PUBLISHING_TARGET = "publishingTarget";
+
+    public static final String SCHEDULED_STATE  = "scheduledState";
+
+    public static final String DAYS = "days";
+
+    public static final String ACTIVITY_ACTION = "activityAction";
+
+    public static final String PUBLISH_STATE = "publishState";
+
+    public static final String PUBLISH_ACTION = "publishAction";
+
     /* Audit */
     public static final String ACTIONS = "actions";
 
@@ -272,6 +286,14 @@ public final class  QueryParameterNames {
     public static final String STATE_OPENED = "stateOpened";
 
     public static final String ITEM_ID = "itemId";
+
+    public static final String TYPE = "type";
+
+    public static final String SOURCE_PATH = "sourcePath";
+
+    /** Activity Stream */
+    public static final String ACTION = "action";
+    public static final String ACTION_TIMESTAMP = "actionTimestamp";
 
     private QueryParameterNames() {
     }

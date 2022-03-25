@@ -71,6 +71,16 @@
         </association>
     </resultMap>
 
+    <resultMap id="DashboardPublishingPackageMap"
+               type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
+        <result property="id" column="publishing_package_id" />
+        <result property="label" column="label" />
+        <result property="size" column="size" />
+        <result property="publishingTarget" column="target_environment" />
+        <result property="schedule" column="schedule" />
+        <association property="submitter" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap" />
+    </resultMap>
+
     <select id="getWorkflowEntryOpened" resultMap="WorkflowItemMap">
         SELECT
             workflow.id as workflow_id,
@@ -232,4 +242,37 @@
             publishing_package_id = #{publishingPackageId}
         WHERE id = #{id}
     </update>
+
+    <!-- TODO: add site_id to workflow to avoid join with item -->
+    <select id="getContentPendingApprovalTotal" resultType="int">
+        SELECT COUNT(w.publishing_package_id)
+        FROM workflow w INNER JOIN item i ON w.item_id = i.id
+            INNER JOIN site s on i.site_id = s.id
+            INNER JOIN user u ON w.submitter_id = u.id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+        AND w.state = #{state}
+        GROUP BY w.publishing_package_id
+    </select>
+
+    <!-- Can we use <sql> to avoid repeating the FROM and WHERE from above? -->
+    <select id="getContentPendingApproval" resultMap="DashboardPublishingPackageMap">
+        SELECT w.id, w.label, count(*) as size, w.target_environment, w.publishing_package_id,
+        w.schedule as published_on, u.first_name, u.last_name, u.avatar
+        FROM workflow w INNER JOIN item i ON w.item_id = i.id
+            INNER JOIN site s on i.site_id = s.id
+            INNER JOIN user u ON w.submitter_id = u.id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+          AND w.state = #{state}
+        GROUP BY w.publishing_package_id
+        ORDER BY w.schedule DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- TODO: Remove the join with item once site_id is added to workflow -->
+    <select id="getContentPendingApprovalDetail" resultMap="WorkflowMap">
+        SELECT w.* FROM workflow w INNER JOIN item i ON w.item_id = i.id
+            INNER JOIN site s on i.site_id = s.id
+        WHERE s.site_id = #{siteId} AND s.deleted = 0
+        AND w.publishing_package_id = #{packageId}
+    </select>
 </mapper>

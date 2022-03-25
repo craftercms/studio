@@ -74,4 +74,18 @@ public abstract class DateUtils {
         return dateTime.format(formatter);
     }
 
+    /**
+     * Parses a date using a formatter
+     */
+    public static ZonedDateTime parseDate(String value, DateTimeFormatter formatter) {
+        return ZonedDateTime.parse(value,formatter);
+    }
+
+    /**
+     * Parses a date using the UTC formatter
+     */
+    public static ZonedDateTime parseDateIso(String value) {
+        return parseDate(value, ISO_FORMATTER);
+    }
+
 }

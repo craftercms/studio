@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -37,14 +38,14 @@ import org.dom4j.Document;
 import org.dom4j.Node;
 
 import java.beans.ConstructorProperties;
-import java.util.ArrayList;
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.normalize;
+import static org.apache.commons.lang3.RegExUtils.replaceAll;
 import static org.apache.commons.lang3.StringUtils.equalsAnyIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -59,7 +60,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final SecurityService securityService;
     protected final ConfigurationService configurationService;
     protected final ItemDAO itemDao;
-    protected final ContentService contentService;
+    protected ContentService contentService;
     protected final SiteService siteService;
 
     protected final String contentTypeBasePathPattern;
@@ -69,18 +70,17 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final String controllerFormat;
 
     @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
-            "contentService", "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename",
+            "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename",
             "templateXPath", "controllerPattern", "controllerFormat"})
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
-                                          ContentService contentService, SiteService siteService,
-                                          String contentTypeBasePathPattern, String contentTypeDefinitionFilename,
-                                          String templateXPath, String controllerPattern, String controllerFormat) {
+                                          SiteService siteService, String contentTypeBasePathPattern,
+                                          String contentTypeDefinitionFilename, String templateXPath,
+                                          String controllerPattern, String controllerFormat) {
         this.contentTypeService = contentTypeService;
         this.securityService = securityService;
         this.configurationService = configurationService;
         this.itemDao = itemDao;
-        this.contentService = contentService;
         this.siteService = siteService;
         this.contentTypeBasePathPattern = contentTypeBasePathPattern;
         this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
@@ -89,48 +89,40 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         this.controllerFormat = controllerFormat;
     }
 
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
-        List<QuickCreateItem> toRet = new ArrayList<QuickCreateItem>();
-        List<ContentTypeConfigTO> allContentTypes = contentTypeService.getAllContentTypes(siteId, true);
-        List<ContentTypeConfigTO> quickCreatable = allContentTypes.stream()
-                .filter(ct -> ct.isQuickCreate()).collect(toList());
-        for (ContentTypeConfigTO ctto : quickCreatable) {
-            QuickCreateItem qci = new QuickCreateItem();
-            qci.setSiteId(siteId);
-            qci.setContentTypeId(ctto.getForm());
-            qci.setLabel(ctto.getLabel());
-            qci.setPath(ctto.getQuickCreatePath());
-            Set<String> allowedPermission = securityService.getUserPermissions(siteId, ctto.getQuickCreatePath(),
-                    securityService.getCurrentUser(), null);
-            if (allowedPermission.contains(PERMISSION_CONTENT_CREATE)) {
-                toRet.add(qci);
-            }
-        }
-        return toRet;
+        return contentTypeService.getAllContentTypes(siteId, true).stream()
+                .filter(ContentTypeConfigTO::isQuickCreate)
+                .filter(contentType ->
+                    securityService.getUserPermissions(siteId, contentType.getQuickCreatePath(),
+                                    securityService.getCurrentUser(), null)
+                            .contains(PERMISSION_CONTENT_CREATE))
+                .map(contentType -> {
+                    QuickCreateItem item = new QuickCreateItem();
+                    item.setSiteId(siteId);
+                    item.setContentTypeId(contentType.getForm());
+                    item.setLabel(contentType.getLabel());
+                    item.setPath(contentType.getQuickCreatePath());
+                    return item;
+                })
+                .collect(toList());
     }
 
     @Override
     public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException("Site " + siteId + " does not exist");
-        }
 
-        String definitionPath = getContentTypePath(contentType) + "/" + contentTypeDefinitionFilename;
-        Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
-
-        if (definition == null) {
-            throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
-        }
-
-        Node templateNode = definition.selectSingleNode(templateXPath);
         var usages = new ContentTypeUsage();
 
-        if(templateNode != null && isNotEmpty(templateNode.getText())) {
-            usages.setTemplates(singletonList(templateNode.getText()));
+        String template = getContentTypeTemplatePath(siteId, contentType);
+        if(isNotEmpty(template)) {
+            usages.setTemplates(singletonList(template));
         }
 
-        String scriptPath = contentType.replaceAll(controllerPattern, controllerFormat);
+        String scriptPath = getContentTypeControllerPath(contentType);
 
         List<Item> items = itemDao.getContentTypeUsages(siteId, contentType, scriptPath);
 
@@ -149,7 +141,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
-            throws ServiceLayerException, AuthenticationException, DeploymentException {
+            throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         ContentTypeUsage usage = getContentTypeUsage(siteId, contentType);
 
         var files = new LinkedList<String>();
@@ -171,6 +163,33 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
             throw new ServiceLayerException("Error deleting content-type " + contentType + " in site "+ siteId);
         }
 
+    }
+
+    @Override
+    public String getContentTypeControllerPath(String contentTypeId) {
+        return replaceAll(contentTypeId, controllerPattern, controllerFormat);
+    }
+
+    @Override
+    public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException("Site " + siteId + " does not exist");
+        }
+
+        String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
+        Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
+
+        if (definition == null) {
+            throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
+        }
+
+        Node templateNode = definition.selectSingleNode(templateXPath);
+
+        if(templateNode != null && isNotEmpty(templateNode.getText())) {
+            return templateNode.getText();
+        }
+
+        return null;
     }
 
     protected String getContentTypePath(String contentType) {

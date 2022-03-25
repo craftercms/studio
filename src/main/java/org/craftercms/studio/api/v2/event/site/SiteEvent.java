@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.api.v2.event.site;
 
-import org.craftercms.studio.api.v2.event.Person;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.model.rest.Person;
 import org.springframework.security.core.Authentication;
 
 /**

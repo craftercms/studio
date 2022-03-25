@@ -16,7 +16,8 @@
 package org.craftercms.studio.api.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 /**
@@ -36,20 +37,20 @@ public interface ContentProcessor {
 	 * 			result to return
 	 * @throws ContentProcessException 
 	 */
-	public void process(PipelineContent content, ResultTO result) throws ContentProcessException, SiteNotFoundException;
+	void process(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException;
 	
 	/**
 	 * determines if the content is processable by the given parameters
 	 * 
 	 * @param content
 	 */
-	public boolean isProcessable(PipelineContent content);
+	boolean isProcessable(PipelineContent content);
 
 	/**
 	 * get the name of this processor
 	 * 
 	 * @return processor name
 	 */
-	public String getName();
+	String getName();
 	
 }

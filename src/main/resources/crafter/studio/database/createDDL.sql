@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.35', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.39', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -152,20 +152,20 @@ CREATE TABLE IF NOT EXISTS `audit` (
   ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `audit_parameters` (
-  `id`                BIGINT(20) NOT NULL AUTO_INCREMENT,
-  `audit_id`          BIGINT(20) NOT NULL,
-  `target_id`         VARCHAR(1024)  NOT NULL,
-  `target_type`       VARCHAR(32)   NOT NULL,
-  `target_subtype`    VARCHAR(32)   NULL,
-  `target_value`      VARCHAR(1024)  NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `audit_parameters_audit_id_idx` (`audit_id`),
-  KEY `audit_parameters_target_id_idx` (`target_id`),
-  KEY `audit_parameters_target_value_idx` (`target_value`)
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
+    `id`                BIGINT(20) NOT NULL AUTO_INCREMENT,
+    `audit_id`          BIGINT(20) NOT NULL,
+    `target_id`         VARCHAR(1024)  NOT NULL,
+    `target_type`       VARCHAR(32)   NOT NULL,
+    `target_subtype`    VARCHAR(32)   NULL,
+    `target_value`      VARCHAR(1024)  NOT NULL,
+    PRIMARY KEY (`id`),
+    KEY `audit_parameters_audit_id_idx` (`audit_id`),
+    KEY `audit_parameters_target_id_idx` (`target_id`),
+    KEY `audit_parameters_target_value_idx` (`target_value`)
+    )
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS `dependency` (
   `id`          BIGINT(20)  NOT NULL AUTO_INCREMENT,
@@ -263,6 +263,7 @@ CREATE TABLE IF NOT EXISTS `user`
   `email`                 VARCHAR(255) NOT NULL,
   `enabled`               INT          NOT NULL,
   `deleted`               INT          NOT NULL DEFAULT 0,
+  `avatar`                TEXT         NULL, -- TODO: update the user service to include this new field
   PRIMARY KEY (`id`),
   INDEX `user_ix_record_last_updated` (`record_last_updated` DESC),
   UNIQUE INDEX `user_ix_username` (`username`),
@@ -272,6 +273,23 @@ CREATE TABLE IF NOT EXISTS `user`
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS `activity_stream` (
+    `id`                        BIGINT(20)      NOT NULL AUTO_INCREMENT,
+    `site_id`                   BIGINT(20)      NOT NULL,
+    `user_id`                   BIGINT(20)      NOT NULL,
+    `action`                    VARCHAR(32)     NOT NULL,
+    `action_timestamp`          TIMESTAMP       NOT NULL,
+    `item_id`                   BIGINT(20)      NULL,
+    `package_id`                VARCHAR(50)     NULL,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY `activity_user_idx` (`user_id`) REFERENCES `user`(`id`),
+    FOREIGN KEY `activity_site_idx` (`site_id`) REFERENCES `site`(`id`),
+    INDEX `activity_action_idx` (`action` ASC)
+)
+    ENGINE = InnoDB
+    DEFAULT CHARSET = utf8
+    ROW_FORMAT = DYNAMIC ;
 
 INSERT IGNORE INTO `user` (id, record_last_updated, username, password, first_name, last_name,
                            externally_managed, timezone, locale, email, enabled, deleted)
@@ -449,6 +467,7 @@ CREATE TABLE IF NOT EXISTS workflow
     `publishing_package_id` VARCHAR(50)     NULL,
     `submission_type`       VARCHAR(32)     NULL,
     `notify_submitter`      INT             NOT NULL DEFAULT 0,
+    `label`                 VARCHAR(256)    NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY `workflow_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `workflow_ix_submitter`(`submitter_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
