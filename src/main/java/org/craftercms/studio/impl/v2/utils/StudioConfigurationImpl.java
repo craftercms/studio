@@ -73,7 +73,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             baseConfig.setExpressionEngine(getExpressionEngine());
             baseConfig.read(in);
 
-            logger.debug("Loaded configuration from location: {0} \n {1}", configLocation, baseConfig);
+            logger.debug("Loaded configuration from location: {} \n {}", configLocation, baseConfig);
         } catch (IOException | ConfigurationException e) {
             logger.error("Failed to load studio configuration from: " + configLocation, e);
         }
@@ -87,7 +87,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                 overrideConfig.read(in);
 
                 if (!overrideConfig.isEmpty()) {
-                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                    logger.debug("Loaded additional configuration from location: {} \n {}",
                         overrideConfigLocation, overrideConfig);
                 }
             } catch (IOException | ConfigurationException e) {
@@ -128,7 +128,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                                 globalRepoOverrideConfig.read(in);
 
                                 if (!globalRepoOverrideConfig.isEmpty()) {
-                                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                                    logger.debug("Loaded additional configuration from location: {} \n {}",
                                             fsr.getPath(), globalRepoOverrideConfig);
 
                                     CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());

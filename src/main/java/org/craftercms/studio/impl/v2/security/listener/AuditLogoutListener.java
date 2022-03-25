@@ -41,7 +41,7 @@ public class AuditLogoutListener extends AbstractAuditListener {
 
     @EventListener
     public void recordLogout(LogoutSuccessEvent event) {
-        recordAuthenticationEvent(OPERATION_LOGOUT, event, "User {0} logged out from IP: {1}");
+        recordAuthenticationEvent(OPERATION_LOGOUT, event, "User {} logged out from IP: {}");
     }
 
 }

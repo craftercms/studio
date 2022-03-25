@@ -58,7 +58,7 @@ public class PathPolicyValidator implements PolicyValidator {
                                 modifiedValue = modifiedValue.toLowerCase();
                                 break;
                             default:
-                                logger.warn("Unsupported case transformation: {0}", caseTransform);
+                                logger.warn("Unsupported case transformation: {}", caseTransform);
                         }
                     }
 

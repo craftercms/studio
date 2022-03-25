@@ -125,7 +125,7 @@ public abstract class AbstractUpgradeOperation extends
             changedFiles = new LinkedList<>();
         }
 
-        logger.debug("Tracking changed files: {0}", Arrays.toString(files));
+        logger.debug("Tracking changed files: {}", Arrays.toString(files));
         changedFiles.addAll(Arrays.asList(files));
     }
 
@@ -134,7 +134,7 @@ public abstract class AbstractUpgradeOperation extends
             deletedFiles = new LinkedList<>();
         }
 
-        logger.debug("Tracking deleted files: {0}", Arrays.toString(files));
+        logger.debug("Tracking deleted files: {}", Arrays.toString(files));
         deletedFiles.addAll(Arrays.asList(files));
     }
 

@@ -136,7 +136,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public void doUpgrade(final UpgradeContext<String> context) throws UpgradeException, ConfigurationException {
-        logger.info("Checking upgrades for site {0}", context.getTarget());
+        logger.info("Checking upgrades for site {}", context.getTarget());
 
         UpgradePipeline pipeline = getPipelineFactory("sitePipelineFactory").getPipeline(context);
         pipeline.execute(context);
@@ -171,7 +171,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     @Override
     public void upgradeSiteConfiguration(StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.info("Checking upgrades for configuration in site {0}", site);
+        logger.info("Checking upgrades for configuration in site {}", site);
 
         HierarchicalConfiguration config = loadUpgradeConfiguration();
         List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
@@ -196,7 +196,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                                 CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
                     }
                     configPath = get(replace(basePath, values, "{", "}"), file).toString();
-                    logger.info("Checking upgrades for file {0}", configPath);
+                    logger.info("Checking upgrades for file {}", configPath);
                     context.setCurrentConfigName(configFile.getRootElementName());
                     context.setCurrentConfigPath(configPath);
 
@@ -205,7 +205,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                 }
             }
         } catch (Exception e) {
-            logger.error("Error upgrading configuration file {0}", e, configPath);
+            logger.error("Error upgrading configuration file {}", e, configPath);
         } finally {
             context.clearCurrentConfig();
         }
@@ -245,7 +245,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public List<String> getExistingEnvironments(String site) {
-        logger.debug("Looking for existing environments in site {0}", site);
+        logger.debug("Looking for existing environments in site {}", site);
         List<String> result = new LinkedList<>();
 
         // add the default env that will always exist
@@ -258,7 +258,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                 replace(basePath, Collections.singletonMap(CONFIG_KEY_MODULE, StringUtils.EMPTY), "{", "}"));
 
         for (RepositoryItem module : modules) {
-            logger.debug("Looking for existing environments for module {0} in site {1}", module.name, site);
+            logger.debug("Looking for existing environments for module {} in site {}", module.name, site);
 
             Map<String, String> values = new HashMap<>();
             values.put(CONFIG_KEY_MODULE, module.name);
@@ -268,7 +268,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                     contentRepository.getContentChildren(site, replace(envPath, values, "{", "}"));
 
             for (RepositoryItem env : environments) {
-                logger.debug("Adding environment {0}", env.name);
+                logger.debug("Adding environment {}", env.name);
                 result.add(env.name);
             }
         }

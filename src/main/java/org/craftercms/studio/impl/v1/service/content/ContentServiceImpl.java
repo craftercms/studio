@@ -270,7 +270,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         }
         catch(Exception err) {
-            logger.debug("Failed to get content as string for path {0}", err, path);
+            logger.debug("Failed to get content as string for path {}", err, path);
         }
 
         return content;
@@ -287,7 +287,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             is = this.getContent(site, path);
         } catch (ContentNotFoundException e) {
-            logger.debug("Content not found for path {0}", e, path);
+            logger.debug("Content not found for path {}", e, path);
         }
 
         if(is != null) {
@@ -309,7 +309,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
                 catch (IOException err) {
-                    logger.debug("Error closing stream for path {0}", err, path);
+                    logger.debug("Error closing stream for path {}", err, path);
                 }
             }
         }
@@ -387,7 +387,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                     if (itemServiceInternal.isSystemProcessing(site, path)) {
                         // TODO: SJ: Review and refactor/redo
-                        logger.error("Error Content {0} is being processed (Object State is system "
+                        logger.error("Error Content {} is being processed (Object State is system "
                                 + "processing);", path);
                         throw new ServiceLayerException("Content " + path + " is in system processing, we can't write "
                                 + "it");
@@ -806,7 +806,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                             Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                            logger.debug("copying file for site {0} from {1} to {2}, new name is {3}",
+                            logger.debug("copying file for site {} from {} to {}, new name is {}",
                                     site, fromPath, toPath, copyPath);
 
                             // come up with a new object ID and group ID for the object
@@ -817,7 +817,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                             copyDependencies = getItemSpecificDependencies(site, fromPath, fromDocument,
                                     copyDependencies);
 
-                            logger.debug("Calculated copy dependencies: {0}, {1}", fromPath, copyDependencies);
+                            logger.debug("Calculated copy dependencies: {}, {}", fromPath, copyDependencies);
 
                             // Duplicate the children
                             for (String dependencyKey : copyDependencies.keySet()) {
@@ -842,7 +842,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                     copyDepPath = ContentUtils.getParentUrl(copyDepPath);
                                 }
                                 
-                                logger.debug("Translated dependency path from {0} to {1}",
+                                logger.debug("Translated dependency path from {} to {}",
                                         dependencyPath, copyDepPath);
 
                                 String newCopyDepthPath = copyContent(site, dependencyKey, copyDepPath, processedPaths);
@@ -887,11 +887,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         // track that we already copied so we don't follow a circular dependency
                         processedPaths.add(copyPath);
                     } catch (ContentNotFoundException eContentNotFound) {
-                        logger.debug("Content not found while copying content for site {0} from {1} to {2}," +
-                                " new name is {3}", eContentNotFound, site, fromPath, toPath, copyPath);
+                        logger.debug("Content not found while copying content for site {} from {} to {}," +
+                                " new name is {}", eContentNotFound, site, fromPath, toPath, copyPath);
                     } catch (DocumentException eParseException) {
-                        logger.error("General Error while copying content for site {0} from {1} to {2}," +
-                                " new name is {3}", eParseException, site, fromPath, toPath, copyPath);
+                        logger.error("General Error while copying content for site {} from {} to {}," +
+                                " new name is {}", eParseException, site, fromPath, toPath, copyPath);
                     } finally {
                         IOUtils.closeQuietly(copyContent);
                     }
@@ -901,7 +901,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 retNewFileName = copyPath;
             }
         } catch(ServiceLayerException | UserNotFoundException eServiceLayerException) {
-            logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
+            logger.info("General Error while copying content for site {} from {} to {}, new name is {}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);
             throw eServiceLayerException;
         }
@@ -952,7 +952,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     logger.debug("Copy Pattern is not provided for contentType" + contentType);
                 }
             } else {
-                logger.debug("Not found dependency item at site {0} path {!}", site, sourceContentPath);
+                logger.debug("Not found dependency item at site {} path {!}", site, sourceContentPath);
             }
         }
         return copyDependency;
@@ -988,7 +988,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 targetPath = movePath;
             }
 
-            logger.debug("Move file for site {0} from {1} to {2}, sourcePath {3} to target path {4}", site,
+            logger.debug("Move file for site {} from {} to {}, sourcePath {} to target path {}", site,
                     fromPath, toPath, sourcePath, targetPath);
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
@@ -1007,14 +1007,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
             else {
-                logger.error("Repository move failed site {0} from {1} to {2}", site, sourcePath, targetPath);
+                logger.error("Repository move failed site {} from {} to {}", site, sourcePath, targetPath);
                 movePath = fromPath;
             }
 
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
         }
         catch(ServiceLayerException | UserNotFoundException eMoveErr) {
-            logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
+            logger.error("Content not found while moving content for site {} from {} to {}, new name is {}",
                     eMoveErr, site, fromPath, toPath, movePath);
         }
 
@@ -1028,7 +1028,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId)
             throws ServiceLayerException, UserNotFoundException {
-        logger.debug("updateDatabaseOnMove FROM {0} TO {1}  ", fromPath, movePath);
+        logger.debug("updateDatabaseOnMove FROM {} TO {}  ", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
 
@@ -1092,7 +1092,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateChildrenOnMove(String site, String fromPath, String movePath)
             throws ServiceLayerException, UserNotFoundException {
-        logger.debug("updateChildrenOnMove from {0} to {1}", fromPath, movePath);
+        logger.debug("updateChildrenOnMove from {} to {}", fromPath, movePath);
 
         // get the list of children
         ContentItemTO movedTO = getContentItem(site, movePath, 2);
@@ -1108,7 +1108,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
-            logger.debug("updateChildrenOnMove handling child from: {0} to: {1}  ", childFromPath, childToPath);
+            logger.debug("updateChildrenOnMove handling child from: {} to: {}  ", childFromPath, childToPath);
 
             // update database, preview, cache etc
             updateDatabaseOnMove(site, childFromPath, childToPath);
@@ -1126,12 +1126,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
         String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf(FILE_SEPARATOR)+1);
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
-        logger.debug("Cut/copy name rules from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
+        logger.debug("Cut/copy name rules from path: '{}' name: '{}'", fromPathOnly, fromFileNameOnly);
 
         if(fromFileIsIndex) {
             fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
             fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf(FILE_SEPARATOR));
-            logger.debug("Cut/copy name rules index from path: '{0}' name: '{1}'", fromPathOnly, fromFileNameOnly);
+            logger.debug("Cut/copy name rules index from path: '{}' name: '{}'", fromPathOnly, fromFileNameOnly);
         }
 
         String newPathOnly = (toPath.contains(".xml")) ?
@@ -1139,12 +1139,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String newFileNameOnly = (toPath.contains(".xml")) ?
                 toPath.substring(toPath.lastIndexOf(FILE_SEPARATOR)+1) : fromFileNameOnly;
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
-        logger.debug("Cut/copy name rules to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
+        logger.debug("Cut/copy name rules to path: '{}' name: '{}'", newPathOnly, newFileNameOnly);
 
         if(newFileIsIndex) {
             newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
             newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
-            logger.debug("Cut/copy name rules index to path: '{0}' name: '{1}'", newPathOnly, newFileNameOnly);
+            logger.debug("Cut/copy name rules index to path: '{}' name: '{}'", newPathOnly, newFileNameOnly);
         }
 
         String proposedDestPath = null;
@@ -1224,7 +1224,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         }
 
-        logger.debug("Initial Proposed Path: {0} ", proposedDestPath);
+        logger.debug("Initial Proposed Path: {} ", proposedDestPath);
 
         result.put("FILE_PATH", proposedDestPath);
         result.put("FILE_NAME", proposedDestPath_filename);
@@ -1240,7 +1240,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         if(adjustOnCollide && contentExists) {
-            logger.debug("File already found at path {0}, creating new name", proposedDestPath);
+            logger.debug("File already found at path {}, creating new name", proposedDestPath);
             try {
                 var siblings = _contentRepository.getContentChildren(site, newPathOnly);
                 var modifier = 1;
@@ -1305,7 +1305,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         }
 
-        logger.debug("Final proposed path from : '{0}' to: '{1}' final name '{2}'", fromPath, toPath,
+        logger.debug("Final proposed path from : '{}' to: '{}' final name '{}'", fromPath, toPath,
             proposedDestPath);
         return result;
     }
@@ -1648,7 +1648,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
 
                 List<ContentItemTO> children = new ArrayList<>();
-                logger.debug("Checking if {0} has index", contentPath);
+                logger.debug("Checking if {} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
                     if ("index.xml".equals(childRepoItems[j].name)) {
                         if (!item.uri.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
@@ -2055,7 +2055,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             content = IOUtils.toString(getContentVersion(site, path, version), UTF_8);
         }
         catch(Exception err) {
-            logger.debug("Failed to get content as string for path {0}, exception {1}", path, err);
+            logger.debug("Failed to get content as string for path {}, exception {}", path, err);
         }
 
         return content;
@@ -2552,7 +2552,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             targetPath += "-" + id;
         }
 
-        logger.debug("Rename folder for site {0} sourcePath {3} to target path {4}", site, path, targetPath);
+        logger.debug("Rename folder for site {} sourcePath {} to target path {}", site, path, targetPath);
         // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
         // historically with MOVE it is not
         Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
@@ -2575,7 +2575,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             toRet = true;
 
         } else {
-            logger.error("Repository move failed site {0} from {1} to {2}", site, path, targetPath);
+            logger.error("Repository move failed site {} from {} to {}", site, path, targetPath);
         }
 
         return toRet;

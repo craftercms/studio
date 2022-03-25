@@ -701,16 +701,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info("Using search engine {0} from plugin descriptor", searchEngine);
+            logger.info("Using search engine {} from plugin descriptor", searchEngine);
         } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info("Using search engine {0} from blueprint descriptor", searchEngine);
+            logger.info("Using search engine {} from blueprint descriptor", searchEngine);
         } else {
-            logger.info("Missing descriptor, using default search engine {0}", searchEngine);
+            logger.info("Missing descriptor, using default search engine {}", searchEngine);
         }
 
         if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
-            logger.error("Error creating site {0}, unsupported search engine CrafterSearch, please update your " +
+            logger.error("Error creating site {}, unsupported search engine CrafterSearch, please update your " +
                 "site to use Elasticsearch. For more information see " +
                 "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
                 siteId);

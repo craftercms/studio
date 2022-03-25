@@ -1623,7 +1623,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 generalLockService.unlock(gitLockKey);
             }
         } else {
-            logger.info("Cleaning up repositories for site {0}", siteId);
+            logger.info("Cleaning up repositories for site {}", siteId);
             String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
             String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
             generalLockService.lock(gitLockKeySandbox);

@@ -64,12 +64,12 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.debug("Looking site {0} for files that match: {1}", site, regex);
+        logger.debug("Looking site {} for files that match: {}", site, regex);
         Path repository = context.getRepositoryPath();
         try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
             (path, attrs) -> repository.relativize(path).toString().matches(regex) )) {
             paths.forEach(path -> {
-                logger.debug("Executing XSLT template in site {0} for file {1}", site, path);
+                logger.debug("Executing XSLT template in site {} for file {}", site, path);
                 try {
                     Path temp = Files.createTempFile("upgrade-manager", "xslt");
                     try {
@@ -83,7 +83,7 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
                         Files.deleteIfExists(temp);
                     }
                 } catch (Exception e) {
-                    logger.error("Error upgrading file {0} in site {1}", e, site, path);
+                    logger.error("Error upgrading file {} in site {}", e, site, path);
                 }
             });
         } catch (IOException e) {

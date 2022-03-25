@@ -104,7 +104,7 @@ public class PreviewDeployer extends AbstractDeployer {
                                                                             .contentType(MediaType.APPLICATION_JSON)
                                                                             .body(requestBody);
 
-            logger.debug("Calling deployment API: {0}", requestEntity);
+            logger.debug("Calling deployment API: {}", requestEntity);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (RestServiceException e) {

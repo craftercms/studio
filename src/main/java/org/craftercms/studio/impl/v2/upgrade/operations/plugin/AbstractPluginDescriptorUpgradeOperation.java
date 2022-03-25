@@ -70,7 +70,7 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
         var site = context.getTarget();
         Path descriptorFile = context.getRepositoryPath().resolve(descriptorPath);
         if (Files.notExists(descriptorFile)) {
-            logger.info("Plugin descriptor file not found for site {0}", site);
+            logger.info("Plugin descriptor file not found for site {}", site);
             return;
         }
         try (Reader reader = Files.newBufferedReader(descriptorFile)) {

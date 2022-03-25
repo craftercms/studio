@@ -65,7 +65,7 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-        logger.debug("Replacing parameters in file: {0}", file);
+        logger.debug("Replacing parameters in file: {}", file);
         try (InputStream inputStream = Files.newInputStream(file)) {
             String originalContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             String updatedContent = strSubstitutor.replace(originalContent);
@@ -75,14 +75,14 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
             }
             return FileVisitResult.CONTINUE;
         } catch (IOException e) {
-            logger.error("Error reading file {0}", e, file);
+            logger.error("Error reading file {}", e, file);
             throw e;
         }
     }
 
     @Override
     public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-        logger.error("Error reading file at {0}", exc, file);
+        logger.error("Error reading file at {}", exc, file);
         throw exc;
     }
 

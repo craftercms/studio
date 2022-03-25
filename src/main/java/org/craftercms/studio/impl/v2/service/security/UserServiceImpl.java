@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
 
-            logger.debug("Searching for current sessions for users: {0}", toDelete);
+            logger.debug("Searching for current sessions for users: {}", toDelete);
             Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
                     .map(principal -> (AuthenticatedUser) principal)
                     .filter(authenticatedUser -> toDelete.stream()
@@ -249,7 +249,7 @@ public class UserServiceImpl implements UserService {
                 // Invalidate any open session
                 List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
                 sessions.forEach(session -> {
-                    logger.debug("Invalidating session {0} for user {1}",
+                    logger.debug("Invalidating session {} for user {}",
                                     session.getSessionId(), principal.getUsername());
                     session.expireNow();
                 });
@@ -337,7 +337,7 @@ public class UserServiceImpl implements UserService {
 
                     sites.add(site);
                 } catch (SiteNotFoundException e) {
-                    logger.error("Site not found: {0}", e, siteId);
+                    logger.error("Site not found: {}", e, siteId);
                 }
             }
         }

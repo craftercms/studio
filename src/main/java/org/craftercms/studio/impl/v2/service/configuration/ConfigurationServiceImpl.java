@@ -230,7 +230,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         Document doc = (Document) configurationCache.getIfPresent(cacheKey);
         if (doc == null) {
             try {
-                logger.debug("CACHE MISS: {0}", cacheKey);
+                logger.debug("CACHE MISS: {}", cacheKey);
                 String content = getEnvironmentConfiguration(siteId, module, normalizedPath, environment);
                 if (isNotEmpty(content)) {
                     SAXReader saxReader = new SAXReader();
@@ -259,7 +259,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
         if (config == null) {
             try {
-                logger.debug("CACHE MISS: {0}", cacheKey);
+                logger.debug("CACHE MISS: {}", cacheKey);
                 if (contentService.contentExists(siteId, path)) {
                     config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, path));
                     configurationCache.put(cacheKey, config);
@@ -277,7 +277,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
         if (config == null) {
             try {
-                logger.debug("Cache miss: {0}", cacheKey);
+                logger.debug("Cache miss: {}", cacheKey);
                 if (contentService.contentExists(EMPTY, path)) {
                     config = configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path));
                     configurationCache.put(cacheKey,config);
@@ -294,7 +294,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         Document doc = (Document) configurationCache.getIfPresent(path);
         if (doc == null) {
             try {
-                logger.debug("Cache miss: {0}", path);
+                logger.debug("Cache miss: {}", path);
                 doc = contentService.getContentAsDocument(EMPTY, path);
                 configurationCache.put(path, doc);
             } catch (DocumentException e) {
@@ -629,14 +629,14 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     public void invalidateConfiguration(String siteId) {
-        logger.debug("Clearing configuration cache for site {0}", siteId);
+        logger.debug("Clearing configuration cache for site {}", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);
     }
 
     protected void invalidateCache(String key) {
-        logger.debug("Invalidating cache: {0}", key);
+        logger.debug("Invalidating cache: {}", key);
         cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
     }
 
@@ -672,7 +672,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             Document doc = (Document) configurationCache.getIfPresent(xmlCacheKey);
             if (doc == null) {
                 try {
-                    logger.debug("CACHE MISS: {0}", xmlCacheKey);
+                    logger.debug("CACHE MISS: {}", xmlCacheKey);
                     String configContent;
                     if (useContentService) {
                         configContent = contentService.getContentAsString(site, finalConfigPath);

@@ -89,7 +89,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
         if (contentTypeConfig == null) {
             try {
-                logger.debug("Cache miss: {0}", cacheKey);
+                logger.debug("Cache miss: {}", cacheKey);
 
                 if (contentService.contentExists(site, configFileFullPath)) {
                     Document document = configurationService.getConfigurationAsDocument(site, null, configFileFullPath, null);

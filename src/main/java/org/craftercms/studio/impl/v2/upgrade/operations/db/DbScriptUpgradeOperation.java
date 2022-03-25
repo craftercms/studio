@@ -111,7 +111,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
             throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
-        logger.info("Executing db script {0}", scriptFile.getFilename());
+        logger.info("Executing db script {}", scriptFile.getFilename());
         try {
             String scriptContent = IOUtils.toString(scriptFile.getInputStream(), UTF_8);
             try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,

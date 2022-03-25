@@ -59,13 +59,13 @@ public class PatternCacheInvalidator<K extends String, V> implements CacheInvali
             logger.debug("The original key contains a siteId, matches will be limited to the same siteId");
         }
 
-        logger.debug("Looking for keys matching {0}", pattern);
+        logger.debug("Looking for keys matching {}", pattern);
         var matchingKeys = cache.asMap().keySet().stream()
                 .filter(k -> k.matches(pattern)) // include keys that match the pattern
                 .filter(k -> isEmpty(siteId) || startsWith(k, siteId)) // include only keys for the same site
                 .filter(not(key::equals)) // exclude the original to avoid double invalidation
                 .collect(toList());
-        logger.debug("Invalidating cache for keys {0}", matchingKeys);
+        logger.debug("Invalidating cache for keys {}", matchingKeys);
         cache.invalidateAll(matchingKeys);
     }
 

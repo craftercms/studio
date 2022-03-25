@@ -85,14 +85,14 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         logger.debug("Looking for remote repositories to upgrade");
         List<RemoteRepository> remotes =
                 jdbcTemplate.query(REMOTE_REPOSITORIES_QUERY, new BeanPropertyRowMapper<>(RemoteRepository.class));
-        logger.debug("Found {0} remote repositories", remotes.size());
+        logger.debug("Found {} remote repositories", remotes.size());
 
         if (isEmpty(remotes)) {
             return;
         }
 
         for (RemoteRepository remote : remotes) {
-            logger.debug("Upgrading remote repository with id: {0}", remote.getId());
+            logger.debug("Upgrading remote repository with id: {}", remote.getId());
             switch (remote.getAuthenticationType()) {
                 case AuthenticationType.BASIC:
                     remote.setRemotePassword(upgradeValue(remote.getRemotePassword()));
@@ -104,7 +104,7 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
                     remote.setRemotePrivateKey(upgradeValue(remote.getRemotePrivateKey()));
                     break;
                 default:
-                    logger.warn("Unknown authentication type {0} for remote repository with id {1}",
+                    logger.warn("Unknown authentication type {} for remote repository with id {}",
                             remote.getAuthenticationType(), remote.getId());
             }
         }
@@ -118,14 +118,14 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         logger.debug("Looking for cluster members to upgrade");
         List<ClusterMember> members =
                 jdbcTemplate.query(CLUSTER_MEMBERS_QUERY, new BeanPropertyRowMapper<>(ClusterMember.class));
-        logger.debug("Found {0} cluster members", members.size());
+        logger.debug("Found {} cluster members", members.size());
 
         if (isEmpty(members)) {
             return;
         }
 
         for (ClusterMember member : members) {
-            logger.debug("Upgrading cluster member with id: {0}", member.getId());
+            logger.debug("Upgrading cluster member with id: {}", member.getId());
             switch (member.getGitAuthType()) {
                 case AuthenticationType.BASIC:
                     member.setGitPassword(upgradeValue(member.getGitPassword()));
@@ -137,7 +137,7 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
                     member.setGitPrivateKey(upgradeValue(member.getGitPrivateKey()));
                     break;
                 default:
-                    logger.warn("Unknown authentication type {0} for cluster member with id {1}",
+                    logger.warn("Unknown authentication type {} for cluster member with id {}",
                             member.getGitAuthType(), member.getId());
             }
         }

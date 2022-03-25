@@ -187,7 +187,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
             String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
             Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
             populateDataFromRepo(site, siteId, updateParentIdScriptPath);
-            logger.debug("Updating parent ids for site: {0}", site);
+            logger.debug("Updating parent ids for site: {}", site);
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
             Files.deleteIfExists(updateParentIdScriptPath);
         } catch (IOException e) {
@@ -206,7 +206,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
             throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
 
-        logger.debug("Executing stored procedure: {0} for site: {1}", spName, siteId);
+        logger.debug("Executing stored procedure: {} for site: {}", spName, siteId);
         try (Connection connection = context.getConnection()) {
             CallableStatement callableStatement = connection.prepareCall(
                     QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, spName)
@@ -219,7 +219,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     private void populateDataFromRepo(final String siteName, final long siteId, final Path updateParentIdScriptPath)
             throws IOException {
-        logger.debug("Iterating over repository for site: {0}", siteName);
+        logger.debug("Iterating over repository for site: {}", siteName);
         try (Repository repo = getRepository(siteName)) {
             ObjectId objCommitId = repo.resolve(HEAD);
             try (RevWalk walk = new RevWalk(repo)) {
@@ -236,7 +236,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                             treeWalk.enterSubtree();
                         } else {
                             if (StringUtils.containsAny(getName(treeWalk.getNameString()), IGNORE_FILES)) {
-                                logger.debug("Skipping ignored file {0} for site {1}", treeWalk.getPathString(),
+                                logger.debug("Skipping ignored file {} for site {}", treeWalk.getPathString(),
                                         siteName);
                             } else {
                                 processFile(siteName, siteId, FILE_SEPARATOR + treeWalk.getPathString(),
@@ -244,10 +244,10 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                             }
                         }
                     } catch (IOException e) {
-                        logger.error("Unexpected error processing {0} for site {1}", treeWalk.getPathString(),
+                        logger.error("Unexpected error processing {} for site {}", treeWalk.getPathString(),
                                 siteName, e);
                     } catch (DocumentException e) {
-                        logger.error("Unexpected error processing file {0} for site {1}", treeWalk.getPathString(),
+                        logger.error("Unexpected error processing file {} for site {}", treeWalk.getPathString(),
                                 siteName, e);
                     }
                 }
@@ -261,7 +261,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     private void processFolder(String site, long siteId, String path, String commitId,
                                String name, Path updateParentIdScriptPath) throws IOException {
-        logger.debug("Processing folder: {0} for site: {1}", path, site);
+        logger.debug("Processing folder: {} for site: {}", path, site);
         File folder = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                 studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH)).toFile();
@@ -278,7 +278,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     private void processFile(String site, long siteId, String path, String commitId,
                              String name, Path updateParentIdScriptPath) throws DocumentException, IOException {
-        logger.debug("Processing file: {0} for site: {1}", path, site);
+        logger.debug("Processing file: {} for site: {}", path, site);
         File file = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                 studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH)).toFile();
@@ -309,7 +309,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     }
 
     private void populateDescriptorProperties(String site, String path, Item item) throws DocumentException {
-        logger.debug("Extracting descriptor properties for file: {0} for site: {1}", path, site);
+        logger.debug("Extracting descriptor properties for file: {} for site: {}", path, site);
         Document document = contentService.getContentAsDocument(site, path);
         if(document != null) {
             Element rootElement = document.getRootElement();

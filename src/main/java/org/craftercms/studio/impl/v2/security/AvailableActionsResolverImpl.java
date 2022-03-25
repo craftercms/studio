@@ -177,7 +177,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         var cacheKey = site + CACHE_KEY;
         SitePermissionMappings mappings = cache.getIfPresent(cacheKey);
         if (mappings == null) {
-            logger.debug("Cache miss for {0}", cacheKey);
+            logger.debug("Cache miss for {}", cacheKey);
             mappings = fetchSitePermissionMappings(site);
             cache.put(cacheKey, mappings);
         }

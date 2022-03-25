@@ -127,7 +127,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                             }
                         } else {
                             // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
-                            logger.debug("No pipeline matched for {0}. Skipping asset processing...", repoPath);
+                            logger.debug("No pipeline matched for {}. Skipping asset processing...", repoPath);
 
                             // We already read input so open the temp file
                             try (InputStream assetIn = Files.newInputStream(input.getFilePath())) {
@@ -144,13 +144,13 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                     }
                 } else {
                     // Ignore if no pipelines config
-                    logger.debug("No asset processing pipelines config found at {0}. Skipping asset processing...", repoPath);
+                    logger.debug("No asset processing pipelines config found at {}. Skipping asset processing...", repoPath);
 
                     return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight,
                                                             allowLessSize, draft, unlock, systemAsset);
                 }
             } else {
-                logger.debug("No asset processing config found at {0}. Skipping asset processing...", repoPath);
+                logger.debug("No asset processing config found at {}. Skipping asset processing...", repoPath);
 
                 return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
                                                         draft, unlock, systemAsset);

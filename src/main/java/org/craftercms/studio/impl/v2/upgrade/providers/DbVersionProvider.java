@@ -86,7 +86,7 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
             if (updated != 1) {
                 throw new UpgradeException("Error updating the db version");
             }
-            logger.info("Database version updated to {0}", nextVersion);
+            logger.info("Database version updated to {}", nextVersion);
         } catch (Exception e) {
             throw new UpgradeException("Error updating the db version", e);
         }

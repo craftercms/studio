@@ -250,7 +250,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                                                       List<ContentTypeConfigTO> contentTypes) {
         String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + FILE_SEPARATOR + node.name;
-        logger.debug("Get Content Type Config fot Children path = {0}", fullPath );
+        logger.debug("Get Content Type Config fot Children path = {}", fullPath );
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {

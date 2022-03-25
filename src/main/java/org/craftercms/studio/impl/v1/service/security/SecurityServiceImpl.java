@@ -230,7 +230,7 @@ public class SecurityServiceImpl implements SecurityService {
                 }
             }
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Unable to retrieve user groups for user {0}", user);
+            logger.error("Unable to retrieve user groups for user {}", user);
         }
     }
 
@@ -377,7 +377,7 @@ public class SecurityServiceImpl implements SecurityService {
                 logger.debug("No groups found for " + user + " in " + site);
             }
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error while getting groups for user {0}", e);
+            logger.error("Error while getting groups for user {}", e);
         }
 
         return new HashSet<>(0);
@@ -573,7 +573,7 @@ public class SecurityServiceImpl implements SecurityService {
                     cache.put(cacheKey, config);
                 }
             } catch (ServiceLayerException e) {
-                logger.error("Global permission mapping not found (path: {0})", globalPermissionsConfigPath);
+                logger.error("Global permission mapping not found (path: {})", globalPermissionsConfigPath);
             }
         }
         return config;
@@ -586,7 +586,7 @@ public class SecurityServiceImpl implements SecurityService {
         try {
             document = configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
         } catch (ServiceLayerException e) {
-            logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
+            logger.error("Global roles mapping not found (path: {})", globalRolesConfigPath);
         }
         if (document != null) {
             config = new PermissionsConfigTO();
@@ -601,7 +601,7 @@ public class SecurityServiceImpl implements SecurityService {
             config.setLastUpdated(DateUtils.getCurrentTime());
 
         } else {
-            logger.error("Global roles mapping not found (path: {0})", globalRolesConfigPath);
+            logger.error("Global roles mapping not found (path: {})", globalRolesConfigPath);
         }
         return config;
     }

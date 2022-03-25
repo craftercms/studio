@@ -40,7 +40,7 @@ public class ContentTypePolicyValidator implements PolicyValidator {
     @Override
     public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug("Skipping folder {0}", action.getTarget());
+            logger.debug("Skipping folder {}", action.getTarget());
             return;
         }
 

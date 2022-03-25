@@ -113,7 +113,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                             Set<String> environments = getAllPublishingEnvironments(siteId);
                             for (String environment : environments) {
                                 env = environment;
-                                logger.debug("Processing content ready for deployment for site \"{0}\"", siteId);
+                                logger.debug("Processing content ready for deployment for site \"{}\"", siteId);
                                 List<PublishRequest> itemsToDeploy =
                                         publishingManager.getItemsReadyForDeployment(siteId, environment);
                                 while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
@@ -143,7 +143,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                     if (allCommitsPresent) {
                                         logger.info("Starting publishing on environment " + environment +
                                                 " for site " + siteId);
-                                        logger.debug("Site \"{0}\" has {1} items ready for deployment",
+                                        logger.debug("Site \"{}\" has {} items ready for deployment",
                                                 siteId, itemsToDeploy.size());
                                         String packageId = itemsToDeploy.get(0).getPackageId();
                                         PublishingProgressObserver observer =
@@ -194,7 +194,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                         logger.info("Publishing is blocked for site " + siteId);
                     }
                 } else {
-                    logger.debug("Publishing is disabled for site {0}", siteId);
+                    logger.debug("Publishing is disabled for site {}", siteId);
                 }
             }
         } catch (UncategorizedSQLException  dbErr) {
@@ -225,7 +225,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         Set<String> processedPaths = new HashSet<String>();
         String currentPackageId = StringUtils.EMPTY;
         try {
-            logger.debug("Mark items as processing for site \"{0}\"", siteId);
+            logger.debug("Mark items as processing for site \"{}\"", siteId);
             Set<String> packageIds = new HashSet<String>();
             for (PublishRequest item : itemsToDeploy) {
                 processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
@@ -254,7 +254,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             }
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
             publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
-            logger.debug("Mark deployment completed for processed items for site \"{0}\"", siteId);
+            logger.debug("Mark deployment completed for processed items for site \"{}\"", siteId);
             logger.info("Finished publishing environment " + environment + " for site " + siteId);
 
             if (publishingManager.isPublishingQueueEmpty(siteId)) {
@@ -265,7 +265,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             siteService.updatePublishingStatus(siteId, status);
         } catch (DeploymentException err) {
             logger.error("Error while executing deployment to environment store " +
-                            "for site \"{0}\", number of items \"{1}\"", err, siteId,
+                            "for site \"{}\", number of items \"{}\"", err, siteId,
                     itemsToDeploy.size());
             publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
             siteService.enablePublishing(siteId, false);
@@ -273,7 +273,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             throw err;
         } catch (Exception err) {
             logger.error("Unexpected error while executing deployment to environment " +
-                            "store for site \"{0}\", number of items \"{1}\"", err, siteId,
+                            "store for site \"{}\", number of items \"{}\"", err, siteId,
                     itemsToDeploy.size());
             publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
             siteService.enablePublishing(siteId, false);
@@ -291,34 +291,34 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
 
-            logger.debug("Processing [{0}] content item for site \"{1}\"", item
+            logger.debug("Processing [{}] content item for site \"{}\"", item
                     .getPath(), siteId);
             DeploymentItemTO deploymentItem = publishingManager.processItem(item);
             if (deploymentItem != null) {
                 deploymentItemList.add(deploymentItem);
             }
-            logger.debug("Processing COMPLETE [{0}] content item for site \"{1}\"",
+            logger.debug("Processing COMPLETE [{}] content item for site \"{}\"",
                     item.getPath(), siteId);
 
             if (isMandatoryDependenciesCheckEnabled()) {
-                logger.debug("Processing Mandatory Deps [{0}] content item for site "
-                        + "\"{1}\"", item.getPath(), siteId);
+                logger.debug("Processing Mandatory Deps [{}] content item for site "
+                        + "\"{}\"", item.getPath(), siteId);
                 missingDependencies.addAll(publishingManager
                         .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
-                logger.debug("Processing Mandatory Dependencies COMPLETE [{0}]"
-                        + " content item for site \"{1}\"", item.getPath(), siteId);
+                logger.debug("Processing Mandatory Dependencies COMPLETE [{}]"
+                        + " content item for site \"{}\"", item.getPath(), siteId);
             }
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
         } catch (DeploymentException err) {
-            logger.error("Error while executing deployment to environment store for site \"{0}\",", err, siteId);
+            logger.error("Error while executing deployment to environment store for site \"{}\",", err, siteId);
             publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
         } catch (Exception err){
             logger.error("Unexpected error while executing deployment to environment " +
-                    "store for site \"{0}\", ", err, siteId);
+                    "store for site \"{}\", ", err, siteId);
             publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);

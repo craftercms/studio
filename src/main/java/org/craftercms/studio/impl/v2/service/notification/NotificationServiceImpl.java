@@ -195,8 +195,8 @@ public class NotificationServiceImpl implements NotificationService {
                     message = getCannedMessage(notificationConfig.getCannedMessages(), key);
                     break;
                 default:
-                    logger.error("Requested notification message bundle not recognized: site: {0}, type: {1}," +
-                        "key: {2}.", site, type.toString(), key);
+                    logger.error("Requested notification message bundle not recognized: site: {}, type: {}," +
+                        "key: {}.", site, type.toString(), key);
                     break;
             }
             if (message != null) {
@@ -208,8 +208,8 @@ public class NotificationServiceImpl implements NotificationService {
                 return processMessage(key, message, model);
             }
         } catch (Throwable ex) {
-            logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
-                + " key: {2}.", (Exception)ex, site, type, key);
+            logger.error("Unable to get notification message from notification configuration for site: {} type: {}"
+                + " key: {}.", (Exception)ex, site, type, key);
             return EMPTY;
         }
         return EMPTY;
@@ -347,7 +347,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationConfigTO config = cache.getIfPresent(cacheKey);
             if (Objects.isNull(config)) {
-                logger.debug("Cache miss {0}", cacheKey);
+                logger.debug("Cache miss {}", cacheKey);
 
                 config = new NotificationConfigTO();
                 Document document =

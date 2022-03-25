@@ -159,9 +159,9 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         AmazonS3 s3Client = getS3Client(profile);
         AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);
 
-        logger.info("Starting upload of file {0} for site {1}", filename, site);
+        logger.info("Starting upload of file {} for site {}", filename, site);
         AwsUtils.uploadStream(profile.getInputPath(), filename, s3Client, partSize, filename, content);
-        logger.info("Upload of file {0} for site {1} complete", filename, site);
+        logger.info("Upload of file {} for site {} complete", filename, site);
 
         String originalName = FilenameUtils.getBaseName(filename);
 
@@ -178,9 +178,9 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
             .withRole(profile.getRole())
             .withQueue(profile.getQueue());
 
-        logger.info("Starting transcode job of file {0} for site {1}", filename, site);
+        logger.info("Starting transcode job of file {} for site {}", filename, site);
         CreateJobResult createJobResult = mediaConvertClient.createJob(createJobRequest);
-        logger.debug("Job {0} started", createJobResult.getJob().getArn());
+        logger.debug("Job {} started", createJobResult.getJob().getArn());
 
         return buildResult(jobTemplate, createJobResult, outputProfileId, originalName);
     }
@@ -190,7 +190,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                                              String outputProfileId, String originalName) {
         List<String> urls = new LinkedList<>();
         jobTemplate.getSettings().getOutputGroups().forEach(outputGroup -> {
-            logger.debug("Adding urls from group {0}", outputGroup.getName());
+            logger.debug("Adding urls from group {}", outputGroup.getName());
             OutputGroupType type = OutputGroupType.valueOf(outputGroup.getOutputGroupSettings().getType());
             switch (type) {
                 case FILE_GROUP_SETTINGS:
@@ -240,7 +240,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         String url = StringUtils.appendIfMissing(destination, delimiter) + originalName + modifier + "." + extension;
         url = createUrl(outputProfileId, url);
         urls.add(url);
-        logger.debug("Added url {0}", url);
+        logger.debug("Added url {}", url);
     }
 
     /**

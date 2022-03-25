@@ -80,7 +80,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
         if(Files.exists(file)) {
             try(InputStream templateIs = template.getInputStream();
                 InputStream sourceIs = Files.newInputStream(file)) {
-                logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
+                logger.info("Applying XSLT template {} to file {} for site {}", template, path, site);
                 Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
                 XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
                 trackChangedFiles(path);
@@ -88,7 +88,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
                 throw new UpgradeException("Error processing file", e);
             }
         } else {
-            logger.warn("Source file {0} does not exist in site {1}", path, site);
+            logger.warn("Source file {} does not exist in site {}", path, site);
         }
     }
 

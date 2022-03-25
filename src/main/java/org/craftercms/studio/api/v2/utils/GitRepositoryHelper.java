@@ -176,7 +176,7 @@ public class GitRepositoryHelper implements DisposableBean {
         logger.debug("getRepository invoked with site {}, type: {}", siteId, repoType);
 
         if (repo == null) {
-            logger.debug("cache miss for site {0}, type {1}", siteId, repoType);
+            logger.debug("cache miss for site {}, type {}", siteId, repoType);
             switch (repoType) {
                 case SANDBOX:
                     if (buildSiteRepo(siteId)) {
@@ -235,7 +235,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
         } catch (IOException e) {
             toReturn = false;
-            logger.error("Failed to create sandbox repo for site: {0} using path {1}", e, siteId, siteSandboxRepoPath);
+            logger.error("Failed to create sandbox repo for site: {} using path {}", e, siteId, siteSandboxRepoPath);
         }
 
         try {
@@ -249,7 +249,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
         } catch (IOException e) {
             toReturn = false;
-            logger.error("Failed to create published repo for site: {0} using path {1}", e, siteId,
+            logger.error("Failed to create published repo for site: {} using path {}", e, siteId,
                     sitePublishedRepoPath);
         }
 
@@ -698,7 +698,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
     public boolean replaceParameters(String siteId, Map<String, String> parameters) {
         if (MapUtils.isEmpty(parameters)) {
-            logger.debug("Skipping parameter replacement for site {0}", siteId);
+            logger.debug("Skipping parameter replacement for site {}", siteId);
             return true;
         }
         String configRootPath = FilenameUtils.getPath(
@@ -709,7 +709,7 @@ public class GitRepositoryHelper implements DisposableBean {
             Files.walkFileTree(configFolder, new StrSubstitutorVisitor(parameters));
             return true;
         } catch (IOException e) {
-            logger.error("Error looking for configuration files for site {0}", e, siteId);
+            logger.error("Error looking for configuration files for site {}", e, siteId);
             return false;
         }
     }
@@ -717,39 +717,39 @@ public class GitRepositoryHelper implements DisposableBean {
     public boolean addGitIgnoreFiles(String siteId) {
         List<HierarchicalConfiguration<ImmutableNode>> ignores = studioConfiguration.getSubConfigs(REPO_IGNORE_FILES);
         if (CollectionUtils.isEmpty(ignores)) {
-            logger.debug("No ignore files will be added to site {0}", siteId);
+            logger.debug("No ignore files will be added to site {}", siteId);
             return true;
         }
 
-        logger.debug("Adding ignore files for site {0}", siteId);
+        logger.debug("Adding ignore files for site {}", siteId);
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
 
         for (HierarchicalConfiguration<ImmutableNode> ignore : ignores) {
             String ignoreLocation = ignore.getString(CONFIG_KEY_RESOURCE);
             Resource ignoreFile = new ClassPathResource(ignoreLocation);
             if (!ignoreFile.exists()) {
-                logger.warn("Couldn't find ignore file at {0}", ignoreLocation);
+                logger.warn("Couldn't find ignore file at {}", ignoreLocation);
                 continue;
             }
 
             String repoFolder = ignore.getString(CONFIG_KEY_FOLDER);
             Path actualFolder = StringUtils.isEmpty(repoFolder)? siteSandboxPath : siteSandboxPath.resolve(repoFolder);
             if (!Files.exists(actualFolder)) {
-                logger.debug("Repository doesn't contain a {0} folder for site {1}", repoFolder, siteId);
+                logger.debug("Repository doesn't contain a {} folder for site {}", repoFolder, siteId);
                 continue;
             }
 
             Path actualFile = actualFolder.resolve(GitContentRepositoryConstants.IGNORE_FILE);
             if (!Files.exists(actualFile)) {
-                logger.debug("Adding ignore file at {0} for site {1}", repoFolder, siteId);
+                logger.debug("Adding ignore file at {} for site {}", repoFolder, siteId);
                 try (InputStream in = ignoreFile.getInputStream()) {
                     Files.copy(in, actualFile);
                 } catch (IOException e) {
-                    logger.error("Error writing ignore file at {0} for site {1}", e, repoFolder, siteId);
+                    logger.error("Error writing ignore file at {} for site {}", e, repoFolder, siteId);
                     return false;
                 }
             } else {
-                logger.debug("Repository already contains an ignore file at {0} for site {1}", actualFolder, siteId);
+                logger.debug("Repository already contains an ignore file at {} for site {}", actualFolder, siteId);
             }
         }
 

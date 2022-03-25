@@ -110,7 +110,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
             var path = entry.getValue();
             var file = context.getFile(path);
             if (overwrite || !Files.exists(file)) {
-                logger.debug("Upgrading global repo file: {0}", path);
+                logger.debug("Upgrading global repo file: {}", path);
                 try (InputStream in = entry.getKey().getInputStream();
                      OutputStream out = Files.newOutputStream(file)) {
                     IOUtils.copy(in, out);
@@ -119,7 +119,7 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
                     throw new UpgradeException("Error while upgrading global repo file " + path, e);
                 }
             } else {
-                logger.debug("File {0} already exists in global repo, it will not be changed", path);
+                logger.debug("File {} already exists in global repo, it will not be changed", path);
             }
         }
     }

@@ -85,13 +85,13 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
             logger.debug("Temporary branch already exists, changes will be discarded");
             deleteTemporaryBranch(git);
         }
-        logger.debug("Creating temporary branch {0} for site {1}", siteUpgradeBranch, site);
+        logger.debug("Creating temporary branch {} for site {}", siteUpgradeBranch, site);
         CreateBranchCommand createBranchCommand = git.branchCreate().setName(siteUpgradeBranch);
         retryingRepositoryOperationFacade.call(createBranchCommand);
     }
 
     protected void checkoutBranch(String branch, Git git) throws GitAPIException {
-        logger.debug("Checking out {0} branch", branch);
+        logger.debug("Checking out {} branch", branch);
         CheckoutCommand checkoutCommand = git.checkout().setName(branch);
         retryingRepositoryOperationFacade.call(checkoutCommand);
     }

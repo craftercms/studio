@@ -121,14 +121,14 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
 
     @Override
     protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException {
-        logger.debug("Checking file {0} for site {1}", file, context);
+        logger.debug("Checking file {} for site {}", file, context);
         try {
             Document document = loadDocument(file);
 
             String contentTypeName = (String) select(document, contentTypeXpath, XPathConstants.STRING);
 
             if(CollectionUtils.isNotEmpty(includedContentTypes) && !includedContentTypes.contains(contentTypeName)) {
-                logger.debug("File {0} of content-type {1} will not be updated", file, contentTypeName);
+                logger.debug("File {} of content-type {} will not be updated", file, contentTypeName);
                 return false;
             }
 
@@ -156,7 +156,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
      */
     protected Document loadDocument(Path file) throws ExecutionException {
         return cache.get(file, () -> {
-            logger.debug("Parsing file {0}", file);
+            logger.debug("Parsing file {}", file);
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(file.toFile());
         });
