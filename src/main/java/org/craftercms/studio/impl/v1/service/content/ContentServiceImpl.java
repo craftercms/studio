@@ -886,12 +886,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                         // track that we already copied so we don't follow a circular dependency
                         processedPaths.add(copyPath);
-                    } catch (ContentNotFoundException eContentNotFound) {
+                    } catch (ContentNotFoundException e) {
                         logger.debug("Content not found while copying content for site {} from {} to {}," +
-                                " new name is {}", eContentNotFound, site, fromPath, toPath, copyPath);
-                    } catch (DocumentException eParseException) {
+                                " new name is {}", site, fromPath, toPath, copyPath, e);
+                    } catch (DocumentException e) {
                         logger.error("General Error while copying content for site {} from {} to {}," +
-                                " new name is {}", eParseException, site, fromPath, toPath, copyPath);
+                                " new name is {}", site, fromPath, toPath, copyPath, e);
                     } finally {
                         IOUtils.closeQuietly(copyContent);
                     }
@@ -900,10 +900,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // no need to process
                 retNewFileName = copyPath;
             }
-        } catch(ServiceLayerException | UserNotFoundException eServiceLayerException) {
+        } catch(ServiceLayerException | UserNotFoundException e) {
             logger.info("General Error while copying content for site {} from {} to {}, new name is {}",
-                eServiceLayerException, site, fromPath, toPath, copyPath);
-            throw eServiceLayerException;
+                site, fromPath, toPath, copyPath, e);
+            throw e;
         }
 
         return retNewFileName;
