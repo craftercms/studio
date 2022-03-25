@@ -38,7 +38,7 @@ try {
         if (StringUtils.isEmpty(siteId)) {
             invalidParams = true
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
     }
 
