@@ -1,9 +1,5 @@
 /*
-<<<<<<< HEAD
- * Copyright (C) 2007-2021 Crafter Software Corporation. All Rights Reserved.
-=======
  * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
->>>>>>> 8218f769775ee0a146c7c1591dc01b12e8b2d643
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by

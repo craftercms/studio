@@ -684,6 +684,9 @@
         <property name="workflowPackageDao" ref="workflowPackageDao" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
+        <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"

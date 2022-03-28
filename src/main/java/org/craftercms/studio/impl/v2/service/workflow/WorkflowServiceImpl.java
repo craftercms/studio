@@ -731,10 +731,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                         List<WorkflowPackagesApproveRequestBody.ApprovedPackage> packages,
                                         ZonedDateTime schedule)
             throws ServiceLayerException, AuthenticationException {
-        var site = siteService.getSite(siteId);
         var user = userService.getCurrentUser();
         packages.forEach(pkg -> {
-            workflowServiceInternal.approveWorkflowPackage(site.getId(), pkg.getPackageId(), user.getId(),
+            workflowServiceInternal.approveWorkflowPackage(siteId, pkg.getPackageId(), user.getId(),
                     pkg.getApproverComment(), schedule);
         });
     }

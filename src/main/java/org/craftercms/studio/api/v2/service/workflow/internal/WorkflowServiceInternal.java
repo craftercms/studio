@@ -174,13 +174,13 @@ public interface WorkflowServiceInternal {
 
     /**
      * Approve workflow packages
-     * @param siteId site id
+     * @param siteId site identifier
      * @param packageId workflow package id
      * @param reviewerId reviewer id
      * @param reviewerComment reviewer comment
      * @param schedule scheduled
      */
-    void approveWorkflowPackage(long siteId, String packageId, long reviewerId, String reviewerComment,
+    void approveWorkflowPackage(String siteId, String packageId, long reviewerId, String reviewerComment,
                                ZonedDateTime schedule);
 
     /**
