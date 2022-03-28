@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 
 import java.util.List;
 
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_COPY;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
@@ -169,7 +170,7 @@ public final class ContentItemAvailableActionsConstants {
     // Map permissions to available actions
     // content_read
     public static final long BITMAP_CONTENT_READ =
-            CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY + CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST;
+            CONTENT_READ + CONTENT_READ_VERSION_HISTORY + CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST;
     // content_create
     public static final long BITMAP_CONTENT_CREATE =
             CONTENT_CREATE + CONTENT_PASTE;
@@ -200,6 +201,9 @@ public final class ContentItemAvailableActionsConstants {
         switch (permission.toLowerCase()) {
             case PERMISSION_CONTENT_READ:
                 result = BITMAP_CONTENT_READ;
+                break;
+            case PERMISSION_CONTENT_COPY:
+                result = CONTENT_COPY;
                 break;
             case PERMISSION_CONTENT_CREATE:
                 result = BITMAP_CONTENT_CREATE;

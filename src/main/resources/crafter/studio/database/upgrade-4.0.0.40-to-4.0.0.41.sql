@@ -88,4 +88,4 @@ CREATE TABLE IF NOT EXISTS publishing_queue_parameters
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
 
-UPDATE _meta SET version = '4.0.0.40' ;
+UPDATE _meta SET version = '4.0.0.41' ;
