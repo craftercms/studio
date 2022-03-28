@@ -49,6 +49,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_PULL_FROM_REMOTE = "pull_from_remote";
     public static final String PERMISSION_PUSH_TO_REMOTE = "push_to_remote";
     public static final String PERMISSION_CONTENT_READ = "content_read";
+    public static final String PERMISSION_CONTENT_COPY = "content_copy";
     public static final String PERMISSION_READ_CLUSTER = "read_cluster";
     public static final String PERMISSION_READ_GROUPS = "read_groups";
     public static final String PERMISSION_READ_LOGS = "read_logs";

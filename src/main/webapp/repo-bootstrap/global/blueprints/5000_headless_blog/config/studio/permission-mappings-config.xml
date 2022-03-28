@@ -76,11 +76,12 @@
 
 -->
 <permissions>
-    <version>4.0.2</version>
+    <version>4.0.3</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
@@ -94,6 +95,7 @@
         <rule regex="/site/items|/site/items/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
@@ -107,6 +109,7 @@
         <rule regex="/static-assets|/static-assets/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
@@ -134,6 +137,7 @@
         <rule regex="/site/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
@@ -156,6 +160,7 @@
         <rule regex="/(static-assets|templates|scripts)/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
@@ -196,6 +201,7 @@
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
@@ -271,6 +277,7 @@
         <rule regex="/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
+                <permission>content_copy</permission>
                 <permission>content_write</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
