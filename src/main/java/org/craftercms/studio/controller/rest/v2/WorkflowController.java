@@ -305,7 +305,8 @@ public class WorkflowController {
     }
 
     @GetMapping(value = PACKAGES + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getWorkflowPackage(@PathVariable(REQUEST_PARAM_ID) String workflowPackageId) {
+    public ResponseBody getWorkflowPackage(@PathVariable(REQUEST_PARAM_ID) String workflowPackageId)
+            throws UserNotFoundException, ServiceLayerException {
         var workflowPackage = workflowService.getWorkflowPackage(workflowPackageId);
         var responseBody = new ResponseBody();
         var result = new ResultOne<WorkflowPackage>();
@@ -316,7 +317,8 @@ public class WorkflowController {
     }
 
     @PostMapping(value = PACKAGES + APPROVE, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody approveWorkflowPackages(@RequestBody @Valid WorkflowPackagesApproveRequestBody workflowPackagesApproveRequestBody) {
+    public ResponseBody approveWorkflowPackages(@RequestBody @Valid WorkflowPackagesApproveRequestBody workflowPackagesApproveRequestBody)
+            throws AuthenticationException, ServiceLayerException {
         workflowService.approveWorkflowPackages(workflowPackagesApproveRequestBody.getSiteId(),
                 workflowPackagesApproveRequestBody.getPackages(), workflowPackagesApproveRequestBody.getSchedule());
         var responseBody = new ResponseBody();
@@ -327,7 +329,8 @@ public class WorkflowController {
     }
 
     @PostMapping(value = PACKAGES + REJECT, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody rejectWorkflowPackages(@RequestBody @Valid WorkflowPackagesRejectRequestBody workflowPackagesRejectRequestBody) {
+    public ResponseBody rejectWorkflowPackages(@RequestBody @Valid WorkflowPackagesRejectRequestBody workflowPackagesRejectRequestBody)
+            throws AuthenticationException, ServiceLayerException {
         workflowService.rejectWorkflowPackages(workflowPackagesRejectRequestBody.getSiteId(),
                 workflowPackagesRejectRequestBody.getPackages());
         var responseBody = new ResponseBody();

@@ -193,7 +193,7 @@ public interface WorkflowService {
      * @param workflowPackageId workflow package id
      * @return workflow package
      */
-    WorkflowPackage getWorkflowPackage(String workflowPackageId);
+    WorkflowPackage getWorkflowPackage(String workflowPackageId) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Approve workflow packages

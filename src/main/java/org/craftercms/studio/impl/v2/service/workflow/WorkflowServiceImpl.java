@@ -721,7 +721,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     @Override
-    public WorkflowPackage getWorkflowPackage(String workflowPackageId) {
+    public WorkflowPackage getWorkflowPackage(String workflowPackageId)
+            throws UserNotFoundException, ServiceLayerException {
         return workflowServiceInternal.getWorkflowPackage(workflowPackageId);
     }
 

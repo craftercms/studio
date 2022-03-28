@@ -75,4 +75,25 @@ public interface WorkflowPackageDAO {
      */
     void addWorkflowPackageItems(@Param(WORKFLOW_PACKAGE_ID) String workflowPackageId,
                                  @Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths);
+
+    /**
+     * Update workflow package
+     * @param workflowPackage workflow package to update
+     * @return updated workflow package
+     */
+    WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage);
+
+    /**
+     * Get workflow package by id
+     * @param workflowPackageId workflow package id
+     * @return workflow packaged
+     */
+    WorkflowPackage getWorkflowPackage(String workflowPackageId);
+
+    /**
+     * Get item ids of the items contained in given workflow package
+     * @param workflowPackageId workflow package id
+     * @return list of item ids
+     */
+    List<Long> getWorkflowPackageItemIds(String workflowPackageId);
 }

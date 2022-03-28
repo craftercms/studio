@@ -19,7 +19,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.WorkflowPackageDAO">
-    <resultMap id="WorkflowMap" type="org.craftercms.studio.api.v2.dal.WorkflowPackage">
+    <resultMap id="WorkflowPackageMap" type="org.craftercms.studio.api.v2.dal.WorkflowPackage">
         <id property="id" column="id" />
         <result property="siteId" column="site_id"/>
         <result property="siteName" column="site_name" />
@@ -53,7 +53,7 @@
         </if>
     </select>
 
-    <select id="getWorkflowPackages" resultMap="WorkflowPackage">
+    <select id="getWorkflowPackages" resultMap="WorkflowPackageMap">
         SELECT wp.id as id, wp.site_id as site_id, s.site_id as site_name, wp.label as label, wp.status as status,
                wp.author as author, au.username as author_username, wp.reviewer as reviewer,
                ru.username as reviewer_username, wp.schedule as schedule, wp.publishing_target as publishing_target,
@@ -91,4 +91,35 @@
             #{path}
         </foreach>
     </insert>
+
+    <update id="updateWorkflowPackage" parameterType="WorkflowPackage">
+        UPDATE workflow_package
+        SET site_id = #{siteId},
+            label = #{label},
+            status = #{status},
+            author = #{authorId},
+            reviewer = #{reviewerId},
+            schedule = #{schedule},
+            publishingTarget = #{publishingTarget},
+            author_comment = #{authorComment},
+            reviewerComment = #{reviewerComment}
+        WHERE id = #{id}
+    </update>
+    
+    <select id="getWorkflowPackage" resultMap="WorkflowPackageMap" >
+        SELECT wp.id as id, wp.site_id as site_id, s.site_id as site_name, wp.label as label, wp.status as status,
+               wp.author as author, au.username as author_username, wp.reviewer as reviewer,
+               ru.username as reviewer_username, wp.schedule as schedule, wp.publishing_target as publishing_target,
+               wp.author_comment as author_comment, wp.reviewer_comment as reviewer_comment
+        FROM workflow_package wp INNER JOIN site s ON s.id = wp.site_id
+                                 INNER JOIN user au ON au.id = wp.author
+                                 INNER JOIN user ru ON ru.id = wp.reviewer
+        WHERE wp.id = #{workflowPackageId}
+    </select>
+
+    <select id="getWorkflowPackageItemIds" resultType="Long">
+        SELECT item_id
+        FROM workflow_package_item
+        WHERE workflow_package_id = #{workflowPackageId}
+    </select>
 </mapper>

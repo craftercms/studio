@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.service.workflow.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.dal.WorkflowPackage;
@@ -168,7 +170,7 @@ public interface WorkflowServiceInternal {
      * @param workflowPackageId workflow package id
      * @return workflow package
      */
-    WorkflowPackage getWorkflowPackage(String workflowPackageId);
+    WorkflowPackage getWorkflowPackage(String workflowPackageId) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Approve workflow packages

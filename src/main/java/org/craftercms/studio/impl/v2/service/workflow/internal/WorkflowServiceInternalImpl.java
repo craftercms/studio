@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.impl.v2.service.workflow.internal;
 
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
@@ -23,19 +26,25 @@ import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.dal.WorkflowPackage;
 import org.craftercms.studio.api.v2.dal.WorkflowPackageDAO;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
+import org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 
 public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     private WorkflowDAO workflowDao;
+    private SiteFeedMapper siteFeedMapper;
     private WorkflowPackageDAO workflowPackageDao;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private ContentServiceInternalImpl contentServiceInternal;
 
     @Override
     public WorkflowItem getWorkflowEntry(String siteId, String path) {
@@ -135,9 +144,14 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     }
 
     @Override
-    public WorkflowPackage getWorkflowPackage(String workflowPackageId) {
+    public WorkflowPackage getWorkflowPackage(String workflowPackageId)
+            throws UserNotFoundException, ServiceLayerException {
         var workflowPackage = workflowPackageDao.getWorkflowPackage(workflowPackageId);
-        var packageItemIds
+        var packageItemIds = workflowPackageDao.getWorkflowPackageItemIds(workflowPackageId);
+        var params = new HashMap<String, Object>();
+        params.put(SITE_ID, workflowPackage.getSiteId());
+        var site = siteFeedMapper.getSite(params);
+        var items = contentServiceInternal.getSandboxItemsById(site.getSiteId(), packageItemIds, true);
         return workflowPackage;
     }
 
@@ -173,5 +187,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    }
+
+    public ContentServiceInternalImpl getContentServiceInternal() {
+        return contentServiceInternal;
+    }
+
+    public void setContentServiceInternal(ContentServiceInternalImpl contentServiceInternal) {
+        this.contentServiceInternal = contentServiceInternal;
     }
 }
