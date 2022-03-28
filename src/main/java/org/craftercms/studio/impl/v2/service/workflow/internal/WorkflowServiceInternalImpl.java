@@ -27,6 +27,7 @@ import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 
@@ -113,9 +114,40 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     }
 
     @Override
-    public void createWorkflowPackage(String siteId, List<String> paths, String publishingTarget,
-                                      String publishingTarget1, ZonedDateTime schedule, String authorComment,
-                                      String label) {
+    public void createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
+                                      ZonedDateTime schedule, long authorId, String authorComment, String label) {
+        WorkflowPackage workflowPackage = new WorkflowPackage();
+        workflowPackage.setId(UUID.randomUUID().toString());
+        workflowPackage.setSiteId(siteId);
+        workflowPackage.setStatus(status);
+        workflowPackage.setPublishingTarget(publishingTarget);
+        workflowPackage.setSchedule(schedule);
+        workflowPackage.setAuthorId(authorId);
+        workflowPackage.setAuthorComment(authorComment);
+        workflowPackage.setLabel(label);
+        workflowPackageDao.createWorkflowPackage(workflowPackage);
+        workflowPackageDao.addWorkflowPackageItems(workflowPackage.getId(), siteId, paths);
+    }
+
+    @Override
+    public WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage) {
+        return workflowPackageDao.updateWorkflowPackage(workflowPackage);
+    }
+
+    @Override
+    public WorkflowPackage getWorkflowPackage(String workflowPackageId) {
+        var workflowPackage = workflowPackageDao.getWorkflowPackage(workflowPackageId);
+        var packageItemIds
+        return workflowPackage;
+    }
+
+    @Override
+    public void approveWorkflowPackage(long siteId, String packageId, long reviewerId, String reviewerComment, ZonedDateTime schedule) {
+
+    }
+
+    @Override
+    public void rejectWorkflowPackage(long siteId, String packageId, long reviewerId, String reviewerComment) {
 
     }
 

@@ -153,6 +153,40 @@ public interface WorkflowServiceInternal {
      * @param authorComment author's comment
      * @param label label for package
      */
-    void createWorkflowPackage(String siteId, List<String> paths, String status, String publishingTarget,
-                               ZonedDateTime schedule, String authorComment, String label);
+    void createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
+                               ZonedDateTime schedule, long authorId, String authorComment, String label);
+
+    /**
+     * Update workflow package
+     * @param workflowPackage workflow package to update
+     * @return updated workflow package
+     */
+    WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage);
+
+    /**
+     * Get workflow package by id
+     * @param workflowPackageId workflow package id
+     * @return workflow package
+     */
+    WorkflowPackage getWorkflowPackage(String workflowPackageId);
+
+    /**
+     * Approve workflow packages
+     * @param siteId site id
+     * @param packageId workflow package id
+     * @param reviewerId reviewer id
+     * @param reviewerComment reviewer comment
+     * @param schedule scheduled
+     */
+    void approveWorkflowPackage(long siteId, String packageId, long reviewerId, String reviewerComment,
+                               ZonedDateTime schedule);
+
+    /**
+     * Reject workflow packages
+     * @param siteId site id
+     * @param packageId workflow package id
+     * @param reviewerId reviewer id
+     * @param reviewerComment reviewer comment
+     */
+    void rejectWorkflowPackage(long siteId, String packageId, long reviewerId, String reviewerComment);
 }

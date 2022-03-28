@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -50,6 +52,7 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
@@ -57,6 +60,8 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.workflow.WorkflowPackagesApproveRequestBody;
+import org.craftercms.studio.model.rest.workflow.WorkflowPackagesRejectRequestBody;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -124,6 +129,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private StudioConfiguration studioConfiguration;
     private ApplicationContext applicationContext;
     private ActivityStreamServiceInternal activityStreamServiceInternal;
+    private UserService userService;
 
     @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
@@ -702,9 +708,46 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public void createWorkflowPackage(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, String status,
                                       String publishingTarget, ZonedDateTime schedule, String authorComment,
-                                      String label) {
-        workflowServiceInternal.createWorkflowPackage(siteId, paths, status, publishingTarget,
-                schedule, authorComment, label);
+                                      String label) throws AuthenticationException, ServiceLayerException {
+        var site = siteService.getSite(siteId);
+        var user = userService.getCurrentUser();
+        workflowServiceInternal.createWorkflowPackage(site.getId(), paths, status, publishingTarget,
+                schedule, user.getId(), authorComment, label);
+    }
+
+    @Override
+    public WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage) {
+        return workflowServiceInternal.updateWorkflowPackage(workflowPackage);
+    }
+
+    @Override
+    public WorkflowPackage getWorkflowPackage(String workflowPackageId) {
+        return workflowServiceInternal.getWorkflowPackage(workflowPackageId);
+    }
+
+    @Override
+    public void approveWorkflowPackages(String siteId,
+                                        List<WorkflowPackagesApproveRequestBody.ApprovedPackage> packages,
+                                        ZonedDateTime schedule)
+            throws ServiceLayerException, AuthenticationException {
+        var site = siteService.getSite(siteId);
+        var user = userService.getCurrentUser();
+        packages.forEach(pkg -> {
+            workflowServiceInternal.approveWorkflowPackage(site.getId(), pkg.getPackageId(), user.getId(),
+                    pkg.getApproverComment(), schedule);
+        });
+    }
+
+    @Override
+    public void rejectWorkflowPackages(String siteId,
+                                       List<WorkflowPackagesRejectRequestBody.RejectedPackages> packages)
+            throws ServiceLayerException, AuthenticationException {
+        var site = siteService.getSite(siteId);
+        var user = userService.getCurrentUser();
+        packages.forEach(pkg -> {
+            workflowServiceInternal.rejectWorkflowPackage(site.getId(), pkg.getPackageId(), user.getId(),
+                    pkg.getRejectionComment());
+        });
     }
 
     @Override
@@ -830,5 +873,13 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 }

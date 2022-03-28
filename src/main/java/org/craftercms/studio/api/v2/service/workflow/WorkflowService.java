@@ -17,10 +17,14 @@
 package org.craftercms.studio.api.v2.service.workflow;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.WorkflowPackage;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.craftercms.studio.model.rest.workflow.WorkflowPackagesApproveRequestBody;
+import org.craftercms.studio.model.rest.workflow.WorkflowPackagesRejectRequestBody;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -174,5 +178,36 @@ public interface WorkflowService {
      * @param label label for package
      */
     void createWorkflowPackage(String siteId, List<String> paths, String status, String publishingTarget,
-                               ZonedDateTime schedule, String authorComment, String label);
+                               ZonedDateTime schedule, String authorComment, String label)
+            throws AuthenticationException, ServiceLayerException;
+
+    /**
+     * Update workflow package
+     * @param workflowPackage workflow package to update
+     * @return updated workflow package
+     */
+    WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage);
+
+    /**
+     * Get workflow package by id
+     * @param workflowPackageId workflow package id
+     * @return workflow package
+     */
+    WorkflowPackage getWorkflowPackage(String workflowPackageId);
+
+    /**
+     * Approve workflow packages
+     * @param siteId site identifier
+     * @param packages list of package ids and approver comments
+     * @param schedule approved schedule
+     */
+    void approveWorkflowPackages(String siteId, List<WorkflowPackagesApproveRequestBody.ApprovedPackage> packages,
+                                 ZonedDateTime schedule) throws ServiceLayerException, AuthenticationException;
+
+    /**
+     * Reject workflow packages
+     * @param siteId site identifiers
+     * @param packages list of workflow package ids and rejection comments
+     */
+    void rejectWorkflowPackages(String siteId, List<WorkflowPackagesRejectRequestBody.RejectedPackages> packages) throws ServiceLayerException, AuthenticationException;
 }

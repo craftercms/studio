@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -28,6 +29,7 @@ import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.workflow.ApproveRequestBody;
 import org.craftercms.studio.model.rest.workflow.CreateWorkflowPackageRequestBody;
@@ -36,9 +38,13 @@ import org.craftercms.studio.model.rest.workflow.PublishRequestBody;
 import org.craftercms.studio.model.rest.workflow.RejectRequestBody;
 import org.craftercms.studio.model.rest.workflow.RequestPublishRequestBody;
 import org.craftercms.studio.model.rest.workflow.UpdateItemStatesByQueryRequestBody;
+import org.craftercms.studio.model.rest.workflow.WorkflowPackagesApproveRequestBody;
+import org.craftercms.studio.model.rest.workflow.WorkflowPackagesRejectRequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,6 +61,7 @@ import java.util.regex.Pattern;
 
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DATE_FROM;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DATE_TO;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ORDER;
@@ -67,12 +74,14 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.A
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.APPROVE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_STATES;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REJECT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REQUEST_PUBLISH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UPDATE_ITEM_STATES_BY_QUERY;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.WORKFLOW;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -271,7 +280,8 @@ public class WorkflowController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = PACKAGES, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody createWorkflowPackage(@Valid CreateWorkflowPackageRequestBody createWorkflowPackageRequestBody) {
+    public ResponseBody createWorkflowPackage(@RequestBody @Valid CreateWorkflowPackageRequestBody createWorkflowPackageRequestBody)
+            throws AuthenticationException, ServiceLayerException {
         workflowService.createWorkflowPackage(createWorkflowPackageRequestBody.getSiteId(),
                 createWorkflowPackageRequestBody.getPaths(), createWorkflowPackageRequestBody.getStatus(),
                 createWorkflowPackageRequestBody.getPublishingTarget(),createWorkflowPackageRequestBody.getSchedule(),
@@ -279,6 +289,50 @@ public class WorkflowController {
         var responseBody = new ResponseBody();
         var result = new Result();
         result.setResponse(CREATED);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PatchMapping(value = PACKAGES, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody updateWorkflowPackage(@RequestBody @Valid WorkflowPackage workflowPackage) {
+        var pkg = workflowService.updateWorkflowPackage(workflowPackage);
+        var responseBody = new ResponseBody();
+        var result = new ResultOne<WorkflowPackage>();
+        result.setEntity(RESULT_KEY_PACKAGE, pkg);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @GetMapping(value = PACKAGES + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody getWorkflowPackage(@PathVariable(REQUEST_PARAM_ID) String workflowPackageId) {
+        var workflowPackage = workflowService.getWorkflowPackage(workflowPackageId);
+        var responseBody = new ResponseBody();
+        var result = new ResultOne<WorkflowPackage>();
+        result.setEntity(RESULT_KEY_PACKAGE, workflowPackage);
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = PACKAGES + APPROVE, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody approveWorkflowPackages(@RequestBody @Valid WorkflowPackagesApproveRequestBody workflowPackagesApproveRequestBody) {
+        workflowService.approveWorkflowPackages(workflowPackagesApproveRequestBody.getSiteId(),
+                workflowPackagesApproveRequestBody.getPackages(), workflowPackagesApproveRequestBody.getSchedule());
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @PostMapping(value = PACKAGES + REJECT, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody rejectWorkflowPackages(@RequestBody @Valid WorkflowPackagesRejectRequestBody workflowPackagesRejectRequestBody) {
+        workflowService.rejectWorkflowPackages(workflowPackagesRejectRequestBody.getSiteId(),
+                workflowPackagesRejectRequestBody.getPackages());
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
     }

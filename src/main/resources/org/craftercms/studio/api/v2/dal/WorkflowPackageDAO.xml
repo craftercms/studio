@@ -76,8 +76,19 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <insert id="createWorkflowPackage">
-        INSERT INTO workflow_package (site_id, status, publishing_target, schedule, author, author_comment, label)
-        VALUES (#{site_id}, #{status}, #{publishing_target}, #{schedule}, #{author_id}, #{author_comment}, #{label})
+    <insert id="createWorkflowPackage" parameterType="WorkflowPackage">
+        INSERT INTO workflow_package (id, site_id, status, publishing_target, schedule, author, author_comment, label)
+        VALUES (#{id}, #{siteId}, #{status}, #{publishingTarget}, #{schedule}, #{authorId}, #{authorComment}, #{label})
+    </insert>
+
+    <insert id="addWorkflowPackageItems">
+        INSERT INTO workflow_package_items (workflow_package_id, item_id, commit_id)
+        SELECT #{workflow_package_id}, id, commit_id
+        FROM item
+        WHERE site_id = #{siteId}
+        AND path IN
+        <foreach collection="paths" index="index" item="path" open="(" close=")" separator=",">
+            #{path}
+        </foreach>
     </insert>
 </mapper>

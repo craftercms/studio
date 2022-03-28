@@ -26,8 +26,10 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATUS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.WORKFLOW_PACKAGE_ID;
 
 public interface WorkflowPackageDAO {
 
@@ -57,4 +59,20 @@ public interface WorkflowPackageDAO {
                                               @Param(DATE_FROM) ZonedDateTime dateFrom,
                                               @Param(DATE_TO) ZonedDateTime dateTo, @Param(OFFSET) int offset,
                                               @Param(LIMIT) int limit, @Param(ORDER) String order);
+
+    /**
+     * Create workflow package
+     *
+     * @param workflowPackage workflow package object
+     */
+    void createWorkflowPackage(WorkflowPackage workflowPackage);
+
+    /**
+     * Add items to workflow package
+     * @param workflowPackageId workflow package identifier
+     * @param siteId site id
+     * @param paths list of paths of the items
+     */
+    void addWorkflowPackageItems(@Param(WORKFLOW_PACKAGE_ID) String workflowPackageId,
+                                 @Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths);
 }

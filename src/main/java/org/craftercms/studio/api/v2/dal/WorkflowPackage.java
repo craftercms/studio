@@ -16,11 +16,14 @@
 
 package org.craftercms.studio.api.v2.dal;
 
+import org.craftercms.studio.model.rest.content.SandboxItem;
+
 import java.time.ZonedDateTime;
+import java.util.List;
 
 public class WorkflowPackage {
 
-    private long id;
+    private String id;
     private long siteId;
     private String siteName;
     private String label;
@@ -34,11 +37,13 @@ public class WorkflowPackage {
     private String authorComment;
     private String reviewerComment;
 
-    public long getId() {
+    private List<SandboxItem> items;
+
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -136,6 +141,14 @@ public class WorkflowPackage {
 
     public void setReviewerComment(String reviewerComment) {
         this.reviewerComment = reviewerComment;
+    }
+
+    public List<SandboxItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<SandboxItem> items) {
+        this.items = items;
     }
 
     public enum Status {
