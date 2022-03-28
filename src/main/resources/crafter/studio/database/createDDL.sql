@@ -506,7 +506,7 @@ CREATE TABLE IF NOT EXISTS workflow_package_item
     `commit_id`                 VARCHAR(128)        NOT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY `workflow_package_item_ix_package`(`workflow_package_id`) REFERENCES `workflow_package` (`id`) ON DELETE CASCADE,
-    FOREING KEY `workflow_package_item_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
+    FOREIGN KEY `workflow_package_item_ix_item`(`item_id`) REFERENCES `item` (`id`) ON DELETE CASCADE
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8
@@ -526,7 +526,7 @@ CREATE TABLE IF NOT EXISTS publishing_queue
     `completed_on`              TIMESTAMP           NULL,
     `number_of_retries`         INT                 NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
-    FOREIGN KEY `publishing_queue_ix_package`(`workflow|_package_id`) REFERENCES `workflow_package` (`id`) ON DELETE CASCADE,
+    FOREIGN KEY `publishing_queue_ix_package`(`workflow_package_id`) REFERENCES `workflow_package` (`id`) ON DELETE CASCADE,
     FOREIGN KEY `publisging_queue_ix_site`(`site_id`) REFERENCES `site` (`id`) ON DELETE CASCADE
 )
     ENGINE = InnoDB

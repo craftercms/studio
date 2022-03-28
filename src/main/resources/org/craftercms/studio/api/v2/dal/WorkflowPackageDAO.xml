@@ -76,7 +76,7 @@
         LIMIT #{offset}, #{limit}
     </select>
 
-    <insert id="createWorkflowPackage" parameterType="WorkflowPackage">
+    <insert id="createWorkflowPackage" parameterType="org.craftercms.studio.api.v2.dal.WorkflowPackage">
         INSERT INTO workflow_package (id, site_id, status, publishing_target, schedule, author, author_comment, label)
         VALUES (#{id}, #{siteId}, #{status}, #{publishingTarget}, #{schedule}, #{authorId}, #{authorComment}, #{label})
     </insert>
@@ -92,7 +92,7 @@
         </foreach>
     </insert>
 
-    <update id="updateWorkflowPackage" parameterType="WorkflowPackage">
+    <update id="updateWorkflowPackage" parameterType="org.craftercms.studio.api.v2.dal.WorkflowPackage">
         UPDATE workflow_package
         SET site_id = #{siteId},
             label = #{label},
