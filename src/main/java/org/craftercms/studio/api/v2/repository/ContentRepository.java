@@ -304,6 +304,14 @@ public interface ContentRepository {
     List<GitLog> getUnprocessedCommits(String siteId, long marker);
 
     /**
+     * Count unprocessed commits from database
+     * @param siteId site identifier
+     * @param marker id of last verified commit Id
+     * @return number of unprocessed gitlog records
+     */
+    int countUnprocessedCommits(String siteId, long marker);
+
+    /**
      * Get environment properties for item
      * @param siteId site identifier
      * @param repo repository type

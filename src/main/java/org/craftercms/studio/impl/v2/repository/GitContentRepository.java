@@ -1733,6 +1733,11 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
+    public int countUnprocessedCommits(String siteId, long marker) {
+        return gitLogDao.countUnprocessedCommitsSinceMarker(siteId, marker);
+    }
+
+    @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
         retryingDatabaseOperationFacade.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
     }

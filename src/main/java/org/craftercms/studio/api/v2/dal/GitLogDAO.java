@@ -58,6 +58,8 @@ public interface GitLogDAO {
 
     List<GitLog> getUnprocessedCommitsSinceMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker);
 
+    int countUnprocessedCommitsSinceMarker(@Param(SITE_ID) String siteId, @Param(MARKER) long marker);
+
     /**
      * Mark all git logs as processed if they are inserted before marker
      * @param siteId site identifier
