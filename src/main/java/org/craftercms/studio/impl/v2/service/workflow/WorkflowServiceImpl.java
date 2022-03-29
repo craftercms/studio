@@ -676,6 +676,16 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         });
         Set<String> dependencies = dependencyService.getDeleteDependencies(siteId, deletePackage);
         deletePackage.addAll(dependencies);
+        deletePackage.sort((lhs, rhs) -> {
+            if (StringUtils.startsWith(rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
+                    lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))) {
+                return 1;
+            } else if (StringUtils.startsWith(lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
+                    rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))){
+                return -1;
+            }
+            return lhs.compareTo(rhs);
+        });
         return deletePackage;
     }
 
