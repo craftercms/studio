@@ -17,8 +17,6 @@
 package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
 import org.craftercms.studio.api.v1.exception.DeployerTargetException;
@@ -34,11 +32,9 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
-import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.dom4j.Document;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,19 +153,6 @@ public interface SiteService {
 	 * @param commitId commit ID
 	 */
 	void updateLastSyncedGitlogCommitId(String site, String commitId);
-
-	/**
-	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
-	 * and manipulates the underlying repository directly.
-	 *
-	 * @param site site to sync
-	 * @param commitIds unprocessed commit IDs to sync up
-	 * @return true if successful, false otherwise
-	 */
-    @ValidateParams
-    boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
-												   List<GitLog> commitIds)
-            throws SiteNotFoundException, IOException;
 
     /**
 	 * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
