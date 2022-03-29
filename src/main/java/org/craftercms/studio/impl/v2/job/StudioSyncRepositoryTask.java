@@ -84,7 +84,9 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
                         if (gl.getProcessed() == 0) {
                             contentRepository.markGitLogVerifiedProcessed(site, gl.getCommitId());
                         }
-                        contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
+                        if (contentRepository.countUnprocessedCommits(site, gl.getId()) > 0) {
+                            contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
+                        }
                     } else {
                         logger.debug("Syncing database with repository for site " + site + " from last processed commit "
                                 + lastProcessedCommit);
