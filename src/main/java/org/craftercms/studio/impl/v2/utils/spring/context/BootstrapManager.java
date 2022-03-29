@@ -53,30 +53,30 @@ public class BootstrapManager implements SystemStatusProvider {
     @Order(2)
     @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
     public Object onContextRefresh() {
-        logger.info("Beans created and ready to be used");
-        logger.info("Starting upgrade ...");
+        logger.info1("Beans created and ready to be used");
+        logger.info1("Starting upgrade ...");
         return new StartUpgradeEvent(this);
     }
 
     @Order
     @EventListener(StartUpgradeEvent.class)
     public Object onStartUpgrade() {
-        logger.info("Upgrade complete");
-        logger.info("Starting cluster setup ...");
+        logger.info1("Upgrade complete");
+        logger.info1("Starting cluster setup ...");
         return new StartClusterSetupEvent(this);
     }
 
     @Order
     @EventListener(StartClusterSetupEvent.class)
     public Object onStartClusterSetup() {
-        logger.info("Cluster setup complete");
+        logger.info1("Cluster setup complete");
         return new BootstrapFinishedEvent(this);
     }
 
     @Order
     @EventListener(BootstrapFinishedEvent.class)
     public void onBootstrapFinished() {
-        logger.info("Bootstrap process finished");
+        logger.info1("Bootstrap process finished");
         systemReady.set(true);
     }
 

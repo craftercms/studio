@@ -60,18 +60,18 @@ public class RetryingDatabaseOperationAnnotationHandler {
             "@annotation(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
-        logger.debug("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());
+        logger.debug1("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());
         int numAttempts = 0;
         do {
             numAttempts++;
             try {
 				 // Execute the business code again
                 if (numAttempts > 1) {
-                    logger.debug("Retrying operation attempt " + (numAttempts - 1));
+                    logger.debug1("Retrying operation attempt " + (numAttempts - 1));
                 }
                 return pjp.proceed();
             } catch (DeadlockLoserDataAccessException | JGitInternalException e) {
-                logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                logger.debug1("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
                 if (numAttempts > maxRetries) {
                     //log failure information, and throw exception
                     // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
@@ -80,7 +80,7 @@ public class RetryingDatabaseOperationAnnotationHandler {
                 } else {
 					 // If the maximum number of retries is not reached, it will be executed again
                     long sleep = (long)(Math.random() * maxSleep);
-                    logger.debug("Wait for " + sleep + " before next retry" + method.getName());
+                    logger.debug1("Wait for " + sleep + " before next retry" + method.getName());
                     Thread.sleep(sleep);
                 }
             }

@@ -73,9 +73,9 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             baseConfig.setExpressionEngine(getExpressionEngine());
             baseConfig.read(in);
 
-            logger.debug("Loaded configuration from location: {} \n {}", configLocation, baseConfig);
+            logger.debug1("Loaded configuration from location: {} \n {}", configLocation, baseConfig);
         } catch (IOException | ConfigurationException e) {
-            logger.error("Failed to load studio configuration from: " + configLocation, e);
+            logger.error1("Failed to load studio configuration from: " + configLocation, e);
         }
 
         if (baseConfig.containsKey(STUDIO_CONFIG_OVERRIDE_CONFIG)) {
@@ -87,11 +87,11 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                 overrideConfig.read(in);
 
                 if (!overrideConfig.isEmpty()) {
-                    logger.debug("Loaded additional configuration from location: {} \n {}",
+                    logger.debug1("Loaded additional configuration from location: {} \n {}",
                         overrideConfigLocation, overrideConfig);
                 }
             } catch (IOException | ConfigurationException e) {
-                logger.error("Failed to load studio configuration from: " + overrideConfigLocation, e);
+                logger.error1("Failed to load studio configuration from: " + overrideConfigLocation, e);
             }
         }
 
@@ -128,7 +128,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                                 globalRepoOverrideConfig.read(in);
 
                                 if (!globalRepoOverrideConfig.isEmpty()) {
-                                    logger.debug("Loaded additional configuration from location: {} \n {}",
+                                    logger.debug1("Loaded additional configuration from location: {} \n {}",
                                             fsr.getPath(), globalRepoOverrideConfig);
 
                                     CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
@@ -140,7 +140,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                                 }
                             }
                         } catch (IOException | ConfigurationException e) {
-                            logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
+                            logger.error1("Failed to load studio configuration from: " + fsr.getPath(), e);
                         }
                     }
                 }
@@ -148,7 +148,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             }
             return config;
         } catch (Exception e) {
-            logger.error("Error loading configuration from global repo", e);
+            logger.error1("Error loading configuration from global repo", e);
             return systemConfig;
         }
     }
@@ -198,7 +198,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         try {
             return getConfig().configurationAt(key);
         } catch (Exception e) {
-            logger.debug("Failed to load configuration value for key " + key + ". Returning null.");
+            logger.debug1("Failed to load configuration value for key " + key + ". Returning null.");
         }
         return null;
     }
@@ -208,7 +208,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         try {
             return getConfig().configurationsAt(key);
         } catch (Exception e) {
-            logger.error("Failed to load values for " + key);
+            logger.error1("Failed to load values for " + key);
             return null;
         }
     }

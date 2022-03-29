@@ -66,7 +66,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
-        logger.debug("Get soft dependencies for site: " + site + " path:" + path);
+        logger.debug1("Get soft dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
         return getSoftDependencies(site, paths);
@@ -87,7 +87,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();
 
-        logger.debug("Get all soft dependencies");
+        logger.debug1("Get all soft dependencies");
         pathsParams.addAll(paths);
         boolean exitCondition = false;
         Map<String, String> softDeps = new HashMap<String, String>();
@@ -133,7 +133,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
-        logger.debug("Get hard dependencies for site: " + site + " path:" + path);
+        logger.debug1("Get hard dependencies for site: " + site + " path:" + path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
         return getHardDependencies(site, paths);
@@ -153,7 +153,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         Set<String> toRet = new HashSet<String>();
         Set<String> pathsParams = new HashSet<String>();
 
-        logger.debug("Get all hard dependencies");
+        logger.debug1("Get all hard dependencies");
         pathsParams.addAll(paths);
         List<String> mandatoryParents = itemServiceInternal.getMandatoryParentsForPublishing(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);

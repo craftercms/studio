@@ -28,31 +28,31 @@ class CommonLifecycleApi {
     }
 
     def onCopy(site, path) {
-        logger.debug("running copy operation event on " + site + ":" + path)
+        logger.debug1("running copy operation event on " + site + ":" + path)
     }
 
     def onDelete(site, path) {
-        logger.debug("running delete operation event on " + site + ":" + path)
+        logger.debug1("running delete operation event on " + site + ":" + path)
     }
 
     def onDuplicate(site, path) {
-        logger.debug("running duplicate operation event on " + site + ":" + path)
+        logger.debug1("running duplicate operation event on " + site + ":" + path)
     }
 
     def onNew(site, path) {
-        logger.debug("running new operation event on " + site + ":" + path)
+        logger.debug1("running new operation event on " + site + ":" + path)
     }
 
     def onRename(site, path) {
-        logger.debug("running rename operation event on " + site + ":" + path)
+        logger.debug1("running rename operation event on " + site + ":" + path)
     }
 
     def onRevert(site, path) {
-        logger.debug("running revert operation event on " + site + ":" + path)
+        logger.debug1("running revert operation event on " + site + ":" + path)
     }
 
     def onUpdate(site, path) {
-        logger.debug("running update operation event on " + site + ":" + path)
+        logger.debug1("running update operation event on " + site + ":" + path)
     }
 
     def execute () {
@@ -71,7 +71,7 @@ class CommonLifecycleApi {
         } else if (contentLifecycleParams.contentLifecycleOperation == "UPDATE") {
             onUpdate(contentLifecycleParams.site, contentLifecycleParams.path)
         } else {
-            logger.info("Unknown operation: " + contentLifecycleParams.contentLifecycleOperation + " for " +
+            logger.info1("Unknown operation: " + contentLifecycleParams.contentLifecycleOperation + " for " +
                     contentLifecycleParams.site + ":" + contentLifecycleParams.path)
         }
     }

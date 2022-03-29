@@ -71,9 +71,9 @@ public class EmailMessageSender implements Runnable {
                         String personalFromName = emailMessage.getPersonalFromName();
                         boolean success = sendEmail(subject, content, userEmailAddress, replyTo, personalFromName);
                         if (success) {
-                            logger.debug("Successfully sent email to:" + userEmailAddress);
+                            logger.debug1("Successfully sent email to:" + userEmailAddress);
                         } else {
-                            logger.error("Could not send email to:" + userEmailAddress);
+                            logger.error1("Could not send email to:" + userEmailAddress);
                         }
                         emailMessage = null;
                     }
@@ -82,7 +82,7 @@ public class EmailMessageSender implements Runnable {
                 Thread.sleep(secs * 1000L);
 
             } catch (InterruptedException e) {
-                logger.warn("Interrupted while Thread.sleep()", e);
+                logger.warn1("Interrupted while Thread.sleep()", e);
                 Thread.currentThread().interrupt();
             }
         }
@@ -107,7 +107,7 @@ public class EmailMessageSender implements Runnable {
                 mimeMessage.setFrom(fromAddress);
                 mimeMessage.setContent(content, "text/html; charset=utf-8");
                 mimeMessage.setSubject(subject);
-                logger.debug("sending email to [" + userEmailAddress + "]subject subject :[" + subject + "]");
+                logger.debug1("sending email to [" + userEmailAddress + "]subject subject :[" + subject + "]");
             }
         };
         try {
@@ -118,7 +118,7 @@ public class EmailMessageSender implements Runnable {
             }
         } catch (MailException e) {
             // simply log it and go on...
-            logger.error("Error sending email notification to:" + userEmailAddress, ex);
+            logger.error1("Error sending email notification to:" + userEmailAddress, ex);
 
             success = false;
         }

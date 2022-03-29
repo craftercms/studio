@@ -151,7 +151,7 @@ public class StudioClusterUtils {
             try {
                 while (!cloned && idx < clusterNodes.size()) {
                     ClusterMember remoteNode = clusterNodes.get(idx++);
-                    logger.debug("Cloning global repository from " + remoteNode.getLocalAddress());
+                    logger.debug1("Cloning global repository from " + remoteNode.getLocalAddress());
 
                     // prepare a new folder for the cloned repository
                     Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
@@ -159,20 +159,20 @@ public class StudioClusterUtils {
                     File localPath = siteSandboxPath.toFile();
                     localPath.delete();
                     // then clone
-                    logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
+                    logger.debug1("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
                     CloneCommand cloneCommand = Git.cloneRepository();
                     Git cloneResult = null;
 
                     Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                     try {
-                        logger.debug("Add user credentials if provided");
+                        logger.debug1("Add user credentials if provided");
                         helper.setAuthenticationForCommand(cloneCommand, remoteNode.getGitAuthType(),
                                 remoteNode.getGitUsername(), remoteNode.getGitPassword(), remoteNode.getGitToken(),
                                 remoteNode.getGitPrivateKey(), tempKey, true);
 
                         String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
 
-                        logger.debug("Executing clone command");
+                        logger.debug1("Executing clone command");
                         cloneResult = cloneCommand
                                 .setURI(cloneUrl)
                                 .setRemote(remoteNode.getGitRemoteName())
@@ -182,13 +182,13 @@ public class StudioClusterUtils {
                         cloned = true;
 
                     } catch (InvalidRemoteException e) {
-                        logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
+                        logger.error1("Invalid remote repository: " + remoteNode.getGitRemoteName() +
                                 " (" + remoteNode.getGitUrl() + ")", e);
                     } catch (TransportException e) {
                         GitUtils.translateException(e, logger, remoteNode.getGitRemoteName(), remoteNode.getGitUrl(),
                                 remoteNode.getGitUsername());
                     } catch (GitAPIException | IOException e) {
-                        logger.error("Error while creating repository for site with path" + siteSandboxPath, e);
+                        logger.error1("Error while creating repository for site with path" + siteSandboxPath, e);
                     } finally {
                         Files.deleteIfExists(tempKey);
                         if (cloneResult != null) {
@@ -200,7 +200,7 @@ public class StudioClusterUtils {
                 generalLockService.unlock(gitLockKey);
             }
         } else {
-            logger.debug("Failed to get lock " + gitLockKey);
+            logger.debug1("Failed to get lock " + gitLockKey);
         }
         return cloned;
     }

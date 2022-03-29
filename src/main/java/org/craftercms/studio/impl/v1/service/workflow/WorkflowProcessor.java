@@ -72,7 +72,7 @@ public class WorkflowProcessor {
     }
 
     protected void execute(String site, WorkflowBatch workflowBatch) {
-        logger.debug("[WORKFLOW] executing Go Live Processor for " + site);
+        logger.debug1("[WORKFLOW] executing Go Live Processor for " + site);
 
         try {
             try {
@@ -82,7 +82,7 @@ public class WorkflowProcessor {
                         preSubmitOperation.execute();
                     }
                 }
-                logger.debug("[WORKFLOW] submitting " + workflowBatch.getPaths() + " to workflow");
+                logger.debug1("[WORKFLOW] submitting " + workflowBatch.getPaths() + " to workflow");
                 if (!workflowBatch.getPaths().isEmpty()) {
                     dmPublishService.publish(site, new ArrayList<String>(workflowBatch.getPaths()),
                             workflowBatch.getLaunchDate(), workflowBatch.getMultiChannelPublishingContext());
@@ -93,11 +93,11 @@ public class WorkflowProcessor {
             }
         } catch (Exception e) {
             this.inflightItems.removeAll(workflowBatch.getPaths());
-            logger.debug("Rolling Back states of "+workflowBatch.getPaths());
+            logger.debug1("Rolling Back states of "+workflowBatch.getPaths());
             rollbackOnError(site,workflowBatch.getPaths());
-            logger.error("[WORKFLOW] Error submitting workflow", e);
+            logger.error1("[WORKFLOW] Error submitting workflow", e);
         }
-        logger.debug("[WORKFLOW] exiting Go Live Processor for " + site);
+        logger.debug1("[WORKFLOW] exiting Go Live Processor for " + site);
 
     }
     

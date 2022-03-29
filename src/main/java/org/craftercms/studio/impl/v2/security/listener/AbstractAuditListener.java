@@ -64,7 +64,7 @@ public abstract class AbstractAuditListener {
             auditServiceInternal.insertAuditLog(auditLog);
 
             if (isNotEmpty(message)) {
-                logger.info(message, event.getAuthentication().getName(),
+                logger.info1(message, event.getAuthentication().getName(),
                         RequestContext.getCurrent().getRequest().getRemoteAddr());
             }
         } catch (SiteNotFoundException e) {

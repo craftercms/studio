@@ -49,7 +49,7 @@ public class MimeTypePolicyValidator implements PolicyValidator {
                 throw new ValidationException("MIME type " + actionMimeType + " not allowed");
             }
         } else {
-            logger.debug("No MIME type restrictions found, skipping action");
+            logger.debug1("No MIME type restrictions found, skipping action");
         }
     }
 

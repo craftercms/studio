@@ -89,7 +89,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
         if (contentTypeConfig == null) {
             try {
-                logger.debug("Cache miss: {}", cacheKey);
+                logger.debug1("Cache miss: {}", cacheKey);
 
                 if (contentService.contentExists(site, configFileFullPath)) {
                     Document document = configurationService.getConfigurationAsDocument(site, null, configFileFullPath, null);
@@ -130,7 +130,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                     cache.put(cacheKey, contentTypeConfig);
                 }
             } catch (ServiceLayerException e) {
-                logger.debug("No content type configuration document found at " + configFileFullPath);
+                logger.debug1("No content type configuration document found at " + configFileFullPath);
             }
         }
         return contentTypeConfig;

@@ -452,7 +452,7 @@ public class UsersController {
         try {
             userService.forgotPassword(username);
         } catch (UserExternallyManagedException | UserNotFoundException e) {
-            logger.error("Error processing user's forgot password request", e);
+            logger.error1("Error processing user's forgot password request", e);
         }
         ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<String>();
@@ -484,7 +484,7 @@ public class UsersController {
         try {
             TimeUnit.SECONDS.sleep(delay);
         } catch (InterruptedException e) {
-            logger.debug("Interrupted while delaying request by " + delay + " seconds.", e);
+            logger.debug1("Interrupted while delaying request by " + delay + " seconds.", e);
         }
         User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
 
@@ -517,7 +517,7 @@ public class UsersController {
         try {
             TimeUnit.SECONDS.sleep(delay);
         } catch (InterruptedException e) {
-            logger.debug("Interrupted while delaying request by " + delay + " seconds.", e);
+            logger.debug1("Interrupted while delaying request by " + delay + " seconds.", e);
         }
         
         boolean valid = userService.validateToken(token);

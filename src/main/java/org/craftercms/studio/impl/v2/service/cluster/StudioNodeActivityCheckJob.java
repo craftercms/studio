@@ -68,15 +68,15 @@ public class StudioNodeActivityCheckJob implements Runnable{
                         removeInactiveMembers(inactiveMembersToRemove);
                     }
                 } catch (Exception e) {
-                    logger.error("Error while executing node activity check job", error);
+                    logger.error1("Error while executing node activity check job", error);
                 } finally {
                     singleWorkerLock.unlock();
                 }
             } else {
-                logger.debug("Another worker is checking cluster nodes activity. Skipping cycle.");
+                logger.debug1("Another worker is checking cluster nodes activity. Skipping cycle.");
             }
         } else {
-            logger.debug("System is not ready yet. Skipping cycle.");
+            logger.debug1("System is not ready yet. Skipping cycle.");
         }
     }
 

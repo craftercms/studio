@@ -82,7 +82,7 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
         var site = context.getTarget();
         var newFile = context.getFile(path);
         if(Files.exists(newFile)) {
-            logger.info("File {} already exist in site {}, it will not be changed", path, site);
+            logger.info1("File {} already exist in site {}, it will not be changed", path, site);
         } else {
             try(InputStream in = file.getInputStream();
                 OutputStream out = Files.newOutputStream(newFile)) {

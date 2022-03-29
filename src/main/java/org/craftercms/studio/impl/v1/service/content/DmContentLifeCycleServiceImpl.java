@@ -83,11 +83,11 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                         ContentLifeCycleOperation operation,
                         Map<String, String> params) {
         if (operation == null) {
-            logger.warn("No lifecycle operation provided for " + site + ":" + path);
+            logger.warn1("No lifecycle operation provided for " + site + ":" + path);
             return;
         }
         if (StringUtils.isEmpty(contentType) || StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
-            logger.warn("Skipping content lifecycle script execution. no content type provided for "
+            logger.warn1("Skipping content lifecycle script execution. no content type provided for "
                     + site + ":" + path);
             return;
         }
@@ -96,7 +96,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         // find the script ref based on content type
         String scriptPath = getScriptPath(site, contentType);
         if (!contentService.contentExists(site, scriptPath)) {
-            logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
+            logger.error1("No script found at " + scriptPath + ", contentType: " + contentType);
             return;
         }
         String script = contentService.getContentAsString(site, scriptPath);
@@ -106,7 +106,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             try {
                 scriptExecutor.executeScriptString(script, model);
             } catch (Exception e) {
-                logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
+                logger.error1("Error while executing content lifecycle script for " + site + ":" + path, e);
             }
         }
     }
@@ -195,18 +195,18 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                     saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                     saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
                 }catch (SAXException e){
-                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                    logger.error1("Unable to turn off external entity loading, This could be a security risk.", ex);
                 }
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {
-                logger.error("Error while reading content from site " + site + " path " + path, e);
+                logger.error1("Error while reading content from site " + site + " path " + path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }
                 return null;
             } catch (ContentNotFoundException e) {
-                logger.error("Error while reading content from site " + site + " path " + path, e);
+                logger.error1("Error while reading content from site " + site + " path " + path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }

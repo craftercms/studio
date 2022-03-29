@@ -145,10 +145,10 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                     sites.put(rs.getLong(1), rs.getString(2));
                 }
             } catch (SQLException e) {
-                logger.error("Error getting all sites from DB", e);
+                logger.error1("Error getting all sites from DB", e);
             }
         } catch (SQLException e) {
-            logger.error("Error getting DB connection", e);
+            logger.error1("Error getting DB connection", e);
         }
 
         // loop over all sites
@@ -159,7 +159,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     private void processSite(final StudioUpgradeContext context, long siteId, String site) {
         // check if data exists
-        logger.info("Processing site: " + site);
+        logger.info1("Processing site: " + site);
         boolean shouldProcess = false;
         try (Connection connection = context.getConnection()) {
             try (PreparedStatement statement = connection.prepareStatement(QUERY_CHECK_DATA_EXISTS
@@ -168,10 +168,10 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 ResultSet rs = statement.executeQuery();
                 shouldProcess = !rs.next() || rs.getInt(1) < 1 || clearExistingData;
             } catch (SQLException e) {
-                logger.error("Error while checking if item data already exists for site " + site);
+                logger.error1("Error while checking if item data already exists for site " + site);
             }
         } catch (SQLException e) {
-            logger.error("Error while getting db connection");
+            logger.error1("Error while getting db connection");
         }
 
         try {
@@ -179,7 +179,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 populateDataFromDB(context, site);
             }
         } catch (UpgradeException e) {
-            logger.error("Error populating item table from DB for site " + site, e);
+            logger.error1("Error populating item table from DB for site " + site, e);
         }
 
         try {
@@ -187,11 +187,11 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
             String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
             Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
             populateDataFromRepo(site, siteId, updateParentIdScriptPath);
-            logger.debug("Updating parent ids for site: {}", site);
+            logger.debug1("Updating parent ids for site: {}", site);
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
             Files.deleteIfExists(updateParentIdScriptPath);
         } catch (IOException e) {
-            logger.error("Error populating item table from repository for site " + site, e);
+            logger.error1("Error populating item table from repository for site " + site, e);
         }
 
     }
@@ -201,25 +201,25 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
             integrityValidator.validate(connection);
         } catch (SQLException e) {
             // for backwards compatibility
-            logger.warn("Could not validate database integrity", e);
+            logger.warn1("Could not validate database integrity", e);
         } catch (Exception e) {
             throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
 
-        logger.debug("Executing stored procedure: {} for site: {}", spName, siteId);
+        logger.debug1("Executing stored procedure: {} for site: {}", spName, siteId);
         try (Connection connection = context.getConnection()) {
             CallableStatement callableStatement = connection.prepareCall(
                     QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, spName)
                             .replace(SP_PARAM_SITE, siteId));
             callableStatement.execute();
         } catch (SQLException e) {
-            logger.error("Error populating data from DB", e);
+            logger.error1("Error populating data from DB", e);
         }
     }
 
     private void populateDataFromRepo(final String siteName, final long siteId, final Path updateParentIdScriptPath)
             throws IOException {
-        logger.debug("Iterating over repository for site: {}", siteName);
+        logger.debug1("Iterating over repository for site: {}", siteName);
         try (Repository repo = getRepository(siteName)) {
             ObjectId objCommitId = repo.resolve(HEAD);
             try (RevWalk walk = new RevWalk(repo)) {
@@ -236,7 +236,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                             treeWalk.enterSubtree();
                         } else {
                             if (StringUtils.containsAny(getName(treeWalk.getNameString()), IGNORE_FILES)) {
-                                logger.debug("Skipping ignored file {} for site {}", treeWalk.getPathString(),
+                                logger.debug1("Skipping ignored file {} for site {}", treeWalk.getPathString(),
                                         siteName);
                             } else {
                                 processFile(siteName, siteId, FILE_SEPARATOR + treeWalk.getPathString(),
@@ -244,10 +244,10 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                             }
                         }
                     } catch (IOException e) {
-                        logger.error("Unexpected error processing {} for site {}", treeWalk.getPathString(),
+                        logger.error1("Unexpected error processing {} for site {}", treeWalk.getPathString(),
                                 siteName, e);
                     } catch (DocumentException e) {
-                        logger.error("Unexpected error processing file {} for site {}", treeWalk.getPathString(),
+                        logger.error1("Unexpected error processing file {} for site {}", treeWalk.getPathString(),
                                 siteName, e);
                     }
                 }
@@ -261,7 +261,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     private void processFolder(String site, long siteId, String path, String commitId,
                                String name, Path updateParentIdScriptPath) throws IOException {
-        logger.debug("Processing folder: {} for site: {}", path, site);
+        logger.debug1("Processing folder: {} for site: {}", path, site);
         File folder = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                 studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH)).toFile();
@@ -278,7 +278,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     private void processFile(String site, long siteId, String path, String commitId,
                              String name, Path updateParentIdScriptPath) throws DocumentException, IOException {
-        logger.debug("Processing file: {} for site: {}", path, site);
+        logger.debug1("Processing file: {} for site: {}", path, site);
         File file = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                 studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH)).toFile();
@@ -309,7 +309,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     }
 
     private void populateDescriptorProperties(String site, String path, Item item) throws DocumentException {
-        logger.debug("Extracting descriptor properties for file: {} for site: {}", path, site);
+        logger.debug1("Extracting descriptor properties for file: {} for site: {}", path, site);
         Document document = contentService.getContentAsDocument(site, path);
         if(document != null) {
             Element rootElement = document.getRootElement();

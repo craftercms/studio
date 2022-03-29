@@ -83,7 +83,7 @@ public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperat
         }
 
         if(StringUtils.isNotEmpty(updated) && !StringUtils.equals(content, updated)) {
-            logger.info("Updating file {}", path);
+            logger.info1("Updating file {}", path);
             writeFile(path, updated);
         }
     }

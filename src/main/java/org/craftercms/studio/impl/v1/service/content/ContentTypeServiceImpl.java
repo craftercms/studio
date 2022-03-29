@@ -87,7 +87,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         if (item != null) {
             String name = item.getName();
             Set<String> allowedRoles = item.getAllowedRoles();
-            logger.debug("Checking allowed roles on " + name + ". user roles: "
+            logger.debug1("Checking allowed roles on " + name + ". user roles: "
                     + userRoles + ", allowed roles: " + allowedRoles);
 
             if (allowedRoles == null || allowedRoles.size() == 0) {
@@ -95,14 +95,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             } else {
                 boolean notAllowed = Collections.disjoint(userRoles, allowedRoles);
                 if (notAllowed) {
-                    logger.debug(name + " is not allowed for the user.");
+                    logger.debug1(name + " is not allowed for the user.");
                     return false;
                 } else {
                     return true;
                 }
             }
         } else {
-            logger.debug("no content type config provided. returning true for user access to content type checking.");
+            logger.debug1("no content type config provided. returning true for user access to content type checking.");
 
             return true;
         }
@@ -156,12 +156,12 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                 if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())){
                     for (String pathIncludes : contentTypeConfig.getPathIncludes()) {
                         if (relativePath.matches(pathIncludes)) {
-                            logger.debug(relativePath + " matches " + pathIncludes);
+                            logger.debug1(relativePath + " matches " + pathIncludes);
                             boolean isMatch = true;
                             if (contentTypeConfig.getPathExcludes() != null) {
                                 for (String excludePath : contentTypeConfig.getPathExcludes()) {
                                     if (relativePath.matches(excludePath)) {
-                                        logger.debug(relativePath + " matches an exclude path: " + excludePath);
+                                        logger.debug1(relativePath + " matches an exclude path: " + excludePath);
                                         isMatch = false;
                                         break;
                                     }
@@ -179,7 +179,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             }
             return contentTypes;
         } else {
-            logger.error("No content type path configuration is found for site: " + site);
+            logger.error1("No content type path configuration is found for site: " + site);
             return null;
         }
     }
@@ -211,7 +211,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             try {
                 original = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
-                logger.error("Error while getting document for site: " + site + " path: " + path, e);
+                logger.error1("Error while getting document for site: " + site + " path: " + path, e);
                 return false;
             }
             throw new RuntimeException("Is it getting here?");
@@ -250,7 +250,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                                                       List<ContentTypeConfigTO> contentTypes) {
         String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + FILE_SEPARATOR + node.name;
-        logger.debug("Get Content Type Config fot Children path = {}", fullPath );
+        logger.debug1("Get Content Type Config fot Children path = {}", fullPath );
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {

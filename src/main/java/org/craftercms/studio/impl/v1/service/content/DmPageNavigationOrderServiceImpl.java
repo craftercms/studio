@@ -108,7 +108,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
-            logger.error("Unexpected error: ", e);
+            logger.error1("Unexpected error: ", e);
         }
         return lastNavOrder;
 
@@ -149,7 +149,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                 ((Element) navOrderNode).setText(newOrder);
                 docUpdated=true;
             }else{
-                logger.debug("Nav Order value already exist: " +value);
+                logger.debug1("Nav Order value already exist: " +value);
             }
         }
         return docUpdated;

@@ -72,7 +72,7 @@ public class BaseContentProcessor implements ContentProcessor {
 	}
 
 	public void process(PipelineContent content, ResultTO result) throws ServiceLayerException, UserNotFoundException {
-		logger.debug("Processing " + content.getId() + " through " + _name);
+		logger.debug1("Processing " + content.getId() + " through " + _name);
 	}
 
 	/**

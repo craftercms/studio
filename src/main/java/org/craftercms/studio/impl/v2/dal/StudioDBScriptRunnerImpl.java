@@ -54,7 +54,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 				autoCommit = connection.getAutoCommit();
 				connection.setAutoCommit(false);
             } catch (SQLException e) {
-                logger.error("Failed to open connection with DB", throwables);
+                logger.error1("Failed to open connection with DB", throwables);
             }
         }
     }
@@ -65,7 +65,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 				connection.setAutoCommit(autoCommit);
                 connection.close();
             } catch (SQLException e) {
-                logger.error("Failed to close connection with DB", throwables);
+                logger.error1("Failed to close connection with DB", throwables);
             }
             connection = null;
         }
@@ -103,11 +103,11 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
             connection.commit();
         } catch (SQLException | IOException e) {
-			logger.error("Error executing DB script", e);
+			logger.error1("Error executing DB script", e);
 			try {
 				connection.rollback();
 			} catch (SQLException e) {
-				logger.error("Failed to rollback after error when running DB script", throwables);
+				logger.error1("Failed to rollback after error when running DB script", throwables);
 			}
 		} finally {
 			closeConnection();

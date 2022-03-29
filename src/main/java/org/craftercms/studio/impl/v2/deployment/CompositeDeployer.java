@@ -55,7 +55,7 @@ public class CompositeDeployer implements Deployer {
                     try {
                         deployer.deleteTargets(site);
                     } catch (Exception e) {
-                        logger.debug("Error while rolling back targets for site {}: {}", site, ex);
+                        logger.debug1("Error while rolling back targets for site {}: {}", site, ex);
                     }
                 }
 

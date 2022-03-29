@@ -156,7 +156,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
-            logger.debug("Add remote " + remoteRepository.getRemoteName() + " to the sandbox repo for the site " + siteId);
+            logger.debug1("Add remote " + remoteRepository.getRemoteName() + " to the sandbox repo for the site " + siteId);
             Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
 
@@ -205,17 +205,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 }
 
             } catch (URISyntaxException e) {
-                logger.error("Remote URL is invalid " + remoteRepository.getRemoteUrl(), e);
+                logger.error1("Remote URL is invalid " + remoteRepository.getRemoteUrl(), e);
                 throw new InvalidRemoteUrlException();
             } catch (GitAPIException | IOException e) {
                 if (e.getCause() instanceof NoRemoteRepositoryException) {
-                    logger.error("Remote repository not found " + remoteRepository.getRemoteName() + " (url: " +
+                    logger.error1("Remote repository not found " + remoteRepository.getRemoteName() + " (url: " +
                             remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
                     throw new RemoteRepositoryNotFoundException("Remote repository not found " +
                             remoteRepository.getRemoteName() + " (url: " + remoteRepository.getRemoteUrl() +
                             ") for site " + siteId, e);
                 } else {
-                    logger.error("Error while adding remote " + remoteRepository.getRemoteName() + " (url: " +
+                    logger.error1("Error while adding remote " + remoteRepository.getRemoteName() + " (url: " +
                             remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
                     throw new ServiceLayerException("Error while adding remote " + remoteRepository.getRemoteName() +
                             " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
@@ -234,7 +234,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     private void insertRemoteToDb(String siteId, RemoteRepository remoteRepository) throws CryptoException {
-        logger.debug("Inserting remote " + remoteRepository.getRemoteName() + " for site " + siteId +
+        logger.debug1("Inserting remote " + remoteRepository.getRemoteName() + " for site " + siteId +
                 " into database.");
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
@@ -244,28 +244,28 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         params.put("remoteUsername", remoteRepository.getRemoteUsername());
 
         if (StringUtils.isNotEmpty(remoteRepository.getRemotePassword())) {
-            logger.debug("Encrypt password before inserting to database");
+            logger.debug1("Encrypt password before inserting to database");
             String hashedPassword = encryptor.encrypt(remoteRepository.getRemotePassword());
             params.put("remotePassword", hashedPassword);
         } else {
             params.put("remotePassword", remoteRepository.getRemotePassword());
         }
         if (StringUtils.isNotEmpty(remoteRepository.getRemoteToken())) {
-            logger.debug("Encrypt token before inserting to database");
+            logger.debug1("Encrypt token before inserting to database");
             String hashedToken = encryptor.encrypt(remoteRepository.getRemoteToken());
             params.put("remoteToken", hashedToken);
         } else {
             params.put("remoteToken", remoteRepository.getRemoteToken());
         }
         if (StringUtils.isNotEmpty(remoteRepository.getRemotePrivateKey())) {
-            logger.debug("Encrypt private key before inserting to database");
+            logger.debug1("Encrypt private key before inserting to database");
             String hashedPrivateKey = encryptor.encrypt(remoteRepository.getRemotePrivateKey());
             params.put("remotePrivateKey", hashedPrivateKey);
         } else {
             params.put("remotePrivateKey", remoteRepository.getRemotePrivateKey());
         }
 
-        logger.debug("Insert site remote record into database");
+        logger.debug1("Insert site remote record into database");
         retryingDatabaseOperationFacade.insertRemoteRepository(params);
     }
 
@@ -282,7 +282,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                         try {
                             fetchRemote(siteId, git, conf);
                         } catch (Exception e) {
-                            logger.warn("Failed to fetch from remote repository " + conf.getName());
+                            logger.warn1("Failed to fetch from remote repository " + conf.getName());
                             unreachableRemotes.put(conf.getName(), e.getMessage());
                         }
                     }
@@ -294,7 +294,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, unreachableRemotes, sandboxBranchName);
                 }
             } catch (GitAPIException e) {
-                logger.error("Error getting remote repositories for site " + siteId, e);
+                logger.error1("Error getting remote repositories for site " + siteId, e);
             }
         }
         return res;
@@ -406,18 +406,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
                     RemoteRepositoryNotFoundException {
-        logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug1("Get remote data from database for remote " + remoteName + " and site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
-        logger.debug("Prepare pull command");
+        logger.debug1("Prepare pull command");
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
-            logger.debug("Set remote " + remoteName);
+            logger.debug1("Set remote " + remoteName);
             pullCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug("Set branch to be " + remoteBranch);
+            logger.debug1("Set branch to be " + remoteBranch);
             pullCommand.setRemoteBranchName(remoteBranch);
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
             gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
@@ -437,7 +437,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             pullResult = retryingRepositoryOperationFacade.call(pullCommand);
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
-                logger.info(pullResultMessage);
+                logger.info1(pullResultMessage);
             }
             Files.delete(tempKey);
             if (!pullResult.isSuccessful() && conflictNotificationEnabled()) {
@@ -456,11 +456,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
                 List<String> commitIds = new ArrayList<String>();
                 if (Objects.nonNull(newMergedCommits) && newMergedCommits.size() > 0) {
-                    logger.debug("Really pulled commits:");
+                    logger.debug1("Really pulled commits:");
                     int cnt = 0;
                     for (int i = 0; i < newMergedCommits.size(); i ++) {
                         String commitId = newMergedCommits.get(i);
-                        logger.debug(commitId);
+                        logger.debug1(commitId);
                         if (!StringUtils.equals(lastCommitId, commitId)) {
                             commitIds.add(commitId);
                             if (cnt++ >= batchSizeGitLog) {
@@ -479,14 +479,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
-            logger.error("Remote is invalid " + remoteName, e);
+            logger.error1("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
             GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
                                         remoteRepository.getRemoteUsername());
             return false;
         } catch (GitAPIException e) {
-            logger.error("Error while pulling from remote " + remoteName + " branch "
+            logger.error1("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
             throw new ServiceLayerException("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
@@ -540,17 +540,17 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
             throws ServiceLayerException, InvalidRemoteUrlException, InvalidRemoteRepositoryCredentialsException,
                     RemoteRepositoryNotFoundException {
-        logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug1("Get remote data from database for remote " + remoteName + " and site " + siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 
-        logger.debug("Prepare push command.");
+        logger.debug1("Prepare push command.");
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             Iterable<PushResult> pushResultIterable = null;
             PushCommand pushCommand = git.push();
-            logger.debug("Set remote " + remoteName);
+            logger.debug1("Set remote " + remoteName);
             pushCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug("Set branch to be " + remoteBranch);
+            logger.debug1("Set branch to be " + remoteBranch);
             RefSpec r = new RefSpec();
             r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
                     Constants.R_HEADS +  remoteBranch);
@@ -567,28 +567,28 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             for (PushResult pushResult : pushResultIterable) {
                 String pushResultMessage = pushResult.getMessages();
                 if (StringUtils.isNotEmpty(pushResultMessage)) {
-                    logger.info(pushResultMessage);
+                    logger.info1(pushResultMessage);
                 }
                 Collection<RemoteRefUpdate> updates = pushResult.getRemoteUpdates();
                 for (RemoteRefUpdate remoteRefUpdate : updates) {
                     switch (remoteRefUpdate.getStatus()) {
                         case REJECTED_NODELETE:
                             toRet = false;
-                            logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, " +
+                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, " +
                                     "because remote side doesn't support/allow deleting refs.\n" +
                                     remoteRefUpdate.getMessage());
                         case REJECTED_NONFASTFORWARD:
                             toRet = false;
-                            logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, as it " +
+                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, as it " +
                                     "would cause non fast-forward update.\n" + remoteRefUpdate.getMessage());
                         case REJECTED_REMOTE_CHANGED:
                             toRet = false;
-                            logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, because" +
+                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, because" +
                                     " old object id on remote repository " + remoteRefUpdate.getRemoteName() +
                                     " wasn't the same as defined expected old object. \n" + remoteRefUpdate.getMessage());
                         case REJECTED_OTHER_REASON:
                             toRet = false;
-                            logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected for "
+                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected for "
                                     + "other reason.\n" + remoteRefUpdate.getMessage());
                         default:
                             break;
@@ -597,14 +597,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             return toRet;
         } catch (InvalidRemoteException e) {
-            logger.error("Remote is invalid " + remoteName, e);
+            logger.error1("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
             GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
                                         remoteRepository.getRemoteUsername());
             return false;
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
-            logger.error("Error while pushing to remote " + remoteName + " branch "
+            logger.error1("Error while pushing to remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
             throw new ServiceLayerException("Error while pushing to remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
@@ -616,7 +616,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         if (!isRemovableRemote(siteId, remoteName)) {
             throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
         }
-        logger.debug("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
+        logger.debug1("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
 
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -643,13 +643,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 retryingRepositoryOperationFacade.call(delBranch);
             }
         } catch (GitAPIException e) {
-            logger.error("Failed to remove remote " + remoteName + " for site " + siteId, e);
+            logger.error1("Failed to remove remote " + remoteName + " for site " + siteId, e);
             return false;
         } finally {
             generalLockService.unlock(gitLockKey);
         }
 
-        logger.debug("Remove remote record from database for remote " + remoteName + " and site " + siteId);
+        logger.debug1("Remove remote record from database for remote " + remoteName + " and site " + siteId);
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
@@ -679,7 +679,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         RepositoryStatus repositoryStatus = new RepositoryStatus();
-        logger.debug("Execute git status and return conflicting paths and uncommitted changes");
+        logger.debug1("Execute git status and return conflicting paths and uncommitted changes");
         try (Git git = new Git(repo)) {
             StatusCommand statusCommand = git.status();
             Status status = retryingRepositoryOperationFacade.call(statusCommand);
@@ -687,7 +687,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             repositoryStatus.setConflicting(status.getConflicting());
             repositoryStatus.setUncommittedChanges(status.getUncommittedChanges());
         } catch (GitAPIException e) {
-            logger.error("Error while getting repository status for site " + siteId, e);
+            logger.error1("Error while getting repository status for site " + siteId, e);
             throw new ServiceLayerException("Error getting repository status for site " + siteId, e);
         }
         return repositoryStatus;
@@ -704,21 +704,21 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         try (Git git = new Git(repo)) {
             switch (resolution.toLowerCase()) {
                 case "ours" :
-                    logger.debug("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
-                    logger.debug("Reset merge conflict in git index");
+                    logger.debug1("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
+                    logger.debug1("Reset merge conflict in git index");
                     resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
                     retryingRepositoryOperationFacade.call(resetCommand);
-                    logger.debug("Checkout content from HEAD of studio repository");
+                    logger.debug1("Checkout content from HEAD of studio repository");
                     checkoutCommand =
                             git.checkout().addPath(gitRepositoryHelper.getGitPath(path)).setStartPoint(Constants.HEAD);
                     retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 case "theirs" :
-                    logger.debug("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
-                    logger.debug("Reset merge conflict in git index");
+                    logger.debug1("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
+                    logger.debug1("Reset merge conflict in git index");
                     resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
                     retryingRepositoryOperationFacade.call(resetCommand);
-                    logger.debug("Checkout content from merge HEAD of remote repository");
+                    logger.debug1("Checkout content from merge HEAD of remote repository");
                     List<ObjectId> mergeHeads = repo.readMergeHeads();
                     ObjectId mergeCommitId = mergeHeads.get(0);
                     checkoutCommand = git.checkout().addPath(gitRepositoryHelper.getGitPath(path))
@@ -730,11 +730,11 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
 
             if (repo.getRepositoryState() == RepositoryState.MERGING_RESOLVED) {
-                logger.debug("Merge resolved. Check if there are no uncommitted changes (repo is clean)");
+                logger.debug1("Merge resolved. Check if there are no uncommitted changes (repo is clean)");
                 StatusCommand statusCommand = git.status();
                 Status status = retryingRepositoryOperationFacade.call(statusCommand);
                 if (!status.hasUncommittedChanges()) {
-                    logger.debug("Repository is clean. Committing to complete merge");
+                    logger.debug1("Repository is clean. Committing to complete merge");
                     String userName = securityService.getCurrentUser();
                     User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
                     PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
@@ -746,7 +746,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 }
             }
         } catch (GitAPIException | IOException | UserNotFoundException | ServiceLayerException e) {
-            logger.error("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
+            logger.error1("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
                     "strategy", e);
             throw new ServiceLayerException("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
                     "strategy", e);
@@ -764,15 +764,15 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         try (Git git = new Git(repo)) {
             List<ObjectId> mergeHeads = repo.readMergeHeads();
             ObjectId mergeCommitId = mergeHeads.get(0);
-            logger.debug("Get content for studio version of conflicted file " + path + " for site " + siteId);
+            logger.debug1("Get content for studio version of conflicted file " + path + " for site " + siteId);
             InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD);
             diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
-            logger.debug("Get content for remote version of conflicted file " + path + " for site " + siteId);
+            logger.debug1("Get content for remote version of conflicted file " + path + " for site " + siteId);
             InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName());
             diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-            logger.debug("Get diff between studio and remote version of conflicted file " + path + " for site "
+            logger.debug1("Get diff between studio and remote version of conflicted file " + path + " for site "
                     + siteId);
             RevTree headTree = gitRepositoryHelper.getTreeForCommit(repo, Constants.HEAD);
             RevTree remoteTree = gitRepositoryHelper.getTreeForCommit(repo, mergeCommitId.getName());
@@ -795,7 +795,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
 
         } catch (IOException | GitAPIException e) {
-            logger.error("Error while getting diff for conflicting file " + path + " site " + siteId);
+            logger.error1("Error while getting diff for conflicting file " + path + " site " + siteId);
             throw new ServiceLayerException("Error while getting diff for conflicting file " + path + " site " + siteId);
         }
         return diffResult;
@@ -805,20 +805,20 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean commitResolution(String siteId, String commitMessage)
             throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
-        logger.debug("Commit resolution for merge conflict for site " + siteId);
+        logger.debug1("Commit resolution for merge conflict for site " + siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             StatusCommand statusCommand = git.status();
             Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
-            logger.debug("Add all uncommitted changes/files");
+            logger.debug1("Add all uncommitted changes/files");
             AddCommand addCommand = git.add();
             for (String uncommited : status.getUncommittedChanges()) {
                 addCommand.addFilepattern(uncommited);
             }
             retryingRepositoryOperationFacade.call(addCommand);
-            logger.debug("Commit changes");
+            logger.debug1("Commit changes");
             CommitCommand commitCommand = git.commit();
             String userName = securityService.getCurrentUser();
             User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
@@ -838,7 +838,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             retryingRepositoryOperationFacade.call(commitCommand);
             return true;
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
-            logger.error("Error while committing conflict resolution for site " + siteId, e);
+            logger.error1("Error while committing conflict resolution for site " + siteId, e);
             throw new ServiceLayerException("Error while committing conflict resolution for site " + siteId, e);
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -847,7 +847,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean cancelFailedPull(String siteId) throws ServiceLayerException {
-        logger.debug("To cancel failed pull, reset hard needs to be executed");
+        logger.debug1("To cancel failed pull, reset hard needs to be executed");
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
@@ -855,7 +855,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             ResetCommand resetCommand = git.reset().setMode(ResetCommand.ResetType.HARD);
             retryingRepositoryOperationFacade.call(resetCommand);
         } catch (GitAPIException e) {
-            logger.error("Error while canceling failed pull for site " + siteId, e);
+            logger.error1("Error while canceling failed pull for site " + siteId, e);
             throw new ServiceLayerException("Reset hard failed for site " + siteId, e);
         } finally {
             generalLockService.unlock(gitLockKey);

@@ -46,11 +46,11 @@ public class ContentProcessorPipelineImpl implements ContentProcessorPipeline {
 			throws ServiceLayerException, UserNotFoundException {
 		if (_chain != null && _chain.size() > 0) {
 			for (ContentProcessor processor : _chain) {
-				logger.debug("Running " + content.getId() + " through " + processor.getName());
+				logger.debug("Running {} through {}", content.getId(), processor.getName());
 				if (processor.isProcessable(content)) {
 					processor.process(content, result);
 				} else {
-					logger.debug(content.getId() + " was not processed by " + processor.getName());
+					logger.debug("{} was not processed by {}", content.getId(), processor.getName());
 				}
 			}
 		} else {

@@ -57,14 +57,14 @@ public abstract class StudioClockTask implements SiteJob {
 
     @Override
     public final void execute(String site) {
-        logger.debug("Task Clock for: " + this.getClass().getName() + " site: " + site + " counter: " + counters.get(site) + " execute every: " + executeEveryNCycles);
+        logger.debug1("Task Clock for: " + this.getClass().getName() + " site: " + site + " counter: " + counters.get(site) + " execute every: " + executeEveryNCycles);
         if (checkCycleCounter(site)) {
             try {
                 long sleepTime = (long) (Math.random() * offset);
-                logger.debug("Sleeping for offset " + sleepTime + " milliseconds");
+                logger.debug1("Sleeping for offset " + sleepTime + " milliseconds");
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
-                logger.debug("Woke up from random offset");
+                logger.debug1("Woke up from random offset");
             }
             executeInternal(site);
             setCycleCounter(site, executeEveryNCycles);

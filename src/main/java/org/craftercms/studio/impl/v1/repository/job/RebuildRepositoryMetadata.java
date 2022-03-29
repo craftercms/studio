@@ -58,7 +58,7 @@ public class RebuildRepositoryMetadata {
     public void execute(String site) {
         if (taskLock.tryLock()) {
             try {
-                logger.debug("Starting Rebuild Repository Metadata Task.");
+                logger.debug1("Starting Rebuild Repository Metadata Task.");
                 CronJobContext securityContext = new CronJobContext(securityService.getCurrentUser());
                 RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
                 taskExecutor.execute(task);
@@ -80,60 +80,60 @@ public class RebuildRepositoryMetadata {
 
         @Override
         public void run() {
-            logger.debug("Start rebuilding repository metadata for site " + site);
+            logger.debug1("Start rebuilding repository metadata for site " + site);
             CronJobContext.setCurrent(securityContext);
-            logger.debug("Cleaning existing repository metadata for site " + site);
+            logger.debug1("Cleaning existing repository metadata for site " + site);
             try {
                 cleanOldMetadata(site);
             } catch (SiteNotFoundException e) {
-                logger.error("Error while cleaning up old metadata");
+                logger.error1("Error while cleaning up old metadata");
             }
-            logger.debug("Initiate rebuild metadata process for site " + site);
+            logger.debug1("Initiate rebuild metadata process for site " + site);
             try {
                 rebuildMetadata(site);
             } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error("Error while rebuilding metadata", e);
+                logger.error1("Error while rebuilding metadata", e);
             }
             CronJobContext.clear();
-            logger.debug("Finished rebuilding repository metadata for site " + site);
+            logger.debug1("Finished rebuilding repository metadata for site " + site);
         }
     }
 
     public boolean cleanOldMetadata(String site) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
-        logger.debug("Clean repository metadata for site " + site);
+        logger.debug1("Clean repository metadata for site " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
 
         try {
             // Delete all dependencies
-            logger.debug("Deleting dependencies for site " + site);
+            logger.debug1("Deleting dependencies for site " + site);
             dependencyService.deleteSiteDependencies(site);
         } catch (Exception e) {
-            logger.error("Failed to delete dependencies for site " + site);
+            logger.error1("Failed to delete dependencies for site " + site);
         }
 
         try {
             // Delete deployment queue
-            logger.debug("Deleting deployment queue for site " + site);
+            logger.debug1("Deleting deployment queue for site " + site);
             retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
         } catch (Exception e) {
-            logger.error("Failed to delete deployment queue for site " + site);
+            logger.error1("Failed to delete deployment queue for site " + site);
         }
 
         try {
             // Delete item table
-            logger.debug("Deleting item table for site " + site);
+            logger.debug1("Deleting item table for site " + site);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
         } catch (Exception e) {
-            logger.error("Failed to delete item data for site " + site);
+            logger.error1("Failed to delete item data for site " + site);
         }
 
         try {
-            logger.debug("Deleting git log data for site " + site);
+            logger.debug1("Deleting git log data for site " + site);
             contentRepository.deleteGitLogForSite(site);
         } catch (Exception e) {
-            logger.error("Failed to delete git log data for site " + site);
+            logger.error1("Failed to delete git log data for site " + site);
         }
 
         return true;

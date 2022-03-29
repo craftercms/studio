@@ -84,10 +84,10 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
     }
 
     protected GroovyScriptEngine createScriptEngine(String siteId) {
-        logger.debug("Creating script engine for site {}", siteId);
+        logger.debug1("Creating script engine for site {}", siteId);
         var compilerConfig = new CompilerConfiguration();
         if (sandboxEnabled) {
-            logger.debug("Enabling sandbox for site {}", siteId);
+            logger.debug1("Enabling sandbox for site {}", siteId);
             compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
         }
 
@@ -99,7 +99,7 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
 
     @Override
     public void reloadScriptEngine(String siteId) {
-        logger.debug("Reloading script engine for site {}", siteId);
+        logger.debug1("Reloading script engine for site {}", siteId);
         scriptEngines.compute(siteId, (key, old) -> createScriptEngine(siteId));
     }
 

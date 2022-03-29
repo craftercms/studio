@@ -28,6 +28,6 @@ class ExtractMetadataApi {
     }
 
     def execute () {
-        logger.info("running extract metadata on " + extractMetadataParams.site + ":" + extractMetadataParams.path)
+        logger.info1("running extract metadata on " + extractMetadataParams.site + ":" + extractMetadataParams.path)
     }
 }

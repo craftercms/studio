@@ -466,19 +466,19 @@ public class ExceptionHandlers {
             case LEVEL_OFF:
                 break;
             case LEVEL_DEBUG:
-                logger.debug("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                logger.debug1("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
                         " failed with response: " + response);
                 break;
             case LEVEL_WARN:
-                logger.warn("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                logger.warn1("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
                         " failed with response: " + response);
                 break;
             case LEVEL_INFO:
-                logger.info("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                logger.info1("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
                         " failed with response: " + response);
                 break;
             case LEVEL_ERROR:
-                logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
+                logger.error1("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
                         " failed with response: " + response, e);
                 break;
             default:

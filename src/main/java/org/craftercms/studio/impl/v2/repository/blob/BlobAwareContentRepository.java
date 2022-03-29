@@ -151,7 +151,7 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public boolean contentExists(String site, String path) {
-        logger.debug("Checking if {} exists in site {}", path, site);
+        logger.debug1("Checking if {} exists in site {}", path, site);
         try {
             if (!isFolder(site, path) && pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
@@ -161,14 +161,14 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.contentExists(site, path);
         } catch (Exception e) {
-            logger.error("Error checking if content {} exist in site {}", e, path, site);
+            logger.error1("Error checking if content {} exist in site {}", e, path, site);
             return false;
         }
     }
 
     @Override
     public InputStream getContent(String site, String path) {
-        logger.debug("Getting content of {} in site {}", path, site);
+        logger.debug1("Getting content of {} in site {}", path, site);
         try {
             if (!isFolder(site, path) && pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
@@ -178,14 +178,14 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.getContent(site, path);
         } catch (Exception e) {
-            logger.error("Error getting content {} in site {}", e, path, site);
+            logger.error1("Error getting content {} in site {}", e, path, site);
             return null;
         }
     }
 
     @Override
     public long getContentSize(String site, String path) {
-        logger.debug("Getting size of {} in site {}", path, site);
+        logger.debug1("Getting size of {} in site {}", path, site);
         try {
             if (pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
@@ -195,14 +195,14 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV2.getContentSize(site, path);
         } catch (Exception e) {
-            logger.error("Error getting size for content {} in site {}", e, path, site);
+            logger.error1("Error getting size for content {} in site {}", e, path, site);
             return -1L;
         }
     }
 
     @Override
     public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
-        logger.debug("Writing {} in site {}", path, site);
+        logger.debug1("Writing {} in site {}", path, site);
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
@@ -213,19 +213,19 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.writeContent(site, path, content);
         } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site {}, writing {} to local repository", site, path);
+            logger.debug1("No blob store configuration found for site {}, writing {} to local repository", site, path);
             return localRepositoryV1.writeContent(site, path, content);
         } catch (RepositoryLockedException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("Error writing content {} in site {}", e, path, site);
+            logger.error1("Error writing content {} in site {}", e, path, site);
             throw new ServiceLayerException(e);
         }
     }
 
     @Override
     public String createFolder(String site, String path, String name) {
-        logger.debug("Creating folder {} in site {}", path, site);
+        logger.debug1("Creating folder {} in site {}", path, site);
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
@@ -233,18 +233,18 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.createFolder(site, path, name);
         } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site {}, creating folder {} in local repository",
+            logger.debug1("No blob store configuration found for site {}, creating folder {} in local repository",
                     site, path);
             return localRepositoryV1.createFolder(site, path, name);
         } catch (Exception e) {
-            logger.error("Error creating folder {} in site {}", e, path, site);
+            logger.error1("Error creating folder {} in site {}", e, path, site);
             return null;
         }
     }
 
     @Override
     public String deleteContent(String site, String path, String approver) {
-        logger.debug("Deleting {} in site {}", path, site);
+        logger.debug1("Deleting {} in site {}", path, site);
         try {
             StudioBlobStore store = getBlobStore(site, path);
             if (store != null) {
@@ -255,18 +255,18 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.deleteContent(site, path, approver);
         } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site {}, deleting {} in the local repository",
+            logger.debug1("No blob store configuration found for site {}, deleting {} in the local repository",
                     site, path);
             return localRepositoryV1.deleteContent(site, path, approver);
         } catch (Exception e) {
-            logger.error("Error deleting content {} in site {}", e, path, site);
+            logger.error1("Error deleting content {} in site {}", e, path, site);
             return null;
         }
     }
 
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
-        logger.debug("Moving content from {} to {} in site {}", fromPath, toPath, site);
+        logger.debug1("Moving content from {} to {} in site {}", fromPath, toPath, site);
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
@@ -286,18 +286,18 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
         } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site {}, moving from {} to {} in local repository",
+            logger.debug1("No blob store configuration found for site {}, moving from {} to {} in local repository",
                     site, fromPath, toPath);
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
         } catch (Exception e) {
-            logger.error("Error moving content from {} to {} in site {}", e, fromPath, toPath, site);
+            logger.error1("Error moving content from {} to {} in site {}", e, fromPath, toPath, site);
             return null;
         }
     }
 
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
-        logger.debug("Copying content from {} to {} in site {}", fromPath, toPath, site);
+        logger.debug1("Copying content from {} to {} in site {}", fromPath, toPath, site);
         try {
             StudioBlobStore store = getBlobStore(site, fromPath, toPath);
             if (store != null) {
@@ -309,11 +309,11 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.copyContent(site, fromPath, toPath);
         } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("No blob store configuration found for site {}, copying from {} to {} in local repository",
+            logger.debug1("No blob store configuration found for site {}, copying from {} to {} in local repository",
                     site, fromPath, toPath);
             return localRepositoryV1.copyContent(site, fromPath, toPath);
         } catch (Exception e) {
-            logger.error("Error copying content from {} to {} in site {}", e, fromPath, toPath, site);
+            logger.error1("Error copying content from {} to {} in site {}", e, fromPath, toPath, site);
             return null;
         }
     }
@@ -329,7 +329,7 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        logger.debug("Getting version history for {} in site {}", path, site);
+        logger.debug1("Getting version history for {} in site {}", path, site);
         try {
             if (pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
@@ -339,7 +339,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             return localRepositoryV1.getContentVersionHistory(site, path);
         } catch (Exception e) {
-            logger.error("Error getting version history for {} in site {}", e, path, site);
+            logger.error1("Error getting version history for {} in site {}", e, path, site);
             return null;
         }
     }
@@ -496,7 +496,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) throws DeploymentException {
-        logger.debug("Publishing items {} to environment {} in site {}", deploymentItems, environment, site);
+        logger.debug1("Publishing items {} to environment {} in site {}", deploymentItems, environment, site);
         Map<String, StudioBlobStore> stores = new LinkedHashMap<>();
         MultiValueMap<String, DeploymentItemTO> items = new LinkedMultiValueMap<>();
         List<DeploymentItemTO> localItems = new LinkedList<>();
@@ -504,7 +504,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             for (DeploymentItemTO item : deploymentItems) {
                 if (pointersExist(site, item.getPath()) &&
                         (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()))) {
-                    logger.debug("Looking blob store for item {}", item);
+                    logger.debug1("Looking blob store for item {}", item);
                     StudioBlobStore store = getBlobStore(site, item.getPath());
                     if (store != null) {
                         stores.putIfAbsent(store.getId(), store);
@@ -516,11 +516,11 @@ public class BlobAwareContentRepository implements ContentRepository,
                 localItems.add(item);
             }
             for (String storeId : stores.keySet()) {
-                logger.debug("Publishing blobs to environment {} using store {} for site {}",
+                logger.debug1("Publishing blobs to environment {} using store {} for site {}",
                         environment, storeId, site);
                 stores.get(storeId).publish(site, sandboxBranch, items.get(storeId), environment, author, comment);
             }
-            logger.debug("Publishing local files to environment {} for site {}", environment, site);
+            logger.debug1("Publishing local files to environment {} for site {}", environment, site);
             localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
         } catch (Exception e) {
             throw new DeploymentException("Error during deployment to environment " +
@@ -703,7 +703,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             localRepositoryV2.initialPublish(siteId);
         } catch (Exception e) {
-            logger.error("Error performing initial publish for site {}", e, siteId);
+            logger.error1("Error performing initial publish for site {}", e, siteId);
         }
     }
 }

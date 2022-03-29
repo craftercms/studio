@@ -239,7 +239,7 @@ public class UserServiceImpl implements UserService {
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
 
-            logger.debug("Searching for current sessions for users: {}", toDelete);
+            logger.debug1("Searching for current sessions for users: {}", toDelete);
             Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
                     .map(principal -> (AuthenticatedUser) principal)
                     .filter(authenticatedUser -> toDelete.stream()
@@ -249,7 +249,7 @@ public class UserServiceImpl implements UserService {
                 // Invalidate any open session
                 List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
                 sessions.forEach(session -> {
-                    logger.debug("Invalidating session {} for user {}",
+                    logger.debug1("Invalidating session {} for user {}",
                                     session.getSessionId(), principal.getUsername());
                     session.expireNow();
                 });
@@ -337,7 +337,7 @@ public class UserServiceImpl implements UserService {
 
                     sites.add(site);
                 } catch (SiteNotFoundException e) {
-                    logger.error("Site not found: {}", e, siteId);
+                    logger.error1("Site not found: {}", e, siteId);
                 }
             }
         }
@@ -425,11 +425,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException,
             UserExternallyManagedException {
-        logger.debug("Getting user profile for " + username);
+        logger.debug1("Getting user profile for " + username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         boolean success = false;
         if (user == null) {
-            logger.info("User profile not found for " + username);
+            logger.info1("User profile not found for " + username);
             throw new UserNotFoundException();
         } else {
             if (user.isExternallyManaged()) {
@@ -438,18 +438,18 @@ public class UserServiceImpl implements UserService {
                 if (user.getEmail() != null) {
                     String email = user.getEmail();
 
-                    logger.debug("Creating security token for forgot password");
+                    logger.debug1("Creating security token for forgot password");
                     long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
                             Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                     String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
                     String studioId = instanceService.getInstanceId();
                     String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
                     String hashedToken = encryptToken(token);
-                    logger.debug("Sending forgot password email to " + email);
+                    logger.debug1("Sending forgot password email to " + email);
                     sendForgotPasswordEmail(email, hashedToken);
                     success = true;
                 } else {
-                    logger.info("User " + username + " does not have assigned email with account");
+                    logger.info1("User " + username + " does not have assigned email with account");
                     throw new ServiceLayerException("User " + username + " does not have assigned email with account");
                 }
             }
@@ -462,7 +462,7 @@ public class UserServiceImpl implements UserService {
             String hashedToken = encryptor.encrypt(token);
             return Base64.getEncoder().encodeToString(hashedToken.getBytes(StandardCharsets.UTF_8));
         } catch (CryptoException e) {
-            logger.error("Error while encrypting forgot password token", e);
+            logger.error1("Error while encrypting forgot password token", e);
             return null;
         }
     }
@@ -472,7 +472,7 @@ public class UserServiceImpl implements UserService {
             byte[] hashedTokenBytes = Base64.getDecoder().decode(hashedToken.getBytes(StandardCharsets.UTF_8));
             return encryptor.decrypt(new String(hashedTokenBytes, StandardCharsets.UTF_8));
         } catch (CryptoException e) {
-            logger.error("Error while decrypting forgot password token", e);
+            logger.error1("Error while decrypting forgot password token", e);
             return null;
         }
     }
@@ -502,15 +502,15 @@ public class UserServiceImpl implements UserService {
             messageHelper.setTo(emailAddress);
             messageHelper.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
             messageHelper.setText(out.toString(), true);
-            logger.info("Sending password recovery message to " + emailAddress);
+            logger.info1("Sending password recovery message to " + emailAddress);
             if (isAuthenticatedSMTP()) {
                 emailService.send(mimeMessage);
             } else {
                 emailServiceNoAuth.send(mimeMessage);
             }
-            logger.info("Password recovery message successfully sent to " + emailAddress);
+            logger.info1("Password recovery message successfully sent to " + emailAddress);
         } catch (Exception e) {
-            logger.error("Failed to send password recovery message to " + emailAddress, e);
+            logger.error1("Failed to send password recovery message to " + emailAddress, e);
         }
     }
 
@@ -566,7 +566,7 @@ public class UserServiceImpl implements UserService {
                 String username = tokenElements.nextToken();
                 User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
                 if (userProfile == null) {
-                    logger.info("User profile not found for " + username);
+                    logger.info1("User profile not found for " + username);
                     throw new UserNotFoundException();
                 } else {
                     if (userProfile.isExternallyManaged()) {

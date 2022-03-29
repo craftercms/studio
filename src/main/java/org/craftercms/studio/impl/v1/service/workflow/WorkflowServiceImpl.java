@@ -278,7 +278,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         } catch (Exception e) {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-            logger.error("Error while submitting content for approval.", e);
+            logger.error1("Error while submitting content for approval.", e);
         }
         return result;
 
@@ -485,7 +485,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         itemServiceInternal.deleteItem(site, it.getPath());
                     }
                 } catch (Exception e) {
-                    logger.error("Could not warm cache for [" + site + " : " + it.getPath()
+                    logger.error1("Could not warm cache for [" + site + " : " + it.getPath()
                             + "] " + e.getMessage());
                 }
             }
@@ -644,7 +644,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 deploymentService.cancelWorkflow(site, affectedItem);
                 paths.add(affectedItem);
             } catch (DeploymentException e) {
-                logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem
+                logger.error1("Error occurred while trying to cancel workflow for path [" + affectedItem
                         + "], site " + site, e);
             }
         }
@@ -866,12 +866,12 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             result.setMessage(notificationService.getNotificationMessage(site,
                     NotificationMessageType.CompleteMessages, responseMessageKey));
         } catch (JSONException e) {
-            logger.error("error performing operation " + operation + " " + e);
+            logger.error1("error performing operation " + operation + " " + e);
 
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         } catch (ServiceLayerException e) {
-            logger.error("error performing operation " + operation + " " + e);
+            logger.error1("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1083,7 +1083,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     responseMessageKey));
 
         } catch (JSONException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("error performing operation " + operation + " " + e);
+            logger.error1("error performing operation " + operation + " " + e);
 
             result.setSuccess(false);
             result.setMessage(e.getMessage());
@@ -1227,12 +1227,12 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             result.setMessage(notificationService.getNotificationMessage(site,
                     NotificationMessageType.CompleteMessages,responseMessageKey));
         } catch (JSONException e) {
-            logger.error("error performing operation " + operation + " " + e);
+            logger.error1("error performing operation " + operation + " " + e);
 
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         } catch (ServiceLayerException e) {
-            logger.error("error performing operation " + operation + " " + e);
+            logger.error1("error performing operation " + operation + " " + e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1736,7 +1736,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 }
             }
         } catch (Exception e) {
-            logger.error("Could not send delete approval notification for newly created item", e);
+            logger.error1("Could not send delete approval notification for newly created item", e);
         }
     }
 
@@ -1995,7 +1995,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     return approve_new(site, request, Operation.GO_LIVE);
                 }
             } catch (RuntimeException e) {
-                logger.error("error making go live", e);
+                logger.error1("error making go live", e);
                 throw e;
             }
         }

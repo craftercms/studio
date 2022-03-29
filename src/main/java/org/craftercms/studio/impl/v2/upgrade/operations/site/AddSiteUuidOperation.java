@@ -54,13 +54,13 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.debug("Get site data from database for site " + site);
+        logger.debug1("Get site data from database for site " + site);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_ID, site);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         if (siteFeed != null) {
             try {
-                logger.debug("Add UUID file for site " + site);
+                logger.debug1("Add UUID file for site " + site);
                 addSiteUuidFile(site, siteFeed.getSiteUuid());
             } catch (IOException e) {
                 throw new UpgradeException("Error when adding UUID file for site " + site, e);
@@ -74,7 +74,7 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
                     studioConfiguration.getProperty(SITES_REPOS_PATH), site,
                     StudioConstants.SITE_UUID_FILENAME);
             String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
-            logger.debug("Write UUID " + siteUuid + " to the file " + path.toString() + " for site " + site);
+            logger.debug1("Write UUID " + siteUuid + " to the file " + path.toString() + " for site " + site);
             Files.write(path, toWrite.getBytes());
         }
     }

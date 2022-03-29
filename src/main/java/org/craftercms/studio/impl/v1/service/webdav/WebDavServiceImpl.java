@@ -129,15 +129,15 @@ public class WebDavServiceImpl implements WebDavService {
             }
 
             if (!sardine.exists(listPath)) {
-                logger.debug("Folder {} doesn't exist", listPath);
+                logger.debug1("Folder {} doesn't exist", listPath);
                 return Collections.emptyList();
             }
             String basePath = new URL(profile.getBaseUrl()).getPath();
             String baseDomain = profile.getBaseUrl();
             String deliveryUrl = profile.getDeliveryBaseUrl();
-            logger.debug("Listing resources at {}", listPath);
+            logger.debug1("Listing resources at {}", listPath);
             List<DavResource> resources = sardine.propfind(listPath, 1, properties);
-            logger.debug("Found {} resources at {}", resources.size(), listPath);
+            logger.debug1("Found {} resources at {}", resources.size(), listPath);
             return resources.stream()
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
@@ -192,13 +192,13 @@ public class WebDavServiceImpl implements WebDavService {
                 for(String folder : folders) {
                     uploadUrl += StringUtils.appendIfMissing(folder, "/");
 
-                    logger.debug("Checking folder {}", uploadUrl);
+                    logger.debug1("Checking folder {}", uploadUrl);
                     if(!sardine.exists(uploadUrl)) {
-                        logger.debug("Creating folder {}", uploadUrl);
+                        logger.debug1("Creating folder {}", uploadUrl);
                         sardine.createDirectory(uploadUrl);
-                        logger.debug("Folder {} created", uploadUrl);
+                        logger.debug1("Folder {} created", uploadUrl);
                     } else {
-                        logger.debug("Folder {} already exists", uploadUrl);
+                        logger.debug1("Folder {} already exists", uploadUrl);
                     }
                 }
             }
@@ -206,11 +206,11 @@ public class WebDavServiceImpl implements WebDavService {
             uploadUrl =  StringUtils.appendIfMissing(uploadUrl, "/");
             String fileUrl = uploadUrl + UriUtils.encode(filename, charset.name());
 
-            logger.debug("Starting upload of file {}", filename);
-            logger.debug("Uploading file to {}", fileUrl);
+            logger.debug1("Starting upload of file {}", filename);
+            logger.debug1("Uploading file to {}", fileUrl);
 
             sardine.put(fileUrl, content);
-            logger.debug("Upload complete for file {}", fileUrl);
+            logger.debug1("Upload complete for file {}", fileUrl);
             if(StringUtils.isNotEmpty(profile.getDeliveryBaseUrl())) {
                 fileUrl = StringUtils.replaceFirst(fileUrl, profile.getBaseUrl(), profile.getDeliveryBaseUrl());
             }

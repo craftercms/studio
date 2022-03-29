@@ -80,7 +80,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), paths, ld, approver,
                         mcpContext.getSubmissionComment(),scheduledDateIsNow );
         } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error while submitting paths to publish");
+            logger.error1("Error while submitting paths to publish");
         }
 
     }
@@ -101,7 +101,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         try {
             deploymentService.delete(site, paths, approver, scheduleDate, null);
         } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("Unable to delete files due a error ",ex);
+            logger.error1("Unable to delete files due a error ",ex);
         }
     }
 
@@ -112,7 +112,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         try {
             deploymentService.cancelWorkflow(site, path);
         } catch (DeploymentException e) {
-            logger.error(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
+            logger.error1(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
         }
     }
 
@@ -122,25 +122,25 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                            @ValidateStringParam String environment,
                            @ValidateSecurePathParam(name = "path") String path,
                            String comment) throws ServiceLayerException {
-        logger.info("Starting Bulk Publish to '" + environment + "' for path " + path + " site " + site);
+        logger.info1("Starting Bulk Publish to '" + environment + "' for path " + path + " site " + site);
 
         String queryPath = path;
         if (queryPath.startsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
             queryPath = queryPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         }
 
-        logger.debug("Get change set for subtree for site: " + site + " root path: " + queryPath);
+        logger.debug1("Get change set for subtree for site: " + site + " root path: " + queryPath);
         List<String> childrenPaths = new ArrayList<String>();
 
         childrenPaths = itemServiceInternal.getChangeSetForSubtree(site, queryPath);
 
-        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path "
+        logger.debug1("Collected " + childrenPaths.size() + " content items for site " + site + " and root path "
                 + queryPath);
         Set<String> processedPaths = new HashSet<String>();
         ZonedDateTime launchDate = DateUtils.getCurrentTime();
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
-            logger.debug("Processing dependencies for site " + site + " path " + childPath);
+            logger.debug1("Processing dependencies for site " + site + " path " + childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<String>();
                 List<String> candidatesToPublish = new ArrayList<String>();
@@ -157,18 +157,18 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 if (StringUtils.isEmpty(comment)) {
                     comment = "Bulk Publish invoked by " + aprover;
                 }
-                logger.info("Deploying package of " + pathsToPublish.size() + " items to '" + environment +
+                logger.info1("Deploying package of " + pathsToPublish.size() + " items to '" + environment +
                         "' for site" + site + " path " + childPath);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
                 } catch (DeploymentException | UserNotFoundException e) {
-                    logger.error("Error while running Bulk Publish operation", e);
+                    logger.error1("Error while running Bulk Publish operation", e);
                 } finally {
-                    logger.debug("Finished processing deployment package for path " + childPath + " site " + site);
+                    logger.debug1("Finished processing deployment package for path " + childPath + " site " + site);
                 }
             }
         }
-        logger.info("Finished Bulk Publish to '" + environment + "' for path " + path + " site " + site);
+        logger.info1("Finished Bulk Publish to '" + environment + "' for path " + path + " site " + site);
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {

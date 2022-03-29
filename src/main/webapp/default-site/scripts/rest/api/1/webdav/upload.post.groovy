@@ -66,7 +66,7 @@ if (ServletFileUpload.isMultipartContent(request)) {
                 writer.println('"' + url + '"')
                 writer.flush()
             } catch (e) {
-                logger.error("Upload of file ${filename} failed", e)
+                logger.error1("Upload of file ${filename} failed", e)
 
                 sendError(500, "Upload of file failed: ${e.message}")
             }

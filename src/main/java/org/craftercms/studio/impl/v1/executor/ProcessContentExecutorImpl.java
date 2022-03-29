@@ -60,10 +60,10 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                     chain.processContent(content, result);
 
                 } catch (ContentProcessException | UserNotFoundException e) {
-                    logger.error("Error in chain for write content", e);
+                    logger.error1("Error in chain for write content", e);
                     throw e;
                 } catch (RuntimeException e) {
-                    logger.error("Error in chain for write content", e);
+                    logger.error1("Error in chain for write content", e);
                     throw e;
                 }finally{
                     ContentUtils.release(input);

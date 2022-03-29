@@ -108,7 +108,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
             try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
                 return loadDescriptor(is);
             } catch (Exception e) {
-                logger.error("Error while getting blueprint descriptor for site " + id, e);
+                logger.error1("Error while getting blueprint descriptor for site " + id, e);
             }
         }
         return null;
@@ -129,7 +129,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         try {
            return descriptorReader.read(is);
         } catch (PluginException e) {
-            logger.error("Error while getting descriptor from stream", e);
+            logger.error1("Error while getting descriptor from stream", e);
         }
         return null;
     }
@@ -140,7 +140,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
             try (FileReader reader = new FileReader(descriptorPath.toString())) {
                 return descriptorReader.read(reader);
             } catch (PluginException | IOException e) {
-                logger.error("Error while getting descriptor for blueprint " + folder.name, e);
+                logger.error1("Error while getting descriptor for blueprint " + folder.name, e);
             }
         }
         return null;

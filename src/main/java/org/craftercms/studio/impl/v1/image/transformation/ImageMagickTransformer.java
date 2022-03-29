@@ -64,7 +64,7 @@ public class ImageMagickTransformer implements ImageTransformer {
         String cmdLine = createCmdLine(sourcePath, targetPath, parameters);
 
         try {
-            logger.info("Executing command: {}", cmdLine);
+            logger.info1("Executing command: {}", cmdLine);
 
             Process proc = Runtime.getRuntime().exec(cmdLine);
             proc.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
@@ -73,10 +73,10 @@ public class ImageMagickTransformer implements ImageTransformer {
             String stdErr = getProcessStdErr(proc);
 
             if (StringUtils.isNotEmpty(stdOut)) {
-                logger.info("Img Mgk stdout for [{}]: {}", cmdLine, stdOut);
+                logger.info1("Img Mgk stdout for [{}]: {}", cmdLine, stdOut);
             }
             if (StringUtils.isNotEmpty(stdErr)) {
-                logger.info("Img Mgk stderr for [{}]: {}", cmdLine, stdErr);
+                logger.info1("Img Mgk stderr for [{}]: {}", cmdLine, stdErr);
             }
         } catch (Exception e) {
             throw new ImageTransformationException("Error while running Image Magick process from the command line", e);

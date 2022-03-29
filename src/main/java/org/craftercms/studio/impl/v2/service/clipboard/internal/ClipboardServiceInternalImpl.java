@@ -85,12 +85,12 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                         }
                         break;
                     default:
-                        logger.warn("Unsupported clipboard operation {}", operation);
+                        logger.warn1("Unsupported clipboard operation {}", operation);
                 }
 
                 pastedItems.add(newPath);
             } catch (Exception e) {
-                logger.error("Paste operation {} failed for item {} to dest path {}", err, operation,
+                logger.error1("Paste operation {} failed for item {} to dest path {}", err, operation,
                         item.getPath(), targetPath);
                 throw err;
             }

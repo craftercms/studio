@@ -124,7 +124,7 @@ public class ImportServiceImpl implements ImportService {
     }
 
     protected Document loadConfiguration(String configLocation) {
-        logger.debug("[IMPORT] loading " + configLocation);
+        logger.debug1("[IMPORT] loading " + configLocation);
         InputStream in = null;
         try {
             in = new FileInputStream(configLocation);
@@ -132,10 +132,10 @@ public class ImportServiceImpl implements ImportService {
                 return ContentUtils.convertStreamToXml(in);
             }
         } catch (FileNotFoundException e) {
-            logger.error("[IMPORT] failed to load configuration.", e);
+            logger.error1("[IMPORT] failed to load configuration.", e);
 
         } catch (DocumentException e) {
-            logger.error("[IMPORT] failed to load configuration.", e);
+            logger.error1("[IMPORT] failed to load configuration.", e);
 
         } finally {
             ContentUtils.release(in);
@@ -155,7 +155,7 @@ public class ImportServiceImpl implements ImportService {
             this.currentDelayLength = delayLength * 1000;
             final Set<String> importedPaths = new HashSet<String>();
             final List<String> importedFullPaths = new ArrayList<String>();
-            logger.info("[IMPORT] started importing in " + site
+            logger.info1("[IMPORT] started importing in " + site
                     + ", pause enabled: " + pauseEanbeld
                     + ", delay interval: " + this.currentDelayInterval
                     + ", delay length: " + this.currentDelayLength);
@@ -164,12 +164,12 @@ public class ImportServiceImpl implements ImportService {
             final List<Node> folderNodes = node.selectNodes("folder");
             if (publish) {
                 String user = securityService.getCurrentUser();
-                logger.debug("[IMPORT] publishing user: " + user);
+                logger.debug1("[IMPORT] publishing user: " + user);
 
                 this.nextStop = System.currentTimeMillis() + this.currentDelayInterval;
                 createFolders(site, importedPaths, importedFullPaths, folderNodes, fileRoot, targetRoot, "",
                         overWrite, user);
-                logger.info("Starting Publish of Imported Files (Total " + importedFullPaths.size()
+                logger.info1("Starting Publish of Imported Files (Total " + importedFullPaths.size()
                         + " On chunkSize of " + chunkSize + " )");
                 publish(site, publishChannelGroup, targetRoot, importedFullPaths, chunkSize);
             } else {
@@ -179,7 +179,7 @@ public class ImportServiceImpl implements ImportService {
             }
             inProgress = false;
         } else {
-            logger.info("[IMPORT] an import process is currently running.");
+            logger.info1("[IMPORT] an import process is currently running.");
         }
     }
 
@@ -210,7 +210,7 @@ public class ImportServiceImpl implements ImportService {
                                List<Node> nodes, String fileRoot, String targetRoot, String parentPath,
                                boolean overWrite, String user)
             throws ServiceLayerException, UserNotFoundException {
-        logger.info("[IMPORT] createFolders : site[" + site + "] " + "] fileRoot [" + fileRoot + "] targetRoot [ "
+        logger.info1("[IMPORT] createFolders : site[" + site + "] " + "] fileRoot [" + fileRoot + "] targetRoot [ "
                 + targetRoot + "] parentPath [" + parentPath + "] overwrite[" + overWrite + "]");
 
         if (nodes != null) {
@@ -280,11 +280,11 @@ public class ImportServiceImpl implements ImportService {
                             if (!folderExists) {
                                 contentService.createFolder(site, parentPath, childName);
                             }
-                            logger.info("[IMPORT] Importing " + parentPath + FILE_SEPARATOR + childName);
+                            logger.info1("[IMPORT] Importing " + parentPath + FILE_SEPARATOR + childName);
 
                             importFileList(site, importedPaths, importedFullPaths, fileRoot + FILE_SEPARATOR + childName,
                                     targetRoot, parentPath + FILE_SEPARATOR + childName, overWrite, user);
-                            logger.info("[IMPORT] Finished Importing " + parentPath + FILE_SEPARATOR + childName);
+                            logger.info1("[IMPORT] Finished Importing " + parentPath + FILE_SEPARATOR + childName);
                         } else {
                             writeContentInTransaction(site, importedPaths, importedFullPaths, fileRoot,
                                     targetRoot, parentPath, childName, overWrite, user);
@@ -295,7 +295,7 @@ public class ImportServiceImpl implements ImportService {
             }
 
         } else {
-            logger.error("[IMPORT] " + fileRoot + " is not found.");
+            logger.error1("[IMPORT] " + fileRoot + " is not found.");
         }
     }
 
@@ -330,7 +330,7 @@ public class ImportServiceImpl implements ImportService {
     protected void importFileList(String site, Set<String> importedPaths, List<String> importedFullPaths,
                                   String fileRoot, String targetRoot, String parentPath, boolean overWrite, String user)
             throws ServiceLayerException, UserNotFoundException {
-        logger.info("[IMPORT] importFileList: fileRoot [" + fileRoot + "] name [" + targetRoot + "] overwrite["
+        logger.info1("[IMPORT] importFileList: fileRoot [" + fileRoot + "] name [" + targetRoot + "] overwrite["
                 + overWrite + "]");
         URL resourceUrl = getResourceUrl(fileRoot);
         if (resourceUrl != null) {
@@ -358,7 +358,7 @@ public class ImportServiceImpl implements ImportService {
                 }
             }
         } else {
-            logger.error("[IMPORT] " + fileRoot + " is not found.");
+            logger.error1("[IMPORT] " + fileRoot + " is not found.");
         }
     }
 
@@ -379,10 +379,10 @@ public class ImportServiceImpl implements ImportService {
                                              final String targetRoot, final String parentPath, final String name,
                                              final boolean overWrite, final String user) {
         long startTimeWrite = System.currentTimeMillis();
-        logger.debug("[IMPORT] writing file in transaction: " + parentPath + FILE_SEPARATOR + name);
+        logger.debug1("[IMPORT] writing file in transaction: " + parentPath + FILE_SEPARATOR + name);
         writeContent(site, importedPaths, importedFullPaths, fileRoot, targetRoot, parentPath, name,
                         overWrite);
-        logger.debug("[IMPORT] done writing file in transaction: " + parentPath + FILE_SEPARATOR + name
+        logger.debug1("[IMPORT] done writing file in transaction: " + parentPath + FILE_SEPARATOR + name
                         + ", time: " + (System.currentTimeMillis() - startTimeWrite));
         pause();
     }
@@ -409,10 +409,10 @@ public class ImportServiceImpl implements ImportService {
         InputStream in = null;
         String filePath = parentPath + FILE_SEPARATOR + name;
         String fileSystemPath = fileRoot + FILE_SEPARATOR + name;
-        logger.info("[IMPORT] writeContent: fileRoot [" + fileRoot + "] fullPath [" + filePath + "] overwrite["
+        logger.info1("[IMPORT] writeContent: fileRoot [" + fileRoot + "] fullPath [" + filePath + "] overwrite["
                 + overWrite + "] process chain [ " + processChain + "]");
         long startTimeWrite = System.currentTimeMillis();
-        logger.debug("[IMPORT] writing file: " + parentPath + FILE_SEPARATOR + name);
+        logger.debug1("[IMPORT] writing file: " + parentPath + FILE_SEPARATOR + name);
 
         try {
             File file = new File(fileSystemPath);
@@ -439,20 +439,20 @@ public class ImportServiceImpl implements ImportService {
                     importedPaths.add(filePath);
                     importedFullPaths.add(fullPath);
                 } else {
-                    logger.debug("[IMPORT] " + filePath
+                    logger.debug1("[IMPORT] " + filePath
                                 + " exists and set to not to overrwite. skipping this file.");
 
                 }
             }
         } catch (FileNotFoundException e) {
-            logger.warn("[IMPORT] " + filePath + " does not exist.");
+            logger.warn1("[IMPORT] " + filePath + " does not exist.");
 
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("[IMPORT] failed to import " + filePath, e);
+            logger.error1("[IMPORT] failed to import " + filePath, e);
         } finally {
             ContentUtils.release(in);
         }
-        logger.debug("[IMPORT] done writing file: " + parentPath + FILE_SEPARATOR + name
+        logger.debug1("[IMPORT] done writing file: " + parentPath + FILE_SEPARATOR + name
                 + ", time: " + (System.currentTimeMillis() - startTimeWrite));
     }
 
@@ -479,7 +479,7 @@ public class ImportServiceImpl implements ImportService {
         params.put(DmConstants.KEY_USER, getAssignee());
         params.put(DmConstants.KEY_CREATE_FOLDERS, "true");
         params.put(DmConstants.KEY_UNLOCK, "true");
-        logger.debug("[IMPORT] creating/updating " + filePath);
+        logger.debug1("[IMPORT] creating/updating " + filePath);
         return params;
     }
 
@@ -489,14 +489,14 @@ public class ImportServiceImpl implements ImportService {
     protected void pause() {
         if (this.pauseEanbeld) {
             if (System.currentTimeMillis() >= this.nextStop) {
-                logger.debug("[IMPORT] pausing import process.");
+                logger.debug1("[IMPORT] pausing import process.");
                 try {
                     Thread.sleep(this.currentDelayLength);
                     this.nextStop = System.currentTimeMillis() + this.currentDelayInterval;
                 } catch (InterruptedException e) {
-                    logger.error("[IMPORT] error while pausing import process.", e);
+                    logger.error1("[IMPORT] error while pausing import process.", e);
                 }
-                logger.debug("[IMPORT] done pausing import process.");
+                logger.debug1("[IMPORT] done pausing import process.");
             }
         }
     }
@@ -519,7 +519,7 @@ public class ImportServiceImpl implements ImportService {
     protected void createFiles(String site, Set<String> importedPaths, List<String> importedFullPaths,
                                List<Node> nodes, String fileRoot, String targetRoot, String parentPath,
                                boolean overWrite, String user) {
-        logger.info("[IMPORT] createFiles: fileRoot [" + fileRoot + "] parentFullPath [" + parentPath
+        logger.info1("[IMPORT] createFiles: fileRoot [" + fileRoot + "] parentFullPath [" + parentPath
                     + "] overwrite[" + overWrite + "]");
         if (nodes != null) {
             for (Node node : nodes) {
@@ -547,7 +547,7 @@ public class ImportServiceImpl implements ImportService {
     protected void publish(String site, String publishChannelGroup, String targetRoot, List<String> fullPaths,
                            int chunkSize) {
         if (chunkSize < 1) {
-            logger.info("[IMPORT] publising chunk size not defined. publishing all together.");
+            logger.info1("[IMPORT] publising chunk size not defined. publishing all together.");
             submitToGoLive(site, publishChannelGroup, fullPaths);
         } else {
             int total = fullPaths.size();
@@ -556,7 +556,7 @@ public class ImportServiceImpl implements ImportService {
             Set<String> goLiveItemPaths = new HashSet<String>(chunkSize);
             List<String> goLiveItemFullPaths = new ArrayList<String>(chunkSize);
             for (String importedFullPath : fullPaths) {
-                logger.debug("		" + importedFullPath);
+                logger.debug1("		" + importedFullPath);
                 if (goLiveItemFullPaths.size() < chunkSize) {
                     goLiveItemFullPaths.add(importedFullPath);
                     String goLiveItemPath = importedFullPath.replaceFirst(targetRoot, "");
@@ -564,7 +564,7 @@ public class ImportServiceImpl implements ImportService {
                     count++;
                 }
                 if (goLiveItemPaths.size() == chunkSize) {
-                    logger.info("[IMPORT] submitting " + chunkSize + " imported files to " + publishChannelGroup
+                    logger.info1("[IMPORT] submitting " + chunkSize + " imported files to " + publishChannelGroup
                             + " (" + count + "/" + total + ")");
 
                     submitToGoLive(site, publishChannelGroup, goLiveItemFullPaths);
@@ -574,7 +574,7 @@ public class ImportServiceImpl implements ImportService {
             }
             // submit the last set
             if (goLiveItemPaths.size() < chunkSize) {
-                logger.info("[IMPORT] submitting " + chunkSize + " imported files to " + publishChannelGroup + " ("
+                logger.info1("[IMPORT] submitting " + chunkSize + " imported files to " + publishChannelGroup + " ("
                             + count + "/" + total + ")");
                 submitToGoLive(site, publishChannelGroup, goLiveItemFullPaths);
                 goLiveItemPaths = new HashSet<String>(chunkSize);
@@ -594,7 +594,7 @@ public class ImportServiceImpl implements ImportService {
         MultiChannelPublishingContext mcpContext = new MultiChannelPublishingContext(
                 publishChannelGroup, "", "Import Service");
         dmPublishService.publish(site, importedFullPaths, null, mcpContext);
-        logger.info("All files have been submitted to be publish");
+        logger.info1("All files have been submitted to be publish");
     }
 
     public SiteService getSiteService() {

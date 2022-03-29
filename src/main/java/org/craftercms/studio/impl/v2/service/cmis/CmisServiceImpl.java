@@ -197,7 +197,7 @@ public class CmisServiceImpl implements CmisService {
                 HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
                 HttpsURLConnection.setDefaultHostnameVerifier(hv);
             } catch (KeyManagementException | NoSuchAlgorithmException e) {
-                logger.error("Error initializing SSL context", e);
+                logger.error1("Error initializing SSL context", e);
             }
         }
 
@@ -304,11 +304,11 @@ public class CmisServiceImpl implements CmisService {
             throw new StudioPathNotFoundException("Studio repository path does not exist for site " + siteId +
                     " (path: " + studioPath + ")");
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
-        logger.debug("Create new CMIS session");
+        logger.debug1("Create new CMIS session");
         Session session = createCMISSession(repositoryConfig);
         if (session != null) {
             String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
-            logger.debug("Find object for CMIS path: " + contentPath);
+            logger.debug1("Find object for CMIS path: " + contentPath);
             CmisObject cmisObject = session.getObjectByPath(contentPath);
             if (cmisObject != null) {
                 if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
@@ -318,7 +318,7 @@ public class CmisServiceImpl implements CmisService {
                     String fileName = cmisDoc.getName();
                     String savePath = studioPath + FILE_SEPARATOR + fileName;
                     ContentStream cs = cmisDoc.getContentStream();
-                    logger.debug("Save CMIS file to: " + savePath);
+                    logger.debug1("Save CMIS file to: " + savePath);
                     contentService.writeContent(siteId, savePath, cs.getStream());
                 }
             } else {
@@ -338,11 +338,11 @@ public class CmisServiceImpl implements CmisService {
             CmisPathNotFoundException, ConfigurationException {
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
         CmisUploadItem cmisUploadItem = new CmisUploadItem();
-        logger.debug("Create new CMIS session");
+        logger.debug1("Create new CMIS session");
         Session session = createCMISSession(repositoryConfig);
         if (session != null) {
             String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
-            logger.debug("Find object for CMIS path: " + contentPath);
+            logger.debug1("Find object for CMIS path: " + contentPath);
             CmisObject cmisObject = session.getObjectByPath(contentPath);
             if (cmisObject != null) {
                 if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
@@ -351,7 +351,7 @@ public class CmisServiceImpl implements CmisService {
                         docObject = session.getObjectByPath(Paths.get(contentPath, filename).toString());
                     } catch (CmisBaseException e) {
                         // Content does not exist - no error
-                        logger.debug("File " + filename + " does not exist at " + contentPath);
+                        logger.debug1("File " + filename + " does not exist at " + contentPath);
                     }
                     String mimeType = StudioUtils.getMimeType(filename);
                     ContentStream contentStream =

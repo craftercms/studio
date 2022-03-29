@@ -70,20 +70,20 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                     processAuditLog(site);
                 }
             } catch (Exception e) {
-                logger.error("Failed to process audit log from repository for site " + site, e);
+                logger.error1("Failed to process audit log from repository for site " + site, e);
             }
         } catch (Exception e) {
-            logger.error("Failed to process audit log from repository for site " + site, e);
+            logger.error1("Failed to process audit log from repository for site " + site, e);
         }
     }
 
     private void processAuditLog(String site) throws SiteNotFoundException {
-        logger.debug("Getting last verified commit for site: " + site);
+        logger.debug1("Getting last verified commit for site: " + site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastSyncedCommit = siteService.getLastSyncedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastSyncedCommit)) {
-                logger.debug("Update gitlog for site " + site + " from last synced commit " + lastSyncedCommit);
+                logger.debug1("Update gitlog for site " + site + " from last synced commit " + lastSyncedCommit);
                 contentRepository.updateGitlog(site, lastSyncedCommit, batchSizeGitLog);
                 processAuditLogFromRepo(site, batchSizeAudited);
             }
@@ -115,7 +115,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                logger.debug1("Insert audit log for site: " + siteId + " path: " +
                                         repoOperation.getPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_CREATE);
@@ -139,7 +139,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                logger.debug1("Insert audit log for site: " + siteId + " path: " +
                                         repoOperation.getPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_UPDATE);
@@ -162,7 +162,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                logger.debug1("Insert audit log for site: " + siteId + " path: " +
                                         repoOperation.getPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_DELETE);
@@ -186,7 +186,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
+                                logger.debug1("Insert audit log for site: " + siteId + " path: " +
                                         repoOperation.getMoveToPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_MOVE);
@@ -205,7 +205,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 break;
 
                             default:
-                                logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                                logger.error1("Error: Unknown repo operation for site " + siteId + " operation: " +
                                         repoOperation.getAction());
                                 break;
                         }
@@ -229,7 +229,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
+            logger.info1("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
         }
         return toRet;
     }

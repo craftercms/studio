@@ -51,7 +51,7 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
                 Path outputFilePath = input.getFilePath();
                 Asset output = new Asset(input.getRepoPath(), outputFilePath);
 
-                logger.info("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
+                logger.info1("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
 
                 try {
                     doProcessAsset(inputFilePath, outputFilePath, config.getParams());
@@ -65,7 +65,7 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
                 Path outputFilePath = createTmpFile(outputRepoPath);
                 Asset output = new Asset(outputRepoPath, outputFilePath);
 
-                logger.info("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
+                logger.info1("Asset processing: Type = {}, Input = {}, Output = {}", config.getType(), input, output);
 
                 doProcessAsset(inputFilePath, outputFilePath, config.getParams());
 

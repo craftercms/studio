@@ -100,7 +100,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
     protected HierarchicalConfiguration getConfiguration(String siteId) throws ExecutionException {
         String cacheKey1 = configurationService.getCacheKey(siteId, configModule, configPath, getEnvironment());
         return (HierarchicalConfiguration) cache.get(cacheKey1, () -> {
-            logger.debug("Cache miss: {}", cacheKey1);
+            logger.debug1("Cache miss: {}", cacheKey1);
             return getConfiguration(new ConfigurationProviderImpl(siteId));
         });
     }
@@ -109,14 +109,14 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             throws ExecutionException {
         String cacheKey2 = join(":", siteId, CACHE_KEY_STORE, storeId);
         return (StudioBlobStore) cache.get(cacheKey2, () -> {
-            logger.debug("Cache miss: {}", cacheKey2);
+            logger.debug1("Cache miss: {}", cacheKey2);
             return getById(config, storeId);
         });
     }
 
     @Override
     public List<StudioBlobStore> getAll(String siteId) throws ServiceLayerException {
-        logger.debug("Looking all blob stores for site {}", siteId);
+        logger.debug1("Looking all blob stores for site {}", siteId);
         List<StudioBlobStore> result = new LinkedList<>();
         try {
             HierarchicalConfiguration config = getConfiguration(siteId);
@@ -136,11 +136,11 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             throws ServiceLayerException {
 
         if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
-            logger.debug("One of the paths {} should not be intercepted, will be skipped", (Object) paths);
+            logger.debug1("One of the paths {} should not be intercepted, will be skipped", (Object) paths);
             return null;
         }
 
-        logger.debug("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
+        logger.debug1("Looking blob store for paths {} for site {}", Arrays.toString(paths), site);
         try {
             HierarchicalConfiguration config = getConfiguration(site);
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
@@ -152,7 +152,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 }
                 return blobStore;
             } else {
-                logger.debug("No blob store found in site {} for paths {}", site, paths);
+                logger.debug1("No blob store found in site {} for paths {}", site, paths);
                 return null;
             }
         } catch (ExecutionException e) {
@@ -165,7 +165,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         try {
             return getByPaths(site, path) != null;
         } catch (BlobStoreConfigurationMissingException e) {
-            logger.debug("Blob store configuration is missing or invalid");
+            logger.debug1("Blob store configuration is missing or invalid");
             return false;
         }
     }

@@ -104,13 +104,13 @@ public class PreviewDeployer extends AbstractDeployer {
                                                                             .contentType(MediaType.APPLICATION_JSON)
                                                                             .body(requestBody);
 
-            logger.debug("Calling deployment API: {}", requestEntity);
+            logger.debug1("Calling deployment API: {}", requestEntity);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (RestServiceException e) {
-            logger.error("Preview sync request for site " + site + " returned error response: " + e);
+            logger.error1("Preview sync request for site " + site + " returned error response: " + e);
         } catch (Exception e) {
-            logger.error("Error while sending preview sync request for site " + site, e);
+            logger.error1("Error while sending preview sync request for site " + site, e);
         }
     }
 

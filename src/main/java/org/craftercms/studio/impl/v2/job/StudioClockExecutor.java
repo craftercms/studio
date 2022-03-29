@@ -90,17 +90,17 @@ public class StudioClockExecutor implements Job {
             if (singleWorkerLock.tryLock()) {
                 try {
                     setRunning(true);
-                    logger.debug("Executing tasks thread num " + threadCounter);
+                    logger.debug1("Executing tasks thread num " + threadCounter);
                     executeTasks();
                 } catch (Exception e) {
-                    logger.error("Error executing Studio Clock Job", e);
+                    logger.error1("Error executing Studio Clock Job", e);
                 } finally {
                     setRunning(false);
                     singleWorkerLock.unlock();
                 }
             }
         } else {
-            logger.debug("System not ready yet. Skipping cycle");
+            logger.debug1("System not ready yet. Skipping cycle");
         }
     }
 
@@ -129,7 +129,7 @@ public class StudioClockExecutor implements Job {
     }
 
     private void cleanupDeletedSites() {
-        logger.debug("Remove local copies of deleted sites if present");
+        logger.debug1("Remove local copies of deleted sites if present");
         List<SiteFeed> deletedSites = siteService.getDeletedSites();
         deletedSites.forEach(siteFeed -> {
             String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
@@ -158,7 +158,7 @@ public class StudioClockExecutor implements Job {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
+            logger.info1("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
         }
         return toRet;
     }
@@ -178,7 +178,7 @@ public class StudioClockExecutor implements Job {
                 toReturn = false;
             }
         } catch (IOException e) {
-            logger.error("Error while sending destroy preview context request for site " + site, e);
+            logger.error1("Error while sending destroy preview context request for site " + site, e);
             toReturn = false;
         } finally {
             getRequest.releaseConnection();

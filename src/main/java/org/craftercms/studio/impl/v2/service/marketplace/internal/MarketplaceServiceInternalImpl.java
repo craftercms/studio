@@ -368,7 +368,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     public void afterPropertiesSet() throws IOException {
         VersionInfo versionInfo = VersionInfo.getVersion(MarketplaceServiceInternalImpl.class);
         if (versionInfo == null) {
-            logger.warn("Marketplace service could not be initialized");
+            logger.warn1("Marketplace service could not be initialized");
             return;
         }
         String versionStr = versionInfo.getPackageVersion();
@@ -458,7 +458,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         throws MarketplaceException {
         validate();
 
-        logger.debug("Getting descriptor for plugin {} v{}", id, version);
+        logger.debug1("Getting descriptor for plugin {} v{}", id, version);
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
             .path(Paths.GET_PLUGIN)
             .pathSegment(id, version.toString())
@@ -482,16 +482,16 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         InvalidRemoteRepositoryException, InvalidRemoteUrlException,
         ServiceLayerException, InvalidRemoteRepositoryCredentialsException {
 
-        logger.debug("Creating site {} from marketplace blueprint {} v{}",
+        logger.debug1("Creating site {} from marketplace blueprint {} v{}",
                 request.getSiteId(), request.getBlueprintId(), request.getBlueprintVersion());
 
         if (isEmpty(request.getSandboxBranch())) {
-            logger.debug("Using default sandbox branch for site {}", request.getSiteId());
+            logger.debug1("Using default sandbox branch for site {}", request.getSiteId());
             request.setSandboxBranch(studioConfiguration.getProperty(StudioConfiguration.REPO_SANDBOX_BRANCH));
         }
 
         if (isEmpty(request.getRemoteName())) {
-            logger.debug("Using default remote name for site {}", request.getSiteId());
+            logger.debug1("Using default remote name for site {}", request.getSiteId());
             request.setRemoteName(studioConfiguration.getProperty(StudioConfiguration.REPO_DEFAULT_REMOTE_NAME));
         }
 
@@ -505,7 +505,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             null, null, null, StudioConstants.REMOTE_REPOSITORY_CREATE_OPTION_CLONE, request.getSiteParams(),
             true);
 
-        logger.debug("Site creation complete for {}", request.getSiteId());
+        logger.debug1("Site creation complete for {}", request.getSiteId());
     }
 
     @Override
@@ -517,9 +517,9 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected PluginRegistry getPluginRegistry(String siteId) throws MarketplaceRegistryException {
-        logger.debug("Reading plugin registry for site {}", siteId);
+        logger.debug1("Reading plugin registry for site {}", siteId);
         if (!contentService.contentExists(siteId, pluginRegistryPath)) {
-            logger.debug("Creating new plugin registry for site {}", siteId);
+            logger.debug1("Creating new plugin registry for site {}", siteId);
             return new PluginRegistry();
         }
         readLock.lock();
@@ -543,7 +543,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                         pluginId, siteId));
             }
 
-            logger.info("Starting installation of plugin {} v{} for site {}", pluginId, pluginVersion, siteId);
+            logger.info1("Starting installation of plugin {} v{} for site {}", pluginId, pluginVersion, siteId);
 
             MarketplacePlugin marketplacePlugin = getDescriptor(pluginId, pluginVersion);
 
@@ -597,14 +597,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 commitChanges(siteId, changedFiles, false, false,
                         format("Install plugin %s %s", pluginId, pluginVersion));
 
-                logger.info("Installation of plugin {} v{} completed for site {}",
+                logger.info1("Installation of plugin {} v{} completed for site {}",
                         marketplacePlugin.getId(), marketplacePlugin.getVersion(), siteId);
             } finally {
                 if (temp != null) {
                     try {
                         FileUtils.deleteDirectory(temp.toFile());
                     } catch (IOException e) {
-                        logger.warn("Could not delete temporary directory " + temp);
+                        logger.warn1("Could not delete temporary directory " + temp);
                     }
                 }
             }
@@ -629,7 +629,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected boolean isPluginAlreadyInstalled(String siteId, String pluginId) throws MarketplaceException {
-        logger.debug("Checking if plugin {} is already installed in site {}", pluginId, siteId);
+        logger.debug1("Checking if plugin {} is already installed in site {}", pluginId, siteId);
         return getInstalledPlugins(siteId).stream()
                 .map(PluginRecord::getId)
                 .anyMatch(pluginId::equalsIgnoreCase);
@@ -639,7 +639,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             throws PluginInstallationException {
         Git git = null;
         try {
-            logger.debug("Cloning remote repository {} with tag {}", plugin.getUrl(), plugin.getRef());
+            logger.debug1("Cloning remote repository {} with tag {}", plugin.getUrl(), plugin.getRef());
 
             git = Git.cloneRepository()
                      .setDirectory(directory.toFile())
@@ -657,7 +657,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected List<FileRecord> copyPluginFiles(Path pluginDir, String siteId, Plugin plugin, Map<String, String> params)
         throws IOException {
-        logger.info("Copying files from plugin {} v{} for site {}", plugin.getId(), plugin.getVersion(), siteId);
+        logger.info1("Copying files from plugin {} v{} for site {}", plugin.getId(), plugin.getVersion(), siteId);
         List<FileRecord> files = new LinkedList<>();
         Path siteDir = getRepoDirectory(siteId);
         String pluginIdPath = getPluginPath(plugin.getId());
@@ -691,13 +691,13 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         PluginRegistry registry = getPluginRegistry(siteId);
         registry.getPlugins().add(record);
 
-        logger.debug("Adding plugin {} v{} to registry for site {}", plugin.getId(), plugin.getVersion(), siteId);
+        logger.debug1("Adding plugin {} v{} to registry for site {}", plugin.getId(), plugin.getVersion(), siteId);
 
         Path repoDir = getRepoDirectory(siteId);
         Path registryFile = repoDir.resolve(pluginRegistryPath);
         try (OutputStream os = Files.newOutputStream(registryFile)) {
             mapper.writeValue(os, registry);
-            logger.debug("Plugin registry successfully updated for site {}", siteId);
+            logger.debug1("Plugin registry successfully updated for site {}", siteId);
         } catch (JsonProcessingException e) {
             throw new MarketplaceRegistryException("Error updating the plugin registry for site: " + siteId, e);
         }
@@ -708,13 +708,13 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         PluginRegistry registry = getPluginRegistry(siteId);
         registry.getPlugins().removeIf(p -> p.getId().equals(pluginId));
 
-        logger.debug("Removing plugin {} from registry for site {}", pluginId, siteId);
+        logger.debug1("Removing plugin {} from registry for site {}", pluginId, siteId);
 
         Path repoDir = getRepoDirectory(siteId);
         Path registryFile = repoDir.resolve(pluginRegistryPath);
         try (OutputStream os = Files.newOutputStream(registryFile)) {
             mapper.writeValue(os, registry);
-            logger.debug("Plugin registry successfully updated for site {}", siteId);
+            logger.debug1("Plugin registry successfully updated for site {}", siteId);
         } catch (JsonProcessingException e) {
             throw new MarketplaceRegistryException("Error updating the plugin registry for site: " + siteId, e);
         }
@@ -734,7 +734,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         List<String> changedFiles = new LinkedList<>();
 
         try {
-            logger.info("Copying plugin from {} to site {}", localPath, siteId);
+            logger.info1("Copying plugin from {} to site {}", localPath, siteId);
             Path descriptorFile = pluginFolder.resolve(pluginDescriptorFilename);
             try (InputStream is = Files.newInputStream(descriptorFile)) {
                 PluginDescriptor descriptor = pluginDescriptorReader.read(is);
@@ -748,7 +748,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
                 var files = new LinkedList<FileRecord>();
 
-                logger.info("Copying files from plugin {} v{} for site {}",
+                logger.info1("Copying files from plugin {} v{} for site {}",
                         plugin.getId(), plugin.getVersion(), siteId);
 
                 for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
@@ -778,7 +778,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 commitChanges(siteId, changedFiles, false, false,
                         format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()));
 
-                logger.info("Copy of plugin {} v{} completed for site {}",
+                logger.info1("Copy of plugin {} v{} completed for site {}",
                         plugin.getId(), plugin.getVersion(), siteId);
             }
         } catch (Exception e) {
@@ -798,11 +798,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     @Override
     public void removePlugin(String siteId, String pluginId, boolean force) throws ServiceLayerException {
-        logger.debug("Starting removal of plugin {} from site {}", pluginId, siteId);
+        logger.debug1("Starting removal of plugin {} from site {}", pluginId, siteId);
         Optional<PluginRecord> record = getPluginRecord(siteId, pluginId);
         // if the plugin is not installed do anything
         if (record.isEmpty()) {
-            logger.debug("Plugin {} is not installed in site {}, nothing to do", pluginId, siteId);
+            logger.debug1("Plugin {} is not installed in site {}, nothing to do", pluginId, siteId);
             return;
         }
 
@@ -831,7 +831,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
 
             // Delete the files created by the plugin
-            logger.debug("Deleting files created by plugin {} on site {}", pluginId, siteId);
+            logger.debug1("Deleting files created by plugin {} on site {}", pluginId, siteId);
             List<FileRecord> files = record.get().getFiles();
             for (FileRecord file : files) {
                 Files.deleteIfExists(repoDir.resolve(file.getPath()));
@@ -919,7 +919,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     public List<String> getPluginUsage(String siteId, String pluginId) throws ServiceLayerException {
-        logger.debug("Getting dependencies for plugin {} in site {}", pluginId, siteId);
+        logger.debug1("Getting dependencies for plugin {} in site {}", pluginId, siteId);
         Optional<PluginRecord> record = getPluginRecord(siteId, pluginId);
         Pattern contentTypeRegex = Pattern.compile(contentTypePattern);
         Set<String> dependantItems = new TreeSet<>();
@@ -942,7 +942,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             }
         }
 
-        logger.debug("Found {} item(s) depending on plugin {} in site {}: {}" ,
+        logger.debug1("Found {} item(s) depending on plugin {} in site {}: {}" ,
                 dependantItems.size(), pluginId, siteId, dependantItems);
         return new ArrayList<>(dependantItems);
     }
@@ -962,7 +962,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     protected void commitChanges(String siteId, List<String> changedFiles, boolean update, boolean publish,
                                  String message) throws IOException, GitAPIException, ServiceLayerException,
             UserNotFoundException {
-        logger.debug("Committing changes on site {}: {}", siteId, message);
+        logger.debug1("Committing changes on site {}: {}", siteId, message);
         Path siteDir = getRepoDirectory(siteId);
         try (Git git = Git.open(siteDir.toFile())) {
             AddCommand add = git.add().setUpdate(update);
@@ -975,7 +975,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
             if (publish) {
                 // publish changes
-                logger.debug("Publishing changes on site {}: {}", siteId, message);
+                logger.debug1("Publishing changes on site {}: {}", siteId, message);
                 deploymentService.publishCommits(siteId, "live", List.of(commit.getName()), message);
             }
         }
@@ -985,7 +985,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                                               List<ConfigRecord> wiring) throws
             TransformerException, IOException, ServiceLayerException, DocumentException {
         if (CollectionUtils.isNotEmpty(plugin.getInstallation())) {
-            logger.info("Starting wiring for plugin {} in site {}", plugin.getId(), siteId);
+            logger.info1("Starting wiring for plugin {} in site {}", plugin.getId(), siteId);
             Path repoDir = getRepoDirectory(siteId);
             for(Installation installation : plugin.getInstallation()) {
                 try {
@@ -1010,7 +1010,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
                     // check if the wiring has already been performed
                     if (document.selectSingleNode(installation.getElementXpath()) != null) {
-                        logger.info("Wiring of type: {} was already performed for plugin: {}",
+                        logger.info1("Wiring of type: {} was already performed for plugin: {}",
                                 installation.getType(), plugin.getId());
                         continue;
                     }
@@ -1036,11 +1036,11 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                         }
                     }
 
-                    logger.info("Wiring widget of type {}", installation.getType());
+                    logger.info1("Wiring widget of type {}", installation.getType());
                     Element element = buildXml(root);
 
                     String newXml = element.asXML();
-                    logger.debug("New configuration: {}", newXml);
+                    logger.debug1("New configuration: {}", newXml);
 
                     var params = new HashMap<String, Object>();
                     params.put(PARAM_NEW_XML, newXml);
@@ -1058,13 +1058,13 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     Files.write(configFile, output.toByteArray());
                     changedFiles.add(configPath);
                 } catch (ConfigurationRuntimeException e) {
-                    logger.warn("Unsupported installation type {} for plugin {}",
+                    logger.warn1("Unsupported installation type {} for plugin {}",
                             installation.getType(), plugin.getId());
                 }
             }
-            logger.info("Completed wiring for plugin {} in site {}", plugin.getId(), siteId);
+            logger.info1("Completed wiring for plugin {} in site {}", plugin.getId(), siteId);
         } else {
-            logger.info("No wiring required for plugin {}", plugin.getId());
+            logger.info1("No wiring required for plugin {}", plugin.getId());
         }
     }
 
@@ -1086,16 +1086,16 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                                       String includeComment, String pluginPath, List<String> changedFiles)
             throws IOException {
         if (paths.contains(pluginPath)) {
-            logger.debug("Detected template {}", pluginPath);
+            logger.debug1("Detected template {}", pluginPath);
             String fileContent = EMPTY;
             if (contentService.contentExists(siteId, includePath)) {
-                logger.debug("Site {} already has template {}, it will be updated", siteId, includePath);
+                logger.debug1("Site {} already has template {}, it will be updated", siteId, includePath);
                 fileContent = contentService.getContentAsString(siteId, includePath);
             } else {
-                logger.debug("Site {} does not have template {}, it will be created", siteId, includePath);
+                logger.debug1("Site {} does not have template {}, it will be created", siteId, includePath);
             }
             if (isEmpty(fileContent) || !contains(fileContent, includeComment)) {
-                logger.debug("Wiring plugin template {} in {} for site {}", pluginPath, includePath, siteId);
+                logger.debug1("Wiring plugin template {} in {} for site {}", pluginPath, includePath, siteId);
                 String newLine =
                         format("\n%s%s\n", replace(templateCode,
                                 Map.of(PATH_CONFIG_KEY, pluginPath, PARAM_PLUGIN_ID, pluginId)), includeComment);
@@ -1107,7 +1107,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 Files.write(templateFile, fileContent.getBytes());
                 changedFiles.add(includePath);
             } else {
-                logger.debug("Plugin template {} already wired in {} for site {}", pluginPath, includePath, siteId);
+                logger.debug1("Plugin template {} already wired in {} for site {}", pluginPath, includePath, siteId);
             }
         }
     }
@@ -1131,7 +1131,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     protected void removeTemplateWiring(String pluginId, String siteId, List<String> changedFiles) throws IOException {
-        logger.info("Removing template wiring for plugin {} in site {}", pluginId, siteId);
+        logger.info1("Removing template wiring for plugin {} in site {}", pluginId, siteId);
         Path repo = getRepoDirectory(siteId);
 
         // Check all possible hooks
@@ -1152,14 +1152,14 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             }
         }
 
-        logger.info("Completed removal of template wiring for plugin {} in site {}", pluginId, siteId);
+        logger.info1("Completed removal of template wiring for plugin {} in site {}", pluginId, siteId);
     }
 
     protected void removeConfigurationWiring(String pluginId, String siteId, List<String> changedFiles,
                                              List<ConfigRecord> changedConfigurations) throws
             IOException, TransformerException {
             if (CollectionUtils.isNotEmpty(changedConfigurations)) {
-                logger.info("Removing configuration wiring for plugin {} in site {}", pluginId, siteId);
+                logger.info1("Removing configuration wiring for plugin {} in site {}", pluginId, siteId);
 
                 for (ConfigRecord record : changedConfigurations) {
                     HierarchicalConfiguration<?> mapping = widgetMapping.configurationAt(record.getType());
@@ -1187,7 +1187,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     }
                 }
 
-                logger.info("Completed removal of configuration wiring for plugin {} in site {}", pluginId, siteId);
+                logger.info1("Completed removal of configuration wiring for plugin {} in site {}", pluginId, siteId);
             }
     }
 

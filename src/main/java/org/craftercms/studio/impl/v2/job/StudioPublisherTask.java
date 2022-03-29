@@ -101,7 +101,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         try {
 
             // Check publishing lock status
-            logger.debug("Try to lock site " + siteId + " for publishing by lock owner " + lockOwnerId);
+            logger.debug1("Try to lock site " + siteId + " for publishing by lock owner " + lockOwnerId);
             if (siteService.tryLockPublishingForSite(siteId, lockOwnerId, lockTTL)) {
 
                 if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
@@ -113,11 +113,11 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                             Set<String> environments = getAllPublishingEnvironments(siteId);
                             for (String environment : environments) {
                                 env = environment;
-                                logger.debug("Processing content ready for deployment for site \"{}\"", siteId);
+                                logger.debug1("Processing content ready for deployment for site \"{}\"", siteId);
                                 List<PublishRequest> itemsToDeploy =
                                         publishingManager.getItemsReadyForDeployment(siteId, environment);
                                 while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
-                                    logger.debug("Deploying " + itemsToDeploy.size() + " items for " +
+                                    logger.debug1("Deploying " + itemsToDeploy.size() + " items for " +
                                             "site " + siteId);
                                     publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
                                     List<String> commitIds = itemsToDeploy.stream()
@@ -132,7 +132,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                                     commit);
                                             if (!commitPresent) {
                                                 sbMissingCommits.append(commit).append("; ");
-                                                logger.debug("Commit with ID: " + commit + " is not present in " +
+                                                logger.debug1("Commit with ID: " + commit + " is not present in " +
                                                         "local repo for site " + siteId + ". " +
                                                         "Publisher task will skip this cycle.");
                                                 allCommitsPresent = false;
@@ -141,9 +141,9 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                     }
 
                                     if (allCommitsPresent) {
-                                        logger.info("Starting publishing on environment " + environment +
+                                        logger.info1("Starting publishing on environment " + environment +
                                                 " for site " + siteId);
-                                        logger.debug("Site \"{}\" has {} items ready for deployment",
+                                        logger.debug1("Site \"{}\" has {} items ready for deployment",
                                                 siteId, itemsToDeploy.size());
                                         String packageId = itemsToDeploy.get(0).getPackageId();
                                         PublishingProgressObserver observer =
@@ -163,7 +163,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                         itemsToDeploy = null;
                                         if (retriesLeft > 0) {
                                             retryCounter.put(siteId, retriesLeft);
-                                            logger.info("Following commits are not present in local " +
+                                            logger.info1("Following commits are not present in local " +
                                                     "repository " + sbMissingCommits + " Publisher task " +
                                                     "will retry in next cycle. Number of retries left: " + retriesLeft);
                                         } else {
@@ -178,39 +178,39 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                 }
                             }
                         } catch (UncategorizedSQLException e) {
-                            logger.error("DB error while executing deployment to environment store for site "
+                            logger.error1("DB error while executing deployment to environment store for site "
                                             + siteId, dbErr);
                             if (!dbErrorNotifiedSites.add(siteId)) {
                                 notificationService.notifyDeploymentError(siteId, dbErr);
                             }
                             publishingManager.resetProcessingQueue(siteId, env);
                         } catch (Exception e) {
-                            logger.error("Error while executing deployment to environment store for site: "
+                            logger.error1("Error while executing deployment to environment store for site: "
                                     + siteId, err);
                             publishingManager.resetProcessingQueue(siteId, env);
                             notificationService.notifyDeploymentError(siteId, err);
                         }
                     } else {
-                        logger.info("Publishing is blocked for site " + siteId);
+                        logger.info1("Publishing is blocked for site " + siteId);
                     }
                 } else {
-                    logger.debug("Publishing is disabled for site {}", siteId);
+                    logger.debug1("Publishing is disabled for site {}", siteId);
                 }
             }
         } catch (UncategorizedSQLException e) {
-            logger.error("DB error while executing deployment to environment store for site " + siteId, dbErr);
+            logger.error1("DB error while executing deployment to environment store for site " + siteId, dbErr);
             if (!dbErrorNotifiedSites.add(siteId)) {
                 notificationService.notifyDeploymentError(siteId, dbErr);
             }
             publishingManager.resetProcessingQueue(siteId, env);
         } catch (Exception e) {
-            logger.error("Error while executing deployment to environment store for site " + siteId, err);
+            logger.error1("Error while executing deployment to environment store for site " + siteId, err);
             notificationService.notifyDeploymentError(siteId, err);
             publishingManager.resetProcessingQueue(siteId, env);
         } finally {
             // Unlock publishing if queue does not have packages ready for publishing
             publishingProgressServiceInternal.removeObserver(siteId);
-            logger.debug("Unlocking publishing for site " + siteId + " by lock owner " + lockOwnerId);
+            logger.debug1("Unlocking publishing for site " + siteId + " by lock owner " + lockOwnerId);
             siteService.unlockPublishingForSite(siteId, lockOwnerId);
         }
     }
@@ -225,7 +225,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         Set<String> processedPaths = new HashSet<String>();
         String currentPackageId = StringUtils.EMPTY;
         try {
-            logger.debug("Mark items as processing for site \"{}\"", siteId);
+            logger.debug1("Mark items as processing for site \"{}\"", siteId);
             Set<String> packageIds = new HashSet<String>();
             for (PublishRequest item : itemsToDeploy) {
                 processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
@@ -254,8 +254,8 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             }
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
             publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
-            logger.debug("Mark deployment completed for processed items for site \"{}\"", siteId);
-            logger.info("Finished publishing environment " + environment + " for site " + siteId);
+            logger.debug1("Mark deployment completed for processed items for site \"{}\"", siteId);
+            logger.info1("Finished publishing environment " + environment + " for site " + siteId);
 
             if (publishingManager.isPublishingQueueEmpty(siteId)) {
                 status = READY;
@@ -264,7 +264,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             }
             siteService.updatePublishingStatus(siteId, status);
         } catch (DeploymentException e) {
-            logger.error("Error while executing deployment to environment store " +
+            logger.error1("Error while executing deployment to environment store " +
                             "for site \"{}\", number of items \"{}\"", err, siteId,
                     itemsToDeploy.size());
             publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
@@ -272,7 +272,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
         } catch (Exception e) {
-            logger.error("Unexpected error while executing deployment to environment " +
+            logger.error1("Unexpected error while executing deployment to environment " +
                             "store for site \"{}\", number of items \"{}\"", err, siteId,
                     itemsToDeploy.size());
             publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
@@ -291,33 +291,33 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
 
 
-            logger.debug("Processing [{}] content item for site \"{}\"", item
+            logger.debug1("Processing [{}] content item for site \"{}\"", item
                     .getPath(), siteId);
             DeploymentItemTO deploymentItem = publishingManager.processItem(item);
             if (deploymentItem != null) {
                 deploymentItemList.add(deploymentItem);
             }
-            logger.debug("Processing COMPLETE [{}] content item for site \"{}\"",
+            logger.debug1("Processing COMPLETE [{}] content item for site \"{}\"",
                     item.getPath(), siteId);
 
             if (isMandatoryDependenciesCheckEnabled()) {
-                logger.debug("Processing Mandatory Deps [{}] content item for site "
+                logger.debug1("Processing Mandatory Deps [{}] content item for site "
                         + "\"{}\"", item.getPath(), siteId);
                 missingDependencies.addAll(publishingManager
                         .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
-                logger.debug("Processing Mandatory Dependencies COMPLETE [{}]"
+                logger.debug1("Processing Mandatory Dependencies COMPLETE [{}]"
                         + " content item for site \"{}\"", item.getPath(), siteId);
             }
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
         } catch (DeploymentException e) {
-            logger.error("Error while executing deployment to environment store for site \"{}\",", err, siteId);
+            logger.error1("Error while executing deployment to environment store for site \"{}\",", err, siteId);
             publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
             throw err;
         } catch (Exception e){
-            logger.error("Unexpected error while executing deployment to environment " +
+            logger.error1("Unexpected error while executing deployment to environment " +
                     "store for site \"{}\", ", err, siteId);
             publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
@@ -328,7 +328,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
 
     private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
             throws DeploymentException, SiteNotFoundException {
-        logger.debug("Deploying " + items.size() + " item(s)");
+        logger.debug1("Deploying " + items.size() + " item(s)");
         SiteFeed siteFeed = siteService.getSite(site);
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             String liveEnvironment = servicesConfig.getLiveEnvironment(site);

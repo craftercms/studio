@@ -43,6 +43,6 @@ try {
     return items
 
 } catch (e) {
-    logger.error("Listing of path ${path} failed", e)
+    logger.error1("Listing of path ${path} failed", e)
     return sendError(500, "Listing of path ${path} failed: " + e.getMessage() as String)
 }

@@ -134,14 +134,14 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
             Path formDefinition = getFormDefinition(context, contentTypeName);
             Document definition = loadDocument(formDefinition);
             NodeList formFields = (NodeList) select(definition, fieldNameXpath, XPathConstants.NODESET);
-            logger.debug("Found {} Box controls for content-type {}", formFields.getLength(), contentTypeName);
+            logger.debug1("Found {} Box controls for content-type {}", formFields.getLength(), contentTypeName);
             boolean updated = false;
             for(int i = 0; i < formFields.getLength(); i++) {
                 Node formField = formFields.item(i);
                 updated = findFields(file, definition, descriptor, formField) || updated;
             }
             if(updated) {
-                logger.info("Updating file {}", file);
+                logger.info1("Updating file {}", file);
                 writeFile(file, descriptor);
             }
 
@@ -170,7 +170,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
 
         NodeList items = (NodeList) select(descriptor, replace(itemXpath, idValue), XPathConstants.NODESET);
 
-        logger.debug("Found {} Box fields in file {}", items.getLength(), file);
+        logger.debug1("Found {} Box fields in file {}", items.getLength(), file);
 
         boolean updated = false;
 
@@ -197,7 +197,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
         String fileName = (String) select(item, itemNameXpath, XPathConstants.STRING);
 
         if((Boolean) select(item, urlElementName, XPathConstants.BOOLEAN)) {
-            logger.info("Field {}/{} already has a {} element, it will not be updated",
+            logger.info1("Field {}/{} already has a {} element, it will not be updated",
                 fieldName, fileId, urlElementName);
         } else {
             Map<String, String> values = new HashMap<>();
@@ -206,7 +206,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
             values.put(PLACEHOLDER_EXTENSION, FilenameUtils.getExtension(fileName));
 
             String urlValue = replace(urlTemplate, values);
-            logger.debug("Adding url element for field {}/{} with value {}",
+            logger.debug1("Adding url element for field {}/{} with value {}",
                 fieldName, fileId, urlValue);
 
             Element urlNode = descriptor.createElement(urlElementName);

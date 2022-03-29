@@ -211,7 +211,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
     @Override
     public AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException {
-        logger.debug("Creating tokens for {}", auth.getName());
+        logger.debug1("Creating tokens for {}", auth.getName());
         var issuedAt = now();
         var expireAt = issuedAt.plus(accessTokenExpiration, MINUTES);
 
@@ -235,7 +235,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
     @Override
     public void deleteRefreshToken(User user) {
-        logger.debug("Triggering re-authentication for user {}", user.getUsername());
+        logger.debug1("Triggering re-authentication for user {}", user.getUsername());
         userActivity.invalidate(user.getId());
         retryingDatabaseOperationFacade.deleteRefreshToken(user.getId());
     }
@@ -243,16 +243,16 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public void deleteExpiredRefreshTokens() {
         if (systemStatusProvider.isSystemReady()) {
-            logger.debug("Cleaning up refresh tokens");
+            logger.debug1("Cleaning up refresh tokens");
             List<Long> inactiveUsers = userActivity.asMap().entrySet().stream()
                                         .filter(entry -> MINUTES.between(entry.getValue(), now()) > inactivityTimeout)
                                         .map(Map.Entry::getKey)
                                         .collect(toList());
             userActivity.invalidateAll(inactiveUsers);
             int deleted = retryingDatabaseOperationFacade.deleteExpiredTokens(sessionTimeout, inactiveUsers);
-            logger.debug("Deleted {} expired refresh tokens", deleted);
+            logger.debug1("Deleted {} expired refresh tokens", deleted);
         } else {
-            logger.debug("System is not ready yet, skipping refresh token cleanup");
+            logger.debug1("System is not ready yet, skipping refresh token cleanup");
         }
     }
 
@@ -326,29 +326,29 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
                 var storedToken = securityDao.getAccessTokenById(tokenId);
                 if (storedToken == null) {
                     // someone is trying to use a deleted token!
-                    logger.debug("Detected usage of deleted JWT with id {} for user {}", tokenId, username);
+                    logger.debug1("Detected usage of deleted JWT with id {} for user {}", tokenId, username);
                     createAuditLog(username, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_LOGIN_FAILED);
                     return null;
                 }
                 if (!storedToken.isEnabled()) {
                     // someone is trying to use a disabled token!
-                    logger.debug("Detected usage of disabled JWT with id {} for user {}", tokenId, username);
+                    logger.debug1("Detected usage of disabled JWT with id {} for user {}", tokenId, username);
                     createAuditLog(username, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_LOGIN_FAILED);
                     return null;
                 }
 
-                logger.debug("Successfully validated JWT with id {} for user {}", tokenId, username);
+                logger.debug1("Successfully validated JWT with id {} for user {}", tokenId, username);
                 createAuditLog(username, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_LOGIN);
             } else {
-                logger.debug("Successfully validated JWT with for user {}", username);
+                logger.debug1("Successfully validated JWT with for user {}", username);
             }
 
             // Return the user
             return username;
         } catch (InvalidJwtException | MalformedClaimException e) {
             // someone is trying to use an invalid token!
-            logger.debug("Detected usage of invalid JWT: {}", e, token);
-            logger.warn("Detected usage of invalid JWT: {}", e.getMessage());
+            logger.debug1("Detected usage of invalid JWT: {}", e, token);
+            logger.warn1("Detected usage of invalid JWT: {}", e.getMessage());
             createAuditLog("JWT", -1, TARGET_TYPE_ACCESS_TOKEN, token, OPERATION_LOGIN_FAILED);
         }
         return null;
@@ -419,7 +419,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
 
     @Override
     public void updateUserActivity(Authentication authentication) {
-        logger.debug("Updating user activity for {}", authentication.getName());
+        logger.debug1("Updating user activity for {}", authentication.getName());
         userActivity.put(getUserId(authentication), now());
     }
 

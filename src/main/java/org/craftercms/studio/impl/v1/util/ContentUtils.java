@@ -45,7 +45,7 @@ public class ContentUtils {
                 in.close();
             }
         } catch (IOException e) {
-            logger.error("Failed to release a resource.", e);
+            logger.error1("Failed to release a resource.", e);
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -62,7 +62,7 @@ public class ContentUtils {
                 out.close();
             }
         } catch (IOException e) {
-            logger.error("Failed to relase a resource.", e);
+            logger.error1("Failed to relase a resource.", e);
         } finally {
             IOUtils.closeQuietly(out);
         }
@@ -80,7 +80,7 @@ public class ContentUtils {
                 reader.close();
             }
         } catch (IOException e) {
-            logger.error("Failed to release a reader.", e);
+            logger.error1("Failed to release a reader.", e);
         } finally {
             IOUtils.closeQuietly(reader);
         }
@@ -103,14 +103,14 @@ public class ContentUtils {
 				saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
 				saxReader.setMergeAdjacentText(true);
 			} catch (SAXException e){
-				logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+				logger.error1("Unable to turn off external entity loading, This could be a security risk.", ex);
 			}
 			return saxReader.read(isReader);
 		} catch (DocumentException e) {
-				logger.error("Error while coverting stream to XML", e);
+				logger.error1("Error while coverting stream to XML", e);
 			return null;
 		} catch (UnsupportedEncodingException e) {
-            logger.error("Error while coverting stream to XML", e);
+            logger.error1("Error while coverting stream to XML", e);
             return null;
         } finally {
             ContentUtils.release(is);
@@ -157,10 +157,10 @@ public class ContentUtils {
 			return new ByteArrayInputStream(
 					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
 		} catch (UnsupportedEncodingException e) {
-			logger.error("Failed to convert document to stream with encoding: " + encoding, e);
+			logger.error1("Failed to convert document to stream with encoding: " + encoding, e);
 			return null;
 		} catch (IOException e) {
-			logger.error("Failed to convert document to stream with encoding: " + encoding, e);
+			logger.error1("Failed to convert document to stream with encoding: " + encoding, e);
 			return null;
 		}
 	}

@@ -106,12 +106,12 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
             integrityValidator.validate(connection);
         } catch (SQLException e) {
             // for backwards compatibility
-            logger.warn("Could not validate database integrity", e);
+            logger.warn1("Could not validate database integrity", e);
         } catch (Exception e) {
             throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
-        logger.info("Executing db script {}", scriptFile.getFilename());
+        logger.info1("Executing db script {}", scriptFile.getFilename());
         try {
             String scriptContent = IOUtils.toString(scriptFile.getInputStream(), UTF_8);
             try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,
@@ -128,7 +128,7 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
                 }
             }
         } catch (Exception e) {
-            logger.error("Error executing db script", e);
+            logger.error1("Error executing db script", e);
             throw new UpgradeException("Error executing sql script " + scriptFile.getFilename(), e);
         }
     }

@@ -40,7 +40,7 @@ public class ContentTypePolicyValidator implements PolicyValidator {
     @Override
     public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug("Skipping folder {}", action.getTarget());
+            logger.debug1("Skipping folder {}", action.getTarget());
             return;
         }
 
@@ -56,7 +56,7 @@ public class ContentTypePolicyValidator implements PolicyValidator {
                 throw new ValidationException("Content-Type " + contentType + " not allowed");
             }
         } else {
-            logger.debug("Skipping action because there are no content-type restrictions");
+            logger.debug1("Skipping action because there are no content-type restrictions");
         }
     }
 

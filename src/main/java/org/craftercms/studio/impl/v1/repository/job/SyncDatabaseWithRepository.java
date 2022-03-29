@@ -36,7 +36,7 @@ public class SyncDatabaseWithRepository {
     public void execute(String site, String lastDbCommitId) {
         if (taskLock.tryLock()) {
             try {
-                logger.debug("Starting Sync Database With Repository Task.");
+                logger.debug1("Starting Sync Database With Repository Task.");
                 SyncDatabaseWithRepositoryTask task = new SyncDatabaseWithRepositoryTask(site, lastDbCommitId);
                 taskExecutor.execute(task);
             } finally {
@@ -57,11 +57,11 @@ public class SyncDatabaseWithRepository {
 
         @Override
         public void run() {
-            logger.debug("Start synchronizing database with repository  for site " + site);
+            logger.debug1("Start synchronizing database with repository  for site " + site);
             try {
                 siteService.syncDatabaseWithRepo(site, lastDbCommitId);
             } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error("Error while syncing database with repository", e);
+                logger.error1("Error while syncing database with repository", e);
             }
         }
     }

@@ -263,18 +263,18 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             throw new SiteAlreadyExistsException();
         }
 
-        logger.debug("Get blueprint descriptor for: " + blueprintId);
+        logger.debug1("Get blueprint descriptor for: " + blueprintId);
         PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException("Blueprint not found " + blueprintId);
         }
 
-        logger.debug("Validating blueprint parameters");
+        logger.debug1("Validating blueprint parameters");
         validatePluginParameters(descriptor.getPlugin(), params);
 
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
 
-        logger.debug("Validate site entitlements");
+        logger.debug1("Validate site entitlements");
         try {
             entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
         } catch (EntitlementException e) {
@@ -282,7 +282,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     "your system administrator.", e);
         }
 
-        logger.info("Starting site creation process for site " + siteName + " from " + blueprintId + " blueprint.");
+        logger.info1("Starting site creation process for site " + siteName + " from " + blueprintId + " blueprint.");
         boolean success = true;
 
         // We must fail site creation if any of the site creations steps fail and rollback
@@ -293,7 +293,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
-        logger.info("Creating deployer targets.");
+        logger.info1("Creating deployer targets.");
         try {
             deployer.createTargets(siteId);
         } catch (Exception e) {
@@ -301,21 +301,21 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             String msg = "Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
                     blueprintId + ". The required Deployer targets couldn't be created";
 
-            logger.error(msg, e);
+            logger.error1(msg, e);
 
             throw new DeployerTargetException(msg, e);
         }
 
         if (success) {
             try {
-                logger.info("Copying site content from blueprint.");
+                logger.info1("Copying site content from blueprint.");
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
                 ZonedDateTime now = DateUtils.getCurrentTime();
 
-                logger.debug("Adding site UUID.");
+                logger.debug1("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
 
-                logger.info("Adding site record to database for site " + siteId);
+                logger.info1("Adding site record to database for site " + siteId);
                 // insert database records
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
@@ -326,11 +326,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
 
-                logger.info("Upgrading site.");
+                logger.info1("Upgrading site.");
                 upgradeManager.upgrade(siteId);
 
                 // Add default groups
-                logger.info("Adding default groups");
+                logger.info1("Adding default groups");
                 addDefaultGroupsForNewSite(siteId);
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
@@ -340,11 +340,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Get change set created files finished in " +
+                    logger.debug1("Get change set created files finished in " +
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
                 }
 
-                logger.info("Adding audit log");
+                logger.info1("Adding audit log");
                 insertCreateSiteAuditLog(siteId, siteName, blueprintId);
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
@@ -354,10 +354,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
-                logger.info("Reload site configuration");
+                logger.info1("Reload site configuration");
             } catch (Exception e) {
                 success = false;
-                logger.error("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
+                logger.error1("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
                         blueprintId + ". Rolling back.", e);
 
                 deleteSite(siteId);
@@ -368,12 +368,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         }
 
         if (success) {
-            logger.info("Syncing all content to preview.");
+            logger.info1("Syncing all content to preview.");
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
-                logger.error("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
+                logger.error1("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
 
                 throw new SiteCreationException("Error while syncing site: " + siteName + " ID: " + siteId +
@@ -384,7 +384,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         } else {
             throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
         }
-        logger.info("Finished creating site " + siteId);
+        logger.info1("Finished creating site " + siteId);
     }
 
     private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint) throws SiteNotFoundException {
@@ -415,14 +415,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
-            logger.error("Unexpected error during creation of items. Site not found " + siteId, e);
+            logger.error1("Unexpected error during creation of items. Site not found " + siteId, e);
             return;
         }
         User userObj = null;
         try {
             userObj = userServiceInternal.getUserByGitName(creator);
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Unexpected error during creation of items. User not found " + creator, e);
+            logger.error1("Unexpected error during creation of items. User not found " + creator, e);
             return;
         }
 
@@ -459,7 +459,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                         }
                     } catch (DocumentException e) {
-                        logger.error("Error extracting metadata from xml file " + siteId + ":" + path);
+                        logger.error1("Error extracting metadata from xml file " + siteId + ":" + path);
                     }
                 }
                 String previewUrl = null;
@@ -493,11 +493,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             studioDBScriptRunner.execute(createdFileScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
             if (logger.isDebugEnabled()) {
-                logger.debug("Process created files finished in " +
+                logger.debug1("Process created files finished in " +
                         (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
             }
         } catch (IOException e) {
-            logger.error("Error while creating db script file for processing created files for site " + siteId);
+            logger.error1("Error while creating db script file for processing created files for site " + siteId);
         }
     }
 
@@ -541,7 +541,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
         if (logger.isDebugEnabled()) {
-            logger.debug("Dependency resolver for " + path + " finished in " +
+            logger.debug1("Dependency resolver for " + path + " finished in " +
                     (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
         }
         if (StringUtils.isEmpty(oldPath)) {
@@ -602,10 +602,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         throw new IllegalStateException(e);
                     }
                 } else {
-                    logger.warn("Default group: " + group + " not created. It already exists.");
+                    logger.warn1("Default group: " + group + " not created. It already exists.");
                 }
             } catch (ServiceLayerException e) {
-                logger.warn("Error creating group " + group, e);
+                logger.warn1("Error creating group " + group, e);
             }
         }
     }
@@ -631,7 +631,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             throw new SiteAlreadyExistsException();
         }
 
-        logger.debug("Validate site entitlements");
+        logger.debug1("Validate site entitlements");
         try {
             entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
         } catch (EntitlementException e) {
@@ -640,12 +640,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         }
 
         if (REMOTE_REPOSITORY_CREATE_OPTION_CLONE.equals(createOption)) {
-            logger.info("Clone from remote repository create option selected");
+            logger.info1("Clone from remote repository create option selected");
             createSiteCloneRemote(siteId, siteName, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
                     singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
                     params, createAsOrphan);
         } else {
-            logger.error("Invalid create option for create site using remote repository: " + createOption +
+            logger.error1("Invalid create option for create site using remote repository: " + createOption +
                     "\nAvailable options: [" + REMOTE_REPOSITORY_CREATE_OPTION_CLONE + "]");
             throw new SiteCreationException("Invalid create option for create site using remote repository: "
                     + createOption);
@@ -671,7 +671,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             // create site by cloning remote git repo
-            logger.info("Creating site " + siteId + " by cloning remote repository " + remoteName +
+            logger.info1("Creating site " + siteId + " by cloning remote repository " + remoteName +
                     " (" + remoteUrl + ")");
             success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                     remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
@@ -682,7 +682,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
             contentRepository.deleteSite(siteId);
 
-            logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
+            logger.error1("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
                     "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
 
             throw e;
@@ -701,16 +701,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info("Using search engine {} from plugin descriptor", searchEngine);
+            logger.info1("Using search engine {} from plugin descriptor", searchEngine);
         } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info("Using search engine {} from blueprint descriptor", searchEngine);
+            logger.info1("Using search engine {} from blueprint descriptor", searchEngine);
         } else {
-            logger.info("Missing descriptor, using default search engine {}", searchEngine);
+            logger.info1("Missing descriptor, using default search engine {}", searchEngine);
         }
 
         if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
-            logger.error("Error creating site {}, unsupported search engine CrafterSearch, please update your " +
+            logger.error1("Error creating site {}, unsupported search engine CrafterSearch, please update your " +
                 "site to use Elasticsearch. For more information see " +
                 "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
                 siteId);
@@ -727,17 +727,17 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (success) {
             // Create the site in the preview deployer
             try {
-                logger.info("Creating Deployer targets for site " + siteId);
+                logger.info1("Creating Deployer targets for site " + siteId);
                 deployer.createTargets(siteId);
             } catch (Exception e) {
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
+                logger.error1("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
                         " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back...", e);
 
                 contentRepositoryV2.removeRemote(siteId, remoteName);
                 boolean deleted = contentRepository.deleteSite(siteId);
 
                 if (!deleted) {
-                    logger.error("Error while rolling back site: " + siteId);
+                    logger.error1("Error while rolling back site: " + siteId);
                 }
 
                 throw new DeployerTargetException("Error while creating site: " + siteId + " ID: " + siteId +
@@ -751,11 +751,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             ZonedDateTime now = DateUtils.getCurrentTime();
             String creator = securityService.getCurrentUser();
             try {
-                logger.debug("Adding site UUID.");
+                logger.debug1("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
-                logger.info("Adding site record to database for site " + siteId);
+                logger.info1("Adding site record to database for site " + siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
                 siteFeed.setSiteId(siteId);
@@ -769,7 +769,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 
                 // Add default groups
-                logger.info("Adding default groups for site " + siteId);
+                logger.info1("Adding default groups for site " + siteId);
                 addDefaultGroupsForNewSite(siteId);
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
@@ -779,7 +779,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Get change set created files finished in " +
+                    logger.debug1("Get change set created files finished in " +
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
                 }
 
@@ -792,10 +792,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
-                logger.info("Loading configuration for site " + siteId);
+                logger.info1("Loading configuration for site " + siteId);
             } catch (Exception e) {
                 success = false;
-                logger.error("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
+                logger.error1("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
                         "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
 
                 deleteSite(siteId);
@@ -807,11 +807,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         if (success) {
             // Now that everything is created, we can sync the preview deployer with the new content
-            logger.info("Sync all site content to preview for " + siteId);
+            logger.info1("Sync all site content to preview for " + siteId);
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
-                logger.error("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
+                logger.error1("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
                         + "successfully created otherwise. Ignoring.", e);
 
                 throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId +
@@ -822,43 +822,43 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
-        logger.info("Finished creating site " + siteId);
+        logger.info1("Finished creating site " + siteId);
     }
 
     @Override
     @ValidateParams
     public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
         boolean success = true;
-        logger.debug("Deleting site:" + siteId);
+        logger.debug1("Deleting site:" + siteId);
         try {
             enablePublishing(siteId, false);
         } catch (SiteNotFoundException e) {
             success = false;
-            logger.error("Failed to stop publishing for site:" + siteId, e);
+            logger.error1("Failed to stop publishing for site:" + siteId, e);
         }
 
         try {
-            logger.debug("Deleting Deployer targets");
+            logger.debug1("Deleting Deployer targets");
 
             deployer.deleteTargets(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error("Failed to delete the Deployer target for sites:" + siteId, e);
+            logger.error1("Failed to delete the Deployer target for sites:" + siteId, e);
         }
 
         try {
             success = success && destroySitePreviewContext(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error("Failed to destroy the preview context for site:" + siteId, e);
+            logger.error1("Failed to destroy the preview context for site:" + siteId, e);
         }
 
         try {
-            logger.debug("Deleting repo");
+            logger.debug1("Deleting repo");
             contentRepository.deleteSite(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error("Failed to delete the repository for site:" + siteId, e);
+            logger.error1("Failed to delete the repository for site:" + siteId, e);
         }
 
         // clear cache
@@ -866,7 +866,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             // delete database records
-            logger.debug("Deleting database records");
+            logger.debug1("Deleting database records");
             SiteFeed siteFeed = getSite(siteId);
             workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
             retryingDatabaseOperationFacade.deleteSite(siteId, STATE_DELETED);
@@ -881,7 +881,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             insertDeleteSiteAuditLog(siteId, siteFeed.getName());
         } catch (Exception e) {
             success = false;
-            logger.error("Failed to delete the database for site:" + siteId, e);
+            logger.error1("Failed to delete the database for site:" + siteId, e);
         }
 
         return success;
@@ -915,7 +915,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 toReturn = false;
             }
         } catch (IOException e) {
-            logger.error("Error while sending destroy preview context request for site " + site, e);
+            logger.error1("Error while sending destroy preview context request for site " + site, e);
             toReturn = false;
         } finally {
             getRequest.releaseConnection();
@@ -1016,16 +1016,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             List<RepoOperation> repoOperationsDelta =
                     contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
             if (logger.isDebugEnabled()) {
-                logger.debug("Get Repo Operations from Delta finished in " +
+                logger.debug1("Get Repo Operations from Delta finished in " +
                         (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
-                logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
+                logger.debug1("Number of Repo operations from delta " + repoOperationsDelta.size());
             }
             if (!CollectionUtils.isEmpty(repoOperationsDelta)) {
-                logger.debug("Syncing database with repository for site: " + site + " commitId = " + commitId);
-                logger.debug("Operations to sync: ");
+                logger.debug1("Syncing database with repository for site: " + site + " commitId = " + commitId);
+                logger.debug1("Operations to sync: ");
                 if (logger.isDebugEnabled()) {
                     for (RepoOperation repoOperation : repoOperationsDelta) {
-                        logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
+                        logger.debug1("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
                     }
                 }
                 startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
@@ -1041,27 +1041,27 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         // At this point we have attempted to process all operations, some may have failed
         // We will update the lastCommitId of the database ignoring errors if any
-        logger.debug("Done syncing operations with a result of: " + success);
-        logger.debug("Syncing database lastCommitId for site: " + site);
+        logger.debug1("Done syncing operations with a result of: " + success);
+        logger.debug1("Syncing database lastCommitId for site: " + site);
 
         // Update database
         if (success) {
             contentRepositoryV2.markGitLogVerifiedProcessedBulk(site, cIds);
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+            logger.debug1("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
 
-        logger.info("Done syncing database with repository for site: " + site + " for unprocessed commits with a " +
+        logger.info1("Done syncing database with repository for site: " + site + " for unprocessed commits with a " +
                 "final result of: " + toReturn);
 
         if (toReturn) {
             updateLastCommitId(site, repoLastCommitId);
-            logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
+            logger.info1("Last commit ID for site: " + site + " is " + repoLastCommitId);
         } else {
             // Some operations failed during sync database from repo
             // Must log and make some noise here, this isn't great
-            logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
+            logger.error1("Some operations failed to sync to database for site: " + site + " see previous error logs");
         }
         return toReturn;
     }
@@ -1089,23 +1089,23 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
                 repoLastCommitId);
         if (logger.isDebugEnabled()) {
-            logger.debug("Get Repo Operations from Delta finished in " +
+            logger.debug1("Get Repo Operations from Delta finished in " +
                     (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
-            logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
+            logger.debug1("Number of Repo operations from delta " + repoOperationsDelta.size());
         }
         if (CollectionUtils.isEmpty(repoOperationsDelta)) {
-            logger.debug("Database is up to date with repository for site: " + site);
+            logger.debug1("Database is up to date with repository for site: " + site);
             contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
             updateLastCommitId(site, repoLastCommitId);
             updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             return toReturn;
         }
 
-        logger.info("Syncing database with repository for site: " + site + " fromCommitId = " +
+        logger.info1("Syncing database with repository for site: " + site + " fromCommitId = " +
                 (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
-        logger.debug("Operations to sync: ");
+        logger.debug1("Operations to sync: ");
         for (RepoOperation repoOperation : repoOperationsDelta) {
-            logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
+            logger.debug1("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
         }
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
@@ -1120,39 +1120,39 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
         } catch (IOException e) {
-            logger.error("Error while creating DB script file for processing created files for site " + site);
+            logger.error1("Error while creating DB script file for processing created files for site " + site);
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+            logger.debug1("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
 
         // At this point we have attempted to process all operations, some may have failed
         // We will update the lastCommitId of the database ignoring errors if any
-        logger.debug("Done syncing operations with a result of: " + toReturn);
-        logger.debug("Syncing database lastCommitId for site: " + site);
+        logger.debug1("Done syncing operations with a result of: " + toReturn);
+        logger.debug1("Syncing database lastCommitId for site: " + site);
 
         // Update database
-        logger.debug("Update last commit id " + repoLastCommitId + " for site " + site);
+        logger.debug1("Update last commit id " + repoLastCommitId + " for site " + site);
         updateLastCommitId(site, repoLastCommitId);
         updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
         if (logger.isDebugEnabled()) {
-            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+            logger.debug1("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
         }
 
-        logger.info("Done syncing database with repository for site: " + site + " fromCommitId = " +
+        logger.info1("Done syncing database with repository for site: " + site + " fromCommitId = " +
                 (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) + " with a final result of: " +
                 toReturn);
-        logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
+        logger.info1("Last commit ID for site: " + site + " is " + repoLastCommitId);
 
         if (!toReturn) {
             // Some operations failed during sync database from repo
             // Must log and make some noise here, this isn't great
-            logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
+            logger.error1("Some operations failed to sync to database for site: " + site + " see previous error logs");
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug("Sync Repo finished in " + (System.currentTimeMillis() - startSyncRepoMark) + " milliseconds");
+            logger.debug1("Sync Repo finished in " + (System.currentTimeMillis() - startSyncRepoMark) + " milliseconds");
         }
         return toReturn;
     }
@@ -1165,7 +1165,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
-            logger.error("Unexpected error during creation of items. Site not found " + siteId, e);
+            logger.error1("Unexpected error during creation of items. Site not found " + siteId, e);
             return false;
         }
         User userObj = null;
@@ -1173,7 +1173,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             cachedUsers.put(GIT_REPO_USER_USERNAME, userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME));
         } catch (UserNotFoundException | ServiceLayerException e) {
-            logger.error("Unexpected error. Git repo user should be in DB", e);
+            logger.error1("Unexpected error. Git repo user should be in DB", e);
         }
 
         String label;
@@ -1193,7 +1193,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         try {
                             userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                         } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User not found " + repoOperation.getAuthor());
+                            logger.debug1("User not found " + repoOperation.getAuthor());
                         }
                     }
                     if (Objects.isNull(userObj)) {
@@ -1215,7 +1215,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                            logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
                         }
                     }
                     previewUrl = null;
@@ -1244,7 +1244,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
                                 repoOperation.getCommitId(), null).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                        logger.debug1("Extract dependencies for site: " + siteId + " path: " +
                                 repoOperation.getPath());
                         addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(),
                                 updateParentIdScriptPath);
@@ -1261,7 +1261,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             try {
                                 userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                             } catch (UserNotFoundException | ServiceLayerException e) {
-                                logger.debug("User not found " + repoOperation.getAuthor());
+                                logger.debug1("User not found " + repoOperation.getAuthor());
                             }
                         }
                         if (Objects.isNull(userObj)) {
@@ -1283,7 +1283,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                                 }
                             } catch (DocumentException e) {
-                                logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                                logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
                             }
                         }
                         previewUrl = null;
@@ -1307,7 +1307,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
                                 repoOperation.getCommitId()).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        logger.debug("Extract dependencies for site: " + siteId + " path: " +
+                        logger.debug1("Extract dependencies for site: " + siteId + " path: " +
                                 repoOperation.getPath());
                         addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, repoOperationsScriptPath);
                     }
@@ -1336,7 +1336,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         try {
                             userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                         } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User not found " + repoOperation.getAuthor());
+                            logger.debug1("User not found " + repoOperation.getAuthor());
                         }
                     }
                     if (Objects.isNull(userObj)) {
@@ -1358,7 +1358,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
+                            logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
                         }
                     }
                     previewUrl = null;
@@ -1399,14 +1399,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     break;
 
                 default:
-                    logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
+                    logger.error1("Error: Unknown repo operation for site " + siteId + " operation: " +
                             repoOperation.getAction());
                     toReturn = false;
                     break;
             }
         }
         if (logger.isDebugEnabled()) {
-            logger.debug("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
+            logger.debug1("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
                     " milliseconds");
         }
         return toReturn;
@@ -1501,7 +1501,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             SiteFeed siteFeed = getSite(siteId);
             return siteFeed.getPublishingEnabled() > 0;
         } catch (SiteNotFoundException e) {
-            logger.debug("Site " + siteId + " not found. Publishing disabled");
+            logger.debug1("Site " + siteId + " not found. Publishing disabled");
             return false;
         }
     }
@@ -1608,26 +1608,26 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl) {
-        logger.debug("Locking publishing for site " + siteId + " with lock owner " + lockOwnerId);
+        logger.debug1("Locking publishing for site " + siteId + " with lock owner " + lockOwnerId);
         int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
         if (result == 1) {
-            logger.debug("Locked publishing for site " + siteId + " with lock owner " + lockOwnerId);
+            logger.debug1("Locked publishing for site " + siteId + " with lock owner " + lockOwnerId);
         } else {
-            logger.debug("Failed to publishing for site " + siteId + " with lock owner " + lockOwnerId);
+            logger.debug1("Failed to publishing for site " + siteId + " with lock owner " + lockOwnerId);
         }
         return result == 1;
     }
 
     @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
-        logger.debug("Unlocking publishing for site " + siteId);
+        logger.debug1("Unlocking publishing for site " + siteId);
         retryingDatabaseOperationFacade.unlockPublishingForSite(siteId, lockOwnerId);
         return true;
     }
 
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
-        logger.debug("Update publishing lock heartbeat for site " + siteId);
+        logger.debug1("Update publishing lock heartbeat for site " + siteId);
         retryingDatabaseOperationFacade.updatePublishingLockHeartbeatForSite(siteId);
     }
 

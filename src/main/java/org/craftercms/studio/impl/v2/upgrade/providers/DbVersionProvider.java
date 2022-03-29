@@ -57,20 +57,20 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
     @Override
     protected String doGetVersion(UpgradeContext<String> context) throws Exception {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(((StudioUpgradeContext) context).getDataSource());
-        logger.debug("Check if _meta table exists.");
+        logger.debug1("Check if _meta table exists.");
         int count = jdbcTemplate.queryForObject(
                 SQL_QUERY_META.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
         if(count != 0) {
-            logger.debug("_meta table exists.");
-            logger.debug("Get version from _meta table.");
+            logger.debug1("_meta table exists.");
+            logger.debug1("Get version from _meta table.");
             return jdbcTemplate.queryForObject(SQL_QUERY_VERSION, String.class);
 
         } else {
-            logger.debug("Check if group table exists.");
+            logger.debug1("Check if group table exists.");
             count = jdbcTemplate.queryForObject(
                     SQL_QUERY_GROUP.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
             if(count != 0) {
-                logger.debug("Database version is 3.0.0");
+                logger.debug1("Database version is 3.0.0");
                 return VERSION_3_0_0;
             } else {
                 throw new UpgradeNotSupportedException("Automated migration from 2.5.x DB is not supported yet.");
@@ -86,7 +86,7 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
             if (updated != 1) {
                 throw new UpgradeException("Error updating the db version");
             }
-            logger.info("Database version updated to {}", nextVersion);
+            logger.info1("Database version updated to {}", nextVersion);
         } catch (Exception e) {
             throw new UpgradeException("Error updating the db version", e);
         }

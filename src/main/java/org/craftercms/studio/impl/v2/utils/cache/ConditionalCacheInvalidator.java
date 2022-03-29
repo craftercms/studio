@@ -52,9 +52,9 @@ public class ConditionalCacheInvalidator<K extends String, V> implements CacheIn
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug("Checking if key {} matches patterns {}", key, patterns);
+        logger.debug1("Checking if key {} matches patterns {}", key, patterns);
         if (matchesAny(key, patterns)) {
-            logger.debug("Invalidating cache for {}", key);
+            logger.debug1("Invalidating cache for {}", key);
             actualCacheInvalidator.invalidate(cache, key);
         }
     }

@@ -135,7 +135,7 @@ public class AuditServiceImpl implements AuditService {
                 remainingItem--;
             }
         }
-        logger.debug("Total Item post live filter : " + contentItems.size() + " hasMoreItems : "+hasMoreItems);
+        logger.debug1("Total Item post live filter : " + contentItems.size() + " hasMoreItems : "+hasMoreItems);
 
         return hasMoreItems;
     }
@@ -161,7 +161,7 @@ public class AuditServiceImpl implements AuditService {
 
             return item;
         } catch (Exception e) {
-            logger.error("Error fetching content item for [" + id + "]", e.getMessage());
+            logger.error1("Error fetching content item for [" + id + "]", e.getMessage());
             return null;
         }
     }

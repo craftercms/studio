@@ -122,7 +122,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                                                    boolean createFolders, boolean isPreview, boolean unlock,
                                                    boolean isSystemAsset, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
-        logger.debug("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
+        logger.debug1("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
                 + assetName + ", createFolders: " + createFolders);
 
         String ext = null;
@@ -230,7 +230,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
         if (unlock) {
             contentRepositoryV1.unLockItem(site, relativePath);
-            logger.debug("Unlocked the content site " + site + " path " + relativePath);
+            logger.debug1("Unlocked the content site " + site + " path " + relativePath);
         } else {
             contentRepository.lockItem(site, relativePath);
         }

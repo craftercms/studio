@@ -73,7 +73,7 @@ public abstract class AbstractDeployer implements Deployer {
                                                                             .contentType(MediaType.APPLICATION_JSON)
                                                                             .body(requestBody);
 
-            logger.debug("Calling create target API: {}", requestEntity);
+            logger.debug1("Calling create target API: {}", requestEntity);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (URISyntaxException e) {
@@ -89,7 +89,7 @@ public abstract class AbstractDeployer implements Deployer {
                                                              .contentType(MediaType.APPLICATION_JSON)
                                                              .build();
 
-            logger.debug("Calling delete target API: {}", requestEntity);
+            logger.debug1("Calling delete target API: {}", requestEntity);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (URISyntaxException e) {

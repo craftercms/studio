@@ -80,7 +80,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
         if(Files.exists(file)) {
             try(InputStream templateIs = template.getInputStream();
                 InputStream sourceIs = Files.newInputStream(file)) {
-                logger.info("Applying XSLT template {} to file {} for site {}", template, path, site);
+                logger.info1("Applying XSLT template {} to file {} for site {}", template, path, site);
                 Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
                 XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
                 trackChangedFiles(path);
@@ -88,7 +88,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
                 throw new UpgradeException("Error processing file", e);
             }
         } else {
-            logger.warn("Source file {} does not exist in site {}", path, site);
+            logger.warn1("Source file {} does not exist in site {}", path, site);
         }
     }
 
@@ -97,7 +97,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
             try {
                 return new StreamSource(context.getRepositoryPath().resolve(href).toFile());
             } catch (Exception e) {
-                logger.info("Error creating resolver for referencing documents inside xslt forms", e);
+                logger.info1("Error creating resolver for referencing documents inside xslt forms", e);
                 return  null;
             }
 

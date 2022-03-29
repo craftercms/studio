@@ -83,7 +83,7 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                     is.reset();
                 } catch (IOException | JSONException e) {
                     // TODO: ??
-                    logger.debug("Failed to extract username from POST request");
+                    logger.debug1("Failed to extract username from POST request");
                 }
             }
             switch (requestUri) {
@@ -116,7 +116,7 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                     break;
             }
         }
-        logger.debug("Request: " + requestUri + " - Access: " + toRet);
+        logger.debug1("Request: " + requestUri + " - Access: " + toRet);
         return toRet;
     }
 

@@ -84,7 +84,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                         }
                         is.reset();
                     } catch (IOException | JSONException e) {
-                        logger.debug("Failed to extract username from POST request");
+                        logger.debug1("Failed to extract username from POST request");
                     }
                 }
                 User currentUser = (User) authentication.getPrincipal();
@@ -108,7 +108,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                 }
             }
         }
-        logger.debug("Request: " + requestUri + " - Access: " + toRet);
+        logger.debug1("Request: " + requestUri + " - Access: " + toRet);
         return toRet;
     }
 

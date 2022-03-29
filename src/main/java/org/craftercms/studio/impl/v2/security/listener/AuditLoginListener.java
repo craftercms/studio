@@ -58,7 +58,7 @@ public class AuditLoginListener extends AbstractAuditListener {
         recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
                 "Failed to authenticate user {} logging in from IP: {}. Reason: " +
                         event.getException().getLocalizedMessage());
-        logger.debug("Authentication error for user {}", event.getException(),
+        logger.debug1("Authentication error for user {}", event.getException(),
                 event.getAuthentication().getName());
     }
 

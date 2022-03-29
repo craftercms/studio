@@ -40,7 +40,7 @@ public class EventBroadcaster {
 
     @EventListener
     public void publishEvent(BroadcastEvent event) {
-        logger.debug("Broadcasting event {}", event);
+        logger.debug1("Broadcasting event {}", event);
         long startTime = System.currentTimeMillis();
         String destination = DESTINATION_ROOT;
         if (event instanceof SiteAwareEvent) {

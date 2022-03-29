@@ -127,7 +127,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                             }
                         } else {
                             // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
-                            logger.debug("No pipeline matched for {}. Skipping asset processing...", repoPath);
+                            logger.debug1("No pipeline matched for {}. Skipping asset processing...", repoPath);
 
                             // We already read input so open the temp file
                             try (InputStream assetIn = Files.newInputStream(input.getFilePath())) {
@@ -144,19 +144,19 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                     }
                 } else {
                     // Ignore if no pipelines config
-                    logger.debug("No asset processing pipelines config found at {}. Skipping asset processing...", repoPath);
+                    logger.debug1("No asset processing pipelines config found at {}. Skipping asset processing...", repoPath);
 
                     return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight,
                                                             allowLessSize, draft, unlock, systemAsset);
                 }
             } else {
-                logger.debug("No asset processing config found at {}. Skipping asset processing...", repoPath);
+                logger.debug1("No asset processing config found at {}. Skipping asset processing...", repoPath);
 
                 return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
                                                         draft, unlock, systemAsset);
             }
         } catch (Exception e) {
-            logger.error("Error processing asset", e);
+            logger.error1("Error processing asset", e);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);

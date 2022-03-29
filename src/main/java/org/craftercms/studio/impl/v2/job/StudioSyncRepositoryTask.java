@@ -57,22 +57,22 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
     protected void executeInternal(String site) {
         try {
             try {
-                logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
+                logger.debug("Executing sync repository thread ID = {}; {}", threadCounter,
                         Thread.currentThread().getId());
                 String siteState = siteService.getSiteState(site);
                 if (StringUtils.equals(siteState, STATE_READY)) {
                     syncRepository(site);
                 }
             } catch (Exception e) {
-                logger.error("Failed to sync database from repository for site " + site, e);
+                logger.error("Failed to sync database from repository for site {}", site, e);
             }
         } catch (Exception e) {
-            logger.error("Failed to sync database from repository for site " + site, e);
+            logger.error("Failed to sync database from repository for site {}", site, e);
         }
     }
 
     private void syncRepository(String site) throws ServiceLayerException, IOException, UserNotFoundException {
-        logger.debug("Getting last verified commit for site: " + site);
+        logger.debug("Getting last verified commit for site: {}", site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
@@ -84,8 +84,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
                         contentRepository.markGitLogVerifiedProcessed(site, gl.getCommitId());
                         contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                     } else {
-                        logger.debug("Syncing database with repository for site " + site + " from last processed commit "
-                                + lastProcessedCommit);
+                        logger.debug("Syncing database with repository for site '{}' from last processed commit '{}'",
+								site, lastProcessedCommit);
                         List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
                         if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
                             siteService.syncDatabaseWithRepoUnprocessedCommits(site, unprocessedCommitIds);
@@ -99,10 +99,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
 
                             // Sync all preview deployers
                             try {
-                                logger.debug("Sync preview for site " + site);
+                                logger.debug("Sync preview for site '{}'", site);
                                 applicationContext.publishEvent(new RepositoryEvent(site));
                             } catch (Exception e) {
-                                logger.error("Error synchronizing preview with repository for site: " + site, e);
+                                logger.error("Error synchronizing preview with repository for site '{}'", site, e);
                             }
                         } else {
                             GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
@@ -132,7 +132,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID for site " + siteId + " . Local copy will not be deleted");
+            logger.info1("Invalid site UUID for site " + siteId + " . Local copy will not be deleted");
         }
         return toRet;
     }

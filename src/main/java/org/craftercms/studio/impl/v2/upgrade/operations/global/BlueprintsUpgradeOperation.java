@@ -159,7 +159,7 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
                     retryingRepositoryOperationFacade.call(commitCommand);
                 }
             } catch (GitAPIException e) {
-                logger.error("error creating initial commit for global configuration", err);
+                logger.error1("error creating initial commit for global configuration", err);
             }
         } catch (Exception e) {
             throw new UpgradeException("Error upgrading blueprints in the global repo", e);

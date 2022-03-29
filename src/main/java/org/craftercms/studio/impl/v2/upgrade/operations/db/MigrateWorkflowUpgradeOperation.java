@@ -85,24 +85,24 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
                     sites.put(rs.getLong(1), rs.getString(2));
                 }
             } catch (SQLException e) {
-                logger.error("Error getting all sites from DB", e);
+                logger.error1("Error getting all sites from DB", e);
             }
             // loop over all sites
             for (Map.Entry<Long, String> site : sites.entrySet()) {
                 processSite(context, site.getValue());
             }
         } catch (SQLException e) {
-            logger.error("Error getting DB connection", e);
+            logger.error1("Error getting DB connection", e);
         }
     }
 
     private void processSite(final StudioUpgradeContext context, String site) throws UpgradeException {
-        logger.info("Processing site: " + site);
+        logger.info1("Processing site: " + site);
         try (Connection connection = context.getConnection()) {
             integrityValidator.validate(connection);
         } catch (SQLException e) {
             // for backwards compatibility
-            logger.warn("Could not validate database integrity", e);
+            logger.warn1("Could not validate database integrity", e);
         } catch (Exception e) {
             throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
@@ -111,10 +111,10 @@ public final class MigrateWorkflowUpgradeOperation extends DbScriptUpgradeOperat
             CallableStatement callableStatement = connection.prepareCall(
                     QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, spName)
                             .replace(SP_PARAM_SITE, site));
-            logger.debug("Calling " + spName + " for " + site);
+            logger.debug1("Calling " + spName + " for " + site);
             callableStatement.execute();
         } catch (SQLException e) {
-            logger.error("Error populating data from DB", e);
+            logger.error1("Error populating data from DB", e);
         }
     }
 

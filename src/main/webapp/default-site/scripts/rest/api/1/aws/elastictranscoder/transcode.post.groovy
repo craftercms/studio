@@ -61,7 +61,7 @@ if (ServletFileUpload.isMultipartContent(request)) {
                 writer.println("[{\"job_id\":\"${job.id}\",\"output_bucket\":\"${job.outputBucket}\",\"base_key\":\"${job.baseKey}\"}]")
                 writer.flush()
             } catch (e) {
-                logger.error("Transcoding of file ${filename} failed", e)
+                logger.error1("Transcoding of file ${filename} failed", e)
 
                 sendError(500, "Transcoding of file failed: ${e.message}")
             }

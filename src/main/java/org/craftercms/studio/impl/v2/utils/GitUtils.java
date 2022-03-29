@@ -71,17 +71,17 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
                                           String remoteUsername) throws RemoteRepositoryNotFoundException,
                                                                         InvalidRemoteRepositoryCredentialsException {
         if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-            logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
+            logger.error1("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
                     e);
             throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
                     remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
         } else if (StringUtils.endsWithIgnoreCase(e.getMessage(), "key did not validate")) {
-            logger.error("Invalid private key: " + remoteName + " (" + remoteUrl + ")",
+            logger.error1("Invalid private key: " + remoteName + " (" + remoteUrl + ")",
                     e);
             throw new InvalidRemoteRepositoryCredentialsException("Invalid private key for repository: " +
                     remoteName + " (" + remoteUrl + ")", e);
         } else {
-            logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
+            logger.error1("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
             throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
                     remoteUrl + ")");
         }

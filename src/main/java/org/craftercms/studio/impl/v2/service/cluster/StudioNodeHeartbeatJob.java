@@ -54,15 +54,15 @@ public class StudioNodeHeartbeatJob implements Runnable {
                 try {
                     updateHeartbeat();
                 } catch (Exception e) {
-                    logger.error("Error during execution of node heartbeat job", error);
+                    logger.error1("Error during execution of node heartbeat job", error);
                 } finally {
                     singleWorkerLock.unlock();
                 }
             } else {
-                logger.debug("Another worker is updating heartbeat. Skipping cycle.");
+                logger.debug1("Another worker is updating heartbeat. Skipping cycle.");
             }
         } else {
-            logger.debug("System not ready yet. Skipping cycle");
+            logger.debug1("System not ready yet. Skipping cycle");
         }
     }
 
@@ -73,7 +73,7 @@ public class StudioNodeHeartbeatJob implements Runnable {
             Map<String, String> params = new HashMap<String, String>();
             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-            logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
+            logger.debug1("Update heartbeat for cluster member with local address: " + localAddress);
             retryingDatabaseOperationFacade.updateClusterNodeHeartbeat(params);
         }
     }

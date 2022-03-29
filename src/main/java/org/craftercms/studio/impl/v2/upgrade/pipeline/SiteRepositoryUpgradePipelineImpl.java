@@ -82,22 +82,22 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         ListBranchCommand listBranchCommand = git.branchList();
         List<Ref> branches = retryingRepositoryOperationFacade.call(listBranchCommand);
         if(branches.stream().anyMatch(b -> b.getName().contains(siteUpgradeBranch))) {
-            logger.debug("Temporary branch already exists, changes will be discarded");
+            logger.debug1("Temporary branch already exists, changes will be discarded");
             deleteTemporaryBranch(git);
         }
-        logger.debug("Creating temporary branch {} for site {}", siteUpgradeBranch, site);
+        logger.debug1("Creating temporary branch {} for site {}", siteUpgradeBranch, site);
         CreateBranchCommand createBranchCommand = git.branchCreate().setName(siteUpgradeBranch);
         retryingRepositoryOperationFacade.call(createBranchCommand);
     }
 
     protected void checkoutBranch(String branch, Git git) throws GitAPIException {
-        logger.debug("Checking out {} branch", branch);
+        logger.debug1("Checking out {} branch", branch);
         CheckoutCommand checkoutCommand = git.checkout().setName(branch);
         retryingRepositoryOperationFacade.call(checkoutCommand);
     }
 
     protected void mergeTemporaryBranch(Repository repository, Git git) throws IOException, GitAPIException {
-        logger.debug("Merging changes from upgrade branch");
+        logger.debug1("Merging changes from upgrade branch");
         MergeCommand mergeCommand = git.merge()
             .include(repository.findRef(siteUpgradeBranch))
             .setMessage(commitMessage)
@@ -106,7 +106,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     }
 
     protected void deleteTemporaryBranch(Git git) throws GitAPIException {
-        logger.debug("Removing temporary branch");
+        logger.debug1("Removing temporary branch");
         DeleteBranchCommand deleteBranchCommand = git.branchDelete().setBranchNames(siteUpgradeBranch);
         retryingRepositoryOperationFacade.call(deleteBranchCommand);
     }
@@ -145,7 +145,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
                         try {
                             checkoutBranch(sandboxBranch, git);
                         } catch (GitAPIException e) {
-                            logger.error("Error cleaning up repo for site " + site, e);
+                            logger.error1("Error cleaning up repo for site " + site, e);
                         }
                     }
                     git.close();

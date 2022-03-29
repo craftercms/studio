@@ -69,7 +69,7 @@ public class SecurityServiceImpl implements SecurityService {
         String key = siteId + ":" + CACHE_KEY + username;
         List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
         if (isEmpty(permissions)) {
-            logger.debug("Cache miss for {}", key);
+            logger.debug1("Cache miss for {}", key);
             permissions = loadUserPermission(siteId, roles);
             configurationCache.put(key, permissions);
         }
@@ -107,7 +107,7 @@ public class SecurityServiceImpl implements SecurityService {
                         studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
         } catch (ServiceLayerException e) {
-            logger.error("Permission mapping not found for " + siteId + ":" + configPath);
+            logger.error1("Permission mapping not found for " + siteId + ":" + configPath);
         }
         if (Objects.nonNull(document)) {
             Element root = document.getRootElement();

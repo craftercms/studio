@@ -83,10 +83,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             Collection intersection = CollectionUtils.intersection(sites1, sites2);
             return CollectionUtils.isNotEmpty(intersection);
         } catch (UserNotFoundException e) {
-            logger.info("User is not site member", e);
+            logger.info1("User is not site member", e);
             return false;
         } catch (ServiceLayerException e) {
-            logger.warn("Error getting user membership", e);
+            logger.warn1("Error getting user membership", e);
             return false;
         }
     }
@@ -103,10 +103,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
             return sites.contains(siteId);
         } catch (UserNotFoundException e) {
-            logger.info("User is not site member", e);
+            logger.info1("User is not site member", e);
             return false;
         } catch (ServiceLayerException e) {
-            logger.warn("Error getting user membership", e);
+            logger.warn1("Error getting user membership", e);
             return false;
         }
     }
@@ -134,10 +134,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             }
             return toRet;
         } catch (UserNotFoundException e) {
-            logger.info("User is not site member", e);
+            logger.info1("User is not site member", e);
             return false;
         } catch (ServiceLayerException e) {
-            logger.error("Error getting user memberships", e);
+            logger.error1("Error getting user memberships", e);
             return false;
         }
     }
@@ -151,7 +151,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         try {
             userGroups = userServiceInternal.getUserGroups(-1, user.getUsername());
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error getting user memberships", e);
+            logger.error1("Error getting user memberships", e);
             return false;
         }
         boolean toRet = false;

@@ -121,14 +121,14 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
 
     @Override
     protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException {
-        logger.debug("Checking file {} for site {}", file, context);
+        logger.debug1("Checking file {} for site {}", file, context);
         try {
             Document document = loadDocument(file);
 
             String contentTypeName = (String) select(document, contentTypeXpath, XPathConstants.STRING);
 
             if(CollectionUtils.isNotEmpty(includedContentTypes) && !includedContentTypes.contains(contentTypeName)) {
-                logger.debug("File {} of content-type {} will not be updated", file, contentTypeName);
+                logger.debug1("File {} of content-type {} will not be updated", file, contentTypeName);
                 return false;
             }
 
@@ -141,7 +141,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
                 return true;
             }
         } catch (ExecutionException e) {
-            logger.error("Invalid XML file found at " + file, e);
+            logger.error1("Invalid XML file found at " + file, e);
             return false;
         } catch (Exception e) {
             throw new UpgradeException("Error parsing xml file " + file, e);
@@ -156,7 +156,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
      */
     protected Document loadDocument(Path file) throws ExecutionException {
         return cache.get(file, () -> {
-            logger.debug("Parsing file {}", file);
+            logger.debug1("Parsing file {}", file);
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(file.toFile());
         });

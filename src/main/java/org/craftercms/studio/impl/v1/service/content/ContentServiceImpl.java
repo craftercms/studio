@@ -78,7 +78,6 @@ import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.policy.ActionContentType;
 import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
@@ -122,15 +121,7 @@ import org.xml.sax.SAXException;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE_DT;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_FILE_NAME;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_FOLDER_NAME;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_GROUP_ID;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_INTERNAL_NAME;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_LAST_MODIFIED_DATE;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_LAST_MODIFIED_DATE_DT;
-import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_PAGE_ID;
+import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
@@ -172,7 +163,6 @@ import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 /**
  * Content Services that other services may use
  * @author russdanner
- * @author Sumer Jabri
  */
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
     // TODO: SJ: Refactor in 2.7.x to leverage Crafter Core as this will automatically enable inheritance, caching and
@@ -181,6 +171,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     private static final String COPY_DEP_XPATH = "//*/text()[normalize-space(.)='{copyDep}']/parent::*";
     private static final String COPY_DEP = "{copyDep}";
+    private static final String ELM_ORDER_DEFAULT_SELECTOR = "//" + DmXmlConstants.ELM_ORDER_DEFAULT;
 
     private ContentRepository _contentRepository;
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
@@ -269,8 +260,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
             }
         }
-        catch(Exception err) {
-            logger.debug("Failed to get content as string for path {}", err, path);
+        catch (Exception e) {
+            logger.debug("Failed to get content as string for path '{}'", path, e);
         }
 
         return content;
@@ -287,18 +278,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             is = this.getContent(site, path);
         } catch (ContentNotFoundException e) {
-            logger.debug("Content not found for path {}", e, path);
+            logger.debug("Content not found for path '{}' in site '{}'", path, site, e);
         }
 
-        if(is != null) {
+        if (is != null) {
             try {
                 SAXReader saxReader = new SAXReader();
                 try {
                     saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                     saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                     saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                }catch (SAXException e){
-                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                } catch (SAXException e) {
+                    logger.error("Unable to turn off external entity loading, This could be a security risk.", e);
                 }
                 retDocument = saxReader.read(is);
             }
@@ -309,7 +300,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                 }
                 catch (IOException e) {
-                    logger.debug("Error closing stream for path {}", err, path);
+                    logger.debug("Error closing stream for path '{}'", path, e);
                 }
             }
         }
@@ -384,22 +375,20 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
 
             if (contentExists) {
-
                     if (itemServiceInternal.isSystemProcessing(site, path)) {
                         // TODO: SJ: Review and refactor/redo
-                        logger.error("Error Content {} is being processed (Object State is system "
-                                + "processing);", path);
-                        throw new ServiceLayerException("Content " + path + " is in system processing, we can't write "
-                                + "it");
+                        logger.error("Error Content path '{}' is being processed (Object State is system processing)",
+                                path);
+                        throw new ServiceLayerException(String.format("Content '%s' is in system processing," +
+								" we can't write it", path));
                     }
                     itemServiceInternal.setSystemProcessing(site, path, true);
-
             } else {
                 // Content does not exist; check for moved content and deleted content
                 if (itemServiceInternal.previousPathExists(site, path)) {
-                    throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created " +
+                    throw new ServiceLayerException(String.format("Content '%s' for site '%s', cannot be created " +
                             "because this name/URL was in use by another content item that has been moved or" +
-                            " deleted by not yet published.");
+                            " deleted but not yet published.", path, site));
                 }
             }
 
@@ -411,7 +400,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             // default chain is asset type
             String chainID = DmConstants.CONTENT_CHAIN_ASSET;
 
-            if(path.startsWith("/site")) {
+            if (path.startsWith("/site")) {
                 // anything inside site is a form based XML
                 // example /site/website
                 //         /site/components
@@ -446,11 +435,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         SAVE_AND_NOT_CLOSE_OFF_MASK);
             }
 
-
             // Sync preview
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }  catch (RuntimeException e) {
-            logger.error("error writing content", e);
+            logger.error("Error writing content path '{}' site '{}'", path, site, e);
 
             // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
             itemServiceInternal.setSystemProcessing(site, relativePath, false);
@@ -484,7 +472,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             moveContent(site, path, targetPath);
         } catch (ServiceLayerException | RuntimeException | UserNotFoundException e) {
             logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
-                    + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
+                    + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType, e);
         }
     }
 
@@ -551,23 +539,27 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             if (item != null) {
                 if (itemServiceInternal.isSystemProcessing(site, path)) {
-                    logger.error(String.format("Error Content %s is being processed " +
-                            "(Object State is SYSTEM_PROCESSING);", path));
-                    throw new RuntimeException(String.format("Content \"%s\" is being processed", path));
+                    logger.error("Error Content '{}' is being processed " +
+                            "(Object State is SYSTEM_PROCESSING)", path);
+					// TODO: Review the exception below
+                    throw new RuntimeException(String.format("Content '%s' is being processed", path));
                 }
                 itemServiceInternal.setSystemProcessing(site, path, true);
             }
 
             if (itemServiceInternal.previousPathExists(site, path)) {
-                throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created because"
-                    + " this name/URL was in use by another content item that has been moved or deleted by "
-                    + "not yet published.");
+                throw new ServiceLayerException(String.format("Content '%s' for site '%s', cannot be created because"
+                    + " this name/URL was in use by another content item that has been moved or deleted but"
+                    + " not yet published.", path, site));
             }
+
             ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
+
             if (isSystemAsset) {
                 path = path.replace(assetName, assetInfoTO.getFileName());
             }
+
             item = getContentItem(site, path);
             item.setSize(assetInfoTO.getSize());
             item.setSizeUnit(assetInfoTO.getSizeUnit());
@@ -701,7 +693,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             dependencyService.deleteItemDependencies(site, path);
         } catch (ServiceLayerException e) {
-            logger.error("Error deleting dependencies for site " + site + " path " + path, e);
+            logger.error("Error deleting dependencies for site '%s' path '%s'", site, path, e);
         }
 
         if (StringUtils.isNotEmpty(commitId)) {
@@ -732,7 +724,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
             Item it = itemServiceInternal.getItem(site, path);
             ContentItemTO item = getContentItem(site, path, 0);
-            logger.debug("[DELETE] posting delete activity on " + path + " by " + approver + " in " + site);
+            logger.debug("[DELETE] posting delete activity on path '%s' by '%s' in site '%s'", path, approver, site);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
@@ -806,7 +798,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                             Map<String, String> fromPageIds = getContentIds(fromDocument);
 
-                            logger.debug("copying file for site {} from {} to {}, new name is {}",
+                            logger.debug("copying file in site '{}' from '{}' to '{}', new name is '{}'",
                                     site, fromPath, toPath, copyPath);
 
                             // come up with a new object ID and group ID for the object
@@ -817,7 +809,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                             copyDependencies = getItemSpecificDependencies(site, fromPath, fromDocument,
                                     copyDependencies);
 
-                            logger.debug("Calculated copy dependencies: {}, {}", fromPath, copyDependencies);
+                            logger.debug("Calculated copy dependencies: '{}', '{}'", fromPath, copyDependencies);
 
                             // Duplicate the children
                             for (String dependencyKey : copyDependencies.keySet()) {
@@ -842,7 +834,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                     copyDepPath = ContentUtils.getParentUrl(copyDepPath);
                                 }
                                 
-                                logger.debug("Translated dependency path from {} to {}",
+                                logger.debug("Translated dependency path from '{}' to '{}'",
                                         dependencyPath, copyDepPath);
 
                                 String newCopyDepthPath = copyContent(site, dependencyKey, copyDepPath, processedPaths);
@@ -887,11 +879,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         // track that we already copied so we don't follow a circular dependency
                         processedPaths.add(copyPath);
                     } catch (ContentNotFoundException e) {
-                        logger.debug("Content not found while copying content for site {} from {} to {}," +
-                                " new name is {}", site, fromPath, toPath, copyPath, e);
+                        logger.debug("Content not found while copying content for site '{}' from '{}' to '{}'," +
+                                " new name is '{}'", site, fromPath, toPath, copyPath, e);
                     } catch (DocumentException e) {
-                        logger.error("General Error while copying content for site {} from {} to {}," +
-                                " new name is {}", site, fromPath, toPath, copyPath, e);
+                        logger.error("General Error while copying content for site '{}' from '{}' to '{}'," +
+                                " new name is '{}'", site, fromPath, toPath, copyPath, e);
                     } finally {
                         IOUtils.closeQuietly(copyContent);
                     }
@@ -901,7 +893,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 retNewFileName = copyPath;
             }
         } catch(ServiceLayerException | UserNotFoundException e) {
-            logger.info("General Error while copying content for site {} from {} to {}, new name is {}",
+            logger.info1("General Error while copying content for site '{}' from '{}' to '{}', new name is '{}'",
                 site, fromPath, toPath, copyPath, e);
             throw e;
         }
@@ -934,7 +926,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 List<CopyDependencyConfigTO> copyDependencyPatterns =
                         servicesConfig.getCopyDependencyPatterns(site, contentType);
                 if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
-                    logger.debug("Copy Pattern provided for contentType" + contentType);
+                    logger.debug("Copy Pattern provided for contentType '{}'", contentType);
                     Set<String> dependencies = dependencyService.getItemDependencies(site, dependencyPath, 1);
                     if (CollectionUtils.isNotEmpty(dependencies)) {
                         for (String dependency : dependencies) {
@@ -949,10 +941,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         }
                     }
                 } else {
-                    logger.debug("Copy Pattern is not provided for contentType" + contentType);
+                    logger.debug("Copy Pattern is not provided for contentType '{}'", contentType);
                 }
             } else {
-                logger.debug("Not found dependency item at site {} path {!}", site, sourceContentPath);
+                logger.debug("Not found dependency item at site '{}' path '{}'", site, sourceContentPath);
             }
         }
         return copyDependency;
@@ -1007,15 +999,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
             else {
-                logger.error("Repository move failed site {} from {} to {}", site, sourcePath, targetPath);
+                logger.error("Repository move failed site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
             }
 
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
         }
-        catch(ServiceLayerException | UserNotFoundException eMoveErr) {
-            logger.error("Content not found while moving content for site {} from {} to {}, new name is {}",
-                    eMoveErr, site, fromPath, toPath, movePath);
+        catch(ServiceLayerException | UserNotFoundException e) {
+            logger.error("Content not found while moving content for site '{}' from '{}' to '{}', new name is '{}'",
+                    site, fromPath, toPath, movePath, e);
         }
 
         return movePath;
@@ -1028,7 +1020,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId)
             throws ServiceLayerException, UserNotFoundException {
-        logger.debug("updateDatabaseOnMove FROM {} TO {}  ", fromPath, movePath);
+        logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
         String user = securityService.getCurrentUser();
 
@@ -1045,6 +1037,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         // Item update
+        // TODO: SJ: Replace this with `contains`
         String sourcePath = (fromPath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
                 fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
         String targetPath = (movePath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
@@ -1080,19 +1073,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             dependencyService.deleteItemDependencies(site, fromPath);
         } catch (ServiceLayerException e) {
-            logger.error("Error while deleting dependencies for site " + site + " path " + fromPath, e);
+            logger.error("Error while deleting dependencies for site '{}' path '{}", site, fromPath, e);
         }
         try {
             dependencyService.upsertDependencies(site, movePath);
         } catch (ServiceLayerException e) {
-            logger.error("Error while updating dependencies on move content site: " + site + " path: "
-                    + movePath, e);
+            logger.error("Error while updating dependencies on move content site '{}' path '{}'", site, movePath, e);
         }
     }
 
     protected void updateChildrenOnMove(String site, String fromPath, String movePath)
             throws ServiceLayerException, UserNotFoundException {
-        logger.debug("updateChildrenOnMove from {} to {}", fromPath, movePath);
+        logger.debug("updateChildrenOnMove for site '{}' from '{}' to '{}'", site, fromPath, movePath);
 
         // get the list of children
         ContentItemTO movedTO = getContentItem(site, movePath, 2);
@@ -1108,7 +1100,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
-            logger.debug("updateChildrenOnMove handling child from: {} to: {}  ", childFromPath, childToPath);
+            logger.debug("updateChildrenOnMove handling child in site '{}' from '{}' to '{}'", site,
+                    childFromPath, childToPath);
 
             // update database, preview, cache etc
             updateDatabaseOnMove(site, childFromPath, childToPath);
@@ -1126,12 +1119,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
         String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf(FILE_SEPARATOR)+1);
         boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
-        logger.debug("Cut/copy name rules from path: '{}' name: '{}'", fromPathOnly, fromFileNameOnly);
+        logger.debug("Cut/copy name rules for site '{}' from path '{}' name '{}'", site,
+                fromPathOnly, fromFileNameOnly);
 
-        if(fromFileIsIndex) {
+        if (fromFileIsIndex) {
             fromFileNameOnly = fromPathOnly.substring(fromPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
             fromPathOnly = fromPathOnly.substring(0, fromPathOnly.lastIndexOf(FILE_SEPARATOR));
-            logger.debug("Cut/copy name rules index from path: '{}' name: '{}'", fromPathOnly, fromFileNameOnly);
+            logger.debug("Cut/copy name rules index for site '{}' from path '{}' name '{}'", site,
+                    fromPathOnly, fromFileNameOnly);
         }
 
         String newPathOnly = (toPath.contains(".xml")) ?
@@ -1139,12 +1134,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String newFileNameOnly = (toPath.contains(".xml")) ?
                 toPath.substring(toPath.lastIndexOf(FILE_SEPARATOR)+1) : fromFileNameOnly;
         boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
-        logger.debug("Cut/copy name rules to path: '{}' name: '{}'", newPathOnly, newFileNameOnly);
+        logger.debug("Cut/copy name rules for site '{}' to path '{}' name '{}'", site, newPathOnly, newFileNameOnly);
 
-        if(newFileIsIndex) {
+        if (newFileIsIndex) {
             newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
             newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
-            logger.debug("Cut/copy name rules index to path: '{}' name: '{}'", newPathOnly, newFileNameOnly);
+            logger.debug("Cut/copy name rules index for site '{}' to path '{}' name '{}'", site,
+                    newPathOnly, newFileNameOnly);
         }
 
         String proposedDestPath = null;
@@ -1170,16 +1166,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         DmConstants.INDEX_FILE;
                 proposedDestPath_filename = DmConstants.INDEX_FILE;
                 proposedDestPath_folder = newFileNameOnly;
-            }
-            else {
+            } else {
                 // this is a location move
                 proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR +
                         fromFileNameOnly + FILE_SEPARATOR + DmConstants.INDEX_FILE;
                 proposedDestPath_filename = DmConstants.INDEX_FILE;
                 proposedDestPath_folder = fromFileNameOnly;
             }
-        }
-        else if(fromFileIsIndex && !newFileIsIndex) {
+        } else if(fromFileIsIndex && !newFileIsIndex) {
             // Example MOVE LOCATION, INDEX TO FOLDER
             // fromPath: "/site/website/search/index.xml"
             // toPath:   "/site/website/a-folder"
@@ -1188,13 +1182,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     DmConstants.INDEX_FILE;
             proposedDestPath_filename = DmConstants.INDEX_FILE;
             proposedDestPath_folder = fromFileNameOnly;
-        }
-        else if(!fromFileIsIndex && newFileIsIndex) {
+        } else if(!fromFileIsIndex && newFileIsIndex) {
             proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR + fromFileNameOnly;
             proposedDestPath_filename = fromFileNameOnly;
             proposedDestPath_folder = newFileNameOnly;
-        }
-        else{
+        } else {
             // Example NON INDEX FILES MOVE TO FOLDER
             // fromPath: "/site/website/search.xml"
             // toPath:   "/site/website/a-folder"
@@ -1204,7 +1196,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             // fromPath: "/site/website/search.xml"
             // toPath:   "/site/website/products/search.xml"
             // newPath:  "/site/website/products/search.xml"
-            if(fromFileNameOnly.equals(newFileNameOnly)) {
+            if (fromFileNameOnly.equals(newFileNameOnly)) {
                 // Move location
                 if (!_contentRepository.contentExists(site, newPathOnly) ||
                         _contentRepository.isFolder(site, newPathOnly)) {
@@ -1214,8 +1206,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
                 proposedDestPath_filename = fromFileNameOnly;
                 proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
-            }
-            else {
+            } else {
                 // rename
                 proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly;
                 proposedDestPath_filename = newFileNameOnly;
@@ -1224,7 +1215,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         }
 
-        logger.debug("Initial Proposed Path: {} ", proposedDestPath);
+        logger.debug("Initial Proposed Path '{}' for site '{}' ", proposedDestPath, site);
 
         result.put("FILE_PATH", proposedDestPath);
         result.put("FILE_NAME", proposedDestPath_filename);
@@ -1240,7 +1231,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         if(adjustOnCollide && contentExists) {
-            logger.debug("File already found at path {}, creating new name", proposedDestPath);
+            logger.debug("File already found at path '{}' in site '{}', creating new name", proposedDestPath, site);
             try {
                 var siblings = _contentRepository.getContentChildren(site, newPathOnly);
                 var modifier = 1;
@@ -1299,13 +1290,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 result.put("MODIFIER", Integer.toString(modifier));
                 result.put("ALT_NAME", "true");
             }
-            catch(Exception altPathGenErr) {
-                throw new ServiceLayerException("Unable to generate an alternative path for name collision: " +
-                        proposedDestPath, altPathGenErr);
+            catch(Exception e) {
+                throw new ServiceLayerException(String.format("Unable to generate an alternative path" +
+                                " for name collision '{}'", proposedDestPath, e));
             }
         }
 
-        logger.debug("Final proposed path from : '{}' to: '{}' final name '{}'", fromPath, toPath,
+        logger.debug("Final proposed path in site '{}' from '{}' to '{}' final name '{}'", site, fromPath, toPath,
             proposedDestPath);
         return result;
     }
@@ -1506,7 +1497,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // TODO: SJ: Much of this seems hardcoded and must be extensible/configurable via key:xpath in config
         String contentPath = item.uri;
 
-        logger.debug("Populating page props '{}'", contentPath);
+        logger.debug("Populating page props in site '{}' path '{}'", site, contentPath);
         item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
         item.page = ContentUtils.matchesPatterns(item.getUri(), servicesConfig.getPagePatterns(site));
         item.isPage = item.page;
@@ -1527,11 +1518,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         item.name = contentPath.substring(contentPath.lastIndexOf(FILE_SEPARATOR) + 1);
         item.browserUri = contentPath;
 
-        if(item.page) {
+        if (item.page) {
             // TODO: SJ: This is hokey, fix in 4.x
+            // TODO: Also fix to use File.separator
+            /* Use to be:
+             contentPath.replace(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website", "")
+                            .replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""); */
             item.browserUri =
-                    contentPath.replace(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website", "")
-                            .replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+                    contentPath.replace("/site/website", "")
+                            .replace("/index.xml", "");
         }
 
         Document contentDoc = this.getContentAsDocument(site, contentPath);
@@ -1546,16 +1541,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             String hideInAuthoring = rootElement.valueOf("hideInAuthoring");
             String displayTemplate = rootElement.valueOf("display-template");
 
-            item.internalName = (internalName!=null) ? internalName : null;
-            item.contentType = (contentType!=null) ? contentType : null;
-            item.disabled = (disabled!=null && "true".equalsIgnoreCase(disabled)) ? true : false;
-            item.savedAsDraft = (savedAsDraft!=null && "true".equalsIgnoreCase(savedAsDraft)) ? true : false;
-            item.hideInAuthoring = (hideInAuthoring!=null && "true".equalsIgnoreCase(hideInAuthoring)) ? true : false;
+            item.internalName = internalName;
+            item.contentType = contentType;
+            item.disabled = "true".equalsIgnoreCase(disabled);
+            item.savedAsDraft = "true".equalsIgnoreCase(savedAsDraft);
+            item.hideInAuthoring = "true".equalsIgnoreCase(hideInAuthoring);
 
-            item.navigation = (navigation!=null && "true".equalsIgnoreCase(navigation)) ? true : false;
+            item.navigation = "true".equalsIgnoreCase(navigation);
             item.floating = !item.navigation;
 
-            item.setOrders(getItemOrders(rootElement.selectNodes("//" + DmXmlConstants.ELM_ORDER_DEFAULT)));
+            item.setOrders(getItemOrders(rootElement.selectNodes(ELM_ORDER_DEFAULT_SELECTOR)));
 
             if(displayTemplate != null) {
                 RenderingTemplateTO template = new RenderingTemplateTO();
@@ -1564,8 +1559,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                 item.renderingTemplates.add(template);
             }
-        }
-        else {
+        } else {
             logger.debug("no xml document could be loaded for site '{}' path '{}'", site, contentPath);
         }
 
@@ -1590,7 +1584,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             orderValue = Double.parseDouble(orderStr);
         } catch (NumberFormatException e) {
-            logger.debug(orderName + ", " + orderStr + " is not a valid order value pair.");
+            logger.debug("%s, %s is not a valid order value pair.", orderName, orderStr);
         }
         if (!StringUtils.isEmpty(orderName) && orderValue != null) {
             DmOrderTO order = new DmOrderTO();
@@ -1636,7 +1630,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 contentPath = contentPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
             }
 
-
             RepositoryItem[] childRepoItems = _contentRepository.getContentChildren(item.site, contentPath);
             boolean indexFound = false;
 
@@ -1647,25 +1640,27 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     item.container = true;
                 }
 
+                // TODO: Fix the mixed use of constants here and eliminate unnecessary string concatenation during
+                // TODO: execution
                 List<ContentItemTO> children = new ArrayList<>();
                 logger.debug("Checking if {} has index", contentPath);
                 for (int j = 0; j < childRepoItems.length; j++) {
-                    if ("index.xml".equals(childRepoItems[j].name)) {
-                        if (!item.uri.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                    if (DmConstants.INDEX_FILE.equals(childRepoItems[j].name)) {
+                        if (!item.uri.contains(DmConstants.SLASH_INDEX_FILE)) {
                             item.path = item.uri;
-                            item.uri = item.uri + FILE_SEPARATOR + DmConstants.INDEX_FILE;
+                            item.uri = item.uri + DmConstants.SLASH_INDEX_FILE;
                         }
                         item.numOfChildren--;
                         indexFound = true;
-                    }
-                    else {
+                    } else {
                         if (depth > 1) {
                             String childPath = childRepoItems[j].path + FILE_SEPARATOR + childRepoItems[j].name;
-                            if (childPath.startsWith(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website" +
-                                    FILE_SEPARATOR) && childRepoItems[j].isFolder &&
-                                    contentExists(item.site,childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE )) {
-                                children.add(getContentItem(item.site, childPath + FILE_SEPARATOR +
-                                        DmConstants.INDEX_FILE, depth - 1));
+                            // TODO: Consider using shallowContentExists
+                            if (childPath.startsWith(DmConstants.SLASH_SITE_WEBSITE_SLASH) &&
+                                    childRepoItems[j].isFolder && contentExists(item.site,
+                                    childPath + DmConstants.SLASH_INDEX_FILE)) {
+                                children.add(getContentItem(item.site, childPath + DmConstants.SLASH_INDEX_FILE,
+                                        depth - 1));
                             } else {
                                 children.add(getContentItem(item.site, childPath, depth - 1));
                             }
@@ -1686,6 +1681,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     item.isPreviewable = false;
 
                     item.internalName = item.name;
+                    // TODO: Switch to a proper constant
                     item.contentType = "folder";
                     item.path = item.uri;
                 }
@@ -1731,7 +1727,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         ContentItemTO item = null;
         logger.debug("Getting content item for site '{}' path '{}' depth '{}'", site, path, depth);
 
-        DebugUtils.addDebugStack(logger);
         long startTime = System.currentTimeMillis();
 
         try {
@@ -1756,12 +1751,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             } else {
                 item = createDummyDmContentItemForDeletedNode(site, path);
             }
-        } catch(Exception err) {
-            logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
+        } catch(Exception e) {
+            logger.debug("error constructing item for object at site '{}' path '{}'", site, path, e);
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item from site '{}' path '{}' retrieved in '{}' milli-seconds",
+        logger.debug("Content item from site '{}' path '{}' retrieved in '{}' milliseconds",
                 site, path, executionTime);
         return item;
     }
@@ -1770,12 +1765,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
         ContentItemTO item = createNewContentItemTO(site, path);
 
+        // TODO: Fix to use proper constants
         if (item.uri.endsWith(".xml") && !item.uri.startsWith("/config/")) {
 
             try {
                 item = populateContentDrivenProperties(site, item);
             } catch (Exception e) {
-                logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
+                logger.debug("error constructing item for object at site '{}' path '{}'", site, path, e);
             }
         } else {
             item.setLevelDescriptor(item.name.equals(servicesConfig.getLevelDescriptorName(site)));
@@ -1810,6 +1806,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (item.isFolder()) {
             item.setContentType(CONTENT_TYPE_FOLDER);
         } else {
+            // TODO: Use constants instead of string literals
             if (contentType != null && !contentType.equals(CONTENT_TYPE_FOLDER) && !contentType.equals("asset") &&
                     !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
                 ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
@@ -1945,17 +1942,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                             @ValidateSecurePathParam(name = "path") String path,
                                             @ValidateIntegerParam(name = "depth") int depth) {
         logger.debug("Getting content item  tree for '{}':'{}' depth '{}'", site, path, depth);
-        DebugUtils.addDebugStack(logger);
 
         long startTime = System.currentTimeMillis();
-        boolean isPages = (path.contains(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website"));
+        boolean isPages = (path.contains(DmConstants.SLASH_SITE_WEBSITE));
         ContentItemTO root = null;
 
-        if (isPages && contentExists(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+        if (isPages && contentExists(site, path + DmConstants.SLASH_INDEX_FILE)) {
             if (depth > 1) {
-                root = getContentItem(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE, depth);
+                root = getContentItem(site, path + DmConstants.SLASH_INDEX_FILE, depth);
             } else {
-                root = getContentItem(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE);
+                root = getContentItem(site, path + DmConstants.SLASH_INDEX_FILE);
             }
         }
         else {
@@ -1967,7 +1963,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milli-seconds", site, path, depth,
+        logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milliseconds", site, path, depth,
                 executionTime);
 
         return root;
@@ -1995,8 +1991,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             try {
                 dependencyService.upsertDependencies(site, path);
             } catch (ServiceLayerException e) {
-                logger.error("Error while extracting dependencies for reverted content. Site: " + site + " path: " +
-                        path + " version: " + version);
+                logger.error("Error while extracting dependencies for reverted content." +
+                        "Site: '{}' path: '{}' version: '{}'", site, path, version);
             }
             // Update the database with the commitId for the target item
 
@@ -2053,9 +2049,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         try {
             content = IOUtils.toString(getContentVersion(site, path, version), UTF_8);
-        }
-        catch(Exception err) {
-            logger.debug("Failed to get content as string for path {}, exception {}", path, err);
+        } catch(Exception e) {
+            logger.debug("Failed to get content as string for path '{}'", path, e);
         }
 
         return content;
@@ -2067,11 +2062,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                                                 @ValidateSecurePathParam(name = "relativePath")
                                                                         String relativePath) {
         // TODO: SJ: Think of another way to do this in 3.1+
-
         ContentItemTO item = new ContentItemTO();
         String timeZone = servicesConfig.getDefaultTimezone(site);
         item.timezone = timeZone;
         String name = ContentUtils.getPageName(relativePath);
+        // TODO: Use a helper method to remove the leading '/', consider StringUtils.removeStart or similar
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ?
                 relativePath.replace(FILE_SEPARATOR + name, "") : relativePath;
         item.path = folderPath;
@@ -2131,7 +2126,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected static String getBrowserUri(String uri, String replacePattern, boolean isPage) {
         String browserUri = uri.replaceFirst(replacePattern, "");
-        browserUri = browserUri.replaceFirst(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+        browserUri = browserUri.replaceFirst(DmConstants.SLASH_INDEX_FILE, "");
         if (browserUri.length() == 0) {
             browserUri = FILE_SEPARATOR;
         }
@@ -2196,11 +2191,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             long startTime = System.currentTimeMillis();
             ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
             long duration = System.currentTimeMillis() - startTime;
-            logger.debug("Write Duration: '{}'", duration);
+            logger.debug("Write Duration in milliseconds: '{}'", duration);
             return to;
         } finally {
             long end = System.currentTimeMillis();
-            logger.debug("Write complete for [" + id + "] in time [" + (end - start) + "]");
+            logger.debug("Write complete for '{}' in time '{}' milliseconds.", id, start, (end-start));
         }
     }
 
@@ -2307,7 +2302,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         Set<String> dependencies = dependencyService.getDeleteDependencies(site, sourceContentPath);
         for (String dependency : dependencies) {
             candidates.addDependency(dependency);
-            logger.debug("Added to delete" + dependency);
+            logger.debug("Added dependency '{}' to delete", dependency);
         }
 
         //Find if any folder would get empty if remove the items and add just the folder
@@ -2318,7 +2313,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 childItems.add(child.path + "/" + child.name);
             }
             if (candidates.getAllItems().containsAll(childItems)) {
-                logger.debug("Added parentFolder for delete" + parentFolderToDelete);
+                logger.debug("Added parentFolder '{}' for delete", parentFolderToDelete);
                 candidates.addDependencyParentFolder(parentFolderToDelete);
             }
         }
@@ -2330,7 +2325,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath,
                     null, null, site, true);
             List<String> deleted = getRemovedDependenices(diffRequest, true);
-            logger.debug("Removed dependenices for path[" + relativePath + "] : " + deleted);
+            logger.debug("Removed dependencies for path '{}:{}'", relativePath, deleted);
             for (String dependency : deleted) {
                 candidates.getLiveDependencyItems().add(dependency);
             }
@@ -2500,15 +2495,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // if no after and before provided, the initial value is ORDER_INCREMENT
         if (afterOrder == null && beforeOrder == null) {
             return dmPageNavigationOrderService.getNewNavOrder(site,
-                    ContentUtils.getParentUrl(relativePath.replace(FILE_SEPARATOR +
-                            DmConstants.INDEX_FILE, "")));
+                    ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE, "")));
         } else if (beforeOrder == null) {
             return (0 + afterOrder) / 2;
         } else if (afterOrder == null) {
-            logger.info("afterOrder == null");
+            logger.info1("afterOrder == null"); // TODO: SJ: Why is this at level INFO and what purpose does it serve?
             return dmPageNavigationOrderService.getNewNavOrder(site,
-                    ContentUtils.getParentUrl(relativePath.replace(FILE_SEPARATOR +
-                            DmConstants.INDEX_FILE, "")), beforeOrder);
+                    ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE,
+                            "")), beforeOrder);
         } else {
             //return (beforeOrder + afterOrder) / 2;
             return computeReorder(site, relativePath, beforeOrderTO, afterOrderTO, orderName);
@@ -2552,7 +2546,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             targetPath += "-" + id;
         }
 
-        logger.debug("Rename folder for site {} sourcePath {} to target path {}", site, path, targetPath);
+        logger.debug("Rename folder for site '{}' sourcePath '{}' to target path '{}'", site, path, targetPath);
         // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
         // historically with MOVE it is not
         Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
@@ -2575,7 +2569,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             toRet = true;
 
         } else {
-            logger.error("Repository move failed site {} from {} to {}", site, path, targetPath);
+            logger.error("Repository move failed site '{}' from '{}' to '{}'", site, path, targetPath);
         }
 
         return toRet;
@@ -2587,15 +2581,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException();
         }
+
         boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PUSH_TO_REMOTE);
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userService.getCurrentUser().getUsername());
-        auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
+        auditLog.setPrimaryTargetId(remoteName + File.separator + remoteBranch);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
-        auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
+        auditLog.setPrimaryTargetValue(remoteName + File.separator + remoteBranch);
         auditServiceInternal.insertAuditLog(auditLog);
 
         return toRet;

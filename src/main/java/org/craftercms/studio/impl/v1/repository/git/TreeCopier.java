@@ -56,9 +56,9 @@ public class TreeCopier  implements FileVisitor<Path> {
         } catch (FileAlreadyExistsException e) {
             // ignore
         } catch (IOException e) {
-            logger.error("Dir: " + dir.toString() + " NewDir: " + newdir.toString());
-            logger.error("!!!!!!!!!!!!!!!!############# Exception is: ", e);
-            logger.error("Unable to create: %s: %s%n", newdir, e);
+            logger.error1("Dir: " + dir.toString() + " NewDir: " + newdir.toString());
+            logger.error1("!!!!!!!!!!!!!!!!############# Exception is: ", e);
+            logger.error1("Unable to create: %s: %s%n", newdir, e);
             return SKIP_SUBTREE;
         }
         return CONTINUE;
@@ -70,7 +70,7 @@ public class TreeCopier  implements FileVisitor<Path> {
         try {
             Files.copy(file, target.resolve(source.relativize(file)), options);
         } catch (IOException e) {
-            logger.error("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
+            logger.error1("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
         }
         return CONTINUE;
     }
@@ -78,9 +78,9 @@ public class TreeCopier  implements FileVisitor<Path> {
     @Override
     public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
         if (exc instanceof FileSystemLoopException) {
-            logger.error("cycle detected: " + file);
+            logger.error1("cycle detected: " + file);
         } else {
-            logger.error("Unable to copy: %s: %s%n", file, exc);
+            logger.error1("Unable to copy: %s: %s%n", file, exc);
         }
         return CONTINUE;
     }

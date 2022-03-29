@@ -61,7 +61,7 @@ public class StudioSiteAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                     break;
             }
         }
-        logger.debug("Request: " + requestUri + " - Access: " + toRet);
+        logger.debug1("Request: " + requestUri + " - Access: " + toRet);
         return toRet;
     }
 

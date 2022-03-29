@@ -146,7 +146,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
      * @throws UpgradeException if there is any error reading the file
      */
     protected String readFile(final Path path) throws UpgradeException {
-        logger.debug("Reading content for file {}", path);
+        logger.debug1("Reading content for file {}", path);
         try (InputStream is = Files.newInputStream(path)) {
             return IOUtils.toString(is, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -161,7 +161,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
      * @throws UpgradeException is there is any error writing the content
      */
     protected void writeFile(final Path path, final String content) throws UpgradeException {
-        logger.debug("Writing content for file {}", path);
+        logger.debug1("Writing content for file {}", path);
         try (OutputStream os = Files.newOutputStream(path)) {
             IOUtils.write(content, os, StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -215,7 +215,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
 
         @Override
         public FileVisitResult visitFileFailed(final Path file, final IOException exc) {
-            logger.error("Could not read file " + file, exc);
+            logger.error1("Could not read file " + file, exc);
             return FileVisitResult.CONTINUE;
         }
 
