@@ -263,7 +263,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private void createWorkflowEntries(String siteId, List<String> paths, String submittedBy, String publishingTarget,
                                        ZonedDateTime scheduledDate, String submissionComment,
                                        boolean sendEmailNotifications)
-            throws UserNotFoundException, ServiceLayerException {
+            throws UserNotFoundException, ServiceLayerException, AuthenticationException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
         String packageId = UUID.randomUUID().toString();
         List<Workflow> workflowEntries = new LinkedList<>();
@@ -317,6 +317,10 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         SUBMIT_TO_WORKFLOW_OFF_MASK);
             }
         }
+
+        // Workflow package
+        createWorkflowPackage(siteId, paths, WorkflowPackage.Status.PENDING_APPROVAL.name(), publishingTarget,
+                scheduledDate, submissionComment, null);
     }
 
     private void createPublishRequestAuditLogEntry(String siteId, List<String> submittedPaths, String submittedBy,

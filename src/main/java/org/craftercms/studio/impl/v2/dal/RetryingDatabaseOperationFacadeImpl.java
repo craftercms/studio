@@ -41,6 +41,8 @@ import org.craftercms.studio.api.v2.dal.SecurityDAO;
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.dal.WorkflowDAO;
+import org.craftercms.studio.api.v2.dal.WorkflowPackage;
+import org.craftercms.studio.api.v2.dal.WorkflowPackageDAO;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 
 import java.time.ZonedDateTime;
@@ -65,6 +67,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     private UserDAO userDao;
     private WorkflowDAO workflowDao;
     private ActivityStreamDAO activityStreamDAO;
+    private WorkflowPackageDAO workflowPackageDao;
 
     // Dependency API v1
     @Override
@@ -633,6 +636,24 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, itemId, packageId);
     }
 
+    // Workflow package
+
+
+    @Override
+    public void createWorkflowPackage(WorkflowPackage workflowPackage) {
+        workflowPackageDao.createWorkflowPackage(workflowPackage);
+    }
+
+    @Override
+    public void addWorkflowPackageItems(String workflowPackageId, long siteId, List<String> paths) {
+        workflowPackageDao.addWorkflowPackageItems(workflowPackageId, siteId, paths);
+    }
+
+    @Override
+    public WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage) {
+        return workflowPackageDao.updateWorkflowPackage(workflowPackage);
+    }
+
     public DependencyMapper getDependencyMapper() {
         return dependencyMapper;
     }
@@ -751,5 +772,13 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
         this.activityStreamDAO = activityStreamDAO;
+    }
+
+    public WorkflowPackageDAO getWorkflowPackageDao() {
+        return workflowPackageDao;
+    }
+
+    public void setWorkflowPackageDao(WorkflowPackageDAO workflowPackageDao) {
+        this.workflowPackageDao = workflowPackageDao;
     }
 }

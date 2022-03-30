@@ -838,4 +838,28 @@ public interface RetryingDatabaseOperationFacade {
      */
     void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
                         String packageId);
+
+    // Workflow Package
+    /**
+     * Create workflow package
+     *
+     * @param workflowPackage workflow package object
+     */
+    void createWorkflowPackage(WorkflowPackage workflowPackage);
+
+    /**
+     * Add items to workflow package
+     * @param workflowPackageId workflow package identifier
+     * @param siteId site id
+     * @param paths list of paths of the items
+     */
+    void addWorkflowPackageItems(String workflowPackageId, long siteId, List<String> paths);
+
+    /**
+     * Update workflow package
+     * @param workflowPackage workflow package to update
+     * @return updated workflow package
+     */
+    WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage);
+
 }

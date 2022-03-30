@@ -149,13 +149,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         workflowPackage.setAuthorId(authorId);
         workflowPackage.setAuthorComment(authorComment);
         workflowPackage.setLabel(label);
-        workflowPackageDao.createWorkflowPackage(workflowPackage);
-        workflowPackageDao.addWorkflowPackageItems(workflowPackage.getId(), siteId, paths);
+        retryingDatabaseOperationFacade.createWorkflowPackage(workflowPackage);
+        retryingDatabaseOperationFacade.addWorkflowPackageItems(workflowPackage.getId(), siteId, paths);
     }
 
     @Override
     public WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage) {
-        return workflowPackageDao.updateWorkflowPackage(workflowPackage);
+        return retryingDatabaseOperationFacade.updateWorkflowPackage(workflowPackage);
     }
 
     @Override
