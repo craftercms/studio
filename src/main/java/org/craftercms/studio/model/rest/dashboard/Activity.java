@@ -26,7 +26,7 @@ public class Activity {
     //TODO: Populate with metadata once Publishing Packages are fully implemented
     public static class Package {
 
-        protected  String id;
+        protected String id;
 
         public String getId() {
             return id;
@@ -44,6 +44,7 @@ public class Activity {
         protected String path;
         protected String label;
         protected String previewUrl;
+        protected String systemType;
 
         public long getId() {
             return id;
@@ -75,6 +76,14 @@ public class Activity {
 
         public void setPreviewUrl(String previewUrl) {
             this.previewUrl = previewUrl;
+        }
+
+        public String getSystemType() {
+            return systemType;
+        }
+
+        public void setSystemType(String systemType) {
+            this.systemType = systemType;
         }
     }
 
