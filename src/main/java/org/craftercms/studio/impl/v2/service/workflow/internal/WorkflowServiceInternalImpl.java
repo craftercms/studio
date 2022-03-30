@@ -84,7 +84,7 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public int getContentPendingApprovalTotal(String siteId) {
-        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED);
+        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED).orElse(0);
     }
 
     @Override
@@ -97,16 +97,8 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
     }
 
-    public WorkflowDAO getWorkflowDao() {
-        return workflowDao;
-    }
-
     public void setWorkflowDao(WorkflowDAO workflowDao) {
         this.workflowDao = workflowDao;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

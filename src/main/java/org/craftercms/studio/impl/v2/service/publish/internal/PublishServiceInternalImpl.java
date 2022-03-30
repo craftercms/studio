@@ -39,8 +39,6 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
@@ -68,8 +66,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     public PublishingPackageDetails getPublishingPackageDetails(String siteId, String packageId) {
         List<PublishRequest> publishingRequests = publishRequestDao.getPublishingPackageDetails(siteId, packageId);
         PublishingPackageDetails publishingPackageDetails = new PublishingPackageDetails();
-        List<PublishingPackageDetails.PublishingPackageItem> packageItems =
-                new ArrayList<PublishingPackageDetails.PublishingPackageItem>();
+        List<PublishingPackageDetails.PublishingPackageItem> packageItems = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(publishingRequests)) {
             PublishRequest pr = publishingRequests.get(0);
             publishingPackageDetails.setSiteId(pr.getSite());
@@ -115,7 +112,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                                                             String filterType, int numberOfItems) {
         int offset = 0;
         int counter = 0;
-        List<DeploymentHistoryItem> toRet = new ArrayList<DeploymentHistoryItem>();
+        List<DeploymentHistoryItem> toRet = new ArrayList<>();
 
         String contentTypeClass = null;
         switch (filterType) {
@@ -170,8 +167,9 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     @Override
     public int getPublishingPackagesScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
                                                    ZonedDateTime dateTo) {
-        return publishRequestDao.getPublishingPackagesScheduledTotal(siteId, publishingTarget, READY_FOR_LIVE,
-                dateFrom, dateTo);
+        return publishRequestDao
+                .getPublishingPackagesScheduledTotal(siteId, publishingTarget, READY_FOR_LIVE, dateFrom, dateTo)
+                .orElse(0);
     }
 
     @Override
@@ -186,9 +184,9 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     public int getPublishingPackagesHistoryTotal(String siteId, String publishingTarget, String approver,
                                                  ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         // Need to check if null because of COUNT + GROUP BY
-        Integer total = publishRequestDao.getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver,
-                                                                            COMPLETED, dateFrom, dateTo);
-        return total == null? 0 : total;
+        return publishRequestDao
+                .getPublishingPackagesHistoryTotal(siteId, publishingTarget, approver, COMPLETED, dateFrom, dateTo)
+                .orElse(0);
     }
 
     @Override
@@ -211,32 +209,16 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                                                                     publishAction);
     }
 
-    public PublishRequestDAO getPublishRequestDao() {
-        return publishRequestDao;
-    }
-
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public DmFilterWrapper getDmFilterWrapper() {
-        return dmFilterWrapper;
-    }
-
     public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
         this.dmFilterWrapper = dmFilterWrapper;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

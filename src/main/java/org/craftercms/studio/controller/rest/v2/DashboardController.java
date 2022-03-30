@@ -81,7 +81,7 @@ public class DashboardController {
 
     @GetMapping(value = ACTIVITY, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getActivitiesForUsers(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_USERNAMES, required = false) List<String> usernames,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
@@ -107,7 +107,7 @@ public class DashboardController {
 
     @GetMapping(value = ACTIVITY + ME, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getMyActivities(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
@@ -132,7 +132,7 @@ public class DashboardController {
 
     @GetMapping(value = CONTENT + PENDING_APPROVAL, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentPendingApproval(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
@@ -152,7 +152,7 @@ public class DashboardController {
 
     @GetMapping(value = CONTENT + PENDING_APPROVAL + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentPendingApprovalDetail(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @PathVariable(REQUEST_PARAM_ID) String packageId) throws UserNotFoundException, ServiceLayerException {
 
         var items = dashboardService.getContentPendingApprovalDetail(siteId, packageId);
@@ -166,7 +166,7 @@ public class DashboardController {
 
     @GetMapping(value =  CONTENT + UNPUBLISHED, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentUnpublished(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws UserNotFoundException, ServiceLayerException {
 
@@ -185,13 +185,12 @@ public class DashboardController {
     }
 
 
-    // TODO: Should the dates be required? the query doesn't make sense without them
     @GetMapping(value = CONTENT + EXPIRING, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getContentExpiring(
             @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
+            @RequestParam(value = REQUEST_PARAM_DATE_TO)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
@@ -231,11 +230,11 @@ public class DashboardController {
 
     @GetMapping(value = PUBLISHING + SCHEDULED, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getPublishingScheduled(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
+            @RequestParam(value = REQUEST_PARAM_DATE_TO)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
@@ -257,7 +256,7 @@ public class DashboardController {
 
     @GetMapping(value = PUBLISHING + SCHEDULED + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getPublishingScheduledDetail(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @PathVariable(REQUEST_PARAM_ID) String packageId)
             throws UserNotFoundException, ServiceLayerException {
 
@@ -272,7 +271,7 @@ public class DashboardController {
 
     @GetMapping(value = PUBLISHING + HISTORY, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getPublishingHistory(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
             @RequestParam(value = REQUEST_PARAM_APPROVER, required = false) String approver,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
@@ -300,7 +299,7 @@ public class DashboardController {
 
     @GetMapping(value = PUBLISHING + HISTORY + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getPublishingHistoryDetail(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @PathVariable(REQUEST_PARAM_ID) String packageId) throws UserNotFoundException, ServiceLayerException {
 
         var items = dashboardService.getPublishingHistoryDetail(siteId, packageId);
@@ -314,8 +313,8 @@ public class DashboardController {
 
     @GetMapping(value = PUBLISHING + STATS, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getPublishingStats(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-            @RequestParam(value = REQUEST_PARAM_DAYS, required = true) int days) {
+            @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+            @RequestParam(value = REQUEST_PARAM_DAYS) int days) {
 
         var publishingStats = dashboardService.getPublishingStats(siteId, days);
         var responseBody = new ResponseBody();
@@ -324,10 +323,6 @@ public class DashboardController {
         result.setEntity(RESULT_KEY_PUBLISHING_STATS, publishingStats);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    public DashboardService getDashboardService() {
-        return dashboardService;
     }
 
     public void setDashboardService(DashboardService dashboardService) {
