@@ -665,6 +665,11 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
+    public int countUnprocessedCommits(String siteId, long marker) {
+        return localRepositoryV2.countUnprocessedCommits(siteId, marker);
+    }
+
+    @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
         localRepositoryV2.markGitLogProcessedBeforeMarker(siteId, marker, processed);
     }

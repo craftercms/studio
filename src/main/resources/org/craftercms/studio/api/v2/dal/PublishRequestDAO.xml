@@ -168,7 +168,7 @@
         </foreach>
     </update>
 
-    <select id="getPublishingPackagesScheduledTotal" resultType="int">
+    <select id="getPublishingPackagesScheduledTotal" resultType="Integer">
         SELECT count(pr.package_id)
         FROM publish_request pr
         WHERE pr.site = #{siteId}
