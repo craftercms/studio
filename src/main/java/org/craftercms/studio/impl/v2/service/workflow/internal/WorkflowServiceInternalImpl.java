@@ -113,7 +113,7 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public int getContentPendingApprovalTotal(String siteId) {
-        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED);
+        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED).orElse(0);
     }
 
     @Override

@@ -18,31 +18,31 @@ package org.craftercms.studio.api.v2.exception.content;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
+/**
+ * Extension of {@link ServiceLayerException} thrown when a user tries to lock an item that is already locked
+ *
+ * @since 4.0.0
+ */
 public class ContentLockedByAnotherUserException extends ServiceLayerException {
 
-    private String lockOwner;
+    /**
+     * The username of the user that owns the lock of the item
+     */
+    protected final String lockOwner;
 
-    public ContentLockedByAnotherUserException() {
-        super();
-    }
-
-    public ContentLockedByAnotherUserException(Throwable e) {
-        super(e);
-    }
-
-    public ContentLockedByAnotherUserException(String message) {
-        super(message);
-    }
-
-    public ContentLockedByAnotherUserException(String message, Exception e) {
-        super(message, e);
+    public ContentLockedByAnotherUserException(String lockOwner) {
+        this.lockOwner = lockOwner;
     }
 
     public String getLockOwner() {
         return lockOwner;
     }
 
-    public void setLockOwner(String lockOwner) {
-        this.lockOwner = lockOwner;
+    @Override
+    public String toString() {
+        return "ContentLockedByAnotherUserException{" +
+                "lockOwner='" + lockOwner + '\'' +
+                '}';
     }
+
 }

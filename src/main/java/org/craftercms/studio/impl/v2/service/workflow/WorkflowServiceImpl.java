@@ -57,7 +57,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.workflow.WorkflowPackagesApproveRequestBody;
@@ -69,12 +68,13 @@ import org.springframework.context.ApplicationContextAware;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_INITIAL_PUBLISH;
@@ -101,6 +101,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -138,8 +139,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) {
-        return itemServiceInternal.getItemStates(siteId, path, states, offset, limit)
-                .stream().map(item -> SandboxItem.getInstance(item)).collect(Collectors.toList());
+        return itemServiceInternal.getItemStates(siteId, path, states, offset, limit).stream()
+                .map(SandboxItem::getInstance)
+                .collect(toList());
     }
 
     @Override
@@ -160,8 +162,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public List<SandboxItem> getWorkflowAffectedPaths(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                       @ProtectedResourceId(PATH_RESOURCE_ID)
                                                       String path) throws UserNotFoundException, ServiceLayerException {
-        List<String> affectedPaths = new ArrayList<String>();
-        List<SandboxItem> result = new ArrayList<>();
+        List<String> affectedPaths = new LinkedList<>();
+        List<SandboxItem> result = new LinkedList<>();
         Item item = itemServiceInternal.getItem(siteId, path);
         if (Objects.isNull(item)) {
             throw new ContentNotFoundException(path, siteId,
@@ -174,10 +176,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             if (isNew || isRenamed) {
                 affectedPaths.addAll(getMandatoryDescendents(siteId, path));
             }
-            List<String> dependencyPaths = new ArrayList<String>();
-            dependencyPaths.addAll(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
+            List<String> dependencyPaths = new LinkedList<>(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
             affectedPaths.addAll(dependencyPaths);
-            List<String> candidates = new ArrayList<String>();
+            List<String> candidates = new LinkedList<>();
             for (String p : affectedPaths) {
                 if (!candidates.contains(p)) {
                     candidates.add(p);
@@ -185,14 +186,14 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             }
 
             List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(siteId, candidates, true);
-            result = candidateItems.stream().filter(i -> isInWorkflowOrScheduled(i.getState())).collect(Collectors.toList());
+            result = candidateItems.stream().filter(i -> isInWorkflowOrScheduled(i.getState())).collect(toList());
         }
         return result;
     }
 
     private List<String> getMandatoryDescendents(String site, String path)
             throws UserNotFoundException, ServiceLayerException {
-        List<String> descendents = new ArrayList<String>();
+        List<String> descendents = new LinkedList<>();
         GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null,
                 null, 0, Integer.MAX_VALUE);
         if (result != null) {
@@ -242,8 +243,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     private List<String> calculateSubmissionPackage(String siteId, List<String> paths,
                                                     List<String> optionalDependencies) throws ServiceLayerException {
-        var submissionPackage = new ArrayList<String>();
-        submissionPackage.addAll(paths);
+        List<String> submissionPackage = new LinkedList<>(paths);
         if (CollectionUtils.isNotEmpty(optionalDependencies)) {
             submissionPackage.addAll(optionalDependencies);
         }
@@ -266,7 +266,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             throws UserNotFoundException, ServiceLayerException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
         String packageId = UUID.randomUUID().toString();
-        var workflowEntries = new ArrayList<Workflow>();
+        List<Workflow> workflowEntries = new LinkedList<>();
         paths.forEach(path -> {
             Item it = itemServiceInternal.getItem(siteId, path);
 
@@ -349,13 +349,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        // TODO: This is repeated, can we do a bulk getWorkflowEntries?
-        submittedPaths.stream()
-                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
-                .forEach(workflowEntry ->
-                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(),
-                                OPERATION_REQUEST_PUBLISH, DateUtils.getCurrentTime(),
-                                workflowEntry.getItem().getId(), workflowEntry.getPublishingPackageId()));
+        // TODO: Can we do a bulk getWorkflowEntries?
+        generateActivityStream(submittedPaths, siteFeed, user.getId(), OPERATION_REQUEST_PUBLISH);
     }
 
     @Override
@@ -384,7 +379,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 boolean scheduledDateIsNow = false;
                 if (schedule == null) {
                     scheduledDateIsNow = true;
-                    schedule = DateUtils.getCurrentTime();
+                    schedule = getCurrentTime();
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
@@ -398,18 +393,15 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
     }
 
-    private List<String> calculatePublishPackage(String siteId, List<String> paths,
-                                                    List<String> optionalDependencies)
-            throws ServiceLayerException, UserNotFoundException {
-        var submissionPackage = new ArrayList<String>();
-        var publishPackage = new ArrayList<String>();
-        submissionPackage.addAll(paths);
+    private List<String> calculatePublishPackage(String siteId, List<String> paths, List<String> optionalDependencies)
+            throws ServiceLayerException {
+        List<String> submissionPackage = new LinkedList<>(paths);
         if (CollectionUtils.isNotEmpty(optionalDependencies)) {
             submissionPackage.addAll(optionalDependencies);
         }
         List<String> dependencies = dependencyServiceInternal.getHardDependencies(siteId, submissionPackage);
         submissionPackage.addAll(dependencies);
-        publishPackage.addAll(submissionPackage);
+        List<String> publishPackage = new LinkedList<>(submissionPackage);
         // Calculate renamed items and add renamed children
         List<Item> items = itemServiceInternal.getItems(siteId, submissionPackage, false);
         items.forEach(item ->{
@@ -418,6 +410,15 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             }
         });
         return publishPackage;
+    }
+
+    private void generateActivityStream(List<String> paths, SiteFeed site, long userId, String operation) {
+        paths.stream()
+            .map(path -> workflowServiceInternal.getWorkflowEntry(site.getSiteId(), path))
+            .filter(Objects::nonNull) // there is no workflow entry for direct publishes
+            .forEach(entry ->
+                activityStreamServiceInternal.insertActivity(site.getId(), userId, operation, getCurrentTime(),
+                        entry.getItem().getId(), entry.getPublishingPackageId()));
     }
 
     private void createPublishAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy)
@@ -442,13 +443,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        //TODO: This is repeated
-        pathsToPublish.stream()
-                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
-                .filter(Objects::nonNull) // there is no workflow entry for direct publishes
-                .forEach( workflowItem ->
-                    activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
-                        DateUtils.getCurrentTime(), workflowItem.getItem().getId(), workflowItem.getPublishingPackageId()));
+        generateActivityStream(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
     }
 
     @Override
@@ -477,7 +472,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 boolean scheduledDateIsNow = false;
                 if (schedule == null) {
                     scheduledDateIsNow = true;
-                    schedule = DateUtils.getCurrentTime();
+                    schedule = getCurrentTime();
                 }
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
@@ -521,12 +516,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        pathsToPublish.stream()
-                .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
-                .forEach(workflowItem ->
-                        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH,
-                                DateUtils.getCurrentTime(), workflowItem.getItem().getId(),
-                                workflowItem.getPublishingPackageId()));
+        generateActivityStream(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
     }
 
     private void createInitialPublishAuditLog(String siteId) throws ServiceLayerException, UserNotFoundException {
@@ -543,7 +533,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditServiceInternal.insertAuditLog(auditLog);
 
         activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_INITIAL_PUBLISH,
-                DateUtils.getCurrentTime(), null, null);
+                getCurrentTime(), null, null);
     }
 
     @Override
@@ -625,14 +615,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        //TODO: This is repeated
-        List<String> workflowPackages = submittedPaths.stream().map(path -> {
-            WorkflowItem wi = workflowServiceInternal.getWorkflowEntry(siteId, path);
-            return wi.getPublishingPackageId();
-        }).distinct().collect(Collectors.toList());
-        workflowPackages.forEach( packageId ->
-                activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REQUEST_PUBLISH,
-                        DateUtils.getCurrentTime(), null, packageId));
+        generateActivityStream(submittedPaths, siteFeed, user.getId(), OPERATION_REQUEST_PUBLISH);
     }
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,
@@ -655,7 +638,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             // cancel existing workflow
             cancelExistingWorkflowEntries(siteId, pathsToDelete);
             // add to publishing queue
-            deploymentService.delete(siteId, pathsToDelete, deletedBy, DateUtils.getCurrentTime(), comment);
+            deploymentService.delete(siteId, pathsToDelete, deletedBy, getCurrentTime(), comment);
             // send notification email
             // TODO: We don't have notifications on delete now. Fix this ???
             // trigger event
@@ -669,8 +652,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private List<String> calculateDeleteSubmissionPackage(String siteId, List<String> paths,
                                                           List<String> optionalDependencies)
             throws UserNotFoundException, ServiceLayerException {
-        var deletePackage = new ArrayList<String>();
-        deletePackage.addAll(paths);
+        List<String> deletePackage = new LinkedList<>(paths);
         if (CollectionUtils.isNotEmpty(optionalDependencies)) {
             deletePackage.addAll(optionalDependencies);
         }
@@ -685,6 +667,16 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         });
         Set<String> dependencies = dependencyService.getDeleteDependencies(siteId, deletePackage);
         deletePackage.addAll(dependencies);
+        deletePackage.sort((lhs, rhs) -> {
+            if (StringUtils.startsWith(rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
+                    lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))) {
+                return 1;
+            } else if (StringUtils.startsWith(lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
+                    rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))){
+                return -1;
+            }
+            return lhs.compareTo(rhs);
+        });
         return deletePackage;
     }
 
@@ -755,120 +747,60 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         this.applicationContext = applicationContext;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public ContentServiceInternal getContentServiceInternal() {
-        return contentServiceInternal;
     }
 
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
     }
 
-    public DependencyServiceInternal getDependencyServiceInternal() {
-        return dependencyServiceInternal;
-    }
-
     public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public DeploymentService getDeploymentService() {
-        return deploymentService;
-    }
-
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
-    }
-
-    public NotificationService getNotificationService() {
-        return notificationService;
     }
 
     public void setNotificationService(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
-
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
-    }
-
-    public PublishServiceInternal getPublishServiceInternal() {
-        return publishServiceInternal;
     }
 
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
     }
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {

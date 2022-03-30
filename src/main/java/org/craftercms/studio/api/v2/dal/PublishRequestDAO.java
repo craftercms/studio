@@ -21,6 +21,7 @@ import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIVITY_ACTION;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.APPROVER;
@@ -32,8 +33,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENTS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FROM_DATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NOW;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
@@ -173,11 +172,11 @@ public interface PublishRequestDAO {
      * @param toDate get history to date
      * @return total number of results
      */
-    int getPublishingPackagesScheduledTotal(@Param(SITE_ID) String siteId,
-                                            @Param(PUBLISHING_TARGET) String publishingTarget,
-                                            @Param(SCHEDULED_STATE) String scheduledState,
-                                            @Param(FROM_DATE) ZonedDateTime fromDate,
-                                            @Param(TO_DATE) ZonedDateTime toDate);
+    Optional<Integer> getPublishingPackagesScheduledTotal(@Param(SITE_ID) String siteId,
+                                                          @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                          @Param(SCHEDULED_STATE) String scheduledState,
+                                                          @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                          @Param(TO_DATE) ZonedDateTime toDate);
     /**
      * Get scheduled publishing packages
      * @param siteId site identifier
@@ -207,12 +206,12 @@ public interface PublishRequestDAO {
      * @param toDate get history to date
      * @return total number of results
      */
-    Integer getPublishingPackagesHistoryTotal(@Param(SITE_ID) String siteId,
-                                          @Param(PUBLISHING_TARGET) String publishingTarget,
-                                          @Param(APPROVER) String approver,
-                                          @Param(COMPLETED_STATE) String completedState,
-                                          @Param(FROM_DATE) ZonedDateTime fromDate,
-                                          @Param(TO_DATE) ZonedDateTime toDate);
+    Optional<Integer> getPublishingPackagesHistoryTotal(@Param(SITE_ID) String siteId,
+                                                        @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                        @Param(APPROVER) String approver,
+                                                        @Param(COMPLETED_STATE) String completedState,
+                                                        @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                        @Param(TO_DATE) ZonedDateTime toDate);
     /**
      * Get deployment history
      * @param siteId site identifier

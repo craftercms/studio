@@ -251,9 +251,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                             new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
                 } else {
                     if (!StringUtils.equals(item.getLockOwner(), username)) {
-                        var e = new ContentLockedByAnotherUserException();
-                        e.setLockOwner(username);
-                        throw e;
+                        throw new ContentLockedByAnotherUserException(item.getLockOwner());
                     }
                 }
             } else {

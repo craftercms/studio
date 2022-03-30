@@ -244,7 +244,7 @@
     </update>
 
     <!-- TODO: add site_id to workflow to avoid join with item -->
-    <select id="getContentPendingApprovalTotal" resultType="int">
+    <select id="getContentPendingApprovalTotal" resultType="Integer">
         SELECT COUNT(w.publishing_package_id)
         FROM workflow w INNER JOIN item i ON w.item_id = i.id
             INNER JOIN site s on i.site_id = s.id
