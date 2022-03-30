@@ -44,6 +44,7 @@
         <result property="size" column="size" />
         <result property="parentId" column="parent_id" />
         <result property="commitId" column="commit_id" />
+        <result property="previousPath" column="previous_path" />
         <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
         <result property="childrenCount" column="children_count" />
@@ -74,6 +75,7 @@
         <result property="size" column="size" />
         <result property="parentId" column="parent_id" />
         <result property="commitId" column="commit_id" />
+        <result property="previousPath" column="previous_path" />
         <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
         <result property="stagingScheduledDate" column="staging_scheduleddate" />
