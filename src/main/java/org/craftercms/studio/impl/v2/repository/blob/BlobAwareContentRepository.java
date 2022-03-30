@@ -327,8 +327,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         RepositoryItem[] children = localRepositoryV1.getContentChildren(site, path);
         return Stream.of(children)
                      .peek(item -> item.name = getOriginalPath(item.name))
-                     .collect(toList())
-                     .toArray(new RepositoryItem[children.length]);
+                     .toArray(RepositoryItem[]::new);
     }
 
     @Override
@@ -336,8 +335,7 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         RepositoryItem[] children = localRepositoryV1.getContentChildrenShallow(site, path);
         return Stream.of(children)
                      .peek(item -> item.name = getOriginalPath(item.name))
-                     .collect(toList())
-                     .toArray(new RepositoryItem[children.length]);
+                     .toArray(RepositoryItem[]::new);
     }
 
     @Override
