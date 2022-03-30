@@ -30,19 +30,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
@@ -224,7 +212,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repo != null ) {
-
                 RevTree tree = helper.getTreeForLastCommit(repo);
                 try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                     // Check if the array of items is not null, and since we have an absolute path to the item,
@@ -249,11 +236,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
 	@Override
-	public boolean shallowContentExists(String site, String path) {
+	public boolean contentExistsShallow(String site, String path) {
 		GitRepositoryHelper helper = null;
 		try {
 			helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-					userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
+                                                   userServiceInternal, encryptor, generalLockService,
+                                                   retryingRepositoryOperationFacade);
 			return Files.exists(helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path)));
 		} catch (CryptoException e) {
 			logger.error("Failed to get GitRepoHelper for site: " + site + " path: " + path, e);
@@ -638,7 +626,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-
                 if (tw != null) {
                     // Loop for all children and gather path of item excluding the item, file/folder name, and
                     // whether or not it's a folder
@@ -714,6 +701,35 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
         items = retItems.toArray(items);
         return items;
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildrenShallow(String site, String path) {
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(
+                    studioConfiguration, securityService, userServiceInternal, encryptor, generalLockService,
+                    retryingRepositoryOperationFacade);
+            Path sitePath = helper.buildRepoPath(SANDBOX, site);
+            Path treeRootPath = sitePath.resolve(helper.getGitPath(path));
+
+            return Files.list(treeRootPath)
+                        .filter(child -> !ArrayUtils.contains(IGNORE_FILES, child.getFileName().toString()))
+                        .map(child -> {
+                            RepositoryItem childItem = new RepositoryItem();
+                            String parent = sitePath.relativize(child.getParent()).toString();
+
+                            childItem.path = StringUtils.prependIfMissing(parent, "/");
+                            childItem.name = child.getFileName().toString();
+                            childItem.isFolder = Files.isDirectory(child);
+
+                            return childItem;
+                        })
+                        .sorted(Comparator.comparing(i -> i.name))
+                        .toArray(RepositoryItem[]::new);
+        } catch (Exception e) {
+            logger.error("Error while getting children for site: " + site + " path: " + path, e);
+            return new RepositoryItem[0];
+        }
     }
 
     @Override
