@@ -40,22 +40,25 @@ public interface ActivityStreamServiceInternal {
      * Get total number activities for users
      * @param siteId site identifier
      * @param usernames list of usernames
+     * @param actions list of actions to filter
      * @param dateForm lower boundary for filtering by date range
      * @param dateTo upper boundary for filtering by date range
      * @return total number of activities for given users
      */
-    int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateForm, ZonedDateTime dateTo);
+    int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions, ZonedDateTime dateForm,
+                                   ZonedDateTime dateTo);
 
     /**
      * Get activities for users
      * @param siteId site identifier
      * @param usernames list of usernames
+     * @param actions list of actions to filter
      * @param dateForm lower boundary for filtering by date range
      * @param dateTo upper boundary for filtering by date range
      * @param offset offset of the first record in the result
      * @param limit limit the number of the results to return
      * @return list of activities for given users
      */
-    List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateForm,
-                                         ZonedDateTime dateTo, int offset, int limit);
+    List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+                                         ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit);
 }
