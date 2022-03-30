@@ -50,7 +50,7 @@ public interface ContentService {
 	 *
 	 * @return true if site has content object at path
 	 */
-	boolean shallowContentExists(String site, String path);
+	boolean contentExistsShallow(String site, String path);
 
 	/**
      * get document from wcm content

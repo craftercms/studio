@@ -56,8 +56,6 @@ public interface ItemStateMapper {
 
     void deleteObjectStateForSiteAndFolder(Map params);
 
-    int isFolderLive(Map<String, Object> params);
-
     void setStateForSiteContent(Map params);
 
     List<ItemState> getChangeSetForSubtree(Map params);

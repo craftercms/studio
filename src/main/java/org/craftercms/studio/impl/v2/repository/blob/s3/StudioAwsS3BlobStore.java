@@ -24,6 +24,7 @@ import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
@@ -88,7 +89,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
 	@Override
-	public boolean shallowContentExists(String site, String path) {
+	public boolean contentExistsShallow(String site, String path) {
 		return false;
 	}
 
@@ -286,6 +287,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             }
         }
         return OK;
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildrenShallow(String site, String path) {
+        return new RepositoryItem[0];
     }
 
     @Override
