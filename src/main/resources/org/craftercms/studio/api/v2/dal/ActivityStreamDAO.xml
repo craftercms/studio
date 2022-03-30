@@ -45,6 +45,13 @@
                     #{username}
                 </foreach>
             </if>
+            <if test="actions != null">
+                AND a.action in
+                <foreach item="action" index="index" collection="actions"
+                         open="(" separator="," close=")">
+                    #{action}
+                </foreach>
+            </if>
             <if test="dateTo != null" >
                 AND DATE(a.action_timestamp) &lt;= DATE(#{dateTo})
             </if>
