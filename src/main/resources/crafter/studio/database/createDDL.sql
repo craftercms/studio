@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.40', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.41', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -281,6 +281,8 @@ CREATE TABLE IF NOT EXISTS `activity_stream` (
     `action`                    VARCHAR(32)     NOT NULL,
     `action_timestamp`          TIMESTAMP       NOT NULL,
     `item_id`                   BIGINT(20)      NULL,
+    `item_path`                 VARCHAR(2048)   NULL,
+    `item_label`                VARCHAR(256)    NULL,
     `package_id`                VARCHAR(50)     NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY `activity_user_idx` (`user_id`) REFERENCES `user`(`id`),

@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.audit.internal;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.ActivityStreamDAO;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.model.rest.dashboard.Activity;
@@ -37,9 +38,9 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamServiceI
     private ActivityStreamDAO activityStreamDAO;
 
     @Override
-    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
+    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
                                String packageId) {
-        retryingDatabaseOperationFacade.insertActivity(siteId, userId, action, actionTimestamp, itemId,
+        retryingDatabaseOperationFacade.insertActivity(siteId, userId, action, actionTimestamp, item,
                 packageId);
     }
 

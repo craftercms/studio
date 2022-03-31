@@ -31,8 +31,10 @@
     </resultMap>
 
     <insert id="insertActivity">
-        INSERT INTO activity_stream (site_id, user_id, action, action_timestamp, item_id, package_id)
-        VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP), #{itemId}, #{packageId});
+        INSERT INTO activity_stream (site_id, user_id, action, action_timestamp, item_id,
+                                     <if test="item != null">item_path, item_label,</if> package_id)
+        VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP),
+                #{item.id}, <if test="item != null">#{item.path}, #{item.label},</if> #{packageId});
     </insert>
 
     <sql id="activitiesForUsersFilters">
@@ -53,10 +55,10 @@
                 </foreach>
             </if>
             <if test="dateTo != null" >
-                AND DATE(a.action_timestamp) &lt;= DATE(#{dateTo})
+                AND a.action_timestamp &lt;= #{dateTo}
             </if>
             <if test="dateFrom != null">
-                AND DATE(a.action_timestamp) &gt;= DATE(#{dateFrom})
+                AND a.action_timestamp &gt;= #{dateFrom}
             </if>
         </where>
     </sql>
@@ -70,7 +72,8 @@
     <!-- TODO: Fix the join once we have a real publish package table -->
     <select id="getActivitiesForUsers" resultMap="ActivityMap" >
         SELECT
-           a.id AS asid, a.action, a.action_timestamp, a.item_id, a.package_id,
+           a.id AS asid, a.action, a.action_timestamp, a.item_id, a.package_id, a.item_path as item_recordedPath,
+           a.item_label as item_recordedLabel,
            u.username, u.first_name, u.last_name, u.avatar,
            i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl,
            i.system_type as item_systemType
@@ -78,6 +81,7 @@
             LEFT OUTER JOIN user u ON a.user_id = u.id
             LEFT OUTER JOIN item i ON a.item_id = i.id
         <include refid="activitiesForUsersFilters"/>
+        ORDER BY a.id DESC
         LIMIT #{offset}, #{limit}
     </select>
 </mapper>

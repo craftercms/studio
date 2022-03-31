@@ -294,6 +294,7 @@ public final class  QueryParameterNames {
     /** Activity Stream */
     public static final String ACTION = "action";
     public static final String ACTION_TIMESTAMP = "actionTimestamp";
+    public static final String ITEM = "item";
 
     private QueryParameterNames() {
     }

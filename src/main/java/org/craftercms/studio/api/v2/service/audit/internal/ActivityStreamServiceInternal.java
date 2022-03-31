@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.audit.internal;
 
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 
 import java.time.ZonedDateTime;
@@ -25,15 +26,14 @@ public interface ActivityStreamServiceInternal {
 
     /**
      * Insert record into activity stream
-     *
      * @param siteId site identifier
      * @param userId user identifier
      * @param action action that was performed
      * @param actionTimestamp timestamp when action was performed
-     * @param itemId item identifier that was actioned upon
+     * @param item item that was actioned upon
      * @param packageId package identifier that was actioned upon
      */
-    void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
+    void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
                         String packageId);
 
     /**

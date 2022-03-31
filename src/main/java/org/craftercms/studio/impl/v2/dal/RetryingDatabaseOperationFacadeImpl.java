@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 
 @RetryingDatabaseOperation
+@SuppressWarnings("rawtypes")
 public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOperationFacade {
 
     private DependencyMapper dependencyMapper;
@@ -392,7 +393,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     @Override
     public void updateStatesForSite(long siteId, long onStatesBitMap,
-                                             long offStatesBitMap) {
+                                    long offStatesBitMap) {
         itemDao.updateStatesForSite(siteId, onStatesBitMap, offStatesBitMap);
     }
 
@@ -456,7 +457,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     @Override
     public void lockItemsByPath(String siteId, List<String> paths, long lockOwnerId, long lockedBitOn,
-                               String systemTypeFolder) {
+                                String systemTypeFolder) {
         itemDao.lockItemsByPath(siteId, paths, lockOwnerId, lockedBitOn, systemTypeFolder);
     }
 
@@ -628,9 +629,9 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     // Activity Stream
     @Override
-    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
+    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
                                String packageId) {
-        activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, itemId, packageId);
+        activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item, packageId);
     }
 
     public DependencyMapper getDependencyMapper() {
@@ -753,3 +754,4 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         this.activityStreamDAO = activityStreamDAO;
     }
 }
+
