@@ -87,12 +87,13 @@ public class DashboardController {
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
                 @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
+            @RequestParam(required = false) List<String> actions,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
-        var total = dashboardService.getActivitiesForUsersTotal(siteId, usernames, dateFrom, dateTo);
+        var total = dashboardService.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
         var activities =
-                dashboardService.getActivitiesForUsers(siteId, usernames, dateFrom, dateTo, offset, limit);
+                dashboardService.getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
 
         var response = new ResponseBody();
         var result = new PaginatedResultList<Activity>();
@@ -112,12 +113,13 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
+            @RequestParam(required = false) List<String> actions,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {
 
-        var total = dashboardService.getMyActivitiesTotal(siteId, dateFrom, dateTo);
+        var total = dashboardService.getMyActivitiesTotal(siteId, actions, dateFrom, dateTo);
         var activities =
-                dashboardService.getMyActivities(siteId, dateFrom, dateTo, offset, limit);
+                dashboardService.getMyActivities(siteId, actions, dateFrom, dateTo, offset, limit);
 
         var response = new ResponseBody();
         var result = new PaginatedResultList<Activity>();

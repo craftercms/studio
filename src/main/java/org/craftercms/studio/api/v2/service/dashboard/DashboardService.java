@@ -39,47 +39,53 @@ public interface DashboardService {
      *
      * @param siteId site identifier
      * @param usernames list of usernames
+     * @param actions list of actions to filter
      * @param dateFrom lower boundary to filter by date-time range
      * @param dateTo upper boundary to filter by date-time range
      * @return number of results
      */
-    int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+    int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions, ZonedDateTime dateFrom,
+                                   ZonedDateTime dateTo);
 
     /**
      * Get activities for users
      *
      * @param siteId site identifier
      * @param usernames list of usernames
+     * @param actions list of actions to filter
      * @param dateFrom lower boundary to filter by date-time range
      * @param dateTo upper boundary to filter by date-time range
      * @param offset offset of the first result item
      * @param limit number of results to return
-     * @return
+     * @return the list of activities
      */
-    List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateFrom,
-                                          ZonedDateTime dateTo, int offset, int limit);
+    List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+                                         ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
 
     /**
      * Get total number of result for my activities
      *
      * @param siteId site identifier
+     * @param actions list of actions to filter
      * @param dateFrom lower boundary to filter by date-time range
      * @param dateTo upper boundary to filter by date-time range
      * @return number of results
      */
-    int getMyActivitiesTotal(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+    int getMyActivitiesTotal(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo);
 
     /**
      * Get my activities
      *
      * @param siteId site identifier
+     * @param actions list of actions to filter
      * @param dateFrom lower boundary to filter by date-time range
      * @param dateTo upper boundary to filter by date-time range
      * @param offset offset of the first result item
      * @param limit number of results to return
-     * @return
+     * @return the list of activities
      */
-    List<Activity> getMyActivities(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+    List<Activity> getMyActivities(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                   int offset, int limit);
 
     /**
      * Get total number of content packages pending approval

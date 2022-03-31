@@ -213,5 +213,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="studioBlobStoreResolver" ref="blobStoreResolver" />
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
+        <property name="securityServiceV1" ref="cstudioSecurityService"/>
     </bean>
 </beans>

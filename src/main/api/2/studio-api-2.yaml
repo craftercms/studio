@@ -5451,6 +5451,14 @@ paths:
             type: array
             items:
               type: string
+        - name: actions
+          in: query
+          description: filter activities for given actions only
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
         - name: dateFrom
           in: query
           description: lower boundary to filter by date-time range
@@ -5528,6 +5536,14 @@ paths:
           required: true
           schema:
             type: string
+        - name: actions
+          in: query
+          description: filter activities for given actions only
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
         - name: dateFrom
           in: query
           description: lower boundary to filter by date-time range
