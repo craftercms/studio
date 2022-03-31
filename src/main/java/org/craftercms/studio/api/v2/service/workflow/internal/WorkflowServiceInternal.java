@@ -154,9 +154,28 @@ public interface WorkflowServiceInternal {
      * @param schedule schedule for publishing
      * @param authorComment author's comment
      * @param label label for package
+     * @return
      */
-    void createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
-                               ZonedDateTime schedule, long authorId, String authorComment, String label);
+    String createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
+                                 ZonedDateTime schedule, long authorId, String authorComment, String label);
+
+    /**
+     * Create workflow package
+     * @param siteId site identifier
+     * @param paths list of paths contained within package
+     * @param status status of workflow package
+     * @param publishingTarget publishing target
+     * @param schedule schedule for publishing
+     * @param authorId author user id
+     * @param authorComment author's comment
+     * @param label label for package
+     * @param reviewerId reviewer user id
+     * @param reviewerComment reviewer comment
+     * @return
+     */
+    String createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
+                                 ZonedDateTime schedule, Long authorId, String authorComment, String label,
+                                 Long reviewerId, String reviewerComment);
 
     /**
      * Update workflow package

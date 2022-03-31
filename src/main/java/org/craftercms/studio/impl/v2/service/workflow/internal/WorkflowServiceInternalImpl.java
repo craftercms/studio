@@ -138,10 +138,19 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     }
 
     @Override
-    public void createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
-                                      ZonedDateTime schedule, long authorId, String authorComment, String label) {
-        WorkflowPackage workflowPackage = new WorkflowPackage();
-        workflowPackage.setId(UUID.randomUUID().toString());
+    public String createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
+                                        ZonedDateTime schedule, long authorId, String authorComment, String label) {
+        return createWorkflowPackage(siteId, paths, status, publishingTarget, schedule, authorId, authorComment,
+                label, null, null);
+    }
+
+    @Override
+    public String createWorkflowPackage(long siteId, List<String> paths, String status, String publishingTarget,
+                                        ZonedDateTime schedule, Long authorId, String authorComment, String label,
+                                        Long reviewerId, String reviewerComment) {
+        var workflowPackageId = UUID.randomUUID().toString();
+        var workflowPackage = new WorkflowPackage();
+        workflowPackage.setId(workflowPackageId);
         workflowPackage.setSiteId(siteId);
         workflowPackage.setStatus(status);
         workflowPackage.setPublishingTarget(publishingTarget);
@@ -149,8 +158,11 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         workflowPackage.setAuthorId(authorId);
         workflowPackage.setAuthorComment(authorComment);
         workflowPackage.setLabel(label);
+        workflowPackage.setReviewerId(reviewerId);
+        workflowPackage.setReviewerComment(reviewerComment);
         retryingDatabaseOperationFacade.createWorkflowPackage(workflowPackage);
-        retryingDatabaseOperationFacade.addWorkflowPackageItems(workflowPackage.getId(), siteId, paths);
+        retryingDatabaseOperationFacade.addWorkflowPackageItems(workflowPackageId, siteId, paths);
+        return workflowPackageId;
     }
 
     @Override
@@ -276,5 +288,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    public StudioConfiguration getStudioConfiguration() {
+        return studioConfiguration;
+    }
+
+    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
+        this.studioConfiguration = studioConfiguration;
     }
 }

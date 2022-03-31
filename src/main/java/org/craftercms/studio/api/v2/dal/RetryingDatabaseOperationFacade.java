@@ -862,4 +862,20 @@ public interface RetryingDatabaseOperationFacade {
      */
     WorkflowPackage updateWorkflowPackage(WorkflowPackage workflowPackage);
 
+    // Publishing Queue
+
+    /**
+     * Insert package into publishing queue
+     * @param workflowPackageId workflow package id
+     * @param siteId site id
+     * @param status publishing queue status
+     * @param operation publishing operation
+     * @param publishingTarget publishing target
+     * @param schedule schedule for publishing
+     * @param initiatorId user id that initiated publishing
+     * @param publishingComment publishing comment
+     */
+    void createPublishingQueuePackage(String workflowPackageId, long siteId, String status, String operation,
+                                      String publishingTarget, ZonedDateTime schedule, long initiatorId,
+                                      String publishingComment);
 }

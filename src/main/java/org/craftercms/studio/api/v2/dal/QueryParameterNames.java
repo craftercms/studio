@@ -299,6 +299,12 @@ public final class  QueryParameterNames {
     public static final String STATUS = "status";
     public static final String WORKFLOW_PACKAGE_ID = "workflow_package_id";
 
+    /** Publishing Queue */
+    public static final String OPERATION = "operation";
+    public static final String SCHEDULE = "schedule";
+    public static final String INITIATOR_ID = "initiatorId";
+    public static final String PUBLISHING_COMMENT = "publishingComment";
+
     private QueryParameterNames() {
     }
 }

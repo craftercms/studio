@@ -77,6 +77,7 @@ import java.util.UUID;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_INITIAL_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISH;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
@@ -100,6 +101,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHE
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+import static org.craftercms.studio.api.v2.dal.WorkflowPackage.Status.APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
@@ -216,7 +218,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                                String comment, boolean sendEmailNotifications)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException {
+            throws ServiceLayerException, UserNotFoundException, DeploymentException, AuthenticationException {
         // Create submission package
         List<String> pathsToAddToWorkflow = calculateSubmissionPackage(siteId, paths, optionalDependencies);
         try {
@@ -362,7 +364,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public void publish(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
-                        String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
+                        String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException, AuthenticationException {
         if (!publishServiceInternal.isSitePublished(siteId)) {
             publishServiceInternal.initialPublish(siteId);
             itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
@@ -385,6 +387,15 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     scheduledDateIsNow = true;
                     schedule = getCurrentTime();
                 }
+
+                // Workflow package and Publishing Queue
+                var site = siteService.getSite(siteId);
+                var initiator = userService.getCurrentUser();
+                var workflowPackageId = workflowServiceInternal.createWorkflowPackage(site.getId(), paths,
+                        APPROVED.name(), publishingTarget, schedule, null, null, null, initiator.getId(), comment);
+                publishServiceInternal.createPublishingQueuePackage(workflowPackageId, site.getId(), READY_FOR_LIVE,
+                        "publish", publishingTarget, schedule, initiator.getId(), comment);
+
                 deploymentService.deploy(siteId, publishingTarget, paths, schedule, publishedBy, comment, scheduledDateIsNow);
                 // Insert audit log
                 createPublishAuditLogEntry(siteId, pathsToPublish, publishedBy);

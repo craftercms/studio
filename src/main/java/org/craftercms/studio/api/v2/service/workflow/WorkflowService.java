@@ -96,7 +96,7 @@ public interface WorkflowService {
      */
     void requestPublish(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
                         ZonedDateTime schedule, String comment, boolean sendEmailNotifications)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException;
+            throws ServiceLayerException, UserNotFoundException, DeploymentException, AuthenticationException;
 
     /**
      * Direct publish content
@@ -109,7 +109,7 @@ public interface WorkflowService {
      */
     void publish(String siteId, List<String> paths, List<String> optionalDependencies, String publishingTarget,
                  ZonedDateTime schedule, String comment)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException;
+            throws ServiceLayerException, UserNotFoundException, DeploymentException, AuthenticationException;
 
     /**
      * Approve request for publish

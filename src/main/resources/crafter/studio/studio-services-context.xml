@@ -164,6 +164,7 @@
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="publishServiceInternal" ref="publishServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
+        <property name="userService" ref="userService" />
     </bean>
 
      <bean id="cstudioDeploymentService" class="org.craftercms.studio.impl.v1.service.deployment.DeploymentServiceImpl" >
@@ -623,8 +624,8 @@
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="contentRepository" ref="contentRepository" />
-        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="publishingQueueDao" ref="publishingQueueDao" />
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"
@@ -687,6 +688,7 @@
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"

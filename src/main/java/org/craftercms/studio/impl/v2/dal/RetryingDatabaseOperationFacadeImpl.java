@@ -35,6 +35,7 @@ import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
+import org.craftercms.studio.api.v2.dal.PublishingQueueDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
@@ -68,6 +69,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     private WorkflowDAO workflowDao;
     private ActivityStreamDAO activityStreamDAO;
     private WorkflowPackageDAO workflowPackageDao;
+    private PublishingQueueDAO publishingQueueDao;
 
     // Dependency API v1
     @Override
@@ -654,6 +656,12 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         return workflowPackageDao.updateWorkflowPackage(workflowPackage);
     }
 
+    // Publishing queue
+    @Override
+    public void createPublishingQueuePackage(String workflowPackageId, long siteId, String status, String operation, String publishingTarget, ZonedDateTime schedule, long initiatorId, String publishingComment) {
+
+    }
+
     public DependencyMapper getDependencyMapper() {
         return dependencyMapper;
     }
@@ -780,5 +788,13 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
 
     public void setWorkflowPackageDao(WorkflowPackageDAO workflowPackageDao) {
         this.workflowPackageDao = workflowPackageDao;
+    }
+
+    public PublishingQueueDAO getPublishingQueueDao() {
+        return publishingQueueDao;
+    }
+
+    public void setPublishingQueueDao(PublishingQueueDAO publishingQueueDao) {
+        this.publishingQueueDao = publishingQueueDao;
     }
 }

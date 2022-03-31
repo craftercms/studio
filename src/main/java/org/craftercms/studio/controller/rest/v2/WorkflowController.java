@@ -196,7 +196,7 @@ public class WorkflowController {
 
     @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
-            throws ServiceLayerException, UserNotFoundException, DeploymentException {
+            throws ServiceLayerException, UserNotFoundException, DeploymentException, AuthenticationException {
         workflowService.requestPublish(requestPublishRequestBody.getSiteId(), requestPublishRequestBody.getItems(),
                 requestPublishRequestBody.getOptionalDependencies(), requestPublishRequestBody.getPublishingTarget(),
                 requestPublishRequestBody.getSchedule(), requestPublishRequestBody.getComment(),
@@ -211,7 +211,7 @@ public class WorkflowController {
 
     @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody publish(@RequestBody PublishRequestBody publishRequestBody)
-            throws UserNotFoundException, ServiceLayerException, DeploymentException {
+            throws UserNotFoundException, ServiceLayerException, DeploymentException, AuthenticationException {
         workflowService.publish(publishRequestBody.getSiteId(), publishRequestBody.getItems(),
                 publishRequestBody.getOptionalDependencies(), publishRequestBody.getPublishingTarget(),
                 publishRequestBody.getSchedule(), publishRequestBody.getComment());

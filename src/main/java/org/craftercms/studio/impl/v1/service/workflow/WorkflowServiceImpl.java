@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +43,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -84,6 +86,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -127,6 +130,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
 import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
+import static org.craftercms.studio.api.v2.dal.WorkflowPackage.Status.PENDING_APPROVAL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
@@ -188,6 +192,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     protected PublishServiceInternal publishServiceInternal;
     protected ApplicationContext applicationContext;
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
+    protected UserService userService;
 
     @Override
     @ValidateParams
@@ -286,18 +291,25 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     protected List<DmError> submitToGoLive(List<DmDependencyTO> submittedItems, ZonedDateTime scheduledDate,
                                            boolean sendEmail, boolean submitForDeletion, RequestContext requestContext,
-                                           String submissionComment, String environment) throws ServiceLayerException {
+                                           String submissionComment, String environment)
+            throws ServiceLayerException, AuthenticationException {
         List<DmError> errors = new ArrayList<DmError>();
         String site = requestContext.getSite();
+        var siteFeed = siteService.getSite(site);
         String submittedBy = requestContext.getUser();
+        var author = userService.getCurrentUser();
+        var paths = new LinkedList<String>();
         for (DmDependencyTO submittedItem : submittedItems) {
             try {
                 doSubmit(site, submittedItem.getUri(), scheduledDate, sendEmail, submittedBy,
                         submissionComment, environment);
+                paths.add(submittedItem.getUri());
             } catch (ContentNotFoundException | UserNotFoundException e) {
                 errors.add(new DmError(site, submittedItem.getUri(), e));
             }
         }
+        workflowServiceInternal.createWorkflowPackage(siteFeed.getId(), paths, PENDING_APPROVAL.name(), environment,
+                scheduledDate, author.getId(), submissionComment, null);
         notificationService.notifyApprovesContentSubmission(site,null, getDeploymentPaths(submittedItems),
                 submittedBy, scheduledDate, submitForDeletion, submissionComment);
         return errors;
@@ -2381,6 +2393,14 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
+    }
+
+    public UserService getUserService() {
+        return userService;
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

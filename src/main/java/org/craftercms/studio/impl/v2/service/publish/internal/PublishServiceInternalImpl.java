@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.dal.PublishingQueueDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
@@ -48,8 +49,8 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
 
     private PublishRequestDAO publishRequestDao;
     private ContentRepository contentRepository;
-    private DmFilterWrapper dmFilterWrapper;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private PublishingQueueDAO publishingQueueDao;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -209,6 +210,13 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                                                                     publishAction);
     }
 
+    @Override
+    public void createPublishingQueuePackage(String workflowPackageId, long siteId, String status, String operation,
+                                             String publishingTarget, ZonedDateTime schedule, long initiatorId, String publishingComment) {
+        retryingDatabaseOperationFacade.createPublishingQueuePackage(workflowPackageId, siteId, status, operation,
+                publishingTarget, schedule, initiatorId, publishingComment);
+    }
+
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
     }
@@ -217,11 +225,15 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         this.contentRepository = contentRepository;
     }
 
-    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
-        this.dmFilterWrapper = dmFilterWrapper;
-    }
-
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    }
+
+    public PublishingQueueDAO getPublishingQueueDao() {
+        return publishingQueueDao;
+    }
+
+    public void setPublishingQueueDao(PublishingQueueDAO publishingQueueDao) {
+        this.publishingQueueDao = publishingQueueDao;
     }
 }

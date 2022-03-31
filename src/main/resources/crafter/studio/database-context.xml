@@ -120,6 +120,7 @@
         <property name="workflowDao" ref="workflowDao" />
         <property name="activityStreamDAO" ref="activityStreamDao" />
         <property name="workflowPackageDao" ref="workflowPackageDao" />
+        <property name="publishingQueueDao" ref="publishingQueueDao" />
     </bean>
 
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
@@ -209,6 +210,11 @@
 
     <bean id="workflowPackageDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.WorkflowPackageDAO" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+    <bean id="publishingQueueDao" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.craftercms.studio.api.v2.dal.PublishingQueueDAO" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />
     </bean>
 
