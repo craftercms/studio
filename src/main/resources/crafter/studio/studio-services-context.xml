@@ -689,6 +689,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="studioConfiguration" ref="studioConfiguration" />
+        <property name="publishServiceInternal" ref="publishServiceInternal" />
     </bean>
 
     <bean id="studio.activityStreamServiceInternal"

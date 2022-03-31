@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.WorkflowPackage;
 import org.craftercms.studio.api.v2.dal.WorkflowPackageDAO;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -44,6 +45,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK
 import static org.craftercms.studio.api.v2.dal.ItemState.DESTINATION;
 import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
 import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
+import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.dal.WorkflowPackage.Status.APPROVED;
@@ -60,6 +62,7 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     private ItemServiceInternal itemServiceInternal;
     private ServicesConfig servicesConfig;
     private StudioConfiguration studioConfiguration;
+    private PublishServiceInternal publishServiceInternal;
 
     @Override
     public WorkflowItem getWorkflowEntry(String siteId, String path) {
@@ -196,6 +199,9 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         workflowPackage.setStatus(APPROVED.name());
         updateWorkflowPackage(workflowPackage);
 
+        publishServiceInternal.createPublishingQueuePackage(packageId, workflowPackage.getSiteId(), READY_FOR_LIVE,
+                "publish", workflowPackage.getPublishingTarget(), schedule, reviewerId, reviewerComment);
+
         long onMask = 0l;
         long offMask = IN_WORKFLOW.value;
 
@@ -296,5 +302,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
+    }
+
+    public PublishServiceInternal getPublishServiceInternal() {
+        return publishServiceInternal;
+    }
+
+    public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
+        this.publishServiceInternal = publishServiceInternal;
     }
 }

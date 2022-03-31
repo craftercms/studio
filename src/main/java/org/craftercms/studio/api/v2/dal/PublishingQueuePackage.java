@@ -21,7 +21,7 @@ import org.craftercms.studio.model.rest.content.SandboxItem;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-public class WorkflowQueuePackage {
+public class PublishingQueuePackage {
 
     private long id;
     private String workflowPackageId;
