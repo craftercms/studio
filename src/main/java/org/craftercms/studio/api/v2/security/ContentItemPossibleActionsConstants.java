@@ -241,22 +241,6 @@ public final class ContentItemPossibleActionsConstants {
         }
         if ((itemState & USER_LOCKED.value) > 0) {
             result = result | ITEM_STATE_USER_LOCKED;
-            if (!lockOwner) {
-                result = result & ~PUBLISH_REQUEST;
-                result = result & ~CONTENT_EDIT;
-                result = result & ~CONTENT_RENAME;
-                result = result & ~CONTENT_CUT;
-                result = result & ~CONTENT_UPLOAD;
-                result = result & ~CONTENT_CHANGE_TYPE;
-                result = result & ~CONTENT_DELETE;
-                result = result & ~CONTENT_DELETE_CONTROLLER;
-                result = result & ~CONTENT_DELETE_TEMPLATE;
-                result = result & ~PUBLISH;
-                result = result & ~PUBLISH_APPROVE;
-                result = result & ~PUBLISH_SCHEDULE;
-                result = result & ~PUBLISH_REJECT;
-                result = result & ~ITEM_UNLOCK;
-            }
         }
         if ((itemState & SYSTEM_PROCESSING.value) > 0) {
             result = result | ITEM_STATE_SYSTEM_PROCESSING;
@@ -284,6 +268,25 @@ public final class ContentItemPossibleActionsConstants {
         }
         if ((itemState & TRANSLATION_IN_PROGRESS.value) > 0) {
             result = result | ITEM_STATE_TRANSLATION_IN_PROGRESS;
+        }
+
+        if ((itemState & USER_LOCKED.value) > 0) {
+            if (!lockOwner) {
+                result = result & ~PUBLISH_REQUEST;
+                result = result & ~CONTENT_EDIT;
+                result = result & ~CONTENT_RENAME;
+                result = result & ~CONTENT_CUT;
+                result = result & ~CONTENT_UPLOAD;
+                result = result & ~CONTENT_CHANGE_TYPE;
+                result = result & ~CONTENT_DELETE;
+                result = result & ~CONTENT_DELETE_CONTROLLER;
+                result = result & ~CONTENT_DELETE_TEMPLATE;
+                result = result & ~PUBLISH;
+                result = result & ~PUBLISH_APPROVE;
+                result = result & ~PUBLISH_SCHEDULE;
+                result = result & ~PUBLISH_REJECT;
+                result = result & ~ITEM_UNLOCK;
+            }
         }
         return result;
     }
