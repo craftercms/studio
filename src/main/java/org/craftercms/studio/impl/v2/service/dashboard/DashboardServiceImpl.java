@@ -81,32 +81,34 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateFrom,
-                                          ZonedDateTime dateTo) {
-        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, dateFrom, dateTo);
+    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
+                                          ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateFrom,
-                                                ZonedDateTime dateTo, int offset, int limit) {
-        return activityStreamServiceInternal.getActivitiesForUsers(siteId, usernames, dateFrom, dateTo, offset, limit);
+    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) {
+        return activityStreamServiceInternal
+                .getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getMyActivitiesTotal(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+    public int getMyActivitiesTotal(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         var username = securityService.getCurrentUser();
-        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, List.of(username), dateFrom, dateTo);
+        return activityStreamServiceInternal
+                .getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<Activity> getMyActivities(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                          int limit) {
+    public List<Activity> getMyActivities(String siteId, List<String> actions, ZonedDateTime dateFrom,
+                                          ZonedDateTime dateTo, int offset, int limit) {
         var username = securityService.getCurrentUser();
-        return activityStreamServiceInternal.getActivitiesForUsers(siteId, List.of(username), dateFrom, dateTo,
-                offset, limit);
+        return activityStreamServiceInternal
+                .getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -278,64 +280,32 @@ public class DashboardServiceImpl implements DashboardService {
         return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY);
     }
 
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
-    }
-
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
-    }
-
-    public PublishServiceInternal getPublishServiceInternal() {
-        return publishServiceInternal;
     }
 
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
     }
 
-    public ContentServiceInternal getContentServiceInternal() {
-        return contentServiceInternal;
-    }
-
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public SearchService getSearchService() {
-        return searchService;
-    }
-
     public void setSearchService(SearchService searchService) {
         this.searchService = searchService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

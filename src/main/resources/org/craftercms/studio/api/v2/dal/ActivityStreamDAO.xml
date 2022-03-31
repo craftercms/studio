@@ -39,17 +39,24 @@
         <where>
             a.site_id = #{siteId}
             <if test="usernames != null">
-                u.username in
+                AND u.username in
                 <foreach item="username" index="index" collection="usernames"
                          open="(" separator="," close=")">
                     #{username}
                 </foreach>
             </if>
+            <if test="actions != null">
+                AND a.action in
+                <foreach item="action" index="index" collection="actions"
+                         open="(" separator="," close=")">
+                    #{action}
+                </foreach>
+            </if>
             <if test="dateTo != null" >
-                DATE(a.action_timestamp) &lt;= DATE(#{dateTo})
+                AND DATE(a.action_timestamp) &lt;= DATE(#{dateTo})
             </if>
             <if test="dateFrom != null">
-                DATE(a.action_timestamp) &gt;= DATE(#{dateFrom})
+                AND DATE(a.action_timestamp) &gt;= DATE(#{dateFrom})
             </if>
         </where>
     </sql>
@@ -65,7 +72,8 @@
         SELECT
            a.id AS asid, a.action, a.action_timestamp, a.item_id, a.package_id,
            u.username, u.first_name, u.last_name, u.avatar,
-           i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl
+           i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl,
+           i.system_type as item_systemType
         FROM activity_stream a
             LEFT OUTER JOIN user u ON a.user_id = u.id
             LEFT OUTER JOIN item i ON a.item_id = i.id

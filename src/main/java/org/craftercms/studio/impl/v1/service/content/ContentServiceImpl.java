@@ -2567,6 +2567,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
+                itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                 contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
