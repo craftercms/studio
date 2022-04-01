@@ -16,76 +16,13 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 
 public class Activity {
-
-    //TODO: Populate with metadata once Publishing Packages are fully implemented
-    public static class Package {
-
-        protected String id;
-
-        public String getId() {
-            return id;
-        }
-
-        public void setId(String id) {
-            this.id = id;
-        }
-
-    }
-
-    public static class Item {
-
-        protected long id;
-        protected String path;
-        protected String label;
-        protected String previewUrl;
-        protected String systemType;
-
-        public long getId() {
-            return id;
-        }
-
-        public void setId(long id) {
-            this.id = id;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        public void setPath(String path) {
-            this.path = path;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public void setLabel(String label) {
-            this.label = label;
-        }
-
-        public String getPreviewUrl() {
-            return previewUrl;
-        }
-
-        public void setPreviewUrl(String previewUrl) {
-            this.previewUrl = previewUrl;
-        }
-
-        public String getSystemType() {
-            return systemType;
-        }
-
-        public void setSystemType(String systemType) {
-            this.systemType = systemType;
-        }
-    }
 
     private long id;
     private Person person;
@@ -145,6 +82,92 @@ public class Activity {
 
     public void setPublishPackage(Package publishPackage) {
         this.publishPackage = publishPackage;
+    }
+
+    //TODO: Populate with metadata once Publishing Packages are fully implemented
+    public static class Package {
+
+        protected String id;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+    }
+
+    public static class Item {
+
+        protected long id;
+        protected String path;
+        protected String label;
+        protected String previewUrl;
+        protected String systemType;
+
+        // Backup fields used only when an item has been deleted
+        @JsonIgnore
+        protected String recordedPath;
+        @JsonIgnore
+        protected String recordedLabel;
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public String getPath() {
+            return path != null? path : recordedPath;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public String getLabel() {
+            return label != null? label : recordedLabel;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        public String getPreviewUrl() {
+            return previewUrl;
+        }
+
+        public void setPreviewUrl(String previewUrl) {
+            this.previewUrl = previewUrl;
+        }
+
+        public String getSystemType() {
+            return systemType;
+        }
+
+        public void setSystemType(String systemType) {
+            this.systemType = systemType;
+        }
+
+        public String getRecordedPath() {
+            return recordedPath;
+        }
+
+        public void setRecordedPath(String recordedPath) {
+            this.recordedPath = recordedPath;
+        }
+
+        public String getRecordedLabel() {
+            return recordedLabel;
+        }
+
+        public void setRecordedLabel(String recordedLabel) {
+            this.recordedLabel = recordedLabel;
+        }
     }
 
 }

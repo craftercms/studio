@@ -319,6 +319,11 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.3.xslt
             commitDetails: Add new content_copy permission
+      - currentVersion: 4.0.0.40
+        nextVersion: 4.0.0.41
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.40-to-4.0.0.41.sql
 
   # Pipeline to upgrade site repositories
   site:

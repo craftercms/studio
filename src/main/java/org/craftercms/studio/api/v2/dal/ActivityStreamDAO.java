@@ -27,7 +27,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIONS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTION_TIMESTAMP;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_ID;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
@@ -44,11 +44,11 @@ public interface ActivityStreamDAO {
      * @param userId user identifier
      * @param action action that was performed
      * @param actionTimestamp timestamp when action was performed
-     * @param itemId item identifier that was actioned upon
+     * @param item item that was actioned upon
      * @param packageId package identifier that was actioned upon
      */
     void insertActivity(@Param(SITE_ID) long siteId, @Param(USER_ID) long userId, @Param(ACTION) String action,
-                        @Param(ACTION_TIMESTAMP) ZonedDateTime actionTimestamp, @Param(ITEM_ID) Long itemId,
+                        @Param(ACTION_TIMESTAMP) ZonedDateTime actionTimestamp, @Param(ITEM) Item item,
                         @Param(PACKAGE_ID) String packageId);
 
     /**

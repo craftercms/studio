@@ -65,7 +65,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -256,7 +255,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                        boolean sendEmailNotifications)
             throws UserNotFoundException, ServiceLayerException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
-        String packageId = UUID.randomUUID().toString();
         List<Workflow> workflowEntries = new LinkedList<>();
         paths.forEach(path -> {
             Item it = itemServiceInternal.getItem(siteId, path);
@@ -272,7 +270,6 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             }
             workflow.setState(STATE_OPENED);
             workflow.setTargetEnvironment(publishingTarget);
-            workflow.setPublishingPackageId(packageId);
             workflowEntries.add(workflow);
         });
         workflowServiceInternal.insertWorkflowEntries(workflowEntries);
@@ -341,7 +338,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditServiceInternal.insertAuditLog(auditLog);
 
         // TODO: Can we do a bulk getWorkflowEntries?
-        generateActivityStream(submittedPaths, siteFeed, user.getId(), OPERATION_REQUEST_PUBLISH);
+        recordActivityForPaths(submittedPaths, siteFeed, user.getId(), OPERATION_REQUEST_PUBLISH);
     }
 
     @Override
@@ -403,13 +400,18 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         return publishPackage;
     }
 
-    private void generateActivityStream(List<String> paths, SiteFeed site, long userId, String operation) {
-        paths.stream()
-            .map(path -> workflowServiceInternal.getWorkflowEntry(site.getSiteId(), path))
-            .filter(Objects::nonNull) // there is no workflow entry for direct publishes
-            .forEach(entry ->
+    private void recordActivityForPaths(List<String> paths, SiteFeed site, long userId, String operation) {
+        List<WorkflowItem> items = paths.stream()
+                .map(path -> workflowServiceInternal.getWorkflowEntry(site.getSiteId(), path))
+                .filter(Objects::nonNull) // there is no workflow entry for direct publishes
+                .collect(toList());
+        recordActivityForItems(items, site, userId, operation);
+    }
+
+    private void recordActivityForItems(List<WorkflowItem> items, SiteFeed site, long userId, String operation) {
+        items.forEach(entry ->
                 activityStreamServiceInternal.insertActivity(site.getId(), userId, operation, getCurrentTime(),
-                        entry.getItem().getId(), entry.getPublishingPackageId()));
+                        entry.getItem(), entry.getPublishingPackageId()));
     }
 
     private void createPublishAuditLogEntry(String siteId, List<String> pathsToPublish, String publishedBy)
@@ -434,7 +436,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        generateActivityStream(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
+        recordActivityForPaths(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
     }
 
     @Override
@@ -507,7 +509,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        generateActivityStream(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
+        recordActivityForPaths(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
     }
 
     private void createInitialPublishAuditLog(String siteId) throws ServiceLayerException, UserNotFoundException {
@@ -543,27 +545,31 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
             // get submitters list
             Set<String> submitterList = new HashSet<>();
-            for (String path : pathsToCancelWorkflow) {
-                WorkflowItem workflowItem = workflowServiceInternal.getWorkflowEntry(siteId, path);
-                if (Objects.nonNull(workflowItem)) {
-                    shouldNotify = shouldNotify || workflowItem.getNotifySubmitter() == 1;
-                    try {
-                        User submitter = userServiceInternal
-                                .getUserByIdOrUsername(workflowItem.getSubmitterId(), StringUtils.EMPTY);
-                        if (Objects.nonNull(submitter)) {
-                            submitterList.add(submitter.getUsername());
-                        }
-                    } catch (UserNotFoundException | ServiceLayerException e) {
-                        logger.debug("Didn't find submitter user for path {0}. Notification will not be sent.", e,
-                                path);
+
+            // Fetch the workflow entries before deleting them
+            List<WorkflowItem> workflowItems = pathsToCancelWorkflow.stream()
+                    .map(path -> workflowServiceInternal.getWorkflowEntry(siteId, path))
+                    .filter(Objects::nonNull)
+                    .collect(toList());
+
+            for (WorkflowItem workflowItem : workflowItems) {
+                shouldNotify = shouldNotify || workflowItem.getNotifySubmitter() == 1;
+                try {
+                    User submitter = userServiceInternal
+                            .getUserByIdOrUsername(workflowItem.getSubmitterId(), StringUtils.EMPTY);
+                    if (Objects.nonNull(submitter)) {
+                        submitterList.add(submitter.getUsername());
                     }
+                } catch (UserNotFoundException | ServiceLayerException e) {
+                    logger.debug("Didn't find submitter user for path {0}. Notification will not be sent.", e,
+                            workflowItem.getItem().getPath());
                 }
             }
 
             // cancel workflow
             cancelExistingWorkflowEntries(siteId, pathsToCancelWorkflow);
             // create audit log entries
-            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, rejectedBy, comment);
+            createRejectAuditLogEntry(siteId, pathsToCancelWorkflow, workflowItems, rejectedBy, comment);
             // notify rejection
             if (shouldNotify) {
                 notifyRejection(siteId, pathsToCancelWorkflow, rejectedBy, comment, List.copyOf(submitterList));
@@ -576,8 +582,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         }
     }
 
-    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, String rejectedBy,
-                                           String comment)
+    private void createRejectAuditLogEntry(String siteId, List<String> submittedPaths, List<WorkflowItem> rejectedItems,
+                                           String rejectedBy, String comment)
             throws ServiceLayerException, UserNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         User user = userServiceInternal.getUserByIdOrUsername(-1, rejectedBy);
@@ -606,7 +612,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        generateActivityStream(submittedPaths, siteFeed, user.getId(), OPERATION_REQUEST_PUBLISH);
+        recordActivityForItems(rejectedItems, siteFeed, user.getId(), OPERATION_REJECT);
     }
 
     private void notifyRejection(String siteId, List<String> pathsToCancelWorkflow, String rejectedBy, String reason,

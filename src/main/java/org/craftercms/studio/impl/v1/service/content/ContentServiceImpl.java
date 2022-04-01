@@ -635,8 +635,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     commitId, parentItem.getId());
 
             String username = securityService.getCurrentUser();
-            // TODO: This is not necessary, the current user is already on memory
-            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
@@ -646,10 +644,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
-
-            Item item = itemServiceInternal.getItem(site, folderPath);
-            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_CREATE,
-                    DateUtils.getCurrentTime(), item.getId(), null);
 
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
@@ -745,7 +739,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditServiceInternal.insertAuditLog(auditLog);
 
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_DELETE,
-                    DateUtils.getCurrentTime(), it.getId(), null);
+                    DateUtils.getCurrentTime(), it, null);
 
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
@@ -1071,7 +1065,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // This is not required, the current user is already loaded in memory
         User u = userService.getUserByIdOrUsername(-1, user);
         activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
-                DateUtils.getCurrentTime(), item.getId(), null);
+                DateUtils.getCurrentTime(), item, null);
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }
@@ -2020,7 +2014,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             Item item = itemServiceInternal.getItem(site, path);
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
-                    DateUtils.getCurrentTime(), item.getId(), null);
+                    DateUtils.getCurrentTime(), item, null);
 
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
@@ -2627,94 +2621,54 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.applicationContext = applicationContext;
     }
 
-    public ContentRepository getContentRepository() {
-        return _contentRepository;
-    }
     public void setContentRepository(ContentRepository contentRepository) {
         this._contentRepository = contentRepository;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
 
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
-    public ProcessContentExecutor getContentProcessor() {
-        return contentProcessor;
-    }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) {
         this.contentProcessor = contentProcessor;
     }
 
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public DmPageNavigationOrderService getDmPageNavigationOrderService() {
-        return dmPageNavigationOrderService;
-    }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
     }
 
-    public DmContentLifeCycleService getDmContentLifeCycleService() {
-        return dmContentLifeCycleService;
-    }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) {
         this.dmContentLifeCycleService = dmContentLifeCycleService;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public ContentItemIdGenerator getContentItemIdGenerator() {
-        return contentItemIdGenerator;
-    }
     public void setContentItemIdGenerator(ContentItemIdGenerator contentItemIdGenerator) {
         this.contentItemIdGenerator = contentItemIdGenerator;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public DependencyDiffService getDependencyDiffService() {
-        return dependencyDiffService;
-    }
     public void setDependencyDiffService(DependencyDiffService dependencyDiffService) {
         this.dependencyDiffService = dependencyDiffService;
     }
 
-    public ContentTypeService getContentTypeService() {
-        return contentTypeService;
-    }
     public void setContentTypeService(ContentTypeService contentTypeService) {
         this.contentTypeService = contentTypeService;
     }
@@ -2723,56 +2677,28 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.entitlementValidator = entitlementValidator;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public UserService getUserService() {
-        return userService;
     }
 
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
 
-    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
-        return this.contentRepository;
-    }
-
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
     }
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {

@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("rawtypes")
 public interface RetryingDatabaseOperationFacade {
 
     // Dependency API v1
@@ -829,13 +830,13 @@ public interface RetryingDatabaseOperationFacade {
     // Activity stream
     /**
      * Insert record into activity stream
-     *  @param siteId site identifier
+     * @param siteId site identifier
      * @param userId user identifier
      * @param action action that was performed
      * @param actionTimestamp timestamp when action was performed
-     * @param itemId item identifier that was actioned upon
+     * @param item item that was actioned upon
      * @param packageId package identifier that was actioned upon
      */
-    void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
+    void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
                         String packageId);
 }
