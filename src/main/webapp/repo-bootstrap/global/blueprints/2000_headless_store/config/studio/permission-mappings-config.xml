@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>4.0.3</version>
+    <version>4.0.4</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -157,7 +157,7 @@
                 <permission>content_delete</permission>
             </allowed-permissions>
         </rule>
-        <rule regex="/(static-assets|templates|scripts)/.*">
+        <rule regex="/static-assets.*">
             <allowed-permissions>
                 <permission>content_read</permission>
                 <permission>content_copy</permission>
