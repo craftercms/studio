@@ -5763,7 +5763,7 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-                  unPublishedItems:
+                  unpublishedItems:
                     type: array
                     items:
                       $ref: '#/components/schemas/SandboxItem'
@@ -6078,9 +6078,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   publishingStats:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PublishingStats'
+                    $ref: '#/components/schemas/PublishingStats'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

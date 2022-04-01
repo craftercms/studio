@@ -48,6 +48,8 @@ import org.craftercms.studio.model.search.SearchResult;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
+import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.NEW;
@@ -157,19 +159,24 @@ public class DashboardServiceImpl implements DashboardService {
         return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
     }
 
+    protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
+        searchParams.setQuery(query);
+        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
+        searchParams.setSortBy(getExpireFieldName());
+        searchParams.setSortOrder(order);
+        searchParams.setOffset(offset);
+        searchParams.setLimit(limit);
+    }
+
     @Override
     public ExpiringContentResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                                     int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
-        var searchParams = new SearchParams();
-        var query = getContentExpiringQuery()
+        SearchParams searchParams = new SearchParams();
+        String query = getContentExpiringQuery()
                 .replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
                 .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
-        searchParams.setQuery(query);
-        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
-        searchParams.setSortBy(getExpireFieldName());
-        searchParams.setOffset(offset);
-        searchParams.setLimit(limit);
+        prepareSearchParams(searchParams, query, Asc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
         return processResults(result);
     }
@@ -177,13 +184,9 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
-        var searchParams = new SearchParams();
-        var query = getContentExpiredQuery();
-        searchParams.setQuery(query);
-        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
-        searchParams.setSortBy(getExpireFieldName());
-        searchParams.setOffset(offset);
-        searchParams.setLimit(limit);
+        SearchParams searchParams = new SearchParams();
+        String query = getContentExpiredQuery();
+        prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
         return processResults(result);
     }

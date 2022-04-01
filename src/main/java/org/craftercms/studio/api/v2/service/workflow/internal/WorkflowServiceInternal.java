@@ -24,6 +24,8 @@ import java.util.List;
 
 public interface WorkflowServiceInternal {
 
+    WorkflowItem getWorkflowItem(String siteId, String path, String state);
+
     /**
      * Get workflow entry
      * @param siteId
