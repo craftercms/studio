@@ -122,8 +122,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                                                    boolean createFolders, boolean isPreview, boolean unlock,
                                                    boolean isSystemAsset, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
-        logger.debug1("Writing content asset: [site: " + site + ", path: " + path + ", assetName: "
-                + assetName + ", createFolders: " + createFolders);
+        logger.debug("Writing content asset in site '{}' path '{}' assetName '{}' createFolders '{}'",
+                site, path, assetName, createFolders);
 
         String ext = null;
         int index = assetName.lastIndexOf(".");
@@ -204,6 +204,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                               String user, boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
         boolean success = false;
+
         try {
             success = contentService.writeContent(site, relativePath, input);
         } finally {
@@ -228,9 +229,9 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             // Item
             itemServiceInternal.persistItemAfterWrite(site, relativePath, user, commitId, Optional.of(unlock));
         }
+
         if (unlock) {
             contentRepositoryV1.unLockItem(site, relativePath);
-            logger.debug1("Unlocked the content site " + site + " path " + relativePath);
         } else {
             contentRepository.lockItem(site, relativePath);
         }

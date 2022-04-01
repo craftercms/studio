@@ -84,8 +84,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         try {
             writeContent(content, result);
         } catch (ServiceLayerException e) {
-            logger.error1("Failed to write " + content.getId(),e);
-            throw new ContentProcessException("Failed to write " + content.getId(), e);
+            logger.error("Failed to write content '{}'", content.getId(), e);
+            throw new ContentProcessException(String.format("Failed to write content '{}'", content.getId(), e));
         } finally {
             content.closeContentStream();
         }
@@ -129,7 +129,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     if (unlock) {
                         // TODO: We need ability to lock/unlock content in repo
                         contentService.unLockContent(site, path);
-                        logger.debug1("Unlocked the content " + parentContentPath);
                     }
                     return;
                 } else {
@@ -148,7 +147,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         if (unlock) {
                             // TODO: We need ability to lock/unlock content in repo
                             contentService.unLockContent(site, path);
-                            logger.debug1("Unlocked the content site: " + site + " path: " + path);
                         }
                         return;
                     } else {
@@ -159,12 +157,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     }
                 }
             } else {
-                throw new ContentNotFoundException(path + " does not exist in site: " + site);
+                throw new ContentNotFoundException(String.format("Content not found site '{}' path '{}'", site, path));
             }
         } catch (ContentNotFoundException | RepositoryLockedException e) {
             throw e;
         } catch (Exception e) {
-            logger.error1("Error: ", e);
+            logger.error("Error writing content site '{}' path '{}'", site, path, e);
             throw new ContentNotFoundException("Unexpected exception ", e);
         } finally {
             ContentUtils.release(input);
@@ -211,7 +209,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, Optional.of(unlock),
                         pItem.getId());
             } catch (Exception e) {
-                logger.error1("Error writing new file: " + fileName, e);
+                logger.error("Error creating a new file in site '{}' name '{}'", site, fileName, e);
             } finally {
                 IOUtils.closeQuietly(input);
             }
@@ -226,7 +224,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fileItem = contentService.getContentItem(site, itemPath, 0);
             return fileItem;
         } else {
-            throw new ContentNotFoundException(parentItem.getUri() + " does not exist in site: " + site);
+            throw new ContentNotFoundException(String.format("Parent item at '{}' doesn't exist in site '{}'",
+                    parentItem.getUri(), site));
         }
     }
 
@@ -275,7 +274,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         // unlock the content upon save if the flag is true
         if (unlock) {
             contentRepositoryV1.unLockItem(site, path);
-            logger.debug1("Unlocked the content site: " + site + " path: " + path);
         } else {
             contentRepository.lockItem(site, path);
         }
@@ -364,7 +362,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             contentService.createFolder(site, folderPath, folderName);
             folderPath = folderPath + FILE_SEPARATOR + folderName;
             contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
-            logger.debug1("Changed file to folder from " + path + " to " + folderPath);
+            logger.debug("Changed file to folder from '{}' to '{}'", path, folderPath);
 
             return folderPath;
         } else {

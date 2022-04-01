@@ -987,17 +987,17 @@ public class GitRepositoryHelper implements DisposableBean {
                 // Create the global repository folder
                 try {
                     Files.deleteIfExists(globalConfigPath);
-                    logger.info1("Bootstrapping the global repository...");
+                    logger.info("Bootstrapping the global repository...");
                     Files.createDirectories(globalConfigPath);
                     Repository repo = createGitRepository(globalConfigPath);
                     repositoryCache.put(getRepoCacheKey(EMPTY, GLOBAL), repo);
                     toReturn = true;
                 } catch (IOException e) {
                     // Something very wrong has happened
-                    logger.error("Bootstrapping the global repository failed", e);
+                    logger.error("Error bootstrapping the global repository", e);
                 }
             } else {
-                logger.info1("Detected existing global repository, will not create new one.");
+                logger.info("Detected an existing global repository, will not create a new one.");
             }
         } finally {
             generalLockService.unlock(gitLockKey);

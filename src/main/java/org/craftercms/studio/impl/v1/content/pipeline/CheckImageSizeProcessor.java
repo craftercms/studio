@@ -143,10 +143,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(
-                        "The width and the height of the image must match to the specified width and height: "
-                                + allowedWidth + "X" + allowedHeight
-                                + ". The actual width and height: "+ width + "X" + height);
+                throw new ContentNotAllowedException(String.format("The width and the height of the image must " +
+                        "match to the allowed width and height of '{}x{}' whereas the actual asset is '{}x{}'",
+                        allowedWidth, allowedHeight, width, height));
             }
         } else {
             if (allowedWidth > 0 && allowedWidth < width) {
@@ -156,10 +155,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(
-                        "The width and the height of the image must be less then or equal to the specified width and height: "
-                                + allowedWidth + "X" + allowedHeight
-                                + ". The actual width and height: "+ width + "X" + height);
+                throw new ContentNotAllowedException(String.format("The width and the height of the image must " +
+                        "be less than or equal to width and height of '{}x{}' whereas the actual asset is '{}x{}'",
+                        allowedWidth, allowedHeight, width, height));
             }
         }
     }

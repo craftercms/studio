@@ -627,13 +627,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     commitId, parentItem.getId());
 
             String username = securityService.getCurrentUser();
-            // TODO: This is not necessary, the current user is already on memory
+            // TODO: This is not necessary, the current user is already in memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setActorId(username);
+            // TODO: SJ: There should be a helper method to consistently create these keys/paths
             auditLog.setPrimaryTargetId(site + ":" + folderPath);
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
@@ -893,7 +894,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 retNewFileName = copyPath;
             }
         } catch(ServiceLayerException | UserNotFoundException e) {
-            logger.info1("General Error while copying content for site '{}' from '{}' to '{}', new name is '{}'",
+            logger.info("Error copying content for site '{}' from '{}' to '{}', new name is '{}'",
                 site, fromPath, toPath, copyPath, e);
             throw e;
         }
@@ -2388,6 +2389,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         _contentRepository.unLockItem(site, path);
         itemServiceInternal.unlockItemByPath(site, path);
         applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, false));
+        logger.debug("Unlocked item in site '{}' path '{}'", site, path);
     }
 
     @Override
@@ -2499,7 +2501,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         } else if (beforeOrder == null) {
             return (0 + afterOrder) / 2;
         } else if (afterOrder == null) {
-            logger.info1("afterOrder == null"); // TODO: SJ: Why is this at level INFO and what purpose does it serve?
             return dmPageNavigationOrderService.getNewNavOrder(site,
                     ContentUtils.getParentUrl(relativePath.replace(DmConstants.SLASH_INDEX_FILE,
                             "")), beforeOrder);

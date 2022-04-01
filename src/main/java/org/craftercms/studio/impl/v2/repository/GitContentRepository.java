@@ -247,16 +247,12 @@ public class GitContentRepository implements ContentRepository {
                                 }
                             }
 
-                        } catch (IOException e) {
-                            logger.error("Error while getting children for site '{}' path '{}'", site, path, e);
                         }
                     }
                 }
-            } catch (IOException e) {
-                logger.error("Error while getting children for site '{}' path '{}'", site, path, e);
             }
         } catch (IOException e) {
-            logger.error("Failed to create RevTree for site '{}' path '{}'", site, path, e);
+            logger.error("Error while getting children for site '{}' path '{}'", site, path, e);
         }
         return retItems;
     }
@@ -396,11 +392,8 @@ public class GitContentRepository implements ContentRepository {
                         }
 
                     }
-                } catch (GitAPIException e) {
-                    logger.error("Error getting operations for site '{}' from commit ID '{}' to commit ID '{}'",
-                            site, commitIdFrom, commitIdTo, e);
                 }
-            } catch (IOException e) {
+            } catch (IOException | GitAPIException e) {
                 logger.error("Error getting operations for site '{}' from commit ID '{}' to commit ID '{}'",
                         site, commitIdFrom, commitIdTo, e);
             }
@@ -532,12 +525,9 @@ public class GitContentRepository implements ContentRepository {
 
 
                         }
-                    } catch (GitAPIException e) {
-                        logger.error("Error getting operations for site '{}' from commit ID '{}' to commit ID '{}'",
-                                site, commitIdFrom, commitIdTo, e);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | GitAPIException e) {
                 logger.error("Error getting operations for site '{}' from commit ID '{}' to commit ID '{}'",
                         site, commitIdFrom, commitIdTo, e);
             }
@@ -667,9 +657,11 @@ public class GitContentRepository implements ContentRepository {
         if (CollectionUtils.isNotEmpty(commitIds)) {
             int batchSize = studioUtils.getBulkOperationsBatchSize();
             List<List<String>> partitions = new ArrayList<List<String>>();
+
             for (int i = 0; i < commitIds.size(); i = i + (batchSize)) {
                 partitions.add(commitIds.subList(i, Math.min(i + batchSize, commitIds.size())));
             }
+
             for (List<String> part : partitions) {
                 retryingDatabaseOperationFacade.markGitLogProcessedBulk(siteId, part);
             }
@@ -1135,10 +1127,10 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
         } catch (Exception e) {
-            logger.error("Error while publishing site '{}' to publishing target '{}' commit ID is '{}'",
+            logger.error("Error publishing site '{}' to publishing target '{}' commit ID is '{}'",
                     site, environment, commitId, e);
-            throw new DeploymentException("Error while publishing site " + site + " to publishing target " +
-                    environment + " [commit ID = " + commitId + "]");
+            throw new DeploymentException(String.format("Error publishing site '{}' to publishing target '{}' commit ID is '{}'",
+                    site, environment, commitId));
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -1655,21 +1647,23 @@ public class GitContentRepository implements ContentRepository {
                             }
                             current = commitIds.read();
                         }
+
                         if (batch.size() > 0) {
                             retryingDatabaseOperationFacade.insertIgnoreGitLogList(siteId, batch);
                             siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
-                            logger.debug1("Inserted " + batch.size() + " git log commits for site " + siteId);
+                            logger.debug("Inserted '{}' git commits into the gitlog table for site '{}'",
+                                    batch.size(), siteId);
                         } else {
                             siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());
                         }
                     }
                 } catch (GitAPIException e) {
-                    logger.error1("Error getting commit ids for site " + siteId + " from commit ID: " +
-                            lastProcessedCommitId + " to HEAD", e);
+                    logger.error("Error getting commit IDs for site '{}' from commit ID '{}' to HEAD",
+                            siteId, lastProcessedCommitId, e);
                 }
             } catch (IOException e) {
-                logger.error1("Error getting commit ids for site " + siteId + " from commit ID: " +
-                        lastProcessedCommitId + " to HEAD", e);
+                logger.error("Error getting commit IDs for site '{}' from commit ID '{}' to HEAD",
+                        siteId, lastProcessedCommitId, e);
             } finally {
                 generalLockService.unlock(lockKey);
             }
@@ -1698,8 +1692,8 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
         } catch (IOException e) {
-            logger.error1("Error getting environment properties for site " + siteId + " path " + path +
-                    " environment " + environment);
+            logger.error("Error getting environment properties for site '{}' path '{}' environment '{}'",
+                    siteId, path, environment);
         }
         return environmentData;
     }
@@ -1720,10 +1714,9 @@ public class GitContentRepository implements ContentRepository {
     }
 
     private void populateProperties(String siteId, Repository repository, DetailedItem.Environment environment,
-                                    String path, String branch)
-            throws IOException {
+                                    String path, String branch) throws IOException {
+        // TODO: SJ: This seems to fail silently if repository is null, fix
         if (repository != null) {
-
             ObjectId head = repository.resolve(R_HEADS + branch);
             String gitPath = helper.getGitPath(path);
             try (Git git = new Git(repository)) {
@@ -1738,14 +1731,16 @@ public class GitContentRepository implements ContentRepository {
                     try {
                         publisher = userServiceInternal.getUserByGitName(publisherGit);
                     } catch (ServiceLayerException | UserNotFoundException e) {
-                        logger.debug1("Publisher user not found. Using git repo user instead.");
+                        logger.debug("Publisher user not found for site '{}' path '{}'. Using git repo user instead.",
+                                siteId, path);
                         publisher = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
                     }
                     environment.setPublisher(publisher.getUsername());
                     environment.setCommitId(revCommit.getName());
                 }
             } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e) {
-                logger.error1("error while getting repository properties for content item " + path);
+                logger.error("Error while getting repository properties for content path '{}' site '{}'",
+                        path, siteId);
             }
             environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
                     PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
@@ -1787,16 +1782,13 @@ public class GitContentRepository implements ContentRepository {
                             }
                         }
                     }
-                } catch (IOException | GitAPIException e) {
-                    logger.error1("Error while getting previous commit ID for " + commitId);
                 }
             }
-        } catch (IOException e) {
-            logger.error1("Error while getting previous commit ID for site " + siteId + " commit ID " + commitId, e);
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error getting the previous commit ID for site '{}' commit ID '{}'",
+                    siteId, commitId, e);
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("Previous commit id for site " + siteId + " and commit id " + commitId + " is " + toReturn);
-        }
+
         return toReturn;
     }
 
@@ -1821,7 +1813,7 @@ public class GitContentRepository implements ContentRepository {
                 LockFile lock = new LockFile(file);
                 lock.lock();
             } catch (IOException e) {
-                logger.error1("Error while locking file for site: " + site + " path: " + path, e);
+                logger.error("Error locking file in site '{}' path '{}'", site, path, e);
             }
         }
     }
@@ -1848,7 +1840,7 @@ public class GitContentRepository implements ContentRepository {
                 lock.unlock();
 
             } catch (IOException e) {
-                logger.error1("Error while unlocking file for site: " + site + " path: " + path, e);
+                logger.error("Error unlocking file in site '{}' path '{}'", site, path, e);
             }
         }
     }
@@ -1873,14 +1865,11 @@ public class GitContentRepository implements ContentRepository {
                         toReturn = objectLoader.openStream();
                         tw.close();
                     }
-                } catch (IOException e) {
-                    logger.error1("Error while getting content for file at site: " + site + " path: " + path +
-                            " commitId: " + commitId, e);
                 }
             }
         } catch (IOException e) {
-            logger.error1("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
-                    commitId, e);
+            logger.error("Error getting content for file in site '{}' path '{}' commit ID '{}'",
+                    site, path, commitId, e);
         }
 
         return toReturn;
@@ -1925,8 +1914,8 @@ public class GitContentRepository implements ContentRepository {
 
             return true;
         } catch (GitAPIException e) {
-            logger.error1("Failed to create environment " + environment + " branch in PUBLISHED repo for site " +
-                    siteId, e);
+            logger.error("Failed to create publishing target branch (environment) '{}' in the published repo for " +
+                    "site '{}'", environment, siteId, e);
             return false;
         }
     }

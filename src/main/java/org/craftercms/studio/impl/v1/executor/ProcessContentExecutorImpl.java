@@ -58,21 +58,17 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                     final PipelineContent content = new PipelineContentImpl(id, input, isXml, null,
                         StudioConstants.CONTENT_ENCODING, params);
                     chain.processContent(content, result);
-
-                } catch (ContentProcessException | UserNotFoundException e) {
-                    logger.error1("Error in chain for write content", e);
+                } catch (ContentProcessException | UserNotFoundException | RuntimeException e) {
+                    logger.error("Error writing content in processor chain", e);
                     throw e;
-                } catch (RuntimeException e) {
-                    logger.error1("Error in chain for write content", e);
-                    throw e;
-                }finally{
+                } finally {
                     ContentUtils.release(input);
                 }
                 return result;
 
             } else {
                 ContentUtils.release(input);
-                throw new ServiceLayerException(chainName + " is not defined.");
+                throw new ServiceLayerException(String.format("Chain '{}' is not defined", chainName));
             }
         }finally {
             String s = params.get(DmConstants.KEY_USER);

@@ -48,7 +48,7 @@ public class PipelineContentImpl implements PipelineContent {
     /** is this XML content? **/
     protected boolean _xml = false;
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(PipelineContentImpl.class);
+    public static final Logger logger = LoggerFactory.getLogger(PipelineContentImpl.class);
 
     /**
      * constructor
@@ -125,8 +125,8 @@ public class PipelineContentImpl implements PipelineContent {
                         saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                         saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                         saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                    }catch (SAXException e){
-                        LOGGER.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                    } catch (SAXException e){
+                        logger.error("Unable to turn off external entity loading, this could be a security risk.", e);
                     }
                     saxReader.setEncoding(_encoding);
                     _document = saxReader.read(_contentStream);

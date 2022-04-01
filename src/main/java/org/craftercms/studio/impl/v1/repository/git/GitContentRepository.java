@@ -215,12 +215,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     }
                 } catch (IOException e) {
-                    logger.info1("Content not found for site: " + site + " path: " + path, e);
+                    logger.debug("Content not found in site '{}' path '{}'", site, path, e);
                 }
             }
         } catch (Exception e) {
-            logger.error1("Failed to create RevTree for site: " + site + " path: " + path, e);
+            logger.error("Error checking for content existence in site '{}' path '{}'", site, path, e);
         }
+
         return toReturn;
     }
 
@@ -242,11 +243,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     toReturn = objectLoader.openStream();
                     tw.close();
                 }
-            } catch (IOException e) {
-                logger.error1("Error while getting content for file at site: " + site + " path: " + path, e);
             }
         } catch (IOException e) {
-            logger.error1("Failed to create RevTree for site: " + site + " path: " + path, e);
+            logger.error("Error getting content from site '{}' path '{}'", site, path, e);
         }
 
         return toReturn;
@@ -261,26 +260,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site)? GLOBAL: SANDBOX);
             try {
-            if (repo != null) {
-                if (helper.writeFile(repo, site, path, content)) {
-                    PersonIdent user = helper.getCurrentUserIdent();
-                    String username = securityService.getCurrentUser();
-                    String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
-                            .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
-                            .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
-                    commitId = helper.commitFile(repo, site, path, comment, user);
+                if (repo != null) {
+                    if (helper.writeFile(repo, site, path, content)) {
+                        PersonIdent user = helper.getCurrentUserIdent();
+                        String username = securityService.getCurrentUser();
+                        String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
+                                .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
+                                .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
+                        commitId = helper.commitFile(repo, site, path, comment, user);
+                    } else {
+                        logger.error("Failed to write content to site '{}' path '{}'", site, path);
+                    }
                 } else {
-                    logger.error1("Failed to write content site: " + site + " path: " + path);
+                    logger.error("Missing repository during write for site '{}' path '{}'", site, path);
                 }
-            } else {
-                logger.error1("Missing repository during write for site: " + site + " path: " + path);
-            }
             }  catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error1("Unknown service error during write for site: " + site + " path: " + path, e);
+                logger.error("Service error during write to site '{}' path '{}'", site, path, e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
-
         }
 
         return commitId;
@@ -294,6 +292,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
+            // TODO: SJ: This seems to be a double lock, why sync when a general lock was performed above
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
@@ -312,7 +311,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     // Create the file
                     if (!file.createNewFile()) {
-                        logger.error1("error writing file: site: " + site + " path: " + emptyFilePath);
+                        logger.error("Error writing file to site '{}' path '{}'", site, emptyFilePath);
                         result = false;
                     } else {
                         // Add the file to git
