@@ -91,6 +91,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHE
 import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflowOrScheduled;
 import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
+import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
@@ -401,8 +402,12 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     private void recordActivityForPaths(List<String> paths, SiteFeed site, long userId, String operation) {
+        recordActivityForPaths(paths, site, userId, operation, STATE_OPENED);
+    }
+
+    private void recordActivityForPaths(List<String> paths, SiteFeed site, long userId, String operation, String state) {
         List<WorkflowItem> items = paths.stream()
-                .map(path -> workflowServiceInternal.getWorkflowEntry(site.getSiteId(), path))
+                .map(path -> workflowServiceInternal.getWorkflowItem(site.getSiteId(), path, state))
                 .filter(Objects::nonNull) // there is no workflow entry for direct publishes
                 .collect(toList());
         recordActivityForItems(items, site, userId, operation);
@@ -509,7 +514,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         auditLog.setParameters(auditLogParameters);
         auditServiceInternal.insertAuditLog(auditLog);
 
-        recordActivityForPaths(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH);
+        recordActivityForPaths(pathsToPublish, siteFeed, user.getId(), OPERATION_PUBLISH, STATE_APPROVED);
     }
 
     private void createInitialPublishAuditLog(String siteId) throws ServiceLayerException, UserNotFoundException {

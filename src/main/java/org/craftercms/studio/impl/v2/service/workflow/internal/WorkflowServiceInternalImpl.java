@@ -33,8 +33,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
+    public WorkflowItem getWorkflowItem(String siteId, String path, String state) {
+        return workflowDao.getWorkflowEntryOpened(siteId, path, state);
+    }
+
+    @Override
     public WorkflowItem getWorkflowEntry(String siteId, String path) {
-        return workflowDao.getWorkflowEntryOpened(siteId, path, STATE_OPENED);
+        return getWorkflowItem(siteId, path, STATE_OPENED);
     }
 
     @Override

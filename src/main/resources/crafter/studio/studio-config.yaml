@@ -611,7 +611,7 @@ studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 ################################################################
 # Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
-# Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
+# Inactivity Check Job interval in milliseconds which is how often to check for inactive cluster members
 studio.clustering.inactivityCheckJob.interval: 30000
 # Cluster member after heartbeat stale for amount of minutes will be declared inactive
 studio.clustering.heartbeatStale.timeLimit: 5
@@ -1005,8 +1005,8 @@ studio.scripting.allowedBeans: ''
 ##################################################
 
 # Elasticsearch query to retrieve content expiring
-studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateTo} TO {dateFrom}]
+studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateFrom} TO {dateTo}] AND NOT _exists_:metadataPath
 # Elasticsearch query to retrieve content expired
-studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now]
+studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now] AND NOT _exists_:metadataPath
 # Elasticsearch query to retrieve content expired sort by field
 studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt

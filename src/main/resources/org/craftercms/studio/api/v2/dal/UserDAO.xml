@@ -57,6 +57,7 @@
 
     <!-- Simplified version of User exposed for new APIs -->
     <resultMap id="PersonMap" type="org.craftercms.studio.model.rest.Person">
+        <id property="id" column="id"/>
         <result property="username" column="username"/>
         <result property="firstName" column="first_name" />
         <result property="lastName" column="last_name" />
