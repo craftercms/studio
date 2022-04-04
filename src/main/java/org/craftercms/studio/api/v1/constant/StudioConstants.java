@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v1.constant;
 
+import java.util.List;
+
 /**
  * Studio Constants
  *
@@ -148,7 +150,14 @@ public final class StudioConstants {
 
     public static final String INDEX_FILE = "index.xml";
 
-    public static final String HOME_PAGE_PATH = "/site/website/index.xml";
+    public static final List<String> TOP_LEVEL_FOLDERS = List.of(
+        "/site/website/index.xml",
+        "/site/components",
+        "/site/taxonomy",
+        "/static-assets",
+        "/templates",
+        "/scripts"
+    );
 
     public static final String JSON_PROPERTY_ITEM = "item";
     public static final String JSON_PROPERTY_DEPENDENCIES = "dependencies";
