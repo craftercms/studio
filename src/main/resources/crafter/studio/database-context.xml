@@ -216,7 +216,12 @@
             <property name="defaultRootPassword" value="${MARIADB_ROOT_PASSWD}" />
             <property name="driverClassName"
                       value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_DRIVER)}" />
-            <property name="args"><list><value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value></list></property>
+            <property name="args">
+                <list>
+                    <value>--max_allowed_packet=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_ALLOWED_PACKET)}</value>
+                    <value>--max-connections=#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).DB_MAX_CONNECTIONS)}</value>
+                </list>
+            </property>
         </bean>
     </beans>
 
