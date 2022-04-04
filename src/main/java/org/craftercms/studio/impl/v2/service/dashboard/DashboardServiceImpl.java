@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.Workflow;
+import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
@@ -52,6 +53,7 @@ import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
 import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.NEW;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
@@ -257,6 +259,9 @@ public class DashboardServiceImpl implements DashboardService {
         var paths = publishingPackageDetails.getItems().stream()
                 .map(PublishingPackageDetails.PublishingPackageItem::getPath)
                 .collect(toList());
+        if (isEmpty(paths)) {
+            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
+        }
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 

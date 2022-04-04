@@ -1412,6 +1412,7 @@
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i.ignored = 0
+        AND i.system_type != 'folder'
         <if test="path != null">
         AND i.path RLIKE(#{path})
         </if>
@@ -1426,11 +1427,12 @@
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i.ignored = 0
+        AND i.system_type != 'folder'
         <if test="path != null">
         AND i.path RLIKE(#{path})
         </if>
         <if test="statesBitMap != null">
-        AND ((i.state ^ #{statesBitMap}) &amp; #{statesBitMap}) = 0
+        AND (i.state &amp; #{statesBitMap}) > 0
         </if>
         LIMIT #{offset}, #{limit}
     </select>

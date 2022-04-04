@@ -5941,14 +5941,14 @@ paths:
         - name: dateFrom
           in: query
           description: lower boundary to filter by date-time range
-          required: false
+          required: true
           schema:
             type: string
             format: date-time
         - name: dateTo
           in: query
           description: upper boundary to filter by date-time range
-          required: false
+          required: true
           schema:
             type: string
             format: date-time

@@ -276,9 +276,9 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
             @RequestParam(value = REQUEST_PARAM_APPROVER, required = false) String approver,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
+            @RequestParam(value = REQUEST_PARAM_DATE_TO)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) {

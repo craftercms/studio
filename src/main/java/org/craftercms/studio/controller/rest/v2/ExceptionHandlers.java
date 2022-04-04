@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
+import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
@@ -328,6 +329,14 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
             String.format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PublishingPackageNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handlePublishingPackageNotFoundException(HttpServletRequest request,
+                                                       PublishingPackageNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
