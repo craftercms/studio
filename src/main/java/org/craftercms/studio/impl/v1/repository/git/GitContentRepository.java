@@ -322,13 +322,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                             git.close();
                             result = true;
-                        } catch (GitAPIException e) {
-                            logger.error1("error adding file to git: site: " + site + " path: " + emptyFilePath, e);
-                            result = false;
                         }
                     }
-                } catch (IOException e) {
-                    logger.error1("error writing file: site: " + site + " path: " + emptyFilePath, e);
+                } catch (IOException | GitAPIException e) {
+                    logger.error("Error adding file to git site '{}' path '{}'", site, emptyFilePath, e);
                     result = false;
                 }
 
@@ -340,8 +337,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                         .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
                                 helper.getCurrentUserIdent());
                     } catch (ServiceLayerException | UserNotFoundException e) {
-                        logger.error1("Unknown service error during commit for site: " + site + " path: "
-                                + emptyFilePath, e);
+                        logger.error("Error committing file in site '{}' path '{}'", site, emptyFilePath, e);
                     }
                 }
             }
