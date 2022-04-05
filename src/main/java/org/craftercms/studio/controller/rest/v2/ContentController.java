@@ -48,8 +48,7 @@ import org.craftercms.studio.model.rest.content.LockItemByPathRequest;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
 import org.craftercms.studio.model.rest.content.DeleteRequestBody;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +63,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -129,7 +127,7 @@ public class ContentController {
     }
 
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
-    public ResponseBody listQuickCreateContent(@RequestParam(name = "siteId", required = true) String siteId)
+    public ResponseBody listQuickCreateContent(@RequestParam(name = "siteId") String siteId)
             throws SiteNotFoundException {
 
         if (!siteService.exists(siteId)) {
@@ -254,8 +252,8 @@ public class ContentController {
     }
 
     @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemByPath(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                      @RequestParam(value = REQUEST_PARAM_PATH, required = true) String path,
+    public ResponseBody getItemByPath(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                      @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                       @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                               defaultValue = "false") boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
@@ -272,8 +270,8 @@ public class ContentController {
     }
 
     @GetMapping(value = ITEM_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemById(@RequestParam(value = REQUEST_PARAM_SITEID, required = true) String siteId,
-                                    @RequestParam(value = REQUEST_PARAM_ID, required = true) long id,
+    public ResponseBody getItemById(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                    @RequestParam(value = REQUEST_PARAM_ID) long id,
                                     @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                             defaultValue = "false") boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
@@ -316,7 +314,7 @@ public class ContentController {
                         FILE_SEPARATOR + INDEX_FILE, "")).collect(Collectors.toList()));
             }
             Collection<String> missing = CollectionUtils.subtract(paths, found);
-            String missingPaths = missing.stream().collect(Collectors.joining(", "));
+            String missingPaths = String.join(", ", missing);
             Result result = new Result();
             ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
             apiResponse.setRemedialAction(
@@ -408,19 +406,17 @@ public class ContentController {
     }
 
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
-    public ResponseEntity<InputStreamResource> getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+    public ResponseEntity<Resource> getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                              @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                              @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
             throws ServiceLayerException, IOException, UserNotFoundException {
 
         DetailedItem item = contentService.getItemByPath(siteId, path, true);
-        InputStream content = contentService.getContentByCommitId(siteId, path, commitId);
+        Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
 
-        InputStreamResource responseBody = new InputStreamResource(content);
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.parseMediaType(item.getMimeType()));
-        httpHeaders.setContentLength(item.getSandbox().getSizeInBytes());
-        return new ResponseEntity<InputStreamResource>(responseBody, httpHeaders, HttpStatus.OK);
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.parseMediaType(item.getMimeType()))
+                .body(resource);
     }
 }

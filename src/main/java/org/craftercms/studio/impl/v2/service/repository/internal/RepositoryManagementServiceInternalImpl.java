@@ -765,10 +765,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             List<ObjectId> mergeHeads = repo.readMergeHeads();
             ObjectId mergeCommitId = mergeHeads.get(0);
             logger.debug("Get content for studio version of conflicted file " + path + " for site " + siteId);
-            InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD);
+            InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD)
+                                                             .orElseThrow()
+                                                             .getInputStream();
             diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
             logger.debug("Get content for remote version of conflicted file " + path + " for site " + siteId);
-            InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName());
+            InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName())
+                                                             .orElseThrow()
+                                                             .getInputStream();
             diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
@@ -878,120 +882,61 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 studioConfiguration.getProperty(REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED));
     }
 
-    public RemoteRepositoryDAO getRemoteRepositoryDao() {
-        return remoteRepositoryDao;
-    }
-
     public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
         this.remoteRepositoryDao = remoteRepositoryDao;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public NotificationService getNotificationService() {
-        return notificationService;
-    }
-
     public void setNotificationService(NotificationService notificationService) {
         this.notificationService = notificationService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(org.craftercms.studio.api.v1.repository.ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public TextEncryptor getEncryptor() {
-        return encryptor;
-    }
-
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
     }
 
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
-    }
 
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public GitRepositoryHelper getGitRepositoryHelper() {
-        return gitRepositoryHelper;
     }
 
     public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
         this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
-    public ContentRepository getContentRepositoryV2() {
-        return contentRepositoryV2;
-    }
-
     public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
-    }
-
-    public int getBatchSizeGitLog() {
-        return batchSizeGitLog;
     }
 
     public void setBatchSizeGitLog(int batchSizeGitLog) {
         this.batchSizeGitLog = batchSizeGitLog;
     }
 
-    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
-        return retryingRepositoryOperationFacade;
-    }
-
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

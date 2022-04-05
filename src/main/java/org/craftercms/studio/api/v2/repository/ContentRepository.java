@@ -31,11 +31,12 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.springframework.core.io.Resource;
 
-import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface ContentRepository {
 
@@ -371,11 +372,11 @@ public interface ContentRepository {
      * @param site    site id where the operation will be executed
      * @param path    path of the content
      * @param commitId version to return
-     * @return input stream
+     * @return the resource if available
      *
      * @throws ContentNotFoundException content not found for given path and version
      */
-    InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException;
+    Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException;
 
     /**
      * Check if published repository exists for given site.

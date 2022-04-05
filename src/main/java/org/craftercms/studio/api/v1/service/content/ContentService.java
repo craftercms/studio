@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.content;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -232,7 +233,7 @@ public interface ContentService {
      *
      * @throws ContentNotFoundException content not found
      */
- 	InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
+ 	Optional<Resource> getContentVersion(String site, String path, String version) throws ContentNotFoundException;
 
 	/**
      * return the content for a given version

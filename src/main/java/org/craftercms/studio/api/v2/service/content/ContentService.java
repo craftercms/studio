@@ -27,10 +27,11 @@ import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedExce
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 
 public interface ContentService {
 
@@ -196,8 +197,8 @@ public interface ContentService {
      * @param siteId  site identifier
      * @param path path of the content
      * @param commitId commit id of the content version
-     * @return
+     * @return the content if available
      */
-    InputStream getContentByCommitId(String siteId, String path, String commitId)
+    Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException, IOException;
 }
