@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1318,7 +1319,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         List<Node> keys = root.selectNodes("//key");
         if (keys != null) {
             for(Node keyNode : keys) {
-                String keyValue = ((Element)keyNode).getText();
+                String keyValue = keyNode.getText();
                 if(keyValue.contains("/page")) {
                     copyDependencies.put(keyValue, keyValue);
                 }
@@ -1328,7 +1329,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         List<Node> includes = root.selectNodes("//include");
         if (includes != null) {
             for(Node includeNode : includes) {
-                String includeValue = ((Element)includeNode).getText();
+                String includeValue = includeNode.getText();
                 if(includeValue.contains("/page")) {
                     copyDependencies.put(includeValue, includeValue);
                 }
@@ -1349,12 +1350,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Element root = document.getRootElement();
             Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
             if (pageIdNode != null) {
-                ids.put(KEY_PAGE_ID, ((Element) pageIdNode).getText());
+                ids.put(KEY_PAGE_ID, pageIdNode.getText());
             }
 
             Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
             if (groupIdNode != null) {
-                ids.put(KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
+                ids.put(KEY_PAGE_GROUP_ID, groupIdNode.getText());
             }
         }
         return ids;
@@ -2031,9 +2032,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
-    public InputStream getContentVersion(@ValidateStringParam(name = "site") String site,
-                                         @ValidateSecurePathParam(name = "path") String path,
-                                         @ValidateStringParam(name = "commitId") String commitId)
+    public Optional<Resource> getContentVersion(@ValidateStringParam(name = "site") String site,
+                                                @ValidateSecurePathParam(name = "path") String path,
+                                                @ValidateStringParam(name = "commitId") String commitId)
             throws ContentNotFoundException {
         return contentRepository.getContentByCommitId(site, path, commitId);
     }
@@ -2043,16 +2044,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public String getContentVersionAsString(@ValidateStringParam(name = "site") String site,
                                             @ValidateSecurePathParam(name = "path") String path,
                                             @ValidateStringParam(name = "version") String version) {
-        String content = null;
-
         try {
-            content = IOUtils.toString(getContentVersion(site, path, version), UTF_8);
-        }
-        catch(Exception err) {
+            Optional<Resource> resource = getContentVersion(site, path, version);
+            if (resource.isPresent()) {
+                try (InputStream is = resource.get().getInputStream()) {
+                    return IOUtils.toString(is, UTF_8);
+                }
+            }
+        } catch(Exception err) {
             logger.debug("Failed to get content as string for path {0}, exception {1}", path, err);
         }
 
-        return content;
+        return null;
     }
 
     @Override
@@ -2236,7 +2239,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                     Matcher matcher = pattern.matcher(childName);
                                     if (matcher.matches()) {
                                         int helper = ContentFormatUtils.getIntValue(matcher.group(2));
-                                        lastNumber = (helper > lastNumber) ? helper : lastNumber;
+                                        lastNumber = Math.max(helper, lastNumber);
                                     }
                                 }
                             }

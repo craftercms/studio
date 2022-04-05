@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -60,6 +61,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Stream;
@@ -360,7 +362,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
+    public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
         return localRepositoryV2.getContentByCommitId(site, path, commitId);
     }
 

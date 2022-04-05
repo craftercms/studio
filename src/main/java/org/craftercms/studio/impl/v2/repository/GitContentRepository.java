@@ -106,11 +106,11 @@ import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -124,6 +124,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -1724,14 +1725,6 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    public GitRepositoryHelper getHelper() {
-        return helper;
-    }
-
-    public void setHelper(GitRepositoryHelper helper) {
-        this.helper = helper;
-    }
-
     @Override
     public int countUnprocessedCommits(String siteId, long marker) {
         return gitLogDao.countUnprocessedCommitsSinceMarker(siteId, marker);
@@ -1836,19 +1829,17 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
-        InputStream toReturn = null;
+    public Optional<Resource> getContentByCommitId(String site, String path, String commitId)
+            throws ContentNotFoundException {
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-
             RevTree tree = helper.getTreeForCommit(repo, commitId);
             if (tree != null) {
                 try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                     if (tw != null) {
                         ObjectId id = tw.getObjectId(0);
                         ObjectLoader objectLoader = repo.open(id);
-                        toReturn = objectLoader.openStream();
-                        tw.close();
+                        return Optional.of(new GitResource(objectLoader));
                     }
                 } catch (IOException e) {
                     logger.error("Error while getting content for file at site: " + site + " path: " + path +
@@ -1859,8 +1850,7 @@ public class GitContentRepository implements ContentRepository {
             logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
                     commitId, e);
         }
-
-        return toReturn;
+        return Optional.empty();
     }
 
     @Override
@@ -1908,152 +1898,80 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
+    public void setHelper(GitRepositoryHelper helper) {
+        this.helper = helper;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public GitLogDAO getGitLogDao() {
-        return gitLogDao;
-    }
-
     public void setGitLogDao(GitLogDAO gitLogDao) {
         this.gitLogDao = gitLogDao;
-    }
-
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
     }
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public RemoteRepositoryDAO getRemoteRepositoryDAO() {
-        return remoteRepositoryDAO;
-    }
-
     public void setRemoteRepositoryDAO(RemoteRepositoryDAO remoteRepositoryDAO) {
         this.remoteRepositoryDAO = remoteRepositoryDAO;
-    }
-
-    public TextEncryptor getEncryptor() {
-        return encryptor;
     }
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
     }
 
-    public ContextManager getContextManager() {
-        return contextManager;
-    }
-
     public void setContextManager(ContextManager contextManager) {
         this.contextManager = contextManager;
-    }
-
-    public ContentStoreService getContentStoreService() {
-        return contentStoreService;
     }
 
     public void setContentStoreService(ContentStoreService contentStoreService) {
         this.contentStoreService = contentStoreService;
     }
 
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
-    }
-
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public PublishRequestDAO getPublishRequestDao() {
-        return publishRequestDao;
     }
 
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public StudioUtils getStudioUtils() {
-        return studioUtils;
     }
 
     public void setStudioUtils(StudioUtils studioUtils) {
         this.studioUtils = studioUtils;
     }
 
-    public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
-        return retryingRepositoryOperationFacade;
-    }
-
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
-    public PublishingProgressServiceInternal getPublishingProgressServiceInternal() {
-        return publishingProgressServiceInternal;
-    }
-
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
