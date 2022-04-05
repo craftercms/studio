@@ -13,20 +13,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.git.cli;
 
-package org.craftercms.studio.api.v2.repository;
+import java.io.IOException;
 
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
+/**
+ * Root exception for the Git CLI.
+ *
+ * @author Alfonso Vasquez
+ * @since 3.1.23
+ */
+public class GitCliException extends IOException {
 
-import java.util.concurrent.Callable;
+    public GitCliException(String msg) {
+        super(msg);
+    }
 
-public interface RetryingRepositoryOperationFacade {
-
-    // For JGit
-    <T> T call(GitCommand<T> gitCommand) throws GitAPIException;
-
-    // For Git CLI
-    <T> T call(Callable<T> gitCommand) throws Exception;
+    public GitCliException(String msg, Throwable throwable) {
+        super(msg, throwable);
+    }
 
 }

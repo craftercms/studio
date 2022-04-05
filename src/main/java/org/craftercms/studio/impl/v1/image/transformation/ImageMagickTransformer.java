@@ -67,6 +67,7 @@ public class ImageMagickTransformer implements ImageTransformer {
             logger.info("Executing command: {}", cmdLine);
 
             Process proc = Runtime.getRuntime().exec(cmdLine);
+            // TODO: This might hang in certain OS. It's better to first read the stout and stderr before calling waitFor()
             proc.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
 
             String stdOut = getProcessStdOut(proc);

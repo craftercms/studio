@@ -87,6 +87,12 @@ studio.repo.ignoreFiles:
 studio.repo.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries for retrying repository operation
 studio.repo.retryingOperation.maxSleep: 1000
+# If Git CLI should be used for some Git operations, for better performance (Git CLI needs to be installed beforehand)
+studio.repo.git.cli.enabled: false
+# The process name of git, as it is available from PATH
+studio.repo.git.cli.process.name: git
+# Timeout in seconds when waiting for the Git CLI process to finish
+studio.repo.git.cli.process.waitForTimeout: 300
 
 ############################################################
 ##                       Blob Store                       ##

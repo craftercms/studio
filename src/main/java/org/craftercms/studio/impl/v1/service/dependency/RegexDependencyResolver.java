@@ -278,7 +278,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                         matchedPaths.add(matchedValue);
                     }
                     for(String matchedPath : matchedPaths) {
-                        if (contentService.contentExists(site, matchedPath)) {
+                        if (contentService.shallowContentExists(site, matchedPath)) {
                             logger.debug("Content exists for matched path " + matchedPath + ". Adding to the result set");
                             extractedPaths.add(matchedPath);
                         } else {
