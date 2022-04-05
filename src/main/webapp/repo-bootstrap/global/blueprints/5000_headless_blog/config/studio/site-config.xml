@@ -119,7 +119,7 @@
         Prevent deleting, renaming or cutting root folders of sidebar
     -->
     <protected-folders-patterns>
-        <pattern>^/([^ !$`&amp;*()/+]|(\\[ !$`&amp;*()+]))+$</pattern>
+        <pattern>/site/items</pattern>
     </protected-folders-patterns>
 
     <repository rootPrefix="/site">
