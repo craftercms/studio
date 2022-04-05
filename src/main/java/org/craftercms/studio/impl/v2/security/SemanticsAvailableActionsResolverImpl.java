@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.security;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -39,7 +40,7 @@ import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
@@ -117,7 +118,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             }
         }
 
-        if (StringUtils.equals(itemPath, HOME_PAGE_PATH)) {
+        if (RegexUtils.matchesAny(itemPath, TOP_LEVEL_FOLDERS)) {
             result &= ~CONTENT_DELETE;
             result &= ~CONTENT_CUT;
             result &= ~CONTENT_RENAME;
