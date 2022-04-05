@@ -156,7 +156,8 @@ public final class StudioConstants {
         "/site/taxonomy",
         "/static-assets",
         "/templates",
-        "/scripts"
+        "/scripts",
+        "/sources"
     );
 
     public static final String JSON_PROPERTY_ITEM = "item";
