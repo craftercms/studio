@@ -38,12 +38,12 @@ public class ExpiringContentItem {
     /**
      * The expiry data of the item
      */
-    protected ZonedDateTime expireDateTime;
+    protected ZonedDateTime expiredDateTime;
 
-    public ExpiringContentItem(String itemName, String itemPath, ZonedDateTime expireDateTime) {
+    public ExpiringContentItem(String itemName, String itemPath, ZonedDateTime expiredDateTime) {
         this.itemName = itemName;
         this.itemPath = itemPath;
-        this.expireDateTime = expireDateTime;
+        this.expiredDateTime = expiredDateTime;
     }
 
     public String getItemName() {
@@ -54,8 +54,8 @@ public class ExpiringContentItem {
         return itemPath;
     }
 
-    public ZonedDateTime getExpireDateTime() {
-        return expireDateTime;
+    public ZonedDateTime getExpiredDateTime() {
+        return expiredDateTime;
     }
 
 }
