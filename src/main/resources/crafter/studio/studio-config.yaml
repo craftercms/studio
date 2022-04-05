@@ -521,6 +521,8 @@ studio.db.port: 33306
 studio.db.socket: /tmp/MariaDB4j.33306.sock
 # Max DB connections for embedded database
 studio.db.maxConnections: 500
+# Max allowed packet size (MariaDB setting)
+studio.db.maxAllowedPacket: 128M
 # Max number of retries for retrying operation
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
