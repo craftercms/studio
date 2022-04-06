@@ -13,20 +13,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.utils.git.cli;
 
-package org.craftercms.studio.api.v2.repository;
+import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
+/**
+ * Parses the output of the CLI to determine the {@link GitCliOutputException}
+ * that should be thrown
+ *
+ * @author Alfonso Vasquez
+ * @since 3.1.23
+ */
+public interface GitCliOutputExceptionResolver {
 
-import java.util.concurrent.Callable;
-
-public interface RetryingRepositoryOperationFacade {
-
-    // For JGit
-    <T> T call(GitCommand<T> gitCommand) throws GitAPIException;
-
-    // For Git CLI
-    <T> T call(Callable<T> gitCommand) throws Exception;
+    GitCliOutputException resolveException(int exitValue, String output);
 
 }
