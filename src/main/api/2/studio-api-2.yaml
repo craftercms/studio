@@ -2674,6 +2674,19 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    type: object
+                    properties:
+                      successful:
+                        type: boolean
+                        description: Indicates if the pull was successful
+                      commitsMerged:
+                        type: integer
+                        format: int64
+                        description: Total number of commits merged from the remote repository
+                      mergeCommitId:
+                        type: string
+                        description: The merge commit id
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
