@@ -981,7 +981,7 @@ studio.clockJob.task.publisher.maxRetryCount: 5
 # Process audit log from repository execute every N cycles
 studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 # Insert N new commits from git log with each execution of the audit log processing task
-studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
+studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 10000
 # Process N unaudited commits with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
 
