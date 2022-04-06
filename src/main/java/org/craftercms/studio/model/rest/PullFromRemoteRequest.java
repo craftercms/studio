@@ -18,6 +18,8 @@ package org.craftercms.studio.model.rest;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.constraints.NotEmpty;
+
 public class PullFromRemoteRequest {
 
     public enum MergeStrategy {
@@ -26,9 +28,15 @@ public class PullFromRemoteRequest {
         none
     }
 
+    @NotEmpty
     private String siteId;
+
+    @NotEmpty
     private String remoteName;
+
+    @NotEmpty
     private String remoteBranch;
+
     private MergeStrategy mergeStrategy = MergeStrategy.none;
 
     public String getSiteId() {
