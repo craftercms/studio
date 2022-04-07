@@ -374,10 +374,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     .replaceAll(PATTERN_PATH, path),
                             StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
 
-                } catch (GitAPIException | UserNotFoundException | IOException e) {
-                    logger.error1("Error while deleting content for site: " + site + " path: " + path, e);
-                } catch (ServiceLayerException e) {
-                    logger.error1("Unknown service error during delete for site: " + site + " path: " + path, e);
+                } catch (GitAPIException | UserNotFoundException | IOException | ServiceLayerException e) {
+                    logger.error("Error deleting content in site '{}' path '{}'", site, path, e);
                 }
             }
         } finally {
@@ -459,9 +457,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 sourceFile.renameTo(targetFile);
                             } else {
                                 // This is not a valid operation
-                                logger.error1("Invalid move operation: Trying to rename a directory to a file " +
-                                        "for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath +
-                                        " newName: " + newName);
+                                logger.error("Invalid move operation: Trying to rename a directory to a file " +
+                                        "in site '{}' from path '{}' to path '{}' with name '{}'",
+                                        site, fromPath, toPath, newName);
                             }
                         } else if (sourceFile.isDirectory()) {
                             // Check if we're moving a single file or whole subtree
@@ -505,8 +503,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         toRet.put(pathToCommit, commitId);
                     }
                 } catch (IOException | GitAPIException | ServiceLayerException | UserNotFoundException e) {
-                    logger.error1("Error while moving content for site: " + site + " fromPath: " + fromPath +
-                            " toPath: " + toPath + " newName: " + newName);
+                    logger.error("Error moving item in site '{}' from path '{}' to path '{}' with name '{}'",
+                            site, fromPath, toPath, newName);
                 }
             }
         } finally {
@@ -550,8 +548,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     commitId = commit.getName();
 
                 } catch (IOException | GitAPIException | ServiceLayerException | UserNotFoundException e) {
-                    logger.error1("Error while copying content for site: " + site + " fromPath: " + fromPath +
-                            " toPath: " + toPath + " newName: ");
+                    logger.error("Error copying item in site '{}' from path '{}' to path '{}'",
+                            site, fromPath, toPath);
                 }
             }
         } finally {
@@ -597,8 +595,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         tw.close();
                     } else {
-                        logger.debug1("Object is not tree for site: " + site + " path: " + path +
-                                " - it does not have children");
+                        logger.debug("Item in site '{}' path '{}' doesn't have any children",
+                                site, path);
                     }
                 } else {
                     String gitPath = helper.getGitPath(path);
@@ -624,18 +622,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     retItems.add(item);
                                 }
                             }
-
-                        } catch (IOException e) {
-                            logger.error1("Error while getting children for site: " + site + " path: " + path, e);
                         }
-
                     }
                 }
-            } catch (IOException e) {
-                logger.error1("Error while getting children for site: " + site + " path: " + path, e);
             }
         } catch (IOException e) {
-            logger.error1("Failed to create RevTree for site: " + site + " path: " + path, e);
+            logger.error("Error getting children for site '{}' path '{}'", site, path, e);
         }
 
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
@@ -666,12 +658,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         versionTO.setComment(revCommit.getFullMessage());
                         versionHistory.add(versionTO);
                     }
-
-                } catch (IOException e) {
-                    logger.error1("error while getting history for content item " + path);
                 }
             } catch (IOException | GitAPIException e) {
-                logger.error1("Failed to create Git repo for site: " + site + " path: " + path, e);
+                logger.error("Error getting history for item in site '{}' path '{}'", site, path, e);
             }
         }
 
@@ -712,11 +701,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         toReturn = versionLabel;
 
                     } catch (GitAPIException | ServiceLayerException | UserNotFoundException e) {
-                        logger.error1("error creating new version for site:  " + site + " path: " + path, err);
+                        logger.error("Error creating new version for site '{}' path '{}'", site, path, e);
                     }
                 }
             } else {
-                logger.info1("request to create minor revision ignored for site: " + site + " path: " + path);
+                logger.info("Ignoring request to create a minor version for site '{}' path '{}' since " +
+                        "we no longer support that mechanism of versioning", site, path);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -744,6 +734,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private InputStream getContentVersion(String site, String path, String version) {
         InputStream toReturn = null;
+
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
@@ -756,14 +747,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         toReturn = objectLoader.openStream();
                         tw.close();
                     }
-                } catch (IOException e) {
-                    logger.error1("Error while getting content for file at site: " + site + " path: " + path +
-                            " version: " + version, e);
                 }
             }
         } catch (IOException e) {
-            logger.error1("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
-                    version, e);
+            logger.error("Error getting content for item in site '{}' path '{}' version '{}'",
+                    site, path, version, e);
         }
 
         return toReturn;
@@ -791,7 +779,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 lock.lock();
 
             } catch (IOException e) {
-                logger.error1("Error while locking file for site: " + site + " path: " + path, e);
+                logger.error("Error locking item in site '{}' path '{}'", site, path, e);
             }
         }
     }
@@ -818,7 +806,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 lock.unlock();
 
             } catch (IOException e) {
-                logger.error1("Error while unlocking file for site: " + site + " path: " + path, e);
+                logger.error("Error unlocking item in site '{}' path '{}'", site, path, e);
             }
         }
     }
@@ -845,32 +833,33 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 lock.unlock();
 
             } catch (IOException e) {
-                logger.error1("Error while unlocking file for site: " + site + " path: " + path, e);
+                logger.error("Error unlocking item in site '{}' path '{}'", site, path, e);
             }
         }
     }
 
     /**
-     * bootstrap the repository
+     * bootstrap the global repository
      */
     @Order(1)
     @EventListener(ContextRefreshedEvent.class)
     public void bootstrap() throws Exception {
-        logger.debug1("Bootstrap global repository.");
+        logger.debug("Bootstrap the Global repository");
 
         boolean bootstrapRepo = Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO));
         boolean isCreated = false;
 
+        // TODO: SJ: Check that this still happens in the clustering
         HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
         if (bootstrapRepo && registrationData != null && !registrationData.isEmpty()) {
             String firstCommitId = getRepoFirstCommitId(StringUtils.EMPTY);
             String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
             List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
             if (StringUtils.isEmpty(firstCommitId)) {
-                logger.debug1("Creating global repository as cluster clone");
+                logger.debug("Creating the Global repository as a clone from the Primary cluster node");
                 isCreated = studioClusterUtils.cloneGlobalRepository(clusterNodes);
             } else {
-                logger.debug1("Global repository exists syncing with cluster siblings");
+                logger.debug("The Global repository exists, sync with the Primary cluster node");
                 isCreated = true;
                 Repository repo = helper.getRepository(EMPTY, GLOBAL);
                 try (Git git = new Git(repo)) {
@@ -878,7 +867,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         try {
                             syncFromRemote(git, remoteNode);
                         } catch (Exception e) {
-                            logger.error1("Error syncing global repository from cluster sibling " +
+                            // TODO: SJ: We don't have siblings, review this code and kill it if not valid
+                            logger.error("Error syncing the Global repository from the Primary node '{}'",
                                     remoteNode.getGitRemoteName());
                         }
                     }
