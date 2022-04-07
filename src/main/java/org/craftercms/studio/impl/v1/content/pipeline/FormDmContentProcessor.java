@@ -166,7 +166,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     }
 
-    // For backwards compatibility ignore the exception
+    // For backward compatibility ignore the exception
     protected void unlock(String siteId, String path) throws ContentNotFoundException {
         try {
             contentServiceV2.unlockContent(siteId, path);
