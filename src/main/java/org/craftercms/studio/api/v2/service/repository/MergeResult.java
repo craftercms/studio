@@ -18,6 +18,8 @@ package org.craftercms.studio.api.v2.service.repository;
 
 import org.eclipse.jgit.api.PullResult;
 
+import java.util.Collection;
+
 /**
  * Holds the result of a merge from a remote repository
  *
@@ -72,7 +74,7 @@ public class MergeResult {
         return new MergeResult(false, 0, null);
     }
 
-    public static MergeResult from(PullResult pullResult) {
+    public static MergeResult from(PullResult pullResult, Collection<String> mergedCommits) {
         org.eclipse.jgit.api.MergeResult mergeResult = pullResult.getMergeResult();
         long commitsMerged = 0;
         String mergeCommitId = null;
@@ -80,7 +82,7 @@ public class MergeResult {
         // even if the status is something like ALREADY_UP_TO_DATE
         if (mergeResult != null &&
             mergeResult.getMergeStatus() == org.eclipse.jgit.api.MergeResult.MergeStatus.MERGED) {
-            commitsMerged = mergeResult.getMergedCommits().length;
+            commitsMerged = mergedCommits.size();
             mergeCommitId = mergeResult.getNewHead().name();
         }
         return new MergeResult(pullResult.isSuccessful(), commitsMerged, mergeCommitId);

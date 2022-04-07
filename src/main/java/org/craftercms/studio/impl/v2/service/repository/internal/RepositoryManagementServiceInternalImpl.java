@@ -466,7 +466,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     }
                 }
                 siteService.updateLastCommitId(siteId, lastCommitId);
-                return MergeResult.from(pullResult);
+                return MergeResult.from(pullResult, newMergedCommits);
             } else if (conflictNotificationEnabled()) {
                 List<String> conflictFiles = new LinkedList<>();
                 if (pullResult.getMergeResult() != null) {
