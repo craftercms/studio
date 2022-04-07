@@ -450,7 +450,7 @@
         </tool>
         <tool>
             <name>repository</name>
-            <label>Remote Repositories</label>
+            <label>Git</label>
             <icon>
                 <class>fa-database</class>
             </icon>

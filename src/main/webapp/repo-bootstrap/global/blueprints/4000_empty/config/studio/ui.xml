@@ -459,10 +459,10 @@
 					<widget id="craftercms.components.PublishingDashboard"/>
 				</tool>
 				<tool>
-					<title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
-					<icon id="@mui/icons-material/StorageRounded"/>
-					<url>remote-repositories</url>
-					<widget id="craftercms.components.RemoteRepositoriesManagement"/>
+					<title id="words.git" defaultMessage="Git"/>
+					<icon id="craftercms.icons.Git"/>
+					<url>git</url>
+					<widget id="craftercms.components.GitManagement"/>
 				</tool>
 				<tool>
 					<title>GraphQL</title>
