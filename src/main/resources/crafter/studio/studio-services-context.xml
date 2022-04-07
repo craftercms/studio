@@ -1175,6 +1175,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepositoryV1" ref="contentRepository" />
+        <property name="contentServiceV2" ref="contentService"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

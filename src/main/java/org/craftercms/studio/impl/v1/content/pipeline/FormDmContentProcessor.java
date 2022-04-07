@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -63,6 +64,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected SiteService siteService;
     protected UserServiceInternal userServiceInternal;
     protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
+    protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
     /**
      * default constructor
@@ -125,9 +127,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     updateFile(site, item, path, input, user, isPreview, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                     if (unlock) {
-                        // TODO: We need ability to lock/unlock content in repo
-                        contentService.unLockContent(site, path);
-                        logger.debug("Unlocked the content " + parentContentPath);
+                        unlock(site, path);
                     }
                     return;
                 } else {
@@ -143,9 +143,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                         if (unlock) {
-                            // TODO: We need ability to lock/unlock content in repo
-                            contentService.unLockContent(site, path);
-                            logger.debug("Unlocked the content site: " + site + " path: " + path);
+                            unlock(site, path);
                         }
                         return;
                     } else {
@@ -166,6 +164,16 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             ContentUtils.release(input);
         }
 
+    }
+
+    // For backwards compatibility ignore the exception
+    protected void unlock(String siteId, String path) throws ContentNotFoundException {
+        try {
+            contentServiceV2.unlockContent(siteId, path);
+            logger.debug("Unlocked the content site: {0} path: {1}", siteId, path);
+        } catch (ContentAlreadyUnlockedException e) {
+            logger.debug("Content already unlocked site: {0} path: {1}", siteId, path);
+        }
     }
 
     /**
@@ -429,4 +437,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
         this.contentRepositoryV1 = contentRepositoryV1;
     }
+
+    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+        this.contentServiceV2 = contentServiceV2;
+    }
+
 }
