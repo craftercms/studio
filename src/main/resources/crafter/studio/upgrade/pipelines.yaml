@@ -637,6 +637,12 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 13
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.2
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.2.xslt
+              commitDetails: Rename Remote Repositories
 
   contextual-nav:
     module: studio
@@ -763,3 +769,14 @@ configurations:
       # Switch to the new version schema
       - currentVersion: 2
         nextVersion: 4.0.1
+
+  ui:
+    module: studio
+    path: ui.xml
+    pipeline:
+      - currentVersion: 4.0.1
+        nextVersion: 4.0.2
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.2.xslt
+            commitDetails: Rename Remote Repositories

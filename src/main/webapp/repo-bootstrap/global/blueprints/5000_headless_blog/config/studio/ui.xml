@@ -15,6 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
+	<version>4.0.2</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
