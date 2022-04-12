@@ -15,6 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
+	<version>4.0.2</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -460,10 +461,10 @@
 					<widget id="craftercms.components.PublishingDashboard"/>
 				</tool>
 				<tool>
-					<title id="remoteRepositories.title" defaultMessage="Remote Repositories"/>
-					<icon id="@mui/icons-material/StorageRounded"/>
-					<url>remote-repositories</url>
-					<widget id="craftercms.components.RemoteRepositoriesManagement"/>
+					<title id="words.git" defaultMessage="Git"/>
+					<icon id="craftercms.icons.Git"/>
+					<url>git</url>
+					<widget id="craftercms.components.GitManagement"/>
 				</tool>
 				<tool>
 					<title>GraphQL</title>

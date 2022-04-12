@@ -13,20 +13,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package org.craftercms.studio.api.v2.exception.git.cli;
 
-package org.craftercms.studio.api.v2.repository;
+import java.io.IOException;
 
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
+/**
+ * Thrown when the Git CLI exits with a non-zero value. The output of the command is in the message.
+ *
+ * @author Alfonso Vasquez
+ * @since 3.1.23
+ */
+public class GitCliOutputException extends IOException {
 
-import java.util.concurrent.Callable;
+    private int exitValue;
 
-public interface RetryingRepositoryOperationFacade {
+    public GitCliOutputException(int exitValue, String output) {
+        super("\n" + output);
 
-    // For JGit
-    <T> T call(GitCommand<T> gitCommand) throws GitAPIException;
+        this.exitValue = exitValue;
+    }
 
-    // For Git CLI
-    <T> T call(Callable<T> gitCommand) throws Exception;
+    public int getExitValue() {
+        return exitValue;
+    }
 
 }

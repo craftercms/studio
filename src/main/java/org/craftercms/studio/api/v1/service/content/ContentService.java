@@ -50,6 +50,15 @@ public interface ContentService {
     boolean contentExists(String site, String path);
 
     /**
+     * This is a faster, but less accurate, version of contentExists. This prioritizes
+     * performance over checking the actual underlying repository if the content is actually in the store
+     * or we simply hold a reference to the object in the actual store.
+     *
+     * @return true if site has content object at path
+     */
+    boolean shallowContentExists(String site, String path);
+
+    /**
      * get document from wcm content
      *
      * @param site site identifier
@@ -318,8 +327,6 @@ public interface ContentService {
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
     void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
-
-    void unLockContent(String site, String path);
 
     List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 

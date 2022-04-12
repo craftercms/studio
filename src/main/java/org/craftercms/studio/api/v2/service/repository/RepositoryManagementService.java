@@ -38,7 +38,7 @@ public interface RepositoryManagementService {
 
     List<RemoteRepositoryInfo> listRemotes(String siteId) throws ServiceLayerException, CryptoException;
 
-    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
+    MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 

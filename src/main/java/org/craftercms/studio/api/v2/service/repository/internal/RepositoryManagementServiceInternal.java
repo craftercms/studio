@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
+import org.craftercms.studio.api.v2.service.repository.MergeResult;
 
 import java.util.List;
 
@@ -38,7 +39,7 @@ public interface RepositoryManagementServiceInternal {
     List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch)
             throws ServiceLayerException, CryptoException;
 
-    boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
+    MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 

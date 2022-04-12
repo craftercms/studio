@@ -87,6 +87,12 @@ studio.repo.ignoreFiles:
 studio.repo.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries for retrying repository operation
 studio.repo.retryingOperation.maxSleep: 1000
+# If Git CLI should be used for some Git operations, for better performance (Git CLI needs to be installed beforehand)
+studio.repo.git.cli.enabled: true
+# The process name of git, as it is available from PATH
+studio.repo.git.cli.process.name: git
+# Timeout in seconds when waiting for the Git CLI process to finish
+studio.repo.git.cli.process.waitForTimeout: 300
 
 ############################################################
 ##                       Blob Store                       ##
@@ -975,7 +981,7 @@ studio.clockJob.task.publisher.maxRetryCount: 5
 # Process audit log from repository execute every N cycles
 studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 # Insert N new commits from git log with each execution of the audit log processing task
-studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
+studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 10000
 # Process N unaudited commits with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
 

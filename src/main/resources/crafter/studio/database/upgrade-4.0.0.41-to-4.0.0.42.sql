@@ -14,19 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.repository;
+-- Change the size column to support big files
+ALTER TABLE `item`
+    MODIFY COLUMN `size` BIGINT NULL ;
 
-import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-
-import java.util.concurrent.Callable;
-
-public interface RetryingRepositoryOperationFacade {
-
-    // For JGit
-    <T> T call(GitCommand<T> gitCommand) throws GitAPIException;
-
-    // For Git CLI
-    <T> T call(Callable<T> gitCommand) throws Exception;
-
-}
+UPDATE `_meta` SET `version` = '4.0.0.42' ;
