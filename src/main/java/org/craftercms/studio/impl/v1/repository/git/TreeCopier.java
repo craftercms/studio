@@ -48,17 +48,16 @@ public class TreeCopier  implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        // TODO: SJ: What does this method actually do?
         CopyOption[] options = new CopyOption[0];
 
-        Path newdir = target.resolve(source.relativize(dir));
+        Path newDir = target.resolve(source.relativize(dir));
         try {
-            Files.copy(dir, newdir, options);
+            Files.copy(dir, newDir, options);
         } catch (FileAlreadyExistsException e) {
             // ignore
         } catch (IOException e) {
-            logger.error1("Dir: " + dir.toString() + " NewDir: " + newdir.toString());
-            logger.error1("!!!!!!!!!!!!!!!!############# Exception is: ", e);
-            logger.error1("Unable to create: %s: %s%n", newdir, e);
+            logger.error("Failed to copy files from '{}' to '{}' with options '{}'", dir, newDir, options, e);
             return SKIP_SUBTREE;
         }
         return CONTINUE;
@@ -70,17 +69,18 @@ public class TreeCopier  implements FileVisitor<Path> {
         try {
             Files.copy(file, target.resolve(source.relativize(file)), options);
         } catch (IOException e) {
-            logger.error1("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
+            logger.error("Failed to copy '{}' to '{}' with options '{}'",
+                    source, target.resolve(source.relativize(file)), options, e);
         }
         return CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-        if (exc instanceof FileSystemLoopException) {
-            logger.error1("cycle detected: " + file);
+    public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
+        if (e instanceof FileSystemLoopException) {
+            logger.error("File system loop detected for file '{}'", file, e);
         } else {
-            logger.error1("Unable to copy: %s: %s%n", file, exc);
+            logger.error("Failed to copy file '{}'", file, e);
         }
         return CONTINUE;
     }

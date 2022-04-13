@@ -1276,6 +1276,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                   String authenticationType, String remoteUsername, String remotePassword,
                                   String remoteToken, String remotePrivateKey) throws CryptoException {
         // TODO: SJ: Refactor to shorten and reduce duplication
+        // TODO: SJ: Clean up string literals
         logger.debug("Adding remote '{}' to the database for site '{}'", remoteName, siteId);
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
@@ -1502,22 +1503,22 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
-        logger.debug1("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug("Pull from remote '{}' branch '{}' in site '{}'", remoteName, remoteBranch, siteId);
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
 
-        logger.debug1("Prepare pull command");
+        // Prepare pull command
         Repository repo = helper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
-            logger.debug1("Set remote " + remoteName);
+            // Set remote remoteName
             pullCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug1("Set branch to be " + remoteBranch);
+            // Set branch remoteBranch
             pullCommand.setRemoteBranchName(remoteBranch);
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
             try {
@@ -1530,13 +1531,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
-            logger.error1("Remote is invalid " + remoteName, e);
+            logger.error("Remote '{}' branch '{}' in site '{}' is invalid ", remoteName, remoteBranch, siteId, e);
             throw new InvalidRemoteUrlException();
         } catch (GitAPIException e) {
-            logger.error1("Error while pulling from remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
-            throw new ServiceLayerException("Error while pulling from remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
+            logger.error("Error pulling from remote '{}' branch '{}' in site '{}'",
+                    remoteName, remoteBranch, siteId, e);
+            throw new ServiceLayerException(String.format("Error pulling from remote '{}' branch '{}' in site '{}'",
+                    remoteName, remoteBranch, siteId, e));
         } catch (CryptoException | IOException e) {
             throw new ServiceLayerException(e);
         } finally {
@@ -1554,28 +1555,31 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void resetStagingRepository(String siteId) throws ServiceLayerException {
+        // TODO: SJ: Refactor if still in use
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         String stagingName = servicesConfig.getStagingEnvironment(siteId);
         String liveName = servicesConfig.getLiveEnvironment(siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
+        // TODO: SJ: Remove double locking
         synchronized (repo) {
             try (Git git = new Git(repo)) {
-                logger.debug1("Checkout live first becuase it is not allowed to delete checkedout branch");
+                // Checkout the live branch first since we cannot delete a checked out branch
                 CheckoutCommand checkoutCommand = git.checkout().setName(liveName);
                 retryingRepositoryOperationFacade.call(checkoutCommand);
-                logger.debug1("Delete staging branch in order to reset it for site: " + siteId);
+                logger.debug("Delete the staging branch in order to reset it in site '{}'", siteId);
                 DeleteBranchCommand deleteBranchCommand =
                         git.branchDelete().setBranchNames(stagingName).setForce(true);
                 retryingRepositoryOperationFacade.call(deleteBranchCommand);
 
-                logger.debug1("Create new branch for staging with live HEAD as starting point");
+                logger.debug("Create a new branch for staging with live/HEAD as starting point in site '{}'",
+                        siteId);
                 CreateBranchCommand createBranchCommand = git.branchCreate()
                         .setName(stagingName)
                         .setStartPoint(liveName);
                 retryingRepositoryOperationFacade.call(createBranchCommand);
             } catch (GitAPIException e) {
-                logger.error1("Error while reseting staging environment for site: " + siteId);
+                logger.error("Error resetting the staging environment in site '{}'", siteId, e);
                 throw new ServiceLayerException(e);
             } finally {
                 generalLockService.unlock(gitLockKey);
@@ -1585,16 +1589,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void reloadRepository(String siteId) {
+        // TODO: SJ: What's the purpose of this method?
         helper.removeSandbox(siteId);
         helper.getRepository(siteId, SANDBOX);
     }
 
     protected void cleanup(String siteId, GitRepositories repository) {
+        // TODO: SJ: Rename this to indicate what it actually does, garbage collect git
         Repository sandbox = helper.getRepository(siteId, repository);
         try (Git git = new Git(sandbox)) {
             retryingRepositoryOperationFacade.call(git.gc());
         }  catch (Exception e) {
-            logger.warn1("Error cleaning up repository for site " + siteId, e);
+            logger.warn("Error garbage collecting the git repository in site '{}'", siteId, e);
         }
     }
 
@@ -1603,8 +1609,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     @Override
     public void cleanupRepositories(final String siteId) {
+        // TODO: SJ: Rename to indicate what this actually does, garbage collect the git repos
         if(StringUtils.isEmpty(siteId)) {
-            logger.info1("Cleaning up global repository");
+            logger.info("Garbage collect the global repository");
             String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
             generalLockService.lock(gitLockKey);
             try {
@@ -1613,10 +1620,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 generalLockService.unlock(gitLockKey);
             }
         } else {
-            logger.info1("Cleaning up repositories for site {}", siteId);
+            logger.info("Garbage collect the git repositories in site '{}'", siteId);
             String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
             String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
             generalLockService.lock(gitLockKeySandbox);
+            // TODO: SJ: Redo the exception handling as part of refactoring this method
             try {
                 cleanup(siteId, SANDBOX);
             } finally {

@@ -58,7 +58,7 @@ public class RebuildRepositoryMetadata {
     public void execute(String site) {
         if (taskLock.tryLock()) {
             try {
-                logger.debug1("Starting Rebuild Repository Metadata Task.");
+                logger.debug("Starting the Rebuild Repository Metadata background task for site '{}'", site);
                 CronJobContext securityContext = new CronJobContext(securityService.getCurrentUser());
                 RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
                 taskExecutor.execute(task);
@@ -80,37 +80,37 @@ public class RebuildRepositoryMetadata {
 
         @Override
         public void run() {
-            logger.debug1("Start rebuilding repository metadata for site " + site);
+            logger.debug("Rebuild repository metadata for site '{}' started", site);
             CronJobContext.setCurrent(securityContext);
-            logger.debug1("Cleaning existing repository metadata for site " + site);
+            logger.debug("Cleaning up existing repository metadata for site '{}'", site);
             try {
                 cleanOldMetadata(site);
             } catch (SiteNotFoundException e) {
-                logger.error1("Error while cleaning up old metadata");
+                logger.error("Error cleaning up old metadata for site '{}'", site, e);
             }
-            logger.debug1("Initiate rebuild metadata process for site " + site);
+            logger.debug("Started the rebuild metadata process for site '{}'", site);
             try {
                 rebuildMetadata(site);
             } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error1("Error while rebuilding metadata", e);
+                logger.error("Failed to rebuild the metadata for site '{}'", site, e);
             }
             CronJobContext.clear();
-            logger.debug1("Finished rebuilding repository metadata for site " + site);
+            logger.debug("Rebuild repository metadata for site '{}' ended", site);
         }
     }
 
     public boolean cleanOldMetadata(String site) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
-        logger.debug1("Clean repository metadata for site " + site);
+        logger.debug("Clean the repository metadata in site '{}'", site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
 
         try {
             // Delete all dependencies
-            logger.debug1("Deleting dependencies for site " + site);
+            logger.debug("Delete the dependencies in site '{}'", site);
             dependencyService.deleteSiteDependencies(site);
         } catch (Exception e) {
-            logger.error1("Failed to delete dependencies for site " + site);
+            logger.error("Failed to delete the dependencies in site '{}'", site, e);
         }
 
         try {
