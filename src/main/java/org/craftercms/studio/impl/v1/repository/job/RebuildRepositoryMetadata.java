@@ -115,25 +115,25 @@ public class RebuildRepositoryMetadata {
 
         try {
             // Delete deployment queue
-            logger.debug1("Deleting deployment queue for site " + site);
+            logger.debug("Delete the deployment queue in site '{}'", site);
             retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
         } catch (Exception e) {
-            logger.error1("Failed to delete deployment queue for site " + site);
+            logger.error("Failed to delete the deployment queue in site '{}'", site, e);
         }
 
         try {
             // Delete item table
-            logger.debug1("Deleting item table for site " + site);
+            logger.debug("Delete the item table for site '{}'", site);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
         } catch (Exception e) {
-            logger.error1("Failed to delete item data for site " + site);
+            logger.error("Failed to delete the item data for site '{}'", site, e);
         }
 
         try {
-            logger.debug1("Deleting git log data for site " + site);
+            logger.debug("Delete the git log data for site '{}'", site);
             contentRepository.deleteGitLogForSite(site);
         } catch (Exception e) {
-            logger.error1("Failed to delete git log data for site " + site);
+            logger.error("Failed to delete the git log data for site '{}'", site, e);
         }
 
         return true;
