@@ -130,7 +130,7 @@ public class GitRepositoryHelper {
     private GeneralLockService generalLockService;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private GitCli gitCli;
-    private boolean useGitCli;
+    private boolean gitCliEnabled;
 
     private Map<String, Repository> sandboxes = new HashMap<>();
     private Map<String, Repository> published = new HashMap<>();
@@ -156,7 +156,7 @@ public class GitRepositoryHelper {
             instance.generalLockService = generalLockService;
             instance.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
             instance.gitCli = new GitCli();
-            instance.useGitCli = studioConfiguration.getProperty(REPO_USE_GIT_CLI, Boolean.class, false);
+            instance.gitCliEnabled = studioConfiguration.getProperty(REPO_GIT_CLI_ENABLED, Boolean.class, false);
         }
         return instance;
     }
@@ -617,6 +617,12 @@ public class GitRepositoryHelper {
                 CONFIG_PARAMETER_FILE_MODE_DEFAULT);
         // Save configuration changes
         config.save();
+
+        if (gitCliEnabled) {
+            // The first git commit of a new repository takes a long time with Git CLI. A git status first seems
+            // to fix the issue
+            gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
+        }
 
         return repo;
     }
@@ -1159,13 +1165,13 @@ public class GitRepositoryHelper {
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Adding files: site: {0}, path: {1}, useGitCli: {2}", site,
-                             ArrayUtils.toString(paths), useGitCli);
+                             ArrayUtils.toString(paths), gitCliEnabled);
             }
 
             String gitLockKey = getSandboxRepoLockKey(site);
             generalLockService.lock(gitLockKey);
             try {
-                if (useGitCli) {
+                if (gitCliEnabled) {
                     retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
                         gitCli.add(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
                         return null;
@@ -1196,13 +1202,13 @@ public class GitRepositoryHelper {
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
                 logger.debug("Committing files: site: {0}, path: {1}, useGitCli: {2}", site,
-                             ArrayUtils.toString(paths), useGitCli);
+                             ArrayUtils.toString(paths), gitCliEnabled);
             }
 
             String gitLockKey = getSandboxRepoLockKey(site);
             generalLockService.lock(gitLockKey);
             try {
-                if (useGitCli) {
+                if (gitCliEnabled) {
                     String author = user.getName() + " <" + user.getEmailAddress() + ">";
 
                     commitId = retryingRepositoryOperationFacade.call(
