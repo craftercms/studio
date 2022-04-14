@@ -394,6 +394,7 @@ public class ContentController {
     @PostMapping(ITEM_UNLOCK_BY_PATH)
     public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
             throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
+        //TODO: The service should throw this exception, not the controller
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());
         }

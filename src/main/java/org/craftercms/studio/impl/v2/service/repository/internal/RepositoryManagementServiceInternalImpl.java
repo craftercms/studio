@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
+import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -116,6 +117,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
@@ -187,14 +189,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                                 .setListMode(ListBranchCommand.ListMode.REMOTE);
                         List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
-                        List<String> branchesToDelete = new ArrayList<String>();
+                        List<String> branchesToDelete = new ArrayList<>();
                         for (Ref remoteBranchRef : resultRemoteBranches) {
                             if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES +
                                     remoteRepository.getRemoteName())) {
                                 branchesToDelete.add(remoteBranchRef.getName());
                             }
                         }
-                        if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+                        if (isNotEmpty(branchesToDelete)) {
                             DeleteBranchCommand delBranch = git.branchDelete();
                             String[] array = new String[branchesToDelete.size()];
                             delBranch.setBranchNames(branchesToDelete.toArray(array));
@@ -236,7 +238,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private void insertRemoteToDb(String siteId, RemoteRepository remoteRepository) throws CryptoException {
         logger.debug("Inserting remote " + remoteRepository.getRemoteName() + " for site " + siteId +
                 " into database.");
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteRepository.getRemoteName());
         params.put("remoteUrl", remoteRepository.getRemoteUrl());
@@ -271,13 +273,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch) {
-        List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
-        Map<String, String> unreachableRemotes = new HashMap<String, String>();
+        List<RemoteRepositoryInfo> res = new ArrayList<>();
+        Map<String, String> unreachableRemotes = new HashMap<>();
         try (Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX)) {
             try (Git git = new Git(repo)) {
                 RemoteListCommand remoteListCommand = git.remoteList();
                 List<RemoteConfig> resultRemotes = retryingRepositoryOperationFacade.call(remoteListCommand);
-                if (CollectionUtils.isNotEmpty(resultRemotes)) {
+                if (isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
                         try {
                             fetchRemote(siteId, git, conf);
@@ -315,7 +317,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     private RemoteRepository getRemoteRepository(String siteId, String remoteName) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         return remoteRepositoryDao.getRemoteRepository(params);
@@ -325,7 +327,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         ListBranchCommand listBranchCommand = git.branchList()
                 .setListMode(ListBranchCommand.ListMode.REMOTE);
         List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
-        Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
+        Map<String, List<String>> remoteBranches = new HashMap<>();
         for (Ref remoteBranchRef : resultRemoteBranches) {
             String branchFullName = remoteBranchRef.getName().replace(Constants.R_REMOTES, "");
             String remotePart = StringUtils.EMPTY;
@@ -337,7 +339,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
 
             if (!remoteBranches.containsKey(remotePart)) {
-                remoteBranches.put(remotePart, new ArrayList<String>());
+                remoteBranches.put(remotePart, new ArrayList<>());
             }
             remoteBranches.get(remotePart).add(branchNamePart);
         }
@@ -348,7 +350,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                                                                Map<String, List<String>> remoteBranches,
                                                                Map<String, String> unreachableRemotes,
                                                                String sandboxBranchName) {
-        List<RemoteRepositoryInfo> res = new ArrayList<RemoteRepositoryInfo>();
+        List<RemoteRepositoryInfo> res = new ArrayList<>();
         for (RemoteConfig conf : resultRemotes) {
             RemoteRepositoryInfo rri = new RemoteRepositoryInfo();
             rri.setName(conf.getName());
@@ -358,13 +360,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             List<String> branches = remoteBranches.get(rri.getName());
             if (CollectionUtils.isEmpty(branches)) {
-                branches = new ArrayList<String>();
+                branches = new ArrayList<>();
                 branches.add(sandboxBranchName);
             }
             rri.setBranches(branches);
 
             StringBuilder sbUrl = new StringBuilder();
-            if (CollectionUtils.isNotEmpty(conf.getURIs())) {
+            if (isNotEmpty(conf.getURIs())) {
                 for (int i = 0; i < conf.getURIs().size(); i++) {
                     sbUrl.append(conf.getURIs().get(i).toString());
                     if (i < conf.getURIs().size() - 1) {
@@ -375,7 +377,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             rri.setUrl(sbUrl.toString());
 
             StringBuilder sbFetch = new StringBuilder();
-            if (CollectionUtils.isNotEmpty(conf.getFetchRefSpecs())) {
+            if (isNotEmpty(conf.getFetchRefSpecs())) {
                 for (int i = 0; i < conf.getFetchRefSpecs().size(); i++) {
                     sbFetch.append(conf.getFetchRefSpecs().get(i).toString());
                     if (i < conf.getFetchRefSpecs().size() - 1) {
@@ -386,7 +388,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             rri.setFetch(sbFetch.toString());
 
             StringBuilder sbPushUrl = new StringBuilder();
-            if (CollectionUtils.isNotEmpty(conf.getPushURIs())) {
+            if (isNotEmpty(conf.getPushURIs())) {
                 for (int i = 0; i < conf.getPushURIs().size(); i++) {
                     sbPushUrl.append(conf.getPushURIs().get(i).toString());
                     if (i < conf.getPushURIs().size() - 1) {
@@ -403,7 +405,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     @Override
-    public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
+    public MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
                     RemoteRepositoryNotFoundException {
         logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
@@ -412,14 +414,14 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         logger.debug("Prepare pull command");
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         generalLockService.lock(gitLockKey);
+        Path tempKey = null;
         try (Git git = new Git(repo)) {
-            PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
             logger.debug("Set remote " + remoteName);
             pullCommand.setRemote(remoteRepository.getRemoteName());
             logger.debug("Set branch to be " + remoteBranch);
             pullCommand.setRemoteBranchName(remoteBranch);
-            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+            tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
             gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
@@ -434,32 +436,21 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     break;
             }
             pullCommand.setFastForward(MergeCommand.FastForwardMode.NO_FF);
-            pullResult = retryingRepositoryOperationFacade.call(pullCommand);
+            PullResult pullResult = retryingRepositoryOperationFacade.call(pullCommand);
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
                 logger.info(pullResultMessage);
-            }
-            Files.delete(tempKey);
-            if (!pullResult.isSuccessful() && conflictNotificationEnabled()) {
-                List<String> conflictFiles = new ArrayList<String>();
-                if (pullResult.getMergeResult() != null) {
-                    pullResult.getMergeResult().getConflicts().forEach((m, v) -> {
-                        conflictFiles.add(m);
-                    });
-                }
-                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles);
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
                 contentRepositoryV2.upsertGitLogList(siteId, List.of(lastCommitId), false, false);
 
                 List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
-                List<String> commitIds = new ArrayList<String>();
-                if (Objects.nonNull(newMergedCommits) && newMergedCommits.size() > 0) {
+                List<String> commitIds = new LinkedList<>();
+                if (isNotEmpty(newMergedCommits)) {
                     logger.debug("Really pulled commits:");
                     int cnt = 0;
-                    for (int i = 0; i < newMergedCommits.size(); i ++) {
-                        String commitId = newMergedCommits.get(i);
+                    for (String commitId : newMergedCommits) {
                         logger.debug(commitId);
                         if (!StringUtils.equals(lastCommitId, commitId)) {
                             commitIds.add(commitId);
@@ -470,21 +461,25 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                             }
                         }
                     }
-                    if (Objects.nonNull(commitIds) && commitIds.size() > 0) {
+                    if (isNotEmpty(commitIds)) {
                         contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
                     }
                 }
-
                 siteService.updateLastCommitId(siteId, lastCommitId);
+                return MergeResult.from(pullResult, newMergedCommits);
+            } else if (conflictNotificationEnabled()) {
+                List<String> conflictFiles = new LinkedList<>();
+                if (pullResult.getMergeResult() != null) {
+                    conflictFiles.addAll(pullResult.getMergeResult().getConflicts().keySet());
+                }
+                notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles);
             }
-            return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
             logger.error("Remote is invalid " + remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
             GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
                                         remoteRepository.getRemoteUsername());
-            return false;
         } catch (GitAPIException e) {
             logger.error("Error while pulling from remote " + remoteName + " branch "
                     + remoteBranch + " for site " + siteId, e);
@@ -493,16 +488,25 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         } catch (CryptoException | IOException e) {
             throw new ServiceLayerException(e);
         } finally {
+            try {
+                if (tempKey != null) {
+                    Files.deleteIfExists(tempKey);
+                }
+            } catch (IOException e) {
+                logger.warn("Error deleting file {0}", tempKey);
+            }
             generalLockService.unlock(gitLockKey);
         }
+
+        return MergeResult.failed();
     }
 
     private List<String> extractCommitIdsFromPullResult(String siteId, Repository repo, PullResult pullResult) {
-        List<String> commitIds = new ArrayList<String>();
+        List<String> commitIds = new LinkedList<>();
         ObjectId[] mergedCommits = pullResult.getMergeResult().getMergedCommits();
-        for (int i = 0; i < mergedCommits.length; i++) {
+        for (ObjectId mergedCommit : mergedCommits) {
             try {
-                RevCommit revCommit = repo.parseCommit(mergedCommits[i]);
+                RevCommit revCommit = repo.parseCommit(mergedCommit);
                 commitIds.addAll(processCommitId(siteId, revCommit));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -512,8 +516,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     private Set<String> processCommitId(String siteId, RevCommit revCommit) {
-        Set<String> toRet = new HashSet<String>();
-        Queue<RevCommit> commitIdsQueue = new LinkedList<RevCommit>();
+        Set<String> toRet = new HashSet<>();
+        Queue<RevCommit> commitIdsQueue = new LinkedList<>();
         commitIdsQueue.offer(revCommit);
         while (!commitIdsQueue.isEmpty()) {
             RevCommit rc = commitIdsQueue.poll();
@@ -524,8 +528,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     if (Objects.isNull(gitLog)) {
                         RevCommit[] parents = rc.getParents();
                         if (Objects.nonNull(parents) && parents.length > 0) {
-                            for (int i = 0; i < parents.length; i++) {
-                                commitIdsQueue.offer(parents[i]);
+                            for (RevCommit parent : parents) {
+                                commitIdsQueue.offer(parent);
                             }
                         }
                         toRet.add(cId);
@@ -629,13 +633,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             ListBranchCommand listBranchCommand = git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE);
             List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
-            List<String> branchesToDelete = new ArrayList<String>();
+            List<String> branchesToDelete = new ArrayList<>();
             for (Ref remoteBranchRef : resultRemoteBranches) {
                 if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
                     branchesToDelete.add(remoteBranchRef.getName());
                 }
             }
-            if (CollectionUtils.isNotEmpty(branchesToDelete)) {
+            if (isNotEmpty(branchesToDelete)) {
                 DeleteBranchCommand delBranch = git.branchDelete();
                 String[] array = new String[branchesToDelete.size()];
                 delBranch.setBranchNames(branchesToDelete.toArray(array));
@@ -650,7 +654,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
 
         logger.debug("Remove remote record from database for remote " + remoteName + " and site " + siteId);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         retryingDatabaseOperationFacade.deleteRemoteRepository(params);
@@ -663,13 +667,13 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         if (StringUtils.startsWith(remoteName, CLUSTER_NODE_REMOTE_NAME_PREFIX)) {
             RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
             List<ClusterMember> clusterMembers = getClusterMembersByRemoteName(remoteName);
-            toRet = !(Objects.isNull(remoteRepository) && CollectionUtils.isNotEmpty(clusterMembers));
+            toRet = !(Objects.isNull(remoteRepository) && isNotEmpty(clusterMembers));
         }
         return toRet;
     }
 
     private List<ClusterMember> getClusterMembersByRemoteName(String remoteName) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("remoteName", remoteName);
         return clusterDao.getMemberByRemoteName(params);
     }
@@ -818,8 +822,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
             logger.debug("Add all uncommitted changes/files");
             AddCommand addCommand = git.add();
-            for (String uncommited : status.getUncommittedChanges()) {
-                addCommand.addFilepattern(uncommited);
+            for (String uncommitted : status.getUncommittedChanges()) {
+                addCommand.addFilepattern(uncommitted);
             }
             retryingRepositoryOperationFacade.call(addCommand);
             logger.debug("Commit changes");

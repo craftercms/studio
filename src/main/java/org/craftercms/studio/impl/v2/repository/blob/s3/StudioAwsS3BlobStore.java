@@ -95,6 +95,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
+    public boolean shallowContentExists(String site, String path) {
+        return false;
+    }
+
+    @Override
     public InputStream getContent(String site, String path) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Getting content at {0}", getFullKey(previewMapping, path));

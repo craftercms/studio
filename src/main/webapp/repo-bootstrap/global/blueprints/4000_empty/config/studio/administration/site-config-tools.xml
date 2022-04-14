@@ -40,7 +40,7 @@
     </config>
 -->
 <config>
-    <version>4.0.1</version>
+    <version>4.0.2</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -450,7 +450,7 @@
         </tool>
         <tool>
             <name>repository</name>
-            <label>Remote Repositories</label>
+            <label>Git</label>
             <icon>
                 <class>fa-database</class>
             </icon>

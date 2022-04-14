@@ -31,6 +31,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
+import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.CancelFailedPullRequest;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -77,6 +79,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.U
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
 import static org.craftercms.studio.model.rest.ApiResponse.ADD_REMOTE_INVALID;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -115,7 +118,7 @@ public class RepositoryManagementController {
     }
 
     @GetMapping(value = LIST_REMOTES, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody listRemotes(@RequestParam(name = "siteId", required = true) String siteId)
+    public ResponseBody listRemotes(@RequestParam(name = "siteId") String siteId)
             throws ServiceLayerException, CryptoException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
@@ -123,7 +126,7 @@ public class RepositoryManagementController {
         List<RemoteRepositoryInfo> remotes = repositoryManagementService.listRemotes(siteId);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<RemoteRepositoryInfo> result = new ResultList<RemoteRepositoryInfo>();
+        ResultList<RemoteRepositoryInfo> result = new ResultList<>();
         result.setEntities(RESULT_KEY_REMOTES, remotes);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -131,23 +134,25 @@ public class RepositoryManagementController {
     }
 
     @PostMapping(PULL_FROM_REMOTE)
-    public ResponseBody pullFromRemote(@RequestBody PullFromRemoteRequest pullFromRemoteRequest)
+    public ResponseBody pullFromRemote(@Valid @RequestBody PullFromRemoteRequest pullFromRemoteRequest)
             throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         if (!siteService.exists(pullFromRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pullFromRemoteRequest.getSiteId());
         }
-        boolean res = repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
+        MergeResult mergeResult = repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
                 pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
                 pullFromRemoteRequest.getMergeStrategy());
 
-        if (!res) {
+        //TODO: The service should throw this exception, not the controller
+        if (!mergeResult.isSuccessful()) {
             throw new PullFromRemoteConflictException("Pull from remote result is merge conflict.");
         }
 
         ResponseBody responseBody = new ResponseBody();
-        Result result = new Result();
+        ResultOne<MergeResult> result = new ResultOne<>();
         result.setResponse(OK);
+        result.setEntity(RESULT_KEY_RESULT, mergeResult);
         responseBody.setResult(result);
         return responseBody;
     }
@@ -219,7 +224,7 @@ public class RepositoryManagementController {
         }
         RepositoryStatus status = repositoryManagementService.getRepositoryStatus(siteId);
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        ResultOne<RepositoryStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -239,7 +244,7 @@ public class RepositoryManagementController {
         RepositoryStatus status = repositoryManagementService.resolveConflict(resolveConflictRequest.getSiteId(),
                 path, resolveConflictRequest.getResolution());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        ResultOne<RepositoryStatus> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
         responseBody.setResult(result);
@@ -259,7 +264,7 @@ public class RepositoryManagementController {
         }
         DiffConflictedFile diff = repositoryManagementService.getDiffForConflictedFile(siteId, diffPath);
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<DiffConflictedFile> result = new ResultOne<DiffConflictedFile>();
+        ResultOne<DiffConflictedFile> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_DIFF, diff);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -275,7 +280,7 @@ public class RepositoryManagementController {
         RepositoryStatus status = repositoryManagementService.commitResolution(commitResolutionRequest.getSiteId(),
                 commitResolutionRequest.getCommitMessage());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        ResultOne<RepositoryStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -290,7 +295,7 @@ public class RepositoryManagementController {
         }
         RepositoryStatus status = repositoryManagementService.cancelFailedPull(cancelFailedPullRequest.getSiteId());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<RepositoryStatus> result = new ResultOne<RepositoryStatus>();
+        ResultOne<RepositoryStatus> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_REPOSITORY_STATUS, status);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -317,16 +322,8 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
-    public RepositoryManagementService getRepositoryManagementService() {
-        return repositoryManagementService;
-    }
-
     public void setRepositoryManagementService(RepositoryManagementService repositoryManagementService) {
         this.repositoryManagementService = repositoryManagementService;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {

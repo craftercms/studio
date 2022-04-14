@@ -58,6 +58,8 @@ public class RetryingDatabaseOperationAnnotationHandler {
 
     @Around("@within(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation) || " +
             "@annotation(org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation)")
+    // TODO: AV - This has the same problem as the old RetryingRepositoryOperationAnnotationHandler. We can just copy
+    // the fixed code or consolidate the code
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
         logger.debug("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());

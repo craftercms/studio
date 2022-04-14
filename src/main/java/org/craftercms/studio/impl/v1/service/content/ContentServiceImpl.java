@@ -228,6 +228,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
+    public boolean shallowContentExists(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "path") String path) {
+        return this._contentRepository.shallowContentExists(site, path);
+    }
+
+    @Override
+    @ValidateParams
     public InputStream getContent(@ValidateStringParam(name = "site") String site,
                                   @ValidateSecurePathParam(name = "path") String path)
             throws ContentNotFoundException {
@@ -446,10 +453,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
                         SAVE_AND_NOT_CLOSE_OFF_MASK);
             }
-
-
-            // Sync preview
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }  catch (RuntimeException e) {
             logger.error("error writing content", e);
 
@@ -573,8 +576,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item.setSize(assetInfoTO.getSize());
             item.setSizeUnit(assetInfoTO.getSizeUnit());
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
-
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
 
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
@@ -1404,8 +1405,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1417,8 +1422,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);
@@ -2383,14 +2392,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, true));
     }
 
-    @Override
-    @ValidateParams
-    public void unLockContent(@ValidateStringParam(name = "site") String site,
-                              @ValidateSecurePathParam(name = "path") String path) {
-        _contentRepository.unLockItem(site, path);
-        itemServiceInternal.unlockItemByPath(site, path);
-        applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, false));
-    }
 
     @Override
     @ValidateParams
