@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -214,6 +215,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                  @ValidateSecurePathParam(name = "path") String path) {
         // TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.contentExists(site, path);
+    }
+
+    @Override
+    @ValidateParams
+    public boolean shallowContentExists(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "path") String path) {
+        return this._contentRepository.shallowContentExists(site, path);
     }
 
     @Override
@@ -434,9 +442,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_NOT_CLOSE_ON_MASK,
                         SAVE_AND_NOT_CLOSE_OFF_MASK);
             }
-
-            // Sync preview
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
         }  catch (RuntimeException e) {
             logger.error("Error writing content path '{}' site '{}'", path, site, e);
 
@@ -565,8 +570,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item.setSizeUnit(assetInfoTO.getSizeUnit());
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
-
             Map<String, Object> toRet = new HashMap<String, Object>();
             toRet.put("success", true);
             toRet.put("message", item);
@@ -627,8 +630,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     commitId, parentItem.getId());
 
             String username = securityService.getCurrentUser();
-            // TODO: This is not necessary, the current user is already in memory
-            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
@@ -639,10 +640,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
-
-            Item item = itemServiceInternal.getItem(site, folderPath);
-            activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_CREATE,
-                    DateUtils.getCurrentTime(), item.getId(), null);
 
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
@@ -738,7 +735,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditServiceInternal.insertAuditLog(auditLog);
 
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_DELETE,
-                    DateUtils.getCurrentTime(), it.getId(), null);
+                    DateUtils.getCurrentTime(), it, null);
 
             // process content life cycle
             if (path.endsWith(DmConstants.XML_PATTERN)) {
@@ -1065,7 +1062,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // This is not required, the current user is already loaded in memory
         User u = userService.getUserByIdOrUsername(-1, user);
         activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
-                DateUtils.getCurrentTime(), item.getId(), null);
+                DateUtils.getCurrentTime(), item, null);
 
         updateDependenciesOnMove(site, fromPath, movePath);
     }
@@ -1316,7 +1313,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         List<Node> keys = root.selectNodes("//key");
         if (keys != null) {
             for(Node keyNode : keys) {
-                String keyValue = ((Element)keyNode).getText();
+                String keyValue = keyNode.getText();
                 if(keyValue.contains("/page")) {
                     copyDependencies.put(keyValue, keyValue);
                 }
@@ -1326,7 +1323,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         List<Node> includes = root.selectNodes("//include");
         if (includes != null) {
             for(Node includeNode : includes) {
-                String includeValue = ((Element)includeNode).getText();
+                String includeValue = includeNode.getText();
                 if(includeValue.contains("/page")) {
                     copyDependencies.put(includeValue, includeValue);
                 }
@@ -1347,12 +1344,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Element root = document.getRootElement();
             Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
             if (pageIdNode != null) {
-                ids.put(KEY_PAGE_ID, ((Element) pageIdNode).getText());
+                ids.put(KEY_PAGE_ID, pageIdNode.getText());
             }
 
             Node groupIdNode = root.selectSingleNode("//" + ELM_GROUP_ID);
             if (groupIdNode != null) {
-                ids.put(KEY_PAGE_GROUP_ID, ((Element) groupIdNode).getText());
+                ids.put(KEY_PAGE_GROUP_ID, groupIdNode.getText());
             }
         }
         return ids;
@@ -1401,8 +1398,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1414,8 +1415,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);
@@ -2017,7 +2022,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             Item item = itemServiceInternal.getItem(site, path);
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
-                    DateUtils.getCurrentTime(), item.getId(), null);
+                    DateUtils.getCurrentTime(), item, null);
 
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
@@ -2034,9 +2039,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
-    public InputStream getContentVersion(@ValidateStringParam(name = "site") String site,
-                                         @ValidateSecurePathParam(name = "path") String path,
-                                         @ValidateStringParam(name = "commitId") String commitId)
+    public Optional<Resource> getContentVersion(@ValidateStringParam(name = "site") String site,
+                                                @ValidateSecurePathParam(name = "path") String path,
+                                                @ValidateStringParam(name = "commitId") String commitId)
             throws ContentNotFoundException {
         return contentRepository.getContentByCommitId(site, path, commitId);
     }
@@ -2046,15 +2051,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public String getContentVersionAsString(@ValidateStringParam(name = "site") String site,
                                             @ValidateSecurePathParam(name = "path") String path,
                                             @ValidateStringParam(name = "version") String version) {
-        String content = null;
-
         try {
-            content = IOUtils.toString(getContentVersion(site, path, version), UTF_8);
+            Optional<Resource> resource = getContentVersion(site, path, version);
+            if (resource.isPresent()) {
+                try (InputStream is = resource.get().getInputStream()) {
+                    return IOUtils.toString(is, UTF_8);
+                }
+            }
         } catch(Exception e) {
             logger.debug("Failed to get content as string for path '{}'", path, e);
         }
 
-        return content;
+        return null;
     }
 
     @Override
@@ -2238,7 +2246,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                     Matcher matcher = pattern.matcher(childName);
                                     if (matcher.matches()) {
                                         int helper = ContentFormatUtils.getIntValue(matcher.group(2));
-                                        lastNumber = (helper > lastNumber) ? helper : lastNumber;
+                                        lastNumber = Math.max(helper, lastNumber);
                                     }
                                 }
                             }
@@ -2562,6 +2570,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             updateChildrenOnMove(site, path, targetPath);
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
+                itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                 contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
@@ -2622,94 +2631,54 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.applicationContext = applicationContext;
     }
 
-    public ContentRepository getContentRepository() {
-        return _contentRepository;
-    }
     public void setContentRepository(ContentRepository contentRepository) {
         this._contentRepository = contentRepository;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
 
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
-    public ProcessContentExecutor getContentProcessor() {
-        return contentProcessor;
-    }
     public void setContentProcessor(ProcessContentExecutor contentProcessor) {
         this.contentProcessor = contentProcessor;
     }
 
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public DmPageNavigationOrderService getDmPageNavigationOrderService() {
-        return dmPageNavigationOrderService;
-    }
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
     }
 
-    public DmContentLifeCycleService getDmContentLifeCycleService() {
-        return dmContentLifeCycleService;
-    }
     public void setDmContentLifeCycleService(DmContentLifeCycleService dmContentLifeCycleService) {
         this.dmContentLifeCycleService = dmContentLifeCycleService;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public ContentItemIdGenerator getContentItemIdGenerator() {
-        return contentItemIdGenerator;
-    }
     public void setContentItemIdGenerator(ContentItemIdGenerator contentItemIdGenerator) {
         this.contentItemIdGenerator = contentItemIdGenerator;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public DependencyDiffService getDependencyDiffService() {
-        return dependencyDiffService;
-    }
     public void setDependencyDiffService(DependencyDiffService dependencyDiffService) {
         this.dependencyDiffService = dependencyDiffService;
     }
 
-    public ContentTypeService getContentTypeService() {
-        return contentTypeService;
-    }
     public void setContentTypeService(ContentTypeService contentTypeService) {
         this.contentTypeService = contentTypeService;
     }
@@ -2718,56 +2687,28 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.entitlementValidator = entitlementValidator;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public UserService getUserService() {
-        return userService;
     }
 
     public void setUserService(UserService userService) {
         this.userService = userService;
     }
 
-    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
-        return this.contentRepository;
-    }
-
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
     }
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {

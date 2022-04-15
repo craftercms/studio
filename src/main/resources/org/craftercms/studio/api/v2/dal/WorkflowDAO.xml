@@ -73,12 +73,13 @@
 
     <resultMap id="DashboardPublishingPackageMap"
                type="org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage">
-        <result property="id" column="publishing_package_id" />
+        <id property="id" column="w_id"/>
+        <result property="packageId" column="publishing_package_id"/>
         <result property="label" column="label" />
         <result property="size" column="size" />
         <result property="publishingTarget" column="target_environment" />
         <result property="schedule" column="schedule" />
-        <association property="submitter" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap" />
+        <association property="submitter" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap"/>
     </resultMap>
 
     <select id="getWorkflowEntryOpened" resultMap="WorkflowItemMap">
@@ -243,27 +244,34 @@
         WHERE id = #{id}
     </update>
 
+    <sql id="contentPEndingApprovalFilters">
+        <where>
+            s.site_id = #{siteId}
+            AND s.deleted = 0
+            AND w.state = #{state}
+        </where>
+    </sql>
+
+    <!-- TODO: group by package id when implemented -->
     <!-- TODO: add site_id to workflow to avoid join with item -->
-    <select id="getContentPendingApprovalTotal" resultType="int">
-        SELECT COUNT(w.publishing_package_id)
-        FROM workflow w INNER JOIN item i ON w.item_id = i.id
-            INNER JOIN site s on i.site_id = s.id
-            INNER JOIN user u ON w.submitter_id = u.id
-        WHERE s.site_id = #{siteId} AND s.deleted = 0
-        AND w.state = #{state}
-        GROUP BY w.publishing_package_id
+    <select id="getContentPendingApprovalTotal" resultType="Integer">
+        SELECT COUNT(1)
+        FROM workflow w
+            LEFT JOIN item i ON w.item_id = i.id
+            LEFT JOIN site s on i.site_id = s.id
+            LEFT JOIN user u ON w.submitter_id = u.id
+        <include refid="contentPEndingApprovalFilters"/>
     </select>
 
-    <!-- Can we use <sql> to avoid repeating the FROM and WHERE from above? -->
-    <select id="getContentPendingApproval" resultMap="DashboardPublishingPackageMap">
-        SELECT w.id, w.label, count(*) as size, w.target_environment, w.publishing_package_id,
-        w.schedule as published_on, u.first_name, u.last_name, u.avatar
-        FROM workflow w INNER JOIN item i ON w.item_id = i.id
-            INNER JOIN site s on i.site_id = s.id
-            INNER JOIN user u ON w.submitter_id = u.id
-        WHERE s.site_id = #{siteId} AND s.deleted = 0
-          AND w.state = #{state}
-        GROUP BY w.publishing_package_id
+    <select id="getContentPendingApproval" resultType="list" resultMap="DashboardPublishingPackageMap">
+        SELECT
+            w.id as w_id, w.label, w.target_environment, w.publishing_package_id, w.schedule,
+            u.id, u.username, u.first_name, u.last_name, u.avatar
+        FROM workflow w
+            LEFT JOIN item i ON w.item_id = i.id
+            LEFT JOIN site s on i.site_id = s.id
+            LEFT JOIN user u ON w.submitter_id = u.id
+        <include refid="contentPEndingApprovalFilters"/>
         ORDER BY w.schedule DESC
         LIMIT #{offset}, #{limit}
     </select>

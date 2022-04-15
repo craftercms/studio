@@ -24,7 +24,9 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
@@ -43,12 +45,14 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.repository.StrSubstitutorVisitor;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants;
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
+import org.craftercms.studio.impl.v2.utils.git.GitCli;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -98,12 +102,8 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.Callable;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
@@ -137,6 +137,9 @@ import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryC
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
 import static org.eclipse.jgit.lib.Constants.HEAD;
 
+// TODO: AV - Missing Javadoc and shouldn't be in the api root package. Those are only used mainly for interfaces
+// TODO: AV - all methods in this class should throw exceptions instead of returning null or a boolean
+// not implementations like this one
 public class GitRepositoryHelper implements DisposableBean {
 
     public static final String CONFIG_KEY_RESOURCE = "resource";
@@ -151,6 +154,8 @@ public class GitRepositoryHelper implements DisposableBean {
     private GeneralLockService generalLockService;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private AuthConfiguratorFactory authConfiguratorFactory;
+    private GitCli gitCli;
+    private boolean gitCliEnabled;
 
     private final Cache<String, Repository> repositoryCache = CacheBuilder.newBuilder().build();
 
@@ -203,11 +208,8 @@ public class GitRepositoryHelper implements DisposableBean {
                     break;
             }
 
-            if (repo != null) {
-                repositoryCache.put(cacheKey, repo);
-                logger.debug("success in getting the repository for site '{}'", siteId);
-            } else {
-                logger.debug("failure in getting the repository for site '{}'", siteId);
+            if (repo == null) {
+                logger.debug1("failure in getting the repository for site: " + siteId);
             }
         }
 
@@ -377,19 +379,27 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     public String getGitPath(String path) {
-        Path gitPath = Paths.get(path);
-        gitPath = gitPath.normalize();
-        try {
-            gitPath = Paths.get(FILE_SEPARATOR).relativize(gitPath);
-        } catch (IllegalArgumentException e) {
-            logger.debug("Path '{}' is already relative path.", path);
+        if (StringUtils.isEmpty(path)) {
+            path = ".";
+        } else {
+            path = FilenameUtils.normalize(path, true);
+            path = StringUtils.stripStart(path, FILE_SEPARATOR);
+            path =  FilenameUtils.separatorsToUnix(path);
         }
-        if (StringUtils.isEmpty(gitPath.toString())) {
-            return ".";
+        return path;
+    }
+
+    public String[] getGitPaths(String... paths) {
+        if (ArrayUtils.isNotEmpty(paths)) {
+            String[] gitPaths = new String[paths.length];
+            for (int i = 0; i < paths.length; i++) {
+                gitPaths[i] = getGitPath(paths[i]);
+            }
+
+            return gitPaths;
+        } else {
+            return new String[0];
         }
-        String toRet = gitPath.toString();
-        toRet = FilenameUtils.separatorsToUnix(toRet);
-        return toRet;
     }
 
     /**
@@ -431,7 +441,6 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
-
         List<String> files = new ArrayList<String>();
         RevWalk rw = new RevWalk(repository);
         try (Git git = new Git(repository)) {
@@ -1080,6 +1089,8 @@ public class GitRepositoryHelper implements DisposableBean {
             }
 
             if (result) {
+                logger.debug("Writing file: site: {0}, path: {1}", site, path);
+
                 // Write the bits
                 try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
                     ReadableByteChannel inChannel = Channels.newChannel(content);
@@ -1091,55 +1102,96 @@ public class GitRepositoryHelper implements DisposableBean {
                     }
                 }
 
-                // Add the file to git
-                try (Git git = new Git(repo)) {
-                    AddCommand addCommand = git.add().addFilepattern(getGitPath(path));
-                    retryingRepositoryOperationFacade.call(addCommand);
-
-                    git.close();
-                    result = true;
-                } catch (JGitInternalException e) {
-                    if (e.getCause() instanceof LockFailedException) {
-                        throw new RepositoryLockedException(String.format("Writing file '%s' in site '%s' " +
-                                "failed because the repository was locked.", path, site));
-                    }
-                } catch (GitAPIException e) {
-                    logger.error("Error adding file to git site '{}' path '{}'", site, path, e);
-                    result = false;
-                }
+                result = addFiles(repo, site, path);
             }
         } catch (IOException e) {
-            logger.error("Error writing file in site '{}' path '{}'", site, path, e);
+            logger.error("error writing file: site: " + site + ", path: " + path, e);
             result = false;
         }
 
         return result;
     }
 
-    public String commitFile(Repository repo, String site, String path, String comment, PersonIdent user) {
-        String commitId = null;
-        String gitPath = getGitPath(path);
-        Status status;
+    public boolean addFiles(Repository repo, String site, String... paths) {
+        boolean result = false;
 
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
-        generalLockService.lock(gitLockKey);
-        try (Git git = new Git(repo)) {
-            StatusCommand statusCommand = git.status().addPath(gitPath);
-            status = retryingRepositoryOperationFacade.call(statusCommand);
-
-            // TODO: SJ: Below needs more thought and refactoring to detect issues with git repo and report them
-            if (status.hasUncommittedChanges() || !status.isClean()) {
-                RevCommit commit;
-                CommitCommand commitCommand =
-                        git.commit().setOnly(gitPath).setAuthor(user).setCommitter(user).setMessage(comment);
-                commit = retryingRepositoryOperationFacade.call(commitCommand);
-                commitId = commit.getName();
+        if (ArrayUtils.isNotEmpty(paths)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Adding files: site: {0}, path: {1}, gitCliEnabled: {2}", site,
+                             ArrayUtils.toString(paths), gitCliEnabled);
             }
 
-        } catch (GitAPIException e) {
-            logger.error("Error adding and committing file to git site '{}' path '{}'", site, path, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
+            String gitLockKey = getSandboxRepoLockKey(site);
+            generalLockService.lock(gitLockKey);
+            try {
+                if (gitCliEnabled) {
+                    retryingRepositoryOperationFacade.call((Callable<Void>) () -> {
+                        gitCli.add(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+                        return null;
+                    });
+                } else {
+                    try (Git git = new Git(repo)) {
+                        AddCommand addCommand = git.add();
+                        Arrays.stream(paths).forEach(p -> addCommand.addFilepattern(getGitPath(p)));
+                        retryingRepositoryOperationFacade.call(addCommand);
+                    }
+                }
+
+                result = true;
+            } catch (Exception e) {
+                logger.error1("error adding files to git: site: {0}, paths: {1}", e, site,
+                             ArrayUtils.toString(paths));
+            } finally {
+                generalLockService.unlock(gitLockKey);
+            }
+        }
+
+        return result;
+    }
+
+    public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths) {
+        String commitId = null;
+
+        if (ArrayUtils.isNotEmpty(paths)) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Adding files: site: {0}, path: {1}, gitCliEnabled: {2}", site,
+                             ArrayUtils.toString(paths), gitCliEnabled);
+            }
+
+            String gitLockKey = getSandboxRepoLockKey(site);
+            generalLockService.lock(gitLockKey);
+            try {
+                if (gitCliEnabled) {
+                    String author = user.getName() + " <" + user.getEmailAddress() + ">";
+
+                    commitId = retryingRepositoryOperationFacade.call(
+                            () -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
+                                                author, comment, getGitPaths(paths)));
+                } else {
+                    try (Git git = new Git(repo)) {
+                        CommitCommand commitCommand = git.commit()
+                                                         .setAuthor(user)
+                                                         .setCommitter(user)
+                                                         .setMessage(comment);
+                        Arrays.stream(paths).forEach(p -> commitCommand.setOnly(getGitPath(p)));
+                        RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
+                        commitId = commit.getName();
+                    }
+                }
+            } catch (Exception e) {
+                Throwable cause = ExceptionUtils.getRootCause(e);
+                if (cause instanceof NoChangesToCommitException ||
+                    (cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
+                    // we should ignore empty commit errors
+                    logger.debug("No changes were committed to git: site: {0}, paths: {1}", site,
+                                 ArrayUtils.toString(paths));
+                } else {
+                    logger.error("error adding files to git: site: {0}, paths: {1}", e, site,
+                                 ArrayUtils.toString(paths));
+                }
+            } finally {
+                generalLockService.unlock(gitLockKey);
+            }
         }
 
         return commitId;
@@ -1173,6 +1225,28 @@ public class GitRepositoryHelper implements DisposableBean {
                 new PersonIdent(String.format("%s %s", user.getFirstName(),user.getLastName()), user.getEmail());
 
         return currentUserIdent;
+    }
+
+    // TODO: AV - we should use this methods everywhere
+
+    /**
+     * Returns the key to use when locking Git operations for a site's sandbox repo
+     *
+     * @param site the site name
+     * @return the lock key to use with the lock service
+     */
+    public String getSandboxRepoLockKey(String site) {
+        return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+    }
+
+    /**
+     * Returns the key to use when locking Git operations for a site's published repo
+     *
+     * @param site the site name
+     * @return the lock key to use with the lock service
+     */
+    public String getPublishedRepoLockKey(String site) {
+        return SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
     }
 
     public StudioConfiguration getStudioConfiguration() {
@@ -1225,6 +1299,14 @@ public class GitRepositoryHelper implements DisposableBean {
 
     public void setAuthConfiguratorFactory(AuthConfiguratorFactory authConfiguratorFactory) {
         this.authConfiguratorFactory = authConfiguratorFactory;
+    }
+
+    public void setGitCli(GitCli gitCli) {
+        this.gitCli = gitCli;
+    }
+
+    public void setGitCliEnabled(boolean gitCliEnabled) {
+        this.gitCliEnabled = gitCliEnabled;
     }
 
 }

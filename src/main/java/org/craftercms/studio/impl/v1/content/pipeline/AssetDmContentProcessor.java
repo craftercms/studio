@@ -149,9 +149,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                     updateFile(site, contentItem, contentPath, in, user, isPreview, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                 } else {
-                    // TODO: define content type
-                    contentItem = createNewFile(site, parentContentItem, assetName, null, in, user,
-                            unlock, result);
+                    createNewFile(site, parentContentItem, assetName, in, user, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                 }
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();

@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -63,6 +64,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected SiteService siteService;
     protected UserServiceInternal userServiceInternal;
     protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
+    protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
     /**
      * default constructor
@@ -96,7 +98,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         String site = content.getProperty(DmConstants.KEY_SITE);
         String path = content.getProperty(DmConstants.KEY_PATH);
         String fileName = content.getProperty(DmConstants.KEY_FILE_NAME);
-        String contentType = content.getProperty(DmConstants.KEY_CONTENT_TYPE);
         InputStream input = content.getContentStream();
         boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
@@ -122,13 +123,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // look up the path content first
                 if (parentItem.getName().equals(fileName)) {
                     ContentItemTO item = contentService.getContentItem(site, path, 0);
-                    InputStream existingContent = contentService.getContent(site, path);
 
                     updateFile(site, item, path, input, user, isPreview, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                     if (unlock) {
-                        // TODO: We need ability to lock/unlock content in repo
-                        contentService.unLockContent(site, path);
+                        unlock(site, path);
                     }
                     return;
                 } else {
@@ -141,17 +140,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     boolean fileExists = contentService.contentExists(site, path);
                     if (fileExists) {
                         ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
-                        InputStream existingContent = contentService.getContent(site, path);
                         updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                         if (unlock) {
-                            // TODO: We need ability to lock/unlock content in repo
-                            contentService.unLockContent(site, path);
+                            unlock(site, path);
                         }
                         return;
                     } else {
-                        ContentItemTO newFileItem =
-                                createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
+                        createNewFile(site, parentItem, fileName, input, user, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
                         return;
                     }
@@ -170,6 +166,16 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     }
 
+    // For backward compatibility ignore the exception
+    protected void unlock(String siteId, String path) throws ContentNotFoundException {
+        try {
+            contentServiceV2.unlockContent(siteId, path);
+            logger.debug("Unlocked the content site: {0} path: {1}", siteId, path);
+        } catch (ContentAlreadyUnlockedException e) {
+            logger.debug("Content already unlocked site: {0} path: {1}", siteId, path);
+        }
+    }
+
     /**
      * create new file to the given path. If the path is a file name, it will
      * create a new folder with the same name as the file name (without the
@@ -180,23 +186,20 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      *            Site name
      * @param fileName
      *            new file name
-     * @param contentType
-     * 			content type
      * @param input
      *            file content
      * @param user
      *            current user
      * @throws ContentNotFoundException
      */
-    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType,
-                                          InputStream input, String user, boolean unlock, ResultTO result)
-            throws ServiceLayerException, UserNotFoundException {
+    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, InputStream input,
+                                          String user, boolean unlock, ResultTO result)
+            throws ServiceLayerException {
         ContentItemTO fileItem = null;
 
         if (parentItem != null) {
-            // convert file to folder if target path is a file
-            String folderPath = fileToFolder(site, parentItem.getUri());
             String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
+            itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
             try {
                 contentService.writeContent(site, itemPath, input);
                 String commitId = contentRepository.getRepoLastCommitId(site);
@@ -204,7 +207,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                 // Item
                 // TODO: get local code with API 2
-                String parentItemPath = ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
+                String parentItemPath =
+                        ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
                 Item pItem = itemServiceInternal.getItem(site, parentItemPath, true);
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, Optional.of(unlock),
                         pItem.getId());
@@ -433,4 +437,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {
         this.contentRepositoryV1 = contentRepositoryV1;
     }
+
+    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+        this.contentServiceV2 = contentServiceV2;
+    }
+
 }

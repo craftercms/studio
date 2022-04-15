@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.security;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -39,7 +40,8 @@ import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.HOME_PAGE_PATH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
+import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
@@ -54,6 +56,7 @@ import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsC
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_RENAME;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_UPLOAD;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.ITEM_UNLOCK;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_APPROVE;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_REJECT;
@@ -63,6 +66,7 @@ import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsCo
 
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
+    private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
     private SecurityService securityService;
     private ContentServiceInternal contentServiceInternal;
     private ServicesConfig servicesConfig;
@@ -106,7 +110,15 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long result = availableActions;
 
-        if (StringUtils.equals(itemPath, HOME_PAGE_PATH)) {
+        // The item is locked and the user is not the owner of the lock
+        if ((itemState & USER_LOCKED.value) > 0 && (result & ITEM_UNLOCK) == 0) {
+            // If the user is system_admin or site_admin, add the unlock action back
+            if (securityServiceV1.isSiteAdmin(username, siteId)) {
+                result |= ITEM_UNLOCK;
+            }
+        }
+
+        if (RegexUtils.matchesAny(itemPath, TOP_LEVEL_FOLDERS)) {
             result &= ~CONTENT_DELETE;
             result &= ~CONTENT_CUT;
             result &= ~CONTENT_RENAME;
@@ -221,6 +233,10 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
 
     public void setContentTypeServiceInternal(ContentTypeServiceInternal contentTypeServiceInternal) {
         this.contentTypeServiceInternal = contentTypeServiceInternal;
+    }
+
+    public void setSecurityServiceV1(org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1) {
+        this.securityServiceV1 = securityServiceV1;
     }
 
 }

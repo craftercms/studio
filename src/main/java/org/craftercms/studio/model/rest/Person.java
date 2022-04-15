@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
  */
 public class Person {
 
+    protected long id;
     protected String username;
     protected String firstName;
     protected String lastName;
@@ -36,10 +37,19 @@ public class Person {
     public static Person from(Authentication authentication) {
         AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
         Person person = new Person();
+        person.setId(user.getId());
         person.setUsername(user.getUsername());
         person.setFirstName(user.getFirstName());
         person.setLastName(user.getLastName());
         return person;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -77,7 +87,8 @@ public class Person {
     @Override
     public String toString() {
         return "Person{" +
-                "username='" + username + '\'' +
+                "id=" + id +
+                ", username='" + username + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", avatar='" + avatar + '\'' +

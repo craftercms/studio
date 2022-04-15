@@ -37,15 +37,16 @@ import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -319,69 +320,37 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public InputStream getContentByCommitId(String siteId, String path, String commitId)
+    public Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException, IOException {
         return contentRepository.getContentByCommitId(siteId, path, commitId);
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
-    }
-
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public org.craftercms.studio.api.v2.service.security.SecurityService getSecurityServiceV2() {
-        return securityServiceV2;
-    }
-
     public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
         this.securityServiceV2 = securityServiceV2;
-    }
-
-    public SemanticsAvailableActionsResolver getSemanticsAvailableActionsResolver() {
-        return semanticsAvailableActionsResolver;
     }
 
     public void setSemanticsAvailableActionsResolver(SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {

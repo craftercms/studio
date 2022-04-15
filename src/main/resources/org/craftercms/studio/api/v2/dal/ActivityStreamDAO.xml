@@ -21,58 +21,67 @@
 <mapper namespace="org.craftercms.studio.api.v2.dal.ActivityStreamDAO">
     <resultMap id="ActivityMap" type="org.craftercms.studio.model.rest.dashboard.Activity">
         <id property="id" column="asid" />
-        <result property="action" column="action" />
+        <result property="actionType" column="action" />
         <result property="actionTimestamp" column="action_timestamp" />
-        <result property="itemId" column="item_id" />
-        <result property="packageId" column="package_id" />
         <association property="person" resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap"/>
+        <association property="item" columnPrefix="item_" notNullColumn="id" autoMapping="true"
+                     javaType="org.craftercms.studio.model.rest.dashboard.Activity$Item"/>
+        <association property="publishPackage" columnPrefix="package_" notNullColumn="id" autoMapping="true"
+                     javaType="org.craftercms.studio.model.rest.dashboard.Activity$Package"/>
     </resultMap>
 
     <insert id="insertActivity">
-        INSERT INTO activity_stream (site_id, user_id, action, action_timestamp, item_id, package_id)
-        VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP), #{itemId}, #{packageId});
+        INSERT INTO activity_stream (site_id, user_id, action, action_timestamp, item_id,
+                                     <if test="item != null">item_path, item_label,</if> package_id)
+        VALUES (#{siteId}, #{userId}, #{action}, IFNULL(#{actionTimestamp}, CURRENT_TIMESTAMP),
+                #{item.id}, <if test="item != null">#{item.path}, #{item.label},</if> #{packageId});
     </insert>
 
-    <!-- Can we change the alias 'as' to avoid confusion with the keyword AS -->
+    <sql id="activitiesForUsersFilters">
+        <where>
+            a.site_id = #{siteId}
+            <if test="usernames != null">
+                AND u.username in
+                <foreach item="username" index="index" collection="usernames"
+                         open="(" separator="," close=")">
+                    #{username}
+                </foreach>
+            </if>
+            <if test="actions != null">
+                AND a.action in
+                <foreach item="action" index="index" collection="actions"
+                         open="(" separator="," close=")">
+                    #{action}
+                </foreach>
+            </if>
+            <if test="dateTo != null" >
+                AND a.action_timestamp &lt;= #{dateTo}
+            </if>
+            <if test="dateFrom != null">
+                AND a.action_timestamp &gt;= #{dateFrom}
+            </if>
+        </where>
+    </sql>
+
     <select id="getActivitiesForUsersTotal" resultType="int" >
         SELECT COUNT(1)
         FROM activity_stream a INNER JOIN user u ON a.user_id = u.id
-        WHERE a.site_id = #{siteId}
-        <if test="usernames != null">
-            AND u.username in
-            <foreach item="username" index="index" collection="usernames"
-                     open="(" separator="," close=")">
-                #{username}
-            </foreach>
-        </if>
-        <if test="dateTo != null" >
-            AND DATE(a.action_timestamp) &lt;= DATE(#{dateTo})
-        </if>
-        <if test="dateFrom != null">
-            AND DATE(a.action_timestamp) &gt;= DATE(#{dateFrom})
-        </if>
+        <include refid="activitiesForUsersFilters"/>
     </select>
 
-    <!-- Can we use <sql> to avoid repeating the FROM and WHERE from above -->
+    <!-- TODO: Fix the join once we have a real publish package table -->
     <select id="getActivitiesForUsers" resultMap="ActivityMap" >
         SELECT
-            a.id as asid, a.action, a.action_timestamp, a.item_id, a.package_id, u.username, u.first_name,
-            u.last_name, u.avatar
-        FROM activity_stream a INNER JOIN user u ON a.user_id = u.id
-        WHERE a.site_id = #{siteId}
-        <if test="usernames != null">
-            AND u.username in
-            <foreach item="username" index="index" collection="usernames"
-                     open="(" separator="," close=")">
-                #{username}
-            </foreach>
-        </if>
-        <if test="dateTo != null" >
-            AND DATE(a.action_timestamp) &lt;= DATE(#{dateTo})
-        </if>
-        <if test="dateFrom != null">
-            AND DATE(a.action_timestamp) &gt;= DATE(#{dateFrom})
-        </if>
+           a.id AS asid, a.action, a.action_timestamp, a.item_id, a.package_id, a.item_path as item_recordedPath,
+           a.item_label as item_recordedLabel,
+           u.username, u.first_name, u.last_name, u.avatar,
+           i.path as item_path, i.label as item_label, i.preview_url as item_previewUrl,
+           i.system_type as item_systemType
+        FROM activity_stream a
+            LEFT OUTER JOIN user u ON a.user_id = u.id
+            LEFT OUTER JOIN item i ON a.item_id = i.id
+        <include refid="activitiesForUsersFilters"/>
+        ORDER BY a.id DESC
         LIMIT #{offset}, #{limit}
     </select>
 </mapper>

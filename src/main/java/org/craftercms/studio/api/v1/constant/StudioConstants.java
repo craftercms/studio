@@ -15,6 +15,8 @@
  */
 package org.craftercms.studio.api.v1.constant;
 
+import java.util.List;
+
 /**
  * Studio Constants
  *
@@ -148,7 +150,15 @@ public final class StudioConstants {
 
     public static final String INDEX_FILE = "index.xml";
 
-    public static final String HOME_PAGE_PATH = "/site/website/index.xml";
+    public static final List<String> TOP_LEVEL_FOLDERS = List.of(
+        "/site/website/index.xml",
+        "/site/components",
+        "/site/taxonomy",
+        "/static-assets",
+        "/templates",
+        "/scripts",
+        "/sources"
+    );
 
     public static final String JSON_PROPERTY_ITEM = "item";
     public static final String JSON_PROPERTY_DEPENDENCIES = "dependencies";
@@ -178,7 +188,7 @@ public final class StudioConstants {
     public static final String SITE_CONFIG_XML_ELEMENT_WORKFLOW = "workflow";
     public static final String SITE_CONFIG_XML_ELEMENT_PUBLISHER = "publisher";
     public static final String SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW = "requirePeerReview";
-    public static final String SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS = "protected-folder-patterns/pattern";
+    public static final String SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS = "protected-folders-patterns/pattern";
     public static final String SITE_CONFIG_XML_ELEMENT_LOCALE = "locale";
     public static final String SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS = "dateTimeFormatOptions";
     public static final String SITE_CONFIG_XML_ELEMENT_TIME_ZONE = "timeZone";

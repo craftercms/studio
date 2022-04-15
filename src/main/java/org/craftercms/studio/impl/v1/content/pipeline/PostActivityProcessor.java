@@ -101,62 +101,34 @@ public class PostActivityProcessor extends BaseContentProcessor {
                 User u = userServiceInternal.getUserByIdOrUsername(-1, user);
                 Item item = itemServiceInternal.getItem(site, uri);
                 activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), activityType,
-                        DateUtils.getCurrentTime(), item.getId(), null);
+                        DateUtils.getCurrentTime(), item, null);
             }
             contentRepository.markGitLogAudited(site, result.getCommitId());
         }
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
     }
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
     }
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
     }
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {

@@ -963,6 +963,12 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
     </bean>
 
+    <bean id="studio.gitCli" class="org.craftercms.studio.impl.v2.utils.git.GitCli">
+        <constructor-arg name="gitProcName" value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.name')}"/>
+        <constructor-arg name="gitProcWaitForTimeoutSecs"
+                         value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.waitForTimeout')}"/>
+    </bean>
+
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="securityService" ref="cstudioSecurityService" />
@@ -971,6 +977,8 @@
         <property name="encryptor" ref="internalTextEncryptor" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="authConfiguratorFactory" ref="studio.authConfiguratorBuilderFactory"/>
+        <property name="gitCli" ref="studio.gitCli"/>
+        <property name="gitCliEnabled" value="#{studioConfiguration.getProperty('studio.repo.git.cli.enabled')}"/>
     </bean>
 
     <bean id="studio.retryingRepositoryOperationFacade"
@@ -1167,6 +1175,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepositoryV1" ref="contentRepository" />
+        <property name="contentServiceV2" ref="contentService"/>
     </bean>
 
     <bean id="cstudioExtractParamsProcessor" class="org.craftercms.studio.impl.v1.content.pipeline.ExtractParamsProcessor">

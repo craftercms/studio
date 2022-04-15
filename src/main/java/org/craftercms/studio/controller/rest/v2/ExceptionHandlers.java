@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
+import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
@@ -75,6 +76,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.NoSuchElementException;
 
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_DEBUG;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_ERROR;
@@ -117,6 +120,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleUserNotFoundException(HttpServletRequest request, UserNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleNoSuchElementException(HttpServletRequest request, NoSuchElementException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 
@@ -328,6 +338,14 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
             String.format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PublishingPackageNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handlePublishingPackageNotFoundException(HttpServletRequest request,
+                                                       PublishingPackageNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 

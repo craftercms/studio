@@ -77,6 +77,10 @@
         SELECT * FROM gitlog WHERE site_id = #{siteId} AND processed = 0 AND id > #{marker} ORDER BY id ASC
     </select>
 
+    <select id="countUnprocessedCommitsSinceMarker" resultType="int" >
+        SELECT COUNT(1) FROM gitlog WHERE site_id = #{siteId} AND processed = 0 AND id > #{marker}
+    </select>
+
     <update id="markGitLogProcessedBeforeMarker" parameterType="java.util.Map">
         UPDATE gitlog gl1 SET gl1.processed = #{processed}
         WHERE gl1.id IN (SELECT gl2.id FROM gitlog gl2 WHERE gl2.site_id = #{siteId}

@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.Workflow;
+import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
@@ -48,8 +49,11 @@ import org.craftercms.studio.model.search.SearchResult;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
+import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.NEW;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
@@ -81,32 +85,34 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateFrom,
-                                          ZonedDateTime dateTo) {
-        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, dateFrom, dateTo);
+    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
+                                          ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateFrom,
-                                                ZonedDateTime dateTo, int offset, int limit) {
-        return activityStreamServiceInternal.getActivitiesForUsers(siteId, usernames, dateFrom, dateTo, offset, limit);
+    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) {
+        return activityStreamServiceInternal
+                .getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getMyActivitiesTotal(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+    public int getMyActivitiesTotal(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         var username = securityService.getCurrentUser();
-        return activityStreamServiceInternal.getActivitiesForUsersTotal(siteId, List.of(username), dateFrom, dateTo);
+        return activityStreamServiceInternal
+                .getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<Activity> getMyActivities(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                          int limit) {
+    public List<Activity> getMyActivities(String siteId, List<String> actions, ZonedDateTime dateFrom,
+                                          ZonedDateTime dateTo, int offset, int limit) {
         var username = securityService.getCurrentUser();
-        return activityStreamServiceInternal.getActivitiesForUsers(siteId, List.of(username), dateFrom, dateTo,
-                offset, limit);
+        return activityStreamServiceInternal
+                .getActivitiesForUsers(siteId, List.of(username), actions, dateFrom, dateTo, offset, limit);
     }
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -155,19 +161,24 @@ public class DashboardServiceImpl implements DashboardService {
         return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
     }
 
+    protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
+        searchParams.setQuery(query);
+        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
+        searchParams.setSortBy(getExpireFieldName());
+        searchParams.setSortOrder(order);
+        searchParams.setOffset(offset);
+        searchParams.setLimit(limit);
+    }
+
     @Override
     public ExpiringContentResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                                     int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
-        var searchParams = new SearchParams();
-        var query = getContentExpiringQuery()
+        SearchParams searchParams = new SearchParams();
+        String query = getContentExpiringQuery()
                 .replaceAll(DATE_FROM_REGEX, DateUtils.formatDate(dateFrom, ISO_FORMATTER))
                 .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
-        searchParams.setQuery(query);
-        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
-        searchParams.setSortBy(getExpireFieldName());
-        searchParams.setOffset(offset);
-        searchParams.setLimit(limit);
+        prepareSearchParams(searchParams, query, Asc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
         return processResults(result);
     }
@@ -175,13 +186,9 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
             throws AuthenticationException, ServiceLayerException {
-        var searchParams = new SearchParams();
-        var query = getContentExpiredQuery();
-        searchParams.setQuery(query);
-        searchParams.setAdditionalFields(List.of(getExpireFieldName()));
-        searchParams.setSortBy(getExpireFieldName());
-        searchParams.setOffset(offset);
-        searchParams.setLimit(limit);
+        SearchParams searchParams = new SearchParams();
+        String query = getContentExpiredQuery();
+        prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
         return processResults(result);
     }
@@ -252,6 +259,9 @@ public class DashboardServiceImpl implements DashboardService {
         var paths = publishingPackageDetails.getItems().stream()
                 .map(PublishingPackageDetails.PublishingPackageItem::getPath)
                 .collect(toList());
+        if (isEmpty(paths)) {
+            throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
+        }
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
@@ -278,64 +288,32 @@ public class DashboardServiceImpl implements DashboardService {
         return studioConfiguration.getProperty(CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY);
     }
 
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
-    }
-
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
-    }
-
-    public PublishServiceInternal getPublishServiceInternal() {
-        return publishServiceInternal;
     }
 
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
     }
 
-    public ContentServiceInternal getContentServiceInternal() {
-        return contentServiceInternal;
-    }
-
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public SearchService getSearchService() {
-        return searchService;
-    }
-
     public void setSearchService(SearchService searchService) {
         this.searchService = searchService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

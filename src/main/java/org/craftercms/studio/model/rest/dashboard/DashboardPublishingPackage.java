@@ -16,25 +16,40 @@
 
 package org.craftercms.studio.model.rest.dashboard;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 
 public class DashboardPublishingPackage {
 
-    private String id;
+    // This is a workaround because MyBatis gets confused if it can't track the primary keys
+    @JsonIgnore
+    private long id;
+
+    @JsonProperty("id")
+    private String packageId;
     private String label;
     private Person submitter;
     private int size;
     private String publishingTarget;
     private ZonedDateTime schedule;
 
-    public String getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(long id) {
         this.id = id;
+    }
+
+    public String getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(String packageId) {
+        this.packageId = packageId;
     }
 
     public String getLabel() {

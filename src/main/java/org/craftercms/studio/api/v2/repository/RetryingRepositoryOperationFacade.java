@@ -19,7 +19,14 @@ package org.craftercms.studio.api.v2.repository;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 
+import java.util.concurrent.Callable;
+
 public interface RetryingRepositoryOperationFacade {
 
+    // For JGit
     <T> T call(GitCommand<T> gitCommand) throws GitAPIException;
+
+    // For Git CLI
+    <T> T call(Callable<T> gitCommand) throws Exception;
+
 }

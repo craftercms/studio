@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.content;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -47,6 +48,15 @@ public interface ContentService {
      * @return true if site has content object at path
      */
     boolean contentExists(String site, String path);
+
+    /**
+     * This is a faster, but less accurate, version of contentExists. This prioritizes
+     * performance over checking the actual underlying repository if the content is actually in the store
+     * or we simply hold a reference to the object in the actual store.
+     *
+     * @return true if site has content object at path
+     */
+    boolean shallowContentExists(String site, String path);
 
     /**
      * get document from wcm content
@@ -232,7 +242,7 @@ public interface ContentService {
      *
      * @throws ContentNotFoundException content not found
      */
- 	InputStream getContentVersion(String site, String path, String version) throws ContentNotFoundException;
+ 	Optional<Resource> getContentVersion(String site, String path, String version) throws ContentNotFoundException;
 
 	/**
      * return the content for a given version
@@ -317,8 +327,6 @@ public interface ContentService {
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
     void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
-
-    void unLockContent(String site, String path);
 
     List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
 

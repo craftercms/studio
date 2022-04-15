@@ -18,6 +18,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import scripts.api.ContentServices
 
@@ -93,6 +94,9 @@ if(ServletFileUpload.isMultipartContent(request)) {
                 result.setMessage = e.getMessage()
             }
         }
+    }
+    if (!fileName) {
+        throw new HttpStatusCodeException(400, "multipart request is missing the file")
     }
 } else {
     site = request.getParameter("site_id")

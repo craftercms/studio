@@ -87,6 +87,12 @@ studio.repo.ignoreFiles:
 studio.repo.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries for retrying repository operation
 studio.repo.retryingOperation.maxSleep: 1000
+# If Git CLI should be used for some Git operations, for better performance (Git CLI needs to be installed beforehand)
+studio.repo.git.cli.enabled: true
+# The process name of git, as it is available from PATH
+studio.repo.git.cli.process.name: git
+# Timeout in seconds when waiting for the Git CLI process to finish
+studio.repo.git.cli.process.waitForTimeout: 300
 
 ############################################################
 ##                       Blob Store                       ##
@@ -541,6 +547,8 @@ studio.db.port: 33306
 studio.db.socket: /tmp/MariaDB4j.33306.sock
 # Max DB connections for embedded database
 studio.db.maxConnections: 500
+# Max allowed packet size (MariaDB setting)
+studio.db.maxAllowedPacket: 128M
 # Max number of retries for retrying operation
 studio.db.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
@@ -611,7 +619,7 @@ studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
 ################################################################
 # Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
 studio.clustering.heartbeatJob.interval: 10000
-# Inactivity Check Job interval in milliseconds which is how often to to check for inactive cluster members
+# Inactivity Check Job interval in milliseconds which is how often to check for inactive cluster members
 studio.clustering.inactivityCheckJob.interval: 30000
 # Cluster member after heartbeat stale for amount of minutes will be declared inactive
 studio.clustering.heartbeatStale.timeLimit: 5
@@ -973,7 +981,7 @@ studio.clockJob.task.publisher.maxRetryCount: 5
 # Process audit log from repository execute every N cycles
 studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 # Insert N new commits from git log with each execution of the audit log processing task
-studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
+studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 10000
 # Process N unaudited commits with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
 
@@ -1005,8 +1013,8 @@ studio.scripting.allowedBeans: ''
 ##################################################
 
 # Elasticsearch query to retrieve content expiring
-studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateTo} TO {dateFrom}]
+studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateFrom} TO {dateTo}] AND NOT _exists_:metadataPath
 # Elasticsearch query to retrieve content expired
-studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now]
+studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now] AND NOT _exists_:metadataPath
 # Elasticsearch query to retrieve content expired sort by field
 studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt

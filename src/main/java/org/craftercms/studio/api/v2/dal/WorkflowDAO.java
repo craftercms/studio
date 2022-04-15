@@ -20,6 +20,7 @@ import org.apache.ibatis.annotations.Param;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_ID;
@@ -123,7 +124,7 @@ public interface WorkflowDAO {
      * @param openedState value for OPENED state
      * @return total number of workflow packages pending approval
      */
-    int getContentPendingApprovalTotal(@Param(SITE_ID) String siteId, @Param(STATE) String openedState);
+    Optional<Integer> getContentPendingApprovalTotal(@Param(SITE_ID) String siteId, @Param(STATE) String openedState);
 
     /**
      * Get workflow packages pending approval

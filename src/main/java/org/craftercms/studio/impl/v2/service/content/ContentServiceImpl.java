@@ -53,14 +53,17 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
 import org.craftercms.studio.permissions.PermissionOrOwnership;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
@@ -73,6 +76,8 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
+
+    private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
     private ContentServiceInternal contentServiceInternal;
     private ContentTypeServiceInternal contentTypeServiceInternal;
@@ -251,9 +256,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                             new LockContentEvent(securityService.getAuthentication(), siteId, path, true));
                 } else {
                     if (!StringUtils.equals(item.getLockOwner(), username)) {
-                        var e = new ContentLockedByAnotherUserException();
-                        e.setLockOwner(username);
-                        throw e;
+                        throw new ContentLockedByAnotherUserException(item.getLockOwner());
                     }
                 }
             } else {
@@ -269,19 +272,23 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void unlockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException {
+        logger.debug("Trying to unlock item at {} in site {}", path, siteId);
         generalLockService.lockContentItem(siteId, path);
         try {
             var item = itemServiceInternal.getItem(siteId, path);
             if (Objects.nonNull(item)) {
                 if (StringUtils.isEmpty(item.getLockOwner())) {
+                    logger.debug("Item at {} in site {} is already unlocked", path, siteId);
                     throw new ContentAlreadyUnlockedException();
                 } else {
                     contentServiceInternal.itemUnlockByPath(siteId, path);
                     itemServiceInternal.unlockItemByPath(siteId, path);
+                    logger.debug("Item at {} in site {} successfully unlocked", path, siteId);
                     applicationContext.publishEvent(
                             new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
                 }
             } else {
+                logger.debug("Item not found at {} in site {}", path, siteId);
                 throw new ContentNotFoundException();
             }
         } finally {
@@ -290,8 +297,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public InputStream getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
-                                            String commitId) throws ContentNotFoundException, IOException {
+    public Optional<Resource> getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
+                                                   String commitId) throws ContentNotFoundException, IOException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
     }
 
@@ -300,80 +307,40 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.applicationContext = applicationContext;
     }
 
-    public ContentServiceInternal getContentServiceInternal() {
-        return contentServiceInternal;
-    }
-
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
-    }
-
-    public ContentTypeServiceInternal getContentTypeServiceInternal() {
-        return contentTypeServiceInternal;
     }
 
     public void setContentTypeServiceInternal(ContentTypeServiceInternal contentTypeServiceInternal) {
         this.contentTypeServiceInternal = contentTypeServiceInternal;
     }
 
-    public DependencyServiceInternal getDependencyServiceInternal() {
-        return dependencyServiceInternal;
-    }
-
     public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
-    }
-
-    public DeploymentService getDeploymentService() {
-        return deploymentService;
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
     }
 
-    public UserService getUserService() {
-        return userService;
-    }
-
     public void setUserService(UserService userService) {
         this.userService = userService;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {

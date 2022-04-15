@@ -33,8 +33,13 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
+    public WorkflowItem getWorkflowItem(String siteId, String path, String state) {
+        return workflowDao.getWorkflowEntryOpened(siteId, path, state);
+    }
+
+    @Override
     public WorkflowItem getWorkflowEntry(String siteId, String path) {
-        return workflowDao.getWorkflowEntryOpened(siteId, path, STATE_OPENED);
+        return getWorkflowItem(siteId, path, STATE_OPENED);
     }
 
     @Override
@@ -84,7 +89,7 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public int getContentPendingApprovalTotal(String siteId) {
-        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED);
+        return workflowDao.getContentPendingApprovalTotal(siteId, STATE_OPENED).orElse(0);
     }
 
     @Override
@@ -97,16 +102,8 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
         return workflowDao.getContentPendingApprovalDetail(siteId, packageId);
     }
 
-    public WorkflowDAO getWorkflowDao() {
-        return workflowDao;
-    }
-
     public void setWorkflowDao(WorkflowDAO workflowDao) {
         this.workflowDao = workflowDao;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -60,6 +61,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Stream;
@@ -162,6 +164,20 @@ public class BlobAwareContentRepository implements ContentRepository,
             return localRepositoryV1.contentExists(site, path);
         } catch (Exception e) {
             logger.error1("Error checking if content {} exist in site {}", e, path, site);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean shallowContentExists(String site, String path) {
+        logger.debug("Checking if {0} exists in site {1}", path, site);
+        try {
+            if (!isFolder(site, path)) {
+                return localRepositoryV1.shallowContentExists(site, getPointerPath(site, path));
+            }
+            return localRepositoryV1.shallowContentExists(site, path);
+        } catch (Exception e) {
+            logger.error("Error checking if content {0} exist in site {1}", e, path, site);
             return false;
         }
     }
@@ -360,7 +376,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public InputStream getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
+    public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
         return localRepositoryV2.getContentByCommitId(site, path, commitId);
     }
 
@@ -662,6 +678,11 @@ public class BlobAwareContentRepository implements ContentRepository,
     public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
                                                                  String environment, String path) {
         return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
+    }
+
+    @Override
+    public int countUnprocessedCommits(String siteId, long marker) {
+        return localRepositoryV2.countUnprocessedCommits(siteId, marker);
     }
 
     @Override

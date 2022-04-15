@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.audit.internal;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v2.dal.ActivityStreamDAO;
+import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.model.rest.dashboard.Activity;
@@ -37,49 +38,38 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamServiceI
     private ActivityStreamDAO activityStreamDAO;
 
     @Override
-    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Long itemId,
+    public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
                                String packageId) {
-        retryingDatabaseOperationFacade.insertActivity(siteId, userId, action, actionTimestamp, itemId,
+        retryingDatabaseOperationFacade.insertActivity(siteId, userId, action, actionTimestamp, item,
                 packageId);
     }
 
     @Override
-    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, ZonedDateTime dateForm,
-                                          ZonedDateTime dateTo) {
-        return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, dateForm, dateTo);
+    public int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions,
+                                          ZonedDateTime dateForm, ZonedDateTime dateTo) {
+        return activityStreamDAO.getActivitiesForUsersTotal(getSiteId(siteId), usernames, actions, dateForm, dateTo);
     }
 
     @Override
-    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, ZonedDateTime dateForm,
-                                                ZonedDateTime dateTo, int offset, int limit) {
-        return activityStreamDAO.getActivitiesForUsers(getSiteId(siteId), usernames, dateForm, dateTo, offset, limit);
+    public List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
+                                                ZonedDateTime dateForm, ZonedDateTime dateTo, int offset, int limit) {
+        return activityStreamDAO
+                .getActivitiesForUsers(getSiteId(siteId), usernames, actions, dateForm, dateTo, offset, limit);
     }
 
     private long getSiteId(String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(SITE_ID, site);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         return siteFeed.getId();
-    }
-
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
     }
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
     }
 
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
-    }
-
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-    }
-
-    public ActivityStreamDAO getActivityStreamDAO() {
-        return activityStreamDAO;
     }
 
     public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {

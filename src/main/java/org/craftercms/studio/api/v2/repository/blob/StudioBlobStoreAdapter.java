@@ -24,11 +24,12 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.springframework.core.io.Resource;
 
-import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Base class for all implementations of {@link StudioBlobStore}
@@ -73,7 +74,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default InputStream getContentByCommitId(String site, String path, String commitId) {
+    default Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
@@ -337,6 +338,12 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     @Override
     default DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
                                                                  String environment, String path) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default int countUnprocessedCommits(String siteId, long marker) {
+        // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
 

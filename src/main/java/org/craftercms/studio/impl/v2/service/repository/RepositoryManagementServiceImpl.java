@@ -36,6 +36,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.dal.RemoteRepositoryInfo;
 import org.craftercms.studio.api.v2.dal.RepositoryStatus;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.RepositoryManagementService;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
 
@@ -90,11 +91,11 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "pull_from_remote")
-    public boolean pullFromRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
-                                  String remoteBranch, String mergeStrategy)
+    public MergeResult pullFromRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
+                                      String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, CryptoException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-        boolean toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
+        MergeResult toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
                 mergeStrategy);
         insertAddRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,
                 remoteName + "/" + remoteBranch);
@@ -189,32 +190,16 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
         return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
     }
 
-    public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {
-        return repositoryManagementServiceInternal;
-    }
-
     public void setRepositoryManagementServiceInternal(RepositoryManagementServiceInternal repositoryManagementServiceInternal) {
         this.repositoryManagementServiceInternal = repositoryManagementServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {

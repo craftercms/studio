@@ -44,6 +44,7 @@
         <result property="size" column="size" />
         <result property="parentId" column="parent_id" />
         <result property="commitId" column="commit_id" />
+        <result property="previousPath" column="previous_path" />
         <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
         <result property="childrenCount" column="children_count" />
@@ -74,6 +75,7 @@
         <result property="size" column="size" />
         <result property="parentId" column="parent_id" />
         <result property="commitId" column="commit_id" />
+        <result property="previousPath" column="previous_path" />
         <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
         <result property="stagingScheduledDate" column="staging_scheduleddate" />
@@ -1410,6 +1412,7 @@
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i.ignored = 0
+        AND i.system_type != 'folder'
         <if test="path != null">
         AND i.path RLIKE(#{path})
         </if>
@@ -1424,11 +1427,12 @@
         WHERE s.site_id = #{siteId}
         AND s.deleted = 0
         AND i.ignored = 0
+        AND i.system_type != 'folder'
         <if test="path != null">
         AND i.path RLIKE(#{path})
         </if>
         <if test="statesBitMap != null">
-        AND ((i.state ^ #{statesBitMap}) &amp; #{statesBitMap}) = 0
+        AND (i.state &amp; #{statesBitMap}) > 0
         </if>
         LIMIT #{offset}, #{limit}
     </select>

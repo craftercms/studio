@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.annotation;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -23,6 +24,8 @@ import org.craftercms.commons.aop.AopUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
+import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
+import org.craftercms.studio.api.v2.exception.git.cli.GitRepositoryLockedException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.errors.LockFailedException;
 import org.springframework.core.annotation.Order;
@@ -61,6 +64,7 @@ public class RetryingRepositoryOperationAnnotationHandler {
             "@annotation(org.craftercms.studio.api.v2.annotation.RetryingRepositoryOperation)")
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
+        Exception lastException;
 
         int numAttempts = 0;
         do {
@@ -71,16 +75,12 @@ public class RetryingRepositoryOperationAnnotationHandler {
                     logger.debug1("Retrying repository operation attempt " + (numAttempts - 1));
                 }
                 return pjp.proceed();
-            } catch (JGitInternalException e) {
-                if (Objects.nonNull(ex.getCause()) && ex.getCause() instanceof LockFailedException) {
-                    logger.debug1("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
-                    if (numAttempts > maxRetries) {
-                        //log failure information, and throw exception
-                        // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
-                        throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to the Git repository being locked after " +
-                                numAttempts + " attempts", ex);
-                    } else {
-                        // If the maximum number of retries is not reached, it will be executed again
+            } catch (JGitInternalException | GitCliException e) {
+                lastException = e;
+                if (isRepositoryLocked(e)) {
+                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                    if (numAttempts < maxRetries) {
+                        // If the maximum number of retries is not reached, sleep and execute it again
                         long sleep = (long) (Math.random() * maxSleep);
                         logger.debug1("Git operation failed due to the repository being locked. Will wait for " +
                                 sleep + " before next retry" + method.getName());
@@ -88,11 +88,21 @@ public class RetryingRepositoryOperationAnnotationHandler {
                     }
                 } else {
                     throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to " +
-                            "a Git error that does not cause retry attempts", ex);
+                                                              "a Git error that does not cause retry attempts", ex);
                 }
             }
-        } while (numAttempts < this.maxRetries);
+        } while (numAttempts < maxRetries);
 
-        return null;
+        // If it gets here, numAttempts >= maxRetries, so we should fail entirely
+        throw new RetryingOperationErrorException("Failed to execute " + method.getName() +
+                                                  " due to the Git repository being locked after " +
+                                                  numAttempts + " attempts", lastException);
     }
+
+    protected boolean isRepositoryLocked(Throwable ex) {
+        // Check for JGit exception first, then for CLI exception (not need to check for null with instanceof)
+        return ex.getCause() instanceof LockFailedException ||
+               ExceptionUtils.getRootCause(ex) instanceof GitRepositoryLockedException;
+    }
+
 }
