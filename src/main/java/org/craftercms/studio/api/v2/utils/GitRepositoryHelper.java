@@ -592,6 +592,12 @@ public class GitRepositoryHelper implements DisposableBean {
                 CONFIG_PARAMETER_FILE_MODE_DEFAULT);
         // Save configuration changes
         config.save();
+
+        if (gitCliEnabled) {
+            // The first git commit of a new repository takes a long time with Git CLI. A git status first seems
+            // to fix the issue
+            gitCli.isRepoClean(repo.getWorkTree().getAbsolutePath());
+        }
     }
 
     public String getCommitMessage(String commitMessageKey) {
