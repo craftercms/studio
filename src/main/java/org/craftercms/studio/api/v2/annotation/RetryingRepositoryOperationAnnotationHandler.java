@@ -72,23 +72,23 @@ public class RetryingRepositoryOperationAnnotationHandler {
             try {
                 // Execute the business code again
                 if (numAttempts > 1) {
-                    logger.debug1("Retrying repository operation attempt " + (numAttempts - 1));
+                    logger.debug("Retrying repository operation attempt '{}'", (numAttempts - 1));
                 }
                 return pjp.proceed();
             } catch (JGitInternalException | GitCliException e) {
                 lastException = e;
                 if (isRepositoryLocked(e)) {
-                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", e);
                     if (numAttempts < maxRetries) {
                         // If the maximum number of retries is not reached, sleep and execute it again
                         long sleep = (long) (Math.random() * maxSleep);
-                        logger.debug1("Git operation failed due to the repository being locked. Will wait for " +
-                                sleep + " before next retry" + method.getName());
+                        logger.debug("Git repository locked, will retry the operation '{}' after '{}' milliseconds",
+                                method.getName(), sleep);
                         Thread.sleep(sleep);
                     }
                 } else {
-                    throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to " +
-                                                              "a Git error that does not cause retry attempts", ex);
+                    throw new RetryingOperationErrorException(String.format("Git operation '{}' has failed",
+                            method.getName(), e));
                 }
             }
         } while (numAttempts < maxRetries);
