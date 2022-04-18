@@ -76,6 +76,9 @@
     <bean id="deletedUserDetailsChecker"
           class="org.craftercms.studio.impl.v2.security.authentication.DeletedUserDetailsChecker"/>
 
+    <bean id="sessionExpiredStrategy"
+          class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>
+
     <!-- Permissions -->
 
     <bean id="crafter.studioSubjectResolver" class="org.craftercms.studio.permissions.SubjectResolverImpl">

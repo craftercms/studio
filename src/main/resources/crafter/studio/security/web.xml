@@ -30,9 +30,6 @@
         <sec:authentication-provider ref="dbAuthenticationProvider"/>
     </sec:authentication-manager>
 
-    <bean id="sessionExpiredStrategy"
-          class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>
-
     <sec:http
             pattern="/**"
             use-expressions="true"
