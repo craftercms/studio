@@ -61,7 +61,7 @@ public abstract class AwsUtils {
             byte[] buffer = new byte[partSize];
             int read;
 
-            logger.debug1("Starting upload for file '{}'", filename);
+            logger.debug("Starting upload for file '{}'", filename);
 
             while (0 < (read = IOUtils.read(content, buffer))) {
                 totalBytes += read;
@@ -94,7 +94,7 @@ public abstract class AwsUtils {
                 s3Client.completeMultipartUpload(completeRequest);
             }
 
-            logger.debug1("Upload completed for file '{}'", filename);
+            logger.debug("Upload completed for file '{}'", filename);
 
         } catch (Exception e) {
             if (initResult != null) {
@@ -107,7 +107,7 @@ public abstract class AwsUtils {
 
     public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
                                   int partSize, AmazonS3 client) {
-        logger.debug1("Copying all files from {}/{} to {}/{}", sourceBucket, sourcePrefix, destBucket, destPrefix);
+        logger.debug("Copying all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
         ListObjectsV2Request request = new ListObjectsV2Request()
                 .withBucketName(sourceBucket)
                 .withPrefix(sourcePrefix);
@@ -120,18 +120,18 @@ public abstract class AwsUtils {
                 copyFile(sourceBucket, object.getKey(), destBucket, newKey, partSize, client);
             }
         } while (isNotEmpty(request.getContinuationToken()));
-        logger.debug1("Completed copy from {}/{} to {}/{}", sourceBucket, sourcePrefix, destBucket, destPrefix);
+        logger.debug("Completed copy from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
     }
 
     public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
                                 int partSize, AmazonS3 client) {
-        logger.debug1("Copying file from {}/{} to {}/{}", sourceBucket, sourceKey, destBucket, destKey);
+        logger.debug("Copying file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
         GetObjectMetadataRequest metadataRequest = new GetObjectMetadataRequest(sourceBucket, sourceKey);
         ObjectMetadata metadataResult = client.getObjectMetadata(metadataRequest);
         long objectSize = metadataResult.getContentLength();
 
         if (objectSize >= MAX_COPY_FILE_SIZE) {
-            logger.debug1("Starting multipart copy for {}/{}", sourceBucket, sourceKey);
+            logger.debug("Starting multipart copy for '{}/{}'", sourceBucket, sourceKey);
             InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(destBucket, destKey);
             InitiateMultipartUploadResult initResult = client.initiateMultipartUpload(initRequest);
 
@@ -141,7 +141,7 @@ public abstract class AwsUtils {
 
             try {
                 while (bytePosition < objectSize) {
-                    logger.debug1("Copying part {} for {}/{}", partNum, sourceBucket, sourceKey);
+                    logger.debug("Copying part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
                     long lastByte = Math.min(bytePosition + partSize - 1, objectSize - 1);
 
                     CopyPartRequest copyRequest = new CopyPartRequest()
@@ -165,7 +165,7 @@ public abstract class AwsUtils {
                 CompleteMultipartUploadRequest completeRequest =
                         new CompleteMultipartUploadRequest(destBucket, destKey, initResult.getUploadId(), etags);
                 client.completeMultipartUpload(completeRequest);
-                logger.debug1("Completed multipart copy for {}/{}", sourceBucket, sourceKey);
+                logger.debug("Completed multipart copy for '{}/{}'", sourceBucket, sourceKey);
             } catch (Exception e) {
                 if (initResult != null) {
                     client.abortMultipartUpload(
@@ -174,9 +174,9 @@ public abstract class AwsUtils {
                 throw e;
             }
         } else {
-            logger.debug1("Starting copy operation for {}/{}", sourceBucket, sourceKey);
+            logger.debug("Starting copy operation for '{}/{}'", sourceBucket, sourceKey);
             client.copyObject(sourceBucket, sourceKey, destBucket, destKey);
-            logger.debug1("Completed copy for {}/{}", sourceBucket, sourceKey);
+            logger.debug("Completed copy for '{}/{}'", sourceBucket, sourceKey);
         }
     }
 

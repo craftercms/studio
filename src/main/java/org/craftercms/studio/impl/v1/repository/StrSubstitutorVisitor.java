@@ -65,29 +65,29 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-        logger.debug1("Replacing parameters in file: {}", file);
+        logger.debug("Replacing parameters in file '{}'", file);
         try (InputStream inputStream = Files.newInputStream(file)) {
             String originalContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             String updatedContent = strSubstitutor.replace(originalContent);
             if (!StringUtils.equals(originalContent, updatedContent)) {
-                logger.debug1("Updating file {}", file);
+                logger.debug("Updating file '{}'", file);
                 Files.write(file, updatedContent.getBytes(StandardCharsets.UTF_8));
             }
             return FileVisitResult.CONTINUE;
         } catch (IOException e) {
-            logger.error1("Error reading file {}", e, file);
+            logger.error("Error reading file '{}'", file, e);
             throw e;
         }
     }
 
     @Override
-    public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-        logger.error1("Error reading file at {}", exc, file);
-        throw exc;
+    public FileVisitResult visitFileFailed(final Path file, final IOException e) throws IOException {
+        logger.error("Error reading file at '{}'", file, e);
+        throw e;
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
+    public FileVisitResult postVisitDirectory(final Path dir, final IOException e) {
         return FileVisitResult.CONTINUE;
     }
 

@@ -89,34 +89,35 @@ public class DependencyServiceImpl implements DependencyService {
     public Set<String> upsertDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
-        logger.debug1("Resolving dependencies for content site: " + site + " path: " + path);
+        logger.debug("Resolving dependencies for content in site '{}' path '{}'", site, path);
         Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
         List<DependencyEntity> dependencyEntities = new ArrayList<>();
         if (dependencies != null) {
-            logger.debug1("Found " + dependencies.size() + " dependencies. Create entities to insert into database.");
+            logger.debug("Found '{}' dependencies for path '{}' in site '{}'", dependencies.size(), path, site);
             for (String type : dependencies.keySet()) {
                 dependencyEntities.addAll(createDependencyEntities(site, path, dependencies.get(type), type, toRet));
             }
 
-            logger.debug1("Preparing transaction for database updates.");
+            logger.trace("Preparing transaction for dependencies insertion for site '{}' path '{}'", site, path);
             DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
             defaultTransactionDefinition.setName("upsertDependencies");
             String lock = site + ":upsertDependencies";
             generalLockService.lock(lock);
-            logger.debug1("Starting transaction.");
+            logger.trace("Starting transaction to insert dependencies for site '{}' path '{}'", site, path);
             TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
 
             try {
-                logger.debug1("Delete all source dependencies for site: " + site + " path: " + path);
+                logger.debug("Deleting all source dependencies for site '{}' path '{}'", site, path);
                 deleteAllSourceDependencies(site, path);
-                logger.debug1("Insert all extracted dependencies entries for site: " + site + " path: " + path);
+                logger.debug("Inserting all extracted dependencies for site '{}' path '{}'", site, path);
                 insertDependenciesIntoDatabase(dependencyEntities);
-                logger.debug1("Committing transaction.");
+                logger.trace("Committing transaction to insert dependencies for site '{}' path '{}'", site, path);
                 transactionManager.commit(txStatus);
             } catch (Exception e) {
-                logger.debug1("Rolling back transaction.", e);
+                logger.error("Failed to insert dependencies for site '{}' path '{}'", site, path, e);
                 transactionManager.rollback(txStatus);
-                throw new ServiceLayerException("Failed to upsert dependencies for site: " + site + " path: " + path, e);
+                throw new ServiceLayerException(String.format("Failed to upsert dependencies for site '{}' path '{}'",
+                        site, path), e);
             } finally {
                 generalLockService.unlock(lock);
             }

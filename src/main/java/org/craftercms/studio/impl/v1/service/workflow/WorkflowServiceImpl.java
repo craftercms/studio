@@ -851,13 +851,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 case DELETE:
                     responseMessageKey = NotificationService.COMPLETE_DELETE;
                     List<String> deletePaths = new ArrayList<>();
-                    List<String> nodeRefs = new ArrayList<String>();
                     for (DmDependencyTO deletedItem : submittedItems) {
                         deletePaths.add(deletedItem.getUri());
-                        ContentItemTO contentItem = contentService.getContentItem(site, deletedItem.getUri());
-                        if (contentItem != null) {
-                            //nodeRefs.add(nodeRef.getId());
-                        }
                     }
                     doDelete(site, submittedItems, approver);
             }

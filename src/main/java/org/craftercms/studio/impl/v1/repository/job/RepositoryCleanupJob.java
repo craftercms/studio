@@ -38,9 +38,9 @@ public class RepositoryCleanupJob {
      * Performs a cleanup for all repositories on all existing sites.
      */
     public void cleanupAllRepositories() {
-        logger.info1("Starting cleanup for global repo");
+        logger.info("Started git garbage collection for the global repo");
         contentRepository.cleanupRepositories(StringUtils.EMPTY);
-        logger.info1("Starting cleanup for all sites");
+        logger.info("Started git garbage collection for all sites");
         siteService.getAllAvailableSites().forEach(contentRepository::cleanupRepositories);
     }
 

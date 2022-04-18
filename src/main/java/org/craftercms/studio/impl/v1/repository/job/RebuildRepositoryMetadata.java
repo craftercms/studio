@@ -58,7 +58,7 @@ public class RebuildRepositoryMetadata {
     public void execute(String site) {
         if (taskLock.tryLock()) {
             try {
-                logger.debug("Starting the Rebuild Repository Metadata background task for site '{}'", site);
+                logger.debug("Started the Rebuild Repository Metadata background task for site '{}'", site);
                 CronJobContext securityContext = new CronJobContext(securityService.getCurrentUser());
                 RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
                 taskExecutor.execute(task);

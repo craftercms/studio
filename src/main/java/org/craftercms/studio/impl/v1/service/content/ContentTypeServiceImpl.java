@@ -84,28 +84,30 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     public boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item) {
-        if (item != null) {
-            String name = item.getName();
-            Set<String> allowedRoles = item.getAllowedRoles();
-            logger.debug1("Checking allowed roles on " + name + ". user roles: "
-                    + userRoles + ", allowed roles: " + allowedRoles);
-
-            if (allowedRoles == null || allowedRoles.size() == 0) {
-                return true;
-            } else {
-                boolean notAllowed = Collections.disjoint(userRoles, allowedRoles);
-                if (notAllowed) {
-                    logger.debug1(name + " is not allowed for the user.");
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-        } else {
-            logger.debug1("no content type config provided. returning true for user access to content type checking.");
-
+        if (item == null) {
+            logger.debug("No content type config provided for item '{}' to limit user access, " +
+                    "defaulting to permit the user", item.getName());
             return true;
         }
+
+        Set<String> allowedRoles = item.getAllowedRoles();
+        logger.trace("Item '{}' allows roles '{}', checking against user roles '{}'",
+                item.getName(), allowedRoles, userRoles);
+
+        if (allowedRoles == null || allowedRoles.size() == 0) {
+            logger.trace("User with roles '{}' is allowed access to '{}'", userRoles, item.getName());
+            return true;
+        }
+
+        boolean notAllowed = Collections.disjoint(userRoles, allowedRoles);
+        if (notAllowed) {
+            logger.debug("Item '{}' is not allowed for user with roles '{}'",
+                    item.getName(), userRoles);
+            return false;
+        }
+
+        logger.trace("User with roles '{}' is allowed access to '{}'", userRoles, item.getName());
+        return true;
     }
 
     @Override
@@ -156,12 +158,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                 if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())){
                     for (String pathIncludes : contentTypeConfig.getPathIncludes()) {
                         if (relativePath.matches(pathIncludes)) {
-                            logger.debug1(relativePath + " matches " + pathIncludes);
+                            logger.trace("In site '{}' path '{}' matches '{}'", site, relativePath, pathIncludes);
                             boolean isMatch = true;
                             if (contentTypeConfig.getPathExcludes() != null) {
                                 for (String excludePath : contentTypeConfig.getPathExcludes()) {
                                     if (relativePath.matches(excludePath)) {
-                                        logger.debug1(relativePath + " matches an exclude path: " + excludePath);
+                                        logger.trace("In site '{}' path '{}' matches an exclude path '{}'",
+                                                site, relativePath, excludePath);
                                         isMatch = false;
                                         break;
                                     }
@@ -179,7 +182,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             }
             return contentTypes;
         } else {
-            logger.error1("No content type path configuration is found for site: " + site);
+            logger.error("No content type path configuration is found for site '{}'", site);
             return null;
         }
     }
@@ -211,10 +214,10 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             try {
                 original = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
-                logger.error1("Error while getting document for site: " + site + " path: " + path, e);
+                logger.error("Error getting content as document for site '{}' path '{}'", site, path, e);
                 return false;
             }
-            throw new RuntimeException("Is it getting here?");
+            throw new RuntimeException("Unexpected code path");
         } else {
             throw new ContentNotFoundException(path + " is not a valid content path.");
         }
@@ -250,7 +253,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                                                       List<ContentTypeConfigTO> contentTypes) {
         String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + FILE_SEPARATOR + node.name;
-        logger.debug1("Get Content Type Config fot Children path = {}", fullPath );
+        logger.debug("Get Content Type Config in site '{}' for children path '{}'", site, fullPath);
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {

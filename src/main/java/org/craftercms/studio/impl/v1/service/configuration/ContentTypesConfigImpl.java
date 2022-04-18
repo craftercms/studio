@@ -85,14 +85,17 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
 
-        var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath, null, "object");
+        // TODO: SJ: Add general lock service lock around this key to avoid having more than one thread do this work
+        var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath,
+                null, "object");
         ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
         if (contentTypeConfig == null) {
             try {
-                logger.debug1("Cache miss: {}", cacheKey);
+                logger.debug("Cache miss for key '{}'", cacheKey);
 
                 if (contentService.contentExists(site, configFileFullPath)) {
-                    Document document = configurationService.getConfigurationAsDocument(site, null, configFileFullPath, null);
+                    Document document = configurationService.getConfigurationAsDocument(site, null,
+                            configFileFullPath, null);
                     Element root = document.getRootElement();
                     String name = root.valueOf("@name");
                     contentTypeConfig = new ContentTypeConfigTO();
@@ -130,7 +133,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                     cache.put(cacheKey, contentTypeConfig);
                 }
             } catch (ServiceLayerException e) {
-                logger.debug1("No content type configuration document found at " + configFileFullPath);
+                logger.error("No content type configuration document found in site '{}' at '{}'",
+                        site, configFileFullPath, e);
             }
         }
         return contentTypeConfig;

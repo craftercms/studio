@@ -108,7 +108,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
-            logger.error1("Unexpected error: ", e);
+            logger.error("Error getting the new NavOrder for site '{}' path '{}'", site, path, e);
         }
         return lastNavOrder;
 
@@ -139,17 +139,18 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         Element root = document.getRootElement();
         Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_DEFAULT);
 
-        //skip if order value element does not exist
-        if(navOrderNode !=null){
+        // Skip if order value element does not exist
+        if (navOrderNode != null) {
             String value = ((Element) navOrderNode).getText();
 
-            //skip if order value already exist
-            if(StringUtils.isEmpty(value)){
+            // Skip if order value already exist
+            if (StringUtils.isEmpty(value)) {
                 String newOrder = String.valueOf(getNewNavOrder(site, path));
                 ((Element) navOrderNode).setText(newOrder);
-                docUpdated=true;
-            }else{
-                logger.debug1("Nav Order value already exist: " +value);
+                docUpdated = true;
+            } else {
+                logger.debug("NavOrder value already exist for site '{}' path '{}' value '{}'",
+                        site, path, value);
             }
         }
         return docUpdated;

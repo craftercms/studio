@@ -124,18 +124,15 @@ public class ImportServiceImpl implements ImportService {
     }
 
     protected Document loadConfiguration(String configLocation) {
-        logger.debug1("[IMPORT] loading " + configLocation);
+        logger.debug("Loading configuration from '{}'", configLocation);
         InputStream in = null;
         try {
             in = new FileInputStream(configLocation);
             if (in != null) {
                 return ContentUtils.convertStreamToXml(in);
             }
-        } catch (FileNotFoundException e) {
-            logger.error1("[IMPORT] failed to load configuration.", e);
-
-        } catch (DocumentException e) {
-            logger.error1("[IMPORT] failed to load configuration.", e);
+        } catch (FileNotFoundException | DocumentException e) {
+            logger.error("Failed to load configuration from '{}'", configLocation, e);
 
         } finally {
             ContentUtils.release(in);

@@ -89,6 +89,8 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
         String repoPath = UrlUtils.concat(folder, assetName);
         InputStream configIn;
 
+        // TODO: SJ: Refactor with guard statements to reduce nesting and enhance readability
+
         try {
             try {
                 configIn = contentService.getContent(site, configPath);
@@ -127,7 +129,8 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                             }
                         } else {
                             // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
-                            logger.debug1("No pipeline matched for {}. Skipping asset processing...", repoPath);
+                            logger.debug("No pipeline matched for path '{}' in site '{}'. Skipping asset processing...",
+                                    repoPath, site);
 
                             // We already read input so open the temp file
                             try (InputStream assetIn = Files.newInputStream(input.getFilePath())) {
@@ -144,19 +147,21 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                     }
                 } else {
                     // Ignore if no pipelines config
-                    logger.debug1("No asset processing pipelines config found at {}. Skipping asset processing...", repoPath);
+                    logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
+                                    "Skipping asset processing...", repoPath, site);
 
                     return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight,
                                                             allowLessSize, draft, unlock, systemAsset);
                 }
             } else {
-                logger.debug1("No asset processing config found at {}. Skipping asset processing...", repoPath);
+                logger.debug("No asset processing config found at '{}' in site '{}'. Skipping asset processing...",
+                        repoPath, site);
 
                 return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
                                                         draft, unlock, systemAsset);
             }
         } catch (Exception e) {
-            logger.error1("Error processing asset", e);
+            logger.error("Error processing asset in site '{}'", site, e);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
@@ -169,7 +174,8 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
     private Asset createAssetFromInputStream(String repoPath, InputStream in) throws AssetProcessingException {
         try {
-            Path tmpFile = Files.createTempFile(FilenameUtils.getBaseName(repoPath), "." + FilenameUtils.getExtension(repoPath));
+            Path tmpFile = Files.createTempFile(FilenameUtils.getBaseName(repoPath), "." +
+                    FilenameUtils.getExtension(repoPath));
 
             try (OutputStream out = Files.newOutputStream(tmpFile)) {
                 IOUtils.copy(in, out);
@@ -177,7 +183,8 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
             return new Asset(repoPath, tmpFile);
         } catch (IOException e) {
-            throw new AssetProcessingException("Unable to create temp file to hold input stream of " + repoPath, e);
+            throw new AssetProcessingException(String.format("Unable to create temp file to hold input stream of '{}'",
+                    repoPath), e);
         }
     }
 
@@ -189,14 +196,16 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
         for (Asset output : outputs) {
             try {
                 try (InputStream in = Files.newInputStream(output.getFilePath())) {
-                    Map<String, Object> result = contentService.writeContentAsset(site,
-                                                                                  FilenameUtils.getFullPath(output.getRepoPath()),
-                                                                                  FilenameUtils.getName(output.getRepoPath()),
-                                                                                  in, isImage, allowedWidth, allowedHeight,
-                                                                                  allowLessSize, draft, unlock, systemAsset);
+                    Map<String, Object> result =
+                            contentService.writeContentAsset(site,
+                                                          FilenameUtils.getFullPath(output.getRepoPath()),
+                                                          FilenameUtils.getName(output.getRepoPath()),
+                                                          in, isImage, allowedWidth, allowedHeight,
+                                                          allowLessSize, draft, unlock, systemAsset);
                     if (MapUtils.isNotEmpty(result)) {
                         if (result.containsKey("error")) {
-                            throw new AssetProcessingException("Error writing output " + output, (Exception)result.get("error"));
+                            throw new AssetProcessingException("Error writing output " + output,
+                                    (Exception)result.get("error"));
                         } else {
                             results.add(result);
                         }
