@@ -2392,16 +2392,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
-    public void unLockContent(@ValidateStringParam(name = "site") String site,
-                              @ValidateSecurePathParam(name = "path") String path) {
-        _contentRepository.unLockItem(site, path);
-        itemServiceInternal.unlockItemByPath(site, path);
-        applicationContext.publishEvent(new LockContentEvent(securityService.getAuthentication(), site, path, false));
-        logger.debug("Unlocked item in site '{}' path '{}'", site, path);
-    }
-
-    @Override
-    @ValidateParams
     public List<DmOrderTO> getItemOrders(@ValidateStringParam(name = "site") String site,
                                          @ValidateSecurePathParam(name = "path") String path) {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
