@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.0.2</version>
+	<version>4.0.3</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -31,7 +31,7 @@
 						<id>Pages</id>
 						<label>Pages</label>
 						<icon id="@mui/icons-material/DescriptionOutlined"/>
-						<rootPath>/site/website</rootPath>
+						<rootPath>/site/website/index.xml</rootPath>
 						<locale>en</locale>
 					</configuration>
 				</widget>
