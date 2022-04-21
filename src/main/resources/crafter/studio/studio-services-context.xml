@@ -1227,7 +1227,6 @@
     <!--         publishing manager             -->
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioPublishingManager" class="org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="contentRepository" ref="contentRepository"/>
