@@ -24,6 +24,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FORM_DEFINITION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_GROUP;
@@ -131,9 +132,9 @@ public final class ContentItemPossibleActionsConstants {
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE  + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
-    public static final long CONTENT_TYPE = 0L;
+    public static final long CONTENT_TYPE = PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE + PUBLISH_REJECT;
 
-    public static final long CONFIGURATION = 0L;
+    public static final long CONFIGURATION = PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE + PUBLISH_REJECT;
 
     public static final long FOLDER = CONTENT_COPY + CONTENT_CREATE + CONTENT_PASTE + CONTENT_RENAME + CONTENT_CUT +
             CONTENT_UPLOAD + FOLDER_CREATE + CONTENT_DELETE + ITEM_UNLOCK;
@@ -317,6 +318,7 @@ public final class ContentItemPossibleActionsConstants {
                 toRet = CONTENT_TYPE;
                 break;
             case CONTENT_TYPE_CONFIGURATION:
+            case CONTENT_TYPE_FILE: // TODO: Fix configuration to be properly detected
                 toRet = CONFIGURATION;
                 break;
             case CONTENT_TYPE_FOLDER:
