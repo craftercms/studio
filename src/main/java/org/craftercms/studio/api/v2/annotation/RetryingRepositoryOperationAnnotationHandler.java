@@ -88,7 +88,7 @@ public class RetryingRepositoryOperationAnnotationHandler {
                     }
                 } else {
                     throw new RetryingOperationErrorException(String.format("Git operation '{}' has failed",
-                            method.getName(), e));
+                            method.getName()), e);
                 }
             }
         } while (numAttempts < maxRetries);
