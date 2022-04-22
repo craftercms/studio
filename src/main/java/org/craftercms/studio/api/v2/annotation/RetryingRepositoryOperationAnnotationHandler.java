@@ -78,7 +78,7 @@ public class RetryingRepositoryOperationAnnotationHandler {
             } catch (JGitInternalException | GitCliException e) {
                 lastException = e;
                 if (isRepositoryLocked(e)) {
-                    logger.debug1("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", e);
+                    logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
                     if (numAttempts < maxRetries) {
                         // If the maximum number of retries is not reached, sleep and execute it again
                         long sleep = (long) (Math.random() * maxSleep);
@@ -94,9 +94,8 @@ public class RetryingRepositoryOperationAnnotationHandler {
         } while (numAttempts < maxRetries);
 
         // If it gets here, numAttempts >= maxRetries, so we should fail entirely
-        throw new RetryingOperationErrorException("Failed to execute " + method.getName() +
-                                                  " due to the Git repository being locked after " +
-                                                  numAttempts + " attempts", lastException);
+        throw new RetryingOperationErrorException(String.format("Failed to execute '{}' after '{}' attempts " +
+                "because the git repository was locked", method.getName(), numAttempts), lastException);
     }
 
     protected boolean isRepositoryLocked(Throwable ex) {
