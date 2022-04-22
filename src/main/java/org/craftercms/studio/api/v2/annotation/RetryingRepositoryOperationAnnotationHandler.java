@@ -78,7 +78,7 @@ public class RetryingRepositoryOperationAnnotationHandler {
             } catch (JGitInternalException | GitCliException e) {
                 lastException = e;
                 if (isRepositoryLocked(e)) {
-                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", e);
+                    logger.debug1("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", e);
                     if (numAttempts < maxRetries) {
                         // If the maximum number of retries is not reached, sleep and execute it again
                         long sleep = (long) (Math.random() * maxSleep);
