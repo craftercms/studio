@@ -172,8 +172,9 @@ public class BlobAwareContentRepository implements ContentRepository,
     public boolean shallowContentExists(String site, String path) {
         logger.debug("Checking if {0} exists in site {1}", path, site);
         try {
-            if (!isFolder(site, path)) {
-                return localRepositoryV1.shallowContentExists(site, getPointerPath(site, path));
+            // Return only if the pointer exists, otherwise do the regular call
+            if (!isFolder(site, path) && pointersExist(site, path)) {
+                return true;
             }
             return localRepositoryV1.shallowContentExists(site, path);
         } catch (Exception e) {
