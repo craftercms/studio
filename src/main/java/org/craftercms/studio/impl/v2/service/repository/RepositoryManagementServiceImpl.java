@@ -185,6 +185,16 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
         return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
     }
 
+    @Override
+    public boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException, CryptoException {
+        return repositoryManagementServiceInternal.isCorrupted(siteId, repositoryType);
+    }
+
+    @Override
+    public void repairCorrupted(String siteId, GitRepositories repositoryType) throws CryptoException, ServiceLayerException {
+        repositoryManagementServiceInternal.repairCorrupted(siteId, repositoryType);
+    }
+
     public RepositoryManagementServiceInternal getRepositoryManagementServiceInternal() {
         return repositoryManagementServiceInternal;
     }

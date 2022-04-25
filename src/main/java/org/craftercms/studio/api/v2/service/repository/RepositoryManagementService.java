@@ -68,4 +68,24 @@ public interface RepositoryManagementService {
      * @return true if successful
      */
     boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException;
+
+    /**
+     * Checks if a given Git repository is corrupted
+     * @param siteId the id of the site
+     * @param repositoryType the type of the repository
+     * @return true if the repo is corrupted
+     * @throws CryptoException if there is any error opening the repository
+     * @throws ServiceLayerException if there is any error checking the repository
+     */
+    boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException, CryptoException;
+
+    /**
+     * Repairs a corrupted Git repository
+     * @param siteId the id of the site
+     * @param repositoryType the type of the repository
+     * @throws CryptoException if there is any error opening the repository
+     * @throws ServiceLayerException if there is any error repairing the repository
+     */
+    void repairCorrupted(String siteId, GitRepositories repositoryType) throws CryptoException, ServiceLayerException;
+
 }
