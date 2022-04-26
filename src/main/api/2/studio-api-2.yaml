@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.15.0'
+  version: '3.1.23'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1792,7 +1792,7 @@ paths:
       operationId: getVersion
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1822,7 +1822,7 @@ paths:
       operationId: getStatus
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1852,7 +1852,7 @@ paths:
       operationId: getMemory
       parameters:
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -1889,7 +1889,7 @@ paths:
             type: integer
             format: int64
         - name: token
-          in: path
+          in: query
           description: Management token - not required for authenticated users
           required: true
           schema:
@@ -2718,6 +2718,87 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   repositoryStatus:
                     $ref: '#/components/schemas/RepositoryStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/corrupted:
+    get:
+      tags:
+        - repository
+      summary: Check if a given repository is corrupted
+      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      operationId: isRepositoryCorrupted
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: string
+          description: site ID, do not send if checking the GLOBAL repository
+        - name: repositoryType
+          required: true
+          in: query
+          schema:
+            type: string
+            format: GLOBAL, SANDBOX or PUBLISHED
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  corrupted:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/repair:
+    post:
+      tags:
+        - repository
+      summary: Repair local git repository
+      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      operationId: repairCorruptedRepository
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID, do not send if repairing the GLOBAL repository
+                repositoryType:
+                  type: string
+                  format: GLOBAL, SANDBOX or PUBLISHED
+              required:
+                - repositoryType
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

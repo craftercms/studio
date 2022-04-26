@@ -63,6 +63,10 @@ public interface RequestMappingConstants {
     String CANCEL_FAILED_PULL = "/cancel_failed_pull";
     String UNLOCK = "/unlock";
 
+    String CORRUPTED = "/corrupted";
+
+    String REPAIR = "/repair";
+
     /** Publish Controller */
     String PUBLISH = "/publish";
     String PACKAGES = "/packages";
