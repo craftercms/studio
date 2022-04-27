@@ -72,8 +72,6 @@ public interface ObjectStateService {
 
     void deleteObjectStatesForSite(String site);
 
-    boolean isFolderLive(String site, String uri);
-
     boolean isSubmitted(String site, String dep);
 
     void setStateForSiteContent(String site, State state);

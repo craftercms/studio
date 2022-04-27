@@ -136,7 +136,8 @@ implements ClipboardService {
                 pastedItems.add(newPath);                
             }
             catch(Exception err) {
-                logger.error("Paste operation failed for item '{0}' to dest path `{1}', isCut: '{2}'", err);
+                logger.error("Paste operation failed for item '{0}' to dest path '{1}', isCut: '{2}'",
+                             err, op.path, destinationPath, op.isCut);
             }
         }
 

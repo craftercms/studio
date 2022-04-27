@@ -134,10 +134,6 @@
         AND path like  #{path}
     </delete>
 
-    <select id="isFolderLive" parameterType="java.util.Map" resultType="java.lang.Integer">
-        SELECT count(*) FROM item_state where site=#{site} and path like #{folderPath} and state like 'EXISTING%'
-    </select>
-
     <update id="setStateForSiteContent" parameterType="org.craftercms.studio.api.v1.dal.ItemState" flushCache="true">
         UPDATE item_state
         SET state = #{state}, system_processing = 0

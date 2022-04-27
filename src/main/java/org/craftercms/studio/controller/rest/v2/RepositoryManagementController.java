@@ -53,28 +53,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ADD_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL_FAILED_PULL;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.COMMIT_RESOLUTION;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DIFF_CONFLICTED_FILE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_REMOTES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PULL_FROM_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUSH_TO_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REBUILD_DATABASE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REMOVE_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REPOSITORY;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESOLVE_CONFLICT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UNLOCK;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.ADD_REMOTE_INVALID;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -313,6 +300,34 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
+    @GetMapping(CORRUPTED)
+    public ResponseBody isRepositoryCorrupted(@RequestParam(required = false) String siteId,
+                                              @RequestParam GitRepositories repositoryType)
+            throws ServiceLayerException, CryptoException {
+        ResponseBody responseBody = new ResponseBody();
+
+        ResultOne<Boolean> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_CORRUPTED,
+                repositoryManagementService.isCorrupted(siteId, repositoryType));
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    @PostMapping(REPAIR)
+    public ResponseBody repairCorruptedRepository(@Valid @RequestBody RepairRepositoryRequest request)
+            throws ServiceLayerException, CryptoException {
+        repositoryManagementService.repairCorrupted(request.getSiteId(), request.getRepositoryType());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
     public RepositoryManagementService getRepositoryManagementService() {
         return repositoryManagementService;
     }
@@ -328,4 +343,30 @@ public class RepositoryManagementController {
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
+
+    public static class RepairRepositoryRequest {
+
+        protected String siteId;
+
+        @NotNull
+        protected GitRepositories repositoryType;
+
+        public String getSiteId() {
+            return siteId;
+        }
+
+        public void setSiteId(String siteId) {
+            this.siteId = siteId;
+        }
+
+        public GitRepositories getRepositoryType() {
+            return repositoryType;
+        }
+
+        public void setRepositoryType(GitRepositories repositoryType) {
+            this.repositoryType = repositoryType;
+        }
+
+    }
+
 }

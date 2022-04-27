@@ -274,6 +274,14 @@ public interface ContentRepository {
     List<GitLog> getUnprocessedCommits(String siteId, long marker);
 
     /**
+     * Count unprocessed commits from database
+     * @param siteId site identifier
+     * @param marker id of last verified commit Id
+     * @return number of unprocessed gitlog records
+     */
+    int countUnprocessedCommits(String siteId, long marker);
+
+    /**
      * Mark all git logs as processed if they are inserted before marker
      * @param siteId site identifier
      * @param marker marker git commit

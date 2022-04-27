@@ -1705,6 +1705,11 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     }
 
     @Override
+    public int countUnprocessedCommits(String siteId, long marker) {
+        return gitLogDao.countUnprocessedCommitsSinceMarker(siteId, marker);
+    }
+
+    @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
         retryingOperationFacade.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
     }

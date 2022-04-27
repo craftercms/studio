@@ -30,19 +30,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
@@ -224,7 +212,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             if (repo != null ) {
-
                 RevTree tree = helper.getTreeForLastCommit(repo);
                 try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                     // Check if the array of items is not null, and since we have an absolute path to the item,
@@ -248,7 +235,21 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return toReturn;
     }
 
-    @Override
+	@Override
+	public boolean contentExistsShallow(String site, String path) {
+		GitRepositoryHelper helper = null;
+		try {
+			helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                                                   userServiceInternal, encryptor, generalLockService,
+                                                   retryingRepositoryOperationFacade);
+			return Files.exists(helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path)));
+		} catch (CryptoException e) {
+			logger.error("Failed to get GitRepoHelper for site: " + site + " path: " + path, e);
+			return false;
+		}
+	}
+
+	@Override
     public InputStream getContent(String site, String path) throws ContentNotFoundException, CryptoException {
         InputStream toReturn = null;
         GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
@@ -319,7 +320,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         String comment = helper.getCommitMessage(REPO_SANDBOX_WRITE_COMMIT_MESSAGE)
                                 .replace(REPO_COMMIT_MESSAGE_USERNAME_VAR, username)
                                 .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
-                        commitId = helper.commitFile(repo, site, path, comment, user);
+                        commitId = helper.commitFiles(repo, site, comment, user, path);
                     } else {
                         logger.error("Failed to write content site: " + site + " path: " + path);
                     }
@@ -368,33 +369,24 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         result = false;
                     } else {
                         // Add the file to git
-                        try (Git git = new Git(repo)) {
-                            AddCommand addCommand =
-                                    git.add().addFilepattern(helper.getGitPath(emptyFilePath.toString()));
-                            retryingRepositoryOperationFacade.call(addCommand);
-
-                            git.close();
-                            result = true;
-                        } catch (GitAPIException e) {
-                            logger.error("error adding file to git: site: " + site + " path: " + emptyFilePath, e);
-                            result = false;
-                        }
+                        result = helper.addFiles(repo, site, emptyFilePath.toString());
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     logger.error("error writing file: site: " + site + " path: " + emptyFilePath, e);
                     result = false;
                 }
 
                 if (result) {
                     try {
-                        commitId = helper.commitFile(repo, site, emptyFilePath.toString(),
-                                helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
-                                        .replaceAll(PATTERN_SITE, site)
-                                        .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
-                                helper.getCurrentUserIdent());
+                        commitId = helper.commitFiles(repo, site,
+                                                      helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+                                                           .replaceAll(PATTERN_SITE, site)
+                                                           .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
+                                                      helper.getCurrentUserIdent(),
+                                                      emptyFilePath.toString());
                     } catch (ServiceLayerException | UserNotFoundException e) {
                         logger.error("Unknown service error during commit for site: " + site + " path: "
-                                + emptyFilePath, e);
+                                     + emptyFilePath, e);
                     }
                 }
             }
@@ -430,12 +422,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         pathToCommit = deleteParentFolder(git, parentToDelete, true);
                     }
 
-                    // TODO: SJ: we need to define messages in a string table of sorts
-                    commitId = helper.commitFile(repo, site, pathToCommit,
-                            helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
-                                    .replaceAll(PATTERN_PATH, path),
-                            StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() : helper.getAuthorIdent(approver));
+                    String commitMsg = helper.getCommitMessage(REPO_DELETE_CONTENT_COMMIT_MESSAGE)
+                                             .replaceAll(PATTERN_PATH, path);
+                    PersonIdent user = StringUtils.isEmpty(approver) ? helper.getCurrentUserIdent() :
+                                       helper.getAuthorIdent(approver);
 
+                    // TODO: SJ: we need to define messages in a string table of sorts
+                    commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit);
                 }
             }
         } catch (GitAPIException | UserNotFoundException | IOException e) {
@@ -493,7 +486,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
         Map<String, String> toRet = new TreeMap<String, String>();
-        String commitId;
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
@@ -549,33 +541,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
 
                     // The operation is done on disk, now it's time to commit
-                    AddCommand addCommand = git.add().addFilepattern(gitToPath);
-                    retryingRepositoryOperationFacade.call(addCommand);
+                    boolean result = helper.addFiles(repo, site, gitToPath);
+                    if (result) {
+                        StatusCommand statusCommand = git.status().addPath(gitToPath);
+                        Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
+                        Set<String> changeSet = gitStatus.getAdded();
+                        PersonIdent user = helper.getCurrentUserIdent();
+                        String commitMsg = helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
+                                                 .replaceAll(PATTERN_FROM_PATH, fromPath)
+                                                 .replaceAll(PATTERN_TO_PATH,
+                                                             toPath + (StringUtils.isNotEmpty(newName) ? newName : EMPTY));
 
-                    StatusCommand statusCommand = git.status().addPath(gitToPath);
-                    Status gitStatus = retryingRepositoryOperationFacade.call(statusCommand);
-                    Set<String> changeSet = gitStatus.getAdded();
-
-                    for (String pathToCommit : changeSet) {
-                        String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
-                        CommitCommand commitCommand = git.commit()
-                                .setOnly(pathToCommit)
-                                .setOnly(pathRemoved)
-                                .setAuthor(helper.getCurrentUserIdent())
-                                .setCommitter(helper.getCurrentUserIdent())
-                                .setMessage(helper.getCommitMessage(REPO_MOVE_CONTENT_COMMIT_MESSAGE)
-                                        .replaceAll(PATTERN_FROM_PATH, fromPath)
-                                        .replaceAll(PATTERN_TO_PATH, toPath +
-                                                (StringUtils.isNotEmpty(newName) ? newName : EMPTY)));
-                        RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
-                        commitId = commit.getName();
-                        toRet.put(pathToCommit, commitId);
+                        // TODO: AV - This can be easily done in a single commit
+                        for (String pathToCommit : changeSet) {
+                            String pathRemoved = pathToCommit.replace(gitToPath, gitFromPath);
+                            String commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit, pathRemoved);
+                            toRet.put(pathToCommit, commitId);
+                        }
+                    } else {
+                        logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
+                                     " toPath: " + toPath + " newName: " + newName);
                     }
                 }
             }
-        } catch (IOException | GitAPIException | ServiceLayerException | UserNotFoundException | CryptoException e) {
+        } catch (Exception e) {
             logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
-                    " toPath: " + toPath + " newName: " + newName);
+                         " toPath: " + toPath + " newName: " + newName, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -592,36 +583,31 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
                 Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+                Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
+                File sourceFile = sourcePath.toFile();
+                Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
+                File targetFile = targetPath.toFile();
 
-                String gitFromPath = helper.getGitPath(fromPath);
-                String gitToPath = helper.getGitPath(toPath);
+                // Check if we're copying a single file or whole subtree
+                FileUtils.copyDirectory(sourceFile, targetFile);
 
-                try (Git git = new Git(repo)) {
-                    Path sourcePath = Paths.get(repo.getDirectory().getParent(), fromPath);
-                    File sourceFile = sourcePath.toFile();
-                    Path targetPath = Paths.get(repo.getDirectory().getParent(), toPath);
-                    File targetFile = targetPath.toFile();
-
-                    // Check if we're copying a single file or whole subtree
-                    FileUtils.copyDirectory(sourceFile, targetFile);
-
-                    // The operation is done on disk, now it's time to commit
-                    git.add().addFilepattern(gitToPath).call();
-                    CommitCommand commitCommand = git.commit()
-                            .setOnly(gitFromPath)
-                            .setOnly(gitToPath)
-                            .setAuthor(helper.getCurrentUserIdent())
-                            .setCommitter(helper.getCurrentUserIdent())
-                            .setMessage(helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
-                                    .replaceAll(PATTERN_FROM_PATH, fromPath).replaceAll(PATTERN_TO_PATH, toPath));
-                    RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
-                    commitId = commit.getName();
-
+                // The operation is done on disk, now it's time to commit
+                boolean result = helper.addFiles(repo, site, toPath);
+                if (result) {
+                    commitId = helper.commitFiles(repo, site,
+                                                  helper.getCommitMessage(REPO_COPY_CONTENT_COMMIT_MESSAGE)
+                                                        .replaceAll(PATTERN_FROM_PATH, fromPath)
+                                                        .replaceAll(PATTERN_TO_PATH, toPath),
+                                                  helper.getCurrentUserIdent(),
+                                                  fromPath, toPath);
+                } else {
+                    logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
+                                 " toPath: " + toPath + " newName: ");
                 }
             }
-        } catch (IOException | GitAPIException | ServiceLayerException | UserNotFoundException | CryptoException e) {
+        } catch (Exception e) {
             logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
-                    " toPath: " + toPath + " newName: ");
+                         " toPath: " + toPath + " newName: ", e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -640,7 +626,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
             RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
-
                 if (tw != null) {
                     // Loop for all children and gather path of item excluding the item, file/folder name, and
                     // whether or not it's a folder
@@ -716,6 +701,35 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
         items = retItems.toArray(items);
         return items;
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildrenShallow(String site, String path) {
+        try {
+            GitRepositoryHelper helper = GitRepositoryHelper.getHelper(
+                    studioConfiguration, securityService, userServiceInternal, encryptor, generalLockService,
+                    retryingRepositoryOperationFacade);
+            Path sitePath = helper.buildRepoPath(SANDBOX, site);
+            Path treeRootPath = sitePath.resolve(helper.getGitPath(path));
+
+            return Files.list(treeRootPath)
+                        .filter(child -> !ArrayUtils.contains(IGNORE_FILES, child.getFileName().toString()))
+                        .map(child -> {
+                            RepositoryItem childItem = new RepositoryItem();
+                            String parent = sitePath.relativize(child.getParent()).toString();
+
+                            childItem.path = StringUtils.prependIfMissing(parent, "/");
+                            childItem.name = child.getFileName().toString();
+                            childItem.isFolder = Files.isDirectory(child);
+
+                            return childItem;
+                        })
+                        .sorted(Comparator.comparing(i -> i.name))
+                        .toArray(RepositoryItem[]::new);
+        } catch (Exception e) {
+            logger.error("Error while getting children for site: " + site + " path: " + path, e);
+            return new RepositoryItem[0];
+        }
     }
 
     @Override

@@ -172,7 +172,25 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
         }
     }
 
-    @Override
+	@Override
+	public boolean contentExistsShallow(String site, String path) {
+		logger.debug("Checking if {0} exists in site {1}", path, site);
+		try {
+			if (!isFolder(site, path)) {
+                StudioBlobStore store = getBlobStore(site, path);
+                if (store != null) {
+                    // Get .blob path
+                    path = getPointerPath(site, path);
+                }
+			}
+			return localRepositoryV1.contentExistsShallow(site, path);
+		} catch (Exception e) {
+			logger.error("Error checking if content {0} exist in site {1}", e, path, site);
+			return false;
+		}
+	}
+
+	@Override
     public InputStream getContent(String site, String path) {
         logger.debug("Getting content of {0} in site {1}", path, site);
         try {
@@ -308,9 +326,16 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public RepositoryItem[] getContentChildren(String site, String path) {
         RepositoryItem[] children = localRepositoryV1.getContentChildren(site, path);
         return Stream.of(children)
-                .peek(item -> item.name = getOriginalPath(item.name))
-                .collect(toList())
-                .toArray(new RepositoryItem[children.length]);
+                     .peek(item -> item.name = getOriginalPath(item.name))
+                     .toArray(RepositoryItem[]::new);
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildrenShallow(String site, String path) {
+        RepositoryItem[] children = localRepositoryV1.getContentChildrenShallow(site, path);
+        return Stream.of(children)
+                     .peek(item -> item.name = getOriginalPath(item.name))
+                     .toArray(RepositoryItem[]::new);
     }
 
     @Override
@@ -648,6 +673,11 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     @Override
     public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
         return localRepositoryV2.getUnprocessedCommits(siteId, marker);
+    }
+
+    @Override
+    public int countUnprocessedCommits(String siteId, long marker) {
+        return localRepositoryV2.countUnprocessedCommits(siteId, marker);
     }
 
     @Override

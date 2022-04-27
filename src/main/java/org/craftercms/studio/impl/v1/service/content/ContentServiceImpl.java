@@ -86,7 +86,6 @@ import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
 import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v1.util.DebugUtils;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -201,6 +200,14 @@ public class ContentServiceImpl implements ContentService {
         // TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.contentExists(site, path);
     }
+
+	@Override
+	@ValidateParams
+	public boolean contentExistsShallow(@ValidateStringParam(name = "site") String site,
+                                        @ValidateSecurePathParam(name = "path") String path) {
+		// TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
+		return this._contentRepository.contentExistsShallow(site, path);
+	}
 
     @Override
     @ValidateParams
@@ -1403,8 +1410,12 @@ public class ContentServiceImpl implements ContentService {
         if (keys != null) {
             for(Node keyNode : keys) {
                 String keyValue = keyNode.getText();
-                keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    keyValue = keyValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    keyValue = keyValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(keyValue.contains("/page")) {
                     keyNode.setText(keyValue);
@@ -1416,8 +1427,12 @@ public class ContentServiceImpl implements ContentService {
         if (includes != null) {
             for(Node includeNode : includes) {
                 String includeValue = includeNode.getText();
-                includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
-                includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                if (StringUtils.isNotEmpty(originalPageId)) {
+                    includeValue = includeValue.replaceAll(originalPageId, params.get(KEY_PAGE_ID));
+                }
+                if (StringUtils.isNotEmpty(originalGroupId)) {
+                    includeValue = includeValue.replaceAll(originalGroupId, params.get(KEY_PAGE_GROUP_ID));
+                }
 
                 if(includeValue.contains("/page")) {
                     includeNode.setText(includeValue);
@@ -1607,7 +1622,6 @@ public class ContentServiceImpl implements ContentService {
         if (nodes != null) {
             List<DmOrderTO> orders = new ArrayList<DmOrderTO>(nodes.size());
             for (Node node : nodes) {
-
                 String orderName = DmConstants.JSON_KEY_ORDER_DEFAULT;
                 String orderStr = node.getText();
                 addOrderValue(orders, orderName, orderStr);
@@ -1619,16 +1633,17 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {
-        // TODO: SJ: Refactor  in 3.1+
+        logger.debug("Populate item children for site {0} path {1}", item.site, item.uri);
+        long startTime = System.currentTimeMillis();
+
+        // TODO: Refactor in 4
         String contentPath = item.uri;
 
         item.children = new ArrayList<ContentItemTO>();
         item.numOfChildren = 0;
 
-        if(contentPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1
-                || contentPath.indexOf(".") == -1 ) { // item.isFolder?
-
-            if (contentPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) {
+        if(contentPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE) || item.isFolder()) {
+            if (contentPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                 contentPath = contentPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
             }
 
@@ -1644,7 +1659,8 @@ public class ContentServiceImpl implements ContentService {
                 }
 
                 List<ContentItemTO> children = new ArrayList<>();
-                logger.debug("Checking if {0} has index", contentPath);
+                String pagesRootPath = FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website" + FILE_SEPARATOR;
+
                 for (int j = 0; j < childRepoItems.length; j++) {
                     if ("index.xml".equals(childRepoItems[j].name)) {
                         if (!item.uri.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
@@ -1653,18 +1669,15 @@ public class ContentServiceImpl implements ContentService {
                         }
                         item.numOfChildren--;
                         indexFound = true;
-                    }
-                    else {
-                        if (depth > 1) {
-                            String childPath = childRepoItems[j].path + FILE_SEPARATOR + childRepoItems[j].name;
-                            if (childPath.startsWith(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website" +
-                                    FILE_SEPARATOR) && childRepoItems[j].isFolder &&
-                                    contentExists(item.site,childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE )) {
-                                children.add(getContentItem(item.site, childPath + FILE_SEPARATOR +
-                                        DmConstants.INDEX_FILE, depth - 1));
-                            } else {
-                                children.add(getContentItem(item.site, childPath, depth - 1));
-                            }
+                    } else if (depth > 1) {
+                        String childPath = childRepoItems[j].path + FILE_SEPARATOR + childRepoItems[j].name;
+                        String indexChildPath = childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE;
+                        if (childPath.startsWith(pagesRootPath) &&
+                            childRepoItems[j].isFolder &&
+                            contentExistsShallow(item.site, indexChildPath)) {
+                            children.add(getContentItem(item.site, indexChildPath, depth - 1));
+                        } else {
+                            children.add(getContentItem(item.site, childPath, depth - 1));
                         }
                     }
                 }
@@ -1709,6 +1722,10 @@ public class ContentServiceImpl implements ContentService {
 
         if(item.internalName == null) item.internalName = item.name;
 
+        long executionTime = System.currentTimeMillis() - startTime;
+        logger.debug("Populate item children for site {0} path {1} retrieved in {2} milli-seconds",
+                     item.site, item.uri, executionTime);
+
         return item;
     }
 
@@ -1725,13 +1742,11 @@ public class ContentServiceImpl implements ContentService {
                                         @ValidateSecurePathParam(name = "path") String path,
                                         @ValidateIntegerParam(name = "depth") int depth) {
         ContentItemTO item = null;
-        logger.debug("Getting content item for site '{}' path '{}' depth '{}'", site, path, depth);
-
-        DebugUtils.addDebugStack(logger);
+        logger.debug("Getting content item for site {0} path {1} depth {2}", site, path, depth);
         long startTime = System.currentTimeMillis();
 
         try {
-            if (contentExists(site, path)) {
+            if (contentExistsShallow(site, path)) {
                 // get item from cache
                 item = loadContentItem(site, path);
 
@@ -1746,29 +1761,30 @@ public class ContentServiceImpl implements ContentService {
                 if (!item.isFolder() || item.isContainer()) {
                     populateWorkflowProperties(site, item);
                 } else {
-                    item.setNew(!objectStateService.isFolderLive(site, item.getUri()));
-                    item.isNew = item.isNew();
+                    item.setNew(false);
                 }
             } else {
                 item = createDummyDmContentItemForDeletedNode(site, path);
             }
         }
         catch(Exception err) {
-            logger.debug("error constructing item for object at site '{}' path '{}'", err, site, path);
+            logger.debug("error constructing item for object at site {0} path {1}", err, site, path);
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item from site '{}' path '{}' retrieved in '{}' milli-seconds",
-                site, path, executionTime);
+        logger.debug("Content item from site {0} path {1} retrieved in {2} milli-seconds",
+                     site, path, executionTime);
         return item;
     }
 
     protected ContentItemTO loadContentItem(String site, String path) {
+        logger.debug("Load content item for site {0} path {1}", site, path);
+        long startTime = System.currentTimeMillis();
+
         // TODO: SJ: Refactor such that the populate of non-XML is also a method in 3.1+
         ContentItemTO item = createNewContentItemTO(site, path);
 
         if (item.uri.endsWith(".xml") && !item.uri.startsWith("/config/")) {
-
             try {
                 item = populateContentDrivenProperties(site, item);
             } catch (Exception err) {
@@ -1800,6 +1816,11 @@ public class ContentServiceImpl implements ContentService {
         if (StringUtils.isNotEmpty(mimeType)) {
             item.setMimeType(mimeType);
         }
+
+        long executionTime = System.currentTimeMillis() - startTime;
+        logger.debug("Load content item from site {0} path {1} retrieved in {2} milli-seconds",
+                     site, path, executionTime);
+
         return item;
     }
 
@@ -1809,7 +1830,7 @@ public class ContentServiceImpl implements ContentService {
             item.setContentType(CONTENT_TYPE_FOLDER);
         } else {
             if (contentType != null && !contentType.equals(CONTENT_TYPE_FOLDER) && !contentType.equals("asset") &&
-                    !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
+                !contentType.equals(CONTENT_TYPE_UNKNOWN)) {
                 ContentTypeConfigTO config = servicesConfig.getContentTypeConfig(site, contentType);
                 if (config != null) {
                     item.setForm(config.getForm());
@@ -1831,40 +1852,37 @@ public class ContentServiceImpl implements ContentService {
     }
 
     protected void populateWorkflowProperties(String site, ContentItemTO item) {
+        logger.debug("Populate item workflow properties for site {0} path {1}", site, item.uri);
+        long startTime = System.currentTimeMillis();
+
         ItemState state = objectStateService.getObjectState(site, item.getUri(), false);
         if (state != null) {
             if (item.isFolder()) {
-                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
-                item.setNew(!liveFolder);
-                item.setLive(liveFolder);
+                item.setNew(false);
+                item.setLive(true);
             } else {
                 item.setNew(State.isNew(State.valueOf(state.getState())));
                 item.setLive(State.isLive(State.valueOf(state.getState())));
             }
-            item.isNew = item.isNew();
-            item.isLive = item.isLive();
             item.setInProgress(!item.isLive());
-            item.isInProgress = item.isInProgress();
             item.setScheduled(State.isScheduled(State.valueOf(state.getState())));
-            item.isScheduled = item.isScheduled();
             item.setSubmitted(State.isSubmitted(State.valueOf(state.getState())));
-            item.isSubmitted = item.isSubmitted();
             item.setInFlight(state.getSystemProcessing() == 1);
-            item.isInFlight = item.isInFlight();
-        } else {
-            if (item.isFolder()) {
-                boolean liveFolder = objectStateService.isFolderLive(site, item.getUri());
-                item.setNew(!liveFolder);
-                item.setLive(liveFolder);
-                item.isNew = item.isNew();
-                item.isLive = item.isLive();
-                item.setInProgress(!item.isLive());
-                item.isInProgress = item.isInProgress();
-            }
+        } else if (item.isFolder()) {
+            item.setNew(false);
+            item.setLive(true);
+            item.setInProgress(false);
         }
+
+        long executionTime = System.currentTimeMillis() - startTime;
+        logger.debug("Populate item workflow for site {0} path {1} retrieved in {2} milli-seconds",
+                     site, item.uri, executionTime);
     }
 
     protected void populateMetadata(String site, ContentItemTO item) {
+        logger.debug("Populate item metadata for site {0} path {1}", site, item.uri);
+        long startTime = System.currentTimeMillis();
+
         // TODO: SJ: Refactor to return a ContentItemTO instead of changing the parameter
         // TODO: SJ: Change method name to be getContentItemMetadata or similar
         // TODO: SJ: 3.1+
@@ -1933,6 +1951,10 @@ public class ContentServiceImpl implements ContentService {
         } else {
             item.setLockOwner("");
         }
+
+        long executionTime = System.currentTimeMillis() - startTime;
+        logger.debug("Populate item metadata for site {0} path {1} retrieved in {2} milli-seconds",
+                     site, item.uri, executionTime);
     }
 
     @Override
@@ -1940,14 +1962,13 @@ public class ContentServiceImpl implements ContentService {
     public ContentItemTO getContentItemTree(@ValidateStringParam(name = "site") String site,
                                             @ValidateSecurePathParam(name = "path") String path,
                                             @ValidateIntegerParam(name = "depth") int depth) {
-        logger.debug("Getting content item  tree for '{}':'{}' depth '{}'", site, path, depth);
-        DebugUtils.addDebugStack(logger);
+        logger.debug("Getting content item tree for {0}:{1} depth {2}", site, path, depth);
 
         long startTime = System.currentTimeMillis();
         boolean isPages = (path.contains(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website"));
         ContentItemTO root = null;
 
-        if (isPages && contentExists(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+        if (isPages && contentExistsShallow(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
             if (depth > 1) {
                 root = getContentItem(site, path + FILE_SEPARATOR + DmConstants.INDEX_FILE, depth);
             } else {
@@ -1963,8 +1984,8 @@ public class ContentServiceImpl implements ContentService {
         }
 
         long executionTime = System.currentTimeMillis() - startTime;
-        logger.debug("Content item tree ['{}':'{}' depth '{}'] retrieved in '{}' milli-seconds", site, path, depth,
-                executionTime);
+        logger.debug("Content item tree [{0}:{1} depth {2}] retrieved in {3} milli-seconds", site, path,
+                     depth, executionTime);
 
         return root;
     }

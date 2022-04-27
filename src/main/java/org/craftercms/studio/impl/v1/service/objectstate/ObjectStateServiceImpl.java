@@ -369,17 +369,6 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
 
     @Override
     @ValidateParams
-    public boolean isFolderLive(@ValidateStringParam(name = "site") String site,
-                                @ValidateSecurePathParam(name = "folderPath") String folderPath) {
-        folderPath = FilenameUtils.normalize(folderPath, true);
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("folderPath", folderPath + "%");
-        return itemStateMapper.isFolderLive(params) > 0;
-    }
-
-    @Override
-    @ValidateParams
     public boolean isScheduled(@ValidateStringParam(name = "site") String site,
                                @ValidateSecurePathParam(name = "path") String path) {
         path = FilenameUtils.normalize(path, true);

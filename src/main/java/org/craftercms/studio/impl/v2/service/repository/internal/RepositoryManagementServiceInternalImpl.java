@@ -25,6 +25,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
@@ -70,6 +71,7 @@ import org.eclipse.jgit.api.Status;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -90,6 +92,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -889,12 +892,57 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     @Override
     public boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException {
         boolean toRet = false;
-        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
-                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
+        GitRepositoryHelper helper = getHelper();
         Repository repo = helper.getRepository(siteId, repositoryType);
         if (Objects.nonNull(repo)) {
             toRet = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile());
         }
         return toRet;
     }
+
+    @Override
+    public boolean isCorrupted(String siteId, GitRepositories repositoryType) throws CryptoException, ServiceLayerException {
+        GitRepositoryHelper helper = getHelper();
+        Repository repository = helper.getRepository(siteId, repositoryType);
+        if (repository == null) {
+            throw new SiteNotFoundException();
+        }
+        try (Git git = Git.wrap(repository)) {
+            git.status().call();
+        } catch (JGitInternalException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof CorruptObjectException || cause instanceof EOFException) {
+                return true;
+            }
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown error checking repository", e);
+        }
+        return false;
+    }
+
+    @Override
+    public void repairCorrupted(String siteId, GitRepositories repositoryType) throws CryptoException, ServiceLayerException {
+        GitRepositoryHelper helper = getHelper();
+        Repository repository = helper.getRepository(siteId, repositoryType);
+        if (repository == null) {
+            throw new SiteNotFoundException();
+        }
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
+        try (Git git = Git.wrap(repository)) {
+            FileUtils.forceDelete(repository.getIndexFile());
+            ResetCommand resetCommand = git.reset().setMode(ResetCommand.ResetType.HARD);
+            retryingRepositoryOperationFacade.call(resetCommand);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Error repairing corrupted repository for site " + siteId, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
+        }
+    }
+
+    protected GitRepositoryHelper getHelper() throws CryptoException {
+        return GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
+    }
+
 }

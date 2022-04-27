@@ -102,7 +102,6 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
@@ -165,7 +164,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_STATUS_MESSAGE_DEFAULT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
 
 /**
  * Note: consider renaming
@@ -1267,79 +1265,6 @@ public class SiteServiceImpl implements SiteService {
         } catch (SiteNotFoundException e) {
             logger.error("Site not found " + site);
         }
-    }
-
-    @Override
-    @ValidateParams
-    public boolean syncDatabaseWithRepoUnprocessedCommits(@ValidateStringParam(name = "site") String site,
-                                                          List<GitLog> commitIds) throws IOException {
-        boolean toReturn = true;
-        String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
-        String scriptFilename = "repoOperations_" + UUID.randomUUID();
-        Path scriptPath = Files.createTempFile(scriptFilename, ".sql");
-        boolean success = true;
-        long startUpdateDBMark = 0;
-        List<String> cIds = new ArrayList<String>();
-        for (GitLog gitLog : commitIds) {
-            String commitId = gitLog.getCommitId();
-            long startGetOperationsFromDeltaMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-            List<RepoOperation> repoOperationsDelta =
-                    contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
-            if (logger.isDebugEnabled()) {
-                logger.debug("Get Repo Operations from Delta finished in " +
-                        (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
-                logger.debug("Number of Repo operations from delta " + repoOperationsDelta.size());
-            }
-            if (!CollectionUtils.isEmpty(repoOperationsDelta)) {
-                logger.debug("Syncing database with repository for site: " + site + " commitId = " + commitId);
-                logger.debug("Operations to sync: ");
-                if (logger.isDebugEnabled()) {
-                    for (RepoOperation repoOperation : repoOperationsDelta) {
-                        logger.debug("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
-                    }
-                }
-                startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
-
-                success = processRepoOperations(site, repoOperationsDelta, scriptPath);
-            }
-            toReturn = toReturn && success;
-        }
-        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-		studioDBScriptRunner.execute(scriptPath.toFile());
-
-        // At this point we have attempted to process all operations, some may have failed
-        // We will update the lastCommitId of the database ignoring errors if any
-        logger.debug("Done syncing operations with a result of: " + success);
-        logger.debug("Syncing database lastCommitId for site: " + site);
-
-        // Update database
-        if (success) {
-            contentRepositoryV2.markGitLogVerifiedProcessedBulk(site, cIds);
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
-        }
-
-        // Sync all preview deployers
-        try {
-            logger.debug("Sync preview for site " + site);
-            deploymentService.syncAllContentToPreview(site, false);
-        } catch (ServiceLayerException e) {
-            logger.error("Error synchronizing preview with repository for site: " + site, e);
-        }
-
-        logger.info("Done syncing database with repository for site: " + site + " for unprocessed commits with a " +
-                "final result of: " + toReturn);
-
-        if (toReturn) {
-            updateLastCommitId(site, repoLastCommitId);
-            logger.info("Last commit ID for site: " + site + " is " + repoLastCommitId);
-        } else {
-            // Some operations failed during sync database from repo
-            // Must log and make some noise here, this isn't great
-            logger.error("Some operations failed to sync to database for site: " + site + " see previous error logs");
-        }
-        return toReturn;
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
+import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -37,6 +38,7 @@ import org.springframework.util.MimeType;
 import org.springframework.util.MimeTypeUtils;
 
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -108,11 +110,12 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
-        String key = StringUtils.isNotEmpty(path)? normalizePrefix(path) + filename : filename;
+        String relativeKey = UrlUtils.concat(path, filename);
+        String fullKey = UrlUtils.concat(profile.getPrefix(), relativeKey);
 
-        AwsUtils.uploadStream(inputBucket, key, s3Client, partSize, filename, content);
+        AwsUtils.uploadStream(inputBucket, fullKey, s3Client, partSize, filename, content);
 
-        return new S3Item(filename, createUrl(profileId, key), false);
+        return new S3Item(filename, createUrl(profileId, relativeKey), false);
     }
 
     /**
@@ -132,11 +135,11 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         MimeType filerType =
             StringUtils.isEmpty(type) || StringUtils.equals(type, ITEM_FILTER)? MimeTypeUtils.ALL : new MimeType(type);
 
-        String prefix = StringUtils.isEmpty(path)? path : normalizePrefix(path);
+        String fullPrefix = normalizePrefix(UrlUtils.concat(profile.getPrefix(), path));
 
         ListObjectsV2Request request = new ListObjectsV2Request()
                                             .withBucketName(profile.getBucketName())
-                                            .withPrefix(prefix)
+                                            .withPrefix(fullPrefix)
                                             .withDelimiter(delimiter);
 
         ListObjectsV2Result result;
@@ -144,14 +147,19 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
         do {
             result = client.listObjectsV2(request);
             result.getCommonPrefixes().stream()
-                .map(p -> new S3Item(StringUtils.removeEnd(StringUtils.removeStart(p, prefix), delimiter), p, true))
+                .map(p -> {
+                    String relativeKey = StringUtils.removeStart(p, profile.getPrefix());
+                    return new S3Item(StringUtils.removeEnd(relativeKey, delimiter), relativeKey, true);
+                })
                 .forEach(items::add);
 
             result.getObjectSummaries().stream()
-                .filter(o -> !StringUtils.equals(o.getKey(), prefix) &&
+                .filter(o -> !StringUtils.equals(o.getKey(), fullPrefix) &&
                                 MimeType.valueOf(mimetypes.getMimetype(o.getKey())).isCompatibleWith(filerType))
-                .map(o -> new S3Item(
-                    StringUtils.removeStart(o.getKey(), prefix), createUrl(profileId, o.getKey()), false))
+                .map(o -> {
+                    String relativeKey = StringUtils.removeStart(o.getKey(), profile.getPrefix());
+                    return new S3Item(relativeKey, createUrl(profileId, relativeKey), false);
+                })
                 .forEach(items::add);
 
             request.setContinuationToken(result.getNextContinuationToken());
@@ -161,11 +169,15 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     }
 
     protected String createUrl(String profileId, String key) {
-        return String.format(urlPattern, profileId, key);
+        return Paths.get(String.format(urlPattern, profileId, key)).normalize().toString();
     }
 
     protected String normalizePrefix(String prefix) {
-        return stripStart(appendIfMissing(prefix, delimiter), delimiter);
+        if (StringUtils.isEmpty(prefix)) {
+            return prefix;
+        } else {
+            return stripStart(appendIfMissing(prefix, delimiter), delimiter);
+        }
     }
 
 }
