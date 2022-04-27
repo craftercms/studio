@@ -60,6 +60,7 @@ public interface StudioConfiguration {
     String REPO_DEFAULT_IGNORE_FILE = "studio.repo.defaultIgnoreFile";
     String REPO_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.repo.retryingOperation.maxAttempts";
     String REPO_RETRYING_OPERATION_MAX_SLEEP = "studio.repo.retryingOperation.maxSleep";
+    String REPO_GIT_CLI_ENABLED = "studio.repo.git.cli.enabled";
 
     /** Database */
     String DB_DRIVER = "studio.db.driver";
@@ -85,6 +86,7 @@ public interface StudioConfiguration {
     String DB_PORT = "studio.db.port";
     String DB_SOCKET = "studio.db.socket";
     String DB_MAX_CONNECTIONS = "studio.db.maxConnections";
+    String DB_MAX_ALLOWED_PACKET = "studio.db.maxAllowedPacket";
     String DB_RETRYING_OPERATION_MAX_ATTEMPTS = "studio.db.retryingOperation.maxAttempts";
     String DB_RETRYING_OPERATION_MAX_SLEEP = "studio.db.retryingOperation.maxSleep";
     String DB_SCRIPT_RUNNER_BUFFER_SIZE = "studio.db.scriptRunner.bufferSize";

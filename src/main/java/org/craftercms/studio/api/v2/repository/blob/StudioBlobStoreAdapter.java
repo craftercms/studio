@@ -337,6 +337,12 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
+    default int countUnprocessedCommits(String siteId, long marker) {
+        // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     default void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
         throw new UnsupportedOperationException();
     }

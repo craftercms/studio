@@ -237,7 +237,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                             matchedPath = replaceMatcher.replaceAll(transform.getReplace());
                         }
                     }
-                    if (contentService.contentExists(site, matchedPath)) {
+                    if (contentService.contentExistsShallow(site, matchedPath)) {
                         logger.debug("Content exists for matched path " + matchedPath + ". Adding to the result set");
                         extractedPaths.add(matchedPath);
                     } else {

@@ -43,7 +43,16 @@ public interface ContentService {
      */
     boolean contentExists(String site, String path);
 
-    /**
+	/**
+	 * This is a faster, but less accurate, version of contentExists. This prioritizes
+	 * performance over checking the actual underlying repository if the content is actually in the store
+	 * or we simply hold a reference to the object in the actual store.
+	 *
+	 * @return true if site has content object at path
+	 */
+	boolean contentExistsShallow(String site, String path);
+
+	/**
      * get document from wcm content
      *
      * @param site

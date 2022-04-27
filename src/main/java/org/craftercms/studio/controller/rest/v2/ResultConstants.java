@@ -62,6 +62,8 @@ public final class ResultConstants {
     public static final String RESULT_KEY_REPOSITORY_STATUS = "repositoryStatus";
     public static final String RESULT_KEY_DIFF = "diff";
 
+    public static final String RESULT_KEY_CORRUPTED = "corrupted";
+
     /* Dependency controller */
     public static final String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";
     public static final String RESULT_KEY_HARD_DEPENDENCIES = "hardDependencies";

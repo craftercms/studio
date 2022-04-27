@@ -49,6 +49,15 @@ public interface ContentRepository {
      */
     boolean contentExists(String site, String path);
 
+	/**
+	 * This is a faster, but less accurate, version of contentExists. This prioritizes
+	 * performance over checking the actual underlying repository if the content is actually in the store
+	 * or we simply hold a reference to the object in the actual store.
+	 *
+	 * @return true if site has content object at path
+	 */
+	boolean contentExistsShallow(String site, String path);
+
     /**
      * get document from wcm content
      *
@@ -139,6 +148,16 @@ public interface ContentRepository {
      * @return a list of children
      */
     RepositoryItem[] getContentChildren(String site, String path);
+
+    /**
+     * get immediate children for path, shallow version. This version cares more about performance
+     * that repository consistency.
+     *
+     * @param site site id where the operation will be executed
+     * @param path path to content
+     * @return a list of children
+     */
+    RepositoryItem[] getContentChildrenShallow(String site, String path);
 
     /**
      * get the version history for an item
