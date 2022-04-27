@@ -53,7 +53,7 @@ public final class ResultConstants {
     /* Audit Controller */
     public static final String RESULT_KEY_AUDIT_LOG = "auditLog";
 
-    public static final String RESULT_KEY_STAUS = "status";
+    public static final String RESULT_KEY_STATUS = "status";
     public static final String RESULT_KEY_VERSION = "version";
     public static final String RESULT_KEY_MEMORY = "memory";
     public static final String RESULT_KEY_EVENTS = "events";
@@ -62,6 +62,8 @@ public final class ResultConstants {
     public static final String RESULT_KEY_REMOTES = "remotes";
     public static final String RESULT_KEY_REPOSITORY_STATUS = "repositoryStatus";
     public static final String RESULT_KEY_DIFF = "diff";
+
+    public static final String RESULT_KEY_CORRUPTED = "corrupted";
 
     /* Dependency controller */
     public static final String RESULT_KEY_SOFT_DEPENDENCIES = "softDependencies";

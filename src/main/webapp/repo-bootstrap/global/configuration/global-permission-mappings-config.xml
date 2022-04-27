@@ -91,6 +91,7 @@
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
                 <permission>publish_status</permission>
+                <permission>repair_repository</permission>
             </allowed-permissions>
         </rule>
     </role>
