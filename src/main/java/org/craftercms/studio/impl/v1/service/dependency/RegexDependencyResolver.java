@@ -242,16 +242,18 @@ public class RegexDependencyResolver implements DependencyResolver {
             DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
             List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns =
                     dependencyType.getIncludes();
-            logger.debug1("Loop through all extraction patterns for " + dependencyTypeEntry.getKey());
+            logger.debug("Loop through all extraction patterns in site '{}' for '{}'",
+                    site, dependencyTypeEntry.getKey());
             for (DependencyResolverConfigTO.DependencyExtractionPattern extractionPattern :
                     extractionPatterns) {
                 Pattern pattern = Pattern.compile(extractionPattern.getFindRegex());
                 Matcher matcher = pattern.matcher(content);
-                logger.debug1("Matching content against regular expression " + extractionPattern.getFindRegex());
+                logger.debug("Match content in site '{}' against regular expression '{}'",
+                        site, extractionPattern.getFindRegex());
                 while (matcher.find()) {
                     String matchedValue = matcher.group();
                     List<String> matchedPaths = new LinkedList<>();
-                    logger.debug1("Matched path: " + matchedValue + ". Apply transformations");
+                    logger.debug("Matched site '{}' path '{}'", site, matchedValue);
                     if (CollectionUtils.isNotEmpty(extractionPattern.getTransforms())) {
                         for (DependencyResolverConfigTO.DependencyExtractionTransform transform :
                                 extractionPattern.getTransforms()) {
@@ -282,19 +284,14 @@ public class RegexDependencyResolver implements DependencyResolver {
                     } else {
                         matchedPaths.add(matchedValue);
                     }
-                    for(String matchedPath : matchedPaths) {
+                    for (String matchedPath : matchedPaths) {
                         if (contentService.shallowContentExists(site, matchedPath)) {
-                            logger.debug1("Content exists for matched path " + matchedPath + ". Adding to the result set");
+                            logger.debug("Content exists for matched site '{}' path '{}'", site, matchedPath);
                             extractedPaths.add(matchedPath);
                         } else {
-                            String message = "Found reference to " + matchedPath + " in content at " +
-                                    path + " but content does not exist in referenced path for site " +
-                                    site + ".\n"
-                                    + "Regular expression for extracting dependencies matched " +
-                                    "string, and after applying transformation rules to get value " +
-                                    "for dependency path, that dependency path was not found in" +
-                                    " site repository as a content.";
-                            logger.debug1(message);
+                            logger.debug("Found reference to matched path '{}' in site '{}' path '{}', however " +
+                                    "the regex applied to find the dependency resulted in a path that doesn't " +
+                                    "exist in this site.", matchedPath, site, path);
                         }
                     }
                 }
