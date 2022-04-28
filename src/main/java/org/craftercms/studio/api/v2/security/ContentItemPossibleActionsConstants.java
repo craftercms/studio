@@ -166,8 +166,6 @@ public final class ContentItemPossibleActionsConstants {
             CONTENT_DUPLICATE + CONTENT_REVERT + CONTENT_DELETE + PUBLISH + PUBLISH_APPROVE + PUBLISH_SCHEDULE +
             PUBLISH_REJECT + ITEM_UNLOCK;
 
-    public static final long UNKNOWN = 0L;
-
     // Semantics Matrix for available actions
     public static final long ITEM_STATE_NEW = CONTENT_READ + CONTENT_COPY + CONTENT_READ_VERSION_HISTORY +
             CONTENT_GET_DEPENDENCIES + PUBLISH_REQUEST + CONTENT_CREATE + CONTENT_PASTE + CONTENT_EDIT +
@@ -273,20 +271,22 @@ public final class ContentItemPossibleActionsConstants {
 
         if ((itemState & USER_LOCKED.value) > 0) {
             if (!lockOwner) {
-                result = result & ~PUBLISH_REQUEST;
-                result = result & ~CONTENT_EDIT;
-                result = result & ~CONTENT_RENAME;
-                result = result & ~CONTENT_CUT;
-                result = result & ~CONTENT_UPLOAD;
-                result = result & ~CONTENT_CHANGE_TYPE;
-                result = result & ~CONTENT_DELETE;
-                result = result & ~CONTENT_DELETE_CONTROLLER;
-                result = result & ~CONTENT_DELETE_TEMPLATE;
-                result = result & ~PUBLISH;
-                result = result & ~PUBLISH_APPROVE;
-                result = result & ~PUBLISH_SCHEDULE;
-                result = result & ~PUBLISH_REJECT;
-                result = result & ~ITEM_UNLOCK;
+                result &= ~PUBLISH_REQUEST;
+                result &= ~CONTENT_EDIT;
+                result &= ~CONTENT_RENAME;
+                result &= ~CONTENT_CUT;
+                result &= ~CONTENT_UPLOAD;
+                result &= ~CONTENT_CHANGE_TYPE;
+                result &= ~CONTENT_DELETE;
+                result &= ~CONTENT_DELETE_CONTROLLER;
+                result &= ~CONTENT_DELETE_TEMPLATE;
+                result &= ~PUBLISH;
+                result &= ~PUBLISH_APPROVE;
+                result &= ~PUBLISH_SCHEDULE;
+                result &= ~PUBLISH_REJECT;
+                result &= ~ITEM_UNLOCK;
+                result &= ~CONTENT_REVERT;
+                result &= ~CONTENT_DUPLICATE;
             }
         }
         return result;

@@ -121,6 +121,7 @@ import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.ELM_CREATED_DATE;
@@ -206,6 +207,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected ApplicationContext applicationContext;
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
 
+    protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+
     /**
      * file and folder name patterns for copied files and folders
      */
@@ -270,7 +273,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         try (InputStream is = _contentRepository.getContent(site, path)) {
             if (is != null) {
-                if (StringUtils.isEmpty(encoding)) {
+                if (isEmpty(encoding)) {
                     content = IOUtils.toString(is, UTF_8);
                 } else {
                     content = IOUtils.toString(is, encoding);
@@ -373,7 +376,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 + "system administrator.");
         }
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(DmConstants.KEY_SITE, site);
         params.put(DmConstants.KEY_PATH, path);
         params.put(DmConstants.KEY_FILE_NAME, fileName);
@@ -527,9 +530,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 + "system administrator.");
         }
 
-        boolean isSystemAsset = Boolean.valueOf(systemAsset);
+        boolean isSystemAsset = Boolean.parseBoolean(systemAsset);
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(DmConstants.KEY_SITE, site);
         params.put(DmConstants.KEY_PATH, path);
         params.put(DmConstants.KEY_FILE_NAME, assetName);
@@ -577,13 +580,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             item.setSizeUnit(assetInfoTO.getSizeUnit());
             itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
 
-            Map<String, Object> toRet = new HashMap<String, Object>();
+            Map<String, Object> toRet = new HashMap<>();
             toRet.put("success", true);
             toRet.put("message", item);
             return toRet;
         } catch (Exception e) {
             logger.error("Error processing content", e);
-            Map<String, Object> toRet = new HashMap<String, Object>();
+            Map<String, Object> toRet = new HashMap<>();
             toRet.put("success", true);
             toRet.put("message", e.getMessage());
             toRet.put("error", e);
@@ -720,7 +723,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // This method creates a database record to show the activity of deleting a file
         // TODO: SJ: This type of thing needs to move to the audit service which handles all records related to
         // TODO: SJ: activities. Fix in 3.1+ by introducing the audit service and refactoring accordingly
-        if (StringUtils.isEmpty(approver)) {
+        if (isEmpty(approver)) {
             approver = securityService.getCurrentUser();
         }
         boolean exists = contentExists(site, path);
@@ -760,7 +763,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                               @ValidateSecurePathParam(name = "fromPath") @ActionSourcePath String fromPath,
                               @ValidateSecurePathParam(name = "toPath") @ActionTargetPath String toPath)
             throws ServiceLayerException, UserNotFoundException {
-        return copyContent(site, fromPath, toPath, new HashSet<String>());
+        return copyContent(site, fromPath, toPath, new HashSet<>());
     }
 
     /**
@@ -776,7 +779,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String copyPath = null;
 
         try {
-            Map<String, String> copyPathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
+            Map<String, String> copyPathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
             copyPath = copyPathMap.get("FILE_PATH");
             String copyPathModifier = copyPathMap.get("MODIFIER");
             String copyPathFileName = copyPathMap.get("FILE_NAME");
@@ -853,7 +856,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         }
 
                         // This code is very similar to what is in writeContent. Consolidate this code?
-                        Map<String, String> params = new HashMap<String, String>();
+                        Map<String, String> params = new HashMap<>();
                         params.put(DmConstants.KEY_SITE, site);
                         params.put(DmConstants.KEY_PATH, copyPathOnly);
                         params.put(DmConstants.KEY_FILE_NAME, copyFileName);
@@ -922,7 +925,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                                     @ValidateSecurePathParam(name = "dependencyPath")
                                                             String dependencyPath)
             throws ServiceLayerException {
-        Map<String,String> copyDependency = new HashMap<String,String>();
+        Map<String,String> copyDependency = new HashMap<>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
             ContentItemTO dependencyItem = getContentItem(site, sourceContentPath);
             if (dependencyItem != null) {
@@ -963,11 +966,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String movePath = null;
 
         try {
-            String sourcePath = (fromPath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
+            String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
                     fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
             String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 
-            Map<String, String> movePathMap = constructNewPathforCutCopy(site, fromPath, toPath, true);
+            Map<String, String> movePathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
             movePath = movePathMap.get("FILE_PATH");
             String moveFileName = movePathMap.get("FILE_NAME");
             String movePathOnly = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
@@ -1041,9 +1044,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         // Item update
-        String sourcePath = (fromPath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
+        String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
                 fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
-        String targetPath = (movePath.indexOf("" + FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) ?
+        String targetPath = (movePath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
                 movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR)) : movePath;
         itemServiceInternal.moveItems(site, sourcePath, targetPath, parentId);
 
@@ -1114,9 +1117,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected Map<String, String> constructNewPathforCutCopy(String site, String fromPath, String toPath,
+    protected Map<String, String> constructNewPathForCutCopy(String site, String fromPath, String toPath,
                                                              boolean adjustOnCollide) throws ServiceLayerException {
-        Map<String, String> result = new HashMap<String, String>();
+        Map<String, String> result = new HashMap<>();
 
         // The following rules apply to content under the site folder
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
@@ -1253,7 +1256,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         // calculate the new modifier
                         modifier = Integer.parseInt(modifierVersion) + 1;
                     }
-                    if (proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) == -1) {
+                    if (!proposedDestPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                         int pdpli = proposedDestPath.lastIndexOf(".");
                         if (pdpli == -1) pdpli = proposedDestPath.length();
                         proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
@@ -1346,7 +1349,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
      * @return Map of IDs
      */
     protected Map<String, String> getContentIds(Document document) {
-        Map<String, String> ids = new HashMap<String, String>();
+        Map<String, String> ids = new HashMap<>();
         if (document != null) {
             Element root = document.getRootElement();
             Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
@@ -1596,7 +1599,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         } catch (NumberFormatException e) {
             logger.debug(orderName + ", " + orderStr + " is not a valid order value pair.");
         }
-        if (!StringUtils.isEmpty(orderName) && orderValue != null) {
+        if (!isEmpty(orderName) && orderValue != null) {
             DmOrderTO order = new DmOrderTO();
             order.setId(orderName);
             order.setOrder(orderValue);
@@ -1613,7 +1616,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected List<DmOrderTO> getItemOrders(List<Node> nodes) {
         // TODO: SJ: Rewrite this and the whole order/sort system; 3.1+
         if (nodes != null) {
-            List<DmOrderTO> orders = new ArrayList<DmOrderTO>(nodes.size());
+            List<DmOrderTO> orders = new ArrayList<>(nodes.size());
             for (Node node : nodes) {
 
                 String orderName = DmConstants.JSON_KEY_ORDER_DEFAULT;
@@ -1630,13 +1633,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // TODO: SJ: Refactor  in 3.1+
         String contentPath = item.uri;
 
-        item.children = new ArrayList<ContentItemTO>();
+        item.children = new ArrayList<>();
         item.numOfChildren = 0;
 
-        if(contentPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1
-                || contentPath.indexOf(".") == -1 ) { // item.isFolder?
+        if(contentPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)
+                || !contentPath.contains(".")) { // item.isFolder?
 
-            if (contentPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE) != -1) {
+            if (contentPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                 contentPath = contentPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
             }
 
@@ -1653,21 +1656,20 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                 List<ContentItemTO> children = new ArrayList<>();
                 logger.debug("Checking if {0} has index", contentPath);
-                for (int j = 0; j < childRepoItems.length; j++) {
-                    if ("index.xml".equals(childRepoItems[j].name)) {
+                for (RepositoryItem childRepoItem : childRepoItems) {
+                    if ("index.xml".equals(childRepoItem.name)) {
                         if (!item.uri.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                             item.path = item.uri;
                             item.uri = item.uri + FILE_SEPARATOR + DmConstants.INDEX_FILE;
                         }
                         item.numOfChildren--;
                         indexFound = true;
-                    }
-                    else {
+                    } else {
                         if (depth > 1) {
-                            String childPath = childRepoItems[j].path + FILE_SEPARATOR + childRepoItems[j].name;
+                            String childPath = childRepoItem.path + FILE_SEPARATOR + childRepoItem.name;
                             if (childPath.startsWith(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website" +
-                                    FILE_SEPARATOR) && childRepoItems[j].isFolder &&
-                                    contentExists(item.site,childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE )) {
+                                    FILE_SEPARATOR) && childRepoItem.isFolder &&
+                                    contentExists(item.site, childPath + FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                                 children.add(getContentItem(item.site, childPath + FILE_SEPARATOR +
                                         DmConstants.INDEX_FILE, depth - 1));
                             } else {
@@ -1700,7 +1702,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // floating pages via Alpha
                 Comparator<ContentItemTO> comparator =
                         new ContentItemOrderComparator("default", true, true, true);
-                Collections.sort(children, comparator);
+                children.sort(comparator);
                 item.children = children;
 
             } else {
@@ -1825,7 +1827,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
             } else {
                 String mimeType = StudioUtils.getMimeType(item.getName());
-                if (mimeType != null && !StringUtils.isEmpty(mimeType)) {
+                if (mimeType != null && !isEmpty(mimeType)) {
                     item.setPreviewable(ContentUtils.matchesPatterns(mimeType, servicesConfig
                             .getPreviewableMimetypesPaterns(site)));
                     item.isPreviewable = item.previewable;
@@ -1887,7 +1889,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (metadata != null) {
             // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
             // database if it's not null
-            if (StringUtils.isEmpty(metadata.getLockOwner())) {
+            if (isEmpty(metadata.getLockOwner())) {
                 item.setLockOwner("");
             } else {
                 item.setLockOwner(metadata.getLockOwner());
@@ -1900,7 +1902,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
 
             // Set the modifier (user) if known
-            if (StringUtils.isEmpty(metadata.getModifier())) {
+            if (isEmpty(metadata.getModifier())) {
                 item.setUser("");
                 item.setUserLastName("");
                 item.setUserFirstName("");
@@ -1992,10 +1994,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                      @ValidateStringParam(name = "version") String version, boolean major,
                                      @ValidateStringParam(name = "comment") String comment)
             throws ServiceLayerException, UserNotFoundException {
-        boolean toReturn = false;
-        String commitId = _contentRepository.revertContent(site, path, version, major, comment);
+        contentServiceV2.lockContent(site, path);
+        try {
+            String commitId = _contentRepository.revertContent(site, path, version, major, comment);
 
-        if (commitId != null) {
+            // TODO: The repository should throw an exception instead of returning a boolean
+            if (isEmpty(commitId)) {
+                return false;
+            }
+
             try {
                 dependencyService.upsertDependencies(site, path);
             } catch (ServiceLayerException e) {
@@ -2029,14 +2036,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
 
-            toReturn = true;
-        }
-
-        if (toReturn) {
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
-        }
 
-        return toReturn;
+            return true;
+        } finally {
+            contentServiceV2.unlockContent(site, path);
+        }
     }
 
     @Override
@@ -2300,7 +2305,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         } else {
             addDependenciesToDelete(site, contentItem.getUri(), contentItem.getUri(), items);
-            addRemovedDependenicesToDelete(site, contentItem.getUri(), items);
+            addRemovedDependenciesToDelete(site, contentItem.getUri(), items);
         }
         //add the child path
         items.getPaths().add(contentItem.getUri());
@@ -2308,7 +2313,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void addDependenciesToDelete(String site, String sourceContentPath, String dependencyPath,
                                            GoLiveDeleteCandidates candidates) throws ServiceLayerException {
-        Set<String> dependencyParentFolder = new HashSet<String>();
+        Set<String> dependencyParentFolder = new HashSet<>();
         //add dependencies as well
         Set<String> dependencies = dependencyService.getDeleteDependencies(site, sourceContentPath);
         for (String dependency : dependencies) {
@@ -2319,7 +2324,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         //Find if any folder would get empty if remove the items and add just the folder
         for (String parentFolderToDelete : dependencyParentFolder) {
             RepositoryItem[] children = _contentRepository.getContentChildren(site, parentFolderToDelete);
-            List<String> childItems = new ArrayList<String>();
+            List<String> childItems = new ArrayList<>();
             for (RepositoryItem child : children) {
                 childItems.add(child.path + "/" + child.name);
             }
@@ -2330,12 +2335,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected void addRemovedDependenicesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates)
+    protected void addRemovedDependenciesToDelete(String site, String relativePath, GoLiveDeleteCandidates candidates)
             throws ServiceLayerException {
         if (relativePath.endsWith(DmConstants.XML_PATTERN) && !itemServiceInternal.isNew(site, relativePath)) {
             DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath,
                     null, null, site, true);
-            List<String> deleted = getRemovedDependenices(diffRequest, true);
+            List<String> deleted = getRemovedDependencies(diffRequest, true);
             logger.debug("Removed dependenices for path[" + relativePath + "] : " + deleted);
             for (String dependency : deleted) {
                 candidates.getLiveDependencyItems().add(dependency);
@@ -2343,7 +2348,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected List<String> getRemovedDependenices(DependencyDiffService.DiffRequest diffRequest,
+    protected List<String> getRemovedDependencies(DependencyDiffService.DiffRequest diffRequest,
                                                   boolean matchDeletePattern) throws ServiceLayerException {
         DependencyDiffService.DiffResponse diffResponse = dependencyDiffService.diff(diffRequest);
         List<String> removedDep = diffResponse.getRemovedDependencies();
@@ -2356,7 +2361,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected List<String> filterDependenciesMatchingDeletePattern(String site, String sourcePath,
                                                                    List<String> dependencies) throws ServiceLayerException {
-        List<String> matchingDep = new ArrayList<String>();
+        List<String> matchingDep = new ArrayList<>();
         if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
             List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
             if (deleteAssociations != null && deleteAssociations.size() > 0) {
@@ -2373,7 +2378,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     protected List<DeleteDependencyConfigTO> getDeletePatternConfig(String site, String relativePath) {
-        List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<DeleteDependencyConfigTO>();
+        List<DeleteDependencyConfigTO> deleteAssociations  = new ArrayList<>();
         ContentItemTO dependencyItem = getContentItem(site, relativePath, 0);
         String contentType = dependencyItem.getContentType();
         deleteAssociations  = servicesConfig.getDeleteDependencyPatterns(site, contentType);
@@ -2409,7 +2414,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // TODO: SJ: Crafter Core already does some of this, refactor/redo
         // if the path ends with index.xml, remove index.xml and also remove the last folder
         // otherwise remove the file name only
-        if (!StringUtils.isEmpty(relativePath)) {
+        if (!isEmpty(relativePath)) {
             if (relativePath.endsWith(DmConstants.XML_PATTERN)) {
                 int index = relativePath.lastIndexOf(FILE_SEPARATOR);
                 if (index > 0) {
@@ -2428,7 +2433,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // get the root item and its children
         ContentItemTO item = getContentItem(site, relativePath);
         if (item.getChildren() != null) {
-            List<DmOrderTO> orders = new ArrayList<DmOrderTO>(item.getChildren().size());
+            List<DmOrderTO> orders = new ArrayList<>(item.getChildren().size());
             String pathIndex = relativePath + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             for (ContentItemTO child : item.getChildren()) {
                 // exclude index.xml, the level descriptor and floating pages at the path
@@ -2473,7 +2478,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         DmOrderTO afterOrderTO = null;
         // get the order of the content before
         // if the path is not provided, the order is 0
-        if (!StringUtils.isEmpty(before)) {
+        if (!isEmpty(before)) {
             ContentItemTO beforeItem = getContentItem(site, before, 0);
             beforeOrder = beforeItem.getOrder(orderName);
             beforeOrderTO = new DmOrderTO();
@@ -2485,7 +2490,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         // get the order of the content after
         // if the path is not provided, the order is the order of before +
         // ORDER_INCREMENT
-        if (!StringUtils.isEmpty(after)) {
+        if (!isEmpty(after)) {
             ContentItemTO afterItem = getContentItem(site, after, 0);
             afterOrder = afterItem.getOrder(orderName);
             afterOrderTO = new DmOrderTO();
@@ -2559,7 +2564,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             // Update the database with the commitId for the target item
             updateDatabaseOnMove(site, path, targetPath);
             String commitId = commitIds.get(targetPath);
-            if (StringUtils.isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
+            if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
             itemServiceInternal.persistItemAfterRenameFolder(site, targetPath, name,
                     securityService.getCurrentUser(), commitId);
 
@@ -2708,4 +2713,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
     }
+
+    public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+        this.contentServiceV2 = contentServiceV2;
+    }
+
 }
