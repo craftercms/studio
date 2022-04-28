@@ -175,8 +175,8 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             Item item = itemServiceInternal.getItem(site, p);
             boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
             if (isFolder) {
-                logger.debug1("Content item at path " + p + " for site " + site +
-                        " is folder and will not be added to publishing queue.");
+                logger.debug("Content item in site '{}' path '{}' is a folder and will not be added " +
+                        "to the publishing queue", site, p);
             } else {
                 if (isNew(item.getState())) {
                     newPaths.add(p);
@@ -202,13 +202,13 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         // We need to pick up this on Inserting , not on execution!
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
-        } catch(Exception errNotify) {
-            logger.error1("Error sending approval notification ", errNotify);
+        } catch (Exception e) {
+            logger.error("Error sending approval email notification for site '{}'", site, e);
         }
         try {
             siteService.updatePublishingStatus(site, QUEUED);
         } catch (SiteNotFoundException e) {
-            logger.error1("Error updating publishing status for site " + site);
+            logger.error("Error updating publishing status for site '{}'", site, e);
         }
         applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
     }
@@ -261,9 +261,9 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     params.put("path", path);
                     params.put("commitId", it.getCommitId());
                     if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info1("Path " + path + " with commit ID " + it.getCommitId() +
-                                " already has queued publishing request for environment " + environment + " of site " +
-                                site + ". Adding another publishing request is skipped.");
+                        logger.info("The item in site '{}' path '{}' with commit ID '{}' has already been " +
+                                "queued for publishing to the target '{}'. Will not add again.",
+                                site, path, it.getCommitId(), environment);
                     } else {
                         item.setId(++CTED_AUTOINCREMENT);
                         item.setSite(site);
@@ -281,13 +281,15 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             item.setCommitId(commitId);
                         } else {
                             if (StringUtils.isNotEmpty(commitId)) {
-                                logger.warn1("Commit ID is NULL for content " + path +
-                                        ". Was the git repo reset at some point?" );
+                                logger.warn("Item in site '{}' path '{}' has a null commit ID. Was the git " +
+                                        "repository reset at some point?", site, path);
                             } else {
-                                logger.warn1("Commit ID " + commitId + " does not exist for content " + path +
-                                        ". Was the git repo reset at some point?" );
+                                logger.warn("Item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
+                                        "site's git repository. Was the git repository reset at some point?",
+                                        site, path, commitId);
                             }
-                            logger.info1("Publishing content from HEAD for " + path);
+                            logger.info("Will publish the item in site '{}' path '{}' from HEAD instead",
+                                    site, path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
 
@@ -348,7 +350,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         try {
             siteService.updatePublishingStatus(site, QUEUED);
         } catch (SiteNotFoundException e) {
-            logger.error1("Error updating publishing status for site " + site);
+            logger.error("Error updating the publishing status for site '{}'", site, e);
         }
     }
 
@@ -381,13 +383,15 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             item.setCommitId(commitId);
                         } else {
                             if (StringUtils.isNotEmpty(commitId)) {
-                                logger.warn1("Commit ID is NULL for content " + path +
-                                        ". Was the git repo reset at some point?" );
+                                logger.warn("Item in site '{}' path '{}' has a null commit ID. Was the git " +
+                                        "repository reset at some point?", site, path);
                             } else {
-                                logger.warn1("Commit ID " + commitId + " does not exist for content " + path +
-                                        ". Was the git repo reset at some point?" );
+                                logger.warn("Item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
+                                                "site's git repository. Was the git repository reset at some point?",
+                                        site, path, commitId);
                             }
-                            logger.info1("Publishing content from HEAD for " + path);
+                            logger.info("Will publish the item in site '{}' path '{}' from HEAD instead",
+                                    site, path);
                             item.setCommitId(contentRepository.getRepoLastCommitId(site));
                         }
                     }
@@ -555,11 +559,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         try {
             addToScheduledDateList(site, environment, launchDate, path, packageId, scheduledItems, comparator,
                     subComparator, displayPatterns);
-            if(!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
+            if (!(path.endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE) || path.endsWith(DmConstants.XML_PATTERN))) {
                 path = path + FILE_SEPARATOR + DmConstants.INDEX_FILE;
             }
         } catch (ServiceLayerException e) {
-            logger.error1("failed to read site " + site + " path " + path + ". " + e.getMessage());
+            logger.error("Failed to add scheduled items in site '{}' path '{}'", site, path, e);
         }
     }
 
@@ -662,7 +666,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         boolean toRet = siteService.enablePublishing(site, enabled);
         String status;
         if (enabled) {
-            logger.info1("Publishing started for site {}", site);
+            logger.info("Publishing started for site {}", site);
             if (publishingManager.isPublishingQueueEmpty(site)) {
                 status = READY;
             } else {
@@ -670,7 +674,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             }
 
         } else {
-            logger.info1("Publishing stopped for site {}", site);
+            logger.info("Publishing stopped for site {}", site);
             status = STOPPED;
         }
         siteService.updatePublishingStatus(site, status);
@@ -679,10 +683,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setSiteId(siteFeed.getId());
         if (enabled) {
-            logger.info1("Publishing started for site {}", site);
+            logger.info("Publishing started for site {}", site);
             auditLog.setOperation(OPERATION_START_PUBLISHER);
         } else {
-            logger.info1("Publishing stopped for site {}", site);
+            logger.info("Publishing stopped for site {}", site);
             auditLog.setOperation(OPERATION_STOP_PUBLISHER);
         }
         auditLog.setActorId(securityService.getCurrentUser());
