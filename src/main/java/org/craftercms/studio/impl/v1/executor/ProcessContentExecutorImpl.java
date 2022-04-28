@@ -68,7 +68,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
 
             } else {
                 ContentUtils.release(input);
-                throw new ServiceLayerException(String.format("Chain '{}' is not defined", chainName));
+                throw new ServiceLayerException(String.format("Chain '%s' is not defined", chainName));
             }
         }finally {
             String s = params.get(DmConstants.KEY_USER);

@@ -87,14 +87,14 @@ public class RetryingRepositoryOperationAnnotationHandler {
                         Thread.sleep(sleep);
                     }
                 } else {
-                    throw new RetryingOperationErrorException(String.format("Git operation '{}' has failed",
+                    throw new RetryingOperationErrorException(String.format("Git operation '%s' has failed",
                             method.getName()), e);
                 }
             }
         } while (numAttempts < maxRetries);
 
         // If it gets here, numAttempts >= maxRetries, so we should fail entirely
-        throw new RetryingOperationErrorException(String.format("Failed to execute '{}' after '{}' attempts " +
+        throw new RetryingOperationErrorException(String.format("Failed to execute '%s' after '%d' attempts " +
                 "because the git repository was locked", method.getName(), numAttempts), lastException);
     }
 

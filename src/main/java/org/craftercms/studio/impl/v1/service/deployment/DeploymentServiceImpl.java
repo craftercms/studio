@@ -801,7 +801,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                 newItems.add(item);
             }
         }
-        logger.debug1("Created '{}' publish requests for site '{}' target '{}'", newItems.size(), site, environment);
+        logger.debug("Created '{}' publish requests for site '{}' target '{}'", newItems.size(), site, environment);
         return newItems;
     }
 

@@ -75,14 +75,12 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         final String approver = securityService.getCurrentUser();
         final ZonedDateTime ld = launchDate;
 
-
         try {
             deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), paths, ld, approver,
                         mcpContext.getSubmissionComment(),scheduledDateIsNow );
         } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error1("Error while submitting paths to publish");
+            logger.error("Failed to submit items for publishing in site '{}'", site, e);
         }
-
     }
 
     @Override
@@ -101,7 +99,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         try {
             deploymentService.delete(site, paths, approver, scheduleDate, null);
         } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error1("Unable to delete files due a error ",ex);
+            logger.error("Failed to delete files during publishing site '{}'", site, e);
         }
     }
 
@@ -112,7 +110,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         try {
             deploymentService.cancelWorkflow(site, path);
         } catch (DeploymentException e) {
-            logger.error1(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
+            logger.error("Failed to cancel workflow for site '{}' path '{}'", site, path, e);
         }
     }
 
@@ -122,25 +120,24 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                            @ValidateStringParam String environment,
                            @ValidateSecurePathParam(name = "path") String path,
                            String comment) throws ServiceLayerException {
-        logger.info1("Starting Bulk Publish to '" + environment + "' for path " + path + " site " + site);
+        logger.info("Started Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
 
         String queryPath = path;
         if (queryPath.startsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
             queryPath = queryPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         }
 
-        logger.debug1("Get change set for subtree for site: " + site + " root path: " + queryPath);
+        logger.debug("Get a change-set from site '{}' root path '{}'", site, queryPath);
         List<String> childrenPaths = new ArrayList<String>();
 
         childrenPaths = itemServiceInternal.getChangeSetForSubtree(site, queryPath);
 
-        logger.debug1("Collected " + childrenPaths.size() + " content items for site " + site + " and root path "
-                + queryPath);
+        logger.debug("Collected '{}' items from site '{}' root path '{}'", childrenPaths.size(), site, queryPath);
         Set<String> processedPaths = new HashSet<String>();
         ZonedDateTime launchDate = DateUtils.getCurrentTime();
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
-            logger.debug1("Processing dependencies for site " + site + " path " + childPath);
+            logger.debug("Processing bulk publish dependencies in site '{}' path '{}'", site, childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<String>();
                 List<String> candidatesToPublish = new ArrayList<String>();
@@ -155,7 +152,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
                 String aprover = securityService.getCurrentUser();
                 if (StringUtils.isEmpty(comment)) {
-                    comment = "Bulk Publish invoked by " + aprover;
+                    comment = String.format("Bulk Publish invoked by '%s'", aprover);
                 }
                 logger.info1("Deploying package of " + pathsToPublish.size() + " items to '" + environment +
                         "' for site" + site + " path " + childPath);

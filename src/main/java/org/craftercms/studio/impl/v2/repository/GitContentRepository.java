@@ -1130,8 +1130,8 @@ public class GitContentRepository implements ContentRepository {
         } catch (Exception e) {
             logger.error("Error publishing site '{}' to publishing target '{}' commit ID is '{}'",
                     site, environment, commitId, e);
-            throw new DeploymentException(String.format("Error publishing site '{}' to publishing target '{}' commit ID is '{}'",
-                    site, environment, commitId));
+            throw new DeploymentException(String.format("Error publishing site '%s' to publishing target " +
+                            "'%s' commit ID is '%s'", site, environment, commitId));
         } finally {
             generalLockService.unlock(gitLockKey);
         }

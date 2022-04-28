@@ -116,7 +116,7 @@ public class DependencyServiceImpl implements DependencyService {
             } catch (Exception e) {
                 logger.error("Failed to insert dependencies for site '{}' path '{}'", site, path, e);
                 transactionManager.rollback(txStatus);
-                throw new ServiceLayerException(String.format("Failed to upsert dependencies for site '{}' path '{}'",
+                throw new ServiceLayerException(String.format("Failed to upsert dependencies for site '%s' path '%s'",
                         site, path), e);
             } finally {
                 generalLockService.unlock(lock);

@@ -183,7 +183,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
             return new Asset(repoPath, tmpFile);
         } catch (IOException e) {
-            throw new AssetProcessingException(String.format("Unable to create temp file to hold input stream of '{}'",
+            throw new AssetProcessingException(String.format("Unable to create temp file to hold input stream of '%s'",
                     repoPath), e);
         }
     }

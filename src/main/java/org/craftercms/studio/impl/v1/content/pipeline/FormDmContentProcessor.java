@@ -87,7 +87,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             writeContent(content, result);
         } catch (ServiceLayerException e) {
             logger.error("Failed to write content '{}'", content.getId(), e);
-            throw new ContentProcessException(String.format("Failed to write content '{}'", content.getId(), e));
+            throw new ContentProcessException(String.format("Failed to write content '%s'", content.getId(), e));
         } finally {
             content.closeContentStream();
         }
@@ -153,7 +153,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     }
                 }
             } else {
-                throw new ContentNotFoundException(String.format("Content not found site '{}' path '{}'", site, path));
+                throw new ContentNotFoundException(String.format("Content not found site '%s' path '%s'", site, path));
             }
         } catch (ContentNotFoundException | RepositoryLockedException e) {
             throw e;
@@ -228,7 +228,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fileItem = contentService.getContentItem(site, itemPath, 0);
             return fileItem;
         } else {
-            throw new ContentNotFoundException(String.format("Parent item at '{}' doesn't exist in site '{}'",
+            throw new ContentNotFoundException(String.format("Parent item at '%s' doesn't exist in site '%s'",
                     parentItem.getUri(), site));
         }
     }

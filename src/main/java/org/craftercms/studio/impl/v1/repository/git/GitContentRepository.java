@@ -1010,7 +1010,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     logger.error("Failed to checkout published/master and to pull content from sandbox for site '{}'",
                             site, e);
                     throw new DeploymentException(String.format("Failed to checkout published master and to pull " +
-                            "content from sandbox for site '{}'", site));
+                            "content from sandbox for site '%s'", site), e);
                 }
 
                 // Checkout the publishing target branch
@@ -1034,7 +1034,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 retryingRepositoryOperationFacade.call(tagCommand);
             } catch (Exception e) {
                 logger.error("Error publishing site '{}' to publishing target '{}'", site, environment, e);
-                throw new DeploymentException(String.format("Error publishing site '{}' to publishing target '{}'",
+                throw new DeploymentException(String.format("Error publishing site '%s' to publishing target '%s'",
                         site, environment));
             } finally {
                 generalLockService.unlock(gitLockKey);
@@ -1227,12 +1227,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             } catch (URISyntaxException | ClassCastException e) {
                 logger.error("Error adding remote '{}' to site '{}'. Remote URL '{}' is invalid.",
                         remoteName, siteId, remoteUrl, e);
-                throw new InvalidRemoteUrlException(String.format("Error adding remote '{}' to site '{}'. Remote URL '{}' is invalid.",
-                        remoteName, siteId, remoteUrl), e);
+                throw new InvalidRemoteUrlException(String.format("Error adding remote '%s' to site '%s'. " +
+                                "Remote URL '%s' is invalid.", remoteName, siteId, remoteUrl), e);
             } catch (GitAPIException | IOException e) {
                 logger.error("Error adding remote '{}' url '{}' to the sandbox in site '{}'",
                         remoteName, remoteUrl, siteId, e);
-                throw new ServiceLayerException(String.format("Error adding remote '{}' url '{}' to site '{}'",
+                throw new ServiceLayerException(String.format("Error adding remote '%s' url '%s' to site '%s'",
                         remoteName, remoteUrl, siteId), e);
             }
 
@@ -1488,7 +1488,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throw new InvalidRemoteUrlException();
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
             logger.error("Error pushing site '{}' to remote '{}' branch '{}'", siteId, remoteName, remoteBranch, e);
-            throw new ServiceLayerException(String.format("Error pushing site '{}' to remote '{}' branch '{}'",
+            throw new ServiceLayerException(String.format("Error pushing site '%s' to remote '%s' branch '%s'",
                     siteId, remoteName, remoteBranch, e));
         }
     }
@@ -1529,8 +1529,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } catch (GitAPIException e) {
             logger.error("Error pulling from remote '{}' branch '{}' in site '{}'",
                     remoteName, remoteBranch, siteId, e);
-            throw new ServiceLayerException(String.format("Error pulling from remote '{}' branch '{}' in site '{}'",
-                    remoteName, remoteBranch, siteId, e));
+            throw new ServiceLayerException(String.format("Error pulling from remote '%s' branch '%s' in site '%s'",
+                    remoteName, remoteBranch, siteId), e);
         } catch (CryptoException | IOException e) {
             throw new ServiceLayerException(e);
         } finally {
