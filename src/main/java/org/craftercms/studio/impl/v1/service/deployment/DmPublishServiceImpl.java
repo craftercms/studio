@@ -154,18 +154,19 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 if (StringUtils.isEmpty(comment)) {
                     comment = String.format("Bulk Publish invoked by '%s'", aprover);
                 }
-                logger.info1("Deploying package of " + pathsToPublish.size() + " items to '" + environment +
-                        "' for site" + site + " path " + childPath);
+                logger.info("Publishing a package of '{}' items in site '{}' path '{}' to target '{}'",
+                        pathsToPublish.size(), site, childPath, environment);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
                 } catch (DeploymentException | UserNotFoundException e) {
-                    logger.error1("Error while running Bulk Publish operation", e);
+                    logger.error("Failed to bulk publish in site '{}' path '{}'", site, childPath, e);
                 } finally {
-                    logger.debug1("Finished processing deployment package for path " + childPath + " site " + site);
+                    logger.debug("Finished bulk publish processing of package in site '{}' path '{}'",
+                            site, childPath);
                 }
             }
         }
-        logger.info1("Finished Bulk Publish to '" + environment + "' for path " + path + " site " + site);
+        logger.info("Finished Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {
