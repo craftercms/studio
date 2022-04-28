@@ -714,14 +714,14 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         if (!checkCommitIds(site, commitIds)) {
             throw new CommitNotFoundException();
         }
-        logger.debug1("Creating publish request items for queue for site " + site + " environment " + environment);
+        logger.debug("Create publish requests for site '{}' target '{}'", site, environment);
         List<PublishRequest> publishRequests = createCommitItems(site, environment, commitIds,
                 DateUtils.getCurrentTime(), securityService.getCurrentUser(), comment);
-        logger.debug1("Insert publish request items to the queue");
+        // Insert publish requests in the queue
         for (PublishRequest request : publishRequests) {
             retryingDatabaseOperationFacade.insertItemForDeployment(request);
         }
-        logger.debug1("Completed adding commits to publishing queue");
+        logger.debug("Done adding publish requests for site '{}' target '{}'", site, environment);
     }
 
     private boolean checkCommitIds(String site, List<String> commitIds) {
@@ -738,9 +738,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                                                    ZonedDateTime scheduledDate, String approver, String comment) {
         List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
         String packageId = UUID.randomUUID().toString();
-        logger.debug1("Get repository operations for each commit id and create publish request items");
+        logger.debug("Create a publish requests for a set of commit IDs in site '{}' target '{}'",
+                site, environment);
         for (String commitId : commitIds) {
-            logger.debug1("Get repository operations for commit " + commitId);
+            logger.debug("Get repository operations for site '{}' commit ID '{}'", site, commitId);
             List<RepoOperation> operations =
                     contentRepositoryV2.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
@@ -749,7 +750,8 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                         ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getPath()))) {
                     continue;
                 }
-                logger.debug1("Creating publish request item: ");
+                logger.debug("Create a publish request in site '{}' target '{}' commit ID '{}' operation '{}'",
+                        site, environment, commitId, op.getAction());
                 PublishRequest item = new PublishRequest();
                 item.setId(++CTED_AUTOINCREMENT);
                 item.setSite(site);
@@ -789,15 +791,17 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                         break;
 
                     default:
-                        logger.error1("Error: Unknown repo operation for site " + site + " operation: " +
-                                op.getAction());
+                        logger.error("Unknown repo operation '{}' in site '{}' target '{}' commit ID '{}'",
+                                op.getAction(), site, environment, commitId);
                         continue;
                 }
-                logger.debug1("\tPath: " + item.getPath() + " operation: " + item.getAction());
+                logger.debug("\tPublish request TO for site '{}' path '{}' commit ID '{}' operation '{}' " +
+                        "target '{}' is ready",
+                        item.getSite(), item.getPath(), item.getCommitId(), item.getAction(), item.getEnvironment());
                 newItems.add(item);
             }
         }
-        logger.debug1("Created " + newItems.size() + " publish request items for queue");
+        logger.debug1("Created '{}' publish requests for site '{}' target '{}'", newItems.size(), site, environment);
         return newItems;
     }
 
