@@ -336,6 +336,13 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.41-to-4.0.0.42.sql
+      - currentVersion: 4.0.0.42
+        nextVersion: 4.0.0.43
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.43/system/global-permission-mappings-config.xslt
+            commitDetails: Added repair_repository permissions for system_admin
 
   # Pipeline to upgrade site repositories
   site:
@@ -414,7 +421,7 @@ pipelines:
           - type: batchXsltUpgrader
             regex: config/studio/content-types/.+/form-definition\.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
-            commitDetails: Update date-time & time controls with addititional fields
+            commitDetails: Update date-time & time controls with additional fields
       - currentVersion: 4.0.0.3
         nextVersion: 4.0.0.4
         operations:
@@ -558,7 +565,7 @@ configurations:
           operations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v19.xslt
-              commitDetails: Added unlock_repsoitory permissions for  site admin users
+              commitDetails: Added unlock_repository permissions for  site admin users
         - currentVersion: 4.0-t8
           nextVersion: 4.0-t9
           operations:
@@ -593,6 +600,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.4.xslt
               commitDetails: Fix permissions for publisher
+        - currentVersion: 4.0.4
+          nextVersion: 4.0.5
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.5.xslt
+              commitDetails: Added repair_repository permissions for  site admin users
 
   role-mappings-config:
     module: studio
@@ -759,7 +772,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v2.xslt
-            commitDetails: Update resovler regex to support CDATA
+            commitDetails: Update resolver regex to support CDATA
       - currentVersion: 2
         nextVersion: 3
         operations:

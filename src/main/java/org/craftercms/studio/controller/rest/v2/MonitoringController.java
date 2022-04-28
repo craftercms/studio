@@ -43,7 +43,7 @@ import static org.craftercms.commons.monitoring.rest.MonitoringRestControllerBas
 import static org.craftercms.engine.controller.rest.MonitoringController.LOG_URL;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_EVENTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MEMORY;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_STAUS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_STATUS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VERSION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -76,7 +76,7 @@ public class MonitoringController extends ManagementTokenAware {
         validateToken(token);
         ResultOne<StatusInfo> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_STAUS, StatusInfo.getCurrentStatus());
+        result.setEntity(RESULT_KEY_STATUS, StatusInfo.getCurrentStatus());
         return result;
     }
 

@@ -99,6 +99,10 @@ public final class RequestMappingConstants {
     /** Audit controller */
     public static final String AUDIT = "/audit";
 
+    public static final String CORRUPTED = "/corrupted";
+
+    public static final String REPAIR = "/repair";
+
     /** Publish Controller */
     public static final String PUBLISH = "/publish";
     public static final String PACKAGES = "/packages";
