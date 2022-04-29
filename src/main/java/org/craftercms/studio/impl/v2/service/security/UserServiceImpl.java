@@ -59,7 +59,6 @@ import org.craftercms.studio.model.Site;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
@@ -263,7 +262,7 @@ public class UserServiceImpl implements UserService {
             auditLog.setPrimaryTargetId(siteFeed.getSiteId());
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(siteFeed.getName());
-            List<AuditLogParameter> parameters = new ArrayList<AuditLogParameter>();
+            List<AuditLogParameter> parameters = new ArrayList<>();
             for (User deletedUser : toDelete) {
                 AuditLogParameter parameter = new AuditLogParameter();
                 parameter.setTargetId(Long.toString(deletedUser.getId()));
@@ -302,15 +301,15 @@ public class UserServiceImpl implements UserService {
         auditLog.setPrimaryTargetId(siteFeed.getSiteId());
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
         auditLog.setPrimaryTargetValue(siteFeed.getName());
-        List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> parameters = new ArrayList<>();
         for (User u : users) {
-            AuditLogParameter paramter = new AuditLogParameter();
-            paramter.setTargetId(Long.toString(u.getId()));
-            paramter.setTargetType(TARGET_TYPE_USER);
-            paramter.setTargetValue(u.getUsername());
-            paramters.add(paramter);
+            AuditLogParameter parameter = new AuditLogParameter();
+            parameter.setTargetId(Long.toString(u.getId()));
+            parameter.setTargetType(TARGET_TYPE_USER);
+            parameter.setTargetValue(u.getUsername());
+            parameters.add(parameter);
         }
-        auditLog.setParameters(paramters);
+        auditLog.setParameters(parameters);
         auditServiceInternal.insertAuditLog(auditLog);
         return users;
     }
@@ -383,13 +382,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AuthenticatedUser getCurrentUser() throws AuthenticationException, ServiceLayerException {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            return (AuthenticatedUser) authentication.getPrincipal();
-        } else {
-            throw new AuthenticationException("User should be authenticated");
-        }
+    public AuthenticatedUser getCurrentUser() throws AuthenticationException {
+        return userServiceInternal.getCurrentUser();
     }
 
     @Override
@@ -427,7 +421,7 @@ public class UserServiceImpl implements UserService {
             UserExternallyManagedException {
         logger.debug("Getting user profile for " + username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        boolean success = false;
+        boolean success;
         if (user == null) {
             logger.info("User profile not found for " + username);
             throw new UserNotFoundException();
@@ -483,7 +477,7 @@ public class UserServiceImpl implements UserService {
                     studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
 
             Writer out = new StringWriter();
-            Map<String, Object> model = new HashMap<String, Object>();
+            Map<String, Object> model = new HashMap<>();
             RequestContext context = RequestContext.getCurrent();
             HttpServletRequest request = context.getRequest();
             String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "");
@@ -599,7 +593,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public boolean resetPassword(String username, String newPassword)
-            throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+            throws UserNotFoundException, ServiceLayerException {
         return userServiceInternal.setUserPassword(username, newPassword);
     }
 
@@ -631,7 +625,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Map<String, Boolean> hasCurrentUserSitePermissions(String site, List<String> permissions)
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
-        Map<String, Boolean> toRet = new HashMap<String, Boolean>();
+        Map<String, Boolean> toRet = new HashMap<>();
         List<String> userPermissions = getCurrentUserSitePermissions(site);
         permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
         return toRet;
@@ -646,7 +640,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Map<String, Boolean> hasCurrentUserGlobalPermissions(List<String> permissions) throws ServiceLayerException, UserNotFoundException, ExecutionException {
-        Map<String, Boolean> toRet = new HashMap<String, Boolean>();
+        Map<String, Boolean> toRet = new HashMap<>();
         List<String> userPermissions = getCurrentUserGlobalPermissions();
         permissions.forEach(p -> toRet.put(p, userPermissions.contains(p)));
         return toRet;
@@ -680,120 +674,59 @@ public class UserServiceImpl implements UserService {
         return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
     }
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
     }
 
-    public GroupServiceInternal getGroupServiceInternal() {
-        return groupServiceInternal;
-    }
-
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public EntitlementValidator getEntitlementValidator() {
-        return entitlementValidator;
-    }
-
     public void setEntitlementValidator(EntitlementValidator entitlementValidator) {
         this.entitlementValidator = entitlementValidator;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
     }
 
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
-
-    public ObjectFactory<FreeMarkerConfig> getFreeMarkerConfig() {
-        return freeMarkerConfig;
-    }
-
     public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
         this.freeMarkerConfig = freeMarkerConfig;
-    }
-
-    public JavaMailSender getEmailService() {
-        return emailService;
     }
 
     public void setEmailService(JavaMailSender emailService) {
         this.emailService = emailService;
     }
 
-    public JavaMailSender getEmailServiceNoAuth() {
-        return emailServiceNoAuth;
-    }
-
     public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
         this.emailServiceNoAuth = emailServiceNoAuth;
-    }
-
-    public InstanceService getInstanceService() {
-        return instanceService;
     }
 
     public void setInstanceService(InstanceService instanceService) {
         this.instanceService = instanceService;
     }
 
-    public TextEncryptor getEncryptor() {
-        return encryptor;
-    }
-
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
-    }
-
-    public org.craftercms.studio.api.v2.service.security.SecurityService getSecurityServiceV2() {
-        return securityServiceV2;
     }
 
     public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {

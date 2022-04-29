@@ -20,10 +20,7 @@ import com.google.common.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -38,6 +35,9 @@ import org.craftercms.studio.api.v2.service.security.internal.AccessTokenService
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.AuthenticatedUser;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.beans.ConstructorProperties;
 import java.util.Collection;
@@ -336,7 +336,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     @Override
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(USER_ID, -1);
         params.put(USERNAME, username);
         try {
@@ -367,12 +367,12 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @Override
     public boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
-            UserExternallyManagedException, ServiceLayerException {
+            ServiceLayerException {
         if (!userExists(-1, username)) {
             throw new UserNotFoundException();
         } else {
             if (verifyPasswordRequirements(newPassword)) {
-                Map<String, Object> params = new HashMap<String, Object>();
+                Map<String, Object> params = new HashMap<>();
                 params.put(USER_ID, -1);
                 params.put(USERNAME, username);
                 try {
@@ -381,7 +381,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                         throw new UserExternallyManagedException();
                     } else {
                         String hashedPassword = CryptoUtils.hashPassword(newPassword);
-                        params = new HashMap<String, Object>();
+                        params = new HashMap<>();
                         params.put(USERNAME, username);
                         params.put(PASSWORD, hashedPassword);
                         retryingDatabaseOperationFacade.setUserPassword(params);
@@ -481,6 +481,16 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             // This should never happen...
             logger.error("Error getting current user", e);
             return null;
+        }
+    }
+
+    @Override
+    public AuthenticatedUser getCurrentUser() throws AuthenticationException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return (AuthenticatedUser) authentication.getPrincipal();
+        } else {
+            throw new AuthenticationException("User should be authenticated");
         }
     }
 

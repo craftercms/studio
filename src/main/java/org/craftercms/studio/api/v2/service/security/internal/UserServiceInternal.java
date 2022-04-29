@@ -17,12 +17,10 @@
 package org.craftercms.studio.api.v2.service.security.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.model.AuthenticatedUser;
 
 import java.util.List;
 import java.util.Map;
@@ -96,7 +94,7 @@ public interface UserServiceInternal {
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
     boolean setUserPassword(String username, String newPassword) throws UserNotFoundException,
-            UserExternallyManagedException, ServiceLayerException;
+            ServiceLayerException;
 
     /**
      * Get user by git name.
@@ -133,5 +131,12 @@ public interface UserServiceInternal {
      */
     Map<String, String> deleteUserProperties(String siteId, List<String> propertiesToDelete)
             throws ServiceLayerException;
+
+    /**
+     * Returns the current authenticated user
+     * @return the user if present
+     * @throws AuthenticationException if there is no user authenticated
+     */
+    AuthenticatedUser getCurrentUser() throws AuthenticationException;
 
 }

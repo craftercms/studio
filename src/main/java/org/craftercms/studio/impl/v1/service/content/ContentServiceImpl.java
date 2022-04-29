@@ -58,7 +58,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentItemIdGenerator;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -96,7 +95,6 @@ import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -187,7 +185,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private ContentRepository _contentRepository;
     private org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
     protected ServicesConfig servicesConfig;
-    protected GeneralLockService generalLockService;
     protected DependencyService dependencyService;
     protected ProcessContentExecutor contentProcessor;
     protected SecurityService securityService;
@@ -200,7 +197,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected ContentTypeService contentTypeService;
     protected EntitlementValidator entitlementValidator;
     protected AuditServiceInternal auditServiceInternal;
-    protected UserService userService;
     protected ItemServiceInternal itemServiceInternal;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected UserServiceInternal userServiceInternal;
@@ -1069,7 +1065,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
         Item item = itemServiceInternal.getItem(site, movePath);
         // This is not required, the current user is already loaded in memory
-        User u = userService.getUserByIdOrUsername(-1, user);
+        User u = userServiceInternal.getUserByIdOrUsername(-1, user);
         activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), OPERATION_MOVE,
                 DateUtils.getCurrentTime(), item, null);
 
@@ -1367,8 +1363,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
-        String> params, String modifier)
-            throws ServiceLayerException {
+        String> params, String modifier) {
 
         //update pageId and groupId with the new one
         Element root = document.getRootElement();
@@ -2342,7 +2337,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             DependencyDiffService.DiffRequest diffRequest = new DependencyDiffService.DiffRequest(site, relativePath,
                     null, null, site, true);
             List<String> deleted = getRemovedDependencies(diffRequest, true);
-            logger.debug("Removed dependenices for path[" + relativePath + "] : " + deleted);
+            logger.debug("Removed dependencies for path[" + relativePath + "] : " + deleted);
             for (String dependency : deleted) {
                 candidates.getLiveDependencyItems().add(dependency);
             }
@@ -2361,7 +2356,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     protected List<String> filterDependenciesMatchingDeletePattern(String site, String sourcePath,
-                                                                   List<String> dependencies) throws ServiceLayerException {
+                                                                   List<String> dependencies) {
         List<String> matchingDep = new ArrayList<>();
         if(sourcePath.endsWith(DmConstants.XML_PATTERN) && sourcePath.endsWith(DmConstants.XML_PATTERN)){
             List<DeleteDependencyConfigTO> deleteAssociations = getDeletePatternConfig(site,sourcePath);
@@ -2597,7 +2592,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PUSH_TO_REMOTE);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
         auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
@@ -2617,7 +2612,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PULL_FROM_REMOTE);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(remoteName + "/" + remoteBranch);
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
         auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
@@ -2637,10 +2632,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
     }
 
     public void setDependencyService(DependencyService dependencyService) {
@@ -2689,10 +2680,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public void setUserService(UserService userService) {
-        this.userService = userService;
     }
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepository) {
