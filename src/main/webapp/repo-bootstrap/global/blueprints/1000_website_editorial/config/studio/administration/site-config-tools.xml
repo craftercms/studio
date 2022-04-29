@@ -418,56 +418,5 @@
 
             </objectTypes>
         </tool>
-        <tool>
-            <name>encrypt-tool</name>
-            <label>Encryption Tool</label>
-            <icon>
-                <class>fa-lock</class>
-            </icon>
-        </tool>
-        <tool>
-            <name>admin-configurations</name>
-            <label>Configuration</label>
-        </tool>
-        <tool>
-            <name>audit</name>
-            <label>Audit</label>
-        </tool>
-        <tool>
-            <name>workflow-states</name>
-            <label>Workflow States</label>
-        </tool>
-        <tool>
-            <name>log-view</name>
-            <label>Log Console</label>
-        </tool>
-        <tool>
-            <name>status-view</name>
-            <label>Publishing</label>
-            <icon>
-                <class>fa-cloud-upload</class>
-            </icon>
-        </tool>
-        <tool>
-            <name>repository</name>
-            <label>Git</label>
-            <icon>
-                <class>fa-database</class>
-            </icon>
-        </tool>
-        <tool>
-            <name>graphiql</name>
-            <label>GraphiQL</label>
-            <icon>
-                <class>fa-line-chart</class>
-            </icon>
-        </tool>
-        <tool>
-            <name>plugin-management</name>
-            <label>Plugin Management</label>
-            <icon>
-                <class>fa-puzzle-piece</class>
-            </icon>
-        </tool>
     </tools>
 </config>
