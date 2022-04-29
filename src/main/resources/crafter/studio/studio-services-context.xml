@@ -51,7 +51,6 @@
     <bean id="cstudioContentService" class="org.craftercms.studio.impl.v1.service.content.ContentServiceImpl">
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentProcessor" ref="cstudioProcessContentExecutor" />
         <property name="dependencyService" ref="studioDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService" />
@@ -64,7 +63,6 @@
         <property name="contentTypeService" ref="cstudioContentTypeService" />
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="userService" ref="userService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
@@ -397,7 +395,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="organizationServiceInternal" ref="organizationServiceInternal" />
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="userService" ref="userService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
@@ -549,7 +546,7 @@
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
-        <property name="userService" ref="userService" />
+        <property name="userServiceInternal" ref="userServiceInternal"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
