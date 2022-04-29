@@ -490,8 +490,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
             moveContent(site, path, targetPath);
         } catch (ServiceLayerException | RuntimeException | UserNotFoundException e) {
-            logger.error("Error while executing write and rename for site '{}' path '{}' targetPath '{}' "
-                    + "fileName '{}' content type '{}'", e, site, path, targetPath, fileName, contentType);
+            logger.error("Error while executing write and rename for site {0} path {1} targetPath {2} "
+                    + "fileName {3} content type {4}", e, site, path, targetPath, fileName, contentType);
         }
     }
 
@@ -997,7 +997,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             if (commitIds != null) {
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
-                updateDatabaseOnMove(site, fromPath, movePath, newParent.getId());
+                Long parentId = newParent != null? newParent.getId() : null;
+                updateDatabaseOnMove(site, fromPath, movePath, parentId);
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
