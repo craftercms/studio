@@ -187,8 +187,10 @@ public class SecurityServiceImpl implements SecurityService {
             addGroupRoles(roles, site, groups, rolesConfig);
             // resolve the permission
             permissions = populateUserPermissions(site, path, roles, permissionsConfig);
-            // check if the user is allowed to edit the content
+            logger.trace("Check if the user is allowed to edit the content in site '{}' path '{}' user '{}' " +
+                            "groups '{}'", site, path, user, groups);
 
+            // TODO: SJ: refactor the code below if it's still in use, otherwise remove
             if (path.indexOf("/site") == 0) { // If it's content a file
                 try {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
