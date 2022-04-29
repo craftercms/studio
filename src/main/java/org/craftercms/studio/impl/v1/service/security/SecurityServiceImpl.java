@@ -196,15 +196,16 @@ public class SecurityServiceImpl implements SecurityService {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
                     boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
                     if (!isAllowed) {
-                        logger.debug1("The user is not allowed to access " + site + ":" + path
-                                + ". adding permission: " + StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
+                        logger.trace("User '{}' is not permitted to access site '{}' path '{}', adding " +
+                                "permission '{}'", user, site, path, StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         // If no default role is set
                         permissions.add(StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         return permissions;
                     }
                 } catch (ServiceLayerException e) {
-                    logger.debug1("Error while getting the content type of " + path
-                            + ". skipping user role checking on the content.");
+                    // TODO: SJ: Is this really a debug?
+                    logger.debug("Failed to get content type in site '{}' path '{}'. Skipping user role check for " +
+                                    "user '{}'", site, path, user, e);
                 }
             }
         }
@@ -242,7 +243,7 @@ public class SecurityServiceImpl implements SecurityService {
             for (String group : groups) {
                 List<String> groupRoles = rolesMap.get(group);
                 if (groupRoles != null) {
-                    logger.debug1("Adding roles by group " + group + ": " + roles);
+                    logger.debug("Adding roles group'{}':'{}'", group, roles);
                     roles.addAll(groupRoles);
                 }
             }
@@ -268,35 +269,36 @@ public class SecurityServiceImpl implements SecurityService {
                         for (Node ruleNode : ruleNodes) {
                             String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
                             if (path.matches(regex)) {
-                                logger.debug1("Global permissions found by matching " + regex + " for " + role);
+                                logger.trace("Global permissions found by matching regex '{}' in role '{}'",
+                                        regex, role);
 
                                 List<Node> permissionNodes =
                                         ruleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
                                 for (Node permissionNode : permissionNodes) {
                                     String permission = permissionNode.getText().toLowerCase();
-                                    logger.debug1("adding global permissions " + permission + " to " + path
-                                            + " for " + role);
+                                    logger.debug("Add global permissions '{}' to role '{}' path '{}'",
+                                            permission, role, path);
                                     permissions.add(permission);
                                 }
                             }
                         }
                     } else {
-                        logger.debug1("No default role is set. adding default permission: "
-                                + StudioConstants.PERMISSION_VALUE_READ);
                         // If no default role is set
+                        logger.debug("No default role is set. Add default permission '{}'",
+                                StudioConstants.PERMISSION_VALUE_READ);
                         permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                     }
                 } else {
-                    logger.debug1("No default site is set. adding default permission: "
-                            + StudioConstants.PERMISSION_VALUE_READ);
                     // If no default site is set
+                    logger.debug("No default site is set. Add default permission '{}'",
+                            StudioConstants.PERMISSION_VALUE_READ);
                     permissions.add(StudioConstants.PERMISSION_VALUE_READ);
                 }
             }
         } else {
-            logger.debug1("No user or group matching found. adding default permission: "
-                    + StudioConstants.PERMISSION_VALUE_READ);
             // If user or group did not match the roles-mapping file
+            logger.debug("No user or group match found. Add default permission '{}'",
+                    StudioConstants.PERMISSION_VALUE_READ);
             permissions.add(StudioConstants.PERMISSION_VALUE_READ);
         }
         return permissions;
@@ -317,7 +319,7 @@ public class SecurityServiceImpl implements SecurityService {
     protected void addUserRoles(Set<String> roles, String site, String user) {
         if (!StringUtils.isEmpty(user)) {
             Set<String> userRoles = this.getUserRoles(site, user);
-            logger.debug1("Adding roles by user: " + userRoles);
+            logger.debug("Add roles in site '{}' to user '{}' roles '{}'", site, user, userRoles);
             roles.addAll(userRoles);
         }
     }
@@ -346,7 +348,7 @@ public class SecurityServiceImpl implements SecurityService {
             // TODO: remove this one
             List<Group> groups = userServiceInternal.getUserGroups(-1, user);
             if (groups != null && groups.size() > 0) {
-                logger.debug1("Groups for " + user + " in " + site + ": " + groups);
+                logger.debug("Get groups for user '{}' in site '{}' groups '{}'", user, site, groups);
 
                 PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
                 Set<String> userRoles = new HashSet<String>();
@@ -376,10 +378,10 @@ public class SecurityServiceImpl implements SecurityService {
                 }
                 return userRoles;
             } else {
-                logger.debug1("No groups found for " + user + " in " + site);
+                logger.debug("No groups found for user '{}' in site '{}'", user, site);
             }
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error1("Error while getting groups for user {}", e);
+            logger.error("Failed to get groups for user '{}' in site '{}'", user, site, e);
         }
 
         return new HashSet<>(0);
