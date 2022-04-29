@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.0.3</version>
+	<version>4.0.4</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -345,7 +345,7 @@
 					<title id="workflowStates.title" defaultMessage="Workflow States"/>
 					<icon id="@mui/icons-material/SettingsOutlined"/>
 					<url>item-states</url>
-					<widget id="craftercms.components.ItemStatesManagement"/>
+					<widget id="craftercms.components.WorkflowStateManagement"/>
 				</tool>
 				<tool>
 					<title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>

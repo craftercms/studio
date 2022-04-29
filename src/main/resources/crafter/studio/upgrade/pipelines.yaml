@@ -833,3 +833,12 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.3.xslt
             commitDetails: Update path to use /index.xml
+      - currentVersion: 4.0.3
+        nextVersion: 4.0.4
+        operations:
+          - type: findAndReplaceUpgrader
+            includedPaths:
+              - config/studio/ui.xml
+            pattern: "craftercms\\.components\\.ItemStatesManagement"
+            replacement: "craftercms.components.WorkflowStateManagement"
+            commitDetails: Rename component
