@@ -169,10 +169,10 @@
         LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
         LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId}
-        AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND i1.path RLIKE('^${path}/[^/]+/index\.xml$|^${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
-        AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+        AND i2.path RLIKE('^${path}/[^/]+/index\.xml$'))
         AND i1.path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND i1.locale_code = #{localeCode}
@@ -213,20 +213,20 @@
             LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
             LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
         WHERE i1.site_id = #{siteId}
-        AND i1.path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND i1.path RLIKE('^${path}/[^/]+/index\.xml$|^${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(i1.path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
-        AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+        AND i2.path RLIKE('^${path}/[^/]+/index\.xml$'))
         AND (i3.ignored = 0 or i3.ignored is null)
         GROUP BY i1.id
     </select>
 
     <select id="getChildrenByPathTotal" resultType="Integer">
         SELECT COUNT(1) FROM item WHERE site_id = #{siteId}
-        AND path RLIKE('${path}/[^/]+/index\.xml|${path}/(?!index\.xml)[^/]+$')
+        AND path RLIKE('^${path}/[^/]+/index\.xml$|^${path}/(?!index\.xml)[^/]+$')
         AND CONCAT(path, '/index.xml') NOT IN
         (SELECT i2.path FROM item i2 WHERE i2.site_id = #{siteId}
-        AND i2.path RLIKE('${path}/[^/]+/index\.xml'))
+        AND i2.path RLIKE('^${path}/[^/]+/index\.xml$'))
         AND path NOT LIKE '%/${ldName}'
         <if test="localeCode != null">
             AND locale_code = #{localeCode}
@@ -425,7 +425,7 @@
                     ) AS w2 ON i1.id = w2.item_id, item i2
             WHERE i2.id = #{id}
             AND i1.site_id = i2.site_id
-            AND i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+            AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
             AND (i5.ignored = 0 OR i5.ignored IS NULL)
             AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = CONCAT(i5.path, '/index.xml')))
@@ -620,7 +620,7 @@
             WHERE i2.site_id = #{siteId}
               AND i2.path = #{path}
               AND i1.site_id = i2.site_id
-              AND i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+              AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 OR i5.ignored IS NULL)
               AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                     (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
@@ -721,7 +721,7 @@
             #{id}
         </foreach>
         AND i1.site_id = i2.site_id
-        AND i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+        AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
         AND (i5.ignored = 0 OR i5.ignored IS NULL)
         AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
@@ -740,7 +740,7 @@
         </foreach>
         AND CONCAT(i3.path, '/index.xml') NOT IN
             (SELECT i4.path FROM item i4 WHERE i4.site_id = i3.site_id
-        AND i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
+        AND i4.path RLIKE(CONCAT('^', i3.path, '/index\.xml$')))
         AND (i6.ignored = 0 OR i6.ignored IS NULL)
         AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
@@ -781,7 +781,7 @@
         </foreach>
         AND i1.ignored = 0
         AND i1.site_id = i2.site_id
-        AND i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+        AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
         AND (i5.ignored = 0 OR i5.ignored IS NULL)
         AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
@@ -802,7 +802,7 @@
         AND i3.ignored = 0
         AND CONCAT(i3.path, '/index.xml') NOT IN
             (SELECT i4.path FROM item i4 WHERE i4.site_id = i3.site_id
-        AND i4.path RLIKE(CONCAT(i3.path, '/index\.xml$')))
+        AND i4.path RLIKE(CONCAT('^', i3.path, '/index\.xml$')))
         AND (i6.ignored = 0 OR i6.ignored IS NULL)
         AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = concat(i6.path, '/index.xml')))
@@ -933,7 +933,7 @@
               AND i2.path = #{path}
               AND i1.ignored = 0
               AND i1.site_id = i2.site_id
-              AND i1.path RLIKE(CONCAT(i2.path, '/index\.xml$'))
+              AND i1.path RLIKE(CONCAT('^', i2.path, '/index\.xml$'))
               AND (i5.ignored = 0 OR i5.ignored IS NULL)
               AND (i5.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
