@@ -4252,6 +4252,10 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/SandboxItem'
+                  missingItems:
+                    type: array
+                    items:
+                      type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

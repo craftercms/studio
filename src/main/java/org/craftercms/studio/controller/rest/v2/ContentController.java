@@ -37,17 +37,7 @@ import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
-import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.model.rest.content.GetChildrenByIdRequestBody;
-import org.craftercms.studio.model.rest.content.GetChildrenByPathRequestBody;
-import org.craftercms.studio.model.rest.content.GetChildrenResult;
-import org.craftercms.studio.model.rest.content.GetDeletePackageRequestBody;
-import org.craftercms.studio.model.rest.content.GetSandboxItemsByIdRequestBody;
-import org.craftercms.studio.model.rest.content.GetSandboxItemsByPathRequestBody;
-import org.craftercms.studio.model.rest.content.LockItemByPathRequest;
-import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.model.rest.content.UnlockItemByPathRequest;
-import org.craftercms.studio.model.rest.content.DeleteRequestBody;
+import org.craftercms.studio.model.rest.content.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -63,10 +53,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -295,10 +282,12 @@ public class ContentController {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(request.getSiteId());
         }
+        Collection<String> missing = Collections.emptyList();
         List<String> paths = request.getPaths();
         boolean preferContent = request.isPreferContent();
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
         ResponseBody responseBody = new ResponseBody();
+        //TODO: The service should throw an exception instead of the controller doing this
         if (CollectionUtils.isEmpty(sandboxItems)) {
             Result result = new Result();
             ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
@@ -307,27 +296,23 @@ public class ContentController {
             result.setResponse(apiResponse);
             responseBody.setResult(result);
             httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        } else if (paths.size() != sandboxItems.size()) {
+            return responseBody;
+        }
+
+        if (paths.size() != sandboxItems.size()) {
             List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
             if (preferContent) {
                 found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
                         FILE_SEPARATOR + INDEX_FILE, "")).collect(Collectors.toList()));
             }
-            Collection<String> missing = CollectionUtils.subtract(paths, found);
-            String missingPaths = String.join(", ", missing);
-            Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
-            apiResponse.setRemedialAction(
-                    String.format("The following content paths [%s] were not found in site '%s'", missingPaths, siteId));
-            result.setResponse(apiResponse);
-            responseBody.setResult(result);
-            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        } else {
-            ResultList<SandboxItem> result = new ResultList<SandboxItem>();
-            result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
-            result.setResponse(OK);
-            responseBody.setResult(result);
+            missing = CollectionUtils.subtract(paths, found);
         }
+
+        GetSandboxItemsByPathResult result = new GetSandboxItemsByPathResult();
+        result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
+        result.setMissingItems(missing);
+        result.setResponse(OK);
+        responseBody.setResult(result);
         return responseBody;
     }
 
