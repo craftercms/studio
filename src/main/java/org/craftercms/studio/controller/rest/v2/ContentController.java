@@ -287,19 +287,8 @@ public class ContentController {
         boolean preferContent = request.isPreferContent();
         List<SandboxItem> sandboxItems = contentService.getSandboxItemsByPath(siteId, paths, preferContent);
         ResponseBody responseBody = new ResponseBody();
-        //TODO: The service should throw an exception instead of the controller doing this
-        if (CollectionUtils.isEmpty(sandboxItems)) {
-            Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
-            apiResponse.setRemedialAction(
-                    String.format("None of the requested content paths were found in site '%s'", siteId));
-            result.setResponse(apiResponse);
-            responseBody.setResult(result);
-            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
-            return responseBody;
-        }
 
-        if (paths.size() != sandboxItems.size()) {
+        if (CollectionUtils.isEmpty(sandboxItems) || paths.size() != sandboxItems.size()) {
             List<String> found = sandboxItems.stream().map(SandboxItem::getPath).collect(Collectors.toList());
             if (preferContent) {
                 found.addAll(sandboxItems.stream().map(si -> StringUtils.replace(si.getPath(),
