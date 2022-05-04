@@ -343,6 +343,13 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.43/system/global-permission-mappings-config.xslt
             commitDetails: Added repair_repository permissions for system_admin
+      - currentVersion: 4.0.0.43
+        nextVersion: 4.0.1
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.1/system/global-permission-mappings-config.xslt
+            commitDetails: Added content_search permissions for system_admin
 
   # Pipeline to upgrade site repositories
   site:
@@ -606,6 +613,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.5.xslt
               commitDetails: Added repair_repository permissions for  site admin users
+        - currentVersion: 4.0.5
+          nextVersion: 4.0.6
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.6.xslt
+              commitDetails: Add content_search permissions for all users
 
   role-mappings-config:
     module: studio

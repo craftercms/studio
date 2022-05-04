@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>4.0.5</version>
+    <version>4.0.6</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -130,6 +130,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -194,6 +195,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -270,6 +272,7 @@
                 <permission>remove_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -355,6 +358,7 @@
                 <permission>remove_plugins</permission>
                 <permission>get_children</permission>
                 <permission>item_unlock</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -386,6 +390,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -405,6 +410,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
