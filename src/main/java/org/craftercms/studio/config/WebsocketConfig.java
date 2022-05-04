@@ -50,7 +50,7 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
             // The STOMP controller URL
             .addEndpoint("/events")
             // Use the same allowed origins from the configuration to match the HTTP filter
-            .setAllowedOrigins(studioConfiguration.getArray(CONFIGURATION_CORS_ALLOWED_ORIGINS, String.class));
+            .setAllowedOriginPatterns(studioConfiguration.getArray(CONFIGURATION_CORS_ALLOWED_ORIGINS, String.class));
     }
 
     @Override
