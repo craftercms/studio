@@ -59,7 +59,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -190,16 +189,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
-                                             String locale, String keyword, List<String> excludes, String sortStrategy,
-                                             String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getChildrenById(siteId, id, locale, keyword, excludes, sortStrategy, order,
-                offset, limit);
-    }
-
-    @Override
     public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                         @ValidateSecurePathParam String path, boolean flatten) {
         return contentServiceInternal.getItem(siteId, path, flatten);
@@ -214,28 +203,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id,
-                                    boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getItemById(siteId, id, preferContent);
-    }
-
-    @Override
     @HasPermission(type = CompositePermission.class, action = "get_children")
     public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                    @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                                    boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, preferContent);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public List<SandboxItem> getSandboxItemsById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                 List<Long> ids, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
     }
 
     @Override
@@ -297,7 +270,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     public Optional<Resource> getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
-                                                   String commitId) throws ContentNotFoundException, IOException {
+                                                   String commitId) throws ContentNotFoundException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
     }
 

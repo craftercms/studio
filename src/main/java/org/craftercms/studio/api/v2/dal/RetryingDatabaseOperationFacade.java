@@ -595,31 +595,6 @@ public interface RetryingDatabaseOperationFacade {
     void unlockItemByPath(String siteId, String path, long lockedBitOff);
 
     /**
-     * Lock item
-     * @param itemId item identifier
-     * @param lockOwnerId lock owner
-     * @param lockedBitOn state bit mask with LOCKED bit on
-     * @param systemTypeFolder value for system type folder
-     */
-    void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
-
-    /**
-     * Lock items
-     * @param itemIds list of item identifiers
-     * @param lockOwnerId lock owner
-     * @param lockedBitOn state bit mask with LOCKED bit on
-     * @param systemTypeFolder value for system type folder
-     */
-    void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
-
-    /**
-     * Unlock item
-     * @param itemId item identifier
-     * @param lockedBitOff state bit mask with LOCKED bit off
-     */
-    void unlockItemById(Long itemId, long lockedBitOff);
-
-    /**
      * Update item state by query
      * @param siteId site identifier
      * @param path path regex to filter items to be updated

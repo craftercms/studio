@@ -343,6 +343,11 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.43/system/global-permission-mappings-config.xslt
             commitDetails: Added repair_repository permissions for system_admin
+      - currentVersion: 4.0.0.43
+        nextVersion: 4.0.1
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.43-to-4.0.1.sql
 
   # Pipeline to upgrade site repositories
   site:

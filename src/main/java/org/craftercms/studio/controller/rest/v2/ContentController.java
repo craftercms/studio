@@ -30,7 +30,6 @@ import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
-import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -39,7 +38,6 @@ import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,43 +47,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_COMMIT_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PREFER_CONTENT;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONTENT_BY_COMMIT_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_LOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
-import static org.craftercms.studio.model.rest.ApiResponse.CONTENT_NOT_FOUND;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -123,7 +111,7 @@ public class ContentController {
         List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultList<QuickCreateItem> result = new ResultList<QuickCreateItem>();
+        ResultList<QuickCreateItem> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS, items);
         responseBody.setResult(result);
@@ -135,9 +123,9 @@ public class ContentController {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
         List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
+        ResultOne<Map<String, List<String>>> result = new ResultOne<>();
         result.setResponse(OK);
-        Map<String, List<String>> items = new HashMap<String, List<String>>();
+        Map<String, List<String>> items = new HashMap<>();
         items.put(RESULT_KEY_CHILD_ITEMS, childItems);
         items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentItems);
         result.setEntity(RESULT_KEY_ITEMS, items);
@@ -168,23 +156,6 @@ public class ContentController {
                 request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
                 request.getExcludes(), request.getSortStrategy(), request.getOrder(), request.getOffset(),
                 request.getLimit());
-        ResponseBody responseBody = new ResponseBody();
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping(value = GET_CHILDREN_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenById(@RequestBody @Valid GetChildrenByIdRequestBody request)
-            throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(request.getSiteId())) {
-            throw new SiteNotFoundException(request.getSiteId());
-        }
-        GetChildrenResult result =
-                contentService.getChildrenById(
-                        request.getSiteId(), request.getId(), request.getLocaleCode(), request.getKeyword(),
-                        request.getExcludes(), request.getSortStrategy(), request.getOrder(), request.getOffset(),
-                        request.getLimit());
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -249,25 +220,7 @@ public class ContentController {
         }
         DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
-        result.setEntity(RESULT_KEY_ITEM, detailedItem);
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @GetMapping(value = ITEM_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemById(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                    @RequestParam(value = REQUEST_PARAM_ID) long id,
-                                    @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
-                                            defaultValue = "false") boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
-        DetailedItem detailedItem = contentService.getItemById(siteId, id, preferContent);
-        ResponseBody responseBody = new ResponseBody();
-        ResultOne<DetailedItem> result = new ResultOne<DetailedItem>();
+        ResultOne<DetailedItem> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_ITEM, detailedItem);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -275,8 +228,7 @@ public class ContentController {
     }
 
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request,
-                                              HttpServletResponse httpServletResponse)
+    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         String siteId = request.getSiteId();
         if (!siteService.exists(siteId)) {
@@ -302,52 +254,6 @@ public class ContentController {
         result.setMissingItems(missing);
         result.setResponse(OK);
         responseBody.setResult(result);
-        return responseBody;
-    }
-
-    @PostMapping(value = SANDBOX_ITEMS_BY_ID, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsById(@RequestBody @Valid GetSandboxItemsByIdRequestBody request,
-                                            HttpServletResponse httpServletResponse)
-            throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(request.getSiteId())) {
-            throw new SiteNotFoundException(request.getSiteId());
-        }
-        List<Long> ids = request.getIds();
-        String siteId = request.getSiteId();
-        boolean preferContent = request.isPreferContent();
-        List<SandboxItem> sandboxItems = contentService.getSandboxItemsById(siteId, ids, preferContent);
-
-        ResponseBody responseBody = new ResponseBody();
-        if (CollectionUtils.isEmpty(sandboxItems)) {
-            Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
-            apiResponse.setRemedialAction(
-                    String.format("None of sent content ids was found. Check that they are correct and it exist in " +
-                            "site '%s'", siteId));
-            result.setResponse(apiResponse);
-            responseBody.setResult(result);
-            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        } else if (ids.size() != sandboxItems.size()) {
-            List<Long> found = sandboxItems.stream().map(SandboxItem::getId).collect(Collectors.toList());
-            if (preferContent) {
-                found.addAll(sandboxItems.stream().map(SandboxItem::getParentId).collect(Collectors.toList()));
-            }
-            Collection<Long> missing = CollectionUtils.subtract(ids, found);
-            String missingIds = missing.stream().map(String::valueOf).collect(Collectors.joining(", "));
-            Result result = new Result();
-            ApiResponse apiResponse = new ApiResponse(CONTENT_NOT_FOUND);
-            apiResponse.setRemedialAction(
-                    String.format("Following content ids [%s] were not found. Check that they are correct and it " +
-                            "exist in site '%s'", missingIds, siteId));
-            result.setResponse(apiResponse);
-            responseBody.setResult(result);
-            httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
-        } else {
-            ResultList<SandboxItem> result = new ResultList<SandboxItem>();
-            result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
-            result.setResponse(OK);
-            responseBody.setResult(result);
-        }
         return responseBody;
     }
 
@@ -384,7 +290,7 @@ public class ContentController {
     public ResponseEntity<Resource> getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                              @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                              @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
-            throws ServiceLayerException, IOException, UserNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
 
         DetailedItem item = contentService.getItemByPath(siteId, path, true);
         Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();

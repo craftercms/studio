@@ -26,12 +26,10 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
-import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -73,8 +71,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         int height = (heightStr != null) ? Integer.parseInt(heightStr) : -1;
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
         // default is true for unlocking on save
-        boolean unlock = (!StringUtils.isEmpty(unlockValue) &&
-                unlockValue.equalsIgnoreCase("false")) ? false : true;
+        boolean unlock = StringUtils.isEmpty(unlockValue) ||
+                !unlockValue.equalsIgnoreCase("false");
         boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
         boolean isSystemAsset = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_SYSTEM_ASSET));
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
@@ -143,7 +141,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
             if (parentExists && parentContentItem.isFolder()) {
                 boolean exists = contentService.contentExists(site, path + FILE_SEPARATOR + assetName);
-                ContentItemTO contentItem = null;
+                ContentItemTO contentItem;
                 if (exists) {
                     contentItem = contentService.getContentItem(site, path + FILE_SEPARATOR + assetName, 0);
                     updateFile(site, contentItem, contentPath, in, user, isPreview, unlock, result);
@@ -155,7 +153,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 ContentAssetInfoTO assetInfo = new ContentAssetInfoTO();
                 assetInfo.setFileName(assetName);
                 long sizeInBytes = contentService.getContentSize(site, path + FILE_SEPARATOR + assetName);
-                double convertedSize = 0;
+                double convertedSize;
                 if (sizeInBytes > 0) {
                     convertedSize = sizeInBytes / 1024d;
                     if (convertedSize >= 1024) {
@@ -177,7 +175,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 if (StringUtils.isEmpty(commitId)) {
                     commitId = contentRepository.getRepoLastCommitId(site);
                 }
-                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, commitId, Optional.of(unlock));
+                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, commitId, unlock);
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
@@ -201,7 +199,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input,
                               String user, boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
-        boolean success = false;
+        boolean success;
         try {
             success = contentService.writeContent(site, relativePath, input);
         } finally {
@@ -224,7 +222,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
 
             // Item
-            itemServiceInternal.persistItemAfterWrite(site, relativePath, user, commitId, Optional.of(unlock));
+            itemServiceInternal.persistItemAfterWrite(site, relativePath, user, commitId, unlock);
         }
         if (unlock) {
             contentRepositoryV1.unLockItem(site, relativePath);
@@ -234,12 +232,4 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
     }
 
-    protected StudioConfiguration studioConfiguration;
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
 }

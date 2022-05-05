@@ -29,7 +29,6 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -113,24 +112,6 @@ public interface ContentService {
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
                                         List<String> excludes, String sortStrategy, String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
-
-    /**
-     * Get list of children for given item id
-     *
-     * @param siteId site identifier
-     * @param id item id to get children for
-     * @param locale filter children by locale
-     * @param keyword filter children by keyword
-     * @param excludes exclude items by regular expression patterns
-     * @param sortStrategy sort order
-     * @param order ascending or descending
-     * @param offset offset of the first child in the result
-     * @param limit number of children to return
-     * @return list of children
-     */
-    GetChildrenResult getChildrenById(String siteId, String id, String locale, String keyword, List<String> excludes,
-                                      String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException;
 
 
@@ -148,17 +129,6 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * Get detailed item for given id
-     *
-     * @param siteId site identifier
-     * @param id item id
-     * @param preferContent if true return content item if available
-     * @return detailed item
-     */
-    DetailedItem getItemById(String siteId, long id, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
      * Get sandbox items for given list of paths
      * @param siteId site identifier
      * @param paths list of paths to get sandbox items
@@ -166,16 +136,6 @@ public interface ContentService {
      * @return list of sandbox items
      */
     List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get sandbox items for given list of ids
-     * @param siteId site identifier
-     * @param ids list of ids to get sandbox items
-     * @param preferContent if true return content items if available
-     * @return list of sandbox items
-     */
-    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -200,5 +160,5 @@ public interface ContentService {
      * @return the content if available
      */
     Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-            throws ContentNotFoundException, IOException;
+            throws ContentNotFoundException;
 }
