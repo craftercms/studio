@@ -261,26 +261,27 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             throw new SiteAlreadyExistsException();
         }
 
-        logger.debug1("Get blueprint descriptor for: " + blueprintId);
+        logger.debug("Get the plugin descriptor for the blueprint '{}'", blueprintId);
         PluginDescriptor descriptor = sitesServiceInternal.getBlueprintDescriptor(blueprintId);
         if (Objects.isNull(descriptor)) {
             throw new BlueprintNotFoundException("Blueprint not found " + blueprintId);
         }
 
-        logger.debug1("Validating blueprint parameters");
+        logger.debug("Validate the parameter for the blueprint '{}'", blueprintId);
         validatePluginParameters(descriptor.getPlugin(), params);
 
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
 
-        logger.debug1("Validate site entitlements");
+        logger.debug("Validate the entitlements for the site '{}'", siteName);
         try {
             entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
         } catch (EntitlementException e) {
-            throw new SiteCreationException("Unable to complete request due to entitlement limits. Please contact " +
-                    "your system administrator.", e);
+            throw new SiteCreationException("Unable to complete the request due to entitlement limits. " +
+                    "Please contact your system administrator.", e);
         }
 
-        logger.info1("Starting site creation process for site " + siteName + " from " + blueprintId + " blueprint.");
+        logger.info("Started the site creation process for site '{}' based on the blueprint '{}'",
+                siteName, blueprintId);
         boolean success = true;
 
         // We must fail site creation if any of the site creations steps fail and rollback
@@ -291,29 +292,27 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String siteUuid = UUID.randomUUID().toString();
 
         // Create the site in the preview deployer
-        logger.info1("Creating deployer targets.");
+        logger.info("Creating the deployer targets for site '{}'", siteName);
         try {
             deployer.createTargets(siteId);
         } catch (Exception e) {
             success = false;
-            String msg = "Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
-                    blueprintId + ". The required Deployer targets couldn't be created";
-
-            logger.error1(msg, e);
-
-            throw new DeployerTargetException(msg, e);
+            logger.error("Failed to create site '{}' id '{}' based on blueprint '{}'. The deployer targets " +
+                    "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId, e);
+            throw new DeployerTargetException(String.format("Failed to create site '%s' id '%s' based on blueprint '%s'. The deployer targets " +
+                    "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId), e);
         }
 
         if (success) {
             try {
-                logger.info1("Copying site content from blueprint.");
+                logger.info("Initialize site '{}' with the blueprint '{}'", siteName, blueprintId);
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
                 ZonedDateTime now = DateUtils.getCurrentTime();
 
-                logger.debug1("Adding site UUID.");
+                logger.debug("Add the site UUID to site '{}'", siteName);
                 addSiteUuidFile(siteId, siteUuid);
 
-                logger.info1("Adding site record to database for site " + siteId);
+                logger.debug("Add the site record to the database for site '{}' id '{}'", siteName, siteId);
                 // insert database records
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
@@ -324,25 +323,29 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 siteFeed.setSandboxBranch(sandboxBranch);
                 retryingDatabaseOperationFacade.createSite(siteFeed);
 
-                logger.info1("Upgrading site.");
+                logger.info("Upgrade the site '{}'", siteName);
                 upgradeManager.upgrade(siteId);
 
                 // Add default groups
-                logger.info1("Adding default groups");
+                logger.debug("Add the default groups to site '{}'", siteName);
                 addDefaultGroupsForNewSite(siteId);
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String creator = securityService.getCurrentUser();
 
-                long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
+                long startGetChangeSetCreatedFilesMark = 0;
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Started change-set calculation for site '{}'", siteName);
+                    startGetChangeSetCreatedFilesMark = System.currentTimeMillis();
+                }
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
                 if (logger.isDebugEnabled()) {
-                    logger.debug1("Get change set created files finished in " +
-                            (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
+                    logger.debug("Finished change-set calculation for site '{}' in '{}' milliseconds",
+                            siteName, (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
                 }
 
-                logger.info1("Adding audit log");
+                logger.debug("Add audit log to site '{}'", siteName);
                 insertCreateSiteAuditLog(siteId, siteName, blueprintId);
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
@@ -352,37 +355,42 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
-                logger.info1("Reload site configuration");
+                logger.info("Reload the site configuration for site '{}'", siteName);
             } catch (Exception e) {
                 success = false;
-                logger.error1("Error while creating site: " + siteName + " ID: " + siteId + " from blueprint: " +
-                        blueprintId + ". Rolling back.", e);
+                logger.error("Failed to create site '{}' id '{}' based on blueprint '{}'. Rolling back site creation.",
+                        siteName, siteId, blueprintId, e);
 
                 deleteSite(siteId);
 
-                throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId +
-                        " from blueprint: " + blueprintId + ". Rolling back.");
+                throw new SiteCreationException(String.format("Failed to create site '%s' id '%s' based on " +
+                        "blueprint '%s'. Rolling back site creation.",
+                        siteName, siteId, blueprintId), e);
             }
         }
 
         if (success) {
-            logger.info1("Syncing all content to preview.");
+            logger.info("Sync created site content to preview for site '{}'", siteName);
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
-                logger.error1("Error while syncing site: " + siteName + " ID: " + siteId + " to preview. Site was "
-                        + "successfully created otherwise. Ignoring.", e);
-
-                throw new SiteCreationException("Error while syncing site: " + siteName + " ID: " + siteId +
-                        " to preview. Site was successfully created, but it won't be preview-able until the Preview " +
-                        "Deployer is reachable.");
+                logger.warn("Failed to sync site content to preview for site '{}' id '{}'. While site creation was " +
+                            "successful, the site won't be preview-able until the Preview Deployer is reachable " +
+                            "and has successfully synced.",
+                            siteName, siteId, e);
+                throw new SiteCreationException(String.format("Failed to sync site content to preview for site '%s' " +
+                                "id '%s'. While site creation was " +
+                                "successful, the site won't be preview-able until the Preview Deployer is reachable " +
+                                "and has successfully synced.",
+                                siteName, siteId), e);
             }
             setSiteState(siteId, STATE_READY);
         } else {
-            throw new SiteCreationException("Error while creating site: " + siteName + " ID: " + siteId + ".");
+            throw new SiteCreationException(String.format("Site creation failed site '%s' id '%s' based on " +
+                    "blueprint '%s'", siteName, siteId, blueprintId));
         }
-        logger.info1("Finished creating site " + siteId);
+        logger.info("Site '{}' id '{}' created successfully", siteName, siteId);
     }
 
     private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint) throws SiteNotFoundException {
@@ -397,7 +405,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         auditLog.setPrimaryTargetValue(siteName);
         List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
         AuditLogParameter auditLogParameter = new AuditLogParameter();
-        auditLogParameter.setTargetId(siteId + ":" + blueprint);
+        auditLogParameter.setTargetId(siteId + ":" + blueprint);    // TODO: SJ: This feels hokey
         auditLogParameter.setTargetType(TARGET_TYPE_BLUEPRINT);
         auditLogParameter.setTargetValue(blueprint);
         auditLogParameters.add(auditLogParameter);
@@ -413,19 +421,21 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
-            logger.error1("Unexpected error during creation of items. Site not found " + siteId, e);
+            logger.error("Failed to process created files, site id '{}' not found", siteId, e);
             return;
         }
         User userObj = null;
         try {
             userObj = userServiceInternal.getUserByGitName(creator);
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error1("Unexpected error during creation of items. User not found " + creator, e);
+            logger.error("Failed to process created files in site id '{}', user '{}' not found",
+                    siteId, creator, e);
             return;
         }
 
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
 
+        // TODO: SJ: Refactor to avoid string literals
         try {
             String createdFileScriptFilename = "createdFiles_" + UUID.randomUUID();
             Path createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, ".sql");
@@ -457,7 +467,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                         }
                     } catch (DocumentException e) {
-                        logger.error1("Error extracting metadata from xml file " + siteId + ":" + path);
+                        logger.error("Failed to extract metadata from XML file site '{}' path '{}'", siteId, path, e);
                     }
                 }
                 String previewUrl = null;

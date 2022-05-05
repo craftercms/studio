@@ -233,7 +233,8 @@ public class SecurityServiceImpl implements SecurityService {
                 }
             }
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error1("Unable to retrieve user groups for user {}", user);
+            logger.error("Failed to get user groups for user '{}'",
+                    user, e);
         }
     }
 
@@ -401,7 +402,7 @@ public class SecurityServiceImpl implements SecurityService {
             for (String group : groups) {
                 List<String> groupRoles = rolesMap.get(group);
                 if (groupRoles != null) {
-                    logger.debug1("Adding roles by group " + group + ": " + roles);
+                    logger.trace("Adding roles '{}' group '{}'", roles, group);
                     roles.addAll(groupRoles);
                 }
             }
@@ -418,6 +419,7 @@ public class SecurityServiceImpl implements SecurityService {
      */
     protected Set<String> populateUserPermissions(String site, String path, Set<String> roles,
                                                   PermissionsConfigTO permissionsConfig) {
+        // TODO: SJ: Refactor to reduce nesting and repeated code
         Set<String> permissions = new HashSet<String>();
         if (roles != null && !roles.isEmpty()) {
             for (String role : roles) {
@@ -435,35 +437,35 @@ public class SecurityServiceImpl implements SecurityService {
                         for (Node ruleNode : ruleNodes) {
                             String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
                             if (path.matches(regex)) {
-                                logger.debug1("Permissions found by matching " + regex + " for " + role
-                                        + " in " + site);
+                                logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
+                                        site, regex, role);
 
                                 List<Node> permissionNodes = ruleNode.selectNodes(
                                         StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
                                 for (Node permissionNode : permissionNodes) {
                                     String permission = permissionNode.getText().toLowerCase();
-                                    logger.debug1("adding permissions " + permission + " to " + path + " for "
-                                            + role + " in " + site);
+                                    logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
+                                            permission, site, path, role);
                                     permissions.add(permission);
                                 }
                             }
                         }
                     } else {
-                        logger.debug1("No default role is set. adding default permission: "
-                                + PERMISSION_CONTENT_READ);
-                        // If no default role is set
+                        logger.debug("No default role is set site '{}' path '{}'. Adding default permission '{}'",
+                                site, path, PERMISSION_CONTENT_READ);
+                        // If no default role is set, set content read permission
                         permissions.add(PERMISSION_CONTENT_READ);
                     }
                 } else {
-                    logger.debug1("No default site is set. adding default permission: "
-                            + PERMISSION_CONTENT_READ);
-                    // If no default site is set
+                    logger.debug("No default role is set site '{}' path '{}'. Adding default permission '{}'",
+                            site, path, PERMISSION_CONTENT_READ);
+                    // If no default site is set, set content read permission
                     permissions.add(PERMISSION_CONTENT_READ);
                 }
             }
         } else {
-            logger.debug1("No user or group matching found. adding default permission: "
-                    + PERMISSION_CONTENT_READ);
+            logger.debug("No matching role is found site '{}' path '{}'. Adding default permission '{}'",
+                    site, path, PERMISSION_CONTENT_READ);
             // If user or group did not match the roles-mapping file
             permissions.add(PERMISSION_CONTENT_READ);
         }
@@ -495,7 +497,8 @@ public class SecurityServiceImpl implements SecurityService {
                     cache.put(cacheKey, config);
                 }
             } catch (ServiceLayerException e) {
-                logger.error1("Permission mapping not found for " + site + ":" + filename);
+                logger.error("Failed to load permission mappings in site '{}' path '{}'",
+                        site, filename, e);
             }
         }
         return config;
@@ -577,7 +580,8 @@ public class SecurityServiceImpl implements SecurityService {
                     cache.put(cacheKey, config);
                 }
             } catch (ServiceLayerException e) {
-                logger.error1("Global permission mapping not found (path: {})", globalPermissionsConfigPath);
+                logger.error("Failed to load the global permission mapping path '{}'",
+                        globalPermissionsConfigPath, e);
             }
         }
         return config;
@@ -590,7 +594,8 @@ public class SecurityServiceImpl implements SecurityService {
         try {
             document = configurationService.getGlobalConfigurationAsDocument(globalRolesConfigPath);
         } catch (ServiceLayerException e) {
-            logger.error1("Global roles mapping not found (path: {})", globalRolesConfigPath);
+            logger.error("Failed to load the global roles mapping path '{}'",
+                    globalRolesConfigPath, e);
         }
         if (document != null) {
             config = new PermissionsConfigTO();
@@ -605,7 +610,8 @@ public class SecurityServiceImpl implements SecurityService {
             config.setLastUpdated(DateUtils.getCurrentTime());
 
         } else {
-            logger.error1("Global roles mapping not found (path: {})", globalRolesConfigPath);
+            logger.error("The global roles mapping file was not found at path '{}'",
+                    globalRolesConfigPath);
         }
         return config;
     }
@@ -678,7 +684,8 @@ public class SecurityServiceImpl implements SecurityService {
             }
 
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.warn1("Error getting user memberships", e);
+            logger.warn("Failed to get user membership username '{}' site '{}'",
+                    username, site, e);
         }
         return toRet;
     }
