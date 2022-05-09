@@ -79,7 +79,7 @@ studio.repo.retryingOperation.maxAttempts: 50
 # Max sleep time in milliseconds between retries
 studio.repo.retryingOperation.maxSleep: 1000
 # If Git CLI should be used for some Git operations, for better performance (Git CLI needs to be installed beforehand)
-studio.repo.git.cli.enabled: true
+studio.repo.git.cli.enabled: false
 
 ############################################################
 ##                       Blob Store                       ##

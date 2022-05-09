@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>15</version>
+    <version>16</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -280,6 +280,7 @@
                 <permission>publish_status</permission>
                 <permission>publish_clear_lock</permission>
                 <permission>unlock_repository</permission>
+                <permission>repair_repository</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -309,6 +310,7 @@
                 <permission>publish_status</permission>
                 <permission>publish_clear_lock</permission>
                 <permission>unlock_repository</permission>
+                <permission>repair_repository</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
