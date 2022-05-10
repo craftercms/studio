@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.23'
+  version: '3.1.24'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3811,7 +3811,7 @@ paths:
     post:
       tags:
         - publishing
-      summary: Publishes all changes between the sandbox and the publishing environment (staging or live)
+      summary: Publishes the entire project to the target (staging or live)
       description: 'Required permission "Publish"'
       operationId: publishAll
       requestBody:
@@ -3825,9 +3825,9 @@ paths:
                 siteId:
                   type: string
                   description: site ID
-                environment:
+                publishingTarget:
                     type: string
-                    description: the publishing environment (staging or live). If not specified, live is assumed
+                    description: the publishing target (staging or live). If not specified, live is assumed
               required:
                 - siteId
       responses:
