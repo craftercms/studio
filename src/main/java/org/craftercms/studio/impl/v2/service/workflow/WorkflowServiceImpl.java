@@ -165,7 +165,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             boolean isNew = isNew(item.getState());
             boolean isRenamed = StringUtils.isNotEmpty(item.getPreviousPath());
             if (isNew || isRenamed) {
-                affectedPaths.addAll(getMandatoryDescendents(siteId, path));
+                affectedPaths.addAll(getMandatoryDescendants(siteId, path));
             }
             List<String> dependencyPaths = new LinkedList<>(dependencyServiceInternal.getHardDependencies(siteId, affectedPaths));
             affectedPaths.addAll(dependencyPaths);
@@ -182,23 +182,23 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         return result;
     }
 
-    private List<String> getMandatoryDescendents(String site, String path)
+    private List<String> getMandatoryDescendants(String site, String path)
             throws UserNotFoundException, ServiceLayerException {
-        List<String> descendents = new LinkedList<>();
-        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null,
+        List<String> descendants = new LinkedList<>();
+        GetChildrenResult result = contentServiceInternal.getChildrenByPath(site, path, null, null, null, null, null,
                 null, 0, Integer.MAX_VALUE);
         if (result != null) {
             if (Objects.nonNull(result.getLevelDescriptor())) {
-                descendents.add(result.getLevelDescriptor().getPath());
+                descendants.add(result.getLevelDescriptor().getPath());
             }
             if (CollectionUtils.isNotEmpty(result.getChildren())) {
                 for (SandboxItem item : result.getChildren()) {
-                    descendents.add(item.getPath());
-                    descendents.addAll(getMandatoryDescendents(site, item.getPath()));
+                    descendants.add(item.getPath());
+                    descendants.addAll(getMandatoryDescendants(site, item.getPath()));
                 }
             }
         }
-        return descendents;
+        return descendants;
     }
 
     @Override

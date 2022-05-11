@@ -3917,6 +3917,11 @@ paths:
                 keyword:
                   description: filter children by keyword
                   type: string
+                systemTypes:
+                  description: filter children by system type
+                  type: array
+                  items:
+                    type: string
                 exclude:
                   description: exclude items by regular expression
                   type: array

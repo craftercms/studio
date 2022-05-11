@@ -154,8 +154,8 @@ public class ContentController {
         }
         GetChildrenResult result = contentService.getChildrenByPath(
                 request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
-                request.getExcludes(), request.getSortStrategy(), request.getOrder(), request.getOffset(),
-                request.getLimit());
+                request.getSystemTypes(), request.getExcludes(), request.getSortStrategy(), request.getOrder(),
+                request.getOffset(), request.getLimit());
         ResponseBody responseBody = new ResponseBody();
         result.setResponse(OK);
         responseBody.setResult(result);

@@ -51,20 +51,21 @@ public interface ContentServiceInternal {
     /**
      * Get list of children for given path
      *
-     * @param siteId site identifier
-     * @param path item path to children for
-     * @param locale filter children by locale
-     * @param keyword filter children by keyword
-     * @param excludes exclude items by regular expression patterns
+     * @param siteId       site identifier
+     * @param path         item path to children for
+     * @param locale       filter children by locale
+     * @param keyword      filter children by keyword
+     * @param systemTypes        filter children by type
+     * @param excludes     exclude items by regular expression patterns
      * @param sortStrategy sort order
-     * @param order ascending or descending
-     * @param offset offset of the first child in the result
-     * @param limit number of children to return
-     *
+     * @param order        ascending or descending
+     * @param offset       offset of the first child in the result
+     * @param limit        number of children to return
      * @return list of children
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-                                        List<String> excludes, String sortStrategy, String order, int offset, int limit)
+                                        List<String> systemTypes, List<String> excludes, String sortStrategy,
+                                        String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException;
 
     Item getItem(String siteId, String path, boolean flatten);

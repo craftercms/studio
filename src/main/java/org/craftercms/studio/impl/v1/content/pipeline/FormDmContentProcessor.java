@@ -117,9 +117,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // update the content
                 // look up the path content first
                 if (parentItem.getName().equals(fileName)) {
-                    ContentItemTO item = contentService.getContentItem(site, path, 0);
-
-                    updateFile(site, item, path, input, user, isPreview, unlock, result);
+                    updateFile(site, path, input, user, isPreview, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                     if (unlock) {
                         unlock(site, path);
@@ -133,8 +131,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                     boolean fileExists = contentService.contentExists(site, path);
                     if (fileExists) {
-                        ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
-                        updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
+                        updateFile(site, path, input, user, isPreview, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                         if (unlock) {
                             unlock(site, path);
@@ -230,11 +227,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * @param input
      * @param user
      * @param isPreview
-     * @param unlock
-     * 			unlock the content upon update?
+     * @param unlock    unlock the content upon update?
      * @throws ServiceLayerException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user,
+    protected void updateFile(String site, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
 
@@ -253,10 +249,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (!isPreview) {
                 if (cancelWorkflow(site, path)) {
                     workflowService.removeFromWorkflow(site, path, true);
-                } else {
-                    if (updateWorkFlow(site, path)) {
-                        workflowService.updateWorkflowSandboxes(site, path);
-                    }
                 }
             }
 

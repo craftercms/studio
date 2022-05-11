@@ -31,13 +31,17 @@ public interface ItemDAO {
      * @param siteId site identifier
      * @param path path to get children for
      * @param localeCode local code
-     * @param keyword filter by keyword
-     * @param excludes exclude items by regular expression patterns
+     * @param keyword    filter by keyword
+     * @param systemTypes      filter by type
+     * @param excludes   exclude items by regular expression patterns
      * @return total number of children
      */
-    int getChildrenByPathTotal(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+    int getChildrenByPathTotal(@Param(SITE_ID) Long siteId,
+                               @Param(PATH) String path,
                                @Param(LOCALE_CODE) String localeCode,
-                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
+                               @Param(KEYWORD) String keyword,
+                               @Param(SYSTEM_TYPES) List<String> systemTypes,
+                               @Param(EXCLUDES) List<String> excludes);
 
     /**
      * Get children for given path from database
@@ -45,22 +49,28 @@ public interface ItemDAO {
      * @param siteId site identifier
      * @param path path to get children for
      * @param systemTypeFolder system type value for folder
-     * @param localeCode locale code
-     * @param keyword filter by keyword
-     * @param excludes exclude items by regular expression patterns
-     * @param sortStrategy sort strategy
-     * @param order order of children
-     * @param offset offset of the first record to return
-     * @param limit number of children to return
-     *
+     * @param localeCode       locale code
+     * @param keyword          filter by keyword
+     * @param systemTypes            filter by type
+     * @param excludes         exclude items by regular expression patterns
+     * @param sortStrategy     sort strategy
+     * @param order            order of children
+     * @param offset           offset of the first record to return
+     * @param limit            number of children to return
      * @return list of items (parent, level descriptor, children)
      */
 
-    List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
+    List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId,
+                                 @Param(PATH) String path,
                                  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                 @Param(LOCALE_CODE) String localeCode, @Param(KEYWORD) String keyword,
-                                 @Param(EXCLUDES) List<String> excludes, @Param(SORT_STRATEGY) String sortStrategy,
-                                 @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+                                 @Param(LOCALE_CODE) String localeCode,
+                                 @Param(KEYWORD) String keyword,
+                                 @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                 @Param(EXCLUDES) List<String> excludes,
+                                 @Param(SORT_STRATEGY) String sortStrategy,
+                                 @Param(ORDER) String order,
+                                 @Param(OFFSET) int offset,
+                                 @Param(LIMIT) int limit);
 
     /**
      * insert or update item
@@ -93,24 +103,6 @@ public interface ItemDAO {
                              @Param(COMPLETED_STATE) String completedState,
                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                              @Param(LIVE_ENVIRONMENT) String liveEnvironment);
-
-    /**
-     * Get item by id with prefer content option
-     *
-     * @param id item id
-     * @param siteId site identifier
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
-     * @param stagingEnvironment staging environment
-     * @return item identified by given id
-     */
-    DetailedItem getItemByIdPreferContent(@Param(ID) long id,
-                                          @Param(SITE_ID) String siteId,
-                                          @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                          @Param(COMPLETED_STATE) String completedState,
-                                          @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                                          @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item for given site and path

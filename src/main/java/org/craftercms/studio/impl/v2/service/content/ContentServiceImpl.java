@@ -181,11 +181,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
-                                               String keyword, List<String> excludes, String sortStrategy, String order,
-                                               int offset, int limit)
+                                               String keyword, List<String> systemTypes, List<String> excludes,
+                                               String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, excludes, sortStrategy, order,
-                offset, limit);
+        return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
+                                                        sortStrategy, order, offset, limit);
     }
 
     @Override

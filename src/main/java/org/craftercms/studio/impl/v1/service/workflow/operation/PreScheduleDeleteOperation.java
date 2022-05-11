@@ -16,7 +16,6 @@
 package org.craftercms.studio.impl.v1.service.workflow.operation;
 
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 
@@ -35,8 +34,8 @@ public class PreScheduleDeleteOperation extends SubmitLifeCycleOperation {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object execute() throws ServiceLayerException {
-        workflowService.preScheduleDelete(uris, date, context, rescheduledUris);
+    public Object execute() {
+        workflowService.preScheduleDelete(uris, date, context);
         return null;
     }
 }

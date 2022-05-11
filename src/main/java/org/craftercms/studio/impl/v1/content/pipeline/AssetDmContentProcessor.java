@@ -141,10 +141,8 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
             if (parentExists && parentContentItem.isFolder()) {
                 boolean exists = contentService.contentExists(site, path + FILE_SEPARATOR + assetName);
-                ContentItemTO contentItem;
                 if (exists) {
-                    contentItem = contentService.getContentItem(site, path + FILE_SEPARATOR + assetName, 0);
-                    updateFile(site, contentItem, contentPath, in, user, isPreview, unlock, result);
+                    updateFile(site, contentPath, in, user, isPreview, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                 } else {
                     createNewFile(site, parentContentItem, assetName, in, user, unlock, result);
@@ -192,11 +190,10 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
      * @param input
      * @param user
      * @param isPreview
-     * @param unlock
-     * 			unlock the content upon update?
+     * @param unlock    unlock the content upon update?
      * @throws ServiceLayerException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String relativePath, InputStream input,
+    protected void updateFile(String site, String relativePath, InputStream input,
                               String user, boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
         boolean success;
@@ -214,10 +211,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             if (!isPreview) {
                 if (cancelWorkflow(site, relativePath)) {
                     workflowService.removeFromWorkflow(site, relativePath, true);
-                } else {
-                    if (updateWorkFlow(site, relativePath)) {
-                        workflowService.updateWorkflowSandboxes(site, relativePath);
-                    }
                 }
             }
 

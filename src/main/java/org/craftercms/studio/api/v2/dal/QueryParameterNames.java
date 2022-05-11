@@ -216,6 +216,8 @@ public final class  QueryParameterNames {
 
     public static final String EXCLUDES = "excludes";
 
+    public static final String SYSTEM_TYPES = "systemTypes";
+
     public static final String KEYWORD = "keyword";
 
     public static final String POSSIBLE_PARENTS = "possibleParents";

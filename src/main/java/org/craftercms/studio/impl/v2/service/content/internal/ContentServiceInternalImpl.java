@@ -82,8 +82,8 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-                                               List<String> excludes, String sortStrategy, String order, int offset,
-                                               int limit)
+                                               List<String> systemTypes, List<String> excludes, String sortStrategy,
+                                               String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
@@ -93,11 +93,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), parentFolderPath,
-                CONTENT_TYPE_FOLDER, locale, keyword, excludes, sortStrategy, order, offset, limit);
+                CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
-        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword,
+        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword, systemTypes,
                 excludes));
         return toRet;
     }

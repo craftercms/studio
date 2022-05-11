@@ -149,9 +149,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dependencyService" ref="studioDependencyService"/>
-        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
