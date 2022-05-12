@@ -3922,8 +3922,8 @@ paths:
                   type: array
                   items:
                     type: string
-                exclude:
-                  description: exclude items by regular expression
+                excludes:
+                  description: exclude items by path
                   type: array
                   items:
                     type: string

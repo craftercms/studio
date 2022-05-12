@@ -153,6 +153,27 @@
             ignored = VALUES(ignored)
     </insert>
 
+    <sql id="getChildrenByPathFilters">
+        <if test="localeCode != null">
+            AND child.locale_code = #{localeCode}
+        </if>
+        <if test="keyword != null &amp;&amp; keyword.length > 0">
+            AND (child.path LIKE '%${keyword}%' OR child.label LIKE '%${keyword}%')
+        </if>
+        <if test="excludes != null &amp;&amp; !excludes.isEmpty()">
+            AND child.path NOT IN
+            <foreach collection="excludes" item="exclude" open="(" separator="," close=")">
+                #{exclude}, CONCAT(#{exclude}, '/index.xml')
+            </foreach>
+        </if>
+        <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
+            AND child.system_type IN
+            <foreach collection="systemTypes" item="type" open="(" separator="," close=")">
+                #{type}
+            </foreach>
+        </if>
+    </sql>
+
     <select id="getChildrenByPath" resultMap="ItemMap">
         SELECT child.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(grand_child.id) as children_count
@@ -171,32 +192,15 @@
                         WHERE page.site_id = parent.site_id
                         AND page.system_type = 'page'
                         AND page.path = CONCAT(parent.path, '/index.xml')))
-        <if test="localeCode != null">
-            AND child.locale_code = #{localeCode}
-        </if>
-        <if test="keyword != null &amp;&amp; keyword.length > 0">
-            AND (child.path LIKE '%${keyword}%' OR child.label LIKE '%${keyword}%')
-        </if>
         AND child.ignored = 0
         AND (child.system_type != #{systemTypeFolder}
              OR
              NOT EXISTS (select * from item page where page.site_id = child.site_id and page.path = concat(child.path, '/index.xml')))
+        <include refid="getChildrenByPathFilters"/>
         AND (grand_child.ignored = 0 OR grand_child.ignored IS NULL)
         AND (grand_child.system_type != #{systemTypeFolder}
              OR
              NOT EXISTS (select * from item page where page.site_id = grand_child.site_id and page.path = concat(grand_child.path, '/index.xml')))
-        <if test="excludes != null" >
-            <foreach collection="excludes" item="exclude" index="index" >
-                <!-- TODO: Check if this can be replaced with LIKE to improve performance -->
-                AND child.path NOT RLIKE('${exclude}')
-            </foreach>
-        </if>
-        <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
-            AND child.system_type IN
-            <foreach collection="systemTypes" item="type" open="(" separator="," close=")">
-                #{type}
-            </foreach>
-        </if>
         GROUP BY child.id, child.label, child.path, child.system_type
         <choose>
             <when test="sortStrategy == 'alphabetic'">
@@ -226,27 +230,11 @@
                         WHERE page.site_id = parent.site_id
                         AND page.system_type = 'page'
                         AND page.path = CONCAT(parent.path, '/index.xml')))
-        <if test="localeCode != null">
-            AND child.locale_code = #{localeCode}
-        </if>
-        <if test="keyword != null &amp;&amp; keyword.length > 0">
-            AND (child.path LIKE '%${keyword}%' OR child.label LIKE '%${keyword}%')
-        </if>
         AND child.ignored = 0
         AND (child.system_type != 'folder'
              OR
              NOT EXISTS (select * from item page where page.site_id = child.site_id and page.path = concat(child.path, '/index.xml')))
-        <if test="excludes != null" >
-            <foreach collection="excludes" item="exclude" index="index" >
-                AND child.path NOT RLIKE('${exclude}')
-            </foreach>
-        </if>
-        <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
-            AND child.system_type IN
-            <foreach collection="systemTypes" item="type" open="(" separator="," close=")">
-                #{type}
-            </foreach>
-        </if>
+        <include refid="getChildrenByPathFilters"/>
     </select>
 
     <select id="getItemById" resultMap="DetailedItemMap">

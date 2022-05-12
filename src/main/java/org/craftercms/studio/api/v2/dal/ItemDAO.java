@@ -28,12 +28,12 @@ public interface ItemDAO {
     /**
      * Get total number of children for given path
      *
-     * @param siteId site identifier
-     * @param path path to get children for
-     * @param localeCode local code
-     * @param keyword    filter by keyword
-     * @param systemTypes      filter by type
-     * @param excludes   exclude items by regular expression patterns
+     * @param siteId      site identifier
+     * @param path        path to get children for
+     * @param localeCode  local code
+     * @param keyword     filter by keyword
+     * @param systemTypes filter by type
+     * @param excludes    exclude items by path
      * @return total number of children
      */
     int getChildrenByPathTotal(@Param(SITE_ID) Long siteId,
@@ -46,13 +46,13 @@ public interface ItemDAO {
     /**
      * Get children for given path from database
      *
-     * @param siteId site identifier
-     * @param path path to get children for
+     * @param siteId           site identifier
+     * @param path             path to get children for
      * @param systemTypeFolder system type value for folder
      * @param localeCode       locale code
      * @param keyword          filter by keyword
-     * @param systemTypes            filter by type
-     * @param excludes         exclude items by regular expression patterns
+     * @param systemTypes      filter by type
+     * @param excludes         exclude items by path
      * @param sortStrategy     sort strategy
      * @param order            order of children
      * @param offset           offset of the first record to return

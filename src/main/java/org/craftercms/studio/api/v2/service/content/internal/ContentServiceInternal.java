@@ -55,8 +55,8 @@ public interface ContentServiceInternal {
      * @param path         item path to children for
      * @param locale       filter children by locale
      * @param keyword      filter children by keyword
-     * @param systemTypes        filter children by type
-     * @param excludes     exclude items by regular expression patterns
+     * @param systemTypes  filter children by type
+     * @param excludes     exclude items by path
      * @param sortStrategy sort order
      * @param order        ascending or descending
      * @param offset       offset of the first child in the result
