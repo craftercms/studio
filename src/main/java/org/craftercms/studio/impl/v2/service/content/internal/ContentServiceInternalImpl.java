@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,7 +63,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
     private SecurityService securityService;
-    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private StudioConfiguration studioConfiguration;
     private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
 
@@ -75,7 +73,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public List<String> getSubtreeItems(String siteId, List<String> paths) {
-        List<String> subtreeItems = new ArrayList<String>();
+        List<String> subtreeItems = new ArrayList<>();
         for (String path : paths) {
             subtreeItems.addAll(contentRepository.getSubtreeItems(siteId, path));
         }
@@ -84,24 +82,22 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     @Override
     public GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-                                               List<String> excludes, String sortStrategy, String order, int offset,
-                                               int limit)
-            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException {
+                                               List<String> systemTypes, List<String> excludes, String sortStrategy,
+                                               String order, int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
         }
         String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
-        String ldName = servicesConfig.getLevelDescriptorName(siteId);
-        String ldPath = parentFolderPath + FILE_SEPARATOR + ldName;
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), ldPath, ldName, parentFolderPath,
-                CONTENT_TYPE_FOLDER, locale, keyword, excludes, sortStrategy, order, offset, limit);
+        List<Item> resultSet = itemDao.getChildrenByPath(siteFeed.getId(), parentFolderPath,
+                CONTENT_TYPE_FOLDER, locale, keyword, systemTypes, excludes, sortStrategy, order, offset, limit);
         GetChildrenResult toRet = processResultSet(siteId, resultSet);
         toRet.setOffset(offset);
         toRet.setLimit(limit);
-        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, ldName, locale, keyword,
+        toRet.setTotal(itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath, locale, keyword, systemTypes,
                 excludes));
         return toRet;
     }
@@ -120,7 +116,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
                 toRet.setLevelDescriptor(SandboxItem.getInstance(item));
                 idx++;
             }
-            List<SandboxItem> children = new ArrayList<SandboxItem>();
+            List<SandboxItem> children = new ArrayList<>();
             while (idx < resultSet.size()) {
                 Item child = resultSet.get(idx);
                 child.setAvailableActions(
@@ -131,45 +127,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             toRet.setChildren(children);
         }
         return toRet;
-    }
-
-    @Override
-    public int getChildrenByPathTotal(String siteId, String path, String locale, String keyword,
-                                      List<String> excludes) {
-        String parentFolderPath = StringUtils.replace(path, FILE_SEPARATOR + INDEX_FILE, "");
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return itemDao.getChildrenByPathTotal(siteFeed.getId(), parentFolderPath,
-                servicesConfig.getLevelDescriptorName(siteId), locale, keyword, excludes);
-    }
-
-    @Override
-    public GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String keyword,
-                                             List<String> excludes, String sortStrategy, String order, int offset,
-                                             int limit)
-            throws ServiceLayerException, UserNotFoundException {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<Item> resultSet = itemDao.getChildrenById(siteFeed.getId(), parentId,
-                servicesConfig.getLevelDescriptorName(siteId), CONTENT_TYPE_FOLDER, locale, keyword, excludes,
-                sortStrategy, order, offset, limit);
-        GetChildrenResult toRet = processResultSet(siteId, resultSet);
-        toRet.setOffset(offset);
-        toRet.setTotal(getChildrenByIdTotal(siteId, parentId, servicesConfig.getLevelDescriptorName(siteId), locale,
-                keyword, excludes));
-        return toRet;
-    }
-
-    @Override
-    public int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale, String keyword,
-                                    List<String> excludes) {
-        Map<String, String> params = new HashMap<String, String>();
-        params.put(SITE_ID, siteId);
-        SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        return itemDao.getChildrenByIdTotal(siteFeed.getId(), parentId, servicesConfig.getLevelDescriptorName(siteId),
-                locale, keyword, excludes);
     }
 
     @Override
@@ -188,10 +145,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         if (!contentRepository.contentExists(siteId, path)) {
             throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
         }
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
+        org.craftercms.studio.api.v2.dal.DetailedItem item;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
@@ -216,44 +173,19 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public DetailedItem getItemById(String siteId, long id, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        org.craftercms.studio.api.v2.dal.DetailedItem item = null;
-        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        if (preferContent) {
-            item = itemDao.getItemByIdPreferContent(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
-        } else {
-            item = itemDao.getItemById(id, siteId, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv, liveEnv);
-        }
-        if (!contentRepository.contentExists(siteId, item.getPath())) {
-            throw new ContentNotFoundException(item.getPath(), siteId,
-                    "Content not found at path " + item.getPath() + " site " + siteId);
-        }
-        DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
-        populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
-        return detailedItem;
-    }
-
-    @Override
     public List<SandboxItem> getSandboxItemsByPath(String siteId, List<String> paths, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<Item> items = null;
-        if (preferContent) {
-            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
-        } else {
-            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
-        }
+        List<Item> items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER, preferContent);
         return calculatePossibleActions(siteId, items);
     }
 
     @Override
     public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        List<Item> items = null;
+        List<Item> items;
         if (preferContent) {
             items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER);
         } else {
@@ -264,7 +196,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
             throws ServiceLayerException, UserNotFoundException {
-        List<SandboxItem> toRet = new ArrayList<SandboxItem>();
+        List<SandboxItem> toRet = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(items)) {
             String user = securityService.getCurrentUser();
             for (Item item : items) {
@@ -297,31 +229,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public void itemLockById(String siteId, Long itemId) {
-        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, siteId, CONTENT_TYPE_FOLDER,
-                    COMPLETED, stagingEnv, liveEnv);
-        contentRepository.lockItem(siteId, item.getPath());
-    }
-
-    @Override
     public void itemUnlockByPath(String siteId, String path) {
         contentRepository.itemUnlock(siteId, path);
     }
 
     @Override
-    public void itemUnlockById(String siteId, long itemId) {
-        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
-        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
-        org.craftercms.studio.api.v2.dal.DetailedItem item = itemDao.getItemById(itemId, siteId, CONTENT_TYPE_FOLDER,
-                COMPLETED, stagingEnv, liveEnv);
-        contentRepository.itemUnlock(siteId, item.getPath());
-    }
-
-    @Override
     public Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-            throws ContentNotFoundException, IOException {
+            throws ContentNotFoundException {
         return contentRepository.getContentByCommitId(siteId, path, commitId);
     }
 
@@ -347,10 +261,6 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
-        this.securityServiceV2 = securityServiceV2;
     }
 
     public void setSemanticsAvailableActionsResolver(SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {

@@ -149,9 +149,7 @@
         <property name="contentService" ref="cstudioContentService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dependencyService" ref="studioDependencyService"/>
-        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper"/>
         <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="workflowProcessor" ref="cstudioWorkflowProcessor"/>
@@ -561,7 +559,6 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="securityServiceV2" ref="studio.securityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
     </bean>
@@ -1138,8 +1135,6 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepositoryV1" ref="contentRepository" />
     </bean>
 
@@ -1170,8 +1165,6 @@
         <property name="workflowService" ref="cstudioWorkflowService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepositoryV1" ref="contentRepository" />
         <property name="contentServiceV2" ref="contentService"/>
     </bean>

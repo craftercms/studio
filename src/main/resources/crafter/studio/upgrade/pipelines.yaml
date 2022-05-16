@@ -348,8 +348,13 @@ pipelines:
         operations:
           - type: xsltFileUpgrader
             path: /configuration/global-permission-mappings-config.xml
-            template: crafter/studio/upgrade/4.0.x/4.0.1/system/global-permission-mappings-config.xslt
+            template: crafter/studio/upgrade/4.0.x/4.0.1.1/system/global-permission-mappings-config.xslt
             commitDetails: Added content_search permissions for system_admin
+      - currentVersion: 4.0.1
+        nextVersion: 4.0.1.1
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.43-to-4.0.1.1.sql
 
   # Pipeline to upgrade site repositories
   site:

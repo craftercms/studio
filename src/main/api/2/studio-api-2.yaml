@@ -3872,99 +3872,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/children_by_id:
-    post:
-      tags:
-        - content
-      summary: Get list of children for given item id
-      description: 'Required permission "get_children" and "site member"'
-      operationId: getChildrenById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  description: Site ID
-                  type: string
-                id:
-                  description: item id to get children for
-                  type: integer
-                  format: int64
-                localeCode:
-                  description: |-
-                    filter children by locale code, or show source items (not translation) if translation to
-                    specified locale code does not exist
-                  type: string
-                sortStrategy:
-                  description: >-
-                    sort strategy (sort order)
-                    Possible values:
-                      - alphabetical (default)
-                      - foldersFirst (order by: folders alphabetical, files alphabetical)
-                  type: string
-                order:
-                  description: order for sort strategy ascending or descending (ASC / DESC)
-                  type: string
-                  format: ASC, DESC
-                offset:
-                  description: offset of first child in response - default 0
-                  type: integer
-                limit:
-                  description: number of children to return
-                  type: integer
-                keyword:
-                  description: filter children by keyword
-                  type: string
-                exclude:
-                  description: exclude items by regular expression
-                  type: array
-                  items:
-                    type: string
-              required:
-                - siteId
-                - id
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  levelDescriptor:
-                    $ref: '#/components/schemas/SandboxItem'
-                  children:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /content/children_by_path:
     post:
       tags:
@@ -4010,8 +3917,13 @@ paths:
                 keyword:
                   description: filter children by keyword
                   type: string
-                exclude:
-                  description: exclude items by regular expression
+                systemTypes:
+                  description: filter children by system type
+                  type: array
+                  items:
+                    type: string
+                excludes:
+                  description: exclude items by path
                   type: array
                   items:
                     type: string
@@ -4046,56 +3958,6 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/item_by_id:
-    get:
-      tags:
-        - content
-      summary: Get content item for given item id
-      description: 'Required permission "get_detailed_item" and "read_item" and "site member"'
-      operationId: getDetailedItemById
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: query
-          description: item identifier
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: preferContent
-          in: query
-          description: when set to true, return an item instead of a folder if the path can match either
-          required: false
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DetailedItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4145,60 +4007,6 @@ paths:
                     $ref: '#/components/schemas/ApiResponse'
                   item:
                     $ref: '#/components/schemas/DetailedItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/sandbox_items_by_id:
-    post:
-      tags:
-        - content
-      summary: Get list of items for given list of item ids
-      description: 'Required permission "get_children" and "site member"'
-      operationId: getSandboxItemsById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  description: Site ID
-                  type: string
-                ids:
-                  description: item ids to get
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                preferContent:
-                  description: when set to true, return an item instead of a folder if the path can match either
-                  type: boolean
-              required:
-                - siteId
-                - ids
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4451,56 +4259,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_lock_by_id:
-    post:
-      tags:
-        - content
-      summary: Lock item by id
-      description: 'Required permission "content_write"'
-      operationId: itemLockById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: The id of the site
-                itemId:
-                  type: integer
-                  format: int64
-                  description: Id of item to lock
-              required:
-                - siteId
-                - itemId
-      responses:
-        '200':
-          description: OK
-
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Item already locked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  person:
-                    $ref: '#/components/schemas/Person'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /content/item_unlock_by_path:
     post:
       tags:
@@ -4528,53 +4286,6 @@ paths:
         '200':
           description: OK
 
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Item already unlocked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/item_unlock_by_id:
-    post:
-      tags:
-        - content
-      summary: Unlock item by id
-      description: 'Required permission "item_unlock" or lock owner'
-      operationId: itemUnlockById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: The id of the site
-                itemId:
-                  type: integer
-                  format: int64
-                  description: The id of the item to unlock
-              required:
-                - siteId
-                - itemId
-      responses:
-        '200':
-          description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':

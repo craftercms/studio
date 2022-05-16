@@ -29,24 +29,12 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 
 public interface WorkflowService {
 
-	/**
-	 * submit content to go-live
-	 * - convienience method for workflow that puts items in the approval queue for go-live
-	 * - may result in items (and related dependencies) being put in several workflows (depending on rules)
-	 * @param site the site
-	 * @param paths the paths of the content to be submitted
-	 * @param scheduledDate A suggested launch date if appropriate.  Null for no date
-	 * @param sendApprovedNotice true triggers email to submitter on approval
-	 * @param submitter the one submitted the job.
-	 */
-	void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, String submitter);
-
-	ResultTO submitToGoLive(String site, String username, String request) throws ServiceLayerException;
+	ResultTO submitToGoLive(String site, String username, String request);
 
 	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceLayerException;
 
 	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly)
-		throws ServiceLayerException;
+			;
 
 	/**
 	 * cancel the workflow pending on the given item.
@@ -61,14 +49,6 @@ public interface WorkflowService {
 	 */
 	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException, UserNotFoundException;
 
-	/**
-	 * update workflow sandboxes if the content at the given path is in workflow
-	 *
-	 * @param site site identifier
-	 * @param path path of the item
-	 */
-	void updateWorkflowSandboxes(String site, String path);
-
     /**
      * approve workflows and schedule them as specified in the request
      *
@@ -82,7 +62,7 @@ public interface WorkflowService {
     Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now);
 
     void preScheduleDelete(Set<String> uris, ZonedDateTime _date,
-                           GoLiveContext context, Set rescheduledUris) throws ServiceLayerException;
+                           GoLiveContext context);
 
     List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws
 			ServiceLayerException, UserNotFoundException;
@@ -101,8 +81,8 @@ public interface WorkflowService {
 
     ResultTO reject(final String site, final String request) throws ServiceLayerException;
 
-    void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceLayerException;
+    void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue);
 
-    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws
+    boolean cleanWorkflow(final String url, final String site) throws
 			ServiceLayerException, UserNotFoundException;
 }

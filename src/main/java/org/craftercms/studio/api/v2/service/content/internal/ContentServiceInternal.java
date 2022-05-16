@@ -25,7 +25,6 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,68 +51,22 @@ public interface ContentServiceInternal {
     /**
      * Get list of children for given path
      *
-     * @param siteId site identifier
-     * @param path item path to children for
-     * @param locale filter children by locale
-     * @param keyword filter children by keyword
-     * @param excludes exclude items by regular expression patterns
+     * @param siteId       site identifier
+     * @param path         item path to children for
+     * @param locale       filter children by locale
+     * @param keyword      filter children by keyword
+     * @param systemTypes  filter children by type
+     * @param excludes     exclude items by path
      * @param sortStrategy sort order
-     * @param order ascending or descending
-     * @param offset offset of the first child in the result
-     * @param limit number of children to return
-     *
+     * @param order        ascending or descending
+     * @param offset       offset of the first child in the result
+     * @param limit        number of children to return
      * @return list of children
      */
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
-                                        List<String> excludes, String sortStrategy, String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException, ContentNotFoundException;
-
-    /**
-     * Get total number of children for given path
-     *
-     * @param siteId site identifier
-     * @param path item path to children for
-     * @param locale filter children by locale
-     * @param keyword filter children by keyword
-     * @param excludes exclude items by regular expression patterns
-     *
-     * @return total number of children
-     */
-    int getChildrenByPathTotal(String siteId, String path, String locale, String keyword, List<String> excludes);
-
-    /**
-     * Get list of children for given item id
-     *
-     * @param siteId site identifier
-     * @param parentId item id to get children for
-     * @param locale filter children by locale
-     * @param keyword filter children by keyword
-     * @param excludes exclude items by regular expression patterns
-     * @param sortStrategy sort order
-     * @param order ascending or descending
-     * @param offset offset of the first child in the result
-     * @param limit number of children to return
-     *
-     * @return list of children
-     */
-    GetChildrenResult getChildrenById(String siteId, String parentId, String locale, String keyword,
-                                      List<String> excludes, String sortStrategy, String order, int offset, int limit)
+                                        List<String> systemTypes, List<String> excludes, String sortStrategy,
+                                        String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get total number of children for given path
-     *
-     * @param siteId site identifier
-     * @param parentId item id to children for
-     * @param ldName level descriptor name
-     * @param locale filter children by locale
-     * @param keyword filter children by keyword
-     * @param excludes exclude items by regular expression patterns
-     *
-     * @return total number of children
-     */
-    int getChildrenByIdTotal(String siteId, String parentId, String ldName, String locale, String keyword,
-                             List<String> excludes);
 
     Item getItem(String siteId, String path, boolean flatten);
 
@@ -134,17 +87,6 @@ public interface ContentServiceInternal {
      * @return detailed item
      */
     DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
-     * Get detailed for given id
-     *
-     * @param siteId site identifier
-     * @param id item id
-     * @param preferContent if true return content item if available
-     * @return detailed item
-     */
-    DetailedItem getItemById(String siteId, long id, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -183,25 +125,11 @@ public interface ContentServiceInternal {
     void itemLockByPath(String siteId, String path);
 
     /**
-     * Lock item by id for given site
-     * @param siteId site identifier
-     * @param itemId item identifier to lock
-     */
-    void itemLockById(String siteId, Long itemId);
-
-    /**
      * Unlock item by path for given site
      * @param siteId site identifier
      * @param path item path
      */
     void itemUnlockByPath(String siteId, String path);
-
-    /**
-     * Unlock item by path for given site
-     * @param siteId site identifier
-     * @param itemId item identifier
-     */
-    void itemUnlockById(String siteId, long itemId);
 
     /**
      * Get content for commit id
@@ -211,5 +139,5 @@ public interface ContentServiceInternal {
      * @return the resource if available
      */
     Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
-            throws ContentNotFoundException, IOException;
+            throws ContentNotFoundException;
 }

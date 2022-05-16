@@ -467,21 +467,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
-        itemDao.lockItemById(itemId, lockOwnerId, lockedBitOn, systemTypeFolder);
-    }
-
-    @Override
-    public void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
-        itemDao.lockItemsById(itemIds, lockOwnerId, lockedBitOn, systemTypeFolder);
-    }
-
-    @Override
-    public void unlockItemById(Long itemId, long lockedBitOff) {
-        itemDao.unlockItemById(itemId, lockedBitOff);
-    }
-
-    @Override
     public void updateStatesByQuery(String siteId, String path, Long states, long setStatesMask, long resetStatesMask) {
         itemDao.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask);
     }
@@ -634,120 +619,60 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item, packageId);
     }
 
-    public DependencyMapper getDependencyMapper() {
-        return dependencyMapper;
-    }
-
     public void setDependencyMapper(DependencyMapper dependencyMapper) {
         this.dependencyMapper = dependencyMapper;
-    }
-
-    public NavigationOrderSequenceMapper getNavigationOrderSequenceMapper() {
-        return navigationOrderSequenceMapper;
     }
 
     public void setNavigationOrderSequenceMapper(NavigationOrderSequenceMapper navigationOrderSequenceMapper) {
         this.navigationOrderSequenceMapper = navigationOrderSequenceMapper;
     }
 
-    public PublishRequestMapper getPublishRequestMapper() {
-        return publishRequestMapper;
-    }
-
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
-    }
-
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
     }
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
     }
 
-    public AuditDAO getAuditDao() {
-        return auditDao;
-    }
-
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
-    }
-
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
     }
 
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
     }
 
-    public GitLogDAO getGitLogDao() {
-        return gitLogDao;
-    }
-
     public void setGitLogDao(GitLogDAO gitLogDao) {
         this.gitLogDao = gitLogDao;
-    }
-
-    public GroupDAO getGroupDao() {
-        return groupDao;
     }
 
     public void setGroupDao(GroupDAO groupDao) {
         this.groupDao = groupDao;
     }
 
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
-    }
-
-    public PublishRequestDAO getPublishRequestDao() {
-        return publishRequestDao;
     }
 
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
     }
 
-    public RemoteRepositoryDAO getRemoteRepositoryDao() {
-        return remoteRepositoryDao;
-    }
-
     public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
         this.remoteRepositoryDao = remoteRepositoryDao;
-    }
-
-    public SecurityDAO getSecurityDao() {
-        return securityDao;
     }
 
     public void setSecurityDao(SecurityDAO securityDao) {
         this.securityDao = securityDao;
     }
 
-    public UserDAO getUserDao() {
-        return userDao;
-    }
-
     public void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
     }
 
-    public WorkflowDAO getWorkflowDao() {
-        return workflowDao;
-    }
-
     public void setWorkflowDao(WorkflowDAO workflowDao) {
         this.workflowDao = workflowDao;
-    }
-
-    public ActivityStreamDAO getActivityStreamDAO() {
-        return activityStreamDAO;
     }
 
     public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {
