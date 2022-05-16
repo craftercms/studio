@@ -50,8 +50,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_CREATED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
@@ -123,6 +124,7 @@ public class StudioPublisherTask extends StudioClockTask {
 
                 if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
                     if (!publishingManager.isPublishingBlocked(siteId)) {
+                        List<PublishRequest> itemsToDeploy = emptyList();
                         try {
                             if (!retryCounter.containsKey(siteId)) {
                                 retryCounter.put(siteId, maxRetryCounter);
@@ -131,15 +133,14 @@ public class StudioPublisherTask extends StudioClockTask {
                             for (String environment : environments) {
                                 env = environment;
                                 logger.debug("Processing content ready for deployment for site \"{0}\"", siteId);
-                                List<PublishRequest> itemsToDeploy =
-                                        publishingManager.getItemsReadyForDeployment(siteId, environment);
+                                itemsToDeploy = publishingManager.getItemsReadyForDeployment(siteId, environment);
                                 while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
                                     logger.debug("Deploying " + itemsToDeploy.size() + " items for " +
                                             "site " + siteId);
                                     publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
                                     List<String> commitIds = itemsToDeploy.stream()
                                             .map(PublishRequest::getCommitId)
-                                            .distinct().collect(Collectors.toList());
+                                            .distinct().collect(toList());
 
                                     boolean allCommitsPresent = true;
                                     StringBuilder sbMissingCommits = new StringBuilder();
@@ -200,7 +201,9 @@ public class StudioPublisherTask extends StudioClockTask {
                             logger.error("Error while executing deployment to environment store for site: "
                                     + siteId, err);
                             publishingManager.resetProcessingQueue(siteId, env);
-                            notificationService.notifyDeploymentError(siteId, err);
+                            List<String> items = itemsToDeploy == null? emptyList() :
+                                                 itemsToDeploy.stream().map(PublishRequest::getPath).collect(toList());
+                            notificationService.notifyDeploymentError(siteId, err, items, null);
                         }
                     } else {
                         logger.info("Publishing is blocked for site " + siteId);

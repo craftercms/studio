@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.notification;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
@@ -107,10 +108,13 @@ public class NotificationServiceImpl implements NotificationService {
     @ValidateParams
     public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
                                       final List<String> filesUnableToPublish, final Locale locale) {
-        try {
+        try (StringWriter stringWriter = new StringWriter();
+             PrintWriter printWriter = new PrintWriter(stringWriter)) {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
+            throwable.printStackTrace(printWriter);
+            printWriter.flush();
             final Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("deploymentError", throwable);
+            templateModel.put("deploymentError", stringWriter);
             templateModel.put("files", convertPathsToContent(site, filesUnableToPublish));
             notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                 locale, templateModel);
