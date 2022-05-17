@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.service.notification;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
@@ -39,6 +38,7 @@ import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
@@ -46,6 +46,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.engine.exception.ConfigurationException;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -107,15 +108,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @ValidateParams
     public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
-                                      final List<String> filesUnableToPublish, final Locale locale) {
-        try (StringWriter stringWriter = new StringWriter();
-             PrintWriter printWriter = new PrintWriter(stringWriter)) {
+                                      final List<PublishRequest> filesUnableToPublish, final Locale locale) {
+        try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site, locale);
-            throwable.printStackTrace(printWriter);
-            printWriter.flush();
             final Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put("deploymentError", stringWriter);
-            templateModel.put("files", convertPathsToContent(site, filesUnableToPublish));
+            templateModel.put("deploymentError", ExceptionUtils.getStackTrace(throwable));
+            templateModel.put("files", filesUnableToPublish);
             notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                 locale, templateModel);
         } catch (Throwable ex) {
