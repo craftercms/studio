@@ -189,9 +189,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                             logger.error("Error while executing deployment to environment store for site: "
                                     + siteId, err);
                             publishingManager.resetProcessingQueue(siteId, env);
-                            List<String> items = itemsToDeploy == null? emptyList() :
-                                                 itemsToDeploy.stream().map(PublishRequest::getPath).collect(toList());
-                            notificationService.notifyDeploymentError(siteId, err, items);
+                            notificationService.notifyDeploymentError(siteId, err, itemsToDeploy);
                         }
                     } else {
                         logger.info("Publishing is blocked for site " + siteId);

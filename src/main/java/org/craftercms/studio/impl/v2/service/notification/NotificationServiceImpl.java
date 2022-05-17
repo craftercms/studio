@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.service.notification;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.time.ZonedDateTime;
@@ -39,11 +38,13 @@ import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -128,15 +129,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @ValidateParams
     public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
-                                      final List<String> filesUnableToPublish) {
-        try (StringWriter stringWriter = new StringWriter();
-             PrintWriter printWriter = new PrintWriter(stringWriter)) {
+                                      final List<PublishRequest> filesUnableToPublish) {
+        try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);
-            throwable.printStackTrace(printWriter);
-            printWriter.flush();
             final Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, stringWriter);
-            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, filesUnableToPublish));
+            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
+            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
             notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                     templateModel);
         } catch (Throwable ex) {

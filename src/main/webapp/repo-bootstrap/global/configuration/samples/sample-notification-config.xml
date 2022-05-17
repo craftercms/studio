@@ -74,11 +74,11 @@
                                 The following content was unable to deploy:
                                 <ul>
                                     <#list files as file>
-                                            <li>${file.internalName!file.name}</li>
+                                        <li>${file.action}: ${file.path} from package ${file.packageId}</li>
                                     </#list>
                                 </ul>
                                     Error:<br/>
-                                    ${deploymentError.toString()}
+                                    <pre>${deploymentError}</pre>
                                 <br/><br/>
                                 <a href="${liveUrl}" >
                                     <img style="max-width: 350px;  max-height: 350px;" src="${liveUrl}/static-assets/images/workflow-email-footer.png" alt="" />

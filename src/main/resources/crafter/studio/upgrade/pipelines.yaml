@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || >=4.0.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || >=4.0.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -30,6 +30,13 @@ pipelines:
         nextVersion: 4.0-t
         operations:
           - type: dbScriptUpgrader
+            # There are no db changes, so we can still use the same script
+            filename: upgrade-3.1.15-to-4.0.0.32.sql
+      # 3.1.24
+      - currentVersion: 3.1.24
+        nextVersion: 4.0-t
+        operations:
+          - type: dbScriptUpgraders
             # There are no db changes, so we can still use the same script
             filename: upgrade-3.1.15-to-4.0.0.32.sql
 
@@ -355,6 +362,14 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.43-to-4.0.1.1.sql
+      - currentVersion: 4.0.1.1
+        nextVersion: 4.0.1.2
+        operations:
+          - type: globalRepoUpgrader
+            files:
+                - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                  dest: /configuration/samples/sample-notification-config.xml
+            commitDetails: Update sample file for notifications
 
   # Pipeline to upgrade site repositories
   site:
@@ -764,12 +779,25 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 3
           nextVersion: 4.0.1
+        - currentVersion: 4
+          nextVersion: 4.0.1
         - currentVersion: 4.0.1
           nextVersion: 4.0.2
           operations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v4.0.2.xslt
               commitDetails: Remove lang element
+        - currentVersion: 4.0.2
+          nextVersion: 4.0.3
+          operations:
+            - type: findAndReplaceUpgrader
+              pattern: "<li>\\$\\{file.internalName!file.name\\}</li>"
+              replacement: "<li>\\$\\{file.action\\}: \\$\\{file.path\\} from package \\$\\{file.packageId\\}</li>"
+              commitDetails: Update deployment error template
+            - type: findAndReplaceUpgrader
+              pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
+              replacement: "<pre>\\$\\{deploymentError\\}</pre>"
+              commitDetails: Update deployment error template
 
   code-editor-config:
     module: studio
