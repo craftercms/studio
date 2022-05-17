@@ -501,11 +501,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             studioDBScriptRunner.execute(createdFileScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
             if (logger.isDebugEnabled()) {
-                logger.debug1("Process created files finished in " +
-                        (System.currentTimeMillis() - startProcessCreatedFilesMark) + " milliseconds");
+                logger.debug("ProcessCreatedFiles finished in '{}' milliseconds",
+                        (System.currentTimeMillis() - startProcessCreatedFilesMark));
             }
         } catch (IOException e) {
-            logger.error1("Error while creating db script file for processing created files for site " + siteId);
+            logger.error("Failed to create DB script file for processingCreatedFiles in site '{}'", siteId, e);
         }
     }
 
@@ -549,8 +549,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
         if (logger.isDebugEnabled()) {
-            logger.debug1("Dependency resolver for " + path + " finished in " +
-                    (System.currentTimeMillis() - startDependencyResolver) + " milliseconds");
+            logger.debug("Dependency resolver for site '{}' path '{}' finished in '{}' milliseconds",
+                    siteId, path, (System.currentTimeMillis() - startDependencyResolver));
         }
         if (StringUtils.isEmpty(oldPath)) {
             Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(StandardCharsets.UTF_8),
@@ -610,10 +610,10 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         throw new IllegalStateException(e);
                     }
                 } else {
-                    logger.warn1("Default group: " + group + " not created. It already exists.");
+                    logger.info("Default group '{}' was not created since it already exists", group);
                 }
             } catch (ServiceLayerException e) {
-                logger.warn1("Error creating group " + group, e);
+                logger.error("Failed to create group '{}'", group, e);
             }
         }
     }
@@ -639,7 +639,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             throw new SiteAlreadyExistsException();
         }
 
-        logger.debug1("Validate site entitlements");
+        logger.debug("Validate site entitlements for site '{}'", siteId);
         try {
             entitlementValidator.validateEntitlement(EntitlementType.SITE, 1);
         } catch (EntitlementException e) {
@@ -648,13 +648,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         }
 
         if (REMOTE_REPOSITORY_CREATE_OPTION_CLONE.equals(createOption)) {
-            logger.info1("Clone from remote repository create option selected");
+            logger.info("Clone site from remote repository for site '{}', " +
+                            "remoteUrl '{}', remote branch '{}'",
+                    siteId, remoteUrl, remoteBranch);
             createSiteCloneRemote(siteId, siteName, sandboxBranch, description, remoteName, remoteUrl, remoteBranch,
                     singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
                     params, createAsOrphan);
         } else {
-            logger.error1("Invalid create option for create site using remote repository: " + createOption +
-                    "\nAvailable options: [" + REMOTE_REPOSITORY_CREATE_OPTION_CLONE + "]");
+            logger.error("Invalid site creation option '{}' for site '{}'", createOption, siteId);
             throw new SiteCreationException("Invalid create option for create site using remote repository: "
                     + createOption);
         }
@@ -679,8 +680,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             // create site by cloning remote git repo
-            logger.info1("Creating site " + siteId + " by cloning remote repository " + remoteName +
-                    " (" + remoteUrl + ")");
+            logger.info("Create site '{}' by cloning the remote '{}' url '{}' branch '{}'",
+                    siteId, remoteName, remoteUrl, remoteBranch);
             success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                     remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
                     remotePrivateKey, params, createAsOrphan);
@@ -690,8 +691,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
             contentRepository.deleteSite(siteId);
 
-            logger.error1("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
-                    "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
+            logger.error("Failed to create site '{}' by cloning '{}' url '{}' branch '{}'. Rolling back.",
+                    siteId, remoteName, remoteUrl, remoteBranch, e);
 
             throw e;
         }
@@ -703,16 +704,17 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     "remote repository: " + remoteName + " (" + remoteUrl + ")");
         }
 
+        // TODO: SJ: Is this still needed now that we only support Elasticsearch?
         // try to get the search engine from the blueprint descriptor file
         String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
 
         PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info1("Using search engine {} from plugin descriptor", searchEngine);
+            logger.info1("Using search engine '{}' from plugin descriptor", searchEngine);
         } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info1("Using search engine {} from blueprint descriptor", searchEngine);
+            logger.info1("Using search engine '{}' from blueprint descriptor", searchEngine);
         } else {
             logger.info1("Missing descriptor, using default search engine {}", searchEngine);
         }
