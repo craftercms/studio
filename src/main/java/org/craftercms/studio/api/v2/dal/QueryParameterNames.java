@@ -56,8 +56,6 @@ public final class  QueryParameterNames {
     /* Sites */
     public static final String SITE_ID = "siteId";
 
-    public static final String SITE = "site";
-
     public static final String LOCK_OWNER_ID = "lockOwnerId";
 
     public static final String TTL = "ttl";
@@ -68,8 +66,6 @@ public final class  QueryParameterNames {
 
 
     public static final String PUBLISHING_STATUS = "publishingStatus";
-
-    public static final String MESSAGE = "message";
 
     /* Groups */
 
@@ -133,11 +129,6 @@ public final class  QueryParameterNames {
     public static final String CLUSTER_ID = "clusterId";
     // remote repository id
     public static final String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
-    // node last commit id
-    public static final String NODE_LAST_COMMIT_ID = "nodeLastCommitId";
-    // cluster id
-    public static final String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
-    public static final String NODE_LAST_SYNCED_GITLOG_COMMIT_ID = "nodeLastSyncedGitlogCommitId";
 
     /* Publish request */
     // Environment
@@ -205,17 +196,9 @@ public final class  QueryParameterNames {
     /* Item */
     public static final String LOCALE_CODE = "localeCode";
 
-    public static final String PARENT_PATH = "parentPath";
-
     public static final String PARENT_ID = "parentId";
 
-    public static final String LEVEL_DESCRIPTOR_PATH = "ldPath";
-
-    public static final String LEVEL_DESCRIPTOR_NAME = "ldName";
-
     public static final String ENTRIES = "entries";
-
-    public static final String ROOT_PATH = "rootPath";
 
     public static final String STATES_BIT_MAP = "statesBitMap";
 
@@ -227,15 +210,13 @@ public final class  QueryParameterNames {
 
     public static final String CONTENT_TYPE = "contentType";
 
-    public static final String MOVE_MASK = "moveMask";
-
-    public static final String IGNORE_NAMES = "ignoreNames";
-
     public static final String OLD_PREVIEW_URL = "oldPreviewUrl";
 
     public static final String NEW_PREVIEW_URL = "newPreviewUrl";
 
     public static final String EXCLUDES = "excludes";
+
+    public static final String SYSTEM_TYPES = "systemTypes";
 
     public static final String KEYWORD = "keyword";
 
@@ -264,6 +245,8 @@ public final class  QueryParameterNames {
     public static final String LOCKED_BIT_OFF = "lockedBitOff";
 
     public static final String SYSTEM_TYPE_FOLDER = "systemTypeFolder";
+
+    public static final String PREFER_CONTENT = "preferContent";
 
     /** Gitlog */
     public static final String AUDITED = "audited";

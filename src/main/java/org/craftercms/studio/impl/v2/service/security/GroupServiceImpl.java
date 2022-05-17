@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
-import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -65,7 +64,6 @@ public class GroupServiceImpl implements GroupService {
     private UserServiceInternal userServiceInternal;
     private GeneralLockService generalLockService;
     private StudioConfiguration studioConfiguration;
-    private UserService userService;
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
 
@@ -101,7 +99,7 @@ public class GroupServiceImpl implements GroupService {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(groupName);
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
         auditLog.setPrimaryTargetValue(groupName);
@@ -119,7 +117,7 @@ public class GroupServiceImpl implements GroupService {
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(group.getGroupName());
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
         auditLog.setPrimaryTargetValue(group.getGroupName());
@@ -148,20 +146,20 @@ public class GroupServiceImpl implements GroupService {
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_DELETE);
-        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setPrimaryTargetId(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
         auditLog.setPrimaryTargetValue(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-        List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> parameters = new ArrayList<>();
         for (Group g : groups) {
-            AuditLogParameter paramter = new AuditLogParameter();
-            paramter.setTargetId(Long.toString(g.getId()));
-            paramter.setTargetType(TARGET_TYPE_GROUP);
-            paramter.setTargetValue(g.getGroupName());
-            paramters.add(paramter);
+            AuditLogParameter parameter = new AuditLogParameter();
+            parameter.setTargetId(Long.toString(g.getId()));
+            parameter.setTargetType(TARGET_TYPE_GROUP);
+            parameter.setTargetValue(g.getGroupName());
+            parameters.add(parameter);
         }
-        auditLog.setParameters(paramters);
+        auditLog.setParameters(parameters);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -192,7 +190,7 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupServiceInternal.getGroup(groupId);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        List<AuditLogParameter> parameters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> parameters = new ArrayList<>();
         for (User user : users) {
             AuditLogParameter parameter = new AuditLogParameter();
             parameter.setTargetId(Long.toString(user.getId()));
@@ -203,7 +201,7 @@ public class GroupServiceImpl implements GroupService {
         auditLog.setParameters(parameters);
         auditLog.setOperation(OPERATION_ADD_MEMBERS);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(userService.getCurrentUser().getUsername());
+        auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
         auditLog.setPrimaryTargetId(Long.toString(groupId));
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
         auditLog.setPrimaryTargetValue(group.getGroupName());
@@ -221,8 +219,7 @@ public class GroupServiceImpl implements GroupService {
             if (group.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
                 List<User> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<User> membersAfterRemove = new ArrayList<User>();
-                    membersAfterRemove.addAll(members);
+                    List<User> membersAfterRemove = new ArrayList<>(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {
                             if (userIds.contains(m.getId())) {
@@ -247,92 +244,52 @@ public class GroupServiceImpl implements GroupService {
             SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_REMOVE_MEMBERS);
-            auditLog.setActorId(userService.getCurrentUser().getUsername());
+            auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setPrimaryTargetId(Long.toString(group.getId()));
             auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
             auditLog.setPrimaryTargetValue(group.getGroupName());
-            List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
+            List<AuditLogParameter> parameters = new ArrayList<>();
             for (User user : users) {
-                AuditLogParameter paramter = new AuditLogParameter();
-                paramter.setTargetId(Long.toString(user.getId()));
-                paramter.setTargetType(TARGET_TYPE_USER);
-                paramter.setTargetValue(user.getUsername());
-                paramters.add(paramter);
+                AuditLogParameter parameter = new AuditLogParameter();
+                parameter.setTargetId(Long.toString(user.getId()));
+                parameter.setTargetType(TARGET_TYPE_USER);
+                parameter.setTargetValue(user.getUsername());
+                parameters.add(parameter);
             }
-            auditLog.setParameters(paramters);
+            auditLog.setParameters(parameters);
             auditServiceInternal.insertAuditLog(auditLog);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         }
     }
 
-    public GroupServiceInternal getGroupServiceInternal() {
-        return groupServiceInternal;
-    }
-
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
-    }
-
-    public OrganizationServiceInternal getOrganizationServiceInternal() {
-        return organizationServiceInternal;
     }
 
     public void setOrganizationServiceInternal(OrganizationServiceInternal organizationServiceInternal) {
         this.organizationServiceInternal = organizationServiceInternal;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
     }
 
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public UserService getUserService() {
-        return userService;
-    }
-
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {

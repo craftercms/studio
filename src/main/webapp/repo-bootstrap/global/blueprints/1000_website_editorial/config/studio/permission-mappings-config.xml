@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>4.0.4</version>
+    <version>4.0.6</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -130,6 +130,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -194,6 +195,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -269,6 +271,7 @@
                 <permission>install_plugins</permission>
                 <permission>remove_plugins</permission>
                 <permission>get_children</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -306,6 +309,7 @@
                 <permission>publish_clear_lock</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
+                <permission>repair_repository</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -337,6 +341,7 @@
                 <permission>publish_clear_lock</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
+                <permission>repair_repository</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -353,6 +358,7 @@
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
                 <permission>item_unlock</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -383,6 +389,7 @@
                 <permission>webdav_read</permission>
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -402,6 +409,7 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>content_search</permission>
             </allowed-permissions>
         </rule>
     </role>

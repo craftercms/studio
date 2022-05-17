@@ -43,18 +43,13 @@ public final class RequestMappingConstants {
     public static final String GET_DELETE_PACKAGE = "/get_delete_package";
     public static final String DELETE = "/delete";
     public static final String GET_CHILDREN_BY_PATH = "/children_by_path";
-    public static final String GET_CHILDREN_BY_ID = "/children_by_id";
     public static final String GET_DESCRIPTOR = "/descriptor";
     public static final String PASTE_ITEMS = "/paste";
     public static final String DUPLICATE_ITEM = "/duplicate";
     public static final String ITEM_BY_PATH = "/item_by_path";
-    public static final String ITEM_BY_ID = "/item_by_id";
     public static final String SANDBOX_ITEMS_BY_PATH = "/sandbox_items_by_path";
-    public static final String SANDBOX_ITEMS_BY_ID = "/sandbox_items_by_id";
     public static final String ITEM_LOCK_BY_PATH = "/item_lock_by_path";
-    public static final String ITEM_LOCK_BY_ID = "/item_lock_by_id";
     public static final String ITEM_UNLOCK_BY_PATH = "/item_unlock_by_path";
-    public static final String ITEM_UNLOCK_BY_ID = "/item_unlock_by_id";
     public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
 
     /** Groups controller */
@@ -98,6 +93,10 @@ public final class RequestMappingConstants {
 
     /** Audit controller */
     public static final String AUDIT = "/audit";
+
+    public static final String CORRUPTED = "/corrupted";
+
+    public static final String REPAIR = "/repair";
 
     /** Publish Controller */
     public static final String PUBLISH = "/publish";

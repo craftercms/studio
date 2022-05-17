@@ -14,31 +14,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 package org.craftercms.studio.model.rest.content;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
+import org.craftercms.studio.model.rest.ResultList;
 
-public class UnlockItemByIdRequest {
+import java.util.Collection;
 
-    @NotEmpty
-    private String siteId;
-    @Positive
-    private long itemId;
+/**
+ * Holds the data returned by the getSandboxItemsByPath operation
+ *
+ * @author joseross
+ * @since 4.0.0
+ */
+public class GetSandboxItemsByPathResult extends ResultList<SandboxItem> {
 
-    public String getSiteId() {
-        return siteId;
+    /**
+     * Collection of paths for which no item was found
+     */
+    protected Collection<String> missingItems;
+
+    public Collection<String> getMissingItems() {
+        return missingItems;
     }
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
+    public void setMissingItems(Collection<String> missingItems) {
+        this.missingItems = missingItems;
     }
 
-    public long getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(long itemId) {
-        this.itemId = itemId;
-    }
 }

@@ -23,6 +23,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import static org.craftercms.commons.spring.cors.FixedCorsConfigurationSource.getOrigins;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_CORS_ALLOWED_ORIGINS;
 
 /**
@@ -46,11 +47,12 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        String allowedOrigins = studioConfiguration.getProperty(CONFIGURATION_CORS_ALLOWED_ORIGINS);
         registry
             // The STOMP controller URL
             .addEndpoint("/events")
             // Use the same allowed origins from the configuration to match the HTTP filter
-            .setAllowedOrigins(studioConfiguration.getArray(CONFIGURATION_CORS_ALLOWED_ORIGINS, String.class));
+            .setAllowedOriginPatterns(getOrigins(allowedOrigins).toArray(String[]::new));
     }
 
     @Override

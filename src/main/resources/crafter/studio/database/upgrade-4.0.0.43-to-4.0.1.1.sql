@@ -14,31 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.content;
+ALTER TABLE `item`
+    ADD INDEX `item_i_path` (`path` ASC) ;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
-
-public class LockItemByIdRequest {
-
-    @NotEmpty
-    private String siteId;
-    @Positive
-    private Long itemId;
-
-    public String getSiteId() {
-        return siteId;
-    }
-
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
-    }
-
-    public Long getItemId() {
-        return itemId;
-    }
-
-    public void setItemId(Long itemId) {
-        this.itemId = itemId;
-    }
-}
+UPDATE `_meta` SET `version` = '4.0.1.1' ;

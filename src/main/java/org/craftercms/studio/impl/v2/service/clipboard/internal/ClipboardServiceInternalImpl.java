@@ -30,7 +30,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,7 +70,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                     case CUT:
                         // RDTMP_COPYPASTE
                         // CopyContent interface is able to send status and new path yet
-                        workflowService.cleanWorkflow(item.getPath(), siteId, Collections.emptySet());
+                        workflowService.cleanWorkflow(item.getPath(), siteId);
                         newPath = contentService.moveContent(siteId, item.getPath(), targetPath);
                         break;
                     case COPY:
@@ -116,16 +115,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
         this.applicationContext = applicationContext;
     }
 
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public WorkflowService getWorkflowService() {
-        return workflowService;
     }
 
     public void setWorkflowService(WorkflowService workflowService) {

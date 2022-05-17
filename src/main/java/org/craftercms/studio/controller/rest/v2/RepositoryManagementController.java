@@ -17,7 +17,6 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -57,29 +56,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ADD_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL_FAILED_PULL;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.COMMIT_RESOLUTION;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DIFF_CONFLICTED_FILE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_REMOTES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PULL_FROM_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUSH_TO_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REBUILD_DATABASE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REMOVE_REMOTE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REPOSITORY;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESOLVE_CONFLICT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UNLOCK;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DIFF;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REMOTES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_REPOSITORY_STATUS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.ADD_REMOTE_INVALID;
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -119,7 +103,7 @@ public class RepositoryManagementController {
 
     @GetMapping(value = LIST_REMOTES, produces = APPLICATION_JSON_VALUE)
     public ResponseBody listRemotes(@RequestParam(name = "siteId") String siteId)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
@@ -135,7 +119,7 @@ public class RepositoryManagementController {
 
     @PostMapping(PULL_FROM_REMOTE)
     public ResponseBody pullFromRemote(@Valid @RequestBody PullFromRemoteRequest pullFromRemoteRequest)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
+            throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         if (!siteService.exists(pullFromRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pullFromRemoteRequest.getSiteId());
@@ -159,7 +143,7 @@ public class RepositoryManagementController {
 
     @PostMapping(PUSH_TO_REMOTE)
     public ResponseBody pushToRemote(HttpServletResponse response, @RequestBody PushToRemoteRequest pushToRemoteRequest)
-            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException,
+            throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         if (!siteService.exists(pushToRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(pushToRemoteRequest.getSiteId());
@@ -197,7 +181,7 @@ public class RepositoryManagementController {
 
     @PostMapping(REMOVE_REMOTE)
     public ResponseBody removeRemote(HttpServletResponse response, @RequestBody RemoveRemoteRequest removeRemoteRequest)
-            throws CryptoException, SiteNotFoundException, RemoteNotRemovableException {
+            throws SiteNotFoundException, RemoteNotRemovableException {
         if (!siteService.exists(removeRemoteRequest.getSiteId())) {
             throw new SiteNotFoundException(removeRemoteRequest.getSiteId());
         }
@@ -218,7 +202,7 @@ public class RepositoryManagementController {
 
     @GetMapping(STATUS)
     public ResponseBody getRepositoryStatus(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
@@ -233,7 +217,7 @@ public class RepositoryManagementController {
 
     @PostMapping(RESOLVE_CONFLICT)
     public ResponseBody resolveConflict(@RequestBody ResolveConflictRequest resolveConflictRequest)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         if (!siteService.exists(resolveConflictRequest.getSiteId())) {
             throw new SiteNotFoundException(resolveConflictRequest.getSiteId());
         }
@@ -254,7 +238,7 @@ public class RepositoryManagementController {
     @GetMapping(DIFF_CONFLICTED_FILE)
     public ResponseBody getDiffForConflictedFile(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                                  @RequestParam(value = REQUEST_PARAM_PATH) String path)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(siteId);
         }
@@ -273,7 +257,7 @@ public class RepositoryManagementController {
 
     @PostMapping(COMMIT_RESOLUTION)
     public ResponseBody commitConflictResolution(@RequestBody CommitResolutionRequest commitResolutionRequest)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         if (!siteService.exists(commitResolutionRequest.getSiteId())) {
             throw new SiteNotFoundException(commitResolutionRequest.getSiteId());
         }
@@ -289,7 +273,7 @@ public class RepositoryManagementController {
 
     @PostMapping(CANCEL_FAILED_PULL)
     public ResponseBody cancelFailedPull(@RequestBody CancelFailedPullRequest cancelFailedPullRequest)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         if (!siteService.exists(cancelFailedPullRequest.getSiteId())) {
             throw new SiteNotFoundException(cancelFailedPullRequest.getSiteId());
         }
@@ -303,8 +287,8 @@ public class RepositoryManagementController {
     }
 
     @PostMapping(UNLOCK)
-    public ResponseBody unlockRepository(@RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws CryptoException, SiteNotFoundException {
-        boolean success = false;
+    public ResponseBody unlockRepository(@RequestBody UnlockRepositoryRequest unlockRepositoryRequest) throws SiteNotFoundException {
+        boolean success;
         if (!StringUtils.isEmpty(unlockRepositoryRequest.getSiteId()) &&
                 (!siteService.exists(unlockRepositoryRequest.getSiteId()))) {
             throw new SiteNotFoundException("Site " + unlockRepositoryRequest.getSiteId() + " not found");
@@ -322,6 +306,34 @@ public class RepositoryManagementController {
         return responseBody;
     }
 
+    @GetMapping(CORRUPTED)
+    public ResponseBody isRepositoryCorrupted(@RequestParam(required = false) String siteId,
+                                              @RequestParam GitRepositories repositoryType)
+            throws ServiceLayerException {
+        ResponseBody responseBody = new ResponseBody();
+
+        ResultOne<Boolean> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_CORRUPTED,
+                repositoryManagementService.isCorrupted(siteId, repositoryType));
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
+    @PostMapping(REPAIR)
+    public ResponseBody repairCorruptedRepository(@Valid @RequestBody RepairRepositoryRequest request)
+            throws ServiceLayerException {
+        repositoryManagementService.repairCorrupted(request.getSiteId(), request.getRepositoryType());
+
+        ResponseBody responseBody = new ResponseBody();
+        Result result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+
+        return responseBody;
+    }
+
     public void setRepositoryManagementService(RepositoryManagementService repositoryManagementService) {
         this.repositoryManagementService = repositoryManagementService;
     }
@@ -329,4 +341,30 @@ public class RepositoryManagementController {
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
+
+    public static class RepairRepositoryRequest {
+
+        protected String siteId;
+
+        @NotNull
+        protected GitRepositories repositoryType;
+
+        public String getSiteId() {
+            return siteId;
+        }
+
+        public void setSiteId(String siteId) {
+            this.siteId = siteId;
+        }
+
+        public GitRepositories getRepositoryType() {
+            return repositoryType;
+        }
+
+        public void setRepositoryType(GitRepositories repositoryType) {
+            this.repositoryType = repositoryType;
+        }
+
+    }
+
 }

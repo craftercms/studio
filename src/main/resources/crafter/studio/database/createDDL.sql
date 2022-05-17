@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.0.42', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.1.1', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -434,7 +434,8 @@ CREATE TABLE IF NOT EXISTS `item` (
   FOREIGN KEY item_ix_locked_by(`locked_by`) REFERENCES `user` (`id`),
   FOREIGN KEY item_ix_site_id(`site_id`) REFERENCES `site` (`id`),
   FOREIGN KEY item_ix_parent(`parent_id`) REFERENCES `item` (`id`) ON DELETE CASCADE ,
-  UNIQUE uq_i_site_path (`site_id`, `path`(900))
+  UNIQUE uq_i_site_path (`site_id`, `path`(900)),
+  INDEX item_i_path (`path` ASC)
 )
     ENGINE = InnoDB
     DEFAULT CHARSET = utf8

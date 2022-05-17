@@ -1082,7 +1082,7 @@ paths:
         - users
       summary: Check if the current authenticated user has given permissions
       description: 'Required Permission: "LOGGED_IN"'
-      operationId: hasCurrentUserSitePermssions
+      operationId: hasCurrentUserSitePermissions
       parameters:
         - name: site
           in: path
@@ -1163,7 +1163,7 @@ paths:
         - users
       summary: Check if the current authenticated user has given global permissions
       description: 'Required Permission: "LOGGED_IN"'
-      operationId: hasCurrentUserGlobalPermssions
+      operationId: hasCurrentUserGlobalPermissions
       requestBody:
         description: request body to check if current authenticated user has permissions
         required: true
@@ -2068,7 +2068,7 @@ paths:
             type: string
         - name: target
           in: query
-          description: Regular espression to filter target values
+          description: Regular expression to filter target values
           required: false
           schema:
             type: string
@@ -2092,7 +2092,7 @@ paths:
             type: string
         - name: order
           in: query
-          description: Order in sorted result. Posible values `ASC` and `DESC`
+          description: Order in sorted result. Possible values `ASC` and `DESC`
           required: false
           schema:
             type: string
@@ -2135,7 +2135,7 @@ paths:
     get:
       tags:
         - audit
-      summary: Get audiy log entry
+      summary: Get audit log entry
       operationId: getAuditLogById
       parameters:
         - name: id
@@ -2415,7 +2415,7 @@ paths:
             type: string
         - name: path
           in: query
-          description: path to look under. Note this will be under the `base path` secified in cmis-config.xml
+          description: path to look under. Note this will be under the `base path` specified in cmis-config.xml
           required: false
           schema:
             type: string
@@ -3135,6 +3135,87 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /repository/corrupted:
+    get:
+      tags:
+        - repository
+      summary: Check if a given repository is corrupted
+      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      operationId: isRepositoryCorrupted
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: string
+          description: site ID, do not send if checking the GLOBAL repository
+        - name: repositoryType
+          required: true
+          in: query
+          schema:
+            type: string
+            format: GLOBAL, SANDBOX or PUBLISHED
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  corrupted:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /repository/repair:
+    post:
+      tags:
+        - repository
+      summary: Repair local git repository
+      description: 'Required role "system_admin" for global, "admin" for site sandbox or published'
+      operationId: repairCorruptedRepository
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID, do not send if repairing the GLOBAL repository
+                repositoryType:
+                  type: string
+                  format: GLOBAL, SANDBOX or PUBLISHED
+              required:
+                - repositoryType
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /configuration/get_configuration:
     get:
       tags:
@@ -3423,9 +3504,9 @@ paths:
                 contentType:
                   type: string
                   description: The content-type to delete
-                deleteDepedencies:
+                deleteDependencies:
                   type: boolean
-                  description: Indicates if all depdendencies of the content-type should be deleted (defaults to false)
+                  description: Indicates if all dependencies of the content-type should be deleted (defaults to false)
               required:
                 - siteId
                 - contentType
@@ -3759,7 +3840,7 @@ paths:
                   description: path(s) of content item(s)
                   items:
                     type: string
-                optionalDepepndencies:
+                optionalDependencies:
                   type: array
                   description: optional (soft) dependencies
                   items:
@@ -3780,99 +3861,6 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/children_by_id:
-    post:
-      tags:
-        - content
-      summary: Get list of children for given item id
-      description: 'Required permission "get_children" and "site member"'
-      operationId: getChildrenById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  description: Site ID
-                  type: string
-                id:
-                  description: item id to get children for
-                  type: integer
-                  format: int64
-                localeCode:
-                  description: |-
-                    filter children by locale code, or show source items (not translation) if translatation to
-                    specified locale code does not exist
-                  type: string
-                sortStrategy:
-                  description: >-
-                    sort strategy (sort order)
-                    Possible values:
-                      - alphabetical (default)
-                      - foldersFirst (order by: folders alphabetical, files alphabetical)
-                  type: string
-                order:
-                  description: order for srot strategy ascending or descending (ASC / DESC)
-                  type: string
-                  format: ASC, DESC
-                offset:
-                  description: offset of first child in response - default 0
-                  type: integer
-                limit:
-                  description: number of children to return
-                  type: integer
-                keyword:
-                  description: filter children by keyword
-                  type: string
-                exclude:
-                  description: exclude items by regular expression
-                  type: array
-                  items:
-                    type: string
-              required:
-                - siteId
-                - id
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  levelDescriptor:
-                    $ref: '#/components/schemas/SandboxItem'
-                  children:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3906,7 +3894,7 @@ paths:
                   type: string
                 localeCode:
                   description: |-
-                    filter children by locale code, or show source items (not translation) if translatation to
+                    filter children by locale code, or show source items (not translation) if translation to
                     specified locale code does not exist
                   type: string
                 sortStrategy:
@@ -3917,7 +3905,7 @@ paths:
                       - foldersFirst (order by: folders alphabetical, files alphabetical)
                   type: string
                 order:
-                  description: order for srot strategy ascending or descending (ASC / DESC)
+                  description: order for sort strategy ascending or descending (ASC / DESC)
                   type: string
                   format: ASC, DESC
                 offset:
@@ -3929,8 +3917,13 @@ paths:
                 keyword:
                   description: filter children by keyword
                   type: string
-                exclude:
-                  description: exclude items by regular expression
+                systemTypes:
+                  description: filter children by system type
+                  type: array
+                  items:
+                    type: string
+                excludes:
+                  description: exclude items by path
                   type: array
                   items:
                     type: string
@@ -3965,56 +3958,6 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/item_by_id:
-    get:
-      tags:
-        - content
-      summary: Get content item for given item id
-      description: 'Required permission "get_detailed_item" and "read_item" and "site member"'
-      operationId: getDetailedItemById
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: id
-          in: query
-          description: item identifier
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: preferContent
-          in: query
-          description: when set to true, return an item instead of a folder if the path can match either
-          required: false
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  item:
-                    $ref: '#/components/schemas/DetailedItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4075,60 +4018,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/sandbox_items_by_id:
-    post:
-      tags:
-        - content
-      summary: Get list of items for given list of item ids
-      description: 'Required permission "get_children" and "site member"'
-      operationId: getSandboxItemsById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  description: Site ID
-                  type: string
-                ids:
-                  description: item ids to get
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                preferContent:
-                  description: when set to true, return an item instead of a folder if the path can match either
-                  type: boolean
-              required:
-                - siteId
-                - ids
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/SandboxItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /content/sandbox_items_by_path:
     post:
       tags:
@@ -4171,6 +4060,10 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/SandboxItem'
+                  missingItems:
+                    type: array
+                    items:
+                      type: string
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4366,56 +4259,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/item_lock_by_id:
-    post:
-      tags:
-        - content
-      summary: Lock item by id
-      description: 'Required permission "content_write"'
-      operationId: itemLockById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: The id of the site
-                itemId:
-                  type: integer
-                  format: int64
-                  description: Id of item to lock
-              required:
-                - siteId
-                - itemId
-      responses:
-        '200':
-          description: OK
-
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Item already locked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  person:
-                    $ref: '#/components/schemas/Person'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
   /content/item_unlock_by_path:
     post:
       tags:
@@ -4443,53 +4286,6 @@ paths:
         '200':
           description: OK
 
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '409':
-          description: Item already unlocked
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /content/item_unlock_by_id:
-    post:
-      tags:
-        - content
-      summary: Unlock item by id
-      description: 'Required permission "item_unlock" or lock owner'
-      operationId: itemUnlockById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: The id of the site
-                itemId:
-                  type: integer
-                  format: int64
-                  description: The id of the item to unlock
-              required:
-                - siteId
-                - itemId
-      responses:
-        '200':
-          description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5813,7 +5609,7 @@ paths:
             type: string
         - name: approver
           in: query
-          description: apporver user to filter results
+          description: approver user to filter results
           required: false
           schema:
             type: string
@@ -5947,7 +5743,7 @@ paths:
             type: string
         - name: approver
           in: query
-          description: apporver user to filter results
+          description: approver user to filter results
           required: false
           schema:
             type: string
@@ -6335,7 +6131,7 @@ paths:
     post:
       tags:
         - translation
-      summary: Get transaltion item(s) detail
+      summary: Get translation item(s) detail
       description: 'Required permission "get_translation_item_detail"'
       operationId: getTranslationItemById
       requestBody:
@@ -6385,7 +6181,7 @@ paths:
     post:
       tags:
         - translation
-      summary: Get transaltion item(s) detail
+      summary: Get translation item(s) detail
       description: 'Required permission "get_translation_item_detail"'
       operationId: getTranslationItemByPath
       requestBody:
@@ -6951,7 +6747,7 @@ paths:
       description: 'Required permission "publish"'
       operationId: workflowApprove
       requestBody:
-        description: parameters for apporve request publish submission
+        description: parameters for approve request publish submission
         required: true
         content:
           application/json:
@@ -7308,7 +7104,7 @@ paths:
                 schedule:
                   type: string
                   format: datetime
-                  description: approved scehedule when to publish package
+                  description: approved schedule when to publish package
               required:
                 - siteId
                 - packages
@@ -7410,7 +7206,7 @@ components:
           * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
-          * `CODE:` 6003, `MESSAGE:` User password does not fullfill requirements, `REMEDIAL ACTION:` Use password that will fullfill password requirements
+          * `CODE:` 6003, `MESSAGE:` User password does not fulfill requirements, `REMEDIAL ACTION:` Use password that will fulfill password requirements
           * `CODE:` 6004, `MESSAGE:` User current password does not match, `REMEDIAL ACTION:` Use correct current password
           * `CODE:` 7000, `MESSAGE:` Content not found, `REMEDIAL ACTION:` Check if you sent in the right Content Id
           * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Edit the existing item or delete it before creating it again
@@ -8130,7 +7926,7 @@ components:
         - origin
         - primaryTargetId
         - primaryTargetType
-        - promaryTargetValue
+        - primaryTargetValue
         - actorId
 
     VersionItem:
@@ -8324,7 +8120,7 @@ components:
         - siteId
         - remoteName
         - remoteUrl
-        - autheticationType
+        - authenticationType
 
     RemoteRepositoryInfo:
       type: object
@@ -8377,7 +8173,7 @@ components:
       properties:
         conflicting:
           type: array
-          description: list of conficting files
+          description: list of conflicting files
           items:
             type: string
         uncommittedChanges:
@@ -8387,7 +8183,7 @@ components:
             type: string
         clean:
           type: boolean
-          description: true if there are no conflicts or uncommited changes
+          description: true if there are no conflicts or uncommitted changes
 
     History:
       type: object
@@ -8590,7 +8386,7 @@ components:
           description: url for previewing content item
         systemType:
           type: string
-          description: one of predifined type values (page, component, asset, levelDescriptor, folder ...)
+          description: one of predefined type values (page, component, asset, levelDescriptor, folder ...)
         mimeType:
           type: string
           description: mime-type of content item file
@@ -8870,7 +8666,7 @@ components:
             datePublished:
               type: string
               format: datetime
-              description: timestamp when was item last time published to live repositroy
+              description: timestamp when was item last time published to live repository
             publisher:
               type: string
               description: username of last user that published item to live repository
@@ -8916,7 +8712,7 @@ components:
           description: url for previewing content item
         systemType:
           type: string
-          description: one of predifined type values (page, component, asset, level descriptor, folder ...)
+          description: one of predefined type values (page, component, asset, level descriptor, folder ...)
         mimeType:
           type: string
           description: mime-type of content item file
@@ -9274,7 +9070,7 @@ components:
         numberOfEditedAndPublishedItems:
           type: integer
           format: int32
-          description: Number of editied and published items for given unit of time
+          description: Number of edited and published items for given unit of time
       required:
         - numberOfPublishes
         - numberOfNewAndPublishedItems

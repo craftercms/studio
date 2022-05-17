@@ -45,7 +45,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInter
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.UserService;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -59,7 +59,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,7 +82,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private ContentTypeServiceInternal contentTypeServiceInternal;
     private DependencyServiceInternal dependencyServiceInternal;
     private DeploymentService deploymentService;
-    private UserService userService;
+    private UserServiceInternal userServiceInternal;
     private SiteService siteService;
     private AuditServiceInternal auditServiceInternal;
     private ItemServiceInternal itemServiceInternal;
@@ -101,7 +100,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, path);
-        List<String> childItems = new ArrayList<String>();
+        List<String> childItems = new ArrayList<>();
         childItems.addAll(subtreeItems);
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, path));
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
@@ -113,7 +112,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
-        List<String> childItems = new ArrayList<String>();
+        List<String> childItems = new ArrayList<>();
         childItems.addAll(subtreeItems);
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, paths));
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
@@ -126,12 +125,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
-        List<String> contentToDelete = new ArrayList<String>();
-        contentToDelete.addAll(getChildItems(siteId, path));
+        List<String> contentToDelete = new ArrayList<>(getChildItems(siteId, path));
         contentToDelete.add(path);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
 
-        AuthenticatedUser currentUser = userService.getCurrentUser();
+        AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
                 DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
@@ -145,11 +143,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
-        List<String> contentToDelete = new ArrayList<String>();
+        List<String> contentToDelete = new ArrayList<>();
         contentToDelete.addAll(getChildItems(siteId, paths));
         contentToDelete.addAll(paths);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, true);
-        AuthenticatedUser currentUser = userService.getCurrentUser();
+        AuthenticatedUser currentUser = userServiceInternal.getCurrentUser();
         deploymentService.delete(siteId, contentToDelete, currentUser.getUsername(),
                 DateUtils.getCurrentTime(), submissionComment);
         itemServiceInternal.setSystemProcessingBulk(siteId, contentToDelete, false);
@@ -157,17 +155,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return true;
     }
 
-    private void insertDeleteContentApprovedActivity(String siteId, String aprover, List<String> contentToDelete)
+    private void insertDeleteContentApprovedActivity(String siteId, String approver, List<String> contentToDelete)
             throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_APPROVE);
-        auditLog.setActorId(aprover);
+        auditLog.setActorId(approver);
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteId);
-        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> auditLogParameters = new ArrayList<>();
         for (String itemToDelete : contentToDelete) {
             AuditLogParameter auditLogParameter = new AuditLogParameter();
             auditLogParameter.setTargetId(siteId + ":" + itemToDelete);
@@ -183,21 +181,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @HasPermission(type = DefaultPermission.class, action = "get_children")
     public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
-                                               String keyword, List<String> excludes, String sortStrategy, String order,
-                                               int offset, int limit)
+                                               String keyword, List<String> systemTypes, List<String> excludes,
+                                               String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, excludes, sortStrategy, order,
-                offset, limit);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public GetChildrenResult getChildrenById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String id,
-                                             String locale, String keyword, List<String> excludes, String sortStrategy,
-                                             String order, int offset, int limit)
-            throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getChildrenById(siteId, id, locale, keyword, excludes, sortStrategy, order,
-                offset, limit);
+        return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
+                                                        sortStrategy, order, offset, limit);
     }
 
     @Override
@@ -215,28 +203,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public DetailedItem getItemById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, long id,
-                                    boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getItemById(siteId, id, preferContent);
-    }
-
-    @Override
     @HasPermission(type = CompositePermission.class, action = "get_children")
     public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                    @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                                    boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, preferContent);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public List<SandboxItem> getSandboxItemsById(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                 List<Long> ids, boolean preferContent)
-            throws ServiceLayerException, UserNotFoundException {
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, preferContent);
     }
 
     @Override
@@ -298,7 +270,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     public Optional<Resource> getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path,
-                                                   String commitId) throws ContentNotFoundException, IOException {
+                                                   String commitId) throws ContentNotFoundException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
     }
 
@@ -323,8 +295,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.deploymentService = deploymentService;
     }
 
-    public void setUserService(UserService userService) {
-        this.userService = userService;
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
     }
 
     public void setSiteService(SiteService siteService) {

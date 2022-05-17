@@ -74,7 +74,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -441,7 +440,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
         itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
+                contentRepository.getRepoLastCommitId(siteId), true);
         generateAuditLog(siteId, configPath, currentUser);
         dependencyService.upsertDependencies(siteId, configPath);
     }
@@ -518,7 +517,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 contentService.writeContent(siteId, configPath, content);
                 String currentUser = securityService.getCurrentUser();
                 itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                        contentRepository.getRepoLastCommitId(siteId), Optional.of(true));
+                        contentRepository.getRepoLastCommitId(siteId), true);
                 generateAuditLog(siteId, configPath, currentUser);
                 dependencyService.upsertDependencies(siteId, configPath);
             } else {
@@ -549,7 +548,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException("Site " + siteId + " not found");
         }
-        String configPath = EMPTY;
+        String configPath;
         if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
@@ -572,7 +571,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         }
         ConfigurationHistory configurationHistory = new ConfigurationHistory();
         configurationHistory.setItem(contentService.getContentItem(siteId, configPath));
-        List<ContentItemVersion> versions = new ArrayList<ContentItemVersion>();
+        List<ContentItemVersion> versions = new ArrayList<>();
         VersionTO[] versionTOS = contentService.getContentItemVersionHistory(siteId, configPath);
         for (VersionTO v : versionTOS) {
             ContentItemVersion civ = new ContentItemVersion();
@@ -697,13 +696,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @SuppressWarnings("rawtypes,unchecked")
     private Map<String, Object> createMap(Element element) {
-        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<>();
         for (int i = 0, size = element.nodeCount(); i < size; i++) {
             Node currentNode = element.node(i);
             if (currentNode instanceof Element) {
                 Element currentElement = (Element) currentNode;
                 String key = currentElement.getName();
-                Object toAdd = null;
+                Object toAdd;
                 if (currentElement.isTextOnly()) {
                     toAdd = currentElement.getStringValue();
                 } else {
@@ -711,7 +710,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 }
                 if (map.containsKey(key)) {
                     Object value = map.get(key);
-                    List listOfValues = new ArrayList<Object>();
+                    List listOfValues = new ArrayList<>();
                     if (value instanceof List) {
                         listOfValues = (List<Object>) value;
                     } else {
@@ -778,20 +777,12 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         this.translationConfig = translationConfig;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
     public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
