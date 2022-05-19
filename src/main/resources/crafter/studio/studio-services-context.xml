@@ -189,7 +189,6 @@
           class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -938,9 +937,7 @@
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="gitLogDao" ref="gitLogDao" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
