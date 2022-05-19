@@ -21,7 +21,7 @@
 
 -->
 <notificationConfig>
-    <version>3</version>
+    <version>4</version>
     <lang name="en"> <!-- language specific notifications -->
         <deploymentFailureNotification> <!-- list of email addresses to notify in case of publishing failure -->
             <!--<email>admin@example.com</email>-->
@@ -78,11 +78,11 @@
                                     The following content was unable to deploy:
                                     <ul>
                                         <#list files as file>
-                                                <li>${file.internalName!file.name}</li>
+                                            <li>${file.action}: ${file.path} from package ${file.packageId}</li>
                                         </#list>
                                     </ul>
                                         Error:<br/>
-                                        ${deploymentError.toString()}
+                                        <pre>${deploymentError}</pre>
                                     <br/><br/>
                                 </p>
                             </body>

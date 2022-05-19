@@ -23,6 +23,7 @@ import java.util.Locale;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 
 /**
  * New Interface for Workflow Notification Service.
@@ -46,7 +47,7 @@ public interface NotificationService {
      * @param locale Language of the notification ,if null defaults to English.
      *
      */
-    void notifyDeploymentError(final String site, final Throwable throwable, List<String> filesUnableToPublish,
+    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish,
                                Locale locale);
 
     /**

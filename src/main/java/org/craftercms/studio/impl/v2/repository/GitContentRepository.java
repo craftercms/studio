@@ -1145,7 +1145,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         } catch (Exception e) {
             logger.error("Error when publishing site " + site + " to environment " + environment, e);
             throw new DeploymentException("Error when publishing site " + site + " to environment " +
-                    environment + " [commit ID = " + commitId + "]");
+                    environment + " [commit ID = " + commitId + "]", e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
