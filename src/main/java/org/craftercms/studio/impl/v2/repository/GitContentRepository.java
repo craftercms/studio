@@ -20,14 +20,18 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -64,21 +68,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.RingBuffer;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
-import org.eclipse.jgit.api.DiffCommand;
-import org.eclipse.jgit.api.FetchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.LogCommand;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.RmCommand;
-import org.eclipse.jgit.api.TagCommand;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -106,6 +97,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -113,22 +105,14 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.time.ZoneOffset.UTC;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -145,26 +129,11 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_PUBLISH_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_ROOT;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
-import static org.eclipse.jgit.lib.Constants.DOT_GIT_IGNORE;
-import static org.eclipse.jgit.lib.Constants.HEAD;
-import static org.eclipse.jgit.lib.Constants.MASTER;
-import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
-import static org.eclipse.jgit.lib.Constants.R_HEADS;
+import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 
@@ -1893,6 +1862,104 @@ public class GitContentRepository implements ContentRepository {
             logger.error("Failed to create environment " + environment + " branch in PUBLISHED repo for site " +
                     siteId, e);
             return false;
+        }
+    }
+
+    @Override
+    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+        // get the published repo
+        SiteFeed site = siteService.getSite(siteId);
+        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+        // if the published repo doesn't exist yet, create it and finish since it will be in sync already
+        if (repo == null) {
+            logger.info("Creating published repository for site {0}", siteId);
+            if (helper.createPublishedRepository(siteId, site.getSandboxBranch())) {
+                return;
+            } else {
+                throw new ServiceLayerException("Error creating published repository for site " + siteId);
+            }
+        }
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        generalLockService.lock(repoLockKey);
+        try {
+            try (Git git = Git.wrap(repo)) {
+                String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+                // checkout master and pull from sandbox
+                retryingRepositoryOperationFacade.call(git.checkout()
+                                                          .setName(site.getSandboxBranch()));
+                retryingRepositoryOperationFacade.call(git.pull()
+                                                          .setRemote(DEFAULT_REMOTE_NAME)
+                                                          .setStrategy(THEIRS));
+                // checkout target branch
+                retryingRepositoryOperationFacade.call(git.checkout()
+                                                          .setName(publishingTarget));
+
+                // checkout temp branch
+                retryingRepositoryOperationFacade.call(git.checkout()
+                                                          .setName(inProgressBranchName)
+                                                          .setCreateBranch(true));
+                // delete all files
+                File[] files = repo.getWorkTree()
+                        .listFiles((FileFilter) new NotFileFilter(new PrefixFileFilter(DOT_GIT)));
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        FileUtils.deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+                // checkout all files from master
+                retryingRepositoryOperationFacade.call(git.checkout()
+                                                          .setStartPoint(site.getSandboxBranch())
+                                                          .setAllPaths(true));
+
+                Status status = git.status().call();
+
+                // add deleted files (this is not done automatically by checkout)
+                if (CollectionUtils.isNotEmpty(status.getMissing())) {
+                    AddCommand add = git.add().setUpdate(true);
+                    status.getMissing().forEach(add::addFilepattern);
+                    retryingRepositoryOperationFacade.call(add);
+                }
+
+                List<String> patterns = studioConfiguration.getList(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX,
+                                                                             String.class);
+
+                List<String> ignored = status.getUncommittedChanges().stream()
+                                                                     .filter(path ->
+                                                                             RegexUtils.matchesAny(path, patterns))
+                                                                     .collect(toList());
+                if (CollectionUtils.isNotEmpty(ignored)) {
+                    RmCommand rm = git.rm();
+                    ignored.forEach(rm::addFilepattern);
+                    retryingRepositoryOperationFacade.call(rm);
+                }
+
+                try {
+                    // commit all files
+                    retryingRepositoryOperationFacade.call(git.commit()
+                                                              .setMessage(helper.getCommitMessage(
+                                                                      REPO_PUBLISH_ALL_COMMIT_MESSAGE))
+                                                              .setAllowEmpty(false));
+                    // checkout target branch
+                    retryingRepositoryOperationFacade.call(git.checkout()
+                                                              .setName(publishingTarget));
+                    // merge from temp branch
+                    retryingRepositoryOperationFacade.call(git.merge()
+                                                              .setCommit(true)
+                                                              .include(repo.findRef(inProgressBranchName)));
+                    // delete temp branch
+                    retryingRepositoryOperationFacade.call(git.branchDelete()
+                                                              .setBranchNames(inProgressBranchName));
+                } catch (EmptyCommitException e) {
+                    logger.info("No changes detected for site {0} in target {1}", siteId, publishingTarget);
+                }
+            } catch (GitAPIException | IOException e) {
+                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
+                        publishingTarget, e);
+            }
+        } finally {
+            generalLockService.unlock(repoLockKey);
         }
     }
 

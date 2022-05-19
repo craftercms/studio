@@ -392,4 +392,14 @@ public interface ContentRepository {
      * @param siteId site identifier
      */
     void initialPublish(String siteId) throws SiteNotFoundException;
+
+    /**
+     * Publishes all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+
 }

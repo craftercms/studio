@@ -46,6 +46,7 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
+import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -147,8 +148,7 @@ public class PublishServiceImpl implements PublishService {
         }
     }
 
-    private void createAuditLogEntry(SiteFeed siteFeed, String username, List<AuditLogParameter> auditLogParameters)
-            throws SiteNotFoundException {
+    private void createAuditLogEntry(SiteFeed siteFeed, String username, List<AuditLogParameter> auditLogParameters) {
 
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
@@ -228,6 +228,13 @@ public class PublishServiceImpl implements PublishService {
             }
         }
         return groups;
+    }
+
+    @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
+    public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget)
+        throws ServiceLayerException {
+        publishServiceInternal.publishAll(siteId, publishingTarget);
     }
 
     private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {

@@ -20,14 +20,11 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -377,7 +374,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
+    public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
         return localRepositoryV2.getContentByCommitId(site, path, commitId);
     }
 
@@ -471,19 +468,19 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         return localRepositoryV1.listRemote(siteId, sandboxBranch);
     }
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, CryptoException {
+            InvalidRemoteUrlException {
         return localRepositoryV1.pushToRemote(siteId, remoteName, remoteBranch);
     }
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, CryptoException {
+            InvalidRemoteUrlException {
         return localRepositoryV1.pullFromRemote(siteId, remoteName, remoteBranch);
     }
 
@@ -661,7 +658,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
+    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
         localRepositoryV2.updateGitlog(siteId, lastProcessedCommitId, batchSize);
     }
 
@@ -717,7 +714,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
+    public void initialPublish(String siteId) {
         try {
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
@@ -728,4 +725,17 @@ public class BlobAwareContentRepository implements ContentRepository,
             logger.error("Error performing initial publish for site {0}", e, siteId);
         }
     }
+
+    public void publishAll(String siteId, String publishingTarget) {
+        try {
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            for (StudioBlobStore blobStore : blobStores) {
+                blobStore.publishAll(siteId, publishingTarget);
+            }
+            localRepositoryV2.publishAll(siteId, publishingTarget);
+        } catch (Exception e) {
+            logger.error("Error performing initial publish for site {0}", e, siteId);
+        }
+    }
+
 }

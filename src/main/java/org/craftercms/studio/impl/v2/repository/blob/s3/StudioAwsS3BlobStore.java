@@ -20,7 +20,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -38,11 +37,7 @@ import java.util.Map;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.COPY_PART_SIZE;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.MIN_PART_SIZE;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFile;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFolder;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.uploadStream;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
 
 /**
  * Implementation of {@link StudioBlobStore} for AWS S3
@@ -342,7 +337,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
+    public void initialPublish(String siteId) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
 
@@ -359,6 +354,17 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
                     MIN_PART_SIZE, getClient());
         }
+    }
+
+    @Override
+    public void publishAll(String siteId, String publishingTarget) {
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
+        Mapping targetMapping = getMapping(publishingTarget);
+
+        logger.debug("Performing publish all for site {0} to {1}", siteId, targetMapping);
+        deleteFolder(targetMapping.target, targetMapping.prefix, getClient());
+        copyFolder(previewMapping.target, previewMapping.prefix, targetMapping.target, targetMapping.prefix,
+                MIN_PART_SIZE, getClient());
     }
 
 }

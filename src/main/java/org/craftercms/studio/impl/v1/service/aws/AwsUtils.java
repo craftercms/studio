@@ -105,6 +105,24 @@ public abstract class AwsUtils {
         }
     }
 
+    public static void deleteFolder(String bucketName, String prefix, AmazonS3 client) {
+        logger.debug("Deleting all files from {}/{}", bucketName, prefix);
+        ListObjectsV2Request listRequest = new ListObjectsV2Request()
+                .withBucketName(bucketName)
+                .withPrefix(prefix);
+        do {
+            ListObjectsV2Result result = client.listObjectsV2(bucketName, prefix);
+            listRequest.setContinuationToken(result.getContinuationToken());
+
+            DeleteObjectsRequest deleteRequest = new DeleteObjectsRequest(bucketName);
+            deleteRequest.withKeys(result.getObjectSummaries().stream()
+                                                              .map(S3ObjectSummary::getKey)
+                                                              .toArray(String[]::new));
+            client.deleteObjects(deleteRequest);
+        } while (isNotEmpty(listRequest.getContinuationToken()));
+        logger.debug("Completed delete from {}/{}", bucketName, prefix);
+    }
+
     public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
                                   int partSize, AmazonS3 client) {
         logger.debug("Copying all files from {}/{} to {}/{}", sourceBucket, sourcePrefix, destBucket, destPrefix);
