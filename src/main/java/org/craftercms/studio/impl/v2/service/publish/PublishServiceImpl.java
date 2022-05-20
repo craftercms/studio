@@ -58,12 +58,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
@@ -233,8 +232,23 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
     public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget)
-        throws ServiceLayerException {
+            throws ServiceLayerException, UserNotFoundException {
         publishServiceInternal.publishAll(siteId, publishingTarget);
+
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String username = securityService.getCurrentUser();
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_PUBLISH_ALL);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(username);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteId);
+        auditServiceInternal.insertAuditLog(auditLog);
+
+        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH_ALL,
+                getCurrentTime(), null, null);
     }
 
     private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {

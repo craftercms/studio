@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -41,6 +42,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
@@ -50,6 +52,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -64,6 +67,7 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -728,14 +732,41 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     public void publishAll(String siteId, String publishingTarget) {
         try {
+            RepositoryChanges gitChanges = localRepositoryV2.startPublishAll(siteId, publishingTarget);
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
-                blobStore.publishAll(siteId, publishingTarget);
+                // check if any of the changes belongs to the blob store
+                Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
+                Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+                if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
+                    blobStore.completePublishAll(siteId, publishingTarget,
+                                                 new RepositoryChanges(updatedBlobs, deletedBlobs));
+                }
             }
-            localRepositoryV2.publishAll(siteId, publishingTarget);
+            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
         } catch (Exception e) {
             logger.error("Error performing initial publish for site {0}", e, siteId);
         }
+    }
+
+    protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
+        return paths.stream()
+                    .map(path -> StringUtils.prependIfMissing(path, File.separator))
+                    .filter(blobStore::isCompatible)
+                    .map(this::getOriginalPath)
+                    .collect(toSet());
+    }
+
+    @Override
+    public RepositoryChanges startPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
     }
 
 }

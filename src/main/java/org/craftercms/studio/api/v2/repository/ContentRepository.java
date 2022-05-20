@@ -398,8 +398,28 @@ public interface ContentRepository {
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
+     */
+    void publishAll(String siteId, String publishingTarget);
+
+    /**
+     * Prepares the repository to publish all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @return the set of changed files
+     * @throws ServiceLayerException if there is any error during the preparation
+     */
+    RepositoryChanges startPublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+
+    /**
+     * Performs the actual publish of all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @param changes the set of changed files
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+            throws ServiceLayerException;
 
 }

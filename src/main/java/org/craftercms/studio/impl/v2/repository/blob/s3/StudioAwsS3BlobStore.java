@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 
@@ -358,13 +359,33 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public void publishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RepositoryChanges startPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 
         logger.debug("Performing publish all for site {0} to {1}", siteId, targetMapping);
-        deleteFolder(targetMapping.target, targetMapping.prefix, getClient());
-        copyFolder(previewMapping.target, previewMapping.prefix, targetMapping.target, targetMapping.prefix,
-                MIN_PART_SIZE, getClient());
+
+        for(String updatedPath : changes.getUpdatedPaths()) {
+            copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
+                     getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
+        }
+
+        for (String deletedPath : changes.getDeletedPaths()) {
+            getClient().deleteObject(targetMapping.target, getKey(targetMapping, deletedPath));
+        }
+
+        logger.debug("Completed publish all for site {0} to {1}", siteId, targetMapping);
     }
 
 }

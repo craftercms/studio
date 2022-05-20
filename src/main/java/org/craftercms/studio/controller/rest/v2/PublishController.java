@@ -215,7 +215,8 @@ public class PublishController {
     }
 
     @PostMapping("/all")
-    public ResponseBody publishAll(@Valid @RequestBody PublishAllRequest request) throws ServiceLayerException {
+    public ResponseBody publishAll(@Valid @RequestBody PublishAllRequest request)
+            throws ServiceLayerException, UserNotFoundException {
         publishService.publishAll(request.getSiteId(), request.getPublishingTarget());
 
         Result result = new Result();
