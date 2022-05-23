@@ -711,19 +711,21 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
         if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info1("Using search engine '{}' from plugin descriptor", searchEngine);
+            logger.info("Using search engine '{}' based on the configuration of the plugin descriptor while " +
+                    "creating site '{}'", searchEngine, siteId);
         } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info1("Using search engine '{}' from blueprint descriptor", searchEngine);
+            logger.info("Using search engine '{}' based on the configuration of the blueprint while " +
+                    "creating site '{}'", searchEngine, siteId);
         } else {
-            logger.info1("Missing descriptor, using default search engine {}", searchEngine);
+            logger.info("Using default search engine '{}' while creating site '{}'", searchEngine, siteId);
         }
 
         if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
-            logger.error1("Error creating site {}, unsupported search engine CrafterSearch, please update your " +
+            logger.error("Failed to create site '{}'. Unsupported search engine '{}', please update your " +
                 "site to use Elasticsearch. For more information see " +
                 "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
-                siteId);
+                siteId, SearchEngines.CRAFTER_SEARCH);
 
             // rollback ...
             contentRepositoryV2.removeRemote(siteId, remoteName);
@@ -737,17 +739,17 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (success) {
             // Create the site in the preview deployer
             try {
-                logger.info1("Creating Deployer targets for site " + siteId);
+                logger.info("Create Deployer targets for site '{}'", siteId);
                 deployer.createTargets(siteId);
             } catch (Exception e) {
-                logger.error1("Error while creating site: " + siteId + " ID: " + siteId + " as clone from" +
-                        " remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back...", e);
+                logger.error("Failed to create Deployer targets for site '{}' as a clone of '{}' url '{}' " +
+                        "branch '{}'. Site creation failed.", siteId, remoteName, remoteUrl, remoteBranch, e);
 
                 contentRepositoryV2.removeRemote(siteId, remoteName);
                 boolean deleted = contentRepository.deleteSite(siteId);
 
                 if (!deleted) {
-                    logger.error1("Error while rolling back site: " + siteId);
+                    logger.error("Failed to rollback site creation for site '{}'.", siteId);
                 }
 
                 throw new DeployerTargetException("Error while creating site: " + siteId + " ID: " + siteId +
@@ -761,11 +763,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             ZonedDateTime now = DateUtils.getCurrentTime();
             String creator = securityService.getCurrentUser();
             try {
-                logger.debug1("Adding site UUID.");
+                logger.debug("Adding site UUID to site '{}'", siteId);
                 addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
-                logger.info1("Adding site record to database for site " + siteId);
+                logger.debug("Adding site record to the database for site '{}'", siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
                 siteFeed.setSiteId(siteId);
@@ -779,7 +781,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 
                 // Add default groups
-                logger.info1("Adding default groups for site " + siteId);
+                logger.info("Adding default groups to site '{}'", siteId);
                 addDefaultGroupsForNewSite(siteId);
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
