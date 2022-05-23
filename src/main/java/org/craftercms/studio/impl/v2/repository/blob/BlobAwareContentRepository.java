@@ -207,7 +207,9 @@ public class BlobAwareContentRepository implements ContentRepository,
             if (pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
-                    return store.getContentSize(site, normalize(path));
+                    // Don't populate the file size for blob-store backed files due to performance reasons
+                    return -1L;
+                    // return store.getContentSize(site, normalize(path));
                 }
             }
             return localRepositoryV2.getContentSize(site, path);
