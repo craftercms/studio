@@ -847,9 +847,7 @@ public class GitContentRepository implements ContentRepository {
                         checkoutBranch(git, sandboxBranchName, createBranch);
 
                         logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
-                        DeleteBranchCommand deleteBranchCommand =
-                                git.branchDelete().setBranchNames(inProgressBranchName).setForce(true);
-                        retryingRepositoryOperationFacade.call(deleteBranchCommand);
+                        deleteBranches(git, inProgressBranchName);
 
                         PullCommand pullCommand = git.pull().
                                 setRemote(DEFAULT_REMOTE_NAME)
@@ -1057,10 +1055,8 @@ public class GitContentRepository implements ContentRepository {
 
                     // clean up
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
-                    DeleteBranchCommand deleteBranchCommand =
-                            git.branchDelete().setBranchNames(inProgressBranchName).setForce(true);
-                    retryingRepositoryOperationFacade.call(deleteBranchCommand);
-                    git.close();
+                    deleteBranches(git, inProgressBranchName);
+
                     if (repoCreated) {
                         siteService.setPublishedRepoCreated(site);
                     }
@@ -1092,6 +1088,14 @@ public class GitContentRepository implements ContentRepository {
 
     protected void checkoutBranch(Git git, String name) throws GitAPIException {
         checkoutBranch(git, name, false);
+    }
+
+    protected void deleteBranches(Git git, String... names) throws GitAPIException {
+        DeleteBranchCommand deleteCommand = git.branchDelete()
+                                               .setForce(true)
+                                               .setBranchNames(names);
+
+        retryingRepositoryOperationFacade.call(deleteCommand);
     }
 
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
@@ -1256,11 +1260,7 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
             if (CollectionUtils.isNotEmpty(branchesToDelete)) {
-                DeleteBranchCommand delBranch = git.branchDelete();
-                String[] array = new String[branchesToDelete.size()];
-                delBranch.setBranchNames(branchesToDelete.toArray(array));
-                delBranch.setForce(true);
-                retryingRepositoryOperationFacade.call(delBranch);
+                deleteBranches(git, branchesToDelete.toArray(new String[]{}));
             }
 
         } catch (GitAPIException e) {
@@ -1882,7 +1882,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public RepositoryChanges startPublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
         // get the published repo
         SiteFeed site = siteService.getSite(siteId);
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
@@ -1927,7 +1927,9 @@ public class GitContentRepository implements ContentRepository {
                                                       .setAllPaths(true));
 
             Status status = git.status().call();
-            Set<String> updatedPaths = new HashSet<>(status.getUncommittedChanges());
+            Set<String> updatedPaths = new HashSet<>();
+            updatedPaths.addAll(status.getAdded());
+            updatedPaths.addAll(status.getChanged());
             Set<String> deletedPaths = new HashSet<>(status.getMissing());
 
             // remove files from the restricted list
@@ -1998,6 +2000,25 @@ public class GitContentRepository implements ContentRepository {
             }
         } finally {
             // unlock the repo in any case
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+        try (Git git = Git.wrap(repo)) {
+            resetIfNeeded(repo, git);
+
+            checkoutBranch(git, publishingTarget);
+
+            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+            deleteBranches(git, inProgressBranchName);
+        } catch (GitAPIException | IOException e) {
+            throw new ServiceLayerException("Error canceling all changes for site " + siteId + " to target " +
+                    publishingTarget, e);
+        } finally {
             generalLockService.unlock(repoLockKey);
         }
     }

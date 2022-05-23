@@ -730,9 +730,9 @@ public class BlobAwareContentRepository implements ContentRepository,
         }
     }
 
-    public void publishAll(String siteId, String publishingTarget) {
+    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
         try {
-            RepositoryChanges gitChanges = localRepositoryV2.startPublishAll(siteId, publishingTarget);
+            RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 // check if any of the changes belongs to the blob store
@@ -745,7 +745,13 @@ public class BlobAwareContentRepository implements ContentRepository,
             }
             localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
         } catch (Exception e) {
-            logger.error("Error performing initial publish for site {0}", e, siteId);
+            localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
+            if (e instanceof ServiceLayerException) {
+                throw e;
+            } else {
+                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
+                                                publishingTarget, e);
+            }
         }
     }
 
@@ -758,13 +764,19 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public RepositoryChanges startPublishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
         // this method should not be called directly
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) {
         // this method should not be called directly
         throw new UnsupportedOperationException();
     }

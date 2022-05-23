@@ -20,6 +20,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -364,7 +365,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public RepositoryChanges startPublishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
         // this method should not be called
         throw new UnsupportedOperationException();
     }
@@ -386,6 +387,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         }
 
         logger.debug("Completed publish all for site {0} to {1}", siteId, targetMapping);
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
     }
 
 }
