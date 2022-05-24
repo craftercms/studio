@@ -48,6 +48,7 @@
         <sec:logout success-handler-ref="logoutSuccessHandler"/>
 
         <sec:custom-filter ref="crafter.secureHeaderWriterFilter" position="HEADERS_FILTER"/>
+        <sec:custom-filter ref="studio.loginPageFilter" before="FORM_LOGIN_FILTER"/>
 
         <sec:intercept-url request-matcher-ref="publicUrlMatcher" access="permitAll()"/>
         <sec:intercept-url pattern="/login" access="permitAll()"/>
