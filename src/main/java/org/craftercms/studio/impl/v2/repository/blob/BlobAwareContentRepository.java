@@ -20,14 +20,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -44,6 +42,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
@@ -53,6 +52,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -67,6 +67,7 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -379,7 +380,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public Optional<Resource> getContentByCommitId(String site, String path, String commitId) throws ContentNotFoundException {
+    public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
         return localRepositoryV2.getContentByCommitId(site, path, commitId);
     }
 
@@ -473,19 +474,19 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         return localRepositoryV1.listRemote(siteId, sandboxBranch);
     }
 
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, CryptoException {
+            InvalidRemoteUrlException {
         return localRepositoryV1.pushToRemote(siteId, remoteName, remoteBranch);
     }
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
-            InvalidRemoteUrlException, CryptoException {
+            InvalidRemoteUrlException {
         return localRepositoryV1.pullFromRemote(siteId, remoteName, remoteBranch);
     }
 
@@ -663,7 +664,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException {
+    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
         localRepositoryV2.updateGitlog(siteId, lastProcessedCommitId, batchSize);
     }
 
@@ -719,7 +720,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
+    public void initialPublish(String siteId) {
         try {
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
@@ -730,4 +731,56 @@ public class BlobAwareContentRepository implements ContentRepository,
             logger.error("Error performing initial publish for site {0}", e, siteId);
         }
     }
+
+    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+        try {
+            RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            for (StudioBlobStore blobStore : blobStores) {
+                // check if any of the changes belongs to the blob store
+                Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
+                Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+                if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
+                    blobStore.completePublishAll(siteId, publishingTarget,
+                                                 new RepositoryChanges(updatedBlobs, deletedBlobs));
+                }
+            }
+            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+        } catch (Exception e) {
+            localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
+            if (e instanceof ServiceLayerException) {
+                throw e;
+            } else {
+                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
+                                                publishingTarget, e);
+            }
+        }
+    }
+
+    protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
+        return paths.stream()
+                    .map(path -> StringUtils.prependIfMissing(path, File.separator))
+                    .filter(blobStore::isCompatible)
+                    .map(this::getOriginalPath)
+                    .collect(toSet());
+    }
+
+    @Override
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
 }
