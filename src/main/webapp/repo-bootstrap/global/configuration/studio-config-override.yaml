@@ -131,4 +131,4 @@
 ##                   Cookies                    ##
 ##################################################
 # Use base domain instead of subdomain for the crafterSite cookie
-studio.cookie.useBaseDomain: true
+studio.cookie.useBaseDomain: false
