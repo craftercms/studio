@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
@@ -120,4 +122,14 @@ public interface PublishServiceInternal {
      */
     List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments, ZonedDateTime fromDate,
                                                      ZonedDateTime toDate, String filterType, int numberOfItems);
+
+    /**
+     * Publishes all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException;
+
 }

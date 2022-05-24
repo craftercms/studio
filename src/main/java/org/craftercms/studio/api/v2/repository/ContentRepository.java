@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.repository;
 
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -305,4 +306,43 @@ public interface ContentRepository {
      * @param audited true if already audited
      */
     void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited);
+
+    /**
+     * Publishes all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     */
+    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException;
+
+    /**
+     * Prepares the repository to publish all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @return the set of changed files
+     * @throws ServiceLayerException if there is any error during the preparation
+     */
+    RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException;
+
+    /**
+     * Performs the actual publish of all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @param changes the set of changed files
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+            throws ServiceLayerException, CryptoException;
+
+    /**
+     * Performs the cleanup after a failed publish all operation for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @throws ServiceLayerException if there is any error during cleanup
+     */
+    void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException;
+
 }
