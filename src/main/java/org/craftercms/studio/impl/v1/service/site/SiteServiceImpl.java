@@ -791,8 +791,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 Map<String, String> createdFiles =
                         contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
                 if (logger.isDebugEnabled()) {
-                    logger.debug1("Get change set created files finished in " +
-                            (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
+                    logger.debug("Get the change-set of created files finished in '{}' milliseconds",
+                            (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
                 }
 
                 insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch);
@@ -804,11 +804,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
-                logger.info1("Loading configuration for site " + siteId);
+                logger.info("Loading the configuration for site '{}'", siteId);
             } catch (Exception e) {
                 success = false;
-                logger.error1("Error while creating site: " + siteId + " ID: " + siteId + " as clone from " +
-                        "remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
+                logger.error("Failed to create site '{}' by cloning '{}' url '{}' branch '{}'",
+                        siteId, remoteName, remoteUrl, remoteBranch, e);
 
                 deleteSite(siteId);
 
@@ -819,12 +819,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         if (success) {
             // Now that everything is created, we can sync the preview deployer with the new content
-            logger.info1("Sync all site content to preview for " + siteId);
+            logger.info("Sync site '{}' to preview", siteId);
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
-                logger.error1("Error while syncing site: " + siteId + " ID: " + siteId + " to preview. Site was "
-                        + "successfully created otherwise. Ignoring.", e);
+                // TODO: SJ: This seems to leave the site in a bad state, review
+                logger.error("Failed to sync site '{}' to preview. Site will become previewable once " +
+                        "the preview deployer is reachable.", siteId, e);
 
                 throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId +
                         " to preview. Site was successfully created, but it won't be preview-able until the " +
@@ -834,43 +835,47 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         } else {
             throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
         }
-        logger.info1("Finished creating site " + siteId);
+        logger.info("Site '{}' created successfully", siteId);
     }
 
     @Override
     @ValidateParams
     public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
         boolean success = true;
-        logger.debug1("Deleting site:" + siteId);
+        logger.info("Delete site '{}'", siteId);
         try {
+            logger.debug("Disable publishing for site '{}' prior to deleting it", siteId);
             enablePublishing(siteId, false);
         } catch (SiteNotFoundException e) {
             success = false;
-            logger.error1("Failed to stop publishing for site:" + siteId, e);
+            logger.error("Failed to stop publishing for site '{}'", siteId, e);
         }
 
         try {
-            logger.debug1("Deleting Deployer targets");
+            logger.debug("Delete the Deployer targets for site '{}'", siteId);
 
             deployer.deleteTargets(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error1("Failed to delete the Deployer target for sites:" + siteId, e);
+            logger.error("Failed to delete the Deployer targets for site '{}'", siteId, e);
         }
 
         try {
+            logger.debug("Destroy the preview context for site '{}'", siteId);
+
             success = success && destroySitePreviewContext(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error1("Failed to destroy the preview context for site:" + siteId, e);
+            logger.error("Failed to destroy the preview context for site '{}'", siteId, e);
         }
 
         try {
-            logger.debug1("Deleting repo");
+            logger.debug("Delete the git repo for site '{}'", siteId);
+
             contentRepository.deleteSite(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error1("Failed to delete the repository for site:" + siteId, e);
+            logger.error("Failed to delete the repository for site '{}'", siteId, e);
         }
 
         // clear cache
@@ -878,7 +883,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         try {
             // delete database records
-            logger.debug1("Deleting database records");
+            logger.debug("Delete the database records for site '{}'", siteId);
             SiteFeed siteFeed = getSite(siteId);
             workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
             retryingDatabaseOperationFacade.deleteSite(siteId, STATE_DELETED);
@@ -893,7 +898,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             insertDeleteSiteAuditLog(siteId, siteFeed.getName());
         } catch (Exception e) {
             success = false;
-            logger.error1("Failed to delete the database for site:" + siteId, e);
+            logger.error("Failed to delete the database records for site '{}'", siteId, e);
         }
 
         return success;
@@ -927,7 +932,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 toReturn = false;
             }
         } catch (IOException e) {
-            logger.error1("Error while sending destroy preview context request for site " + site, e);
+            logger.error("Failed to send the destroy preview context request for site '{}'", site, e);
             toReturn = false;
         } finally {
             getRequest.releaseConnection();
@@ -951,7 +956,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
                 blueprintTO.id = folder.name;
                 blueprintTO.label = StringUtils.capitalize(folder.name);
-                blueprintTO.description = ""; // How do we populate this dynamicly
+                blueprintTO.description = ""; // How do we populate this dynamically
                 blueprintTO.screenshots = null;
                 blueprints.add(blueprintTO);
             }
@@ -1032,23 +1037,24 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
                 repoLastCommitId);
         if (logger.isDebugEnabled()) {
-            logger.debug1("Get Repo Operations from Delta finished in " +
-                    (System.currentTimeMillis() - startGetOperationsFromDeltaMark) + " milliseconds");
-            logger.debug1("Number of Repo operations from delta " + repoOperationsDelta.size());
+            logger.debug("Get Repo Operations from Delta finished in '{}' milliseconds",
+                    (System.currentTimeMillis() - startGetOperationsFromDeltaMark));
+            logger.debug("The number of repo operations from delta is '{}'", repoOperationsDelta.size());
         }
         if (CollectionUtils.isEmpty(repoOperationsDelta)) {
-            logger.debug1("Database is up to date with repository for site: " + site);
+            logger.debug("The database is up to date with the repository for site '{}'", site);
             contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
             updateLastCommitId(site, repoLastCommitId);
             updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             return toReturn;
         }
 
-        logger.info1("Syncing database with repository for site: " + site + " fromCommitId = " +
-                (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId));
-        logger.debug1("Operations to sync: ");
+        logger.info("Sync the database with the repository for site '{}' starting at commit ID '{}'",
+                site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId));
+        logger.debug("The operations to sync for site '{}' are", site);
         for (RepoOperation repoOperation : repoOperationsDelta) {
-            logger.debug1("\tOperation: " + repoOperation.getAction().toString() + " " + repoOperation.getPath());
+            logger.debug("\tSite '{}' Operation '{}' path '{}'",
+                    site, repoOperation.getAction().toString(), repoOperation.getPath());
         }
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
@@ -1063,35 +1069,37 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
         } catch (IOException e) {
-            logger.error1("Error while creating DB script file for processing created files for site " + site);
+            logger.error("Failed to create the database script for processing the created files in site '{}'", site);
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug1("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+            logger.debug("Database update completed in '{}' milliseconds",
+                    (System.currentTimeMillis() - startUpdateDBMark));
         }
 
         // At this point we have attempted to process all operations, some may have failed
         // We will update the lastCommitId of the database ignoring errors if any
-        logger.debug1("Done syncing operations with a result of: " + toReturn);
-        logger.debug1("Syncing database lastCommitId for site: " + site);
+        logger.debug("Done syncing repo operations to the database with a result of '{}'", toReturn);
+        logger.debug("Sync the database lastCommitId for site '{}'", site);
 
         // Update database
-        logger.debug1("Update last commit id " + repoLastCommitId + " for site " + site);
+        logger.debug("Update the last commit id '{}' in site '{}'", repoLastCommitId, site);
         updateLastCommitId(site, repoLastCommitId);
         updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
         if (logger.isDebugEnabled()) {
-            logger.debug1("Update DB finished in " + (System.currentTimeMillis() - startUpdateDBMark) + " milliseconds");
+            logger.debug("Update the database finished in '{}' milliseconds",
+                    (System.currentTimeMillis() - startUpdateDBMark));
         }
 
-        logger.info1("Done syncing database with repository for site: " + site + " fromCommitId = " +
-                (StringUtils.isEmpty(fromCommitId) ? "Empty repo" : fromCommitId) + " with a final result of: " +
-                toReturn);
-        logger.info1("Last commit ID for site: " + site + " is " + repoLastCommitId);
+        logger.info("Done syncing the database with the git repository for site '{}' starting at commit ID '{}' " +
+                "with a final result of '{}'",
+                site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId), toReturn);
+        logger.info("The last commit ID for site '{}' is now '{}'", site, repoLastCommitId);
 
         if (!toReturn) {
             // Some operations failed during sync database from repo
             // Must log and make some noise here, this isn't great
-            logger.error1("Some operations failed to sync to database for site: " + site + " see previous error logs");
+            logger.error("Some operations failed to sync to the database for site '{}', see prior errors", site);
         }
 
         if (logger.isDebugEnabled()) {
