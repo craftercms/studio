@@ -16,11 +16,11 @@
 package org.craftercms.studio.impl.v2.repository.blob.s3;
 
 import com.amazonaws.services.s3.model.*;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -31,10 +31,7 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.getExtension;
@@ -382,8 +379,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                      getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
         }
 
-        for (String deletedPath : changes.getDeletedPaths()) {
-            getClient().deleteObject(targetMapping.target, getKey(targetMapping, deletedPath));
+        DeleteObjectsRequest request = new DeleteObjectsRequest(targetMapping.target);
+        for (List<String> batch : ListUtils.partition(new LinkedList<>(changes.getDeletedPaths()), DELETE_BATCH_SIZE)) {
+            request.withKeys(batch.stream()
+                                  .map(path -> getKey(targetMapping, path))
+                                  .toArray(String[]::new));
+            getClient().deleteObjects(request);
         }
 
         logger.debug("Completed publish all for site {0} to {1}", siteId, targetMapping);
