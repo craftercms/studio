@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
@@ -44,6 +45,7 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
@@ -52,6 +54,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -65,6 +68,7 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -699,4 +703,56 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
     }
+
+    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException {
+        try {
+            RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            for (StudioBlobStore blobStore : blobStores) {
+                // check if any of the changes belongs to the blob store
+                Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
+                Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+                if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
+                    blobStore.completePublishAll(siteId, publishingTarget,
+                                                 new RepositoryChanges(updatedBlobs, deletedBlobs));
+                }
+            }
+            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+        } catch (Exception e) {
+            localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
+            if (e instanceof ServiceLayerException) {
+                throw e;
+            } else {
+                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
+                                                publishingTarget, e);
+            }
+        }
+    }
+
+    protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
+        return paths.stream()
+                    .map(path -> StringUtils.prependIfMissing(path, File.separator))
+                    .filter(blobStore::isCompatible)
+                    .map(this::getOriginalPath)
+                    .collect(toSet());
+    }
+
+    @Override
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
 }

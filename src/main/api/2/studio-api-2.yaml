@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '3.1.23'
+  version: '3.1.24'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -3786,6 +3786,48 @@ paths:
                 siteId:
                   type: string
                   description: site ID
+              required:
+                - siteId
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /publish/all:
+    post:
+      tags:
+        - publishing
+      summary: Publishes the entire project to the target (staging or live)
+      description: 'Required permission "Publish"'
+      operationId: publishAll
+      requestBody:
+        description: publish all request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site ID
+                publishingTarget:
+                    type: string
+                    description: the publishing target (staging or live). If not specified, live is assumed
               required:
                 - siteId
       responses:

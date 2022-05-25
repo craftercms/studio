@@ -31,4 +31,6 @@ public interface StudioPermissions {
     /** Sites Service */
     String ACTION_PUBLISH_STATUS = "publish_status";
     String ACTION_PUBLISH_CLEAR_LOCK = "publish_clear_lock";
+
+    String PERMISSION_PUBLISH = "publish";
 }

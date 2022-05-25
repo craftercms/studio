@@ -16,7 +16,10 @@
 
 package org.craftercms.studio.api.v2.service.publish;
 
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
@@ -121,4 +124,14 @@ public interface PublishService {
      */
     List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
                                                       String filterType);
+
+    /**
+     * Publishes all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, UserNotFoundException, CryptoException;
+
 }
