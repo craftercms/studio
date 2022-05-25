@@ -20,12 +20,14 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+
 import org.craftercms.commons.aop.AopUtils;
+import org.craftercms.commons.git.utils.GitUtils;
+
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitRepositoryLockedException;
-import org.craftercms.studio.impl.v2.utils.GitUtils;
 
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.errors.LockFailedException;

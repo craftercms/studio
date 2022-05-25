@@ -30,7 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.studio.impl.v2.utils.GitUtils;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -1052,7 +1052,6 @@ public class GitRepositoryHelper {
                 logger.info("Detected existing global repository, will not create new one.");
                 // unlock if global repository is locked
                 String path = globalConfigRepoPath.getParent().toAbsolutePath().toString();
-                logger.info(path);
                 if (GitUtils.isRepositoryLocked(path)) {
                     try {
                         logger.warn("The global repository '{}' is locked, trying to unlock it", path);
