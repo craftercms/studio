@@ -42,11 +42,7 @@ import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteSetUrlCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -507,7 +503,7 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             remotesMap.put(siteId, remoteLastSyncCommits);
         }
         try (Git git = new Git(repo)) {
-            logger.debug("Update content from each active cluster memeber");
+            logger.debug("Update content from each active cluster member");
             for (ClusterMember remoteNode : clusterNodes) {
                 ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
                 if (Objects.nonNull(csr) && StringUtils.equals(csr.getState(), STATE_CREATED)) {
@@ -521,32 +517,40 @@ public class StudioClusterSandboxRepoSyncTask extends StudioClockClusterTask {
             PreviewEventContext context = new PreviewEventContext();
             context.setSite(siteId);
             eventService.publish(EVENT_PREVIEW_SYNC, context);
-        } catch (GitAPIException e) {
-            logger.error("Error while syncing cluster node content for site " + siteId);
         }
     }
 
     private void updateBranch(String siteId, Git git, ClusterMember remoteNode, String sandboxBranchName)
-            throws CryptoException, GitAPIException, IOException, ServiceLayerException {
+            throws CryptoException, IOException, ServiceLayerException {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         if (generalLockService.tryLock(gitLockKey)) {
             try {
-
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand.setRemoteBranchName(sandboxBranchName);
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
                 pullCommand.call();
-
+            } catch (GitAPIException e) {
+                logger.error("Error while updating sandbox repo for site {0} from cluster node {1}",
+                             e, siteId, remoteNode);
+                try {
+                    // Clean up the repo to avoid exceptions in the future
+                    logger.debug("Cleaning sandbox repository for site " + siteId);
+                    git.reset()
+                       .setMode(ResetCommand.ResetType.HARD)
+                       .call();
+                } catch (GitAPIException e2) {
+                    throw new ServiceLayerException("Error cleaning sandbox repository for site " + siteId, e2);
+                }
             } finally {
+                Files.deleteIfExists(tempKey);
                 generalLockService.unlock(gitLockKey);
             }
         } else {
             logger.debug("Failed to get lock " + gitLockKey);
         }
 
-        Files.delete(tempKey);
     }
 
 }

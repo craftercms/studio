@@ -40,12 +40,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.FetchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteSetUrlCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
@@ -371,13 +366,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
                         for (ClusterMember remoteNode : clusterNodes) {
                             ClusterSiteRecord csr = clusterDao.getClusterSiteRecord(remoteNode.getId(), sId);
                             if (Objects.nonNull(csr) && csr.getPublishedRepoCreated() > 0) {
-                                try {
-                                    updatePublishedBranch(siteId, git, remoteNode, branch);
-                                } catch (GitAPIException e) {
-                                    logger.error("Error while updating published repo for site " + siteId + " from remote " +
-                                            remoteNode.getGitRemoteName() + " environment " + branch);
-                                    logger.error(e.getMessage());
-                                }
+                                updatePublishedBranch(siteId, git, remoteNode, branch);
                             }
                         }
                     }
@@ -401,7 +390,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
     }
 
     private void updatePublishedBranch(String siteId, Git git, ClusterMember remoteNode, String branch)
-            throws CryptoException, GitAPIException, IOException, ServiceLayerException {
+            throws CryptoException, IOException, ServiceLayerException {
         logger.debug("Update published environment " + branch + " from " + remoteNode.getLocalAddress() +
                 " for site " + siteId);
         final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
@@ -409,21 +398,43 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
         Ref ref = repo.exactRef(Constants.R_HEADS + branch);
         boolean createBranch = (ref == null);
 
-        logger.debug("Checkout " + branch);
-        CheckoutCommand checkoutCommand = git.checkout()
-                .setName(branch)
-                .setCreateBranch(createBranch);
-        if (createBranch) {
-            checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
+        try {
+            logger.debug("Checkout " + branch);
+            CheckoutCommand checkoutCommand = git.checkout()
+                    .setName(branch)
+                    .setCreateBranch(createBranch);
+            if (createBranch) {
+                checkoutCommand.setStartPoint(remoteNode.getGitRemoteName() + "/" + branch);
+            }
+            checkoutCommand.call();
+            CheckoutResult result = checkoutCommand.getResult();
+            // If the checkout didn't throw an exception but still failed
+            if (result.getStatus() != CheckoutResult.Status.OK) {
+                // Throw an exception to trigger the cleanup
+                throw new IllegalStateException("Checkout failed for site " + siteId + " branch " + branch +
+                                                "with status " + result.getStatus());
+            }
+
+            PullCommand pullCommand = git.pull();
+            pullCommand.setRemote(remoteNode.getGitRemoteName());
+            pullCommand.setRemoteBranchName(branch);
+            pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
+            pullCommand.call();
+        } catch (GitAPIException | IllegalStateException e) {
+            logger.error("Error while updating published repo for site {0} from cluster member {1} environment {2}",
+                         e, siteId, remoteNode, branch);
+            try {
+                // Clean up the repo to avoid exceptions in the future
+                logger.debug("Cleaning published repository for site " + siteId);
+                git.reset()
+                   .setMode(ResetCommand.ResetType.HARD)
+                   .call();
+            } catch (GitAPIException e2) {
+                throw new ServiceLayerException("Error cleaning published repository for site " + siteId, e2);
+            }
+        } finally {
+            Files.deleteIfExists(tempKey);
         }
-        checkoutCommand.call();
 
-        PullCommand pullCommand = git.pull();
-        pullCommand.setRemote(remoteNode.getGitRemoteName());
-        pullCommand.setRemoteBranchName(branch);
-        pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
-        pullCommand.call();
-
-        Files.delete(tempKey);
     }
 }
