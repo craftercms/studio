@@ -496,6 +496,7 @@
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
+        <property name="objectStateService" ref="cstudioObjectStateService"/>
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">

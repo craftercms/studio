@@ -17,6 +17,10 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
+import org.craftercms.studio.api.v1.service.objectstate.State;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
@@ -27,7 +31,7 @@ import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
-;
+
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +47,8 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     private PublishRequestDAO publishRequestDao;
     private ContentRepository contentRepository;
     private DmFilterWrapper dmFilterWrapper;
+
+    private ObjectStateService objectStateService;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -144,6 +150,14 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         return publishRequestDao;
     }
 
+    @Override
+    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException {
+        // do the operations in the repo
+        contentRepository.publishAll(siteId, publishingTarget);
+        // update the state for all items
+        objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+    }
+
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
     }
@@ -163,4 +177,9 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
         this.dmFilterWrapper = dmFilterWrapper;
     }
+
+    public void setObjectStateService(ObjectStateService objectStateService) {
+        this.objectStateService = objectStateService;
+    }
+
 }

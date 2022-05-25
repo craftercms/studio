@@ -17,12 +17,15 @@
 package org.craftercms.studio.impl.v2.service.publish;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.ItemMetadata;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -41,6 +44,7 @@ import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
+import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -55,12 +59,9 @@ import java.util.Set;
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE;
 import static org.craftercms.studio.api.v1.service.objectstate.State.NEW_UNPUBLISHED_UNLOCKED;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_CANCEL_PUBLISH;
-import static org.craftercms.studio.permissions.StudioPermissions.ACTION_GET_PUBLISHING_QUEUE;
+import static org.craftercms.studio.permissions.StudioPermissions.*;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -236,6 +237,24 @@ public class PublishServiceImpl implements PublishService {
             }
         }
         return groups;
+    }
+
+    @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
+    public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget)
+            throws ServiceLayerException, UserNotFoundException, CryptoException {
+        publishServiceInternal.publishAll(siteId, publishingTarget);
+
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String username = securityService.getCurrentUser();
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_PUBLISH_ALL);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(username);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteId);
+        auditServiceInternal.insertAuditLog(auditLog);
     }
 
     private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
