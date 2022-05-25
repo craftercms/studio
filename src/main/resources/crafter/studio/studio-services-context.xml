@@ -466,11 +466,11 @@
         <property name="contentTypeService" ref="cstudioContentTypeService" />
         <property name="securityService" ref="cstudioSecurityService" />
      </bean>
-    
+
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
     </bean>
-    
+
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -574,8 +574,8 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="clusterDAO" ref="clusterDao" />
     </bean>
-    
-    <bean id="studioClusterNodeInactivityCheckJob" 
+
+    <bean id="studioClusterNodeInactivityCheckJob"
           class="org.craftercms.studio.impl.v2.service.cluster.StudioNodeActivityCheckJob">
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="clusterDao" ref="clusterDao"/>
@@ -1437,6 +1437,20 @@
 
     <bean id="forwardedHeaderFilter" class="org.craftercms.commons.web.ForwardedHeaderFilter">
         <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
+    </bean>
+
+    <!-- ////////////////////////////////////// -->
+    <!--          Unlock Repositories           -->
+    <!-- ////////////////////////////////////// -->
+    <bean id="studioRepositoryStartupCleanup" depends-on="databaseInitializer"
+            class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup" init-method="unlockRepositories">
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="userServiceInternal" ref="userServiceInternal" />
+        <property name="encryptor" ref="internalTextEncryptor"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
