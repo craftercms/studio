@@ -78,7 +78,9 @@ class EnvironmentOverrides {
       } else {
         def sites = SiteServices.getSitesPerUser(context, 0, 25)
         if (sites.isEmpty()) {
-          response.sendRedirect("/studio/?noSites")
+          if (!request.getQueryString()?.contains('noSites') && request.getRequestURI() != '/studio' && request.getRequestURI() != '/studio/') {
+            response.sendRedirect("/studio/?noSites")
+          }
         } else {
 
           if (result.site == "UNSET") {
