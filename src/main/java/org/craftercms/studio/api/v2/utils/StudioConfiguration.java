@@ -325,6 +325,9 @@ public interface StudioConfiguration {
     // CORS
     String CONFIGURATION_CORS_ALLOWED_ORIGINS = "studio.cors.origins";
 
+    // Cookies
+    String STUDIO_COOKIE_USE_BASE_DOMAIN = "studio.cookie.useBaseDomain";
+
     void loadConfig();
 
     String getProperty(String key);
