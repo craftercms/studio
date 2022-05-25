@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -28,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -35,8 +38,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -740,7 +741,7 @@ public class GitRepositoryHelper {
 
     public boolean replaceParameters(String siteId, Map<String, String> parameters) {
         if (MapUtils.isEmpty(parameters)) {
-            logger.debug("Skipping parameter replacement for site {0}", siteId);
+            logger.debug("Skipping parameter replacement for site '{}'", siteId);
             return true;
         }
         String configRootPath = FilenameUtils.getPath(
@@ -751,7 +752,7 @@ public class GitRepositoryHelper {
             Files.walkFileTree(configFolder, new StrSubstitutorVisitor(parameters));
             return true;
         } catch (IOException e) {
-            logger.error("Error looking for configuration files for site {0}", e, siteId);
+            logger.error("Error looking for configuration files for site '{}'", siteId, e);
             return false;
         }
     }
@@ -760,7 +761,7 @@ public class GitRepositoryHelper {
         String defaultFileLocation = studioConfiguration.getProperty(REPO_DEFAULT_IGNORE_FILE);
         ClassPathResource defaultFile = new ClassPathResource(defaultFileLocation);
         if (defaultFile.exists()) {
-            logger.debug("Adding ignore file for site {0}", siteId);
+            logger.debug("Adding ignore file for site '{}'", siteId);
             Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
             Path sourcesFolder = siteSandboxPath.resolve(GitContentRepositoryConstants.SOURCES_FOLDER);
             if (Files.exists(sourcesFolder)) {
@@ -770,15 +771,15 @@ public class GitRepositoryHelper {
                          InputStream in = defaultFile.getInputStream()) {
                         IOUtils.copy(in, out);
                     } catch (IOException e) {
-                        logger.error("Error writing ignore file for site {0}", e, siteId);
+                        logger.error("Error writing ignore file for site '{}'", siteId, e);
                         return false;
                     }
                 } else {
-                    logger.debug("Repository already contains an ignore file for site {0}", siteId);
+                    logger.debug("Repository already contains an ignore file for site '{}'", siteId);
                 }
             }
         } else {
-            logger.warn("Could not find the default ignore file at {0}", defaultFileLocation);
+            logger.warn("Could not find the default ignore file at '{}'", defaultFileLocation);
         }
         return true;
     }
@@ -1049,6 +1050,19 @@ public class GitRepositoryHelper {
                 }
             } else {
                 logger.info("Detected existing global repository, will not create new one.");
+                // unlock if global repository is locked
+                String path = globalConfigRepoPath.getParent().toAbsolutePath().toString();
+                logger.info(path);
+                if (GitUtils.isRepositoryLocked(path)) {
+                    try {
+                        logger.warn("The global repository '{}' is locked, trying to unlock it", path);
+                        GitUtils.unlock(path);
+                        logger.info(".git/index.lock is deleted from global repository '{}'", path);
+                    } catch (IOException e) {
+                        logger.warn("Error unlocking git repository '{}'", path, e);
+                    }
+                }
+
                 toReturn = false;
             }
         } finally {
@@ -1133,7 +1147,7 @@ public class GitRepositoryHelper {
             }
 
             if (result) {
-                logger.debug("Writing file: site: {0}, path: {1}", site, path);
+                logger.debug("Writing file: site: '{}', path: '{}'", site, path);
 
                 // Write the bits
                 try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
@@ -1164,7 +1178,7 @@ public class GitRepositoryHelper {
 
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Adding files: site: {0}, path: {1}, useGitCli: {2}", site,
+                logger.debug("Adding files: site: '{}', path: '{}', useGitCli: '{}'", site,
                              ArrayUtils.toString(paths), gitCliEnabled);
             }
 
@@ -1186,8 +1200,8 @@ public class GitRepositoryHelper {
 
                 result = true;
             } catch (Exception e) {
-                logger.error("error adding files to git: site: {0}, paths: {1}", e, site,
-                             ArrayUtils.toString(paths));
+                logger.error("error adding files to git: site: '{}', paths: '{}'", site,
+                             ArrayUtils.toString(paths), e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
@@ -1201,7 +1215,7 @@ public class GitRepositoryHelper {
 
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Committing files: site: {0}, path: {1}, useGitCli: {2}", site,
+                logger.debug("Committing files: site: '{}', path: '{}', useGitCli: '{}'", site,
                              ArrayUtils.toString(paths), gitCliEnabled);
             }
 
@@ -1230,11 +1244,11 @@ public class GitRepositoryHelper {
                 if (cause instanceof NoChangesToCommitException ||
                     (cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
                     // we should ignore empty commit errors
-                    logger.debug("No changes were committed to git: site: {0}, paths: {1}", site,
+                    logger.debug("No changes were committed to git: site: '{}', paths: '{}'", site,
                                  ArrayUtils.toString(paths));
                 } else {
-                    logger.error("error adding files to git: site: {0}, paths: {1}", e, site,
-                                 ArrayUtils.toString(paths));
+                    logger.error("error adding files to git: site: '{}', paths: '{}'", site,
+                                 ArrayUtils.toString(paths), e);
                 }
             } finally {
                 generalLockService.unlock(gitLockKey);

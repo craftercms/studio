@@ -790,7 +790,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : PUBLISHED);
                     // Tag the repository with a date-time based version label
                     String gitPath = helper.getGitPath(path);
-    
+
                     try (Git git = new Git(repo)) {
                         PersonIdent currentUserIdent = helper.getCurrentUserIdent();
                         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmssX");
