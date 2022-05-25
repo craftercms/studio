@@ -420,7 +420,7 @@ public class StudioClusterPublishedRepoSyncTask extends StudioClockClusterTask {
             pullCommand.setRemoteBranchName(branch);
             pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
             pullCommand.call();
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | IllegalStateException e) {
             logger.error("Error while updating published repo for site {0} from cluster member {1} environment {2}",
                          e, siteId, remoteNode, branch);
             try {
