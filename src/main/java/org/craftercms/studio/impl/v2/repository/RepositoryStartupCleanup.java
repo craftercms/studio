@@ -16,40 +16,35 @@
 
 package org.craftercms.studio.impl.v2.repository;
 
-import org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperation;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
-
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.CleanCommand;
+import org.eclipse.jgit.errors.CorruptObjectException;
+import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.io.EOFException;
+import java.io.File;
 
 import org.craftercms.commons.git.utils.GitUtils;
 
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.springframework.web.context.ServletContextAware;
-
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 
 /**
  * Clean up git repositories on startup
  *
  * @author Phil Nguyen
+ * @since 4.0.1
  */
 
 public class RepositoryStartupCleanup {
@@ -59,8 +54,7 @@ public class RepositoryStartupCleanup {
     protected GeneralLockService generalLockService;
     protected GitRepositoryHelper helper;
 
-    @Order(1)
-    @EventListener(ContextRefreshedEvent.class)
+    @EventListener(CleanupRepositoriesEvent.class)
     public void unlockRepositories() {
         logger.debug("Clean up git lock for all repositories.");
         try {
@@ -73,12 +67,13 @@ public class RepositoryStartupCleanup {
     protected void unlockSitesRepositories() {
         siteService.getAllAvailableSites().forEach(siteId -> {
             logger.debug("Unlock git lock for site '{}'", siteId);
-            String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
-            String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+            String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
+            String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
 
             generalLockService.lock(gitLockKeySandbox);
             try {
                 unlockRepository(siteId, SANDBOX);
+                removeIndexIfCorrupted(siteId, SANDBOX);
             } finally {
                 generalLockService.unlock(gitLockKeySandbox);
             }
@@ -86,6 +81,7 @@ public class RepositoryStartupCleanup {
             generalLockService.lock(gitLockKeyPublished);
             try {
                 unlockRepository(siteId, PUBLISHED);
+                removeIndexIfCorrupted(siteId, PUBLISHED);
             } finally {
                 generalLockService.unlock(gitLockKeyPublished);
             }
@@ -106,6 +102,53 @@ public class RepositoryStartupCleanup {
                 }
             }
         }
+    }
+
+    protected void removeIndexIfCorrupted(String siteId, GitRepositories repository) {
+        Repository repo = helper.getRepository(siteId, repository);
+        if (isRepositoryCorrupted(repo)) {
+            String repoPath = repo.getWorkTree().getAbsolutePath();
+            try {
+                logger.warn("The local repository '{}' is corrupt, trying to fix it", repoPath);
+                try (Git git = new Git(repo)) {
+                    GitUtils.deleteGitIndex(repoPath);
+
+                    ResetCommand resetCommand = git.reset();
+                    resetCommand.setMode(ResetCommand.ResetType.HARD);
+                    resetCommand.call();
+
+                    CleanCommand cleanupCommand = git.clean();
+                    cleanupCommand.setForce(true);
+                    cleanupCommand.call();
+
+                    logger.info(".git/index is deleted from local repository '{}'", repoPath);
+                } catch (Exception e) {
+                    // rollback delete operation of .git/index in case reset/clean commands failed
+                    String fileName = GitUtils.GIT_FOLDER_NAME + FILE_SEPARATOR + GitUtils.GIT_INDEX_NAME;
+                    File indexFile = new File(repoPath, fileName);
+                    if (!indexFile.exists()) {
+                        indexFile.createNewFile();
+                    }
+                }
+            } catch (IOException e) {
+                logger.error("Error cleaning up git repository '{}'", repoPath, e);
+            }
+        }
+    }
+
+    protected boolean isRepositoryCorrupted(Repository repository) {
+        if (repository == null) {
+            return false;
+        }
+
+        try (Git git = new Git(repository)) {
+            git.status().call();
+        } catch (Exception e) {
+            Throwable cause = e.getCause();
+            return cause instanceof CorruptObjectException || cause instanceof EOFException;
+        }
+
+        return false;
     }
 
     public void setSiteService(final SiteService siteService) {

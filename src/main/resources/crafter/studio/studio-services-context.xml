@@ -36,6 +36,12 @@
     <!-- ////////////////////////////////////// -->
     <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider" init-method="init"/>
 
+    <bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="helper" ref="studio.gitRepositoryHelper" />
+    </bean>
+
     <bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
 
     <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
@@ -582,11 +588,11 @@
     <bean id="contentTypeService" class="org.craftercms.studio.impl.v2.service.content.ContentTypeServiceImpl">
         <constructor-arg name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
     </bean>
-    
+
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
     </bean>
-    
+
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="studioConfiguration" ref="studioConfiguration" />
