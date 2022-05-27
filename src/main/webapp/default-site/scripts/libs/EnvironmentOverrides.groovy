@@ -136,4 +136,12 @@ class EnvironmentOverrides {
 
     return result;
   }
+
+  static getMinimalValuesForSite(appContext, request) {
+    def result = [:]
+    def context = SiteServices.createContext(appContext, request)
+    def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+    result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
+    return result
+  }
 }
