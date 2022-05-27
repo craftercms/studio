@@ -20,7 +20,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.DefaultUpgradeManagerImpl"
-          init-method="init" depends-on="databaseInitializer">
+          init-method="init" depends-on="studioRepositoryStartupCleanup">
         <property name="siteVersionFilePath"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_VERSION_FILE)}"/>
         <property name="dataSource" ref="dataSource"/>

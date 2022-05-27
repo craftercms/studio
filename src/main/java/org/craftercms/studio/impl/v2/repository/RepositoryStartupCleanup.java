@@ -16,10 +16,18 @@
 
 package org.craftercms.studio.impl.v2.repository;
 
+import org.springframework.beans.factory.annotation.Required;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand;
+import org.eclipse.jgit.api.CleanCommand;
+import org.eclipse.jgit.errors.CorruptObjectException;
+import org.eclipse.jgit.lib.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
+import java.io.EOFException;
 import java.nio.file.Path;
+import java.io.File;
 
 import org.craftercms.commons.git.utils.GitUtils;
 
@@ -31,15 +39,10 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-
-import org.springframework.beans.factory.annotation.Required;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * Clean up git repositories on startup
@@ -72,12 +75,13 @@ public class RepositoryStartupCleanup {
     protected void unlockSitesRepositories(GitRepositoryHelper helper) {
         siteService.getAllAvailableSites().forEach(siteId -> {
             logger.debug("Unlock git lock for site '{}'", siteId);
-            String gitLockKeySandbox = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
-            String gitLockKeyPublished = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+            String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
+            String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
 
             generalLockService.lock(gitLockKeySandbox);
             try {
                 unlockRepository(siteId, SANDBOX, helper);
+                removeIndexIfCorrupted(siteId, SANDBOX, helper);
             } finally {
                 generalLockService.unlock(gitLockKeySandbox);
             }
@@ -85,6 +89,7 @@ public class RepositoryStartupCleanup {
             generalLockService.lock(gitLockKeyPublished);
             try {
                 unlockRepository(siteId, PUBLISHED, helper);
+                removeIndexIfCorrupted(siteId, PUBLISHED, helper);
             } finally {
                 generalLockService.unlock(gitLockKeyPublished);
             }
@@ -105,6 +110,53 @@ public class RepositoryStartupCleanup {
                 }
             }
         }
+    }
+
+    protected void removeIndexIfCorrupted(String siteId, GitRepositories repository, GitRepositoryHelper helper) {
+        Repository repo = helper.getRepository(siteId, repository);
+        if (isRepositoryCorrupted(repo)) {
+            String repoPath = repo.getWorkTree().getAbsolutePath();
+            try {
+                logger.warn("The local repository '{}' is corrupt, trying to fix it", repoPath);
+                try (Git git = new Git(repo)) {
+                    GitUtils.deleteGitIndex(repoPath);
+
+                    ResetCommand resetCommand = git.reset();
+                    resetCommand.setMode(ResetCommand.ResetType.HARD);
+                    resetCommand.call();
+
+                    CleanCommand cleanupCommand = git.clean();
+                    cleanupCommand.setForce(true);
+                    cleanupCommand.call();
+
+                    logger.info(".git/index is deleted from local repository '{}'", repoPath);
+                } catch (Exception e) {
+                    // rollback delete operation of .git/index in case reset/clean commands failed
+                    String fileName = GitUtils.GIT_FOLDER_NAME + FILE_SEPARATOR + GitUtils.GIT_INDEX_NAME;
+                    File indexFile = new File(repoPath, fileName);
+                    if (!indexFile.exists()) {
+                        indexFile.createNewFile();
+                    }
+                }
+            } catch (IOException e) {
+                logger.error("Error cleaning up git repository '{}'", repoPath, e);
+            }
+        }
+    }
+
+    protected boolean isRepositoryCorrupted(Repository repository) {
+        if (repository == null) {
+            return false;
+        }
+
+        try (Git git = new Git(repository)) {
+            git.status().call();
+        } catch (Exception e) {
+            Throwable cause = e.getCause();
+            return cause instanceof CorruptObjectException || cause instanceof EOFException;
+        }
+
+        return false;
     }
 
     @Required
