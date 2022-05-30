@@ -1103,7 +1103,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug1("Sync Repo finished in " + (System.currentTimeMillis() - startSyncRepoMark) + " milliseconds");
+            logger.debug("Sync database from repo finished in '{}' milliseconds", (System.currentTimeMillis() - startSyncRepoMark));
         }
         return toReturn;
     }
