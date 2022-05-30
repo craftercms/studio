@@ -51,6 +51,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     public static final String CONFIG_KEY_STATEMENT = "statement";
     public static final String CONFIG_KEY_PATTERN = "target-path-pattern";
     public static final String CONFIG_KEY_PERMITTED = "permitted";
+    public static final  String CONFIG_KEY_DENIED = "denied";
 
     protected ContentRepository contentRepository;
 
@@ -112,7 +113,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     protected void evaluateAction(HierarchicalConfiguration<?> config, Action action, List<ValidationResult> results,
                                   boolean includeAllowed) {
         try {
-            systemValidator.validate(null, action);
+            systemValidator.validate(null, null, action);
 
             if (config != null) {
                 var statementConfig = config.configurationsAt(CONFIG_KEY_STATEMENT).stream()
@@ -124,7 +125,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
 
                     for (var validator : policyValidators) {
                         logger.debug("Evaluating {0} using validator {1}", action, validator.getClass().getSimpleName());
-                        validator.validate(statement.configurationAt(CONFIG_KEY_PERMITTED), action);
+                        validator.validate(statement.configurationAt(CONFIG_KEY_PERMITTED), statement.configurationAt(CONFIG_KEY_DENIED), action);
                     }
                 } else {
                     logger.debug("No statement matches found, skipping {0}", action);

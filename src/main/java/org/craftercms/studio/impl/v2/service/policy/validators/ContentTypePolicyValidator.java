@@ -37,8 +37,7 @@ public class ContentTypePolicyValidator implements PolicyValidator {
 
     public static final String CONFIG_KEY_CONTENT_TYPES = "content-types";
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
+    private void validatePermitted(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
             logger.debug("Skipping folder {0}", action.getTarget());
             return;
@@ -60,4 +59,8 @@ public class ContentTypePolicyValidator implements PolicyValidator {
         }
     }
 
+    @Override
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        validatePermitted(permittedConfig, action);
+    }
 }

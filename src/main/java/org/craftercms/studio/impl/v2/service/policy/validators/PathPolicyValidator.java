@@ -38,8 +38,7 @@ public class PathPolicyValidator implements PolicyValidator {
     public static final String CONFIG_KEY_TARGET_REGEX = "path.target-regex";
     public static final String CONFIG_KEY_CASE_TRANSFORM = "path.target-regex[@caseTransform]";
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
+    private void validatePermitted(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (config.containsKey(CONFIG_KEY_SOURCE_REGEX)) {
             var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
             if (!action.getTarget().matches(sourceRegex)) {
@@ -77,6 +76,11 @@ public class PathPolicyValidator implements PolicyValidator {
         } else {
             logger.debug("No path restrictions found, skipping action");
         }
+    }
+
+    @Override
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        validatePermitted(permittedConfig, action);
     }
 
 }
