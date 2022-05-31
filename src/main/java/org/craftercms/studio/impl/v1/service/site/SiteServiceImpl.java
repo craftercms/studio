@@ -835,9 +835,8 @@ public class SiteServiceImpl implements SiteService {
                 }
 
                 insertCreateSiteAuditLog(siteId, siteId, createdFiles);
-                contentRepositoryV2.insertGitLog(siteId, firstCommitId, 1, 1);
-
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+                contentRepositoryV2.populateGitLog(siteId);
 
                 updateLastCommitId(siteId, lastCommitId);
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
