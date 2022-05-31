@@ -948,6 +948,7 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
+        <property name="scriptRunnerFactory" ref="studio.dbScriptRunner"/>
     </bean>
 
     <bean id="studio.gitCli" class="org.craftercms.studio.impl.v2.utils.git.GitCli">
