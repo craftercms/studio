@@ -1724,7 +1724,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     Iterable<RevCommit> commits = git.log().add(head).call();
                     Iterator<RevCommit> iterator = commits.iterator();
                     boolean found = false;
-                    while (!found || iterator.hasNext()) {
+                    while (!found && iterator.hasNext()) {
                         RevCommit revCommit = iterator.next();
                         if (StringUtils.equals(commitId, revCommit.getName())) {
                             found = true;
