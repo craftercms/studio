@@ -1282,6 +1282,20 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     /**
+     * Returns the key to use when locking Git operations for a site's sandbox or global repo
+     *
+     * @param site the site name
+     * @param ifSiteEmptyUseGlobalRepoLockKey `true` to use global repo lock key if site empty
+     * @return the lock key to use with the lock service
+     */
+    public String getSandboxRepoLockKey(String site, boolean ifSiteEmptyUseGlobalRepoLockKey) {
+        if (ifSiteEmptyUseGlobalRepoLockKey && StringUtils.isEmpty(site)) {
+            return GLOBAL_REPOSITORY_GIT_LOCK;
+        }
+        return getSandboxRepoLockKey(site);
+    }
+
+    /**
      * Returns the key to use when locking Git operations for a site's published repo
      *
      * @param site the site name
