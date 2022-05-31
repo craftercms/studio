@@ -1948,8 +1948,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(repoLockKey);
         try (Git git = Git.wrap(repo)) {
-            Iterable<RevCommit> gitlog = git.log().call();
-            Iterator<RevCommit> commits = gitlog.iterator();
+            Iterable<RevCommit> gitLog = git.log().call();
+            Iterator<RevCommit> commits = gitLog.iterator();
             StudioDBScriptRunner scriptRunner = scriptRunnerFactory.getDBScriptRunner();
             RevCommit commit;
             while (commits.hasNext()) {
