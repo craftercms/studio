@@ -51,6 +51,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
@@ -75,11 +76,8 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
-import org.craftercms.studio.api.v1.service.content.ImportService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -89,13 +87,11 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
@@ -157,9 +153,7 @@ import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.move
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateItemRow;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentId;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_GROUPS;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
@@ -179,7 +173,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     protected Deployer deployer;
     protected SiteServiceDAL _siteServiceDAL;
-    protected ServicesConfig servicesConfig;
     protected ContentService contentService;
     protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepository;
     protected ContentRepository contentRepositoryV2;
@@ -187,8 +180,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected SecurityService securityService;
     protected DeploymentService deploymentService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected ImportService importService;
-    protected GeneralLockService generalLockService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
     protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected GroupServiceInternal groupServiceInternal;
@@ -200,8 +191,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected ConfigurationService configurationService;
     protected ItemServiceInternal itemServiceInternal;
     protected StudioClusterUtils studioClusterUtils;
-    protected ClusterDAO clusterDao;
-    protected UserDAO userDao;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ApplicationContext applicationContext;
 
@@ -328,7 +317,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                 // Add default groups
                 logger.debug("Add the default groups to site '{}'", siteName);
-                addDefaultGroupsForNewSite(siteId);
+                addDefaultGroupsForNewSite();
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String creator = securityService.getCurrentUser();
@@ -403,7 +392,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteName);
-        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> auditLogParameters = new ArrayList<>();
         AuditLogParameter auditLogParameter = new AuditLogParameter();
         auditLogParameter.setTargetId(siteId + ":" + blueprint);    // TODO: SJ: This feels hokey
         auditLogParameter.setTargetType(TARGET_TYPE_BLUEPRINT);
@@ -417,14 +406,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
                                      ZonedDateTime now, String lastCommitId) {
         long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        SiteFeed siteFeed = null;
+        SiteFeed siteFeed;
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
             logger.error("Failed to process created files, site id '{}' not found", siteId, e);
             return;
         }
-        User userObj = null;
+        User userObj;
         try {
             userObj = userServiceInternal.getUserByGitName(creator);
         } catch (ServiceLayerException | UserNotFoundException e) {
@@ -464,7 +453,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 label = internalName;
                             }
                             contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                            disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+                            disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                         }
                     } catch (DocumentException e) {
                         logger.error("Failed to extract metadata from XML file site '{}' path '{}'", siteId, path, e);
@@ -575,7 +564,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
                                                  Map<String, String> params)
             throws Exception {
-        boolean success = true;
+        boolean success;
 
         // create site with git repo
         success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
@@ -598,7 +587,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         contentRepository.writeContent(site, path, contentToWrite);
     }
 
-    private void addDefaultGroupsForNewSite(String siteId) {
+    private void addDefaultGroupsForNewSite() {
         List<String> defaultGroups = getDefaultGroups();
         for (String group : defaultGroups) {
             String description = group + SITE_DEFAULT_GROUPS_DESCRIPTION;
@@ -669,7 +658,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                        boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
-        boolean success = true;
+        boolean success;
 
         // We must fail site creation if any of the site creations steps fail and rollback
         // For example: Create site => create Deployer Target (fail) = fail
@@ -782,7 +771,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                 // Add default groups
                 logger.info("Adding default groups to site '{}'", siteId);
-                addDefaultGroupsForNewSite(siteId);
+                addDefaultGroupsForNewSite();
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
                 String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
@@ -925,8 +914,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         RequestConfig requestConfig = RequestConfig.custom().setExpectContinueEnabled(true).build();
         getRequest.setConfig(requestConfig);
 
-        CloseableHttpClient client = HttpClientBuilder.create().build();
-        try {
+        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
             CloseableHttpResponse response = client.execute(getRequest);
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 toReturn = false;
@@ -950,7 +938,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     public SiteBlueprintTO[] getAvailableBlueprints() {
         RepositoryItem[] blueprintsFolders =
                 contentRepository.getContentChildren("", studioConfiguration.getProperty(BLUE_PRINTS_PATH));
-        List<SiteBlueprintTO> blueprints = new ArrayList<SiteBlueprintTO>();
+        List<SiteBlueprintTO> blueprints = new ArrayList<>();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
                 SiteBlueprintTO blueprintTO = new SiteBlueprintTO();
@@ -992,7 +980,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @ValidateParams
     public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
                                    @ValidateStringParam(name = "commitId") String commitId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
         retryingDatabaseOperationFacade.updateSiteLastCommitId(params);
@@ -1000,7 +988,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("commitId", commitId);
         retryingDatabaseOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
@@ -1008,7 +996,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public void updateLastSyncedGitlogCommitId(String site, String commitId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("commitId", commitId);
         retryingDatabaseOperationFacade.updateSiteLastSyncedGitlogCommitId(params);
@@ -1017,8 +1005,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @Override
     @ValidateParams
     public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
-                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId)
-            throws ServiceLayerException, UserNotFoundException {
+                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
         return syncDatabaseWithRepo(site, fromCommitId, true);
     }
 
@@ -1112,7 +1099,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                           Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException {
         boolean toReturn = true;
         long startProcessRepoOperationMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        SiteFeed siteFeed = null;
+        SiteFeed siteFeed;
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
@@ -1120,7 +1107,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             return false;
         }
         User userObj = null;
-        Map<String, User> cachedUsers = new HashMap<String, User>();
+        Map<String, User> cachedUsers = new HashMap<>();
         try {
             cachedUsers.put(GIT_REPO_USER_USERNAME, userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME));
         } catch (UserNotFoundException | ServiceLayerException e) {
@@ -1130,7 +1117,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String label;
         String contentTypeId;
         String previewUrl;
-        boolean disabled = false;
+        boolean disabled;
         long state;
         long onStateBitMap;
         long offStateBitmap;
@@ -1163,7 +1150,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     label = internalName;
                                 }
                                 contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+                                disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
                             logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
@@ -1231,7 +1218,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                         label = internalName;
                                     }
                                     contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                    disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+                                    disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                                 }
                             } catch (DocumentException e) {
                                 logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
@@ -1306,7 +1293,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     label = internalName;
                                 }
                                 contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                disabled = Boolean.valueOf(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
+                                disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
                             logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
@@ -1347,6 +1334,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(),
                                 repoOperation.getPath(), repoOperationsScriptPath);
                     }
+                    invalidateConfigurationCacheIfRequired(siteId, repoOperation.getMoveToPath());
                     break;
 
                 default:
@@ -1355,12 +1343,19 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     toReturn = false;
                     break;
             }
+            invalidateConfigurationCacheIfRequired(siteId, repoOperation.getPath());
         }
         if (logger.isDebugEnabled()) {
             logger.debug1("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
                     " milliseconds");
         }
         return toReturn;
+    }
+
+    protected void invalidateConfigurationCacheIfRequired(String siteId, String path) {
+        if (RegexUtils.matchesAny(path, configurationPatterns)) {
+            configurationService.invalidateConfiguration(siteId, path);
+        }
     }
 
     @Override
@@ -1393,7 +1388,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username)
             throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("username", username);
             return siteFeedMapper.getSitesPerUserQueryTotal(params);
         } else {
@@ -1416,14 +1411,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                           @ValidateIntegerParam(name = "number") int number)
             throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("username", username);
             params.put("start", start);
             params.put("number", number);
             List<String> siteIds = siteFeedMapper.getSitesPerUserQuery(params);
-            List<SiteFeed> toRet = new ArrayList<SiteFeed>();
+            List<SiteFeed> toRet = new ArrayList<>();
             if (siteIds != null && !siteIds.isEmpty()) {
-                params = new HashMap<String, Object>();
+                params = new HashMap<>();
                 params.put("siteids", siteIds);
                 toRet = siteFeedMapper.getSitesPerUserData(params);
             }
@@ -1437,7 +1432,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @ValidateParams
     public SiteFeed getSite(@ValidateStringParam(name = "siteId") String siteId) throws SiteNotFoundException {
         if (exists(siteId)) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("siteId", siteId);
             return siteFeedMapper.getSite(params);
         } else {
@@ -1462,7 +1457,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled)
             throws SiteNotFoundException {
         if (exists(siteId)) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("siteId", siteId);
             params.put("enabled", enabled ? 1 : 0);
             retryingDatabaseOperationFacade.enableSitePublishing(params);
@@ -1622,28 +1617,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         return siteFeedMapper.getLastSyncedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
     }
 
-    public String getEnvironment() {
-        return studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-    }
-
     public List<String> getDefaultGroups() {
         return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_GROUPS).split(","));
-    }
-
-    public String getDefaultAdminGroup() {
-        return studioConfiguration.getProperty(CONFIGURATION_DEFAULT_ADMIN_GROUP);
     }
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
-    }
-
-    /**
-     * getter site service dal
-     */
-    public SiteServiceDAL getSiteService() {
-        return _siteServiceDAL;
     }
 
     /**
@@ -1653,104 +1633,40 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         _siteServiceDAL = service;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
-    public void setServicesConfig(ServicesConfig servicesConfig) {
-        this.servicesConfig = servicesConfig;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(org.craftercms.studio.api.v1.repository.ContentRepository repo) {
         contentRepository = repo;
     }
 
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
-
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public DeploymentService getDeploymentService() {
-        return deploymentService;
-    }
-
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
-    }
-
-    public DmPageNavigationOrderService getDmPageNavigationOrderService() {
-        return dmPageNavigationOrderService;
     }
 
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
     }
 
-    public ImportService getImportService() {
-        return importService;
-    }
-
-    public void setImportService(ImportService importService) {
-        this.importService = importService;
-    }
-
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
-    public void setGeneralLockService(GeneralLockService generalLockService) {
-        this.generalLockService = generalLockService;
-    }
-
-    public RebuildRepositoryMetadata getRebuildRepositoryMetadata() {
-        return rebuildRepositoryMetadata;
-    }
-
     public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) {
         this.rebuildRepositoryMetadata = rebuildRepositoryMetadata;
-    }
-
-    public SyncDatabaseWithRepository getSyncDatabaseWithRepository() {
-        return syncDatabaseWithRepository;
     }
 
     public void setSyncDatabaseWithRepository(SyncDatabaseWithRepository syncDatabaseWithRepository) {
         this.syncDatabaseWithRepository = syncDatabaseWithRepository;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public Deployer getDeployer() {
-        return deployer;
     }
 
     public void setDeployer(Deployer deployer) {
@@ -1761,16 +1677,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.entitlementValidator = entitlementValidator;
     }
 
-    public GroupServiceInternal getGroupServiceInternal() {
-        return groupServiceInternal;
-    }
-
     public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
         this.groupServiceInternal = groupServiceInternal;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
@@ -1781,99 +1689,48 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.upgradeManager = upgradeManager;
     }
 
-    public SitesServiceInternal getSitesServiceInternal() {
-        return sitesServiceInternal;
-    }
-
     public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
         this.sitesServiceInternal = sitesServiceInternal;
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
     }
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
-
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
-    }
-
-    public ContentRepository getContentRepositoryV2() {
-        return contentRepositoryV2;
     }
 
     public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public StudioClusterUtils getStudioClusterUtils() {
-        return studioClusterUtils;
     }
 
     public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
         this.studioClusterUtils = studioClusterUtils;
     }
 
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
-    }
-
-    public void setClusterDao(ClusterDAO clusterDao) {
-        this.clusterDao = clusterDao;
-    }
-
-    public void setUserDao(UserDAO userDao) {
-        this.userDao = userDao;
-    }
-
     public void setConfigurationPatterns(String[] configurationPatterns) {
         this.configurationPatterns = configurationPatterns;
-    }
-
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
     }
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
     }
 
-    public StudioDBScriptRunnerFactory getStudioDBScriptRunner() {
-        return studioDBScriptRunnerFactory;
-    }
-
     public void setStudioDBScriptRunner(StudioDBScriptRunnerFactory studioDBScriptRunner) {
         this.studioDBScriptRunnerFactory = studioDBScriptRunner;
-    }
-
-    public DependencyServiceInternal getDependencyServiceInternal() {
-        return dependencyServiceInternal;
     }
 
     public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
         this.dependencyServiceInternal = dependencyServiceInternal;
     }
 
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
-    }
-
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
+
 }

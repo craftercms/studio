@@ -21,10 +21,20 @@ import scripts.api.SecurityServices
 import scripts.api.SiteServices
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.STUDIO_COOKIE_USE_BASE_DOMAIN
 
 class EnvironmentOverrides {
   static USER_SERVICES_BEAN = "userService"
   static logger = LoggerFactory.getLogger(EnvironmentOverrides.class)
+
+  static String getBaseDomain(String domainName) {
+    def segments = domainName.split("\\.");
+
+    if (segments == null || segments.length <= 2)
+      return domainName;
+
+    return segments[segments.length - 2] + "." + segments[segments.length - 1];
+  }
 
   static getValuesForSite(appContext, request, response) {
 
@@ -54,6 +64,7 @@ class EnvironmentOverrides {
       }
 
       result.passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
+      result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
 
       def language = Cookies.getCookieValue("crafterStudioLanguage", request)
       if (language == null || language == "" || language == "UNSET") {
@@ -67,12 +78,25 @@ class EnvironmentOverrides {
       } else {
         def sites = SiteServices.getSitesPerUser(context, 0, 25)
         if (sites.isEmpty()) {
-          response.sendRedirect("/studio/?noSites")
+          if (request.getRequestURI() != '/studio' && request.getRequestURI() != '/studio/') {
+            response.sendRedirect("/studio/?noSites")
+          }
         } else {
 
           if (result.site == "UNSET") {
             result.site = sites[0].siteId
-            Cookies.createCookie("crafterSite", sites[0].siteId, request.getServerName(), "/", response)
+            def useBaseDomain = result.useBaseDomain
+            def hostname = request.getServerName()
+            def domain = hostname
+
+            if (useBaseDomain == "true") {
+              def isHostnameIp = hostname ==~ /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/
+              if (hostname.contains(".") && !isHostnameIp) {
+                domain = getBaseDomain(hostname);
+              }
+            }
+
+            Cookies.createCookie("crafterSite", sites[0].siteId, domain, "/", response)
           }
 
           try {
@@ -111,5 +135,13 @@ class EnvironmentOverrides {
     }
 
     return result;
+  }
+
+  static getMinimalValuesForSite(appContext, request) {
+    def result = [:]
+    def context = SiteServices.createContext(appContext, request)
+    def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
+    result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
+    return result
   }
 }

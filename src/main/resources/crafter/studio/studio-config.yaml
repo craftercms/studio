@@ -59,6 +59,8 @@ studio.repo.createSandboxBranch.commitMessage: "Create {sandbox} branch."
 studio.repo.initialCommit.commitMessage: "Initial commit."
 # Initial publish commit message
 studio.repo.initialPublish.commitMessage: "Initial publish."
+# Publish all commit message
+studio.repo.publishAll.commitMessage: "Publish All."
 # Create as orphan commit message
 studio.repo.createAsOrphan.commitMessage: "Created as orphan."
 # Blueprints updated commit message
@@ -371,6 +373,9 @@ studio.security.token.cookie.path: /studio
 studio.security.token.cookie.secure: false
 # Indicates if the refresh token cookie should be HTTPOnly
 studio.security.token.cookie.httpOnly: true
+
+# Use base domain instead of subdomain for the crafterSite cookie
+studio.cookie.useBaseDomain: false
 
 # Cron expression for the scheduled job that cleans expired refresh tokens
 studio.security.token.cleanup.cron: 0 * * * * ?

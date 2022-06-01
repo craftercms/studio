@@ -176,7 +176,20 @@
 
     <select id="getChildrenByPath" resultMap="ItemMap">
         SELECT child.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
-               COUNT(grand_child.id) as children_count
+               COUNT(
+                <choose>
+                    <!-- if filtering by types, then narrow down the count -->
+                    <when test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
+                        CASE WHEN grand_child.system_type IN
+                        <foreach collection="systemTypes" item="type" open="(" separator="," close=")">
+                            #{type}
+                        </foreach>
+                        THEN 1 ELSE NULL END
+                    </when>
+                    <!-- otherwise, count all children -->
+                    <otherwise>grand_child.id</otherwise>
+                </choose>
+               ) as children_count
         FROM item child
             LEFT JOIN item parent ON child.parent_id = parent.id
             LEFT JOIN item grand_child ON grand_child.parent_id = child.id

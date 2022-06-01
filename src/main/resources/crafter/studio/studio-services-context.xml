@@ -100,15 +100,12 @@
               <property name="contentService" ref="cstudioContentService" />
           </bean>
         </property>
-        <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="dependencyService" ref="studioDependencyService"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
-        <property name="importService" ref="cstudioImportService"/>
-        <property name="generalLockService" ref="cstudioGeneralLockService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
         <property name="syncDatabaseWithRepository" ref="studioSyncDatabaseWithRepository" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
@@ -123,8 +120,6 @@
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioClusterUtils" ref="studio.clusterUtils" />
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="userDao" ref="userDao"/>
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
@@ -189,7 +184,6 @@
           class="org.craftercms.studio.impl.v2.service.notification.NotificationServiceImpl"  init-method="init">
         <property name="emailMessages" ref="cstudioEmailMessageQueue" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
         <property name="securityService" ref="cstudioSecurityService"/>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -306,8 +300,8 @@
                 <value>.+configuration/global-role\-mappings\-config\.xml</value>
 
                 <!-- Configuration from site repo -->
-                <value>.+config/studio/permission\-mappings\-config\.xml</value>
-                <value>.+config/studio/role\-mappings\-config\.xml</value>
+                <value>.+config/studio/(env/[^/]+/)?permission\-mappings\-config\.xml</value>
+                <value>.+config/studio/(env/[^/]+/)?role\-mappings\-config\.xml</value>
             </list>
         </constructor-arg>
         <constructor-arg name="actualCacheInvalidator">
@@ -321,8 +315,8 @@
           class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
         <constructor-arg name="patterns">
             <list>
-                <value>.+config/studio/permission\-mappings\-config\.xml</value>
-                <value>.+config/studio/role\-mappings\-config\.xml</value>
+                <value>.+config/studio/(env/[^/]+/)?permission\-mappings\-config\.xml</value>
+                <value>.+config/studio/(env/[^/]+/)?role\-mappings\-config\.xml</value>
             </list>
         </constructor-arg>
         <constructor-arg name="actualCacheInvalidator">
@@ -336,7 +330,7 @@
           class="org.craftercms.studio.impl.v2.utils.cache.ConditionalCacheInvalidator">
         <constructor-arg name="patterns">
             <list>
-                <value>.+config/studio/blob\-stores\-config\.xml</value>
+                <value>.+config/studio/(env/[^/]+/)?blob\-stores\-config\.xml</value>
             </list>
         </constructor-arg>
         <constructor-arg name="actualCacheInvalidator">
@@ -618,8 +612,8 @@
           class="org.craftercms.studio.impl.v2.service.publish.internal.PublishServiceInternalImpl">
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="contentRepository" ref="contentRepository" />
-        <property name="dmFilterWrapper" ref="cstudioDmFilterWrapper" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="itemServiceInternal" ref="itemServiceInternal"/>
     </bean>
 
     <bean id="studio.publishingProgressServiceInternal"
@@ -938,9 +932,7 @@
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="gitLogDao" ref="gitLogDao" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>

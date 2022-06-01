@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -53,6 +52,8 @@ import org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstant
 import org.craftercms.studio.impl.v1.repository.git.TreeCopier;
 import org.craftercms.studio.impl.v2.utils.GitUtils;
 import org.craftercms.studio.impl.v2.utils.git.GitCli;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.eclipse.jgit.api.RmCommand;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
 import org.eclipse.jgit.api.CloneCommand;
@@ -72,7 +73,6 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.errors.LockFailedException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -102,6 +102,10 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.FileVisitResult;
+
 import java.util.*;
 import java.util.concurrent.Callable;
 
@@ -110,6 +114,7 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.STRING_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
@@ -126,6 +131,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_IGNORE_FILES;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -542,6 +548,7 @@ public class GitRepositoryHelper implements DisposableBean {
             Repository publishedRepo = publishedGit.getRepository();
             optimizeRepository(publishedRepo);
             checkoutSandboxBranch(siteId, publishedRepo, sandboxBranch);
+            removePublishBlackList(publishedRepo);
             publishedRepo.close();
             publishedGit.close();
             toRet = true;
@@ -649,6 +656,36 @@ public class GitRepositoryHelper implements DisposableBean {
             return true;
         } catch (GitAPIException | IOException e) {
             logger.error("Error checking out sandbox branch '{}' for site '{}'", sandboxBranchName, site, e);
+            return false;
+        }
+    }
+
+    private boolean removePublishBlackList(Repository publishedRepo) {
+        String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
+        if (StringUtils.isEmpty(blacklistConfig)) {
+            return true;
+        }
+
+        List<String> patterns = Arrays.asList(StringUtils.split(blacklistConfig, STRING_SEPARATOR));
+        try (Git git = new Git(publishedRepo)) {
+            String rootPath = publishedRepo.getWorkTree().getPath();
+            RmCommand rmCommand = git.rm();
+            Files.walkFileTree(Paths.get(rootPath), new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    String sitePath = file.toAbsolutePath().toString().replaceFirst(rootPath, FILE_SEPARATOR);
+                    boolean isMatched = ContentUtils.matchesPatterns(sitePath, patterns);
+                    if (isMatched) {
+                        String gitPath = getGitPath(sitePath);
+                        rmCommand.addFilepattern(gitPath);
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            retryingRepositoryOperationFacade.call(rmCommand);
+            return true;
+        } catch (GitAPIException | IOException e) {
+            logger.error("Error while removing publishing blacklist pattern", e);
             return false;
         }
     }

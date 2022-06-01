@@ -44,6 +44,8 @@ public abstract class AwsUtils {
 
     public static final long MAX_COPY_FILE_SIZE = 5L * 1024 * 1024 * 1024;
 
+    public static final int DELETE_BATCH_SIZE = 1000;
+
     public static void uploadStream(String inputBucket, String inputKey, AmazonS3 s3Client, int partSize,
                                     String filename, InputStream content) throws AwsException {
         List<PartETag> etags = new LinkedList<>();
