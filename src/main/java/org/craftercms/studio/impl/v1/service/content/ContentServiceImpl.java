@@ -89,6 +89,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
@@ -841,7 +842,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                 } else if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
                                     copyDepPath = ContentUtils.getParentUrl(copyDepPath);
                                 }
-                                
+
                                 logger.debug("Translated dependency path from {0} to {1}",
                                         dependencyPath, copyDepPath);
 
@@ -1012,7 +1013,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 movePath = fromPath;
             }
 
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
+            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, toPath));
         }
         catch(ServiceLayerException | UserNotFoundException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
@@ -2601,7 +2602,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
         auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
         auditServiceInternal.insertAuditLog(auditLog);
-        
+
         return toRet;
     }
 
