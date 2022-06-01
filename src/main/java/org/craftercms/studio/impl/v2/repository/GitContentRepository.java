@@ -48,16 +48,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.GitLog;
-import org.craftercms.studio.api.v2.dal.GitLogDAO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
-import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -95,6 +86,7 @@ import org.springframework.dao.DuplicateKeyException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -114,6 +106,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -133,6 +126,7 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -160,6 +154,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private StudioUtils studioUtils;
     private RetryingOperationFacade retryingOperationFacade;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+
+    protected StudioDBScriptRunnerFactory scriptRunnerFactory;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -1943,6 +1939,31 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         }
     }
 
+    @Override
+    public void populateGitLog(String siteId) throws GitAPIException, IOException, CryptoException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
+        String repoLockKey = helper.getSandboxRepoLockKey(siteId);
+        Path script  = Files.createTempFile("studio-gitlog-", ".sql");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            Iterable<RevCommit> gitLog = git.log().call();
+            Iterator<RevCommit> commits = gitLog.iterator();
+            StudioDBScriptRunner scriptRunner = scriptRunnerFactory.getDBScriptRunner();
+            RevCommit commit;
+            while (commits.hasNext()) {
+                commit = commits.next();
+                String sql = insertGitLogRow(siteId, commit.getName(), true, !commits.hasNext());
+                Files.write(script, sql.getBytes(StandardCharsets.UTF_8), APPEND);
+            }
+            scriptRunner.execute(script.toFile());
+        } finally {
+            Files.deleteIfExists(script);
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
     public SecurityService getSecurityService() {
         return securityService;
     }
@@ -2018,4 +2039,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
+
+    public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
+        this.scriptRunnerFactory = scriptRunnerFactory;
+    }
+
 }
