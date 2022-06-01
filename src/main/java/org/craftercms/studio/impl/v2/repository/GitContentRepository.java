@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -1795,15 +1796,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                         userServiceInternal, encryptor, generalLockService,
                                         retryingRepositoryOperationFacade);
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-        // if the published repo doesn't exist yet, create it and finish since it will be in sync already
+        // if the published repo doesn't exist yet, fail
         if (repo == null) {
-            logger.info("Creating published repository for site {0}", siteId);
-            if (helper.createPublishedRepository(siteId, site.getSandboxBranch())) {
-                // return an empty set so no additional operations are performed
-                return new RepositoryChanges();
-            } else {
-                throw new ServiceLayerException("Error creating published repository for site " + siteId);
-            }
+            throw new PublishedRepositoryNotFoundException("Published repository not found for site " + siteId);
         }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
@@ -1866,8 +1861,6 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
             return new RepositoryChanges(updatedPaths, deletedPaths);
         } catch (GitAPIException | IOException e) {
-            // unlock the repo in case of error to prevent deadlocks
-            generalLockService.unlock(repoLockKey);
             throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
                     publishingTarget, e);
         }
@@ -1924,6 +1917,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                                         retryingRepositoryOperationFacade);
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+        if (repo == null) {
+            return;
+        }
         try (Git git = Git.wrap(repo)) {
             resetIfNeeded(repo, git);
 

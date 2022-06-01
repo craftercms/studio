@@ -39,12 +39,7 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
-import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
-import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
-import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
-import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
+import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
@@ -140,6 +135,15 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_UNREACHABLE);
         response.setMessage(response.getMessage() + ": "+ e.getMessage());
 
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PublishedRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handlePublishedRepositoryNotFoundException(HttpServletRequest request,
+                                                                   PublishedRepositoryNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 
