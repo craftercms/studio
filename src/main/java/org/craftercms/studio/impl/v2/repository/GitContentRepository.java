@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -1092,6 +1093,10 @@ public class GitContentRepository implements ContentRepository {
         retryingRepositoryOperationFacade.call(deleteCommand);
     }
 
+    protected boolean branchExists(Repository repo, String branch) throws IOException {
+        return repo.resolve(branch) != null;
+    }
+
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
         boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -1103,7 +1108,7 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
+    private void deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
         String parent = parentFolder.toString();
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
@@ -1142,7 +1147,6 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
         }
-        return parent;
     }
 
     @Override
@@ -1845,7 +1849,7 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    private boolean createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
+    private void createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
         Repository repository = helper.getRepository(siteId, PUBLISHED);
         try (Git git = new Git(repository)) {
             CheckoutCommand checkoutCommand = git.checkout()
@@ -1861,11 +1865,9 @@ public class GitContentRepository implements ContentRepository {
                     .setAllowEmpty(true);
             retryingRepositoryOperationFacade.call(commitCommand);
 
-            return true;
         } catch (GitAPIException e) {
             logger.error("Failed to create environment " + environment + " branch in PUBLISHED repo for site " +
                     siteId, e);
-            return false;
         }
     }
 
@@ -1880,15 +1882,11 @@ public class GitContentRepository implements ContentRepository {
         // get the published repo
         SiteFeed site = siteService.getSite(siteId);
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-        // if the published repo doesn't exist yet, create it and finish since it will be in sync already
+        // if the published repo doesn't exist yet, trigger an initial publish
         if (repo == null) {
-            logger.info("Creating published repository for site {0}", siteId);
-            if (helper.createPublishedRepository(siteId, site.getSandboxBranch())) {
-                // return an empty set so no additional operations are performed
-                return new RepositoryChanges();
-            } else {
-                throw new ServiceLayerException("Error creating published repository for site " + siteId);
-            }
+            logger.info("Executing initial publish for site {0}", siteId);
+            initialPublish(siteId);
+            return new RepositoryChanges(true);
         }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
@@ -1900,6 +1898,11 @@ public class GitContentRepository implements ContentRepository {
             retryingRepositoryOperationFacade.call(git.pull()
                     .setRemote(DEFAULT_REMOTE_NAME)
                     .setStrategy(THEIRS));
+            // check if the target branch exists
+            if (!branchExists(repo, publishingTarget)) {
+                throw new PublishedRepositoryNotFoundException("Publishing target branch " + publishingTarget +
+                        " not found for site " + siteId);
+            }
             // checkout target branch
             checkoutBranch(git, publishingTarget);
 
@@ -1952,15 +1955,17 @@ public class GitContentRepository implements ContentRepository {
 
             return new RepositoryChanges(updatedPaths, deletedPaths);
         } catch (GitAPIException | IOException e) {
-            // unlock the repo in case of error to prevent deadlocks
-            generalLockService.unlock(repoLockKey);
             throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
                     publishingTarget, e);
         }
     }
 
     @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) throws ServiceLayerException {
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+            throws ServiceLayerException {
+        if (changes.isInitialPublish()) {
+            return;
+        }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         try {
             String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
@@ -2005,10 +2010,13 @@ public class GitContentRepository implements ContentRepository {
         try (Git git = Git.wrap(repo)) {
             resetIfNeeded(repo, git);
 
-            checkoutBranch(git, publishingTarget);
+            // go batch to the target branch if it exists
+            if (branchExists(repo, publishingTarget)) {
+                checkoutBranch(git, publishingTarget);
 
-            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-            deleteBranches(git, inProgressBranchName);
+                String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+                deleteBranches(git, inProgressBranchName);
+            }
         } catch (GitAPIException | IOException e) {
             throw new ServiceLayerException("Error canceling all changes for site " + siteId + " to target " +
                     publishingTarget, e);

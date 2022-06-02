@@ -44,14 +44,7 @@ import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsExceptio
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.ClusterMemberAlreadyExistsException;
-import org.craftercms.studio.api.v2.exception.ClusterMemberNotFoundException;
-import org.craftercms.studio.api.v2.exception.InvalidParametersException;
-import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
-import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
-import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
-import org.craftercms.studio.api.v2.exception.PullFromRemoteConflictException;
-import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
+import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
@@ -82,7 +75,6 @@ import java.util.NoSuchElementException;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_DEBUG;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_ERROR;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_INFO;
-import static org.craftercms.studio.api.v1.log.Logger.LEVEL_OFF;
 import static org.craftercms.studio.api.v1.log.Logger.LEVEL_WARN;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
 
@@ -192,6 +184,15 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
         response.setMessage(response.getMessage() + ": "+ e.getMessage());
 
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(PublishedRepositoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handlePublishedRepositoryNotFoundException(HttpServletRequest request,
+                                                                   PublishedRepositoryNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
 
@@ -481,8 +482,6 @@ public class ExceptionHandlers {
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response,
                                                    String logLevel) {
         switch (logLevel) {
-            case LEVEL_OFF:
-                break;
             case LEVEL_DEBUG:
                 logger.debug("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
                         " failed with response: " + response);
