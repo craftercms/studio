@@ -1148,6 +1148,10 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         retryingRepositoryOperationFacade.call(deleteCommand);
     }
 
+    protected boolean branchExists(Repository repo, String branch) throws IOException {
+        return repo.resolve(branch) != null;
+    }
+
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
         boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -1810,6 +1814,12 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             retryingRepositoryOperationFacade.call(git.pull()
                     .setRemote(DEFAULT_REMOTE_NAME)
                     .setStrategy(THEIRS));
+            // check if the target branch exists
+            if (!branchExists(repo, publishingTarget)) {
+                throw new PublishedRepositoryNotFoundException("Publishing target branch " + publishingTarget +
+                                                               " not found for site " + siteId);
+            }
+
             // checkout target branch
             checkoutBranch(git, publishingTarget);
 
@@ -1923,10 +1933,13 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         try (Git git = Git.wrap(repo)) {
             resetIfNeeded(repo, git);
 
-            checkoutBranch(git, publishingTarget);
+            // go batch to the target branch if it exists
+            if (branchExists(repo, publishingTarget)) {
+                checkoutBranch(git, publishingTarget);
 
-            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-            deleteBranches(git, inProgressBranchName);
+                String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+                deleteBranches(git, inProgressBranchName);
+            }
         } catch (GitAPIException | IOException e) {
             throw new ServiceLayerException("Error canceling all changes for site " + siteId + " to target " +
                     publishingTarget, e);
