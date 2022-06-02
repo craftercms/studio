@@ -129,13 +129,13 @@ public class WebDavServiceImpl implements WebDavService {
             }
 
             if (!sardine.exists(listPath)) {
-                logger.debug1("Folder {} doesn't exist", listPath);
+                logger.debug("Folder '{}' doesn't exist in site '{}'", listPath, site);
                 return Collections.emptyList();
             }
             String basePath = new URL(profile.getBaseUrl()).getPath();
             String baseDomain = profile.getBaseUrl();
             String deliveryUrl = profile.getDeliveryBaseUrl();
-            logger.debug1("Listing resources at {}", listPath);
+            logger.debug1("List resources at '{}' in site '{}'", listPath, site);
             List<DavResource> resources = sardine.propfind(listPath, 1, properties);
             logger.debug1("Found {} resources at {}", resources.size(), listPath);
             return resources.stream()

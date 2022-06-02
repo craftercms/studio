@@ -1103,15 +1103,17 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
-            logger.error1("Unexpected error during creation of items. Site not found " + siteId, e);
+            logger.error("Failed to process repo operations in site '{}'. Site not found.", siteId, e);
             return false;
         }
+
         User userObj = null;
         Map<String, User> cachedUsers = new HashMap<>();
         try {
             cachedUsers.put(GIT_REPO_USER_USERNAME, userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME));
         } catch (UserNotFoundException | ServiceLayerException e) {
-            logger.error1("Unexpected error. Git repo user should be in DB", e);
+            logger.error("Failed to process repo operations in site '{}'. git_repo_user should be in the DB",
+                    siteId,e);
         }
 
         String label;
@@ -1131,7 +1133,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         try {
                             userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                         } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug1("User not found " + repoOperation.getAuthor());
+                            // TODO: SJ: Should this be a warning or info?
+                            logger.debug("User '{}' not found while processing operations in site '{}'",
+                                    repoOperation.getAuthor(), siteId, e);
                         }
                     }
                     if (Objects.isNull(userObj)) {
@@ -1153,7 +1157,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
-                            logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                            logger.error("Error extracting metadata from the XML site '{}' path '{}'",
+                                    siteId, repoOperation.getPath(), e);
                         }
                     }
                     previewUrl = null;
@@ -1182,8 +1187,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
                                 repoOperation.getCommitId(), null).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        logger.debug1("Extract dependencies for site: " + siteId + " path: " +
-                                repoOperation.getPath());
+                        logger.debug("Extract dependencies from site '{}' path '{}'",
+                                siteId, repoOperation.getPath());
                         addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(),
                                 updateParentIdScriptPath);
                         addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null,
@@ -1199,7 +1204,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             try {
                                 userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                             } catch (UserNotFoundException | ServiceLayerException e) {
-                                logger.debug1("User not found " + repoOperation.getAuthor());
+                                // TODO: SJ: Should this be a warning or info?
+                                logger.debug("User '{}' not found while processing operations in site '{}'",
+                                        repoOperation.getAuthor(), siteId, e);
                             }
                         }
                         if (Objects.isNull(userObj)) {
@@ -1221,7 +1228,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                                 }
                             } catch (DocumentException e) {
-                                logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getPath());
+                                logger.error("Error extracting metadata from the XML site '{}' path '{}'",
+                                        siteId, repoOperation.getPath(), e);
                             }
                         }
                         previewUrl = null;
@@ -1245,8 +1253,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
                                 repoOperation.getCommitId()).getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        logger.debug1("Extract dependencies for site: " + siteId + " path: " +
-                                repoOperation.getPath());
+                        logger.debug("Extract dependencies from site '{}' path '{}'",
+                                siteId, repoOperation.getPath());
                         addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, repoOperationsScriptPath);
                     }
                     break;
@@ -1274,7 +1282,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         try {
                             userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                         } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug1("User not found " + repoOperation.getAuthor());
+                            // TODO: SJ: Should this be a warning or info?
+                            logger.debug("User '{}' not found while processing operations in site '{}'",
+                                    repoOperation.getAuthor(), siteId, e);
                         }
                     }
                     if (Objects.isNull(userObj)) {
@@ -1296,7 +1306,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
-                            logger.error1("Error extracting metadata from xml file " + siteId + ":" + repoOperation.getMoveToPath());
+                            logger.error("Error extracting metadata from the XML site '{}' path '{}'",
+                                    siteId, repoOperation.getMoveToPath(), e);
                         }
                     }
                     previewUrl = null;
@@ -1338,16 +1349,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     break;
 
                 default:
-                    logger.error1("Error: Unknown repo operation for site " + siteId + " operation: " +
-                            repoOperation.getAction());
+                    logger.error("Unable to process unknown repo operation '{}' in site '{}'",
+                            siteId, repoOperation.getAction());
                     toReturn = false;
                     break;
             }
             invalidateConfigurationCacheIfRequired(siteId, repoOperation.getPath());
         }
         if (logger.isDebugEnabled()) {
-            logger.debug1("Process Repo operations finished in " + (System.currentTimeMillis() - startProcessRepoOperationMark) +
-                    " milliseconds");
+            logger.debug("Completed processing repo operations in site '{}'. Processing finished in '{}' milliseconds",
+                    siteId, (System.currentTimeMillis() - startProcessRepoOperationMark));
         }
         return toReturn;
     }
@@ -1447,7 +1458,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             SiteFeed siteFeed = getSite(siteId);
             return siteFeed.getPublishingEnabled() > 0;
         } catch (SiteNotFoundException e) {
-            logger.debug1("Site " + siteId + " not found. Publishing disabled");
+            logger.warn("Failed to check if publishing is enabled for Site '{}'. Site not found.",
+                    siteId, e);
             return false;
         }
     }
@@ -1554,26 +1566,26 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl) {
-        logger.debug1("Locking publishing for site " + siteId + " with lock owner " + lockOwnerId);
+        logger.debug("Attempt to lock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
         int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
         if (result == 1) {
-            logger.debug1("Locked publishing for site " + siteId + " with lock owner " + lockOwnerId);
+            logger.debug("Locked publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
         } else {
-            logger.debug1("Failed to publishing for site " + siteId + " with lock owner " + lockOwnerId);
+            logger.debug("Failed to lock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
         }
         return result == 1;
     }
 
     @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
-        logger.debug1("Unlocking publishing for site " + siteId);
+        logger.debug("Unlock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
         retryingDatabaseOperationFacade.unlockPublishingForSite(siteId, lockOwnerId);
         return true;
     }
 
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
-        logger.debug1("Update publishing lock heartbeat for site " + siteId);
+        logger.debug("Update publishing lock heartbeat in site '{}'", siteId);
         retryingDatabaseOperationFacade.updatePublishingLockHeartbeatForSite(siteId);
     }
 
