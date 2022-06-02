@@ -46,17 +46,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.GitLog;
-import org.craftercms.studio.api.v2.dal.GitLogDAO;
-import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -112,6 +102,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -131,6 +122,7 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
@@ -161,6 +153,8 @@ public class GitContentRepository implements ContentRepository {
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
     private ServicesConfig servicesConfig;
+
+    protected StudioDBScriptRunnerFactory scriptRunnerFactory;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -2023,6 +2017,29 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
+    @Override
+    public void populateGitLog(String siteId) throws GitAPIException, IOException {
+        String repoLockKey = helper.getSandboxRepoLockKey(siteId);
+        Path script  = Files.createTempFile("studio-gitlog-", ".sql");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            Iterable<RevCommit> gitLog = git.log().call();
+            Iterator<RevCommit> commits = gitLog.iterator();
+            StudioDBScriptRunner scriptRunner = scriptRunnerFactory.getDBScriptRunner();
+            RevCommit commit;
+            while (commits.hasNext()) {
+                commit = commits.next();
+                String sql = insertGitLogRow(siteId, commit.getName(), true, !commits.hasNext());
+                Files.writeString(script, sql, APPEND);
+            }
+            scriptRunner.execute(script.toFile());
+        } finally {
+            Files.deleteIfExists(script);
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
     public void setHelper(GitRepositoryHelper helper) {
         this.helper = helper;
     }
@@ -2094,4 +2111,9 @@ public class GitContentRepository implements ContentRepository {
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
+
+    public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
+        this.scriptRunnerFactory = scriptRunnerFactory;
+    }
+
 }

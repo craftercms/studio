@@ -31,8 +31,10 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -430,5 +432,14 @@ public interface ContentRepository {
      * @throws ServiceLayerException if there is any error during cleanup
      */
     void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+
+    /**
+     * Populates the full git log of the sandbox repository into the database
+     *
+     * @param siteId the id of the site
+     * @throws GitAPIException if there is any error reading the git log
+     * @throws IOException if there is any error executing the db script
+     */
+    void populateGitLog(String siteId) throws GitAPIException, IOException;
 
 }
