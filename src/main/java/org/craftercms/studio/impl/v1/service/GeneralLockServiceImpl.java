@@ -17,7 +17,6 @@ package org.craftercms.studio.impl.v1.service;
 
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,7 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     public void lock(@ValidateStringParam(name = "objectId") String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Obtaining lock for id " + objectId);
+            logger.debug("Thread '{}' will attempt to lock object '{}'", Thread.currentThread().getName(), objectId);
         }
         synchronized (this) {
             if (nodeLocks.containsKey(objectId)) {
@@ -51,18 +50,14 @@ public class GeneralLockServiceImpl implements GeneralLockService {
                 nodeLocks.put(objectId, nodeLock);
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock hold count " + nodeLock.getHoldCount() + " for id " + objectId + " (before lock)");
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock: " + nodeLock.toString());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Thread '{}' will attempt to lock object '{}' using nodeLock '{}' with holdCount '{}'",
+                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
         }
         nodeLock.lock();
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock hold count " + nodeLock.getHoldCount() + " for id " + objectId + " (after lock)");
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Locked all threads for id " + objectId);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Thread '{}' has locked object '{}' using nodeLock '{}' with holdCount '{}'",
+                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
         }
     }
 
@@ -71,7 +66,7 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     public boolean tryLock(@ValidateStringParam(name = "objectId") String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Trying to get lock for id " + objectId);
+            logger.debug("Thread '{}' will attempt to tryLock object '{}'", Thread.currentThread().getName(), objectId);
         }
         synchronized (this) {
             if (nodeLocks.containsKey(objectId)) {
@@ -81,18 +76,14 @@ public class GeneralLockServiceImpl implements GeneralLockService {
                 nodeLocks.put(objectId, nodeLock);
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock hold count " + nodeLock.getHoldCount() + " for id " + objectId + " (before tryLock)");
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock: " + nodeLock.toString());
+        if (logger.isTraceEnabled()) {
+            logger.trace("Thread '{}' will attempt to tryLock object '{}' using nodeLock '{}' with holdCount '{}'",
+                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
         }
         boolean toRet = nodeLock.tryLock();
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock hold count " + nodeLock.getHoldCount() + " for id " + objectId + " (after tryLock)");
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Result for tryLock on id " + objectId + " : " + toRet);
+        if (logger.isTraceEnabled()) {
+            logger.trace("Thread '{}' has completed tryLock on object '{}' using nodeLock '{}' with holdCount '{}'",
+                    Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
         }
         return toRet;
     }
@@ -100,29 +91,29 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     @Override
     @ValidateParams
     public void unlock(@ValidateStringParam(name = "objectId") String objectId) {
-        ReentrantLock nodeLock = null;
+        ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Unlocking id " + objectId);
+            logger.debug("Thread '{}' will attempt to unlock object '{}'", Thread.currentThread().getName(), objectId);
         }
         synchronized (this) {
             nodeLock = nodeLocks.get(objectId);
         }
         if (nodeLock != null) {
-            if (logger.isDebugEnabled()) {
-                logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock hold count " + nodeLock.getHoldCount() + " for id " + objectId + " (before unlock)");
-            }
-            if (logger.isDebugEnabled()) {
-                logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock: " + nodeLock.toString());
+            if (logger.isTraceEnabled()) {
+                logger.trace("Thread '{}' will attempt to unlock object '{}' using nodeLock '{}' with holdCount '{}'",
+                        Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
             }
             nodeLock.unlock();
+            if (logger.isTraceEnabled()) {
+                logger.trace("Thread '{}' has completed unlock on object '{}' using nodeLock '{}' with holdCount '{}'",
+                        Thread.currentThread().getName(), objectId, nodeLock, nodeLock.getHoldCount());
+            }
+        } else {
             if (logger.isDebugEnabled()) {
-                logger.debug1("[" + Thread.currentThread().getName() + "]" + " Lock hold count " + nodeLock.getHoldCount() + " for id " + objectId + " (after unlock)");
+                logger.error("Thread '{}' is unable to unlock object '{}' since the nodeLock was not found",
+                        Thread.currentThread().getName(), objectId);
             }
         }
-        if (logger.isDebugEnabled()) {
-            logger.debug1("[" + Thread.currentThread().getName() + "]" + " Finished unlocking id " + objectId);
-        }
-
     }
 
     @Override

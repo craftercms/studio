@@ -45,7 +45,7 @@ public class ContentUtils {
                 in.close();
             }
         } catch (IOException e) {
-            logger.error1("Failed to release a resource.", e);
+            logger.error("Failed to InputStream", e);
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -62,7 +62,7 @@ public class ContentUtils {
                 out.close();
             }
         } catch (IOException e) {
-            logger.error1("Failed to relase a resource.", e);
+			logger.error("Failed to OutputStream", e);
         } finally {
             IOUtils.closeQuietly(out);
         }
@@ -80,7 +80,7 @@ public class ContentUtils {
                 reader.close();
             }
         } catch (IOException e) {
-            logger.error1("Failed to release a reader.", e);
+			logger.error("Failed to Reader", e);
         } finally {
             IOUtils.closeQuietly(reader);
         }
@@ -101,18 +101,19 @@ public class ContentUtils {
 				saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 				saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
 				saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				// TODO: SJ: Investigate the need for the following
+				// TODO: SJ: saxReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				// TODO: SJ: saxReader.setXIncludeAware(false);
+				// TODO: SJ: saxReader.setExpandEntityReferences(false);
 				saxReader.setMergeAdjacentText(true);
 			} catch (SAXException e){
-				logger.error1("Unable to turn off external entity loading, This could be a security risk.", ex);
+				logger.error("Failed to turn off external entity loading. This could be a security risk.", e);
 			}
 			return saxReader.read(isReader);
-		} catch (DocumentException e) {
-				logger.error1("Error while coverting stream to XML", e);
+		} catch (DocumentException | UnsupportedEncodingException e) {
+				logger.error("Failed to parse XML document", e);
 			return null;
-		} catch (UnsupportedEncodingException e) {
-            logger.error1("Error while coverting stream to XML", e);
-            return null;
-        } finally {
+		} finally {
             ContentUtils.release(is);
             ContentUtils.release(isReader);
         }
@@ -135,7 +136,7 @@ public class ContentUtils {
 	}
 
 	/**
-	 * Returns the page name part (eg.index.xml) of a given URL
+	 * Returns the page name part (e.g.index.xml) of a given URL
 	 *
 	 * @param url
 	 * @return page name
@@ -156,11 +157,8 @@ public class ContentUtils {
 		try {
 			return new ByteArrayInputStream(
 					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
-		} catch (UnsupportedEncodingException e) {
-			logger.error1("Failed to convert document to stream with encoding: " + encoding, e);
-			return null;
 		} catch (IOException e) {
-			logger.error1("Failed to convert document to stream with encoding: " + encoding, e);
+			logger.error("Failed to convert XML document to String with encoding '{}'", encoding, e);
 			return null;
 		}
 	}

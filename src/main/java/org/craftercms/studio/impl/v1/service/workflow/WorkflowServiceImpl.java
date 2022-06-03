@@ -273,7 +273,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         } catch (Exception e) {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-            logger.error1("Error while submitting content for approval.", e);
+            logger.error("Failed to submit content for approval in site '{}'",
+                    site, e);
         }
         return result;
 
@@ -467,8 +468,9 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         itemServiceInternal.deleteItem(site, it.getPath());
                     }
                 } catch (Exception e) {
-                    logger.error1("Could not warm cache for [" + site + " : " + it.getPath()
-                            + "] " + e.getMessage());
+                    // TODO: SJ: This can get excessive since it's in a loop. Refactor.
+                    logger.error("Failed to warm the cache for site '{}' path '{}'",
+                            site, it.getPath(), e);
                 }
             }
         }
@@ -622,8 +624,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 deploymentService.cancelWorkflow(site, affectedItem);
                 paths.add(affectedItem);
             } catch (DeploymentException e) {
-                logger.error1("Error occurred while trying to cancel workflow for path [" + affectedItem
-                        + "], site " + site, e);
+                // TODO: SJ: This can get excessive since it's in a loop. Refactor.
+                logger.error("Failed to cancel workflow for site '{}' path '{}'", site, affectedItem, e);
             }
         }
         if (CollectionUtils.isNotEmpty(paths)) {
@@ -820,8 +822,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             result.setMessage(notificationService.getNotificationMessage(site,
                     NotificationMessageType.CompleteMessages, responseMessageKey));
         } catch (JSONException | ServiceLayerException e) {
-            logger.error1("error performing operation " + operation + " " + e);
-
+            logger.error("Failed to approve workflow in site '{}' operation '{}'", site, operation, e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1020,8 +1021,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     responseMessageKey));
 
         } catch (JSONException | ServiceLayerException | UserNotFoundException e) {
-            logger.error1("error performing operation " + operation + " " + e);
-
+            logger.error("Failed to approve workflow in site '{}' operation '{}'", site, operation, e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1148,8 +1148,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             result.setMessage(notificationService.getNotificationMessage(site,
                     NotificationMessageType.CompleteMessages,responseMessageKey));
         } catch (JSONException | ServiceLayerException e) {
-            logger.error1("error performing operation " + operation + " " + e);
-
+            logger.error("Failed to approve workflow in site '{}' operation '{}'", site, operation, e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
