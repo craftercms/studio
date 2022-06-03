@@ -94,9 +94,7 @@ public class RepositoryStartupCleanup {
             String path = repoPath.toAbsolutePath().toString();
             if (GitUtils.isRepositoryLocked(path)) {
                 try {
-                    logger.warn("The local repository '{}' is locked, trying to unlock it", path);
                     GitUtils.unlock(path);
-                    logger.info(".git/index.lock is deleted from local repository '{}'", path);
                 } catch (IOException e) {
                     logger.warn("Error unlocking git repository '{}'", path, e);
                 }

@@ -1052,9 +1052,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 String path = globalConfigRepoPath.getParent().toAbsolutePath().toString();
                 if (GitUtils.isRepositoryLocked(path)) {
                     try {
-                        logger.warn("The global repository '{}' is locked, trying to unlock it", path);
                         GitUtils.unlock(path);
-                        logger.info(".git/index.lock is deleted from global repository '{}'", path);
                     } catch (IOException e) {
                         logger.warn("Error unlocking git repository '{}'", path, e);
                     }
