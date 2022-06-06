@@ -47,29 +47,40 @@ public class MimeTypePolicyValidator implements PolicyValidator {
             return;
         }
 
-        var containsPermittedConfig = permittedConfig != null ? permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES) : false;
-        var containDeniedConfig = deniedConfig != null ? deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES) : false;
-
-        if (containsPermittedConfig) {
-            var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
-            if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
-                    .map(MimeType::valueOf)
-                    .noneMatch(actionMimeType::isCompatibleWith)) {
-                throw new ValidationException("MIME type " + actionMimeType + " not allowed");
-            }
+        if (permittedConfig != null) {
+            validatePermitted(permittedConfig, action);
         }
 
-        if (containDeniedConfig) {
-            var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
-            if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
-                    .map(MimeType::valueOf)
-                    .anyMatch(actionMimeType::isCompatibleWith)) {
-                throw new ValidationException("MIME type " + actionMimeType + " not allowed");
-            }
+        if (deniedConfig != null) {
+            validateDenied(deniedConfig, action);
+        }
+    }
+
+    private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, Action action) throws ValidationException {
+        if (!permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
+            logger.debug("No MIME type permitted restrictions found, skipping action");
+            return;
         }
 
-        if (!containsPermittedConfig && !containDeniedConfig) {
-            logger.debug("No MIME type restrictions found, skipping action");
+        var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
+        if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
+                .map(MimeType::valueOf)
+                .noneMatch(actionMimeType::isCompatibleWith)) {
+            throw new ValidationException("MIME type " + actionMimeType + " not allowed");
+        }
+    }
+
+    private void validateDenied(HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        if (!deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
+            logger.debug("No MIME type denied restrictions found, skipping action");
+            return;
+        }
+
+        var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
+        if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
+                .map(MimeType::valueOf)
+                .anyMatch(actionMimeType::isCompatibleWith)) {
+            throw new ValidationException("MIME type " + actionMimeType + " not allowed");
         }
     }
 

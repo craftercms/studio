@@ -40,6 +40,11 @@
                 </path>
 
             </permitted>
+            <denied>
+                (mime-types or content-types are available)
+                <mime-types/> (Comma separated list of MIME types, also support wildcards)
+                <content-types/> (Comma separated list of content-types)
+            </denied>
         </statement>
     -->
 
