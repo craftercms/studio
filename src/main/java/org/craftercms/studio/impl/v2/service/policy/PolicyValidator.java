@@ -30,10 +30,10 @@ public interface PolicyValidator {
     /**
      * Performs the validation of an action
      *
-     * @param config the policy configuration
+     * @param permittedConfig the permitted policy configuration
+     * @param deniedConfig the denied policy configuration
      * @param action the action to validate
      * @throws ValidationException if the validation fails
      */
-    void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException;
-
+    void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException;
 }

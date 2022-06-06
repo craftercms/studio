@@ -17,13 +17,14 @@ package org.craftercms.studio.impl.v2.service.policy.validators;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FilenameUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.springframework.util.MimeType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -40,16 +41,46 @@ public class MimeTypePolicyValidator implements PolicyValidator {
     public static final String CONFIG_KEY_MIME_TYPES = "mime-types";
 
     @Override
-    public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
-        if (config.containsKey(CONFIG_KEY_MIME_TYPES) && !isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
-            if (config.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
-                    .map(MimeType::valueOf)
-                    .noneMatch(actionMimeType::isCompatibleWith)) {
-                throw new ValidationException("MIME type " + actionMimeType + " not allowed");
-            }
-        } else {
-            logger.debug("No MIME type restrictions found, skipping action");
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
+            logger.debug("Skipping folder '{}'", action.getTarget());
+            return;
+        }
+
+        if (permittedConfig != null) {
+            validatePermitted(permittedConfig, action);
+        }
+
+        if (deniedConfig != null) {
+            validateDenied(deniedConfig, action);
+        }
+    }
+
+    private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, Action action) throws ValidationException {
+        if (!permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
+            logger.debug("No MIME type permitted restrictions found, skipping action");
+            return;
+        }
+
+        var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
+        if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
+                .map(MimeType::valueOf)
+                .noneMatch(actionMimeType::isCompatibleWith)) {
+            throw new ValidationException("MIME type " + actionMimeType + " not allowed");
+        }
+    }
+
+    private void validateDenied(HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        if (!deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES)) {
+            logger.debug("No MIME type denied restrictions found, skipping action");
+            return;
+        }
+
+        var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
+        if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
+                .map(MimeType::valueOf)
+                .anyMatch(actionMimeType::isCompatibleWith)) {
+            throw new ValidationException("MIME type " + actionMimeType + " not allowed");
         }
     }
 

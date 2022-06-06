@@ -40,16 +40,25 @@
                 </path>
 
             </permitted>
+            <denied>
+                (mime-types or content-types are available)
+                <mime-types/> (Comma separated list of MIME types, also support wildcards)
+                <content-types/> (Comma separated list of content-types)
+            </denied>
         </statement>
     -->
 
     <!-- Example: only allow images of less than 1 MB -->
+    <!-- disable svg files -->
     <statement>
         <target-path-pattern>/static-assets/images/.*</target-path-pattern>
         <permitted>
             <maximum-file-size>1000000</maximum-file-size>
             <mime-types>image/*</mime-types>
         </permitted>
+        <denied>
+            <mime-types>image/svg+xml</mime-types>
+        </denied>
     </statement>
 
 </site-policy>
