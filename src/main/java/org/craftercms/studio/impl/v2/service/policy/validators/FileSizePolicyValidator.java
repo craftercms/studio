@@ -68,7 +68,9 @@ public class FileSizePolicyValidator implements PolicyValidator {
 
     @Override
     public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
-        validatePermitted(permittedConfig, action);
+        if (permittedConfig != null) {
+            validatePermitted(permittedConfig, action);
+        }
     }
 
 }

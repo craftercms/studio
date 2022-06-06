@@ -47,8 +47,8 @@ public class MimeTypePolicyValidator implements PolicyValidator {
             return;
         }
 
-        var containsPermittedConfig = permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES);
-        var containDeniedConfig = deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES);
+        var containsPermittedConfig = permittedConfig != null ? permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES) : false;
+        var containDeniedConfig = deniedConfig != null ? deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES) : false;
 
         if (containsPermittedConfig) {
             var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));

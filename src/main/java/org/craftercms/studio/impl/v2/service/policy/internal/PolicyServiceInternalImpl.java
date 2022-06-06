@@ -17,8 +17,6 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
@@ -34,6 +32,9 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
@@ -124,29 +125,39 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                     var statement = statementConfig.get();
 
                     for (var validator : policyValidators) {
-                        logger.debug("Evaluating {0} using validator {1}", action, validator.getClass().getSimpleName());
-                        validator.validate(statement.configurationAt(CONFIG_KEY_PERMITTED), statement.configurationAt(CONFIG_KEY_DENIED), action);
+                        logger.debug("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                        validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action);
                     }
                 } else {
-                    logger.debug("No statement matches found, skipping {0}", action);
+                    logger.debug("No statement matches found, skipping '{}'", action);
                 }
             } else {
-                logger.debug("No policy configuration found, skipping {0}", action);
+                logger.debug("No policy configuration found, skipping '{}'", action);
             }
             if (includeAllowed) {
-                logger.debug("Allowed {0}", action);
+                logger.debug("Allowed '{}'", action);
                 results.add(ValidationResult.allowed(action));
             }
         } catch (ValidationException e) {
-            logger.error("Validation failed for " + action, e);
+            logger.error("Validation failed for '{}'", action, e);
             if (e.getModifiedValue() != null) {
-                logger.debug("Allowed with modifications {0}", action);
+                logger.debug("Allowed with modifications '{}'", action);
                 results.add(ValidationResult.allowedWithModifications(action, e.getModifiedValue()));
             } else {
-                logger.debug("Not allowed {0}", action);
+                logger.debug("Not allowed '{}'", action);
                 results.add(ValidationResult.notAllowed(action));
             }
         }
+    }
+
+    protected HierarchicalConfiguration<?> getSubConfig(HierarchicalConfiguration<?> statement, String configKey) {
+        try {
+            return statement.configurationAt(configKey);
+        } catch (Exception e) {
+            logger.debug("Failed to load configuration value for key '{}'. Returning null.", configKey);
+        }
+
+        return null;
     }
 
     protected void evaluateRecursiveAction(HierarchicalConfiguration<?> config, String siteId, Action action,

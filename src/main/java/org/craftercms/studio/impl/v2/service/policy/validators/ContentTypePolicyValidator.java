@@ -46,8 +46,8 @@ public class ContentTypePolicyValidator implements PolicyValidator {
             return;
         }
 
-        var containsPermittedConfig = permittedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES);
-        var containDeniedConfig = deniedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES);
+        var containsPermittedConfig = permittedConfig != null ? permittedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES) : false;
+        var containDeniedConfig = deniedConfig != null ? deniedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES) : false;
 
         if (!containsPermittedConfig && !containDeniedConfig) {
             logger.debug("Skipping action because there are no content-type restrictions");
