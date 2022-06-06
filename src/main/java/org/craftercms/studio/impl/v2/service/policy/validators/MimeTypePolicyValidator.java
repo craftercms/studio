@@ -47,10 +47,10 @@ public class MimeTypePolicyValidator implements PolicyValidator {
             return;
         }
 
-        var isContainPermitConfig = permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES);
-        var isContainDeniedConfig = deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES);
+        var containsPermittedConfig = permittedConfig.containsKey(CONFIG_KEY_MIME_TYPES);
+        var containDeniedConfig = deniedConfig.containsKey(CONFIG_KEY_MIME_TYPES);
 
-        if (isContainPermitConfig) {
+        if (containsPermittedConfig) {
             var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
             if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
                     .map(MimeType::valueOf)
@@ -59,7 +59,7 @@ public class MimeTypePolicyValidator implements PolicyValidator {
             }
         }
 
-        if (isContainDeniedConfig) {
+        if (containDeniedConfig) {
             var actionMimeType = MimeType.valueOf(StudioUtils.getMimeType(action.getTarget()));
             if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
                     .map(MimeType::valueOf)
@@ -68,7 +68,7 @@ public class MimeTypePolicyValidator implements PolicyValidator {
             }
         }
 
-        if (!isContainPermitConfig && !isContainDeniedConfig) {
+        if (!containsPermittedConfig && !containDeniedConfig) {
             logger.debug("No MIME type restrictions found, skipping action");
         }
     }
