@@ -901,6 +901,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // no need to process
                 retNewFileName = copyPath;
             }
+
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
         } catch(ServiceLayerException | UserNotFoundException eServiceLayerException) {
             logger.info("General Error while copying content for site {0} from {1} to {2}, new name is {3}",
                 eServiceLayerException, site, fromPath, toPath, copyPath);

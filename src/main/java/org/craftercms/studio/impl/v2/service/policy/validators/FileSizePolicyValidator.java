@@ -38,8 +38,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
     public static final String CONFIG_KEY_MIN_SIZE = "minimum-file-size";
     public static final String CONFIG_KEY_MAX_SIZE = "maximum-file-size";
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
+    private void validatePermitted(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
             logger.debug("Target is a folder, skipping action");
             return;
@@ -64,6 +63,13 @@ public class FileSizePolicyValidator implements PolicyValidator {
             }
         } else {
             logger.debug("No max size found, skipping action");
+        }
+    }
+
+    @Override
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        if (permittedConfig != null) {
+            validatePermitted(permittedConfig, action);
         }
     }
 

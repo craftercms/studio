@@ -32,8 +32,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsExce
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -118,6 +116,8 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -496,7 +496,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     Files.deleteIfExists(tempKey);
                 }
             } catch (IOException e) {
-                logger.warn("Error deleting file {0}", tempKey);
+                logger.warn("Error deleting file '{}'", tempKey);
             }
             generalLockService.unlock(gitLockKey);
         }
