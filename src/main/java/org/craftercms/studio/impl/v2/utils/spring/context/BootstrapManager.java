@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.utils.spring.context;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.spring.context.SystemStatusProvider;
+import org.craftercms.studio.impl.v2.utils.spring.event.CleanupRepositoriesEvent;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartUpgradeEvent;
 import org.craftercms.studio.impl.v2.utils.spring.event.BootstrapFinishedEvent;
 import org.craftercms.studio.impl.v2.utils.spring.event.StartClusterSetupEvent;
@@ -54,6 +55,14 @@ public class BootstrapManager implements SystemStatusProvider {
     @EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
     public Object onContextRefresh() {
         logger.info("Beans created and ready to be used");
+        logger.info("Starting clean up repositories ...");
+        return new CleanupRepositoriesEvent(this);
+    }
+
+    @Order
+    @EventListener(value = CleanupRepositoriesEvent.class)
+    public Object onCleanUpRepositories() {
+        logger.info("Clean up repositories finished");
         logger.info("Starting upgrade ...");
         return new StartUpgradeEvent(this);
     }
