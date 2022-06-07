@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
@@ -465,6 +466,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleException(HttpServletRequest request, ContentAlreadyUnlockedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_UNLOCKED);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ContentExistException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ResponseBody handleException(HttpServletRequest request, ContentExistException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_EXISTS);
         return handleExceptionInternal(request, e, response);
     }
 
