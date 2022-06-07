@@ -43,7 +43,6 @@
         <property name="lastEditorFieldName" value="#{studioConfiguration.getProperty('studio.search.field.editor')}"/>
         <property name="sizeFieldName" value="#{studioConfiguration.getProperty('studio.search.field.size')}"/>
         <property name="mimeTypeName" value="#{studioConfiguration.getProperty('studio.search.field.mimeType')}"/>
-        <property name="searchFields" value="#{studioConfiguration.getProperty('studio.search.fields.search')}"/>
         <property name="highlightFields" value="#{studioConfiguration.getProperty('studio.search.fields.highlight')}"/>
         <property name="snippetSize" value="#{studioConfiguration.getProperty('studio.search.snippets.size')}"/>
         <property name="numberOfSnippets" value="#{studioConfiguration.getProperty('studio.search.snippets.number')}"/>
