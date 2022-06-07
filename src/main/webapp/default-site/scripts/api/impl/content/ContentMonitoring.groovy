@@ -116,7 +116,6 @@ class ContentMonitoring {
 									site,
 									path.emails.split(",") as List,
 									path.emailTemplate,
-									new Locale(path.locale ?: "en"),
 									Pair.of("monitorName", monitor.name),
 									Pair.of("items", monitorPathResult.items)
 							)

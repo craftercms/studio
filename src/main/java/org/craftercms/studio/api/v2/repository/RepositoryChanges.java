@@ -31,6 +31,11 @@ import static java.util.Collections.emptySet;
 public class RepositoryChanges {
 
     /**
+     * Indicates if an initial publish should be executed
+     */
+    protected final boolean initialPublish;
+
+    /**
      * Set of created or updated paths
      */
     protected final Set<String> updatedPaths;
@@ -40,13 +45,22 @@ public class RepositoryChanges {
      */
     protected final Set<String> deletedPaths;
 
-    public RepositoryChanges(Set<String> updatedPaths, Set<String> deletedPaths) {
+    public RepositoryChanges(boolean initialPublish, Set<String> updatedPaths, Set<String> deletedPaths) {
+        this.initialPublish = initialPublish;
         this.updatedPaths = updatedPaths;
         this.deletedPaths = deletedPaths;
     }
 
-    public RepositoryChanges() {
-        this(emptySet(), emptySet());
+    public RepositoryChanges(Set<String> updatedPaths, Set<String> deletedPaths) {
+        this(false, updatedPaths, deletedPaths);
+    }
+
+    public RepositoryChanges(boolean initialPublish) {
+        this(initialPublish, emptySet(), emptySet());
+    }
+
+    public boolean isInitialPublish() {
+        return initialPublish;
     }
 
     public Set<String> getUpdatedPaths() {

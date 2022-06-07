@@ -20,6 +20,7 @@ import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
+import org.craftercms.studio.api.v2.exception.content.ContentExistException
 import scripts.api.ContentServices
 
 def result = [:]
@@ -142,12 +143,15 @@ if(ServletFileUpload.isMultipartContent(request)) {
     if (oldPath != null && oldPath != "" && (draft==null || draft!=true)) {
         fileName = oldPath.substring(oldPath.lastIndexOf("/") + 1, oldPath.length())
         result.result = ContentServices.writeContentAndRename(context, site, oldPath, path, fileName, contentType, content, "true", edit, unlock, true)
-
     } else {
-        if(path.startsWith("/site")){
-            result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock)
-        }
-        else {
+        if (path.startsWith("/site")) {
+            try {
+                result.result = ContentServices.writeContent(context, site, path, fileName, contentType, content, "true", edit, unlock)
+            } catch (ContentExistException e) {
+                response.setStatus(409)
+                result.message = e.message
+            }
+        } else {
             result.result = ContentServices.writeContentAsset(context, site, path, fileName, content,
                 isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
 

@@ -93,6 +93,7 @@ import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -147,6 +148,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -403,6 +405,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     itemServiceInternal.setSystemProcessing(site, path, true);
 
             } else {
+                // Check if creating a new page to an existing folder
+                boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+                if (isPage) {
+                    String parentFolder = path.substring(0, path.lastIndexOf(FILE_SEPARATOR));
+                    if (contentExists(site, parentFolder)) {
+                        throw new ContentExistException("Content " + path + " for site " + site + ", cannot be created " +
+                                "because the folder " + parentFolder + " already exists."
+                                );
+                    }
+                }
+
                 // Content does not exist; check for moved content and deleted content
                 if (itemServiceInternal.previousPathExists(site, path)) {
                     throw new ServiceLayerException("Content " + path + " for site " + site + ", cannot be created " +

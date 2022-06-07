@@ -739,6 +739,11 @@ public class BlobAwareContentRepository implements ContentRepository,
             RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
+                if (gitChanges.isInitialPublish()) {
+                    blobStore.initialPublish(siteId);
+                    continue;
+                }
+
                 // check if any of the changes belongs to the blob store
                 Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
                 Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
