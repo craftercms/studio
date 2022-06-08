@@ -21,12 +21,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,6 +68,8 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public class SearchServiceInternalImpl implements SearchServiceInternal {
 
+    public static final String CONFIG_KEY_FIELDS = "studio.search.fields.search";
+
     public static final String CONFIG_KEY_FACETS = "studio.search.facets";
     public static final String CONFIG_KEY_TYPES = "studio.search.types";
 
@@ -88,7 +85,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String CONFIG_KEY_TYPE_FIELD = CONFIG_KEY_FACET_FIELD;
     public static final String CONFIG_KEY_TYPE_NAME = CONFIG_KEY_FACET_NAME;
     public static final String CONFIG_KEY_TYPE_MATCHES = "matches";
-
+    public static final String CONFIG_KEY_FIELD_BOOST = "boost";
     public static final String FACET_RANGE_MIN = "min";
     public static final String FACET_RANGE_MAX = "max";
 
@@ -127,7 +124,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     /**
      * List of fields to include during searching
      */
-    protected String[] searchFields;
+    protected Map<String,Float> searchFields;
 
     /**
      * List of fields to include during highlighting
@@ -210,11 +207,6 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     @Required
-    public void setSearchFields(final String[] searchFields) {
-        this.searchFields = searchFields;
-    }
-
-    @Required
     public void setHighlightFields(final String[] highlightFields) {
         this.highlightFields = highlightFields;
     }
@@ -248,8 +240,23 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Loads facets & type mapping from the global configuration
      */
     public void init() {
+        loadFieldsFromGlobalConfiguration();
         loadTypesFromGlobalConfiguration();
         loadFacetsFromGlobalConfiguration();
+    }
+
+    protected void loadFieldsFromGlobalConfiguration() {
+        searchFields = new TreeMap<>();
+
+        List<HierarchicalConfiguration<ImmutableNode>> fieldsConfig =
+                studioConfiguration.getSubConfigs(CONFIG_KEY_FIELDS);
+
+        if(CollectionUtils.isNotEmpty(fieldsConfig)) {
+            fieldsConfig.forEach(fieldConfig -> {
+                String field = fieldConfig.getString(CONFIG_KEY_FACET_NAME);
+                searchFields.put(field, fieldConfig.getFloat(CONFIG_KEY_FIELD_BOOST));
+            });
+        }
     }
 
     /**
@@ -420,14 +427,15 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
             String[] keywords = rawKeywords.split(" ");
             if (ArrayUtils.isNotEmpty(keywords)) {
                 keywordsQuery.should(
-                    QueryBuilders.multiMatchQuery(rawKeywords, searchFields)
+                    QueryBuilders.multiMatchQuery(rawKeywords)
                         .type(MatchQuery.Type.PHRASE_PREFIX)
+                        .fields(searchFields)
                 );
 
                 for (String keyword : keywords) {
                     keywordsQuery
                         .should(QueryBuilders.regexpQuery(pathFieldName, ".*" + keyword + ".*"))
-                        .should(QueryBuilders.multiMatchQuery(keyword, searchFields));
+                        .should(QueryBuilders.multiMatchQuery(keyword).fields(searchFields));
                 }
             }
 
