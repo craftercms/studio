@@ -158,7 +158,7 @@
             AND child.locale_code = #{localeCode}
         </if>
         <if test="keyword != null &amp;&amp; keyword.length > 0">
-            AND (child.path LIKE '%${keyword}%' OR child.label LIKE '%${keyword}%')
+            AND child.label LIKE '%${keyword}%'
         </if>
         <if test="excludes != null &amp;&amp; !excludes.isEmpty()">
             AND child.path NOT IN
