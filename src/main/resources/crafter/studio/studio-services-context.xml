@@ -1658,6 +1658,8 @@
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.secure')}"/>
         <property name="cookieHttpOnly"
                   value="#{studioConfiguration.getProperty('studio.security.token.cookie.httpOnly')}"/>
+        <property name="cookieDomain"
+                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.domain')}"/>
         <property name="audience" value="#{studioConfiguration.getProperty('studio.security.token.audience')}"/>
     </bean>
 
