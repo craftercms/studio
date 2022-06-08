@@ -367,8 +367,10 @@ studio.security.token.password.encrypt: fEo7tQCXX1RYHE2ODOtjtBzmL0zzonSI
 studio.security.token.cookie.name: refresh_token
 # Time in seconds for the expiration of the refresh token cookie
 studio.security.token.cookie.maxAge: 300
-# The path used to ser the refresh token cookie
+# The path used to set the refresh token cookie
 studio.security.token.cookie.path: /studio
+# The domain used to set the refresh token cookie (if set to null or empty the domain will be detected from the request)
+studio.security.token.cookie.domain: null
 # Indicates if the refresh token cookie should be secure (should be true for production environments behind HTTPS)
 studio.security.token.cookie.secure: false
 # Indicates if the refresh token cookie should be HTTPOnly
