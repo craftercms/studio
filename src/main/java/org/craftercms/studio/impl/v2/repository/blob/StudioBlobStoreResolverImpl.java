@@ -105,6 +105,9 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         logger.debug("Looking all blob stores for site {}", siteId);
         List<StudioBlobStore> result = new LinkedList<>();
         HierarchicalConfiguration config = getConfiguration(siteId);
+        if (config == null) {
+            return result;
+        }
         List<HierarchicalConfiguration> stores = config.configurationsAt(CONFIG_KEY_STORE);
         for (HierarchicalConfiguration store : stores) {
             String storeId = store.getString(CONFIG_KEY_ID);
