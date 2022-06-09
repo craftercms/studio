@@ -686,10 +686,8 @@ studio.search.field.size: contentLength
 studio.search.field.mimeType: contentType
 # Map of fields to include in the search with their boosting
 studio.search.fields.search:
-  - name: localId.text
+  - name: internalName.text
     boost: 1.6
-  - name: internal-name.text
-    boost: 1.5
   - name: title.text
     boost: 1.5
   - name: content
@@ -701,7 +699,7 @@ studio.search.fields.search:
   - name: '*_txt'
     boost: 1.0
 # List of fields to include for highlighting
-studio.search.fields.highlight: localId, internal-name, title, content, *_html, *_t, *_txt
+studio.search.fields.highlight: internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
 studio.search.snippets.size: 50
 # The number of highlight snippets to generate
