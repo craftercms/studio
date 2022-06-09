@@ -43,8 +43,7 @@ public class SystemPolicyValidator implements PolicyValidator {
         this.fullPathMaxSize = fullPathMaxSize;
     }
 
-    @Override
-    public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
+    private void validateSystem(Action action) throws ValidationException {
         // Check if the full path exceeds the limit
         String fullPath = action.getTarget();
         if (fullPath.length() >= fullPathMaxSize) {
@@ -60,6 +59,11 @@ public class SystemPolicyValidator implements PolicyValidator {
             }
             path = path.getParent();
         }
+    }
+
+    @Override
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+        validateSystem(action);
     }
 
 }

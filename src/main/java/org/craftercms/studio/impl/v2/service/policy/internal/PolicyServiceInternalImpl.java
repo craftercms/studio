@@ -51,6 +51,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     public static final String CONFIG_KEY_STATEMENT = "statement";
     public static final String CONFIG_KEY_PATTERN = "target-path-pattern";
     public static final String CONFIG_KEY_PERMITTED = "permitted";
+    public static final  String CONFIG_KEY_DENIED = "denied";
 
     protected ContentRepository contentRepository;
 
@@ -112,7 +113,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     protected void evaluateAction(HierarchicalConfiguration<?> config, Action action, List<ValidationResult> results,
                                   boolean includeAllowed) {
         try {
-            systemValidator.validate(null, action);
+            systemValidator.validate(null, null, action);
 
             if (config != null) {
                 var statementConfig = config.configurationsAt(CONFIG_KEY_STATEMENT).stream()
@@ -123,29 +124,39 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                     var statement = statementConfig.get();
 
                     for (var validator : policyValidators) {
-                        logger.debug1("Evaluating {} using validator {}", action, validator.getClass().getSimpleName());
-                        validator.validate(statement.configurationAt(CONFIG_KEY_PERMITTED), action);
+                        logger.debug1("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                        validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action);
                     }
                 } else {
-                    logger.debug1("No statement matches found, skipping {}", action);
+                    logger.debug1("No statement matches found, skipping '{}'", action);
                 }
             } else {
-                logger.debug1("No policy configuration found, skipping {}", action);
+                logger.debug1("No policy configuration found, skipping '{}'", action);
             }
             if (includeAllowed) {
-                logger.debug1("Allowed {}", action);
+                logger.debug1("Allowed '{}'", action);
                 results.add(ValidationResult.allowed(action));
             }
         } catch (ValidationException e) {
-            logger.error1("Validation failed for " + action, e);
+            logger.error1("Validation failed for '{}'", action, e);
             if (e.getModifiedValue() != null) {
-                logger.debug1("Allowed with modifications {}", action);
+                logger.debug1("Allowed with modifications '{}'", action);
                 results.add(ValidationResult.allowedWithModifications(action, e.getModifiedValue()));
             } else {
-                logger.debug1("Not allowed {}", action);
+                logger.debug1("Not allowed '{}'", action);
                 results.add(ValidationResult.notAllowed(action));
             }
         }
+    }
+
+    protected HierarchicalConfiguration<?> getSubConfig(HierarchicalConfiguration<?> statement, String configKey) {
+        try {
+            return statement.configurationAt(configKey);
+        } catch (Exception e) {
+            logger.debug("Failed to load configuration value for key '{}'. Returning null.", configKey);
+        }
+
+        return null;
     }
 
     protected void evaluateRecursiveAction(HierarchicalConfiguration<?> config, String siteId, Action action,

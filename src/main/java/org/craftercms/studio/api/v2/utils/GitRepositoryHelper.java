@@ -256,7 +256,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
         } catch (IOException e) {
             toReturn = false;
-            logger.error("Failed to create published repo for site {} using path {}",
+            logger.error("Failed to create published repo for site '{}' using path '{}'",
                     siteId, sitePublishedRepoPath, e);
         }
 
@@ -860,8 +860,9 @@ public class GitRepositoryHelper implements DisposableBean {
         Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
+        logger.trace1("Add user credentials if provided");
         // then clone
-        logger.debug("Cloning from '{}' to '{}'", remoteUrl, localPath);
+        logger.debug1("Cloning from '{}' to '{}'", remoteUrl, localPath);
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(remoteUrl)
                 .setDirectory(localPath)
@@ -1050,6 +1051,15 @@ public class GitRepositoryHelper implements DisposableBean {
                 }
             } else {
                 logger.info("Detected an existing global repository, will not create a new one.");
+                // unlock if global repository is locked
+                String path = globalConfigRepoPath.getParent().toAbsolutePath().toString();
+                if (GitUtils.isRepositoryLocked(path)) {
+                    try {
+                        GitUtils.unlock(path);
+                    } catch (IOException e) {
+                        logger.warn("Error unlocking git repository '{}'", path, e);
+                    }
+                }
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1132,11 +1142,13 @@ public class GitRepositoryHelper implements DisposableBean {
             }
 
             if (result) {
-                logger.debug("Writing file: site: {0}, path: {1}", site, path);
+                logger.debug1("Writing file: site: '{}', path: '{}'", site, path);
 
                 // Write the bits
                 try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
+                    logger.trace1("created the file output channel");
                     ReadableByteChannel inChannel = Channels.newChannel(content);
+                    logger.trace1("created the file input channel");
                     long amount = 1024 * 1024; // 1MB at a time
                     long count;
                     long offset = 0;
@@ -1160,7 +1172,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Adding files: site: {0}, path: {1}, gitCliEnabled: {2}", site,
+                logger.debug1("Adding files: site: '{}', path: '{}', gitCliEnabled: '{}'", site,
                              ArrayUtils.toString(paths), gitCliEnabled);
             }
 
@@ -1182,8 +1194,8 @@ public class GitRepositoryHelper implements DisposableBean {
 
                 result = true;
             } catch (Exception e) {
-                logger.error1("error adding files to git: site: {0}, paths: {1}", e, site,
-                             ArrayUtils.toString(paths));
+                logger.error1("error adding files to git: site: '{}', paths: '{}'", site,
+                             ArrayUtils.toString(paths), e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
@@ -1197,7 +1209,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Adding files: site: {0}, path: {1}, gitCliEnabled: {2}", site,
+                logger.debug1("Adding files: site: '{}', path: '{}', gitCliEnabled: '{}'", site,
                              ArrayUtils.toString(paths), gitCliEnabled);
             }
 
@@ -1226,11 +1238,11 @@ public class GitRepositoryHelper implements DisposableBean {
                 if (cause instanceof NoChangesToCommitException ||
                     (cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
                     // we should ignore empty commit errors
-                    logger.debug("No changes were committed to git: site: {0}, paths: {1}", site,
+                    logger.debug1("No changes were committed to git: site: '{}', paths: '{}'", site,
                                  ArrayUtils.toString(paths));
                 } else {
-                    logger.error("error adding files to git: site: {0}, paths: {1}", e, site,
-                                 ArrayUtils.toString(paths));
+                    logger.error1("error adding files to git: site: '{}', paths: '{}'", site,
+                                 ArrayUtils.toString(paths), e);
                 }
             } finally {
                 generalLockService.unlock(gitLockKey);
@@ -1280,6 +1292,20 @@ public class GitRepositoryHelper implements DisposableBean {
      */
     public String getSandboxRepoLockKey(String site) {
         return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+    }
+
+    /**
+     * Returns the key to use when locking Git operations for a site's sandbox or global repo
+     *
+     * @param site the site name
+     * @param ifSiteEmptyUseGlobalRepoLockKey `true` to use global repo lock key if site empty
+     * @return the lock key to use with the lock service
+     */
+    public String getSandboxRepoLockKey(String site, boolean ifSiteEmptyUseGlobalRepoLockKey) {
+        if (ifSiteEmptyUseGlobalRepoLockKey && StringUtils.isEmpty(site)) {
+            return GLOBAL_REPOSITORY_GIT_LOCK;
+        }
+        return getSandboxRepoLockKey(site);
     }
 
     /**

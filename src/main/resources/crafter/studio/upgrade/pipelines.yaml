@@ -370,6 +370,14 @@ pipelines:
                 - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
                   dest: /configuration/samples/sample-notification-config.xml
             commitDetails: Update sample file for notifications
+      - currentVersion: 4.0.1.2
+        nextVersion: 4.0.1.3
+        operations:
+          - type: globalRepoUpgrader
+            files:
+                - src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
+                  dest: /configuration/samples/sample-site-policy-config.xml
+            commitDetails: Update sample file for site policy
 
   # Pipeline to upgrade site repositories
   site:
@@ -888,3 +896,9 @@ configurations:
             pattern: "craftercms\\.components\\.ItemStatesManagement"
             replacement: "craftercms.components.WorkflowStateManagement"
             commitDetails: Rename component
+      - currentVersion: 4.0.4
+        nextVersion: 4.0.5
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.5.xslt
+            commitDetails: Added the PaddingModeSwitchListItem widget

@@ -46,17 +46,8 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.GitLog;
-import org.craftercms.studio.api.v2.dal.GitLogDAO;
-import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -112,6 +103,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -124,13 +116,12 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_PUBLISHED_REPOSITORY_GIT_LOCK;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.COPY;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
@@ -161,6 +152,8 @@ public class GitContentRepository implements ContentRepository {
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
     private ServicesConfig servicesConfig;
+
+    protected StudioDBScriptRunnerFactory scriptRunnerFactory;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -506,26 +499,25 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public String getRepoFirstCommitId(final String site) {
         String toReturn = EMPTY;
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
-            synchronized (repository) {
-                Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
-                if (repo != null) {
-                    try (RevWalk rw = new RevWalk(repo)) {
-                        ObjectId head = repo.resolve(HEAD);
-                        if (head != null) {
-                            RevCommit root = rw.parseCommit(head);
-                            rw.sort(REVERSE);
-                            rw.markStart(root);
-                            ObjectId first = rw.next();
-                            toReturn = first.getName();
-                            logger.debug("getRepoFirstCommitId for site: '{}', first commit ID is '{}'",
-                                    site, toReturn);
-                        }
-                    } catch (IOException e) {
-                        logger.error("Error getting first commit ID for site '{}'", site, e);
-                    }
+            generalLockService.lock(gitLockKey);
+            try (RevWalk rw = new RevWalk(repository)) {
+                ObjectId head = repository.resolve(HEAD);
+                if (head != null) {
+                    RevCommit root = rw.parseCommit(head);
+                    rw.sort(REVERSE);
+                    rw.markStart(root);
+                    ObjectId first = rw.next();
+                    toReturn = first.getName();
+                    logger.debug("getRepoFirstCommitId for site: '{}', first commit ID is '{}'",
+                            site, toReturn);
                 }
+            } catch (IOException e) {
+                logger.error("Error getting first commit ID for site '{}'", site, e);
+            } finally {
+                generalLockService.unlock(gitLockKey);
             }
         }
 
@@ -760,7 +752,7 @@ public class GitContentRepository implements ContentRepository {
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
                                            Map<String, String> params) {
         boolean toReturn;
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        String gitLockKey = helper.getSandboxRepoLockKey(site);
         generalLockService.lock(gitLockKey);
         try {
             // create git repository for site content
@@ -803,7 +795,7 @@ public class GitContentRepository implements ContentRepository {
             return;
         }
         String commitId = EMPTY;
-        String gitLockKey = SITE_PUBLISHED_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
+        String gitLockKey = helper.getPublishedRepoLockKey(site);
         generalLockService.lock(gitLockKey);
         try {
             Repository repo = helper.getRepository(site, PUBLISHED);
@@ -818,262 +810,259 @@ public class GitContentRepository implements ContentRepository {
             if (StringUtils.isEmpty(sandboxBranchName)) {
                 sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
             }
-            synchronized (repo) {
-                try (Git git = new Git(repo)) {
 
-                    String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+            try (Git git = new Git(repo)) {
+                String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFFIX;
 
-                    // fetch "origin/master"
-                    logger.debug("Fetch from sandbox for site '{}'", site);
-                    FetchCommand fetchCommand = git.fetch();
-                    retryingRepositoryOperationFacade.call(fetchCommand);
+                // fetch "origin/master"
+                logger.debug("Fetch from sandbox for site '{}'", site);
+                FetchCommand fetchCommand = git.fetch();
+                retryingRepositoryOperationFacade.call(fetchCommand);
 
-                    // checkout master and pull from sandbox
-                    logger.debug("Checkout published/master branch for site '{}'", site);
-                    try {
-                        // First delete it in case it already exists (ignored if it does not exist)
-                        resetIfNeeded(repo, git);
+                // checkout master and pull from sandbox
+                logger.debug("Checkout published/master branch for site '{}'", site);
+                try {
+                    // First delete it in case it already exists (ignored if it does not exist)
+                    resetIfNeeded(repo, git);
 
-                        Ref ref = repo.exactRef(R_HEADS + sandboxBranchName);
-                        boolean createBranch = (ref == null);
+                    Ref ref = repo.exactRef(R_HEADS + sandboxBranchName);
+                    boolean createBranch = (ref == null);
 
-                        checkoutBranch(git, sandboxBranchName, createBranch);
+                    checkoutBranch(git, sandboxBranchName, createBranch);
 
-                        logger.debug("Delete 'in-progress' branch, in case it was not cleaned up for site '{}'", site);
-                        deleteBranches(git, inProgressBranchName);
-
-                        PullCommand pullCommand = git.pull().
-                                setRemote(DEFAULT_REMOTE_NAME)
-                                .setRemoteBranchName(sandboxBranchName)
-                                .setStrategy(THEIRS);
-                        retryingRepositoryOperationFacade.call(pullCommand);
-                    } catch (RefNotFoundException e) {
-                        logger.error("Failed to checkout published/master and to pull content from sandbox " +
-                                "for site '{}'", site, e);
-                        throw new DeploymentException("Failed to checkout published master and to pull content from " +
-                                "sandbox for site " + site);
-                    }
-
-                    // checkout environment branch
-                    logger.debug("Checkout environment branch '{}' for site '{}'", environment, site);
-                    try {
-                        checkoutBranch(git, environment);
-                    } catch (RefNotFoundException e) {
-                        logger.info("Unable to find the branch '{}' for site '{}'. Creating a new branch.",
-                                environment, site);
-                        // create new publishing target (environment) branch
-                        // it will start as empty orphan branch
-                        CheckoutCommand checkoutCommand = git.checkout()
-                                .setOrphan(true)
-                                .setForceRefUpdate(true)
-                                .setStartPoint(sandboxBranchName)
-                                .setUpstreamMode(TRACK)
-                                .setName(environment);
-                        retryingRepositoryOperationFacade.call(checkoutCommand);
-
-                        // remove any content to create empty branch
-                        RmCommand rmcmd = git.rm();
-                        File[] toDelete = repo.getWorkTree().listFiles();
-                        if (toDelete != null) {
-                            for (File toDel : toDelete) {
-                                if (!repo.getDirectory().equals(toDel) &&
-                                        !StringUtils.equals(toDel.getName(), DOT_GIT_IGNORE)) {
-                                    rmcmd.addFilepattern(toDel.getName());
-                                }
-                            }
-                        }
-                        retryingRepositoryOperationFacade.call(rmcmd);
-                        CommitCommand commitCommand = git.commit()
-                                .setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
-                                .setAllowEmpty(true);
-                        retryingRepositoryOperationFacade.call(commitCommand);
-                    }
-
-                    // Create in progress branch
-                    try {
-
-                        // Create in progress branch
-                        logger.debug("Create in-progress branch for site '{}'", site);
-                        CheckoutCommand checkoutCommand = git.checkout()
-                                .setCreateBranch(true)
-                                .setForceRefUpdate(true)
-                                .setStartPoint(environment)
-                                .setUpstreamMode(TRACK)
-                                .setName(inProgressBranchName);
-                        retryingRepositoryOperationFacade.call(checkoutCommand);
-                    } catch (GitAPIException e) {
-                        // TODO: DB: Error ?
-                        logger.error("Failed to create in-progress published branch for site '{}'", site);
-                    }
-
-                    Set<String> deployedCommits = new HashSet<>();
-                    Set<String> deployedPackages = new HashSet<>();
-                    logger.debug("Checkout deployed files started for site '{}'", site);
-                    AddCommand addCommand = git.add();
-                    String currentPackageId = deploymentItems.get(0).getPackageId();
-                    // TODO: SJ: Review the following code and refactor for better performance
-                    // TODO: The logic should be something like:
-                    // TODO: If item doesn't exist in git, the repo was reset and the commit ID doesn't mean anything
-                    // TODO:   skip this file
-                    // TODO: If the commit ID is null, use HEAD
-                    // TODO: Publish the file
-                    for (DeploymentItemTO deploymentItem : deploymentItems) {
-                        commitId = deploymentItem.getCommitId();
-                        path = helper.getGitPath(deploymentItem.getPath());
-                        // If the commit ID is null OR the commit ID doesn't exist in the published repo
-                        if (Objects.isNull(commitId) || !commitIdExists(site, PUBLISHED, commitId)) {
-                            // If the content exists in the sandbox repository
-                            // TODO: The contentExists call is expensive, review
-                            // TODO: Why check the sandbox and not published/master from which we would be publishing?
-                            if (contentExists(site, path)) {
-                                // If the commit ID is null, then warning 1, else warning 2
-                                if (Objects.isNull(commitId)) {
-                                    logger.warn("Commit ID is null for path '{}' site '{}'. This git repository " +
-                                            "may have been reset externally at some point.", path, site);
-                                } else {
-                                    logger.warn("Commit ID '{}' in the database doesn't exist for " +
-                                            "path '{}' site '{}' in the git repository. " +
-                                            "This git repository may have been reset at some point.",
-                                            commitId, path, site);
-                                }
-                                // Log that we're publishing from HEAD
-                                logger.info("The commit ID for path '{}' site '{}' is null, using HEAD instead",
-                                        path, site);
-                                // Set the commit ID to head
-                                commitId = getRepoLastCommitId(site);
-                            } else {
-                                // The content doesn't exist in the sandbox, skip publishing it
-                                logger.warn("Path '{}' in site '{}' doesn't exist in git, skipping " +
-                                        "the publishing of this item.", path, site);
-                                continue;
-                            }
-                        }
-                        // The commit ID is not null and the content exists in the published repository OR
-                        // The commit ID was null and it was set to HEAD to avoid the null issue
-                        logger.debug("Publishing to the temporary branch path '{}' site '{}' commit ID '{}'",
-                                path, site, commitId);
-
-                        CheckoutCommand checkout = git.checkout();
-                        checkout.setStartPoint(commitId).addPath(path);
-                        retryingRepositoryOperationFacade.call(checkout);
-
-                        if (deploymentItem.isMove()) {
-                            if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
-                                String oldPath = helper.getGitPath(deploymentItem.getOldPath());
-                                RmCommand rmCommand = git.rm().addFilepattern(oldPath).setCached(false);
-                                retryingRepositoryOperationFacade.call(rmCommand);
-                                cleanUpMoveFolders(git, oldPath);
-                            }
-                        }
-
-                        if (deploymentItem.isDelete()) {
-                            String deletePath = helper.getGitPath(deploymentItem.getPath());
-                            boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
-                            RmCommand rmCommand = git.rm().addFilepattern(deletePath).setCached(false);
-                            retryingRepositoryOperationFacade.call(rmCommand);
-                            Path parentToDelete = Paths.get(path).getParent();
-                            deleteParentFolder(git, parentToDelete, isPage);
-                        }
-                        deployedCommits.add(commitId);
-                        String packageId = deploymentItem.getPackageId();
-                        if (StringUtils.isNotEmpty(packageId)) {
-                            deployedPackages.add(deploymentItem.getPackageId());
-                        }
-
-                        addCommand.addFilepattern(path);
-                        itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
-                                DateUtils.getCurrentTime());
-
-                        if (!StringUtils.equals(currentPackageId, deploymentItem.getPackageId())) {
-                            currentPackageId = deploymentItem.getPackageId();
-                            publishingProgressServiceInternal.updateObserver(site, currentPackageId);
-                        } else {
-                            publishingProgressServiceInternal.updateObserver(site);
-                        }
-                    } // end of for loop
-
-                    // All deployable files are now checked out in the temporary in-progress publishing branch
-                    logger.debug("Checkout deployed files completed for site '{}'", site);
-
-                    // commit all deployed files
-                    String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
-
-                    User user = userServiceInternal.getUserByIdOrUsername(-1, author);
-                    PersonIdent authorIdent = helper.getAuthorIdent(user);
-
-                    logger.debug("Git add all published items started for site '{}'", site);
-                    retryingRepositoryOperationFacade.call(addCommand);
-                    logger.debug("Git add all published items completed for site '{}'", site);
-
-                    commitMessage = commitMessage.replace("{username}", author);
-                    commitMessage =
-                            commitMessage.replace("{datetime}",
-                                    DateUtils.getCurrentTime().format(
-                                            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
-                    commitMessage = commitMessage.replace("{source}", "UI");
-                    commitMessage = commitMessage.replace("{message}", comment);
-                    StringBuilder sb = new StringBuilder();
-                    for (String c : deployedCommits) {
-                        sb.append(c).append(" ");
-                    }
-                    StringBuilder sbPackage = new StringBuilder();
-                    for (String p : deployedPackages) {
-                        sbPackage.append(p).append(" ");
-                    }
-                    commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
-                    commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
-
-                    String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
-                    String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
-                    StringBuilder sbCommitMessage = new StringBuilder();
-                    if (StringUtils.isNotEmpty(prologue)) {
-                        sbCommitMessage.append(prologue).append("\n\n");
-                    }
-                    sbCommitMessage.append(commitMessage);
-                    if (StringUtils.isNotEmpty(postscript)) {
-                        sbCommitMessage.append("\n\n").append(postscript);
-                    }
-
-                    logger.debug("Git commit all published items for site '{}' started", site);
-                    CommitCommand commitCommand =
-                            git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent);
-                    RevCommit revCommit = retryingRepositoryOperationFacade.call(commitCommand);
-                    logger.debug("Git commit all published items for site '{}' completed", site);
-
-                    int commitTime = revCommit.getCommitTime();
-
-                    // tag
-                    ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(UTC);
-                    String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
-                    String tagName2 = DateUtils.formatDate(tagDate2, "yyyy-MM-dd'T'HHmmssSSSX") +
-                            "_published_on_" + publishDate;
-                    PersonIdent authorIdent2 = helper.getAuthorIdent(user);
-
-                    logger.debug("Git tag started for site '{}'", site);
-                    TagCommand tagCommand =
-                            git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage);
-                    retryingRepositoryOperationFacade.call(tagCommand);
-                    logger.debug("Git tag completed for site '{}'", site);
-
-                    // Checkout the publishing target branch
-                    logger.debug("Checkout publishing target branch '{}' for site '{}'", environment, site);
-                    checkoutBranch(git, environment);
-
-                    Ref branchRef = repo.findRef(inProgressBranchName);
-
-                    // merge in-progress branch
-                    logger.debug("Merge the in-progress branch into the target branch '{}' for site '{}'",
-                            environment, site);
-                    MergeCommand mergeCommand = git.merge().setCommit(true).include(branchRef);
-                    retryingRepositoryOperationFacade.call(mergeCommand);
-
-                    // clean up
-                    logger.debug("Delete the in-progress branch (clean up) for site '{}'", site);
+                    logger.debug("Delete 'in-progress' branch, in case it was not cleaned up for site '{}'", site);
                     deleteBranches(git, inProgressBranchName);
 
-                    if (repoCreated) {
-                        siteService.setPublishedRepoCreated(site);
+                    PullCommand pullCommand = git.pull().
+                            setRemote(DEFAULT_REMOTE_NAME)
+                            .setRemoteBranchName(sandboxBranchName)
+                            .setStrategy(THEIRS);
+                    retryingRepositoryOperationFacade.call(pullCommand);
+                } catch (RefNotFoundException e) {
+                    logger.error("Failed to checkout published/master and to pull content from sandbox " +
+                            "for site '{}'", site, e);
+                    throw new DeploymentException("Failed to checkout published master and to pull content from " +
+                            "sandbox for site " + site);
+                }
+
+                // checkout environment branch
+                logger.debug("Checkout environment branch '{}' for site '{}'", environment, site);
+                try {
+                    checkoutBranch(git, environment);
+                } catch (RefNotFoundException e) {
+                    logger.info("Unable to find the branch '{}' for site '{}'. Creating a new branch.",
+                            environment, site);
+                    // create new environment branch
+                    // it will start as empty orphan branch
+                    CheckoutCommand checkoutCommand = git.checkout()
+                            .setOrphan(true)
+                            .setForceRefUpdate(true)
+                            .setStartPoint(sandboxBranchName)
+                            .setUpstreamMode(TRACK)
+                            .setName(environment);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
+
+                    // remove any content to create empty branch
+                    RmCommand rmcmd = git.rm();
+                    File[] toDelete = repo.getWorkTree().listFiles();
+                    if (toDelete != null) {
+                        for (File toDel : toDelete) {
+                            if (!repo.getDirectory().equals(toDel) &&
+                                    !StringUtils.equals(toDel.getName(), DOT_GIT_IGNORE)) {
+                                rmcmd.addFilepattern(toDel.getName());
+                            }
+                        }
                     }
+                    retryingRepositoryOperationFacade.call(rmcmd);
+                    CommitCommand commitCommand = git.commit()
+                            .setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE))
+                            .setAllowEmpty(true);
+                    retryingRepositoryOperationFacade.call(commitCommand);
+                }
+
+                // Create in progress branch
+                try {
+
+                    // Create in progress branch
+                    logger.debug("Create in-progress branch for site '{}'", site);
+                    CheckoutCommand checkoutCommand = git.checkout()
+                            .setCreateBranch(true)
+                            .setForceRefUpdate(true)
+                            .setStartPoint(environment)
+                            .setUpstreamMode(TRACK)
+                            .setName(inProgressBranchName);
+                    retryingRepositoryOperationFacade.call(checkoutCommand);
+                } catch (GitAPIException e) {
+                    // TODO: DB: Error ?
+                    logger.error("Failed to create in-progress published branch for site '{}'", site);
+                }
+
+                Set<String> deployedCommits = new HashSet<>();
+                Set<String> deployedPackages = new HashSet<>();
+                logger.debug("Checkout deployed files started for site '{}'", site);
+                AddCommand addCommand = git.add();
+                String currentPackageId = deploymentItems.get(0).getPackageId();
+                // TODO: SJ: Review the following code and refactor for better performance
+                // TODO: The logic should be something like:
+                // TODO: If item doesn't exist in git, the repo was reset and the commit ID doesn't mean anything
+                // TODO:   skip this file
+                // TODO: If the commit ID is null, use HEAD
+                // TODO: Publish the file
+                for (DeploymentItemTO deploymentItem : deploymentItems) {
+                    commitId = deploymentItem.getCommitId();
+                    path = helper.getGitPath(deploymentItem.getPath());
+                    // If the commit ID is null OR the commit ID doesn't exist in the published repo
+                    if (Objects.isNull(commitId) || !commitIdExists(site, PUBLISHED, commitId)) {
+                        // If the content exists in the sandbox repository
+                        // TODO: The contentExists call is expensive, review
+                        // TODO: Why check the sandbox and not published/master from which we would be publishing
+                        if (contentExists(site, path)) {
+                            if (Objects.isNull(commitId)) {
+                                logger.warn("Commit ID is null for path '{}' site '{}'. This git repository " +
+                                        "may have been reset externally at some point.", path, site);
+                            } else {
+                                logger.warn("Commit ID '{}' in the database doesn't exist for " +
+                                                "path '{}' site '{}' in the git repository. " +
+                                                "This git repository may have been reset at some point.",
+                                        commitId, path, site);
+                            }
+                            // Log that we're publishing from HEAD
+                            logger.info("The commit ID for path '{}' site '{}' is null, using HEAD instead",
+                                    path, site);
+                            // Set the commit ID to head
+                            commitId = getRepoLastCommitId(site);
+                        } else {
+                            // The content doesn't exist in the sandbox, skip publishing it
+                            logger.warn("Path '{}' in site '{}' doesn't exist in git, skipping " +
+                                    "the publishing of this item.", path, site);
+                            continue;
+                        }
+                    }
+                    // The commit ID is not null and the content exists in the published repository OR
+                    // The commit ID was null and it was set to HEAD to avoid the null issue
+                    logger.debug("Publishing to the temporary branch path '{}' site '{}' commit ID '{}'",
+                            path, site, commitId);
+
+                    CheckoutCommand checkout = git.checkout();
+                    checkout.setStartPoint(commitId).addPath(path);
+                    retryingRepositoryOperationFacade.call(checkout);
+
+                    if (deploymentItem.isMove()) {
+                        if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
+                            String oldPath = helper.getGitPath(deploymentItem.getOldPath());
+                            RmCommand rmCommand = git.rm().addFilepattern(oldPath).setCached(false);
+                            retryingRepositoryOperationFacade.call(rmCommand);
+                            cleanUpMoveFolders(git, oldPath);
+                        }
+                    }
+
+                    if (deploymentItem.isDelete()) {
+                        String deletePath = helper.getGitPath(deploymentItem.getPath());
+                        boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
+                        RmCommand rmCommand = git.rm().addFilepattern(deletePath).setCached(false);
+                        retryingRepositoryOperationFacade.call(rmCommand);
+                        Path parentToDelete = Paths.get(path).getParent();
+                        deleteParentFolder(git, parentToDelete, isPage);
+                    }
+                    deployedCommits.add(commitId);
+                    String packageId = deploymentItem.getPackageId();
+                    if (StringUtils.isNotEmpty(packageId)) {
+                        deployedPackages.add(deploymentItem.getPackageId());
+                    }
+
+                    addCommand.addFilepattern(path);
+                    itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
+                            DateUtils.getCurrentTime());
+
+                    if (!StringUtils.equals(currentPackageId, deploymentItem.getPackageId())) {
+                        currentPackageId = deploymentItem.getPackageId();
+                        publishingProgressServiceInternal.updateObserver(site, currentPackageId);
+                    } else {
+                        publishingProgressServiceInternal.updateObserver(site);
+                    }
+                } // end of for loop
+
+                // All deployable files are now checked out in the temporary in-progress publishing branch
+                logger.debug("Checkout deployed files completed for site '{}'", site);
+
+                // commit all deployed files
+                String commitMessage = studioConfiguration.getProperty(REPO_PUBLISHED_COMMIT_MESSAGE);
+
+                User user = userServiceInternal.getUserByIdOrUsername(-1, author);
+                PersonIdent authorIdent = helper.getAuthorIdent(user);
+
+                logger.debug("Git add all published items started for site '{}'", site);
+                retryingRepositoryOperationFacade.call(addCommand);
+                logger.debug("Git add all published items completed for site '{}'", site);
+
+                commitMessage = commitMessage.replace("{username}", author);
+                commitMessage =
+                        commitMessage.replace("{datetime}",
+                                DateUtils.getCurrentTime().format(
+                                        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
+                commitMessage = commitMessage.replace("{source}", "UI");
+                commitMessage = commitMessage.replace("{message}", comment);
+                StringBuilder sb = new StringBuilder();
+                for (String c : deployedCommits) {
+                    sb.append(c).append(" ");
+                }
+                StringBuilder sbPackage = new StringBuilder();
+                for (String p : deployedPackages) {
+                    sbPackage.append(p).append(" ");
+                }
+                commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
+                commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
+
+                String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
+                String postscript = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_POSTSCRIPT);
+                StringBuilder sbCommitMessage = new StringBuilder();
+                if (StringUtils.isNotEmpty(prologue)) {
+                    sbCommitMessage.append(prologue).append("\n\n");
+                }
+                sbCommitMessage.append(commitMessage);
+                if (StringUtils.isNotEmpty(postscript)) {
+                    sbCommitMessage.append("\n\n").append(postscript);
+                }
+
+                logger.debug("Git commit all published items for site '{}' started", site);
+                CommitCommand commitCommand =
+                        git.commit().setMessage(sbCommitMessage.toString()).setAuthor(authorIdent);
+                RevCommit revCommit = retryingRepositoryOperationFacade.call(commitCommand);
+                logger.debug("Git commit all published items for site '{}' completed", site);
+
+                int commitTime = revCommit.getCommitTime();
+
+                // tag
+                ZonedDateTime tagDate2 = Instant.ofEpochSecond(commitTime).atZone(UTC);
+                String publishDate = DateUtils.formatCurrentTime("yyyy-MM-dd'T'HHmmssSSSX");
+                String tagName2 = DateUtils.formatDate(tagDate2, "yyyy-MM-dd'T'HHmmssSSSX") +
+                        "_published_on_" + publishDate;
+                PersonIdent authorIdent2 = helper.getAuthorIdent(user);
+
+                logger.debug("Git tag started for site '{}'", site);
+                TagCommand tagCommand =
+                        git.tag().setTagger(authorIdent2).setName(tagName2).setMessage(commitMessage);
+                retryingRepositoryOperationFacade.call(tagCommand);
+                logger.debug("Git tag completed for site '{}'", site);
+
+                // Checkout the publishing target branch
+                logger.debug("Checkout publishing target branch '{}' for site '{}'", environment, site);
+                checkoutBranch(git, environment);
+
+                Ref branchRef = repo.findRef(inProgressBranchName);
+
+                // merge in-progress branch
+                logger.debug("Merge the in-progress branch into the target branch '{}' for site '{}'",
+                        environment, site);
+                MergeCommand mergeCommand = git.merge().setCommit(true).include(branchRef);
+                retryingRepositoryOperationFacade.call(mergeCommand);
+
+                // clean up
+                logger.debug("Delete the in-progress branch (clean up) for site '{}'", site);
+                deleteBranches(git, inProgressBranchName);
+
+                if (repoCreated) {
+                    siteService.setPublishedRepoCreated(site);
                 }
             }
         } catch (Exception e) {
@@ -1113,6 +1102,10 @@ public class GitContentRepository implements ContentRepository {
         retryingRepositoryOperationFacade.call(deleteCommand);
     }
 
+    protected boolean branchExists(Repository repo, String branch) throws IOException {
+        return repo.resolve(branch) != null;
+    }
+
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
         Path parentToDelete = Paths.get(path).getParent();
         boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
@@ -1124,7 +1117,7 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    private String deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
+    private void deleteParentFolder(Git git, Path parentFolder, boolean wasPage) throws GitAPIException, IOException {
         String parent = parentFolder.toString();
         String folderToDelete = helper.getGitPath(parent);
         Path toDelete = Paths.get(git.getRepository().getDirectory().getParent(), parent);
@@ -1163,7 +1156,6 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
         }
-        return parent;
     }
 
     @Override
@@ -1212,7 +1204,7 @@ public class GitContentRepository implements ContentRepository {
 
         // Clone the remote git repository
         logger.debug("Creating site '{}' as a clone of remote repository '{} ({})'", siteId, remoteName, remoteUrl);
-        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
         try {
             toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
@@ -1382,21 +1374,22 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public String getRepoLastCommitId(final String site) {
         String toReturn = EMPTY;
+        String gitLockKey = helper.getSandboxRepoLockKey(site);
+        generalLockService.lock(gitLockKey);
         try {
-            Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repository = helper.getRepository(site, SANDBOX);
             if (repository != null) {
-                // TODO: SJ: Consider using the generalized locking service instead of the synchronized block below
-                synchronized (repository) {
-                    Repository repo = helper.getRepository(site, SANDBOX);
-                    ObjectId commitId = repo.resolve(HEAD);
-                    if (commitId != null) {
-                        toReturn = commitId.getName();
-                    }
+                ObjectId commitId = repository.resolve(HEAD);
+                if (commitId != null) {
+                    toReturn = commitId.getName();
                 }
             }
         } catch (IOException e) {
             logger.error("Error getting the last commit ID for site '{}'", site, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
+
         return toReturn;
     }
 
@@ -1428,107 +1421,108 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public String getLastEditCommitId(String siteId, String path) {
         String toReturn = EMPTY;
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+        generalLockService.lock(gitLockKey);
         try {
             Repository repository = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
             if (repository != null) {
-                // TODO: SJ: Reconsider the locking mechanism here and see if using the general locking service
-                // TODO: SJ: is better since that locks everything else out for this repo
-                synchronized (repository) {
-                    ObjectId head = repository.resolve(HEAD);
-                    String gitPath = helper.getGitPath(path);
-                    try (Git git = new Git(repository)) {
-                        LogCommand logCommand =  git.log().add(head).addPath(gitPath);
-                        Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-                        Iterator<RevCommit> iterator = commits.iterator();
-                        if (iterator.hasNext()) {
-                            RevCommit revCommit = iterator.next();
-                            toReturn = revCommit.getName();
-                        }
-                    } catch (IOException | GitAPIException e) {
-                        logger.error("Error getting history for content item site '{}' path '{}'", siteId, path);
+                ObjectId head = repository.resolve(HEAD);
+                String gitPath = helper.getGitPath(path);
+                try (Git git = new Git(repository)) {
+                    LogCommand logCommand =  git.log().add(head).addPath(gitPath);
+                    Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
+                    Iterator<RevCommit> iterator = commits.iterator();
+                    if (iterator.hasNext()) {
+                        RevCommit revCommit = iterator.next();
+                        toReturn = revCommit.getName();
                     }
+                } catch (IOException | GitAPIException e) {
+                    logger.error("Error getting history for content item site '{}' path '{}'", siteId, path);
                 }
             }
         } catch (IOException e) {
             logger.error("Error getting last commit ID for site '{}' path '{}'", siteId, path, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
+
         return toReturn;
     }
 
     @Override
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = new TreeMap<>();
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
-            // TODO: SJ: Reconsider the locking mechanism here and see if using the general locking service
-            // TODO: SJ: is better since that locks everything else out for this repo
-            synchronized (repository) {
-                try {
-                    // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-                    boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
-                    String firstCommitId = getRepoFirstCommitId(site);
+            generalLockService.lock(gitLockKey);
+            try {
+                // Get the sandbox repo, and then get a reference to the commitId we received and another for head
+                boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
+                String firstCommitId = getRepoFirstCommitId(site);
+                if (fromEmptyRepo) {
+                    commitIdFrom = firstCommitId;
+                }
+                Repository repo = helper.getRepository(site, SANDBOX);
+                ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
+                ObjectId objCommitIdTo = repo.resolve(commitIdTo);
+
+                try (Git git = new Git(repo)) {
+
                     if (fromEmptyRepo) {
-                        commitIdFrom = firstCommitId;
+                        CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
+                        firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
+                        // Diff the two commit Ids
+                        DiffCommand diffCommand = git.diff()
+                                .setOldTree(firstCommitTreeParser)
+                                .setNewTree(null);
+                        List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+
+                        // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                        // and add them to the list of RepoOperations to return to the caller
+                        // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                        // convert to java date before sending over
+                        changeSet.putAll(getChangeSetFromDiff(diffEntries));
                     }
-                    Repository repo = helper.getRepository(site, SANDBOX);
-                    ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-                    ObjectId objCommitIdTo = repo.resolve(commitIdTo);
 
-                    try (Git git = new Git(repo)) {
+                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
+                    // let's do it
+                    if (!objCommitIdFrom.equals(objCommitIdTo)) {
+                        // Compare HEAD with commitId we're given
+                        // Get list of commits between commitId and HEAD in chronological order
 
-                        if (fromEmptyRepo) {
-                            CanonicalTreeParser firstCommitTreeParser = new CanonicalTreeParser();
-                            firstCommitTreeParser.reset();//reset(reader, firstCommitTree.getId());
-                            // Diff the two commit Ids
-                            DiffCommand diffCommand = git.diff()
-                                    .setOldTree(firstCommitTreeParser)
-                                    .setNewTree(null);
-                            List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
+                        RevTree fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
+                        RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
+                        if (fromTree != null && toTree != null) {
+                            try (ObjectReader reader = repo.newObjectReader()) {
+                                CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
+                                CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
+                                fromCommitTreeParser.reset(reader, fromTree.getId());
+                                toCommitTreeParser.reset(reader, toTree.getId());
 
-                            // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                            // and add them to the list of RepoOperations to return to the caller
-                            // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                            // convert to java date before sending over
-                            changeSet.putAll(getChangeSetFromDiff(diffEntries));
-                        }
+                                // Diff the two commit Ids
+                                DiffCommand diffCommand = git.diff()
+                                        .setOldTree(fromCommitTreeParser)
+                                        .setNewTree(toCommitTreeParser);
+                                List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
 
-                        // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                        // let's do it
-                        if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                            // Compare HEAD with commitId we're given
-                            // Get list of commits between commitId and HEAD in chronological order
-
-                            RevTree fromTree = helper.getTreeForCommit(repo, objCommitIdFrom.getName());
-                            RevTree toTree = helper.getTreeForCommit(repo, objCommitIdTo.getName());
-                            if (fromTree != null && toTree != null) {
-                                try (ObjectReader reader = repo.newObjectReader()) {
-                                    CanonicalTreeParser fromCommitTreeParser = new CanonicalTreeParser();
-                                    CanonicalTreeParser toCommitTreeParser = new CanonicalTreeParser();
-                                    fromCommitTreeParser.reset(reader, fromTree.getId());
-                                    toCommitTreeParser.reset(reader, toTree.getId());
-
-                                    // Diff the two commit Ids
-                                    DiffCommand diffCommand = git.diff()
-                                            .setOldTree(fromCommitTreeParser)
-                                            .setNewTree(toCommitTreeParser);
-                                    List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
-
-                                    // Now that we have a diff, let's itemize the file changes, pack them into a TO
-                                    // and add them to the list of RepoOperations to return to the caller
-                                    // also include date/time of commit by taking number of seconds and multiply by 1000 and
-                                    // convert to java date before sending over
-                                    changeSet.putAll(getChangeSetFromDiff(diffEntries));
-                                }
+                                // Now that we have a diff, let's itemize the file changes, pack them into a TO
+                                // and add them to the list of RepoOperations to return to the caller
+                                // also include date/time of commit by taking number of seconds and multiply by 1000 and
+                                // convert to java date before sending over
+                                changeSet.putAll(getChangeSetFromDiff(diffEntries));
                             }
                         }
-                    } catch (GitAPIException e) {
-                        logger.error("Error getting git operations for site '{}' from commit ID '{}' to " +
-                                "commit ID '{}'", site, commitIdFrom, commitIdTo, e);
                     }
-                } catch (IOException e) {
-                    logger.error("Error getting git operations for site '{}' from commit ID '{}' to " +
+                } catch (GitAPIException e) {
+                    logger.error1("Error getting git operations for site '{}' from commit ID '{}' to " +
                             "commit ID '{}'", site, commitIdFrom, commitIdTo, e);
                 }
+            } catch (IOException e) {
+                logger.error1("Error getting git operations for site '{}' from commit ID '{}' to " +
+                        "commit ID '{}'", site, commitIdFrom, commitIdTo, e);
+            } finally {
+                generalLockService.unlock(gitLockKey);
             }
         }
 
@@ -1766,54 +1760,56 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void lockItem(String site, String path) {
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        generalLockService.lock(gitLockKey);
+        try (TreeWalk tw = new TreeWalk(repo)) {
+            RevTree tree = helper.getTreeForLastCommit(repo);
+            tw.addTree(tree); // tree ‘0’
+            tw.setRecursive(false);
+            tw.setFilter(PathFilter.create(path));
 
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
-            try (TreeWalk tw = new TreeWalk(repo)) {
-                RevTree tree = helper.getTreeForLastCommit(repo);
-                tw.addTree(tree); // tree ‘0’
-                tw.setRecursive(false);
-                tw.setFilter(PathFilter.create(path));
-
-                if (!tw.next()) {
-                    return;
-                }
-
-                File repoRoot = repo.getWorkTree();
-                Paths.get(repoRoot.getPath(), tw.getPathString());
-                File file = new File(tw.getPathString());
-                LockFile lock = new LockFile(file);
-                lock.lock();
-            } catch (IOException e) {
-                logger.error("Error locking file in site '{}' path '{}'", site, path, e);
+            if (!tw.next()) {
+                return;
             }
+
+            File repoRoot = repo.getWorkTree();
+            Paths.get(repoRoot.getPath(), tw.getPathString());
+            File file = new File(tw.getPathString());
+            LockFile lock = new LockFile(file);
+            lock.lock();
+        } catch (IOException e) {
+            logger.error("Error locking file in site '{}' path '{}'", site, path, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
     @Override
     public void itemUnlock(String site, String path) {
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        generalLockService.lock(gitLockKey);
+        try (TreeWalk tw = new TreeWalk(repo)) {
+            RevTree tree = helper.getTreeForLastCommit(repo);
+            tw.addTree(tree);
+            tw.setRecursive(false);
+            tw.setFilter(PathFilter.create(path));
 
-        synchronized (helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX)) {
-            try (TreeWalk tw = new TreeWalk(repo)) {
-                RevTree tree = helper.getTreeForLastCommit(repo);
-                tw.addTree(tree);
-                tw.setRecursive(false);
-                tw.setFilter(PathFilter.create(path));
-
-                if (!tw.next()) {
-                    return;
-                }
-
-                File repoRoot = repo.getWorkTree();
-                Paths.get(repoRoot.getPath(), tw.getPathString());
-                File file = new File(tw.getPathString());
-                LockFile lock = new LockFile(file);
-                lock.unlock();
-
-            } catch (IOException e) {
-                logger.error("Error unlocking file in site '{}' path '{}'", site, path, e);
+            if (!tw.next()) {
+                return;
             }
+
+            File repoRoot = repo.getWorkTree();
+            Paths.get(repoRoot.getPath(), tw.getPathString());
+            File file = new File(tw.getPathString());
+            LockFile lock = new LockFile(file);
+            lock.unlock();
+
+        } catch (IOException e) {
+            logger.error("Error unlocking file in site '{}' path '{}'", site, path, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
     }
 
@@ -1864,7 +1860,7 @@ public class GitContentRepository implements ContentRepository {
         }
     }
 
-    private boolean createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
+    private void createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
         Repository repository = helper.getRepository(siteId, PUBLISHED);
         try (Git git = new Git(repository)) {
             CheckoutCommand checkoutCommand = git.checkout()
@@ -1880,11 +1876,9 @@ public class GitContentRepository implements ContentRepository {
                     .setAllowEmpty(true);
             retryingRepositoryOperationFacade.call(commitCommand);
 
-            return true;
         } catch (GitAPIException e) {
             logger.error("Failed to create publishing target branch (environment) '{}' in the published repo for " +
                     "site '{}'", environment, siteId, e);
-            return false;
         }
     }
 
@@ -1899,15 +1893,11 @@ public class GitContentRepository implements ContentRepository {
         // get the published repo
         SiteFeed site = siteService.getSite(siteId);
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
-        // if the published repo doesn't exist yet, create it and finish since it will be in sync already
+        // if the published repo doesn't exist yet, trigger an initial publish
         if (repo == null) {
-            logger.info("Creating published repository for site {0}", siteId);
-            if (helper.createPublishedRepository(siteId, site.getSandboxBranch())) {
-                // return an empty set so no additional operations are performed
-                return new RepositoryChanges();
-            } else {
-                throw new ServiceLayerException("Error creating published repository for site " + siteId);
-            }
+            logger.info1("Executing initial publish for site {0}", siteId);
+            initialPublish(siteId);
+            return new RepositoryChanges(true);
         }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(repoLockKey);
@@ -1919,6 +1909,11 @@ public class GitContentRepository implements ContentRepository {
             retryingRepositoryOperationFacade.call(git.pull()
                     .setRemote(DEFAULT_REMOTE_NAME)
                     .setStrategy(THEIRS));
+            // check if the target branch exists
+            if (!branchExists(repo, publishingTarget)) {
+                throw new PublishedRepositoryNotFoundException("Publishing target branch " + publishingTarget +
+                        " not found for site " + siteId);
+            }
             // checkout target branch
             checkoutBranch(git, publishingTarget);
 
@@ -1971,15 +1966,17 @@ public class GitContentRepository implements ContentRepository {
 
             return new RepositoryChanges(updatedPaths, deletedPaths);
         } catch (GitAPIException | IOException e) {
-            // unlock the repo in case of error to prevent deadlocks
-            generalLockService.unlock(repoLockKey);
             throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
                     publishingTarget, e);
         }
     }
 
     @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) throws ServiceLayerException {
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+            throws ServiceLayerException {
+        if (changes.isInitialPublish()) {
+            return;
+        }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         try {
             String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
@@ -1998,7 +1995,7 @@ public class GitContentRepository implements ContentRepository {
                                                               .setCommit(true)
                                                               .include(repo.findRef(inProgressBranchName)));
                 } catch (EmptyCommitException e) {
-                    logger.info("No changes detected for site {0} in target {1}", siteId, publishingTarget);
+                    logger.info1("No changes detected for site {0} in target {1}", siteId, publishingTarget);
 
                     // checkout target branch
                     checkoutBranch(git, publishingTarget);
@@ -2024,14 +2021,40 @@ public class GitContentRepository implements ContentRepository {
         try (Git git = Git.wrap(repo)) {
             resetIfNeeded(repo, git);
 
-            checkoutBranch(git, publishingTarget);
+            // go batch to the target branch if it exists
+            if (branchExists(repo, publishingTarget)) {
+                checkoutBranch(git, publishingTarget);
 
-            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
-            deleteBranches(git, inProgressBranchName);
+                String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+                deleteBranches(git, inProgressBranchName);
+            }
         } catch (GitAPIException | IOException e) {
             throw new ServiceLayerException("Error canceling all changes for site " + siteId + " to target " +
                     publishingTarget, e);
         } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
+    @Override
+    public void populateGitLog(String siteId) throws GitAPIException, IOException {
+        String repoLockKey = helper.getSandboxRepoLockKey(siteId);
+        Path script  = Files.createTempFile("studio-gitlog-", ".sql");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            Iterable<RevCommit> gitLog = git.log().call();
+            Iterator<RevCommit> commits = gitLog.iterator();
+            StudioDBScriptRunner scriptRunner = scriptRunnerFactory.getDBScriptRunner();
+            RevCommit commit;
+            while (commits.hasNext()) {
+                commit = commits.next();
+                String sql = insertGitLogRow(siteId, commit.getName(), true, !commits.hasNext());
+                Files.writeString(script, sql, APPEND);
+            }
+            scriptRunner.execute(script.toFile());
+        } finally {
+            Files.deleteIfExists(script);
             generalLockService.unlock(repoLockKey);
         }
     }
@@ -2107,4 +2130,9 @@ public class GitContentRepository implements ContentRepository {
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
+
+    public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
+        this.scriptRunnerFactory = scriptRunnerFactory;
+    }
+
 }

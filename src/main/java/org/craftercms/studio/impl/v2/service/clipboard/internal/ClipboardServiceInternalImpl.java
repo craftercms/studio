@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
@@ -94,10 +93,6 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                 throw err;
             }
         }
-
-        // trigger preview deploy
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        applicationContext.publishEvent(new ContentEvent(auth, siteId, targetPath));
     }
 
     public String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException {

@@ -38,7 +38,6 @@ import static java.util.stream.Collectors.toList;
  * @ 4.0
  */
 public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils {
-
     public static List<String> getChangedFiles(Git git, ObjectId initialId, ObjectId finalId, String[] patterns)
             throws GitAPIException, IOException {
         var repo = git.getRepository();

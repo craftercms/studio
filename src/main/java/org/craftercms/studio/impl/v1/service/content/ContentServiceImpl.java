@@ -88,9 +88,11 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -137,6 +139,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -391,6 +394,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     }
                     itemServiceInternal.setSystemProcessing(site, path, true);
             } else {
+                // Check if creating a new page to an existing folder
+                boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+                if (isPage) {
+                    String parentFolder = path.substring(0, path.lastIndexOf(FILE_SEPARATOR));
+                    if (contentExists(site, parentFolder)) {
+                        throw new ContentExistException("Content " + path + " for site " + site + ", cannot be created " +
+                                "because the folder " + parentFolder + " already exists."
+                                );
+                    }
+                }
+
                 // Content does not exist; check for moved content and deleted content
                 if (itemServiceInternal.previousPathExists(site, path)) {
                     throw new ServiceLayerException(String.format("Content '%s' for site '%s', cannot be created " +
@@ -695,7 +709,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             dependencyService.deleteItemDependencies(site, path);
         } catch (ServiceLayerException e) {
-            logger.error("Error deleting dependencies for site '%s' path '%s'", site, path, e);
+            logger.error("Error deleting dependencies for site '{}' path '{}'", site, path, e);
         }
 
         if (StringUtils.isNotEmpty(commitId)) {
@@ -726,7 +740,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             User user = userServiceInternal.getUserByIdOrUsername(-1, approver);
             Item it = itemServiceInternal.getItem(site, path);
             ContentItemTO item = getContentItem(site, path, 0);
-            logger.debug("[DELETE] posting delete activity on path '%s' by '%s' in site '%s'", path, approver, site);
+            logger.debug("Posting delete activity on site '{}' path '{}' by '{}'", site, path, approver);
             SiteFeed siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
@@ -894,9 +908,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // no need to process
                 retNewFileName = copyPath;
             }
+
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
         } catch(ServiceLayerException | UserNotFoundException e) {
             logger.info("Error copying content for site '{}' from '{}' to '{}', new name is '{}'",
-                site, fromPath, toPath, copyPath, e);
+                    site, fromPath, toPath, copyPath, e);
             throw e;
         }
 
@@ -1006,7 +1022,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 movePath = fromPath;
             }
 
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, toPath));
+            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, toPath));
         }
         catch(ServiceLayerException | UserNotFoundException e) {
             logger.error("Content not found while moving content for site '{}' from '{}' to '{}', new name is '{}'",
@@ -2597,7 +2613,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
         auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
         auditServiceInternal.insertAuditLog(auditLog);
-        
+
         return toRet;
     }
 

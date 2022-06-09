@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.0.4</version>
+	<version>4.0.5</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -86,6 +86,11 @@
 	<widget id="craftercms.components.ICEToolsPanel">
 		<configuration>
 			<widgets>
+				<widget id="craftercms.components.PaddingModeSwitchListItem">
+					<configuration>
+						<disabled>false</disabled>
+					</configuration>
+				</widget>
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>

@@ -496,7 +496,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     Files.deleteIfExists(tempKey);
                 }
             } catch (IOException e) {
-                logger.warn("Error deleting file {0}", tempKey);
+                logger.warn1("Error deleting file '{}'", tempKey, e);
             }
             generalLockService.unlock(gitLockKey);
         }

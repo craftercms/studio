@@ -47,12 +47,14 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
@@ -737,6 +739,11 @@ public class BlobAwareContentRepository implements ContentRepository,
             RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
+                if (gitChanges.isInitialPublish()) {
+                    blobStore.initialPublish(siteId);
+                    continue;
+                }
+
                 // check if any of the changes belongs to the blob store
                 Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
                 Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
@@ -781,6 +788,11 @@ public class BlobAwareContentRepository implements ContentRepository,
     public void cancelPublishAll(String siteId, String publishingTarget) {
         // this method should not be called directly
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void populateGitLog(String siteId) throws GitAPIException, IOException {
+        localRepositoryV2.populateGitLog(siteId);
     }
 
 }

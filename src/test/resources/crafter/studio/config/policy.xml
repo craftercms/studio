@@ -28,12 +28,15 @@
         </permitted>
     </statement>
 
-    <!-- Only allow images -->
+    <!-- Only allow images not of type svg -->
     <statement>
         <target-path-pattern>/static-assets/images.*</target-path-pattern>
         <permitted>
             <mime-types>image/*</mime-types>
         </permitted>
+        <denied>
+            <mime-types>image/svg+xml</mime-types>
+        </denied>
     </statement>
 
     <!-- Only allow letters in the path -->
@@ -74,6 +77,14 @@
         <permitted>
             <content-types>/component/header,/component/test</content-types>
         </permitted>
+    </statement>
+
+    <!-- Denied specific content-type -->
+    <statement>
+        <target-path-pattern>/site/components/footers.*</target-path-pattern>
+        <denied>
+            <content-types>/component/header,/component/test</content-types>
+        </denied>
     </statement>
 
 </site-policy>
