@@ -1028,7 +1028,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 movePath = fromPath;
             }
 
-            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, toPath));
+            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, movePath));
         }
         catch(ServiceLayerException | UserNotFoundException eMoveErr) {
             logger.error("Content not found while moving content for site {0} from {1} to {2}, new name is {3}",
@@ -2571,7 +2571,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
             toRet = true;
 
         } else {
