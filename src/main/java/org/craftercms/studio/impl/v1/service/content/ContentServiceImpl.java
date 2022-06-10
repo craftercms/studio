@@ -2571,7 +2571,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
+            applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
             toRet = true;
 
         } else {
