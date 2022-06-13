@@ -35,11 +35,7 @@ import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
@@ -441,7 +437,7 @@ public class ObjectStateServiceImpl extends AbstractRegistrableService implement
     @RetryingOperation
     @Override
     @ValidateParams
-    public void transitionBulk(@ValidateStringParam(name = "site") String site, List<String> paths,
+    public void transitionBulk(@ValidateStringParam(name = "site") String site, Collection<String> paths,
                                TransitionEvent event, State defaultTargetState) {
         if (paths != null && !paths.isEmpty()) {
             Map<String, Object> params = new HashMap<>();

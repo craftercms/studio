@@ -315,7 +315,7 @@ public interface ContentRepository {
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
      */
-    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException;
+    RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException;
 
     /**
      * Prepares the repository to publish all changes for the given site & target
