@@ -44,13 +44,9 @@ import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
@@ -261,7 +257,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap) {
+    public void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap) {
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
     }
 
@@ -272,14 +268,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
     }
 
-    private void updateStatesBySiteAndPathBulk(String siteId, List<String> paths, long onStateBitMap,
+    private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
                                                long offStateBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, onStateBitMap,
-                    offStateBitMap);
+            retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths,
+                                                                          onStateBitMap, offStateBitMap);
         }
     }
 
@@ -349,7 +345,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 dateTo, sortBy, order, offset, limit);
         return items.stream()
                 .map(i -> convertItemToContentDashboardItem(siteId, i))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override

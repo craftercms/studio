@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
@@ -195,7 +196,7 @@ public interface ItemDAO {
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
-    void updateStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+    void updateStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
                                    @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 

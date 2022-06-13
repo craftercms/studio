@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -382,7 +383,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void updateStatesBySiteAndPathBulk(long siteId, List<String> paths, long onStatesBitMap, long offStatesBitMap) {
+    public void updateStatesBySiteAndPathBulk(long siteId, Collection<String> paths, long onStatesBitMap, long offStatesBitMap) {
         itemDao.updateStatesBySiteAndPathBulk(siteId, paths, onStatesBitMap, offStatesBitMap);
     }
 
