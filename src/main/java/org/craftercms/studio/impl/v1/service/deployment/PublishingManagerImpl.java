@@ -78,7 +78,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PublishingManagerImpl.class);
 
-    private static final String LIVE_ENVIRONMENT = "live";
+    public static final String LIVE_ENVIRONMENT = "live";
     private static final String PRODUCTION_ENVIRONMENT = "Production";
 
     protected ContentService contentService;

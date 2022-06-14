@@ -25,6 +25,7 @@ import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface ItemServiceInternal {
@@ -195,7 +196,7 @@ public interface ItemServiceInternal {
      * @param onStateBitMap states bitmap to flip on
      * @param offStateBitMap stats bitmap to flip off
      */
-    void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap);
+    void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
 
     /**
      * Update states to flip on list off states and flip off another list of states for items

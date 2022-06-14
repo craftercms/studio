@@ -115,7 +115,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMB
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.COPY;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
@@ -1876,7 +1875,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void publishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
         // this method should not be called
         throw new UnsupportedOperationException();
     }
