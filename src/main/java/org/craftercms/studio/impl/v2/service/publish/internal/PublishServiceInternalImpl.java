@@ -21,6 +21,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
 import org.craftercms.studio.api.v1.service.objectstate.State;
+import org.craftercms.studio.api.v1.service.objectstate.TransitionEvent;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
@@ -30,6 +31,7 @@ import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 
 import java.time.ZonedDateTime;
@@ -39,8 +41,11 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
+import static org.craftercms.studio.api.v1.service.objectstate.State.EXISTING_UNEDITED_UNLOCKED;
+import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.DEPLOYMENT;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
+import static org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl.LIVE_ENVIRONMENT;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal {
 
@@ -153,9 +158,13 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
     @Override
     public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, CryptoException {
         // do the operations in the repo
-        contentRepository.publishAll(siteId, publishingTarget);
-        // update the state for all items
-        objectStateService.setStateForSiteContent(siteId, State.EXISTING_UNEDITED_UNLOCKED);
+        RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget);
+        // in 3.1 staging state is not tracked so there is nothing to update
+        if (!LIVE_ENVIRONMENT.equals(publishingTarget)) {
+            return;
+        }
+        // update the state for the changed items
+        objectStateService.transitionBulk(siteId, changes.getUpdatedPaths(), DEPLOYMENT, EXISTING_UNEDITED_UNLOCKED);
     }
 
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {

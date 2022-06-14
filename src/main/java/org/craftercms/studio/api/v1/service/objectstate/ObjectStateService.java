@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v1.service.objectstate;
 import org.craftercms.studio.api.v1.dal.ItemState;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ObjectStateService {
@@ -59,7 +60,7 @@ public interface ObjectStateService {
 
     void deleteObjectStatesForFolder(String site, String path);
 
-    void transitionBulk(String site, List<String> paths, org.craftercms.studio.api.v1.service.objectstate.TransitionEvent event, org.craftercms.studio.api.v1.service.objectstate.State defaultTargetState);
+    void transitionBulk(String site, Collection<String> paths, TransitionEvent event, State defaultTargetState);
 
     /**
      * get the object for a given set of states
