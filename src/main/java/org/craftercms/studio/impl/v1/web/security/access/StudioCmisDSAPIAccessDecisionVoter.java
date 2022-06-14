@@ -71,7 +71,7 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
                     break;
             }
         }
-        logger.debug1("Request: " + requestUri + " - Access: " + toRet);
+        logger.trace("Request URL '{}' resulted in access '{}'", requestUri, toRet);
         return toRet;
     }
 
