@@ -21,13 +21,13 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -54,6 +54,10 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
+        ContentItemTO targetContentItem = contentService.getContentItem(siteId, targetPath);
+        if (!targetContentItem.isPage() && !targetContentItem.isFolder()) {
+            throw new InvalidParametersException("Only pages and folders can contain children");
+        }
         var pastedItems = new LinkedList<String>();
         pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
         return pastedItems;
