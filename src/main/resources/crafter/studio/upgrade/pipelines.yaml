@@ -982,6 +982,15 @@ pipelines:
           template: crafter/studio/upgrade/3.1.x/3.1.23.2/system/global-permission-mappings-config.xslt
           commitDetails: Added repair_repository permissions for system_admin
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.23.2
+      nextVersion: 3.1.24
+      operations:
+        - type: globalRepoUpgrader
+          files:
+              - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                dest: /configuration/samples/sample-notification-config.xml
+          commitDetails: Update sample file for notifications
+        - type: dbVersionUpgrader
 
   # Pipeline to upgrade site repositories
   site:
@@ -1669,6 +1678,19 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/3.1.x/config/notification-config/notification-config-v3.xslt
             commitDetails: Comment example emails
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/update-version.xslt
+      - currentVersion: 3
+        nextVersion: 4
+        operations:
+          - type: findAndReplaceUpgrader
+            pattern: "<li>\\$\\{file.internalName!file.name\\}</li>"
+            replacement: "<li>\\$\\{file.action\\}: \\$\\{file.path\\} from package \\$\\{file.packageId\\}</li>"
+            commitDetails: Update deployment error template
+          - type: findAndReplaceUpgrader
+            pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
+            replacement: "<pre>\\$\\{deploymentError\\}</pre>"
+            commitDetails: Update deployment error template
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/update-version.xslt
 

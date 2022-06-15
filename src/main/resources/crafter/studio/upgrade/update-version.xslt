@@ -17,6 +17,9 @@
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
 
+    <!-- CDATA is required by the notification-config.xml file, otherwise the markup will get escaped -->
+    <xsl:output method="xml" indent="yes" cdata-section-elements="body content subject"/>
+
     <!-- define parameter -->
     <xsl:param name="version" />
 

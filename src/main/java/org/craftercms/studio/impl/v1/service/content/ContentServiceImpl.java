@@ -480,13 +480,17 @@ public class ContentServiceImpl implements ContentService {
                                       final boolean createFolder) throws ServiceLayerException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
-        String id = site + ":" + path + ":" + fileName + ":" + contentType;
-
         // TODO: SJ: FIXME: Remove the log below after testing
         logger.debug("Write and rename for site '{}' path '{}' targetPath '{}' "
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
+        // Check if the target path already exists and prevent any operation
+        if (contentExists(site, FilenameUtils.getFullPathNoEndSeparator(targetPath))) {
+            throw new ServiceLayerException("Content " + path + " can't be renamed because target path " +
+                    FilenameUtils.getFullPathNoEndSeparator(targetPath) + " already exists");
+        }
         try {
+            //TODO: This should be made transactional, write will commit even if move fails
             writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, true);
             moveContent(site, path, targetPath);
         } catch (ServiceLayerException | RuntimeException e) {

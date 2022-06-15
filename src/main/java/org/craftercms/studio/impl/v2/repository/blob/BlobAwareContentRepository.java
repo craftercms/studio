@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.file.blob.Blob;
+import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
@@ -44,28 +45,28 @@ import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository} and
@@ -699,4 +700,82 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
     }
+
+    public RepositoryChanges publishAll(String siteId, String publishingTarget)
+            throws ServiceLayerException, CryptoException {
+        try {
+            RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
+
+            Set<String> updatedFiles = new TreeSet<>(gitChanges.getUpdatedPaths());
+            Set<String> deletedFiles = new HashSet<>(gitChanges.getDeletedPaths());
+
+            List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
+            for (StudioBlobStore blobStore : blobStores) {
+                // check if any of the changes belongs to the blob store
+                Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
+                Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+
+                if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
+                    blobStore.completePublishAll(siteId, publishingTarget,
+                                                 new RepositoryChanges(updatedBlobs, deletedBlobs));
+
+                    // Update paths to return non blobs & to include the initial slash
+                    updatedFiles = translatePaths(updatedFiles);
+                    deletedFiles = translatePaths(deletedFiles);
+                }
+            }
+
+            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+
+            // Return an updated repository changes object with everything changed from git + blob
+            return new RepositoryChanges(updatedFiles, deletedFiles);
+        } catch (Exception e) {
+            localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
+            if (e instanceof ServiceLayerException) {
+                throw e;
+            } else {
+                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
+                                                publishingTarget, e);
+            }
+        }
+    }
+
+    protected Set<String> translatePaths(Set<String> paths) {
+        return paths.stream()
+                .map(this::getOriginalPath)
+                .map(path -> prependIfMissing(path, FILE_SEPARATOR))
+                .collect(toSet());
+    }
+
+    protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
+        return paths.stream()
+                    .map(path -> prependIfMissing(path, File.separator))
+                    .filter(blobStore::isCompatible)
+                    .map(this::getOriginalPath)
+                    .collect(toSet());
+    }
+
+    @Override
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called directly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void populateGitLog(String siteId) throws GitAPIException, IOException, CryptoException {
+        localRepositoryV2.populateGitLog(siteId);
+    }
+
 }

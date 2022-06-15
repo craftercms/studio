@@ -21,12 +21,16 @@ import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.DeploymentSyncHistory;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -44,17 +48,10 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
 import org.craftercms.studio.api.v2.annotation.RetryingOperation;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
-import org.craftercms.studio.api.v2.dal.GitLog;
-import org.craftercms.studio.api.v2.dal.GitLogDAO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
-import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -62,19 +59,8 @@ import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.RingBuffer;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
-import org.eclipse.jgit.api.FetchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
-import org.eclipse.jgit.api.ResetCommand;
-import org.eclipse.jgit.api.RmCommand;
-import org.eclipse.jgit.api.TagCommand;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -99,7 +85,9 @@ import org.eclipse.jgit.treewalk.TreeWalk;
 import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -119,7 +107,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -136,23 +127,13 @@ import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_POSTSCRIPT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_INITIAL_COMMIT_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_COMMIT_MESSAGE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING;
+import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
-import static org.eclipse.jgit.lib.Constants.DOT_GIT_IGNORE;
-import static org.eclipse.jgit.lib.Constants.HEAD;
-import static org.eclipse.jgit.lib.Constants.MASTER;
-import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
-import static org.eclipse.jgit.lib.Constants.R_HEADS;
+import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
 
@@ -174,6 +155,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     private StudioUtils studioUtils;
     private RetryingOperationFacade retryingOperationFacade;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
+
+    protected StudioDBScriptRunnerFactory scriptRunnerFactory;
 
     @Override
     public List<String> getSubtreeItems(String site, String path) {
@@ -914,25 +897,16 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     // checkout master and pull from sandbox
                     logger.debug("Checkout published/master branch for site " + site);
                     try {
-                        // First delete it in case it already exists (ignored if does not exist)
-                        String currentBranch = repo.getBranch();
-                        if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFFIX)) {
-                            ResetCommand resetCommand = git.reset().setMode(HARD);
-                            retryingRepositoryOperationFacade.call(resetCommand);
-                        }
+                        // First delete it in case it already exists (ignored if it does not exist)
+                        resetIfNeeded(repo, git);
 
                         Ref ref = repo.exactRef(R_HEADS + sandboxBranchName);
                         boolean createBranch = (ref == null);
 
-                        CheckoutCommand checkoutCommand = git.checkout()
-                                .setName(sandboxBranchName)
-                                .setCreateBranch(createBranch);
-                        retryingRepositoryOperationFacade.call(checkoutCommand);
+                        checkoutBranch(git, sandboxBranchName, createBranch);
 
                         logger.debug("Delete in-progress branch, in case it was not cleaned up for site " + site);
-                        DeleteBranchCommand deleteBranchCommand =
-                                git.branchDelete().setBranchNames(inProgressBranchName).setForce(true);
-                        retryingRepositoryOperationFacade.call(deleteBranchCommand);
+                        deleteBranches(git, inProgressBranchName);
 
                         PullCommand pullCommand = git.pull().
                                 setRemote(DEFAULT_REMOTE_NAME)
@@ -949,8 +923,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     // checkout environment branch
                     logger.debug("Checkout environment branch " + environment + " for site " + site);
                     try {
-                        CheckoutCommand checkoutCommand = git.checkout().setName(environment);
-                        retryingRepositoryOperationFacade.call(checkoutCommand);
+                        checkoutBranch(git, environment);
                     } catch (RefNotFoundException e) {
                         logger.info("Not able to find branch " + environment + " for site " + site +
                                 ". Creating new branch");
@@ -1120,8 +1093,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                     // checkout environment
                     logger.debug("Checkout environment " + environment + " branch for site " + site);
-                    CheckoutCommand checkoutCommand = git.checkout().setName(environment);
-                    retryingRepositoryOperationFacade.call(checkoutCommand);
+                    checkoutBranch(git, environment);
 
                     Ref branchRef = repo.findRef(inProgressBranchName);
 
@@ -1133,10 +1105,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
                     // clean up
                     logger.debug("Delete in-progress branch (clean up) for site " + site);
-                    DeleteBranchCommand deleteBranchCommand =
-                            git.branchDelete().setBranchNames(inProgressBranchName).setForce(true);
-                    retryingRepositoryOperationFacade.call(deleteBranchCommand);
-                    git.close();
+                    deleteBranches(git, inProgressBranchName);
+
                     if (repoCreated) {
                         siteService.setPublishedRepoCreated(site);
                     }
@@ -1145,10 +1115,41 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
         } catch (Exception e) {
             logger.error("Error when publishing site " + site + " to environment " + environment, e);
             throw new DeploymentException("Error when publishing site " + site + " to environment " +
-                    environment + " [commit ID = " + commitId + "]");
+                    environment + " [commit ID = " + commitId + "]", e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
+    }
+
+    protected void resetIfNeeded(Repository repo, Git git) throws IOException, GitAPIException {
+        String currentBranch = repo.getBranch();
+        if (currentBranch.endsWith(IN_PROGRESS_BRANCH_NAME_SUFFIX)) {
+            ResetCommand resetCommand = git.reset().setMode(HARD);
+            retryingRepositoryOperationFacade.call(resetCommand);
+        }
+    }
+
+    protected void checkoutBranch(Git git, String name, boolean create) throws GitAPIException {
+        CheckoutCommand checkoutCommand = git.checkout()
+                                             .setName(name)
+                                             .setCreateBranch(create);
+        retryingRepositoryOperationFacade.call(checkoutCommand);
+    }
+
+    protected void checkoutBranch(Git git, String name) throws GitAPIException {
+        checkoutBranch(git, name, false);
+    }
+
+    protected void deleteBranches(Git git, String... names) throws GitAPIException {
+        DeleteBranchCommand deleteCommand = git.branchDelete()
+                                               .setForce(true)
+                                               .setBranchNames(names);
+
+        retryingRepositoryOperationFacade.call(deleteCommand);
+    }
+
+    protected boolean branchExists(Repository repo, String branch) throws IOException {
+        return repo.resolve(branch) != null;
     }
 
     private void cleanUpMoveFolders(Git git, String path) throws GitAPIException, IOException {
@@ -1322,11 +1323,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     }
                 }
                 if (CollectionUtils.isNotEmpty(branchesToDelete)) {
-                    DeleteBranchCommand delBranch = git.branchDelete();
-                    String[] array = new String[branchesToDelete.size()];
-                    delBranch.setBranchNames(branchesToDelete.toArray(array));
-                    delBranch.setForce(true);
-                    retryingRepositoryOperationFacade.call(delBranch);
+                    deleteBranches(git, branchesToDelete.toArray(new String[]{}));
                 }
 
             } catch (GitAPIException e) {
@@ -1728,7 +1725,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     Iterable<RevCommit> commits = git.log().add(head).call();
                     Iterator<RevCommit> iterator = commits.iterator();
                     boolean found = false;
-                    while (!found || iterator.hasNext()) {
+                    while (!found && iterator.hasNext()) {
                         RevCommit revCommit = iterator.next();
                         if (StringUtils.equals(commitId, revCommit.getName())) {
                             found = true;
@@ -1786,6 +1783,194 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
+    }
+
+    @Override
+    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget)
+            throws ServiceLayerException, CryptoException {
+        // get the published repo
+        SiteFeed site = siteService.getSite(siteId);
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                                        userServiceInternal, encryptor, generalLockService,
+                                        retryingRepositoryOperationFacade);
+        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+        // if the published repo doesn't exist yet, fail
+        if (repo == null) {
+            throw new PublishedRepositoryNotFoundException("Published repository not found for site " + siteId);
+        }
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            resetIfNeeded(repo, git);
+            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+            // checkout master and pull from sandbox
+            checkoutBranch(git, site.getSandboxBranch());
+            retryingRepositoryOperationFacade.call(git.pull()
+                    .setRemote(DEFAULT_REMOTE_NAME)
+                    .setStrategy(THEIRS));
+            // check if the target branch exists
+            if (!branchExists(repo, publishingTarget)) {
+                throw new PublishedRepositoryNotFoundException("Publishing target branch " + publishingTarget +
+                                                               " not found for site " + siteId);
+            }
+
+            // checkout target branch
+            checkoutBranch(git, publishingTarget);
+
+            // checkout temp branch
+            checkoutBranch(git, inProgressBranchName, true);
+            // delete all files
+            File[] files = repo.getWorkTree()
+                    .listFiles((FileFilter) new NotFileFilter(new PrefixFileFilter(DOT_GIT)));
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    FileUtils.deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+            // checkout all files from master
+            retryingRepositoryOperationFacade.call(git.checkout()
+                                                      .setStartPoint(site.getSandboxBranch())
+                                                      .setAllPaths(true));
+
+            Status status = git.status().call();
+            Set<String> updatedPaths = new HashSet<>();
+            updatedPaths.addAll(status.getAdded());
+            updatedPaths.addAll(status.getChanged());
+            Set<String> deletedPaths = new HashSet<>(status.getMissing());
+
+            // remove files from the restricted list
+            String[] patterns = studioConfiguration.getArray(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX, String.class);
+
+            Set<String> ignored = union(updatedPaths, deletedPaths).stream()
+                    .filter(path ->
+                            RegexUtils.matchesAny(path, patterns))
+                    .collect(toSet());
+            if (CollectionUtils.isNotEmpty(ignored)) {
+                RmCommand rm = git.rm();
+                ignored.forEach(rm::addFilepattern);
+                retryingRepositoryOperationFacade.call(rm);
+
+                updatedPaths.removeAll(ignored);
+                deletedPaths.removeAll(ignored);
+            }
+
+            // add deleted files (this is not done automatically by checkout)
+            if (CollectionUtils.isNotEmpty(deletedPaths)) {
+                AddCommand add = git.add().setUpdate(true);
+                deletedPaths.forEach(add::addFilepattern);
+                retryingRepositoryOperationFacade.call(add);
+            }
+
+            return new RepositoryChanges(updatedPaths, deletedPaths);
+        } catch (GitAPIException | IOException e) {
+            throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
+                    publishingTarget, e);
+        }
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+            throws ServiceLayerException, CryptoException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                                        userServiceInternal, encryptor, generalLockService,
+                                        retryingRepositoryOperationFacade);
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        try {
+            String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+            Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+            try (Git git = Git.wrap(repo)) {
+                try {
+                    // commit all files
+                    retryingRepositoryOperationFacade.call(git.commit()
+                                                              .setMessage(helper.getCommitMessage(
+                                                                          REPO_PUBLISH_ALL_COMMIT_MESSAGE))
+                                                              .setAllowEmpty(false));
+                    // checkout target branch
+                    checkoutBranch(git, publishingTarget);
+                    // merge from temp branch
+                    retryingRepositoryOperationFacade.call(git.merge()
+                                                              .setCommit(true)
+                                                              .include(repo.findRef(inProgressBranchName)));
+                } catch (EmptyCommitException e) {
+                    logger.info("No changes detected for site {0} in target {1}", siteId, publishingTarget);
+
+                    // checkout target branch
+                    checkoutBranch(git, publishingTarget);
+                }
+
+                // delete temp branch
+                retryingRepositoryOperationFacade.call(git.branchDelete()
+                                                          .setBranchNames(inProgressBranchName));
+            } catch (GitAPIException | IOException e) {
+                throw new ServiceLayerException("Error publishing all changes for site " + siteId + " to target " +
+                        publishingTarget, e);
+            }
+        } finally {
+            // unlock the repo in any case
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget)
+            throws ServiceLayerException, CryptoException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                                        userServiceInternal, encryptor, generalLockService,
+                                        retryingRepositoryOperationFacade);
+        String repoLockKey = helper.getPublishedRepoLockKey(siteId);
+        Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
+        if (repo == null) {
+            return;
+        }
+        try (Git git = Git.wrap(repo)) {
+            resetIfNeeded(repo, git);
+
+            // go batch to the target branch if it exists
+            if (branchExists(repo, publishingTarget)) {
+                checkoutBranch(git, publishingTarget);
+
+                String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
+                deleteBranches(git, inProgressBranchName);
+            }
+        } catch (GitAPIException | IOException e) {
+            throw new ServiceLayerException("Error canceling all changes for site " + siteId + " to target " +
+                    publishingTarget, e);
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
+    @Override
+    public void populateGitLog(String siteId) throws GitAPIException, IOException, CryptoException {
+        GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
+                userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
+        String repoLockKey = helper.getSandboxRepoLockKey(siteId);
+        Path script  = Files.createTempFile("studio-gitlog-", ".sql");
+        Repository repo = helper.getRepository(siteId, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            Iterable<RevCommit> gitLog = git.log().call();
+            Iterator<RevCommit> commits = gitLog.iterator();
+            StudioDBScriptRunner scriptRunner = scriptRunnerFactory.getDBScriptRunner();
+            RevCommit commit;
+            while (commits.hasNext()) {
+                commit = commits.next();
+                String sql = insertGitLogRow(siteId, commit.getName(), true, !commits.hasNext());
+                Files.write(script, sql.getBytes(StandardCharsets.UTF_8), APPEND);
+            }
+            scriptRunner.execute(script.toFile());
+        } finally {
+            Files.deleteIfExists(script);
+            generalLockService.unlock(repoLockKey);
+        }
     }
 
     public SecurityService getSecurityService() {
@@ -1863,4 +2048,9 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
     }
+
+    public void setScriptRunnerFactory(StudioDBScriptRunnerFactory scriptRunnerFactory) {
+        this.scriptRunnerFactory = scriptRunnerFactory;
+    }
+
 }

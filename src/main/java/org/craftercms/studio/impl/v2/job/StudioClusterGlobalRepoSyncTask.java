@@ -30,10 +30,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteSetUrlCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Repository;
@@ -244,27 +241,35 @@ public class StudioClusterGlobalRepoSyncTask implements Job {
                 .build();
 
         try (Git git = new Git(repo)) {
-            logger.debug("Update content from each active cluster memeber");
+            logger.debug("Update content from each active cluster member");
             for (ClusterMember remoteNode : clusterNodes) {
                 updateBranch(git, remoteNode);
             }
-        } catch (GitAPIException e) {
-            logger.error("Error while syncing cluster node global repo content", e);
         }
     }
 
-    private void updateBranch(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
-            IOException, ServiceLayerException {
+    private void updateBranch(Git git, ClusterMember remoteNode)
+            throws CryptoException, IOException, ServiceLayerException {
         if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
+            final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
             try {
-                final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                 PullCommand pullCommand = git.pull();
                 pullCommand.setRemote(remoteNode.getGitRemoteName());
                 pullCommand = studioClusterUtils.configureAuthenticationForCommand(remoteNode, pullCommand, tempKey);
                 pullCommand.call();
-
-                Files.delete(tempKey);
+            } catch (GitAPIException e) {
+                logger.error("Error while syncing cluster node global repo content from cluster member {0}", e,
+                             remoteNode);
+                // Clean up the repo to avoid exceptions in the future
+                try {
+                    git.reset()
+                       .setMode(ResetCommand.ResetType.HARD)
+                       .call();
+                } catch (GitAPIException e2) {
+                    throw new ServiceLayerException("Error cleaning global repository", e2);
+                }
             } finally {
+                Files.deleteIfExists(tempKey);
                 generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
             }
         } else {

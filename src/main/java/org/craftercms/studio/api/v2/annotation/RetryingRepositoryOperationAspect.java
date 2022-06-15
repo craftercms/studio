@@ -20,18 +20,22 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+
 import org.craftercms.commons.aop.AopUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.commons.git.utils.GitUtils;
+
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitRepositoryLockedException;
+
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.errors.LockFailedException;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Aspect
 public class RetryingRepositoryOperationAspect {
@@ -69,20 +73,19 @@ public class RetryingRepositoryOperationAspect {
         do {
             numAttempts++;
             try {
-				 // Execute the business code again
+                // Execute the business code again
                 if (numAttempts > 1) {
-                    logger.debug("Retrying repository operation attempt " + (numAttempts - 1));
+                    logger.debug("Retrying repository operation attempt '{}'", numAttempts - 1);
                 }
                 return pjp.proceed();
             } catch (JGitInternalException | GitCliException ex) {
                 lastException = ex;
                 if (isRepositoryLocked(ex)) {
-                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+                    logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, ex);
                     if (numAttempts < maxRetries) {
                         // If the maximum number of retries is not reached, sleep and execute it again
                         long sleep = (long) (Math.random() * maxSleep);
-                        logger.debug("Git operation failed due to the repository being locked. Will wait for " +
-                                     sleep + " before next retry" + method.getName());
+                        logger.debug("Git operation failed due to the repository being locked or corrupt. Will wait for '{}' before next retry '{}'", sleep, method.getName());
                         Thread.sleep(sleep);
                     }
                 } else {

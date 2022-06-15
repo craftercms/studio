@@ -146,4 +146,18 @@ public class ClusterMember {
     public void setAvailable(int available) {
         this.available = available;
     }
+
+    @Override
+    public String toString() {
+        return "ClusterMember{" +
+                "id=" + id +
+                ", localAddress='" + localAddress + '\'' +
+                ", state=" + state +
+                ", gitUrl='" + gitUrl + '\'' +
+                ", gitRemoteName='" + gitRemoteName + '\'' +
+                ", gitAuthType='" + gitAuthType + '\'' +
+                ", available=" + available +
+                '}';
+    }
+
 }

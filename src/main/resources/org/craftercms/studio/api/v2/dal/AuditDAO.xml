@@ -263,9 +263,9 @@
     <select id="selectUserFeedEntriesHideLive" parameterType="java.util.Map" resultMap="AuditLogMap">
         select act.*
         from (
-        select cs1.*
+        select cs1.*,  cs2.site_name_id
         from audit cs1
-        inner join (select MAX(operation_timestamp) as mdate, primary_target_value from audit a, site s1
+        inner join (select MAX(operation_timestamp) as mdate, primary_target_value, s1.site_id as site_name_id from audit a, site s1
         where a.site_id = s1.id and actor_id = #{userId} and s1.site_id  = #{siteId} and s1.deleted = 0
         and operation in
         <foreach item="operation" index="index" collection="operations"
@@ -289,7 +289,7 @@
             and cs1.primary_target_subtype = #{contentType}
         </if>
         ) act
-        inner join item_state os on act.site_id=os.site and act.primary_target_value=os.path, site s3
+        inner join item_state os on act.site_name_id=os.site and act.primary_target_value=os.path, site s3
         where act.site_id = s3.id
         and act.actor_id = #{userId}
         and s3.site_id = #{siteId}

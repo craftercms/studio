@@ -17,7 +17,10 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
@@ -38,6 +41,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -193,6 +197,18 @@ public class PublishController {
         return publishService;
     }
 
+    @PostMapping("/all")
+    public ResponseBody publishAll(@Valid @RequestBody PublishAllRequest request)
+            throws ServiceLayerException, UserNotFoundException, CryptoException {
+        publishService.publishAll(request.getSiteId(), request.getPublishingTarget());
+
+        Result result = new Result();
+        result.setResponse(OK);
+        ResponseBody body = new ResponseBody();
+        body.setResult(result);
+        return body;
+    }
+
     public void setPublishService(PublishService publishService) {
         this.publishService = publishService;
     }
@@ -212,4 +228,29 @@ public class PublishController {
     public void setSitesService(SitesService sitesService) {
         this.sitesService = sitesService;
     }
+
+    public static class PublishAllRequest {
+
+        protected String siteId;
+
+        protected String publishingTarget;
+
+        public String getSiteId() {
+            return siteId;
+        }
+
+        public void setSiteId(String siteId) {
+            this.siteId = siteId;
+        }
+
+        public String getPublishingTarget() {
+            return publishingTarget;
+        }
+
+        public void setPublishingTarget(String publishingTarget) {
+            this.publishingTarget = publishingTarget;
+        }
+
+    }
+
 }
