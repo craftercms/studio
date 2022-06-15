@@ -14,38 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-import org.apache.commons.lang3.StringUtils
-import scripts.api.WorkflowServices
-
-// extract parameters
 def result = [:]
-def site = request.getParameter("site_id")
-def requestBody = request.reader.text
+result.message = "This API has been retired. Version 2 endpoint available at https://app.swaggerhub.com/apis/craftercms/studio/4.0.0.26#/content/contentDelete"
+response.setStatus(503)
 
-/** Validate Parameters */
-def invalidParams = false
-def paramsList = []
-
-// site_id
-try {
-    if (StringUtils.isEmpty(site)) {
-        site = request.getParameter("site")
-        if (StringUtils.isEmpty(site)) {
-            invalidParams = true
-            paramsList.add("site_id")
-        }
-    }
-} catch (Exception exc) {
-    invalidParams = true
-    paramsList.add("site_id")
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter(s): " + paramsList
-} else {
-    def context = WorkflowServices.createContext(applicationContext, request)
-    result = WorkflowServices.goDelete(context, site, requestBody)
-}
 return result
