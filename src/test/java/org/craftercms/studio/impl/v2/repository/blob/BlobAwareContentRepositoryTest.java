@@ -151,7 +151,7 @@ public class BlobAwareContentRepositoryTest {
 
     @Test
     public void getContentSizeTest() {
-        assertEquals(proxy.getContentSize(SITE, ORIGINAL_PATH), SIZE, "original path should return the original size");
+        assertEquals(proxy.getContentSize(SITE, ORIGINAL_PATH), -1, "Blob content items should return -1");
     }
 
     @Test
@@ -381,6 +381,13 @@ public class BlobAwareContentRepositoryTest {
 
         verify(store).initialPublish(SITE);
         verify(localV2).initialPublish(SITE);
+    }
+
+    @Test(expectedExceptions=SiteNotFoundException.class)
+    public void blobAwareRepoBubblesUpSiteNotFoundExceptionTest() throws SiteNotFoundException {
+        String nonExistingSite = "nonExistingSite";
+        doThrow(SiteNotFoundException.class).when(localV2).initialPublish(nonExistingSite);
+        proxy.initialPublish("nonExistingSite");
     }
 
 }
