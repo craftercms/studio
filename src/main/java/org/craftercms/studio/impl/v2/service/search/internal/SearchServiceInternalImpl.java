@@ -58,6 +58,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.FacetRangeTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
@@ -102,6 +103,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String DEFAULT_MIME_TYPE = "application/xml";
 
     public static final Pattern EXACT_MATCH_PATTERN = Pattern.compile(".*(\"([^\"]+)\").*");
+
+    /**
+     * Corresponds to 'index.max_result_window' default value
+     */
+    public static final int MAX_RESULT_WINDOW = 10000;
 
     /**
      * Name of the field for paths
@@ -476,6 +482,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     @SuppressWarnings("rawtypes")
     public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
             throws ServiceLayerException {
+        if ((params.getOffset() + params.getLimit()) > MAX_RESULT_WINDOW) {
+            throw new InvalidParametersException("Maximum supported result window (offset + limit) is 10000");
+        }
 
         Map<String, FacetTO> siteFacets = servicesConfig.getFacets(siteId);
         BoolQuery.Builder queryBuilder = new BoolQuery.Builder();
