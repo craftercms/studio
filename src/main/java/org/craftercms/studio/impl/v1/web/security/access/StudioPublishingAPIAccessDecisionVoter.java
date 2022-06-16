@@ -77,8 +77,8 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
                     }
                     is.reset();
                 } catch (IOException | JSONException e) {
-                    // TODO: ??
-                    logger.debug1("Failed to extract username from POST request");
+                    // TODO: SJ: Why isn't this at least INFO if not WARN?
+                    logger.debug("Failed to extract the username from the POST request", e);
                 }
             }
             User currentUser = (User) authentication.getPrincipal();
@@ -114,7 +114,7 @@ public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccess
                     break;
             }
         }
-        logger.debug1("Request: " + requestUri + " - Access: " + toRet);
+        logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
         return toRet;
     }
 

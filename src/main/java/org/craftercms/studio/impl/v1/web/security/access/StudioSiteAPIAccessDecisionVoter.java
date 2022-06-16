@@ -61,7 +61,7 @@ public class StudioSiteAPIAccessDecisionVoter extends StudioAbstractAccessDecisi
                     break;
             }
         }
-        logger.debug1("Request: " + requestUri + " - Access: " + toRet);
+        logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
         return toRet;
     }
 

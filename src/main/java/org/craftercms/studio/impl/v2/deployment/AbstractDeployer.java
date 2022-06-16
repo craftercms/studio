@@ -73,10 +73,13 @@ public abstract class AbstractDeployer implements Deployer {
                                                                             .contentType(MediaType.APPLICATION_JSON)
                                                                             .body(requestBody);
 
-            logger.debug1("Calling create target API: {}", requestEntity);
+            logger.debug("Call create target API '{}' for site '{}' publishing target '{}'",
+                    requestEntity, site, environment);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (URISyntaxException e) {
+            logger.error("Invalid format of create target URL '{}' for site '{}' publishing target '{}'",
+                    requestUrl, site, environment, e);
             throw new IllegalStateException("Invalid format of create target URL: " + requestUrl, e);
         }
     }
@@ -89,11 +92,14 @@ public abstract class AbstractDeployer implements Deployer {
                                                              .contentType(MediaType.APPLICATION_JSON)
                                                              .build();
 
-            logger.debug1("Calling delete target API: {}", requestEntity);
+            logger.debug("Call delete target API '{}' for site '{}' publishing target '{}'",
+                    requestEntity, site, environment);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Invalid format of create target URL: " + requestUrl, e);
+            logger.error("Invalid format of delete target URL '{}' for site '{}' publishing target '{}'",
+                    requestUrl, site, environment, e);
+            throw new IllegalStateException("Invalid format of delete target URL: " + requestUrl, e);
         }
     }
 
