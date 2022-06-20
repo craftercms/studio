@@ -736,9 +736,6 @@ public class BlobAwareContentRepository implements ContentRepository,
         try {
             RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
 
-            Set<String> updatedFiles = new TreeSet<>(gitChanges.getUpdatedPaths());
-            Set<String> deletedFiles = new HashSet<>(gitChanges.getDeletedPaths());
-
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 if (gitChanges.isInitialPublish()) {
@@ -753,14 +750,13 @@ public class BlobAwareContentRepository implements ContentRepository,
                 if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
                     blobStore.completePublishAll(siteId, publishingTarget,
                                                  new RepositoryChanges(updatedBlobs, deletedBlobs));
-
-                    // Update paths to return non blobs & to include the initial slash
-                    updatedFiles = translatePaths(updatedFiles);
-                    deletedFiles = translatePaths(deletedFiles);
                 }
             }
 
             localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+
+            Set<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
+            Set<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
 
             // Return an updated repository changes object with everything changed from git + blob
             return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles);
