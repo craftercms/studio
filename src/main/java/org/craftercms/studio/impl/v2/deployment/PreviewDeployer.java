@@ -15,12 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.deployment;
 
-import org.craftercms.commons.rest.RestServiceException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -32,20 +31,11 @@ import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_DISABLE_DEPLOY_CRON;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_REPLACE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.AUTHORING_TEMPLATE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_CREATE_TARGET_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_DELETE_TARGET_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DEFAULT_PREVIEW_DEPLOYER_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DISABLE_DEPLOY_CRON;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_REPLACE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_REPO_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_TEMPLATE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
- * Implementation of {@link org.craftercms.studio.api.v2.deployment.Deployer} that interacts with Authoring's
- * Preview Deployer. This {@code Deployer}:
+ * Implementation of {@link org.craftercms.studio.api.v2.deployment.Deployer} that interacts with the
+ * Preview Deployer in Authoring. This {@code Deployer}:
  *
  * <ul>
  *     <li>Creates both and authoring and preview target on create</li>
@@ -104,13 +94,12 @@ public class PreviewDeployer extends AbstractDeployer {
                                                                             .contentType(MediaType.APPLICATION_JSON)
                                                                             .body(requestBody);
 
-            logger.debug1("Calling deployment API: {}", requestEntity);
+            logger.debug("Call publishing with request '{}' in site '{}' target '{}'",
+                    requestEntity, site, environment);
 
             restTemplate.exchange(requestEntity, Map.class);
-        } catch (RestServiceException e) {
-            logger.error1("Preview sync request for site " + site + " returned error response: " + e);
         } catch (Exception e) {
-            logger.error1("Error while sending preview sync request for site " + site, e);
+            logger.error("Failed to sync preview in site '{}'", site, e);
         }
     }
 

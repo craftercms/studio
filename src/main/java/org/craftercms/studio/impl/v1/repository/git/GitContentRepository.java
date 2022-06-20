@@ -277,7 +277,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.error("Missing repository during write for site '{}' path '{}'", site, path);
             }
         }  catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error1("Service error during write to site '{}' path '{}'", site, path, e);
+            logger.error("Service error during write to site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -638,6 +638,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     versionTO.setComment(revCommit.getFullMessage());
                     versionHistory.add(versionTO);
                 }
+            }
         } catch (IOException | GitAPIException e) {
             logger.error("Error getting history for item in site '{}' path '{}'", site, path, e);
         } finally {
@@ -1120,9 +1121,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         commitIds.add(0, commit.getId().getName());
                     }
                 }
-            } catch (IOException | GitAPIException e) {
-                logger.error("Error getting operations for site '{}' path '{}' from commit ID '{}' to " +
-                        "commit ID '{}'", site, path, commitIdFrom, commitIdTo, e);
+            }
+        } catch (IOException | GitAPIException e) {
+            logger.error("Error getting operations for site '{}' path '{}' from commit ID '{}' to " +
+                    "commit ID '{}'", site, path, commitIdFrom, commitIdTo, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
