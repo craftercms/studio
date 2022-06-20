@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -467,7 +468,7 @@ public interface RetryingDatabaseOperationFacade {
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
-    void updateStatesBySiteAndPathBulk(long siteId, List<String> paths, long onStatesBitMap, long offStatesBitMap);
+    void updateStatesBySiteAndPathBulk(long siteId, Collection<String> paths, long onStatesBitMap, long offStatesBitMap);
 
     /**
      * Update states to flip on list off states and flip off another list of states for items
@@ -593,31 +594,6 @@ public interface RetryingDatabaseOperationFacade {
      * @param lockedBitOff state bit mask with LOCKED bit off
      */
     void unlockItemByPath(String siteId, String path, long lockedBitOff);
-
-    /**
-     * Lock item
-     * @param itemId item identifier
-     * @param lockOwnerId lock owner
-     * @param lockedBitOn state bit mask with LOCKED bit on
-     * @param systemTypeFolder value for system type folder
-     */
-    void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
-
-    /**
-     * Lock items
-     * @param itemIds list of item identifiers
-     * @param lockOwnerId lock owner
-     * @param lockedBitOn state bit mask with LOCKED bit on
-     * @param systemTypeFolder value for system type folder
-     */
-    void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder);
-
-    /**
-     * Unlock item
-     * @param itemId item identifier
-     * @param lockedBitOff state bit mask with LOCKED bit off
-     */
-    void unlockItemById(Long itemId, long lockedBitOff);
 
     /**
      * Update item state by query

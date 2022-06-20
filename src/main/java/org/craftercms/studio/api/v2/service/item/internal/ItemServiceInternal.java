@@ -25,8 +25,8 @@ import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 public interface ItemServiceInternal {
 
@@ -196,7 +196,7 @@ public interface ItemServiceInternal {
      * @param onStateBitMap states bitmap to flip on
      * @param offStateBitMap stats bitmap to flip off
      */
-    void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap);
+    void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
 
     /**
      * Update states to flip on list off states and flip off another list of states for items
@@ -241,28 +241,6 @@ public interface ItemServiceInternal {
                          String modifier, ZonedDateTime lastModifiedOn, String label, String contentTypeId,
                          String systemType, String mimeType, String localeCode, Long translationSourceId, long size,
                          Long parentId, String commitId);
-
-    /**
-     * Instantiate item after write or update
-     *
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param username username of modifier
-     * @param lastModifiedOn modified date
-     * @param label label for the item
-     * @param contentTypeId content type id
-     * @param localeCode locale code
-     * @param commitId commit id obtained with write operation
-     * @param size file size in bytes
-     * @param unlock Optional unlocking of item, if true unlock, otherwise lock. If not present item will be unlocked
-     * @return item object
-     * @throws ServiceLayerException General service error
-     * @throws UserNotFoundException If given username does not exist
-     */
-    Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                   String label, String contentTypeId, String localeCode, String commitId, long size,
-                                   Optional<Boolean> unlock)
-            throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Delete all items for site
@@ -332,13 +310,13 @@ public interface ItemServiceInternal {
      * @param path path of the content
      * @param username user that executed write operation
      * @param commitId commit id of the write operation
-     * @param unlock true if content needs to be unlocked after write (save & close), otherwise false
+     * @param unlock Indicates if content needs to be unlocked after write (save & close)
      * @param parentId id of parent item
      * @throws ServiceLayerException
      * @throws UserNotFoundException
      */
     void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-                                Optional<Boolean> unlock, Long parentId)
+                                boolean unlock, Long parentId)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -347,10 +325,10 @@ public interface ItemServiceInternal {
      * @param path path of the content
      * @param username user that executed write operation
      * @param commitId commit id of the write operation
-     * @param unlock true if content needs to be unlocked after write (save & close), otherwise false
+     * @param unlock Indicates if content needs to be unlocked after write (save & close)
      */
     void persistItemAfterWrite(String siteId, String path, String username, String commitId,
-                               Optional<Boolean> unlock) throws ServiceLayerException, UserNotFoundException;
+                               boolean unlock) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Persist item metadata after create folder
@@ -560,26 +538,6 @@ public interface ItemServiceInternal {
      * @param path item path
      */
     void unlockItemByPath(String siteId, String path);
-
-    /**
-     * Lock item for given lock owner
-     * @param itemId item identifier
-     * @param username user that owns the lock
-     */
-    void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException;
-
-    /**
-     * Lock items for given lock owner
-     * @param itemIds list of item identifiers
-     * @param username user that owns the lock
-     */
-    void lockItemsById(List<Long> itemIds, String username) throws UserNotFoundException, ServiceLayerException;
-
-    /**
-     * Unlock item
-     * @param itemId item identifier
-     */
-    void unlockItemById(long itemId);
 
     /**
      * Get total number of item states records for given filters by path regex and states mask

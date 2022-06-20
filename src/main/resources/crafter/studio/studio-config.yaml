@@ -59,6 +59,8 @@ studio.repo.createSandboxBranch.commitMessage: "Create {sandbox} branch."
 studio.repo.initialCommit.commitMessage: "Initial commit."
 # Initial publish commit message
 studio.repo.initialPublish.commitMessage: "Initial publish."
+# Publish all commit message
+studio.repo.publishAll.commitMessage: "Publish All."
 # Create as orphan commit message
 studio.repo.createAsOrphan.commitMessage: "Created as orphan."
 # Blueprints updated commit message
@@ -365,12 +367,17 @@ studio.security.token.password.encrypt: fEo7tQCXX1RYHE2ODOtjtBzmL0zzonSI
 studio.security.token.cookie.name: refresh_token
 # Time in seconds for the expiration of the refresh token cookie
 studio.security.token.cookie.maxAge: 300
-# The path used to ser the refresh token cookie
+# The path used to set the refresh token cookie
 studio.security.token.cookie.path: /studio
+# The domain used to set the refresh token cookie (if set to null or empty the domain will be detected from the request)
+studio.security.token.cookie.domain: null
 # Indicates if the refresh token cookie should be secure (should be true for production environments behind HTTPS)
 studio.security.token.cookie.secure: false
 # Indicates if the refresh token cookie should be HTTPOnly
 studio.security.token.cookie.httpOnly: true
+
+# Use base domain instead of subdomain for the crafterSite cookie
+studio.cookie.useBaseDomain: false
 
 # Cron expression for the scheduled job that cleans expired refresh tokens
 studio.security.token.cleanup.cron: 0 * * * * ?
@@ -679,10 +686,8 @@ studio.search.field.size: contentLength
 studio.search.field.mimeType: contentType
 # Map of fields to include in the search with their boosting
 studio.search.fields.search:
-  - name: localId.text
+  - name: internalName.text
     boost: 1.6
-  - name: internal-name.text
-    boost: 1.5
   - name: title.text
     boost: 1.5
   - name: content
@@ -694,7 +699,7 @@ studio.search.fields.search:
   - name: '*_txt'
     boost: 1.0
 # List of fields to include for highlighting
-studio.search.fields.highlight: localId, internal-name, title, content, *_html, *_t, *_txt
+studio.search.fields.highlight: internal-name, title, content, *_html, *_t, *_txt
 # The size of each highlight snippet
 studio.search.snippets.size: 50
 # The number of highlight snippets to generate
@@ -843,6 +848,8 @@ studio.serverless.delivery.enabled: false
 studio.serverless.delivery.deployer.target.createUrl: ${studio.preview.createTargetUrl}
 # The URL for the serverless delivery deployer delete URL
 studio.serverless.delivery.deployer.target.deleteUrl: ${studio.preview.deleteTargetUrl}
+# The env string for the serverless deployer targets
+studio.serverless.delivery.deployer.target.env: serverless-delivery
 # The template name for serverless deployer targets
 studio.serverless.delivery.deployer.target.template: aws-cloudformed-s3
 # Replace existing target configuration if one exists?

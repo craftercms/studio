@@ -24,8 +24,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -46,15 +44,9 @@ import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
+import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
@@ -74,8 +66,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
-
-    private static final Logger logger = LoggerFactory.getLogger(ItemServiceInternalImpl.class);
 
     public final static String INTERNAL_NAME = "//internal-name";
     public final static String CONTENT_TYPE = "//content-type";
@@ -118,10 +108,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public Item getItem(String siteId, String path, boolean preferContent) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        DetailedItem item = null;
+        DetailedItem item;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
         if (preferContent) {
@@ -144,16 +134,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public List<Item> getItems(String siteId, List<String> paths, boolean preferContent) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        List<Item> items = null;
-        if (preferContent) {
-            items = itemDao.getSandboxItemsByPathPreferContent(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
-        } else {
-            items = itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER);
-        }
-        return items;
+        return itemDao.getSandboxItemsByPath(siteFeed.getId(), paths, CONTENT_TYPE_FOLDER, preferContent);
     }
 
     @Override
@@ -163,7 +147,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void deleteItem(String siteId, String path) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         retryingDatabaseOperationFacade.deleteBySiteAndPath(siteFeed.getId(), path);
@@ -176,7 +160,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void setSystemProcessing(String siteId, String path, boolean isSystemProcessing) {
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         paths.add(path);
         setSystemProcessingBulk(siteId, paths, isSystemProcessing);
     }
@@ -192,7 +176,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     private void setStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
             retryingDatabaseOperationFacade.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
@@ -207,7 +191,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     private void resetStatesBySiteAndPathBulk(String siteId, List<String> paths, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
             retryingDatabaseOperationFacade.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
@@ -222,7 +206,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void setStateBits(String siteId, String path, long statesBitMask) {
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         paths.add(path);
         setStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
     }
@@ -234,7 +218,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void resetStateBits(String siteId, String path, long statesBitMask) {
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         paths.add(path);
         resetStatesBySiteAndPathBulk(siteId, paths, statesBitMask);
     }
@@ -246,34 +230,34 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void setStateBits(long itemId, long statesBitMask) {
-        List<Long> ids = new ArrayList<Long>();
+        List<Long> ids = new ArrayList<>();
         ids.add(itemId);
         setStatesByIdBulk(ids, statesBitMask);
     }
 
     @Override
     public void resetStateBits(long itemId, long statesBitMask) {
-        List<Long> ids = new ArrayList<Long>();
+        List<Long> ids = new ArrayList<>();
         ids.add(itemId);
         resetStatesByIdBulk(ids, statesBitMask);
     }
 
     @Override
     public void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap) {
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         paths.add(path);
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
     }
 
     @Override
     public void updateStateBits(long itemId, long onStateBitMap, long offStateBitMap) {
-        List<Long> ids = new ArrayList<Long>();
+        List<Long> ids = new ArrayList<>();
         ids.add(itemId);
         updateStateBitsBulk(ids, onStateBitMap, offStateBitMap);
     }
 
     @Override
-    public void updateStateBitsBulk(String siteId, List<String> paths, long onStateBitMap, long offStateBitMap) {
+    public void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap) {
         updateStatesBySiteAndPathBulk(siteId, paths, onStateBitMap, offStateBitMap);
     }
 
@@ -284,14 +268,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         }
     }
 
-    private void updateStatesBySiteAndPathBulk(String siteId, List<String> paths, long onStateBitMap,
+    private void updateStatesBySiteAndPathBulk(String siteId, Collection<String> paths, long onStateBitMap,
                                                long offStateBitMap) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, onStateBitMap,
-                    offStateBitMap);
+            retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths,
+                                                                          onStateBitMap, offStateBitMap);
         }
     }
 
@@ -300,7 +284,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Item item = getItem(siteName, path);
         if (Objects.isNull(item))  {
             item = new Item();
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteName);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
             item.setSiteId(siteFeed.getId());
@@ -325,31 +309,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withLocaleCode(localeCode).withTranslationSourceId(translationSourceId).withSize(size)
                 .withParentId(parentId).withCommitId(commitId).build();
 
-    }
-
-    @Override
-    public Item instantiateItemAfterWrite(String siteId, String path, String username, ZonedDateTime lastModifiedOn,
-                                          String label, String contentTypeId, String locale, String commitId,
-                                          long size, Optional<Boolean> unlock)
-            throws ServiceLayerException, UserNotFoundException {
-        User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        Item item = instantiateItem(siteId, path)
-                .withPreviewUrl(path)
-                .withLastModifiedBy(userObj.getId())
-                .withLastModifiedOn(lastModifiedOn)
-                .withLabel(label)
-                .withContentTypeId(contentTypeId)
-                .withMimeType(StudioUtils.getMimeType(path))
-                .withLocaleCode(locale)
-                .withCommitId(commitId)
-                .withSize(size)
-                .build();
-        if (unlock.isPresent() && !unlock.get()) {
-            item.setState(ItemState.savedAndNotClosed(item.getState()));
-        } else {
-            item.setState(ItemState.savedAndClosed(item.getState()));
-        }
-        return item;
     }
 
     @Override
@@ -386,7 +345,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 dateTo, sortBy, order, offset, limit);
         return items.stream()
                 .map(i -> convertItemToContentDashboardItem(siteId, i))
-                .collect(Collectors.toList());
+                .collect(toList());
     }
 
     @Override
@@ -395,7 +354,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         boolean isPage = false;
         if (ContentUtils.matchesPatterns(path, servicesConfig.getRenderingTemplatePatterns(site))) {
             return null;
-        } else if (ContentUtils.matchesPatterns(path, Arrays.asList(CONTENT_TYPE_TAXONOMY_REGEX))) {
+        } else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
                 StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
@@ -429,7 +388,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
-                                       Optional<Boolean> unlock, Long parentId)
+                                       boolean unlock, Long parentId)
             throws ServiceLayerException, UserNotFoundException {
         String lockKey = "persistItemAfterCreate:" + siteId ;
         generalLockService.lock(lockKey);
@@ -457,10 +416,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                     .withSize(contentServiceInternal.getContentSize(siteId, path))
                     .withParentId(parentId)
                     .build();
-            if (unlock.isPresent() && !unlock.get()) {
-                item.setState(ItemState.savedAndNotClosed(item.getState()));
-            } else {
+            if (unlock) {
                 item.setState(ItemState.savedAndClosed(item.getState()));
+            } else {
+                item.setState(ItemState.savedAndNotClosed(item.getState()));
             }
             if (disabled) {
                 item.setState(item.getState() | ItemState.DISABLED.value);
@@ -472,8 +431,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void persistItemAfterWrite(String siteId, String path, String username, String commitId,
-                                      Optional<Boolean> unlock)
+    public void persistItemAfterWrite(String siteId, String path, String username, String commitId, boolean unlock)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         var descriptor = contentServiceInternal.getItem(siteId, path, false);
@@ -495,10 +453,10 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withCommitId(commitId)
                 .withSize(contentServiceInternal.getContentSize(siteId, path))
                 .build();
-        if (unlock.isPresent() && !unlock.get()) {
-            item.setState(ItemState.savedAndNotClosed(item.getState()));
-        } else {
+        if (unlock) {
             item.setState(ItemState.savedAndClosed(item.getState()));
+        } else {
+            item.setState(ItemState.savedAndNotClosed(item.getState()));
         }
         if (disabled) {
             item.setState(item.getState() | ItemState.DISABLED.value);
@@ -692,23 +650,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void lockItemById(long itemId, String username) throws UserNotFoundException, ServiceLayerException {
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        retryingDatabaseOperationFacade.lockItemById(itemId, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
-    }
-
-    @Override
-    public void lockItemsById(List<Long> itemIds, String username) throws UserNotFoundException, ServiceLayerException {
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        retryingDatabaseOperationFacade.lockItemsById(itemIds, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
-    }
-
-    @Override
-    public void unlockItemById(long itemId) {
-        retryingDatabaseOperationFacade.unlockItemById(itemId, USER_LOCKED.value);
-    }
-
-    @Override
     public int getItemStatesTotal(String siteId, String path, Long states) {
         return itemDao.getItemStatesTotal(siteId, path, states);
     }
@@ -723,7 +664,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                                  boolean clearUserLocked, Boolean live, Boolean staged) {
         if (CollectionUtils.isNotEmpty(paths)) {
             long setStatesMask = 0L;
-            long resetStatesMask = 0l;
+            long resetStatesMask = 0L;
 
             if (clearSystemProcessing) {
                 resetStatesMask = resetStatesMask | SYSTEM_PROCESSING.value;
@@ -746,7 +687,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 }
             }
 
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
             retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, setStatesMask,
@@ -758,7 +699,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
                                         boolean clearUserLocked, Boolean live, Boolean staged) {
         long setStatesMask = 0L;
-        long resetStatesMask = 0l;
+        long resetStatesMask = 0L;
 
         if (clearSystemProcessing) {
             resetStatesMask = resetStatesMask | SYSTEM_PROCESSING.value;
@@ -791,70 +732,38 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         retryingDatabaseOperationFacade.updateStatesForSite(siteFeed.getId(), onStateBitMap, offStateBitMap);
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
-    }
-
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public ItemDAO getItemDao() {
-        return itemDao;
     }
 
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public ContentServiceInternal getContentServiceInternal() {
-        return contentServiceInternal;
     }
 
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {
         this.contentServiceInternal = contentServiceInternal;
     }
 
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }
 
-    public GeneralLockService getGeneralLockService() {
-        return generalLockService;
-    }
-
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

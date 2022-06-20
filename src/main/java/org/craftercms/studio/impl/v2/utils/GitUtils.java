@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -28,6 +27,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import org.slf4j.Logger;
 
 import static java.util.stream.Collectors.toList;
 
@@ -38,7 +38,6 @@ import static java.util.stream.Collectors.toList;
  * @ 4.0
  */
 public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils {
-
     public static List<String> getChangedFiles(Git git, ObjectId initialId, ObjectId finalId, String[] patterns)
             throws GitAPIException, IOException {
         var repo = git.getRepository();

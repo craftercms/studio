@@ -54,8 +54,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
@@ -71,9 +72,9 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
 
     private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
 
-    protected static final Map<String, Integer> retryCounter = new HashMap<String, Integer>();
+    protected static final Map<String, Integer> retryCounter = new HashMap<>();
 
-    protected static final Set<String> dbErrorNotifiedSites = new HashSet<String>();
+    protected static final Set<String> dbErrorNotifiedSites = new HashSet<>();
 
     private StudioConfiguration studioConfiguration;
     private SiteService siteService;
@@ -106,6 +107,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
 
                 if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
                     if (!publishingManager.isPublishingBlocked(siteId)) {
+                        List<PublishRequest> itemsToDeploy = emptyList();
                         try {
                             if (!retryCounter.containsKey(siteId)) {
                                 retryCounter.put(siteId, maxRetryCounter);
@@ -114,15 +116,14 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                             for (String environment : environments) {
                                 env = environment;
                                 logger.debug("Processing content ready for deployment for site \"{0}\"", siteId);
-                                List<PublishRequest> itemsToDeploy =
-                                        publishingManager.getItemsReadyForDeployment(siteId, environment);
+                                itemsToDeploy = publishingManager.getItemsReadyForDeployment(siteId, environment);
                                 while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
                                     logger.debug("Deploying " + itemsToDeploy.size() + " items for " +
                                             "site " + siteId);
                                     publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
                                     List<String> commitIds = itemsToDeploy.stream()
                                             .map(PublishRequest::getCommitId)
-                                            .distinct().collect(Collectors.toList());
+                                            .distinct().collect(toList());
 
                                     boolean allCommitsPresent = true;
                                     StringBuilder sbMissingCommits = new StringBuilder();
@@ -188,7 +189,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                             logger.error("Error while executing deployment to environment store for site: "
                                     + siteId, err);
                             publishingManager.resetProcessingQueue(siteId, env);
-                            notificationService.notifyDeploymentError(siteId, err);
+                            notificationService.notifyDeploymentError(siteId, err, itemsToDeploy);
                         }
                     } else {
                         logger.info("Publishing is blocked for site " + siteId);
@@ -221,12 +222,12 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         String status;
         String author = itemsToDeploy.get(0).getUser();
         StringBuilder sbComment = new StringBuilder();
-        List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<DeploymentItemTO>();
-        Set<String> processedPaths = new HashSet<String>();
+        List<DeploymentItemTO> completeDeploymentItemList = new ArrayList<>();
+        Set<String> processedPaths = new HashSet<>();
         String currentPackageId = StringUtils.EMPTY;
         try {
             logger.debug("Mark items as processing for site \"{0}\"", siteId);
-            Set<String> packageIds = new HashSet<String>();
+            Set<String> packageIds = new HashSet<>();
             for (PublishRequest item : itemsToDeploy) {
                 processPublishingRequest(siteId, environment, item, completeDeploymentItemList, processedPaths);
                 if (!StringUtils.equals(currentPackageId, item.getPackageId())) {
@@ -248,10 +249,6 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             publishingProgressServiceInternal.addObserver(observer);
             deploy(siteId, environment, completeDeploymentItemList, author,
                     sbComment.toString());
-            StringBuilder sbPackIds = new StringBuilder("Package(s): ");
-            for (String packageId : packageIds) {
-                sbPackIds.append(packageId).append(";");
-            }
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
             publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
             logger.debug("Mark deployment completed for processed items for site \"{0}\"", siteId);
@@ -285,10 +282,10 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
     private void processPublishingRequest(String siteId, String environment, PublishRequest item,
                                           List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
             throws ServiceLayerException, DeploymentException, UserNotFoundException {
-        List<DeploymentItemTO> missingDependencies = new ArrayList<DeploymentItemTO>();
-        Set<String> missingDependenciesPaths = new HashSet<String>();
+        List<DeploymentItemTO> missingDependencies = new ArrayList<>();
+        Set<String> missingDependenciesPaths = new HashSet<>();
         try {
-            List<DeploymentItemTO> deploymentItemList = new ArrayList<DeploymentItemTO>();
+            List<DeploymentItemTO> deploymentItemList = new ArrayList<>();
 
 
             logger.debug("Processing [{0}] content item for site \"{1}\"", item
@@ -301,7 +298,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                     item.getPath(), siteId);
 
             if (isMandatoryDependenciesCheckEnabled()) {
-                logger.debug("Processing Mandatory Deps [{0}] content item for site "
+                logger.debug("Processing Mandatory Dependencies [{0}] content item for site "
                         + "\"{1}\"", item.getPath(), siteId);
                 missingDependencies.addAll(publishingManager
                         .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
@@ -351,7 +348,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         auditLog.setPrimaryTargetId(site + ":" + environment);
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(environment);
-        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> auditLogParameters = new ArrayList<>();
         for (String packageId : packageIds) {
             AuditLogParameter auditLogParameter = new AuditLogParameter();
             auditLogParameter.setTargetId(site + ":" + environment);
@@ -370,13 +367,12 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
     }
 
     private boolean isMandatoryDependenciesCheckEnabled() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(
+        return Boolean.parseBoolean(studioConfiguration.getProperty(
                 JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
-        return toReturn;
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
-        Set<String> environments = new HashSet<String>();
+        Set<String> environments = new HashSet<>();
         environments.add(servicesConfig.getLiveEnvironment(site));
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             environments.add(servicesConfig.getStagingEnvironment(site));
@@ -389,96 +385,48 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
         this.applicationContext = applicationContext;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public PublishingManager getPublishingManager() {
-        return publishingManager;
     }
 
     public void setPublishingManager(PublishingManager publishingManager) {
         this.publishingManager = publishingManager;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public NotificationService getNotificationService() {
-        return notificationService;
     }
 
     public void setNotificationService(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public int getMaxRetryCounter() {
-        return maxRetryCounter;
     }
 
     public void setMaxRetryCounter(int maxRetryCounter) {
         this.maxRetryCounter = maxRetryCounter;
     }
 
-    public StudioClusterUtils getStudioClusterUtils() {
-        return studioClusterUtils;
-    }
-
     public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
         this.studioClusterUtils = studioClusterUtils;
-    }
-
-    public PublishingProgressServiceInternal getPublishingProgressServiceInternal() {
-        return publishingProgressServiceInternal;
     }
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
     }
 
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
     }
 
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {

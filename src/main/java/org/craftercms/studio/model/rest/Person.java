@@ -35,6 +35,10 @@ public class Person {
     protected String avatar;
 
     public static Person from(Authentication authentication) {
+        // This is needed for operations that can be executed in the background like delete content during publishing
+        if (authentication == null) {
+            return null;
+        }
         AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
         Person person = new Person();
         person.setId(user.getId());

@@ -38,11 +38,13 @@ import freemarker.template.DefaultObjectWrapperBuilder;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
@@ -50,7 +52,6 @@ import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
@@ -112,7 +113,6 @@ public class NotificationServiceImpl implements NotificationService {
     protected ContentService contentService;
     protected EmailMessageQueueTo emailMessages;
     protected ServicesConfig servicesConfig;
-    protected SiteService siteService;
     protected SecurityService securityService;
     private Configuration configuration;
     protected StudioConfiguration studioConfiguration;
@@ -129,12 +129,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @ValidateParams
     public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
-                                      final List<String> filesUnableToPublish) {
+                                      final List<PublishRequest> filesUnableToPublish) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);
             final Map<String, Object> templateModel = new HashMap<>();
-            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, throwable);
-            templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, filesUnableToPublish));
+            templateModel.put(TEMPLATE_MODEL_DEPLOYMENT_ERROR, ExceptionUtils.getStackTrace(throwable));
+            templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
             notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                     templateModel);
         } catch (Throwable ex) {
@@ -207,9 +207,9 @@ public class NotificationServiceImpl implements NotificationService {
                 model.put(SITE_NAME, site);
                 return processMessage(key, message, model);
             }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
-                + " key: {2}.", (Exception)ex, site, type, key);
+                + " key: {2}.", ex, site, type, key);
             return EMPTY;
         }
         return EMPTY;
@@ -287,7 +287,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             List<Pair<String, Object>> namedParams = new ArrayList<>();
             for (String paramKey : params.keySet()) {
-                namedParams.add(new ImmutablePair<String, Object>(paramKey, params.get(paramKey)));
+                namedParams.add(new ImmutablePair<>(paramKey, params.get(paramKey)));
             }
             notify(site, toUsers, key, namedParams.toArray(new Pair[params.size()]));
         } catch (Throwable ex) {
@@ -322,7 +322,7 @@ public class NotificationServiceImpl implements NotificationService {
                     submitterUsers.add(userProfile);
                 }
             });
-            if (Objects.nonNull(submitterUsers) && !submitterUsers.isEmpty()) {
+            if (!submitterUsers.isEmpty()) {
                 Map<String, Object> templateModel = new HashMap<>();
                 templateModel.put(TEMPLATE_MODEL_FILES, convertPathsToContent(site, rejectedItems));
                 templateModel.put(TEMPLATE_MODEL_REJECTION_REASON, rejectionReason);
@@ -453,7 +453,7 @@ public class NotificationServiceImpl implements NotificationService {
                     final String messageContent = message.getText();
                     final String messageTitle = message.attributeValue(MESSAGE_ATTRIBUTE_TITLE);
                     if (!messageContainer.containsKey(messageKey)) {
-                        messageContainer.put(messageKey, new ArrayList<MessageTO>());
+                        messageContainer.put(messageKey, new ArrayList<>());
                     }
                     List<MessageTO> messageTOs = messageContainer.get(messageKey);
                     messageTOs.add(new MessageTO(messageTitle, messageContent, messageKey));
@@ -532,32 +532,16 @@ public class NotificationServiceImpl implements NotificationService {
         this.servicesConfig = servicesConfig;
     }
 
-    public void setSiteService(final SiteService siteService) {
-        this.siteService = siteService;
-    }
-
     public void setSecurityService(final SecurityService securityService) {
         this.securityService = securityService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
-
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
-    }
-
-    public Cache<String, NotificationConfigTO> getCache() {
-        return cache;
     }
 
     public void setCache(Cache<String, NotificationConfigTO> cache) {

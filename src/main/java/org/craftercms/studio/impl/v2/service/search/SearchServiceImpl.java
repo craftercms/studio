@@ -20,6 +20,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -28,6 +31,9 @@ import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInterna
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 import org.springframework.beans.factory.annotation.Required;
+
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_SEARCH;
 
 /**
  * Default implementation for {@link SearchService}
@@ -59,7 +65,8 @@ public class SearchServiceImpl implements SearchService {
      * {@inheritDoc}
      */
     @Override
-    public SearchResult search(final String siteId, final SearchParams params)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
+    public SearchResult search(@ProtectedResourceId(SITE_ID_RESOURCE_ID)  final String siteId, final SearchParams params)
         throws AuthenticationException, ServiceLayerException {
         String user = securityService.getCurrentUser();
         if(StringUtils.isNotEmpty(user)) {

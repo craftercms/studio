@@ -36,7 +36,7 @@
     <parent>
         <groupId>org.craftercms</groupId>
         <artifactId>craftercms</artifactId>
-        <version>4.0.0-SNAPSHOT</version><!-- craftercms version flag -->
+        <version>4.0.1-SNAPSHOT</version><!-- craftercms version flag -->
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -531,17 +531,6 @@
             <version>${gson.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>net.sourceforge.nekohtml</groupId>
-            <artifactId>nekohtml</artifactId>
-            <version>${nekohtml.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>

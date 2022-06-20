@@ -87,6 +87,11 @@ public class PolicyServiceInternalImplTest {
     public static final String REMOVE_PATH_RESTRICTED_FOLDER = "/static-assets/remove-numbers";
     public static final String CONTENT_TYPE_RESTRICTED_FOLDER = "/site/components/headers";
 
+    public static final String PIC_SVG_FILENAME = "pic.svg";
+    public static final String RESTRICTED_MIME_TYPE = "image/svg+xml";
+
+    public static final String CONTENT_TYPE_FOOTER_ONLY_FOLDER = "/site/components/footers";
+
     @Mock
     private ContentRepository contentRepository;
 
@@ -293,6 +298,11 @@ public class PolicyServiceInternalImplTest {
 
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
+
+        action.setTarget(TYPE_RESTRICTED_FOLDER + "/" + PIC_SVG_FILENAME);
+
+        results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, false);
     }
 
     @Test
@@ -372,6 +382,12 @@ public class PolicyServiceInternalImplTest {
         action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
         results= policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true);
+
+        // Check denied content-type
+        action.setTarget(CONTENT_TYPE_FOOTER_ONLY_FOLDER + "/component.xml");
+        action.setContentMetadata(Map.of(METADATA_CONTENT_TYPE, HEADER_CONTENT_TYPE));
+        results= policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, false);
     }
 
     @Test

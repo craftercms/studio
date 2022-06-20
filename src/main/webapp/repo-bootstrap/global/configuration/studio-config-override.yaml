@@ -126,3 +126,9 @@
 #       cloudfrontCertificateArn:
 #       # The alternate domains names (besides *.cloudfront.net) for the CloudFront CDN (optional when target template is aws-cloudformed-s3)
 #       alternateCloudFrontDomainNames:
+
+##################################################
+##                   Cookies                    ##
+##################################################
+# Use base domain instead of subdomain for the crafterSite cookie
+studio.cookie.useBaseDomain: false

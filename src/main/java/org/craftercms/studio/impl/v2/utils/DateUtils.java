@@ -67,6 +67,10 @@ public abstract class DateUtils {
         return formatDate(dateTime, DateTimeFormatter.ofPattern(patter));
     }
 
+    public static String formatDateIso(ZonedDateTime dateTime) {
+        return formatDate(dateTime, ISO_FORMATTER);
+    }
+
     /**
      * Formats a date using a formatter
      */

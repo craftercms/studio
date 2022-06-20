@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
@@ -220,5 +221,14 @@ public interface PublishServiceInternal {
      */
     int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
                                          String publishAction);
+
+    /**
+     * Publishes all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
 
 }

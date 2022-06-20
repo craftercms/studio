@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.dal.PublishRequest;
 
 /**
  * New Interface for Workflow Notification Service.
@@ -44,7 +45,7 @@ public interface NotificationService {
      * @param filesUnableToPublish List of files that where unable to publish (can be null)
      *
      */
-    void notifyDeploymentError(final String site, final Throwable throwable, List<String> filesUnableToPublish);
+    void notifyDeploymentError(final String site, final Throwable throwable, List<PublishRequest> filesUnableToPublish);
 
     /**
      * <p>Sends a email to configure emails when a deployment had fail</p>

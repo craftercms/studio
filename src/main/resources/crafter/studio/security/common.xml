@@ -76,6 +76,9 @@
     <bean id="deletedUserDetailsChecker"
           class="org.craftercms.studio.impl.v2.security.authentication.DeletedUserDetailsChecker"/>
 
+    <bean id="sessionExpiredStrategy"
+          class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>
+
     <!-- Permissions -->
 
     <bean id="crafter.studioSubjectResolver" class="org.craftercms.studio.permissions.SubjectResolverImpl">
@@ -203,8 +206,8 @@
         <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
         <constructor-arg name="cache" ref="configurationCache"/>
     </bean>
-    
-    <bean id="studio.semanticsAvailableActionsResolver" 
+
+    <bean id="studio.semanticsAvailableActionsResolver"
           class="org.craftercms.studio.impl.v2.security.SemanticsAvailableActionsResolverImpl">
         <property name="securityService" ref="studio.securityService" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
@@ -215,4 +218,7 @@
         <property name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
         <property name="securityServiceV1" ref="cstudioSecurityService"/>
     </bean>
+
+    <bean id="studio.loginPageFilter"
+        class="org.craftercms.studio.impl.v2.security.LoginPageFilter" />
 </beans>

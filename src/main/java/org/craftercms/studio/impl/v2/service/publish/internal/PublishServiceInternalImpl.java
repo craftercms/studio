@@ -18,19 +18,19 @@ package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishRequest;
-import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -39,17 +39,22 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
+import static org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl.LIVE_ENVIRONMENT;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
-public class PublishServiceInternalImpl implements PublishServiceInternal {
+public class PublishServiceInternalImpl implements PublishServiceInternal, ApplicationContextAware {
 
     private PublishRequestDAO publishRequestDao;
     private ContentRepository contentRepository;
-    private DmFilterWrapper dmFilterWrapper;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+
+    protected ItemServiceInternal itemServiceInternal;
+
+    protected ApplicationContext applicationContext;
 
     @Override
     public int getPublishingPackagesTotal(String siteId, String environment, String path, List<String> states) {
@@ -114,7 +119,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         int counter = 0;
         List<DeploymentHistoryItem> toRet = new ArrayList<>();
 
-        String contentTypeClass = null;
+        String contentTypeClass;
         switch (filterType) {
             case CONTENT_TYPE_PAGE:
             case CONTENT_TYPE_COMPONENT:
@@ -209,6 +214,36 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
                                                                     publishAction);
     }
 
+    @Override
+    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+        // do the operations in the repo
+        RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget);
+        // update the state for the changed items
+        long onMask;
+        long offMask;
+        if (LIVE_ENVIRONMENT.equals(publishingTarget)) {
+            onMask = PUBLISH_TO_LIVE_ON_MASK;
+            offMask = PUBLISH_TO_LIVE_OFF_MASK;
+        } else {
+            onMask = PUBLISH_TO_STAGE_ON_MASK;
+            offMask = PUBLISH_TO_STAGE_OFF_MASK;
+        }
+        if (changes.isInitialPublish()) {
+            itemServiceInternal.updateStatesForSite(siteId, onMask, offMask);
+        } else {
+            // Deleted items not included since those will be gone from the DB, those might need to be included
+            // later if soft-delete is implemented
+            itemServiceInternal.updateStateBitsBulk(siteId, changes.getUpdatedPaths(), onMask, offMask);
+        }
+        // trigger the event
+        applicationContext.publishEvent(new PublishEvent(siteId));
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
     }
@@ -217,11 +252,12 @@ public class PublishServiceInternalImpl implements PublishServiceInternal {
         this.contentRepository = contentRepository;
     }
 
-    public void setDmFilterWrapper(DmFilterWrapper dmFilterWrapper) {
-        this.dmFilterWrapper = dmFilterWrapper;
-    }
-
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
+    }
+
 }

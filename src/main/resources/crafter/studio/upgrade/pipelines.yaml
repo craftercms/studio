@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || >=4.0.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || >=4.0.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -24,6 +24,20 @@ pipelines:
         nextVersion: 4.0-t
         operations:
           - type: dbScriptUpgrader
+            filename: upgrade-3.1.15-to-4.0.0.32.sql
+      # 3.1.23
+      - currentVersion: 3.1.23.2
+        nextVersion: 4.0-t
+        operations:
+          - type: dbScriptUpgrader
+            # There are no db changes, so we can still use the same script
+            filename: upgrade-3.1.15-to-4.0.0.32.sql
+      # 3.1.24
+      - currentVersion: 3.1.24
+        nextVersion: 4.0-t
+        operations:
+          - type: dbScriptUpgraders
+            # There are no db changes, so we can still use the same script
             filename: upgrade-3.1.15-to-4.0.0.32.sql
 
       # Common operations for all 3.1.x versions:
@@ -329,6 +343,41 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.0.41-to-4.0.0.42.sql
+      - currentVersion: 4.0.0.42
+        nextVersion: 4.0.0.43
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.43/system/global-permission-mappings-config.xslt
+            commitDetails: Added repair_repository permissions for system_admin
+      - currentVersion: 4.0.0.43
+        nextVersion: 4.0.1
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.1.1/system/global-permission-mappings-config.xslt
+            commitDetails: Added content_search permissions for system_admin
+      - currentVersion: 4.0.1
+        nextVersion: 4.0.1.1
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.0.43-to-4.0.1.1.sql
+      - currentVersion: 4.0.1.1
+        nextVersion: 4.0.1.2
+        operations:
+          - type: globalRepoUpgrader
+            files:
+                - src: repo-bootstrap/global/configuration/samples/sample-notification-config.xml
+                  dest: /configuration/samples/sample-notification-config.xml
+            commitDetails: Update sample file for notifications
+      - currentVersion: 4.0.1.2
+        nextVersion: 4.0.1.3
+        operations:
+          - type: globalRepoUpgrader
+            files:
+                - src: repo-bootstrap/global/configuration/samples/sample-site-policy-config.xml
+                  dest: /configuration/samples/sample-site-policy-config.xml
+            commitDetails: Update sample file for site policy
 
   # Pipeline to upgrade site repositories
   site:
@@ -407,7 +456,7 @@ pipelines:
           - type: batchXsltUpgrader
             regex: config/studio/content-types/.+/form-definition\.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.3/site/additional-fields.xslt
-            commitDetails: Update date-time & time controls with addititional fields
+            commitDetails: Update date-time & time controls with additional fields
       - currentVersion: 4.0.0.3
         nextVersion: 4.0.0.4
         operations:
@@ -417,6 +466,19 @@ pipelines:
             pattern: '<#include "([^"]+)" ignore_missing=true\/><#-- pluginId:([^\s]+) -->'
             replacement: '<@plugin_include "$2" "$1"/><#-- pluginId:$2 -->'
             commitDetails: Update plugin includes to use new macro
+      - currentVersion: 4.0.0.4
+        nextVersion: 4.0.0.5
+        operations:
+          - type: deleteUpgrader
+            paths:
+              - config/studio/context-nav/sidebar.xml
+              - config/studio/form-control-config/rte/rte-config.xml
+              - config/studio/code-editor-config.xml
+              - config/studio/targeting/targeting-config.xml
+              - config/studio/preview-tools/panel.xml
+              - config/studio/context-nav/contextual-nav.xml
+              - config/studio/mime-type.xml
+            commitDetails: Delete unused configurations
 
   # Pipeline to upgrade blueprints
   blueprint:
@@ -493,6 +555,8 @@ configurations:
           nextVersion: 4.0-t
         - currentVersion: 15 # For 3.1.17 or later
           nextVersion: 4.0-t
+        - currentVersion: 16 # For 3.1.23 or later
+          nextVersion: 4.0-t
 
         # Common operations for all 3.1.x versions:
         - currentVersion: 4.0-t
@@ -536,7 +600,7 @@ configurations:
           operations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v19.xslt
-              commitDetails: Added unlock_repsoitory permissions for  site admin users
+              commitDetails: Added unlock_repository permissions for  site admin users
         - currentVersion: 4.0-t8
           nextVersion: 4.0-t9
           operations:
@@ -571,6 +635,18 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.4.xslt
               commitDetails: Fix permissions for publisher
+        - currentVersion: 4.0.4
+          nextVersion: 4.0.5
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.5.xslt
+              commitDetails: Added repair_repository permissions for  site admin users
+        - currentVersion: 4.0.5
+          nextVersion: 4.0.6
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.6.xslt
+              commitDetails: Add content_search permissions for all users
 
   role-mappings-config:
     module: studio
@@ -615,6 +691,12 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 14
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.2
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.2.xslt
+              commitDetails: Remove unused configuration files
 
   site-config-tools:
     module: studio
@@ -643,6 +725,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.2.xslt
               commitDetails: Rename Remote Repositories
+        - currentVersion: 4.0.2
+          nextVersion: 4.0.3
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.3.xslt
+              commitDetails: Remove unused tools
 
   contextual-nav:
     module: studio
@@ -699,12 +787,25 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 3
           nextVersion: 4.0.1
+        - currentVersion: 4
+          nextVersion: 4.0.1
         - currentVersion: 4.0.1
           nextVersion: 4.0.2
           operations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/notification-config/notification-config-v4.0.2.xslt
               commitDetails: Remove lang element
+        - currentVersion: 4.0.2
+          nextVersion: 4.0.3
+          operations:
+            - type: findAndReplaceUpgrader
+              pattern: "<li>\\$\\{file.internalName!file.name\\}</li>"
+              replacement: "<li>\\$\\{file.action\\}: \\$\\{file.path\\} from package \\$\\{file.packageId\\}</li>"
+              commitDetails: Update deployment error template
+            - type: findAndReplaceUpgrader
+              pattern: "\\$\\{deploymentError\\.toString\\(\\)\\}"
+              replacement: "<pre>\\$\\{deploymentError\\}</pre>"
+              commitDetails: Update deployment error template
 
   code-editor-config:
     module: studio
@@ -725,7 +826,7 @@ configurations:
         operations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v2.xslt
-            commitDetails: Update resovler regex to support CDATA
+            commitDetails: Update resolver regex to support CDATA
       - currentVersion: 2
         nextVersion: 3
         operations:
@@ -780,3 +881,24 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.2.xslt
             commitDetails: Rename Remote Repositories
+      - currentVersion: 4.0.2
+        nextVersion: 4.0.3
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.3.xslt
+            commitDetails: Update path to use /index.xml
+      - currentVersion: 4.0.3
+        nextVersion: 4.0.4
+        operations:
+          - type: findAndReplaceUpgrader
+            includedPaths:
+              - config/studio/ui.xml
+            pattern: "craftercms\\.components\\.ItemStatesManagement"
+            replacement: "craftercms.components.WorkflowStateManagement"
+            commitDetails: Rename component
+      - currentVersion: 4.0.4
+        nextVersion: 4.0.5
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.5.xslt
+            commitDetails: Added the PaddingModeSwitchListItem widget

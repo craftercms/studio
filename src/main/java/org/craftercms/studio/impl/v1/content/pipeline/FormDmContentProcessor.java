@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -37,13 +36,11 @@ import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Optional;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -61,8 +58,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ServicesConfig servicesConfig;
     protected ContentRepository contentRepository;
     protected ItemServiceInternal itemServiceInternal;
-    protected SiteService siteService;
-    protected UserServiceInternal userServiceInternal;
     protected org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1;
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
 
@@ -102,7 +97,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
-        boolean unlock = (!StringUtils.isEmpty(unlockValue) && unlockValue.equalsIgnoreCase("false")) ? false : true;
+        boolean unlock = StringUtils.isEmpty(unlockValue) || !unlockValue.equalsIgnoreCase("false");
 
         String parentContentPath = path;
         if (parentContentPath.endsWith(FILE_SEPARATOR + fileName)) {
@@ -122,14 +117,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 // update the content
                 // look up the path content first
                 if (parentItem.getName().equals(fileName)) {
-                    ContentItemTO item = contentService.getContentItem(site, path, 0);
-
-                    updateFile(site, item, path, input, user, isPreview, unlock, result);
+                    updateFile(site, path, input, user, isPreview, unlock, result);
                     content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                     if (unlock) {
                         unlock(site, path);
                     }
-                    return;
                 } else {
                     // otherwise, create new one
                     if (path.endsWith(DmConstants.XML_PATTERN) && !path.endsWith(DmConstants.INDEX_FILE)){
@@ -139,17 +131,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
                     boolean fileExists = contentService.contentExists(site, path);
                     if (fileExists) {
-                        ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
-                        updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
+                        updateFile(site, path, input, user, isPreview, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_UPDATE);
                         if (unlock) {
                             unlock(site, path);
                         }
-                        return;
                     } else {
                         createNewFile(site, parentItem, fileName, input, user, unlock, result);
                         content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, OPERATION_CREATE);
-                        return;
                     }
                 }
             } else {
@@ -195,7 +184,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, InputStream input,
                                           String user, boolean unlock, ResultTO result)
             throws ServiceLayerException {
-        ContentItemTO fileItem = null;
+        ContentItemTO fileItem;
 
         if (parentItem != null) {
             String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
@@ -206,12 +195,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 result.setCommitId(commitId);
 
                 // Item
-                // TODO: get local code with API 2
+                // TODO: get locale code with API 2
                 String parentItemPath =
                         ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
-                Item pItem = itemServiceInternal.getItem(site, parentItemPath, true);
-                itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, Optional.of(unlock),
-                        pItem.getId());
+                Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
+                itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -239,15 +227,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * @param input
      * @param user
      * @param isPreview
-     * @param unlock
-     * 			unlock the content upon update?
+     * @param unlock    unlock the content upon update?
      * @throws ServiceLayerException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user,
+    protected void updateFile(String site, String path, InputStream input, String user,
                               boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceLayerException, UserNotFoundException {
 
-        boolean success = false;
+        boolean success;
         try {
             success = contentService.writeContent(site, path, input);
         } finally {
@@ -262,16 +249,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             if (!isPreview) {
                 if (cancelWorkflow(site, path)) {
                     workflowService.removeFromWorkflow(site, path, true);
-                } else {
-                    if (updateWorkFlow(site, path)) {
-                        workflowService.updateWorkflowSandboxes(site, path);
-                    }
                 }
             }
 
             // Item
             // TODO: get local code with API 2
-            itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, Optional.of(unlock));
+            itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
         }
 
         // unlock the content upon save if the flag is true
@@ -316,11 +299,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // Checking for display patterns also
             List<String> displayPatterns = servicesConfig.getDisplayInWidgetPathPatterns(site);
             // cancel if the content is a document
-            if (ContentUtils.matchesPatterns(path, displayPatterns)) {
-                return true;
-            }
+            return ContentUtils.matchesPatterns(path, displayPatterns);
         }
-        return false;
     }
 
     protected boolean updateWorkFlow(String site,String path) {
@@ -334,7 +314,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         // create parent folders if missing
         String [] levels = path.split(FILE_SEPARATOR);
         String parentPath = "";
-        ContentItemTO lastItem = null;
+        ContentItemTO lastItem;
         for (String level : levels) {
             if (!StringUtils.isEmpty(level) && !level.endsWith(DmConstants.XML_PATTERN)) {
                 String currentPath = parentPath + FILE_SEPARATOR + level;
@@ -374,64 +354,24 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public WorkflowService getWorkflowService() {
-        return workflowService;
     }
 
     public void setWorkflowService(WorkflowService workflowService) {
         this.workflowService = workflowService;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
-    }
-
-    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-    }
-
-    public org.craftercms.studio.api.v1.repository.ContentRepository getContentRepositoryV1() {
-        return contentRepositoryV1;
     }
 
     public void setContentRepositoryV1(org.craftercms.studio.api.v1.repository.ContentRepository contentRepositoryV1) {

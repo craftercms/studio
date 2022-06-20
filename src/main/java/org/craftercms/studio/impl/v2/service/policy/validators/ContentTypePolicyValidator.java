@@ -17,13 +17,15 @@ package org.craftercms.studio.impl.v2.service.policy.validators;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FilenameUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 
 /**
  * Implementation of {@link PolicyValidator} for content-type aware actions
@@ -38,26 +40,54 @@ public class ContentTypePolicyValidator implements PolicyValidator {
     public static final String CONFIG_KEY_CONTENT_TYPES = "content-types";
 
     @Override
-    public void validate(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug("Skipping folder {0}", action.getTarget());
+            logger.debug("Skipping folder '{}'", action.getTarget());
             return;
         }
+        String contentType = action.getMetadata(Action.METADATA_CONTENT_TYPE);
 
-        if (config.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
-            String contentType = action.getMetadata(Action.METADATA_CONTENT_TYPE);
-            if (isEmpty(contentType)) {
-                throw new ValidationException("Content-Type is required for validation");
-            }
+        if (permittedConfig != null) {
+            validatePermitted(permittedConfig, contentType);
+        }
 
-            var allowedTypes = config.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
-
-            if (!allowedTypes.contains(contentType)) {
-                throw new ValidationException("Content-Type " + contentType + " not allowed");
-            }
-        } else {
-            logger.debug("Skipping action because there are no content-type restrictions");
+        if (deniedConfig != null) {
+            validateDenied(deniedConfig, contentType);
         }
     }
 
+    private void validatePermitted(HierarchicalConfiguration<?> permittedConfig, String contentType) throws ValidationException {
+        if (!permittedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
+            logger.debug("Skipping action because there are no content-type permitted restrictions");
+            return;
+        }
+
+        if (isEmpty(contentType)) {
+            throw new ValidationException("Content-Type is required for validation");
+        }
+
+        var allowedTypes = permittedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
+
+        if (!allowedTypes.contains(contentType)) {
+            throw new ValidationException("Content-Type " + contentType + " not allowed");
+        }
+    }
+
+    private void validateDenied(HierarchicalConfiguration<?> deniedConfig, String contentType) throws ValidationException {
+        if (!deniedConfig.containsKey(CONFIG_KEY_CONTENT_TYPES)) {
+            logger.debug("Skipping action because there are no content-types denied restrictions");
+            return;
+        }
+
+        if (isEmpty(contentType)) {
+            logger.debug("Skipping action because there is no Content-Type from action metadata");
+            return;
+        }
+
+        var deniedTypes = deniedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
+
+        if (deniedTypes.contains(contentType)) {
+            throw new ValidationException("Content-Type " + contentType + " not allowed");
+        }
+    }
 }

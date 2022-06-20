@@ -46,8 +46,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
+import org.craftercms.studio.permissions.CompositePermission;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,12 +57,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CANCEL_PUBLISHING_PACKAGE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
+import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
@@ -124,10 +124,10 @@ public class PublishServiceImpl implements PublishService {
         String username = securityService.getCurrentUser();
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         publishServiceInternal.cancelPublishingPackages(siteId, packageIds);
-        List<AuditLogParameter> auditLogParameters = new ArrayList<AuditLogParameter>();
+        List<AuditLogParameter> auditLogParameters = new ArrayList<>();
         for (String pId : packageIds) {
             PublishingPackageDetails packageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, pId);
-            List<String> paths = new ArrayList<String>();
+            List<String> paths = new ArrayList<>();
             for (PublishingPackageDetails.PublishingPackageItem item : packageDetails.getItems()) {
                 paths.add(item.getPath());
                 AuditLogParameter auditLogParameter = new AuditLogParameter();
@@ -147,8 +147,7 @@ public class PublishServiceImpl implements PublishService {
         }
     }
 
-    private void createAuditLogEntry(SiteFeed siteFeed, String username, List<AuditLogParameter> auditLogParameters)
-            throws SiteNotFoundException {
+    private void createAuditLogEntry(SiteFeed siteFeed, String username, List<AuditLogParameter> auditLogParameters) {
 
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CANCEL_PUBLISHING_PACKAGE);
@@ -190,17 +189,16 @@ public class PublishServiceImpl implements PublishService {
         List<String> environments = studioUtils.getEnvironmentNames(siteId);
         List<DeploymentHistoryItem> deploymentHistoryItems = publishServiceInternal.getDeploymentHistory(siteId,
                 environments, fromDate, toDate, filterType, numberOfItems);
-        List<DeploymentHistoryGroup> groups = new ArrayList<DeploymentHistoryGroup>();
+        List<DeploymentHistoryGroup> groups = new ArrayList<>();
 
         if (deploymentHistoryItems != null) {
             int count = 0;
-            String timezone = servicesConfig.getDefaultTimezone(siteId);
-            Map<String, Set<String>> processedItems = new HashMap<String, Set<String>>();
+            Map<String, Set<String>> processedItems = new HashMap<>();
             for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
                 DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
                 String env = entry.getEnvironment();
                 if (!processedItems.containsKey(env)) {
-                    processedItems.put(env, new HashSet<String>());
+                    processedItems.put(env, new HashSet<>());
                 }
                 if (!processedItems.get(env).contains(entry.getPath())) {
                     ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
@@ -209,8 +207,7 @@ public class PublishServiceImpl implements PublishService {
                         deployedItem.endpoint = entry.getTarget();
                         deployedItem.setUser(entry.getUser());
                         deployedItem.setEndpoint(entry.getEnvironment());
-                        String deployedLabel = entry.getDeploymentDate()
-                                .withZoneSameInstant(ZoneId.of(timezone)).format(ISO_OFFSET_DATE);
+                        String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
                         if (groups.size() > 0) {
                             DeploymentHistoryGroup group = groups.get(groups.size() - 1);
                             String lastDeployedLabel = group.getInternalName();
@@ -232,13 +229,35 @@ public class PublishServiceImpl implements PublishService {
         return groups;
     }
 
+    @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
+    public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget)
+            throws ServiceLayerException, UserNotFoundException {
+        publishServiceInternal.publishAll(siteId, publishingTarget);
+
+        SiteFeed siteFeed = siteService.getSite(siteId);
+        String username = securityService.getCurrentUser();
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_PUBLISH_ALL);
+        auditLog.setSiteId(siteFeed.getId());
+        auditLog.setActorId(username);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteId);
+        auditServiceInternal.insertAuditLog(auditLog);
+
+        activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH_ALL,
+                getCurrentTime(), null, null);
+    }
+
     private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
         // otherwise just add as the last task
         DeploymentHistoryGroup group = new DeploymentHistoryGroup();
         group.setInternalName(deployedLabel);
         List<ContentItemTO> taskItems = group.getChildren();
         if (taskItems == null) {
-            taskItems = new ArrayList<ContentItemTO>();
+            taskItems = new ArrayList<>();
             group.setChildren(taskItems);
         }
         taskItems.add(item);
@@ -268,72 +287,36 @@ public class PublishServiceImpl implements PublishService {
         return publishServiceInternal.isSitePublished(siteId);
     }
 
-    public PublishServiceInternal getPublishServiceInternal() {
-        return publishServiceInternal;
-    }
-
     public void setPublishServiceInternal(PublishServiceInternal publishServiceInternal) {
         this.publishServiceInternal = publishServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
-    }
-
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public StudioUtils getStudioUtils() {
-        return studioUtils;
     }
 
     public void setStudioUtils(StudioUtils studioUtils) {
         this.studioUtils = studioUtils;
     }
 
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
-    }
-
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public ActivityStreamServiceInternal getActivityStreamServiceInternal() {
-        return activityStreamServiceInternal;
-    }
-
     public void setActivityStreamServiceInternal(ActivityStreamServiceInternal activityStreamServiceInternal) {
         this.activityStreamServiceInternal = activityStreamServiceInternal;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {

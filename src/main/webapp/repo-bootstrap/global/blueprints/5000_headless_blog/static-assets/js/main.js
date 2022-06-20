@@ -31,7 +31,7 @@
     );
   }
   function getICE(model, fieldId = null) {
-    return (craftercms?.guest?.getICEAttributes({
+    return (craftercms?.xb?.getICEAttributes({
       model,
       fieldId,
       isAuthoring: authoring
@@ -133,11 +133,11 @@
       },
       deregisterItems: function() {
         document.querySelectorAll('[data-craftercms-model-id]').forEach((el) => {
-          const record = craftercms.guest.elementRegistry.fromElement(el);
+          const record = craftercms.xb.elementRegistry.fromElement(el);
 
           // This is supposed to be before updating DOM, but query is returning both old and new elements
           if (record) {
-            craftercms?.guest?.elementRegistry.deregister(record.id);
+            craftercms?.xb?.elementRegistry.deregister(record.id);
           }
         });
       },
@@ -157,7 +157,7 @@
             index = parseInt(index, 10);
           }
 
-          craftercms?.guest?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
+          craftercms?.xb?.elementRegistry.register({ element, modelId, fieldId, index, label, path });
         });
       },
       getICE
@@ -170,7 +170,7 @@
     mounted: function() {
       const self = this;
       $(function () {
-        const sub = craftercms.guest?.contentController?.operations$.subscribe((op) => {
+        const sub = craftercms.xb?.contentController?.operations$.subscribe((op) => {
           if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
             self.updateItem(op.args);
           }

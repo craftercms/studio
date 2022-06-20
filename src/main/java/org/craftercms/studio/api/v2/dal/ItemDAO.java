@@ -19,149 +19,59 @@ package org.craftercms.studio.api.v2.dal;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENTRIES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXCLUDES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FOLDER_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.IN_PROGRESS_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ITEM_IDS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_PUBLISHED_ON;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LEVEL_DESCRIPTOR_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIKE_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIVE_ENVIRONMENT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE_CODE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCKED_BIT_OFF;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCKED_BIT_ON;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIER;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_PREVIEW_URL;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NON_CONTENT_ITEM_TYPES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFF_STATES_BIT_MAP;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OLD_PREVIEW_URL;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ON_STATES_BIT_MAP;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENTS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PARENT_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.POSSIBLE_PARENTS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PREVIOUS_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCRIPT_PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT_STRATEGY;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STAGING_ENVIRONMENT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES_BIT_MAP;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SUBMITTED_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SYSTEM_TYPE_FOLDER;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface ItemDAO {
 
     /**
      * Get total number of children for given path
      *
-     * @param siteId site identifier
-     * @param path path to get children for
-     * @param ldName level descriptor name
-     * @param localeCode local code
-     * @param keyword filter by keyword
-     * @param excludes exclude items by regular expression patterns
+     * @param siteId      site identifier
+     * @param path        path to get children for
+     * @param localeCode  local code
+     * @param keyword     filter by keyword
+     * @param systemTypes filter by type
+     * @param excludes    exclude items by path
      * @return total number of children
      */
-    int getChildrenByPathTotal(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
-                               @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
+    int getChildrenByPathTotal(@Param(SITE_ID) Long siteId,
+                               @Param(PATH) String path,
+                               @Param(LOCALE_CODE) String localeCode,
+                               @Param(KEYWORD) String keyword,
+                               @Param(SYSTEM_TYPES) List<String> systemTypes,
+                               @Param(EXCLUDES) List<String> excludes);
 
     /**
      * Get children for given path from database
      *
-     * @param siteId site identifier
-     * @param ldPath level descriptor path
-     * @param ldName level descriptor name
-     * @param path path to get children for
+     * @param siteId           site identifier
+     * @param path             path to get children for
      * @param systemTypeFolder system type value for folder
-     * @param localeCode locale code
-     * @param keyword filter by keyword
-     * @param excludes exclude items by regular expression patterns
-     * @param sortStrategy sort strategy
-     * @param order order of children
-     * @param offset offset of the first record to return
-     * @param limit number of children to return
-     *
+     * @param localeCode       locale code
+     * @param keyword          filter by keyword
+     * @param systemTypes      filter by type
+     * @param excludes         exclude items by path
+     * @param sortStrategy     sort strategy
+     * @param order            order of children
+     * @param offset           offset of the first record to return
+     * @param limit            number of children to return
      * @return list of items (parent, level descriptor, children)
      */
 
-    List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId, @Param(LEVEL_DESCRIPTOR_PATH) String ldPath,
-                                 @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(PATH) String path,
+    List<Item> getChildrenByPath(@Param(SITE_ID) Long siteId,
+                                 @Param(PATH) String path,
                                  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                 @Param(LOCALE_CODE) String localeCode, @Param(KEYWORD) String keyword,
-                                 @Param(EXCLUDES) List<String> excludes, @Param(SORT_STRATEGY) String sortStrategy,
-                                 @Param(ORDER) String order, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
-
-    /**
-     * Get all children for given path from database
-     *
-     * @param siteId site identifier
-     * @param path path to get children for
-     * @param ldName level descriptor name
-     * @return list of items (parent, level descriptor, children)
-     */
-
-    List<Item> getAllChildrenByPath(@Param(SITE_ID) Long siteId, @Param(PATH) String path,
-                                    @Param(LEVEL_DESCRIPTOR_NAME) String ldName);
-
-    /**
-     * Get total number of children for given path
-     *
-     * @param siteId site identifier
-     * @param parentId item id to get children for
-     * @param ldName level descriptor name
-     * @param localeCode local code
-     * @param keyword filter by keyword
-     * @param excludes exclude items by regular expression patterns
-     *
-     * @return total number of children
-     */
-    int getChildrenByIdTotal(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
-                             @Param(LEVEL_DESCRIPTOR_NAME) String ldName, @Param(LOCALE_CODE) String localeCode,
-                             @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes);
-    /**
-     * Get children for given id from database
-     * @param siteId site identifier
-     * @param parentId parent identifier
-     * @param ldName level descriptor name
-     * @param systemTypeFolder system type value for folder
-     * @param localeCode locale code
-     * @param keyword filter by keyword
-     * @param excludes exclude items by regular expression patterns
-     * @param sortStrategy sort strategy
-     * @param order order of children
-     * @param offset offset of the first record to return
-     * @param limit number of children to return
-     * @return list of items (parent, level descriptor, children)
-     */
-    List<Item> getChildrenById(@Param(SITE_ID) Long siteId, @Param(PARENT_ID) String parentId,
-                               @Param(LEVEL_DESCRIPTOR_NAME) String ldName,
-                               @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                               @Param(LOCALE_CODE) String localeCode,
-                               @Param(KEYWORD) String keyword, @Param(EXCLUDES) List<String> excludes,
-                               @Param(SORT_STRATEGY) String sortStrategy, @Param(ORDER) String order,
-                               @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+                                 @Param(LOCALE_CODE) String localeCode,
+                                 @Param(KEYWORD) String keyword,
+                                 @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                 @Param(EXCLUDES) List<String> excludes,
+                                 @Param(SORT_STRATEGY) String sortStrategy,
+                                 @Param(ORDER) String order,
+                                 @Param(OFFSET) int offset,
+                                 @Param(LIMIT) int limit);
 
     /**
      * insert or update item
@@ -194,24 +104,6 @@ public interface ItemDAO {
                              @Param(COMPLETED_STATE) String completedState,
                              @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                              @Param(LIVE_ENVIRONMENT) String liveEnvironment);
-
-    /**
-     * Get item by id with prefer content option
-     *
-     * @param id item id
-     * @param siteId site identifier
-     * @param systemTypeFolder value for system type folder
-     * @param completedState completed state
-     * @param liveEnvironment live environment
-     * @param stagingEnvironment staging environment
-     * @return item identified by given id
-     */
-    DetailedItem getItemByIdPreferContent(@Param(ID) long id,
-                                          @Param(SITE_ID) String siteId,
-                                          @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
-                                          @Param(COMPLETED_STATE) String completedState,
-                                          @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
-                                          @Param(LIVE_ENVIRONMENT) String liveEnvironment);
 
     /**
      * Get item for given site and path
@@ -304,7 +196,7 @@ public interface ItemDAO {
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
-    void updateStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) List<String> paths,
+    void updateStatesBySiteAndPathBulk(@Param(SITE_ID) long siteId, @Param(PATHS) Collection<String> paths,
                                    @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
@@ -455,24 +347,16 @@ public interface ItemDAO {
                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
-     * Get sandbox items for given paths with prefer content option
-     * @param siteId site identifier
-     * @param paths paths to get items for
-     * @param systemTypeFolder value for system type folder
-     * @return list of items
-     */
-    List<Item> getSandboxItemsByPathPreferContent(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
-                                                  @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
-
-    /**
      * Get sandbox items for given paths
      * @param siteId site identifier
      * @param paths paths to get items for
      * @param systemTypeFolder value for system type folder
+     * @param preferContent indicates if pages should be returned instead of folders when available
      * @return list of items
      */
     List<Item> getSandboxItemsByPath(@Param(SITE_ID) Long siteId, @Param(PATHS) List<String> paths,
-                                     @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
+                                     @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                                     @Param(PREFER_CONTENT) boolean preferContent);
 
     /**
      * Get sandbox items for given ids with prefer content option
@@ -638,33 +522,6 @@ public interface ItemDAO {
      */
     void unlockItemByPath(@Param(SITE_ID) String siteId, @Param(PATH) String path,
                           @Param(LOCKED_BIT_OFF) long lockedBitOff);
-
-    /**
-     * Lock item
-     * @param itemId item identifier
-     * @param lockOwnerId lock owner
-     * @param lockedBitOn state bit mask with LOCKED bit on
-     * @param systemTypeFolder value for system type folder
-     */
-    void lockItemById(@Param(ID) Long itemId, @Param(LOCK_OWNER_ID) long lockOwnerId,
-                      @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
-
-    /**
-     * Lock items
-     * @param itemIds list of item identifiers
-     * @param lockOwnerId lock owner
-     * @param lockedBitOn state bit mask with LOCKED bit on
-     * @param systemTypeFolder value for system type folder
-     */
-    void lockItemsById(@Param(ITEM_IDS) List<Long> itemIds, @Param(LOCK_OWNER_ID) long lockOwnerId,
-                      @Param(LOCKED_BIT_ON) long lockedBitOn, @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
-
-    /**
-     * Lock item
-     * @param itemId item identifier
-     * @param lockedBitOff state bit mask with LOCKED bit off
-     */
-    void unlockItemById(@Param(ID) Long itemId, @Param(LOCKED_BIT_OFF) long lockedBitOff);
 
     /**
      * Get total number of item states records for given filters by path regex and states mask

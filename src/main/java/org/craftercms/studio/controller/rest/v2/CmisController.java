@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
@@ -63,8 +63,8 @@ public class CmisController {
     protected CmisService cmisService;
 
     @GetMapping("/api/2/cmis/list")
-    public ResponseBody list(@RequestParam(value = "siteId", required = true) String siteId,
-                             @RequestParam(value = "cmisRepoId", required = true) String cmisRepoId,
+    public ResponseBody list(@RequestParam(value = "siteId") String siteId,
+                             @RequestParam(value = "cmisRepoId") String cmisRepoId,
                              @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
                              @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
                              @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
@@ -86,9 +86,9 @@ public class CmisController {
     }
 
     @GetMapping("/api/2/cmis/search")
-    public ResponseBody search(@RequestParam(value = "siteId", required = true) String siteId,
-                               @RequestParam(value = "cmisRepoId", required = true) String cmisRepoId,
-                               @RequestParam(value = "searchTerm", required = true) String searchTerm,
+    public ResponseBody search(@RequestParam(value = "siteId") String siteId,
+                               @RequestParam(value = "cmisRepoId") String cmisRepoId,
+                               @RequestParam(value = "searchTerm") String searchTerm,
                                @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
                                @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
                                @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
@@ -112,7 +112,7 @@ public class CmisController {
     @PostMapping("/api/2/cmis/clone")
     public ResponseBody cloneContent(@RequestBody CmisCloneRequest cmisCloneRequest)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
-            StudioPathNotFoundException, ServiceLayerException, CmisPathNotFoundException {
+            ServiceLayerException, CmisPathNotFoundException, UserNotFoundException {
         cmisService.cloneContent(cmisCloneRequest.getSiteId(), cmisCloneRequest.getCmisRepoId(),
                 cmisCloneRequest.getCmisPath(), cmisCloneRequest.getStudioPath());
 
@@ -130,7 +130,7 @@ public class CmisController {
 
         ServletFileUpload servletFileUpload = new ServletFileUpload();
         FileItemIterator itemIterator = servletFileUpload.getItemIterator(httpServletRequest);
-        String filename = StringUtils.EMPTY;
+        String filename;
         String siteId = StringUtils.EMPTY;
         String cmisRepoId = StringUtils.EMPTY;
         String cmisPath = StringUtils.EMPTY;
@@ -170,15 +170,11 @@ public class CmisController {
             }
         }
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<CmisUploadItem> result = new ResultOne<CmisUploadItem>();
+        ResultOne<CmisUploadItem> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_ITEM, cmisUploadItem);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    public CmisService getCmisService() {
-        return cmisService;
     }
 
     public void setCmisService(CmisService cmisService) {

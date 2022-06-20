@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.api.v2.service.repository.internal;
 
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -37,29 +36,29 @@ public interface RepositoryManagementServiceInternal {
             throws ServiceLayerException, InvalidRemoteUrlException, RemoteRepositoryNotFoundException;
 
     List<RemoteRepositoryInfo> listRemotes(String siteId, String sandboxBranch)
-            throws ServiceLayerException, CryptoException;
+            ;
 
     MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
+            throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
     boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
-            throws CryptoException, ServiceLayerException, InvalidRemoteUrlException,
+            throws ServiceLayerException, InvalidRemoteUrlException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
-    boolean removeRemote(String siteId, String remoteName) throws CryptoException, RemoteNotRemovableException;
+    boolean removeRemote(String siteId, String remoteName) throws RemoteNotRemovableException;
 
-    RepositoryStatus getRepositoryStatus(String siteId) throws CryptoException, ServiceLayerException;
+    RepositoryStatus getRepositoryStatus(String siteId) throws ServiceLayerException;
 
     boolean resolveConflict(String siteId, String path, String resolution)
-            throws CryptoException, ServiceLayerException;
+            throws ServiceLayerException;
 
     DiffConflictedFile getDiffForConflictedFile(String siteId, String path)
-            throws ServiceLayerException, CryptoException;
+            throws ServiceLayerException;
 
-    boolean commitResolution(String siteId, String commitMessage) throws CryptoException, ServiceLayerException;
+    boolean commitResolution(String siteId, String commitMessage) throws ServiceLayerException;
 
-    boolean cancelFailedPull(String siteId) throws ServiceLayerException, CryptoException;
+    boolean cancelFailedPull(String siteId) throws ServiceLayerException;
 
     /**
      * Unlock local git repository
@@ -68,5 +67,23 @@ public interface RepositoryManagementServiceInternal {
      * @param repositoryType repository type (GLOBAL, SANDBOX, PUBLISHED)
      * @return true if successful
      */
-    boolean unlockRepository(String siteId, GitRepositories repositoryType) throws CryptoException;
+    boolean unlockRepository(String siteId, GitRepositories repositoryType);
+
+    /**
+     * Checks if a given Git repository is corrupted
+     * @param siteId the id of the site
+     * @param repositoryType the type of the repository
+     * @return true if the repo is corrupted
+     * @throws ServiceLayerException if there is any error checking the repository
+     */
+    boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
+
+    /**
+     * Repairs a corrupted Git repository
+     * @param siteId the id of the site
+     * @param repositoryType the type of the repository
+     * @throws ServiceLayerException if there is any error repairing the repository
+     */
+    void repairCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException;
+
 }

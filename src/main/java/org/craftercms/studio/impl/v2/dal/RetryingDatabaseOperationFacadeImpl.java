@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v2.dal.WorkflowDAO;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -382,7 +383,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void updateStatesBySiteAndPathBulk(long siteId, List<String> paths, long onStatesBitMap, long offStatesBitMap) {
+    public void updateStatesBySiteAndPathBulk(long siteId, Collection<String> paths, long onStatesBitMap, long offStatesBitMap) {
         itemDao.updateStatesBySiteAndPathBulk(siteId, paths, onStatesBitMap, offStatesBitMap);
     }
 
@@ -464,21 +465,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     @Override
     public void unlockItemByPath(String siteId, String path, long lockedBitOff) {
         itemDao.unlockItemByPath(siteId, path, lockedBitOff);
-    }
-
-    @Override
-    public void lockItemById(Long itemId, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
-        itemDao.lockItemById(itemId, lockOwnerId, lockedBitOn, systemTypeFolder);
-    }
-
-    @Override
-    public void lockItemsById(List<Long> itemIds, long lockOwnerId, long lockedBitOn, String systemTypeFolder) {
-        itemDao.lockItemsById(itemIds, lockOwnerId, lockedBitOn, systemTypeFolder);
-    }
-
-    @Override
-    public void unlockItemById(Long itemId, long lockedBitOff) {
-        itemDao.unlockItemById(itemId, lockedBitOff);
     }
 
     @Override
@@ -634,120 +620,60 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
         activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item, packageId);
     }
 
-    public DependencyMapper getDependencyMapper() {
-        return dependencyMapper;
-    }
-
     public void setDependencyMapper(DependencyMapper dependencyMapper) {
         this.dependencyMapper = dependencyMapper;
-    }
-
-    public NavigationOrderSequenceMapper getNavigationOrderSequenceMapper() {
-        return navigationOrderSequenceMapper;
     }
 
     public void setNavigationOrderSequenceMapper(NavigationOrderSequenceMapper navigationOrderSequenceMapper) {
         this.navigationOrderSequenceMapper = navigationOrderSequenceMapper;
     }
 
-    public PublishRequestMapper getPublishRequestMapper() {
-        return publishRequestMapper;
-    }
-
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
-    }
-
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
     }
 
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
     }
 
-    public AuditDAO getAuditDao() {
-        return auditDao;
-    }
-
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
-    }
-
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
     }
 
     public void setClusterDao(ClusterDAO clusterDao) {
         this.clusterDao = clusterDao;
     }
 
-    public GitLogDAO getGitLogDao() {
-        return gitLogDao;
-    }
-
     public void setGitLogDao(GitLogDAO gitLogDao) {
         this.gitLogDao = gitLogDao;
-    }
-
-    public GroupDAO getGroupDao() {
-        return groupDao;
     }
 
     public void setGroupDao(GroupDAO groupDao) {
         this.groupDao = groupDao;
     }
 
-    public ItemDAO getItemDao() {
-        return itemDao;
-    }
-
     public void setItemDao(ItemDAO itemDao) {
         this.itemDao = itemDao;
-    }
-
-    public PublishRequestDAO getPublishRequestDao() {
-        return publishRequestDao;
     }
 
     public void setPublishRequestDao(PublishRequestDAO publishRequestDao) {
         this.publishRequestDao = publishRequestDao;
     }
 
-    public RemoteRepositoryDAO getRemoteRepositoryDao() {
-        return remoteRepositoryDao;
-    }
-
     public void setRemoteRepositoryDao(RemoteRepositoryDAO remoteRepositoryDao) {
         this.remoteRepositoryDao = remoteRepositoryDao;
-    }
-
-    public SecurityDAO getSecurityDao() {
-        return securityDao;
     }
 
     public void setSecurityDao(SecurityDAO securityDao) {
         this.securityDao = securityDao;
     }
 
-    public UserDAO getUserDao() {
-        return userDao;
-    }
-
     public void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
     }
 
-    public WorkflowDAO getWorkflowDao() {
-        return workflowDao;
-    }
-
     public void setWorkflowDao(WorkflowDAO workflowDao) {
         this.workflowDao = workflowDao;
-    }
-
-    public ActivityStreamDAO getActivityStreamDAO() {
-        return activityStreamDAO;
     }
 
     public void setActivityStreamDAO(ActivityStreamDAO activityStreamDAO) {

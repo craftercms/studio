@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.repository;
 
-import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -84,7 +83,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "list_remotes")
     public List<RemoteRepositoryInfo> listRemotes(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         return repositoryManagementServiceInternal.listRemotes(siteId, siteFeed.getSandboxBranch());
     }
@@ -93,7 +92,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @HasPermission(type = DefaultPermission.class, action = "pull_from_remote")
     public MergeResult pullFromRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
                                       String remoteBranch, String mergeStrategy)
-            throws InvalidRemoteUrlException, CryptoException, ServiceLayerException,
+            throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         MergeResult toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
                 mergeStrategy);
@@ -108,7 +107,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @HasPermission(type = DefaultPermission.class, action = "push_to_remote")
     public boolean pushToRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName,
                                 String remoteBranch, boolean force)
-            throws InvalidRemoteUrlException, ServiceLayerException, CryptoException,
+            throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
         boolean toRet = repositoryManagementServiceInternal.pushToRemote(siteId, remoteName, remoteBranch, force);
         insertAddRemoteAuditLog(siteId, OPERATION_PUSH_TO_REMOTE,remoteName + "/" + remoteBranch,
@@ -125,7 +124,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "remove_remote")
     public boolean removeRemote(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String remoteName)
-            throws CryptoException, SiteNotFoundException, RemoteNotRemovableException {
+            throws SiteNotFoundException, RemoteNotRemovableException {
         boolean toRet = repositoryManagementServiceInternal.removeRemote(siteId, remoteName);
         insertAddRemoteAuditLog(siteId, OPERATION_REMOVE_REMOTE, remoteName, remoteName);
         return toRet;
@@ -134,7 +133,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "site_status")
     public RepositoryStatus getRepositoryStatus(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
-            throws CryptoException, ServiceLayerException {
+            throws ServiceLayerException {
         return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
     }
 
@@ -142,7 +141,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @HasPermission(type = DefaultPermission.class, action = "resolve_conflict")
     public RepositoryStatus resolveConflict(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                             @ProtectedResourceId(PATH_RESOURCE_ID) String path, String resolution)
-            throws CryptoException, ServiceLayerException {
+            throws ServiceLayerException {
         boolean success = repositoryManagementServiceInternal.resolveConflict(siteId, path, resolution);
         if (success) {
             return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
@@ -155,14 +154,14 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @HasPermission(type = DefaultPermission.class, action = "site_diff_conflicted_file")
     public DiffConflictedFile getDiffForConflictedFile(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                        @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         return repositoryManagementServiceInternal.getDiffForConflictedFile(siteId, path);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "commit_resolution")
     public RepositoryStatus commitResolution(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                             String commitMessage) throws CryptoException, ServiceLayerException {
+                                             String commitMessage) throws ServiceLayerException {
         boolean success = repositoryManagementServiceInternal.commitResolution(siteId, commitMessage);
         if (success) {
             return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
@@ -174,7 +173,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "cancel_failed_pull")
     public RepositoryStatus cancelFailedPull(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
-            throws ServiceLayerException, CryptoException {
+            throws ServiceLayerException {
         boolean success = repositoryManagementServiceInternal.cancelFailedPull(siteId);
         if (success) {
             return repositoryManagementServiceInternal.getRepositoryStatus(siteId);
@@ -186,8 +185,20 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     @Override
     @HasPermission(type = DefaultPermission.class, action = "unlock_repository")
     public boolean unlockRepository(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
-                                    GitRepositories repositoryType) throws CryptoException {
+                                    GitRepositories repositoryType) {
         return repositoryManagementServiceInternal.unlockRepository(siteId, repositoryType);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "repair_repository")
+    public boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException {
+        return repositoryManagementServiceInternal.isCorrupted(siteId, repositoryType);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "repair_repository")
+    public void repairCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException {
+        repositoryManagementServiceInternal.repairCorrupted(siteId, repositoryType);
     }
 
     public void setRepositoryManagementServiceInternal(RepositoryManagementServiceInternal repositoryManagementServiceInternal) {

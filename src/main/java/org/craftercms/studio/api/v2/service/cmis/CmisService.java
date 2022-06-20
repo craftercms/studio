@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
 import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.rest.CmisUploadItem;
@@ -38,8 +38,8 @@ public interface CmisService {
             throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException, ConfigurationException;
 
     void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath)
-            throws StudioPathNotFoundException, CmisRepositoryNotFoundException, CmisUnavailableException,
-            CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException;
+            throws CmisRepositoryNotFoundException, CmisUnavailableException,
+            CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException, UserNotFoundException;
 
     CmisUploadItem uploadContent(String siteId, String cmisRepoId, String cmisPath, String filename, InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,

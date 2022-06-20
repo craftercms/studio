@@ -16,33 +16,27 @@
 package org.craftercms.studio.impl.v2.repository.blob.s3;
 
 import com.amazonaws.services.s3.model.*;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.COPY_PART_SIZE;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.MIN_PART_SIZE;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFile;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.copyFolder;
-import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.uploadStream;
+import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
 
 /**
  * Implementation of {@link StudioBlobStore} for AWS S3
@@ -342,7 +336,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void initialPublish(String siteId) throws SiteNotFoundException {
+    public void initialPublish(String siteId) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
 
@@ -359,6 +353,53 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
                     MIN_PART_SIZE, getClient());
         }
+    }
+
+    @Override
+    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+        Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
+        Mapping targetMapping = getMapping(publishingTarget);
+
+        logger.debug("Performing publish all for site {0} to {1}", siteId, targetMapping);
+
+        for(String updatedPath : changes.getUpdatedPaths()) {
+            copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
+                     getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
+        }
+
+        DeleteObjectsRequest request = new DeleteObjectsRequest(targetMapping.target);
+        for (List<String> batch : ListUtils.partition(new LinkedList<>(changes.getDeletedPaths()), DELETE_BATCH_SIZE)) {
+            request.withKeys(batch.stream()
+                                  .map(path -> getKey(targetMapping, path))
+                                  .toArray(String[]::new));
+            getClient().deleteObjects(request);
+        }
+
+        logger.debug("Completed publish all for site {0} to {1}", siteId, targetMapping);
+    }
+
+    @Override
+    public void cancelPublishAll(String siteId, String publishingTarget) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void populateGitLog(String siteId) {
+        // this method should not be called
+        throw new UnsupportedOperationException();
     }
 
 }

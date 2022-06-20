@@ -50,6 +50,8 @@ public interface StudioConfiguration {
     String REPO_CREATE_SANDBOX_BRANCH_COMMIT_MESSAGE = "studio.repo.createSandboxBranch.commitMessage";
     String REPO_INITIAL_COMMIT_COMMIT_MESSAGE = "studio.repo.initialCommit.commitMessage";
     String REPO_INITIAL_PUBLISH_COMMIT_MESSAGE = "studio.repo.initialPublish.commitMessage";
+
+    String REPO_PUBLISH_ALL_COMMIT_MESSAGE = "studio.repo.publishAll.commitMessage";
     String REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE = "studio.repo.createAsOrphan.commitMessage";
     String REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE = "studio.repo.blueprintsUpdated.commitMessage";
     String REPO_CREATE_FOLDER_COMMIT_MESSAGE = "studio.repo.createFolder.commitMessage";
@@ -270,6 +272,7 @@ public interface StudioConfiguration {
     String SERVERLESS_DELIVERY_ENABLED = "studio.serverless.delivery.enabled";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL = "studio.serverless.delivery.deployer.target.createUrl";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL = "studio.serverless.delivery.deployer.target.deleteUrl";
+    String SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV = "studio.serverless.delivery.deployer.target.env";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE = "studio.serverless.delivery.deployer.target.template";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE = "studio.serverless.delivery.deployer.target.replace";
     String SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL = "studio.serverless.delivery.deployer.target.remoteRepoUrl";
@@ -322,6 +325,9 @@ public interface StudioConfiguration {
 
     // CORS
     String CONFIGURATION_CORS_ALLOWED_ORIGINS = "studio.cors.origins";
+
+    // Cookies
+    String STUDIO_COOKIE_USE_BASE_DOMAIN = "studio.cookie.useBaseDomain";
 
     void loadConfig();
 

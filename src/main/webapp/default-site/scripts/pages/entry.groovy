@@ -18,6 +18,7 @@
 import org.apache.commons.text.StringEscapeUtils
 import org.craftercms.studio.api.v1.log.LoggerFactory
 import scripts.api.SecurityServices
+import scripts.libs.EnvironmentOverrides
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX
 
@@ -57,10 +58,11 @@ try {
 }
 
 model.username = currentUser
-model.userEmail = profile.email 
+model.userEmail = profile.email
 model.userFirstName = profile.first_name
 model.userLastName =  profile.last_name
 model.authenticationType =  authenticatedUser?
         authenticatedUser.getAuthenticationType() as String : profile.authentication_type
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
 model.passwordRequirementsRegex = passwordRequirementsRegex;
+model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)

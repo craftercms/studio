@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.0.2</version>
+	<version>4.0.4</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -31,7 +31,7 @@
 						<id>Pages</id>
 						<label>Pages</label>
 						<icon id="@mui/icons-material/DescriptionOutlined"/>
-						<rootPath>/site/website</rootPath>
+						<rootPath>/site/website/index.xml</rootPath>
 						<locale>en</locale>
 					</configuration>
 				</widget>
@@ -248,7 +248,11 @@
 						<configuration>
 							<title id="words.search" defaultMessage="Search"/>
 							<icon id="@mui/icons-material/SearchRounded"/>
-							<widget id="craftercms.components.Search" />
+							<widget id="craftercms.components.Search">
+								<configuration>
+									<embedded>true</embedded>
+								</configuration>
+							</widget>
 						</configuration>
 					</widget>
 				</widgets>
@@ -277,10 +281,10 @@
 							{
 								"menubar": true,
 								"theme": "silver",
-								"plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste editform",
+								"plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste",
 								"extended_valid_elements": "",
 								"valid_children": "",
-								"toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat | editform",
+								"toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
 								"code_editor_wrap": false,
 								"toolbar_sticky": true,
 								"image_advtab": true,
@@ -341,7 +345,7 @@
 					<title id="workflowStates.title" defaultMessage="Workflow States"/>
 					<icon id="@mui/icons-material/SettingsOutlined"/>
 					<url>item-states</url>
-					<widget id="craftercms.components.ItemStatesManagement"/>
+					<widget id="craftercms.components.WorkflowStateManagement"/>
 				</tool>
 				<tool>
 					<title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>

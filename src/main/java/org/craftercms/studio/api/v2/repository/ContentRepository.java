@@ -31,8 +31,10 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -392,4 +394,52 @@ public interface ContentRepository {
      * @param siteId site identifier
      */
     void initialPublish(String siteId) throws SiteNotFoundException;
+
+    /**
+     * Publishes all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     */
+    RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+
+    /**
+     * Prepares the repository to publish all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @return the set of changed files
+     * @throws ServiceLayerException if there is any error during the preparation
+     */
+    RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+
+    /**
+     * Performs the actual publish of all changes for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @param changes the set of changed files
+     * @throws ServiceLayerException if there is any error during publishing
+     */
+    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+            throws ServiceLayerException;
+
+    /**
+     * Performs the cleanup after a failed publish all operation for the given site & target
+     *
+     * @param siteId the id of the site
+     * @param publishingTarget the publishing target
+     * @throws ServiceLayerException if there is any error during cleanup
+     */
+    void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+
+    /**
+     * Populates the full git log of the sandbox repository into the database
+     *
+     * @param siteId the id of the site
+     * @throws GitAPIException if there is any error reading the git log
+     * @throws IOException if there is any error executing the db script
+     */
+    void populateGitLog(String siteId) throws GitAPIException, IOException;
+
 }

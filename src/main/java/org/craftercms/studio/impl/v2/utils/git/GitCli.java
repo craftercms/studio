@@ -144,6 +144,21 @@ public class GitCli {
         }
     }
 
+    public boolean isRepoClean(String directory) throws GitCliException {
+        GitCommandLine statusCl = new GitCommandLine("status");
+        // The --porcelain option is a short version specifically for scripts
+        statusCl.addParam("--porcelain");
+
+        try {
+            String result = executeGitCommand(directory, statusCl, DEFAULT_EX_RESOLVER);
+
+            // No result means there's no changes, so the repo is clean
+            return StringUtils.isEmpty(result);
+        } catch (Exception e) {
+            throw new GitCliException("Git gc failed on directory " + directory, e);
+        }
+    }
+
     protected class GitCommandLine extends ArrayList<String> {
 
         public GitCommandLine(String command) {

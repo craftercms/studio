@@ -51,7 +51,6 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
@@ -59,6 +58,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
@@ -72,17 +72,15 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_ST
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_INDEX_FILE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
 public class PublishingManagerImpl implements PublishingManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PublishingManagerImpl.class);
 
-    private static final String LIVE_ENVIRONMENT = "live";
+    public static final String LIVE_ENVIRONMENT = "live";
     private static final String PRODUCTION_ENVIRONMENT = "Production";
 
-    protected SiteService siteService;
     protected ContentService contentService;
     protected DeploymentService deploymentService;
     protected ContentRepository contentRepository;
@@ -135,7 +133,7 @@ public class PublishingManagerImpl implements PublishingManager {
 
         boolean isLive = false;
 
-        if (StringUtils.isNotEmpty(liveEnvironment)) {
+        if (isNotEmpty(liveEnvironment)) {
             if (liveEnvironment.equals(environment)) {
                 isLive = true;
             }
@@ -146,7 +144,8 @@ public class PublishingManagerImpl implements PublishingManager {
         }
 
         if (StringUtils.equals(action, PublishRequest.Action.DELETE)) {
-            if (oldPath != null && oldPath.length() > 0) {
+            // Only try to delete oldPath if it exists, this covers the case of move/rename & delete something new
+            if (isNotEmpty(oldPath) && contentService.contentExists(site, oldPath)) {
                 contentService.deleteContent(site, oldPath, user);
                 boolean hasRenamedChildren = false;
 
@@ -174,7 +173,7 @@ public class PublishingManagerImpl implements PublishingManager {
             }
 
 
-            boolean haschildren = false;
+            boolean hasChildren = false;
 
             if (item.getPath().endsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                 if (contentService.contentExists(site,
@@ -184,7 +183,7 @@ public class PublishingManagerImpl implements PublishingManager {
                             path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""));
 
                     if (children.length > 1) {
-                        haschildren = true;
+                        hasChildren = true;
                     }
                 }
             }
@@ -192,7 +191,7 @@ public class PublishingManagerImpl implements PublishingManager {
             if (contentService.contentExists(site, path)) {
                 contentService.deleteContent(site, path, user);
 
-                if (!haschildren) {
+                if (!hasChildren) {
                     deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""), user);
                 }
             }
@@ -242,11 +241,11 @@ public class PublishingManagerImpl implements PublishingManager {
                 }
             }
             String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
-            if (StringUtils.isNotEmpty(blacklistConfig) &&
+            if (isNotEmpty(blacklistConfig) &&
                     ContentUtils.matchesPatterns(item.getPath(), Arrays.asList(StringUtils.split(blacklistConfig, ",")))) {
                 LOGGER.debug("File " + item.getPath() + " of the site " + site + " will not be published because it " +
                         "matches the configured publishing blacklist regex patterns.");
-                markItemsCompleted(site, item.getEnvironment(), Arrays.asList(item));
+                markItemsCompleted(site, item.getEnvironment(), List.of(item));
                 deploymentItem = null;
             }
         }
@@ -321,7 +320,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                                                Set<String> pathsToDeploy,
                                                                Set<String> missingDependenciesPaths)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        List<DeploymentItemTO> mandatoryDependencies = new ArrayList<DeploymentItemTO>();
+        List<DeploymentItemTO> mandatoryDependencies = new ArrayList<>();
         String site = item.getSite();
         String path = item.getPath();
 
@@ -337,8 +336,8 @@ public class PublishingManagerImpl implements PublishingManager {
                 if (CollectionUtils.isNotEmpty(parts)) {
                     StringBuilder sbAncestor = new StringBuilder();
                     for (Path ancestor : parts) {
-                        if (StringUtils.isNotEmpty(ancestor.toString())) {
-                            sbAncestor.append(FILE_SEPARATOR).append(ancestor.toString());
+                        if (isNotEmpty(ancestor.toString())) {
+                            sbAncestor.append(FILE_SEPARATOR).append(ancestor);
                             ancestors.add(0, sbAncestor.toString());
                         }
                     }
@@ -351,7 +350,7 @@ public class PublishingManagerImpl implements PublishingManager {
                         String anc = ancestorIterator.next();
                         Item it = itemServiceInternal.getItem(site, anc, true);
                         if (Objects.nonNull(it) && !StringUtils.equals(it.getSystemType(), CONTENT_TYPE_FOLDER) &&
-                                (ItemState.isNew(it.getState()) || StringUtils.isNotEmpty(it.getPreviousPath())) &&
+                                (ItemState.isNew(it.getState()) || isNotEmpty(it.getPreviousPath())) &&
                                 !missingDependenciesPaths.contains(it.getPath()) &&
                                 !pathsToDeploy.contains(it.getPath())) {
                             deploymentService.cancelWorkflow(site, it.getPath());
@@ -371,7 +370,7 @@ public class PublishingManagerImpl implements PublishingManager {
                 for (String dependentPath : dependentPaths) {
                     // TODO: SJ: This bypasses the Content Service, fix
                     Item it = itemServiceInternal.getItem(site, dependentPath);
-                    if (ItemState.isNew(it.getState()) || StringUtils.isNotEmpty(it.getPreviousPath())) {
+                    if (ItemState.isNew(it.getState()) || isNotEmpty(it.getPreviousPath())) {
                         if (!missingDependenciesPaths.contains(dependentPath) &&
                                 !pathsToDeploy.contains(dependentPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
@@ -404,13 +403,13 @@ public class PublishingManagerImpl implements PublishingManager {
             missingItem.setAction(PublishRequest.Action.NEW);
         }
 
-        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
+        if (isNotEmpty(it.getPreviousPath())) {
             String oldPath = it.getPreviousPath();
             missingItem.setOldPath(oldPath);
             missingItem.setAction(PublishRequest.Action.MOVE);
         }
         String commitId = it.getCommitId();
-        if (StringUtils.isNotEmpty(commitId)) {
+        if (isNotEmpty(commitId)) {
             missingItem.setCommitId(commitId);
         } else {
             missingItem.setCommitId(contentRepository.getRepoLastCommitId(site));
@@ -427,7 +426,7 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     @ValidateParams
     public boolean isPublishingBlocked(@ValidateStringParam(name = "site") String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", PublishRequest.State.BLOCKED);
@@ -438,7 +437,7 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     @ValidateParams
     public boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", READY_FOR_LIVE);
@@ -449,10 +448,10 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     @ValidateParams
     public String getPublishingStatus(@ValidateStringParam(name = "site") String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
-        List<String> states = new ArrayList<String>() {{
+        List<String> states = new ArrayList<>() {{
             add(READY_FOR_LIVE);
             add(PublishRequest.State.BLOCKED);
             add(PublishRequest.State.PROCESSING);
@@ -466,7 +465,7 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     @ValidateParams
     public boolean isPublishingQueueEmpty(@ValidateStringParam(name = "site") String site) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", READY_FOR_LIVE);
@@ -478,16 +477,12 @@ public class PublishingManagerImpl implements PublishingManager {
     @ValidateParams
     public void resetProcessingQueue(@ValidateStringParam(name = "site") String site,
                                         @ValidateStringParam(name = "environment") String environment) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, site);
         params.put(ENVIRONMENT, environment);
         params.put(PROCESSING_STATE, PROCESSING);
         params.put(READY_STATE, READY_FOR_LIVE);
         retryingDatabaseOperationFacade.resetPublishRequestProcessingQueue(params);
-    }
-
-    public String getIndexFile() {
-        return studioConfiguration.getProperty(PUBLISHING_MANAGER_INDEX_FILE);
     }
 
     public boolean isEnablePublishingWithoutDependencies() {
@@ -496,88 +491,40 @@ public class PublishingManagerImpl implements PublishingManager {
         return toReturn;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public DeploymentService getDeploymentService() {
-        return deploymentService;
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public ServicesConfig getServicesConfig() {
-        return servicesConfig;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public DependencyService getDependencyService() {
-        return dependencyService;
     }
 
     public void setDependencyService(DependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
-    public PublishRequestMapper getPublishRequestMapper() {
-        return publishRequestMapper;
-    }
-
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

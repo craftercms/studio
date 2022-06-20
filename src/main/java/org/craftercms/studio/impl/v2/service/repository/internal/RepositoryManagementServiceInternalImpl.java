@@ -26,13 +26,12 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -78,6 +77,7 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.errors.NoRemoteRepositoryException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Config;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
@@ -98,6 +98,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -115,6 +116,8 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -493,7 +496,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     Files.deleteIfExists(tempKey);
                 }
             } catch (IOException e) {
-                logger.warn("Error deleting file {0}", tempKey);
+                logger.warn("Error deleting file '{}'", tempKey);
             }
             generalLockService.unlock(gitLockKey);
         }
@@ -550,7 +553,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         logger.debug("Prepare push command.");
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
-            Iterable<PushResult> pushResultIterable = null;
+            Iterable<PushResult> pushResultIterable;
             PushCommand pushCommand = git.push();
             logger.debug("Set remote " + remoteName);
             pushCommand.setRemote(remoteRepository.getRemoteName());
@@ -581,15 +584,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                             logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, " +
                                     "because remote side doesn't support/allow deleting refs.\n" +
                                     remoteRefUpdate.getMessage());
+                            break;
                         case REJECTED_NONFASTFORWARD:
                             toRet = false;
                             logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, as it " +
                                     "would cause non fast-forward update.\n" + remoteRefUpdate.getMessage());
+                            break;
                         case REJECTED_REMOTE_CHANGED:
                             toRet = false;
                             logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, because" +
                                     " old object id on remote repository " + remoteRefUpdate.getRemoteName() +
                                     " wasn't the same as defined expected old object. \n" + remoteRefUpdate.getMessage());
+                            break;
                         case REJECTED_OTHER_REASON:
                             toRet = false;
                             logger.error("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected for "
@@ -879,6 +885,44 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             toRet = FileUtils.deleteQuietly(Paths.get(repo.getDirectory().getAbsolutePath(), LOCK_FILE).toFile());
         }
         return toRet;
+    }
+
+    @Override
+    public boolean isCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException {
+        Repository repository = gitRepositoryHelper.getRepository(siteId, repositoryType);
+        if (repository == null) {
+            throw new SiteNotFoundException();
+        }
+        try (Git git = Git.wrap(repository)) {
+            git.status().call();
+        } catch (JGitInternalException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof CorruptObjectException || cause instanceof EOFException) {
+                return true;
+            }
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown error checking repository", e);
+        }
+        return false;
+    }
+
+    @Override
+    public void repairCorrupted(String siteId, GitRepositories repositoryType) throws ServiceLayerException {
+        Repository repository = gitRepositoryHelper.getRepository(siteId, repositoryType);
+        if (repository == null) {
+            throw new SiteNotFoundException();
+        }
+        String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
+        generalLockService.lock(gitLockKey);
+        try (Git git = Git.wrap(repository)) {
+            FileUtils.forceDelete(repository.getIndexFile());
+            ResetCommand resetCommand = git.reset().setMode(ResetCommand.ResetType.HARD);
+            retryingRepositoryOperationFacade.call(resetCommand);
+        } catch (Exception e) {
+            throw new ServiceLayerException("Error repairing corrupted repository for site " + siteId, e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
+        }
     }
 
     private boolean conflictNotificationEnabled() {

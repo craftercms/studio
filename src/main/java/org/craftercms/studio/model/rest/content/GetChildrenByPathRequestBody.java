@@ -35,6 +35,9 @@ public class GetChildrenByPathRequestBody {
     private String path;
     private  String localeCode;
     private  String keyword;
+
+    private List<String> systemTypes;
+
     private List<String> excludes;
     private String sortStrategy;
     private String order = "ASC";
@@ -71,6 +74,14 @@ public class GetChildrenByPathRequestBody {
 
     public void setKeyword(String keyword) {
         this.keyword = keyword;
+    }
+
+    public List<String> getSystemTypes() {
+        return systemTypes;
+    }
+
+    public void setSystemTypes(List<String> systemTypes) {
+        this.systemTypes = systemTypes;
     }
 
     public List<String> getExcludes() {
