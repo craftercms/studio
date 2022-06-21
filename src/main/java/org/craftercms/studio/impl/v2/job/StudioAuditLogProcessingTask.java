@@ -215,6 +215,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
     }
 
     private boolean checkSiteUuid(String siteId, String siteUuid) {
+        // TODO: SJ: This may be a duplicate of StudioClockExecutor::checkSiteUuid
         boolean toRet = false;
         try {
             Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),

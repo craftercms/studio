@@ -90,17 +90,17 @@ public class StudioClockExecutor implements Job {
             if (singleWorkerLock.tryLock()) {
                 try {
                     setRunning(true);
-                    logger.debug1("Executing tasks thread num " + threadCounter);
+                    logger.debug("Executing Studio Clock Job in thread '{}'", threadCounter);
                     executeTasks();
                 } catch (Exception e) {
-                    logger.error1("Error executing Studio Clock Job", e);
+                    logger.error("Studio Clock Job failed", e);
                 } finally {
                     setRunning(false);
                     singleWorkerLock.unlock();
                 }
             }
         } else {
-            logger.debug1("System not ready yet. Skipping cycle");
+            logger.debug("The system is not ready yet to execute Studio Clock Job. Skipping a cycle.");
         }
     }
 
@@ -129,7 +129,7 @@ public class StudioClockExecutor implements Job {
     }
 
     private void cleanupDeletedSites() {
-        logger.debug1("Remove local copies of deleted sites if present");
+        logger.debug("Remove any local copies of deleted sites");
         List<SiteFeed> deletedSites = siteService.getDeletedSites();
         deletedSites.forEach(siteFeed -> {
             String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
@@ -158,7 +158,7 @@ public class StudioClockExecutor implements Job {
                 }
             }
         } catch (IOException e) {
-            logger.info1("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
+            logger.info("Invalid site UUID in site '{}'. The local copy will not be deleted", siteId);
         }
         return toRet;
     }
