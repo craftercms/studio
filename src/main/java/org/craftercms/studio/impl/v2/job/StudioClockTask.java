@@ -33,7 +33,7 @@ public abstract class StudioClockTask implements SiteJob {
     private static final Logger logger = LoggerFactory.getLogger(StudioClockTask.class);
 
     protected int executeEveryNCycles;
-    protected Map<String, Integer> counters = new HashMap<String, Integer>();
+    protected Map<String, Integer> counters = new HashMap<>();
     protected int offset;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
@@ -57,14 +57,14 @@ public abstract class StudioClockTask implements SiteJob {
 
     @Override
     public final void execute(String site) {
-        logger.debug1("Task Clock for: " + this.getClass().getName() + " site: " + site + " counter: " + counters.get(site) + " execute every: " + executeEveryNCycles);
+        logger.debug("Clock Task '{}' for site '{}' with counter '{}' execute ever '{}' cycles", this.getClass().getName(), site, counters.get(site), executeEveryNCycles);
         if (checkCycleCounter(site)) {
             try {
                 long sleepTime = (long) (Math.random() * offset);
-                logger.debug1("Sleeping for offset " + sleepTime + " milliseconds");
+                logger.debug("Sleep for an offset of '{}' milliseconds in site '{}'", sleepTime, site);
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
-                logger.debug1("Woke up from random offset");
+                logger.debug("Woke up from the random offset for site '{}'", site);
             }
             executeInternal(site);
             setCycleCounter(site, executeEveryNCycles);

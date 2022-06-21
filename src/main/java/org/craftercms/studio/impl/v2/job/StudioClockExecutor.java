@@ -58,7 +58,7 @@ public class StudioClockExecutor implements Job {
     private static final Logger logger = LoggerFactory.getLogger(StudioClockExecutor.class);
     private static final ReentrantLock singleWorkerLock = new ReentrantLock();
 
-    private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
+    private final static Map<String, String> deletedSitesMap = new HashMap<>();
 
     private static boolean running = false;
 
@@ -178,7 +178,7 @@ public class StudioClockExecutor implements Job {
                 toReturn = false;
             }
         } catch (IOException e) {
-            logger.error1("Error while sending destroy preview context request for site " + site, e);
+            logger.error("Failed to destroy preview context in site '{}'", site, e);
             toReturn = false;
         } finally {
             getRequest.releaseConnection();

@@ -101,7 +101,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
                             continue;
                         }
-                        Map<String, String> activityInfo = new HashMap<String, String>();
+                        Map<String, String> activityInfo = new HashMap<>();
                         String contentClass;
                         AuditLog auditLog;
                         switch (repoOperation.getAction()) {
