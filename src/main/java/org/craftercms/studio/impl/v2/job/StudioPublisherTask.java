@@ -290,34 +290,29 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             logger.trace("Processing completed for item in site '{}' path '{}'", siteId, item.getPath());
 
             if (isMandatoryDependenciesCheckEnabled()) {
-                logger.debug1("Processing Mandatory Dependencies [{0}] content item for site "
-                        + "\"{1}\"", item.getPath(), siteId);
+                logger.trace("Start mandatory dependency processing for site '{}' path '{}'",
+                        siteId, item.getPath());
                 missingDependencies.addAll(publishingManager
                         .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
-                logger.debug1("Processing Mandatory Dependencies COMPLETE [{}]"
-                        + " content item for site \"{}\"", item.getPath(), siteId);
+                logger.trace("Mandatory dependency processing for site '{}' path '{}' completed",
+                        siteId, item.getPath());
             }
             deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
-        } catch (DeploymentException e) {
-            logger.error1("Error while executing deployment to environment store for site \"{}\",", err, siteId);
+        } catch (Exception e) {
+            logger.error("Failed to publish items from site '{}' to target '{}'", siteId, environment, e);
+
             publishingManager.markItemsReady(siteId, environment, List.of(item));
             siteService.enablePublishing(siteId, false);
             siteService.updatePublishingStatus(siteId, ERROR);
-            throw err;
-        } catch (Exception e){
-            logger.error1("Unexpected error while executing deployment to environment " +
-                    "store for site \"{}\", ", err, siteId);
-            publishingManager.markItemsReady(siteId, environment, List.of(item));
-            siteService.enablePublishing(siteId, false);
-            siteService.updatePublishingStatus(siteId, ERROR);
-            throw err;
+            throw e;
         }
     }
 
     private void deploy(String site, String environment, List<DeploymentItemTO> items, String author, String comment)
             throws DeploymentException, SiteNotFoundException {
-        logger.debug1("Deploying " + items.size() + " item(s)");
+        logger.trace("Publish '{}' items from site '{}' to target '{}' by author '{}' with comment '{}'",
+                items.size(), site, environment, author, comment);
         SiteFeed siteFeed = siteService.getSite(site);
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             String liveEnvironment = servicesConfig.getLiveEnvironment(site);
@@ -327,7 +322,6 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             }
         }
         contentRepository.publish(site, siteFeed.getSandboxBranch(), items, environment, author, comment);
-
     }
 
     protected void generateWorkflowActivity(String site, String environment, Set<String> packageIds, String username,

@@ -21,7 +21,8 @@ import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.*;
+import org.apache.commons.io.filefilter.NotFileFilter;
+import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -38,8 +39,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -66,25 +65,16 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.filter.AndRevFilter;
-import org.eclipse.jgit.revwalk.filter.AuthorRevFilter;
-import org.eclipse.jgit.revwalk.filter.CommitTimeRevFilter;
-import org.eclipse.jgit.revwalk.filter.MessageRevFilter;
-import org.eclipse.jgit.revwalk.filter.NotRevFilter;
-import org.eclipse.jgit.revwalk.filter.RevFilter;
+import org.eclipse.jgit.revwalk.filter.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -108,19 +98,9 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
-import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.IN_PROGRESS_BRANCH_NAME_SUFFIX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.COPY;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.CREATE;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.DELETE;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.MOVE;
-import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.UPDATE;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
@@ -1514,13 +1494,10 @@ public class GitContentRepository implements ContentRepository {
                             }
                         }
                     }
-                } catch (GitAPIException e) {
-                    logger.error1("Error getting git operations for site '{}' from commit ID '{}' to " +
-                            "commit ID '{}'", site, commitIdFrom, commitIdTo, e);
                 }
-            } catch (IOException e) {
-                logger.error1("Error getting git operations for site '{}' from commit ID '{}' to " +
-                        "commit ID '{}'", site, commitIdFrom, commitIdTo, e);
+            } catch (GitAPIException | IOException e) {
+                logger.error("Failed to get git operations for site '{}' from commit ID '{}' to commit ID '{}'",
+                        site, commitIdFrom, commitIdTo, e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
@@ -1895,7 +1872,7 @@ public class GitContentRepository implements ContentRepository {
         Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
         // if the published repo doesn't exist yet, trigger an initial publish
         if (repo == null) {
-            logger.info1("Executing initial publish for site {0}", siteId);
+            logger.info("Prepare for initial publish in site '{}'", siteId);
             initialPublish(siteId);
             return new RepositoryChanges(true);
         }
@@ -1911,6 +1888,7 @@ public class GitContentRepository implements ContentRepository {
                     .setStrategy(THEIRS));
             // check if the target branch exists
             if (!branchExists(repo, publishingTarget)) {
+                logger.error("Publishing target '{}' not found in site '{}'", publishingTarget, siteId);
                 throw new PublishedRepositoryNotFoundException("Publishing target branch " + publishingTarget +
                         " not found for site " + siteId);
             }
@@ -1995,7 +1973,7 @@ public class GitContentRepository implements ContentRepository {
                                                               .setCommit(true)
                                                               .include(repo.findRef(inProgressBranchName)));
                 } catch (EmptyCommitException e) {
-                    logger.info1("No changes detected for site {0} in target {1}", siteId, publishingTarget);
+                    logger.info("No changes detected in site '{}' for target '{}'", siteId, publishingTarget);
 
                     // checkout target branch
                     checkoutBranch(git, publishingTarget);

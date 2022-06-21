@@ -21,14 +21,13 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
-import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -81,10 +80,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public boolean contentExists(String site, String path) {
         Mapping mapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Checking if content exists at {}", getFullKey(mapping, path));
+        logger.debug("Check if content exists in site '{}' path '{}'", site, getFullKey(mapping, path));
         try {
             return getClient().doesObjectExist(mapping.target, getKey(mapping, path));
         } catch (Exception e) {
+            logger.error("Failed to check if content exists in site '{}' path '{}'",
+                    site, getFullKey(mapping, path), e);
             throw new BlobStoreException("Error checking if content exists at " + getFullKey(mapping, path), e);
         }
     }
@@ -97,11 +98,13 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public InputStream getContent(String site, String path) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Getting content at {}", getFullKey(previewMapping, path));
+        logger.debug("Get content from site '{}' path '{}'", site, getFullKey(previewMapping, path));
         try {
             S3Object object = getClient().getObject(previewMapping.target, getKey(previewMapping, path));
             return object.getObjectContent();
         } catch (Exception e) {
+            logger.error("Failed to get content from site '{}' path '{}'",
+                    site, getFullKey(previewMapping, path), e);
             throw new BlobStoreException("Error getting content at " + getFullKey(previewMapping, path), e);
         }
     }
@@ -109,12 +112,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public long getContentSize(String site, String path) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Getting content size at {}", getFullKey(previewMapping, path));
+        logger.debug("Get content size from site '{}' path '{}'", site, getFullKey(previewMapping, path));
         try {
             ObjectMetadata metadata =
                     getClient().getObjectMetadata(previewMapping.target, getKey(previewMapping, path));
             return metadata.getContentLength();
         } catch (Exception e) {
+            logger.error("Failed to get content size from site '{}' path '{}'",
+                    site, getFullKey(previewMapping, path), e);
             throw new BlobStoreException("Error getting content size at " + getFullKey(previewMapping, path), e);
         }
     }
@@ -122,12 +127,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public String writeContent(String site, String path, InputStream content) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Uploading content to {}", getFullKey(previewMapping, path));
+        logger.debug("Upload content to site '{}' path '{}'", site, getFullKey(previewMapping, path));
         try {
             uploadStream(previewMapping.target,
                     getKey(previewMapping, path), getClient(), MIN_PART_SIZE, path, content);
             return OK;
         } catch (Exception e) {
+            logger.error("Failed to upload content to site '{}' path '{}'",
+                    site, getFullKey(previewMapping, path), e);
             throw new BlobStoreException("Error uploading content at " + getFullKey(previewMapping, path), e);
         }
     }
@@ -141,11 +148,13 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public String deleteContent(String site, String path, String approver) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Deleting content at {}", getFullKey(previewMapping, path));
+        logger.debug("Delete content at site '{}' path '{}'", site, getFullKey(previewMapping, path));
         if (!isFolder(path)) {
             try {
                 getClient().deleteObject(previewMapping.target, getKey(previewMapping, path));
             } catch (Exception e) {
+                logger.error("Failed to delete content at site '{}' path '{}'",
+                        site, getFullKey(previewMapping, path), e);
                 throw new BlobStoreException("Error deleting content at " + getFullKey(previewMapping, path), e);
             }
         } else {
@@ -162,16 +171,20 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                             .collect(toList())
                             .toArray(new String[]{});
                     if (ArrayUtils.isNotEmpty(keys)) {
-                        logger.debug1("Deleting contents at {} from bucket {}",
-                                Arrays.toString(keys), previewMapping.target);
+                        logger.trace("Delete content items at site '{}' paths '{}' from bucket '{}'",
+                                site, Arrays.toString(keys), previewMapping.target);
                         try {
                             getClient().deleteObjects(new DeleteObjectsRequest(previewMapping.target).withKeys(keys));
                         } catch (Exception e) {
+                            logger.error("Failed to delete content items at site '{}' paths '{}' from bucket '{}'",
+                                    site, Arrays.toString(keys), previewMapping.target, e);
                             throw new BlobStoreException("Error deleting contents at " + Arrays.toString(keys) +
                                     " from bucket " + previewMapping.target, e);
                         }
                     }
                 } catch (Exception e) {
+                    logger.error("Failed to list content items at site '{}' path '{}'",
+                            site, getFullKey(previewMapping, path), e);
                     throw new BlobStoreException("Error listing content at " + getFullKey(previewMapping, path), e);
                 }
             } while(isNotEmpty(request.getContinuationToken()));
@@ -182,7 +195,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Moving content from {} to {}",
+        logger.debug("Move content in site '{}' from '{}' to '{}'", site,
                 getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
         if (isEmpty(newName)) {
             if (isFolder(fromPath)) {
@@ -202,12 +215,19 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                         for (String key : keys) {
                             String filePath =
                                     Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
-                            logger.debug1("Moving content from {} to {}",
-                                    getFullKey(previewMapping, key), getFullKey(previewMapping, toPath + "/" + filePath));
+                            logger.trace("Move content item in site '{}' from '{}' to '{}'",
+                                    site,
+                                    getFullKey(previewMapping, key),
+                                    getFullKey(previewMapping,toPath + "/" + filePath));
                             try {
                                 copyFile(previewMapping.target, key, previewMapping.target,
                                         getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, getClient());
                             } catch (Exception e) {
+                                logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
+                                        site,
+                                        getFullKey(previewMapping, key),
+                                        getFullKey(previewMapping, toPath + "/" + filePath),
+                                        e);
                                 throw new BlobStoreException("Error copying content from " +
                                         getFullKey(previewMapping, key) + " to " +
                                         getFullKey(previewMapping, toPath + "/" + filePath), e);
@@ -216,10 +236,14 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                         try {
                             getClient().deleteObjects(new DeleteObjectsRequest(previewMapping.target).withKeys(keys));
                         } catch (Exception e) {
+                            logger.error("Failed to delete content in site '{}' paths '{}' from bucket '{}'",
+                                    site, Arrays.toString(keys), previewMapping.target, e);
                             throw new BlobStoreException("Error deleting content at " + Arrays.toString(keys) +
                                     " from bucket " + previewMapping.target, e);
                         }
                     } catch (Exception e) {
+                        logger.error("Failed to list content from site '{}' paths '{}'",
+                                site, getFullKey(previewMapping, fromPath), e);
                         throw new BlobStoreException("Error listing content at " +
                                 getFullKey(previewMapping, fromPath), e);
                     }
@@ -230,6 +254,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                             previewMapping.target, getKey(previewMapping, toPath), COPY_PART_SIZE, getClient());
                     getClient().deleteObject(previewMapping.target, getKey(previewMapping, fromPath));
                 } catch (Exception e) {
+                    logger.error("Failed to move content in site '{}' from '{}' to '{}'",
+                            site,
+                            getFullKey(previewMapping, fromPath),
+                            getFullKey(previewMapping, toPath),
+                            e);
                     throw new BlobStoreException("Error moving content from " + getFullKey(previewMapping, fromPath)
                             + " to " + getFullKey(previewMapping, toPath), e);
                 }
@@ -244,8 +273,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public String copyContent(String site, String fromPath, String toPath) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
-        logger.debug1("Copying content from {} to {}",
-                getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
+        logger.debug("Copy content in site '{}' from '{}' to '{}'",
+                site, getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
         if (isFolder(fromPath)) {
             ListObjectsV2Request request = new ListObjectsV2Request()
                     .withBucketName(previewMapping.target)
@@ -263,26 +292,40 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                     for (String key : keys) {
                         String filePath =
                                 Paths.get(getKey(previewMapping, fromPath)).relativize(Paths.get(key)).toString();
-                        logger.debug1("Copying content from {} to {}",
-                                getFullKey(previewMapping, key), getFullKey(previewMapping, toPath + "/" + filePath));
+                        logger.trace("Copy content in site '{}' from '{}' to '{}'",
+                                site,
+                                getFullKey(previewMapping, key),
+                                getFullKey(previewMapping, toPath + "/" + filePath));
                         try {
                             copyFile(previewMapping.target, key, previewMapping.target,
                                     getKey(previewMapping, toPath + "/" + filePath), COPY_PART_SIZE, getClient());
                         } catch (Exception e) {
+                            logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
+                                    site,
+                                    getFullKey(previewMapping, key),
+                                    getFullKey(previewMapping, toPath + "/" + filePath),
+                                    e);
                             throw new BlobStoreException("Error copying content from " +
                                     getFullKey(previewMapping, key) + " to " +
                                     getFullKey(previewMapping, toPath + "/" + filePath), e);
                         }
                     }
                 } catch (Exception e) {
+                    logger.error("Failed to list content in site '{}' at '{}'",
+                            site, getFullKey(previewMapping, fromPath), e);
                     throw new BlobStoreException("Error listing content at " + getFullKey(previewMapping, fromPath), e);
                 }
-            } while(isNotEmpty(request.getContinuationToken()));
+            } while (isNotEmpty(request.getContinuationToken()));
         } else {
             try {
                 copyFile(previewMapping.target, getKey(previewMapping, fromPath), previewMapping.target,
                         getKey(previewMapping, toPath), COPY_PART_SIZE, getClient());
             } catch (Exception e) {
+                logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
+                        site,
+                        getFullKey(previewMapping, fromPath),
+                        getFullKey(previewMapping, toPath),
+                        e);
                 throw new BlobStoreException("Error copying content from " + getFullKey(previewMapping, fromPath)
                         + " to " + getFullKey(previewMapping, toPath), e);
             }
@@ -295,39 +338,53 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                         String author, String comment) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping envMapping = getMapping(environment);
-        logger.debug1("Publishing content from bucket {} to bucket {}", previewMapping.target, envMapping.target);
-        for(DeploymentItemTO item : deploymentItems) {
+        logger.debug("Publish content in site '{}' from bucket '{}' to bucket '{}'",
+                site, previewMapping.target, envMapping.target);
+        for (DeploymentItemTO item : deploymentItems) {
             if (item.isDelete()) {
-                logger.debug1("Deleting content at {}", getFullKey(envMapping, item.getPath()));
+                logger.trace("Delete content at site '{}' path '{}'", site, getFullKey(envMapping, item.getPath()));
                 try {
                     getClient().deleteObject(envMapping.target, getKey(envMapping, item.getPath()));
                     if (isNotEmpty(item.getOldPath())) {
-                        logger.debug1("Deleting content at {}", getFullKey(envMapping, item.getOldPath()));
+                        logger.trace("Delete content at site '{}' path '{}'",
+                                site, getFullKey(envMapping, item.getOldPath()));
                         getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
                     }
                 } catch (Exception e) {
+                    logger.error("Failed to delete content at site '{}' path '{}'",
+                            site, getFullKey(previewMapping, item.getPath()), e);
                     throw new BlobStoreException("Error deleting content at " +
                             getFullKey(previewMapping, item.getPath()), e);
                 }
             } else if (item.isMove()) {
-                logger.debug1("Moving content from {} to {}",
-                        getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
+                logger.trace("Move content in site '{}' from '{}' to '{}'",
+                        site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
                 try {
                     copyFile(envMapping.target, getKey(envMapping, item.getOldPath()), envMapping.target,
                             getKey(envMapping, item.getPath()), COPY_PART_SIZE, getClient());
                     getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
                 } catch (Exception e) {
+                    logger.error("Failed to move content in site '{}' from '{}' to '{}'",
+                            site,
+                            getFullKey(envMapping, item.getOldPath()),
+                            getFullKey(envMapping, item.getPath()),
+                            e);
                     throw new BlobStoreException("Error moving content from " +
                             getFullKey(envMapping, item.getOldPath()) + " to " +
                             getFullKey(envMapping, item.getPath()), e);
                 }
             } else {
-                logger.debug1("Copying content from {} to {}",
-                        getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()));
+                logger.trace("Copy content in site '{}' from '{}' to '{}'",
+                        site, getFullKey(previewMapping, item.getPath()), getFullKey(envMapping, item.getPath()));
                 try {
                     copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
                             getKey(envMapping, item.getPath()), COPY_PART_SIZE, getClient());
                 } catch (Exception e) {
+                    logger.error("Failed to copy content in site '{}' from '{}' to '{}'",
+                            site,
+                            getFullKey(previewMapping, item.getPath()),
+                            getFullKey(envMapping, item.getPath()),
+                            e);
                     throw new BlobStoreException("Error copying content from " +
                             getFullKey(previewMapping, item.getPath()) + " to " +
                             getFullKey(envMapping, item.getPath()), e);
@@ -341,16 +398,16 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
 
-        logger.debug1("Performing initial publish for site {}", siteId);
+        logger.debug("Perform initial publish for site '{}' ", siteId);
 
-        logger.debug1("Performing initial publish for site {} to live", siteId);
+        logger.debug("Perform initial publish for site '{}' to target 'live'", siteId);
         copyFolder(previewMapping.target, previewMapping.prefix, liveMapping.target, liveMapping.prefix,
                 MIN_PART_SIZE, getClient());
 
         if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             Mapping statingMapping = getMapping(servicesConfig.getStagingEnvironment(siteId));
 
-            logger.debug1("Performing initial publish for site {} to staging", siteId);
+            logger.debug("Perform initial publish for site '{}' to target 'staging'", siteId);
             copyFolder(previewMapping.target, previewMapping.prefix, statingMapping.target, statingMapping.prefix,
                     MIN_PART_SIZE, getClient());
         }
@@ -373,7 +430,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 
-        logger.debug("Performing publish all for site {0} to {1}", siteId, targetMapping);
+        logger.info("Perform Publish All for site '{}' to target '{}'", siteId, targetMapping);
 
         for(String updatedPath : changes.getUpdatedPaths()) {
             copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
@@ -388,7 +445,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
             getClient().deleteObjects(request);
         }
 
-        logger.debug("Completed publish all for site {0} to {1}", siteId, targetMapping);
+        logger.info("Completed Publish All for site '{}' to target '{}'", siteId, targetMapping);
     }
 
     @Override

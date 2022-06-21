@@ -71,7 +71,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
         }
     }
 
-    private void syncRepository(String site) throws ServiceLayerException, IOException, UserNotFoundException {
+    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Getting last verified commit for site: {}", site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
@@ -123,6 +123,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
     }
 
     private boolean checkSiteUuid(String siteId, String siteUuid) {
+        // TODO: SJ: This may be a duplicate of StudioClockExecutor::checkSiteUuid
         boolean toRet = false;
         try {
             Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
@@ -135,7 +136,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
                 }
             }
         } catch (IOException e) {
-            logger.info1("Invalid site UUID for site " + siteId + " . Local copy will not be deleted");
+            logger.info("Invalid site UUID in site '{}'. The local copy will not be deleted", siteId);
         }
         return toRet;
     }
