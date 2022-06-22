@@ -26,6 +26,7 @@ import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingE
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -717,13 +718,15 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void initialPublish(String siteId) {
+    public void initialPublish(String siteId) throws SiteNotFoundException {
         try {
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 blobStore.initialPublish(siteId);
             }
             localRepositoryV2.initialPublish(siteId);
+        } catch (SiteNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Error performing initial publish for site {0}", e, siteId);
         }
@@ -732,9 +735,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     public RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
         try {
             RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
-
-            Set<String> updatedFiles = new TreeSet<>(gitChanges.getUpdatedPaths());
-            Set<String> deletedFiles = new HashSet<>(gitChanges.getDeletedPaths());
 
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
@@ -750,14 +750,13 @@ public class BlobAwareContentRepository implements ContentRepository,
                 if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
                     blobStore.completePublishAll(siteId, publishingTarget,
                                                  new RepositoryChanges(updatedBlobs, deletedBlobs));
-
-                    // Update paths to return non blobs & to include the initial slash
-                    updatedFiles = translatePaths(updatedFiles);
-                    deletedFiles = translatePaths(deletedFiles);
                 }
             }
 
             localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+
+            Set<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
+            Set<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
 
             // Return an updated repository changes object with everything changed from git + blob
             return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles);

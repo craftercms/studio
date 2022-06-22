@@ -848,6 +848,8 @@ studio.serverless.delivery.enabled: false
 studio.serverless.delivery.deployer.target.createUrl: ${studio.preview.createTargetUrl}
 # The URL for the serverless delivery deployer delete URL
 studio.serverless.delivery.deployer.target.deleteUrl: ${studio.preview.deleteTargetUrl}
+# The env string for the serverless deployer targets
+studio.serverless.delivery.deployer.target.env: serverless-delivery
 # The template name for serverless deployer targets
 studio.serverless.delivery.deployer.target.template: aws-cloudformed-s3
 # Replace existing target configuration if one exists?
