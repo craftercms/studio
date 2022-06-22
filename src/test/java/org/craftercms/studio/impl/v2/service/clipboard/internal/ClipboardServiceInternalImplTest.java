@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -92,109 +93,160 @@ public class ClipboardServiceInternalImplTest {
     }
 
     @Test
-    public void allowPastingFolderIntoPageTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/website/news", "/site/website/health/index.xml");
+    public void allowPastingFolderIntoPageTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/site/website/news", "/site/website/health/index.xml"));
     }
 
     @Test
-    public void allowPastingPageIntoFolderTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/website/style/index.xml", "/site/website/articles");
+    public void allowPastingPageIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/site/website/style/index.xml", "/site/website/articles"));
     }
 
     @Test
-    public void allowPastingFolderIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/website/news", "/site/website/articles");
+    public void allowPastingFolderIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/site/website/news", "/site/website/articles"));
     }
 
     @Test
-    public void allowPastingPageIntoPageTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/website/style/index.xml", "/site/website/health/index.xml");
+    public void allowPastingPageIntoPageTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/site/website/style/index.xml", "/site/website/health/index.xml"));
     }
 
     @Test
-    public void allowPastingAssetIntoFolderTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/static-assets/images/screenshot.png", "/static-assets/screenshots");
+    public void allowPastingAssetIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/static-assets/images/screenshot.png", "/static-assets/screenshots"));
     }
 
     @Test
-    public void allowPastingComponentIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/components/header/default.xml", "/site/components/headers");
+    public void allowPastingComponentIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/site/components/header/default.xml", "/site/components/headers"));
     }
 
     @Test
-    public void allowPastingTemplateIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/templates/web/layout/main.ftl", "/templates/web/blog");
+    public void allowPastingTemplateIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/templates/web/layout/main.ftl", "/templates/web/blog"));
     }
 
     @Test
-    public void allowPastingScriptIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/scripts/rest/search/documents.get.groovy", "/scripts/rest/documents/search");
+    public void allowPastingScriptIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID,
+                                "/scripts/rest/search/documents.get.groovy",
+                                "/scripts/rest/documents/search"));
     }
 
     @Test
-    public void allowPastingSourcesFileIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/sources/folder/script.groovy", "/sources/classes/folder");
+    public void allowPastingSourcesFileIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/sources/folder/script.groovy", "/sources/classes/folder"));
     }
 
     @Test
-    public void allowPastingTaxonomyIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/taxonomy/categories.xml", "/site/taxonomy/categories");
+    public void allowPastingTaxonomyIntoFolderTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/site/taxonomy/categories.xml", "/site/taxonomy/categories"));
     }
 
     @Test
-    public void allowTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/custom/folder/item.xls", "/reports/folder");
+    public void allowTest() {
+        assertDoesNotThrow(
+                () ->
+                        service.validatePasteItemsAction(
+                                SITE_ID, "/custom/folder/item.xls", "/reports/folder"));
     }
 
     @Test
-    public void allowPastingCustomPathItemIntoFolderTest() throws
-            ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/custom/folder/item.xls", "/custom/old");
+    public void allowPastingCustomPathItemIntoFolderTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        assertDoesNotThrow(
+                () -> service.validatePasteItemsAction(SITE_ID, "/custom/folder/item.xls", "/custom/old"));
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingPageIntoStaticAssetsTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/website/style/index.xml", "/static-assets/screenshots");
+    public void preventPastingPageIntoStaticAssetsTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/site/website/style/index.xml", "/static-assets/screenshots");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingComponentIntoStaticAssetsTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/site/components/header/default.xml", "/static-assets/screenshots");
+    public void preventPastingComponentIntoStaticAssetsTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/site/components/header/default.xml", "/static-assets/screenshots");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingAssetIntoAssetTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/static-assets/images/screenshot.png", "/static-assets/screenshot.png");
+    public void preventPastingAssetIntoAssetTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/static-assets/images/screenshot.png", "/static-assets/screenshot.png");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingTemplateIntoStaticAssetsTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/templates/web/layout/main.ftl", "/static-assets/screenshots");
+    public void preventPastingTemplateIntoStaticAssetsTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/templates/web/layout/main.ftl", "/static-assets/screenshots");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingTemplateIntoTemplateTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/templates/web/layout/main.ftl", "/templates/web/layout.ftl");
+    public void preventPastingTemplateIntoTemplateTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/templates/web/layout/main.ftl", "/templates/web/layout.ftl");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingScriptIntoTaxonomiesTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/scripts/rest/search/documents.get.groovy", "/site/taxonomy/categories");
+    public void preventPastingScriptIntoTaxonomiesTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/scripts/rest/search/documents.get.groovy", "/site/taxonomy/categories");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingCustomPathItemIntoStaticAssetsTest() throws ContentNotFoundException, InvalidParametersException {
-        service.validatePasteItemsAction(SITE_ID, "/custom/folder/item.xls", "/static-assets/screenshots");
+    public void preventPastingCustomPathItemIntoStaticAssetsTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(
+                SITE_ID, "/custom/folder/item.xls", "/static-assets/screenshots");
     }
 
     @Test(expected = InvalidParametersException.class)
-    public void preventPastingTemplateIntoCustomPathTest() throws ContentNotFoundException, InvalidParametersException {
+    public void preventPastingTemplateIntoCustomPathTest()
+            throws ContentNotFoundException, InvalidParametersException {
         service.validatePasteItemsAction(SITE_ID, "/templates/web/layout/main.ftl", "/custom/old");
+    }
+
+    @Test(expected = ContentNotFoundException.class)
+    public void preventPastingNonExistingContentTest()
+            throws ContentNotFoundException, InvalidParametersException {
+        service.validatePasteItemsAction(SITE_ID, "/templates/web/layout/unexistent.ftl", "/templates/web/blog");
     }
 }

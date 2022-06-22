@@ -18,8 +18,6 @@ package org.craftercms.studio.impl.v2.service.clipboard.internal;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -28,6 +26,8 @@ import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceI
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -63,7 +63,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                     "Unable to perform paste operation", targetPath));
         }
         if (!targetContentItem.isPage() && !targetContentItem.isFolder()) {
-            throw new InvalidParametersException("Only pages and folders can contain children");
+            throw new InvalidParametersException(String.format("Invalid paste target '%s' in site '%s'. " +
+                    "Only pages and folders can contain children", targetPath, siteId));
         }
         if (!contentService.contentExists(siteId, sourcePath)) {
             throw new ContentNotFoundException(sourcePath, siteId, String.format("No content found at path '%s' " +
@@ -82,9 +83,12 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
+        logger.trace("Pasting content from '{}' to '{}' for site '{}'", item.getPath(), targetPath, siteId);
         validatePasteItemsAction(siteId, item.getPath(), targetPath);
         var pastedItems = new LinkedList<String>();
         pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
+        logger.trace("Content pasted from '{}' to '{}' for site '{}'. '{}' items were pasted.",
+                item.getPath(), targetPath, siteId, pastedItems.size());
         return pastedItems;
     }
 
@@ -112,13 +116,13 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                         }
                         break;
                     default:
-                        logger.warn("Unsupported clipboard operation {0}", operation);
+                        logger.warn("Unsupported clipboard operation '{}'", operation);
                 }
 
                 pastedItems.add(newPath);
             } catch (Exception err) {
-                logger.error("Paste operation {0} failed for item {1} to dest path {2}", err, operation,
-                        item.getPath(), targetPath);
+                logger.error("Paste operation '{}' failed for item '{}' to dest path '{}'", operation,
+                        item.getPath(), targetPath, err);
                 throw err;
             }
         }
