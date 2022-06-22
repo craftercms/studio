@@ -83,12 +83,11 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
-        logger.trace("Pasting content from '{}' to '{}' for site '{}'", item.getPath(), targetPath, siteId);
         validatePasteItemsAction(siteId, item.getPath(), targetPath);
         var pastedItems = new LinkedList<String>();
         pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
-        logger.trace("Content pasted from '{}' to '{}' for site '{}'. '{}' items were pasted.",
-                item.getPath(), targetPath, siteId, pastedItems.size());
+        logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
+                pastedItems.size(), siteId, item.getPath(), targetPath);
         return pastedItems;
     }
 
