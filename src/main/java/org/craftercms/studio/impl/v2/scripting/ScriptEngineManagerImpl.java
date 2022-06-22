@@ -84,7 +84,7 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
     }
 
     protected GroovyScriptEngine createScriptEngine(String siteId) {
-        logger.debug1("Creating script engine for site {}", siteId);
+        logger.debug1("Create a script engine for site '{}'", siteId);
         var compilerConfig = new CompilerConfiguration();
         if (sandboxEnabled) {
             logger.debug1("Enabling sandbox for site {}", siteId);
