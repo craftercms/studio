@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.utils;
 
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
 
@@ -63,5 +64,21 @@ public abstract class StudioUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * Gets the top level folder where {@code path} is contained.
+     * The result will be a value from the list defined at StudioConstants.TOP_LEVEL_FOLDERS, if found, null otherwise.
+     *
+     * @param path the content path
+     * @return top level root path, if matched, or null otherwise
+     */
+    public static String getTopLevelFolder(final String path) {
+        return StudioConstants.TOP_LEVEL_FOLDERS.stream()
+                // Remove index file at the end of the path (to support /site/website/index.xml case) so we always get a folder path
+                .map(folder -> folder.replaceFirst(StudioConstants.FILE_SEPARATOR + StudioConstants.INDEX_FILE + "$", ""))
+                .filter(path::startsWith)
+                .findFirst()
+                .orElse(null);
     }
 }
