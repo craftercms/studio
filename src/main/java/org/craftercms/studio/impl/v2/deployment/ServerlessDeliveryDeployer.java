@@ -21,14 +21,7 @@ import org.springframework.web.client.RestClientException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_CREATE_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_DELETE_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_LOCAL_REPO_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_REMOTE_REPO_URL;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_REPLACE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_DELIVERY_ENABLED;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
  * Implementation of {@link org.craftercms.studio.api.v2.deployment.Deployer} that interacts with the Serverless
@@ -37,8 +30,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SERVERLESS_
  * @author avasquez
  */
 public class ServerlessDeliveryDeployer extends AbstractDeployer {
-
-    private final static String ENV_SERVERLESS_DELIVERY = "serverless-delivery";
 
     @Override
     public void createTargets(String site) throws RestClientException {
@@ -51,15 +42,15 @@ public class ServerlessDeliveryDeployer extends AbstractDeployer {
             HierarchicalConfiguration<ImmutableNode> templateParams =
                     studioConfiguration.getSubConfig(SERVERLESS_DELIVERY_DEPLOYER_TARGET_TEMPLATE_PARAMS);
 
-            doCreateTarget(site, ENV_SERVERLESS_DELIVERY, template, replace, false, localRepoPath,
-                           repoUrl, templateParams);
+            doCreateTarget(site, studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV),
+                           template, replace, false, localRepoPath, repoUrl, templateParams);
         }
     }
 
     @Override
     public void deleteTargets(String site) throws RestClientException {
         if (isServerlessDeliveryEnabled()) {
-            doDeleteTarget(site, ENV_SERVERLESS_DELIVERY);
+            doDeleteTarget(site, studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV));
         }
     }
 

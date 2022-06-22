@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -467,7 +468,7 @@ public interface RetryingDatabaseOperationFacade {
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
-    void updateStatesBySiteAndPathBulk(long siteId, List<String> paths, long onStatesBitMap, long offStatesBitMap);
+    void updateStatesBySiteAndPathBulk(long siteId, Collection<String> paths, long onStatesBitMap, long offStatesBitMap);
 
     /**
      * Update states to flip on list off states and flip off another list of states for items

@@ -20,15 +20,10 @@ import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishRequest;
-import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -44,11 +39,11 @@ import java.util.List;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.CANCELLED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.READY_FOR_LIVE;
+import static org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl.LIVE_ENVIRONMENT;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 public class PublishServiceInternalImpl implements PublishServiceInternal, ApplicationContextAware {
@@ -222,10 +217,24 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     @Override
     public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
         // do the operations in the repo
-        contentRepository.publishAll(siteId, publishingTarget);
-        // update the state for all items
-        itemServiceInternal.updateStatesForSite(siteId, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
-                                                PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+        RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget);
+        // update the state for the changed items
+        long onMask;
+        long offMask;
+        if (LIVE_ENVIRONMENT.equals(publishingTarget)) {
+            onMask = PUBLISH_TO_LIVE_ON_MASK;
+            offMask = PUBLISH_TO_LIVE_OFF_MASK;
+        } else {
+            onMask = PUBLISH_TO_STAGE_ON_MASK;
+            offMask = PUBLISH_TO_STAGE_OFF_MASK;
+        }
+        if (changes.isInitialPublish()) {
+            itemServiceInternal.updateStatesForSite(siteId, onMask, offMask);
+        } else {
+            // Deleted items not included since those will be gone from the DB, those might need to be included
+            // later if soft-delete is implemented
+            itemServiceInternal.updateStateBitsBulk(siteId, changes.getUpdatedPaths(), onMask, offMask);
+        }
         // trigger the event
         applicationContext.publishEvent(new PublishEvent(siteId));
     }
