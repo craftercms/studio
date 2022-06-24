@@ -524,7 +524,7 @@ public class UserServiceImpl implements UserService {
             UserExternallyManagedException, ServiceLayerException {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isEmpty(decryptedToken)) {
-            logger.debug("Invalid Token. Decrypted token is empty");
+            logger.warn("Invalid Token. Decrypted token is empty");
             return false;
         }
 
@@ -535,7 +535,7 @@ public class UserServiceImpl implements UserService {
             throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
         StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
         if (tokenElements.countTokens() != 4) {
-            logger.debug("Invalid Token. '{}' elements were found. Valid tokens must contain exactly 4 elements.",
+            logger.warn("Invalid Token. '{}' elements were found. Valid tokens must contain exactly 4 elements.",
                     tokenElements.countTokens());
             return false;
         }
@@ -543,18 +543,18 @@ public class UserServiceImpl implements UserService {
         String username = tokenElements.nextToken();
         User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
         if (userProfile == null) {
-            logger.info("Invalid Token. User profile not found for username: '{}'", username);
+            logger.warn("Invalid Token. User profile not found for username: '{}'", username);
             throw new UserNotFoundException();
         }
 
         if (userProfile.isExternallyManaged()) {
-            logger.debug("Invalid Token. User '{}' is externally managed", username);
+            logger.warn("Invalid Token. User '{}' is externally managed", username);
             throw new UserExternallyManagedException();
         }
 
         String studioId = tokenElements.nextToken();
         if (!StringUtils.equals(studioId, instanceService.getInstanceId())) {
-            logger.debug("Invalid Token. Token instance ID: '{}' does not match current value: '{}'",
+            logger.warn("Invalid Token. Token instance ID: '{}' does not match current value: '{}'",
                     studioId, instanceService.getInstanceId());
             return false;
         }

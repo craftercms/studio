@@ -9,6 +9,7 @@ import org.craftercms.studio.impl.v2.service.security.internal.UserServiceIntern
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -37,6 +38,7 @@ public class UserServiceImplTest {
     private UserServiceInternalImpl userServiceInternal;
 
     @Spy
+    @InjectMocks
     private UserServiceImpl userService;
 
     @Before
