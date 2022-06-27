@@ -1860,7 +1860,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void publishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
         // this method should not be called
         throw new UnsupportedOperationException();
     }

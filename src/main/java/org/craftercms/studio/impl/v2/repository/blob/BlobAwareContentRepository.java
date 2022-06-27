@@ -26,6 +26,7 @@ import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingE
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
@@ -58,19 +59,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * Implementation of {@link ContentRepository}, {@link org.craftercms.studio.api.v2.repository.ContentRepository}
@@ -726,21 +722,24 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void initialPublish(String siteId) {
+    public void initialPublish(String siteId) throws SiteNotFoundException {
         try {
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 blobStore.initialPublish(siteId);
             }
             localRepositoryV2.initialPublish(siteId);
+        } catch (SiteNotFoundException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Failed to perform initial publish for site '{}'", siteId, e);
         }
     }
 
-    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
         try {
             RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
+
             List<StudioBlobStore> blobStores = blobStoreResolver.getAll(siteId);
             for (StudioBlobStore blobStore : blobStores) {
                 if (gitChanges.isInitialPublish()) {
@@ -751,12 +750,20 @@ public class BlobAwareContentRepository implements ContentRepository,
                 // check if any of the changes belongs to the blob store
                 Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
                 Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+
                 if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
                     blobStore.completePublishAll(siteId, publishingTarget,
                                                  new RepositoryChanges(updatedBlobs, deletedBlobs));
                 }
             }
+
             localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+
+            Set<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
+            Set<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
+
+            // Return an updated repository changes object with everything changed from git + blob
+            return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles);
         } catch (Exception e) {
             localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
             if (e instanceof ServiceLayerException) {
@@ -768,9 +775,16 @@ public class BlobAwareContentRepository implements ContentRepository,
         }
     }
 
+    protected Set<String> translatePaths(Set<String> paths) {
+        return paths.stream()
+                .map(this::getOriginalPath)
+                .map(path -> prependIfMissing(path, FILE_SEPARATOR))
+                .collect(toSet());
+    }
+
     protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
         return paths.stream()
-                    .map(path -> StringUtils.prependIfMissing(path, File.separator))
+                    .map(path -> prependIfMissing(path, File.separator))
                     .filter(blobStore::isCompatible)
                     .map(this::getOriginalPath)
                     .collect(toSet());

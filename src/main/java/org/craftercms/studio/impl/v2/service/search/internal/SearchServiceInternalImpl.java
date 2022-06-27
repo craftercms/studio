@@ -16,30 +16,8 @@
 
 package org.craftercms.studio.impl.v2.service.search.internal;
 
-import java.io.IOException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.aggregations.Aggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.DateRangeAggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.DateRangeAggregation;
-import co.elastic.clients.elasticsearch._types.aggregations.RangeAggregate;
-import co.elastic.clients.elasticsearch._types.aggregations.RangeAggregation;
-import co.elastic.clients.elasticsearch._types.aggregations.RangeBucket;
-import co.elastic.clients.elasticsearch._types.aggregations.StringTermsAggregate;
+import co.elastic.clients.elasticsearch._types.aggregations.*;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
@@ -58,15 +36,22 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.FacetRangeTO;
 import org.craftercms.studio.api.v1.to.FacetTO;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
-import org.craftercms.studio.model.search.SearchFacet;
-import org.craftercms.studio.model.search.SearchFacetRange;
-import org.craftercms.studio.model.search.SearchResultItem;
-import org.craftercms.studio.model.search.SearchParams;
-import org.craftercms.studio.model.search.SearchResult;
+import org.craftercms.studio.model.search.*;
 import org.springframework.beans.factory.annotation.Required;
+
+import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
@@ -102,6 +87,11 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String DEFAULT_MIME_TYPE = "application/xml";
 
     public static final Pattern EXACT_MATCH_PATTERN = Pattern.compile(".*(\"([^\"]+)\").*");
+
+    /**
+     * Corresponds to 'index.max_result_window' default value
+     */
+    public static final int MAX_RESULT_WINDOW = 10000;
 
     /**
      * Name of the field for paths
@@ -469,6 +459,14 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         return result;
     }
 
+    private void validateResultWindow(final int offset, final int limit) throws InvalidParametersException {
+        int resultWindow = offset + limit;
+        // Here we check if either window is exceeded or (offset + limit) caused an int overflow
+        if (resultWindow > MAX_RESULT_WINDOW || resultWindow < offset) {
+            throw new InvalidParametersException("Maximum supported result window (offset + limit) is " + MAX_RESULT_WINDOW);
+        }
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -476,6 +474,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     @SuppressWarnings("rawtypes")
     public SearchResult search(final String siteId, final List<String> allowedPaths, final SearchParams params)
             throws ServiceLayerException {
+        validateResultWindow(params.getOffset(), params.getLimit());
 
         Map<String, FacetTO> siteFacets = servicesConfig.getFacets(siteId);
         BoolQuery.Builder queryBuilder = new BoolQuery.Builder();

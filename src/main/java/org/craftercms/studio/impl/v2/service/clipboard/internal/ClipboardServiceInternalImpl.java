@@ -15,22 +15,25 @@
  */
 package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
@@ -52,10 +55,39 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     protected WorkflowService workflowService;
     protected ApplicationContext applicationContext;
 
+    protected void validatePasteItemsAction(final String siteId, final String sourcePath, final String targetPath)
+            throws InvalidParametersException, ContentNotFoundException {
+        ContentItemTO targetContentItem = contentService.getContentItem(siteId, targetPath);
+        if (targetContentItem.isDeleted()) {
+            throw new ContentNotFoundException(targetPath, siteId, String.format("Target path '%s' does not exist. " +
+                    "Unable to perform paste operation", targetPath));
+        }
+        if (!targetContentItem.isPage() && !targetContentItem.isFolder()) {
+            throw new InvalidParametersException(String.format("Invalid paste target '%s' in site '%s'. " +
+                    "Only pages and folders can contain children", targetPath, siteId));
+        }
+        if (!contentService.contentExists(siteId, sourcePath)) {
+            throw new ContentNotFoundException(sourcePath, siteId, String.format("No content found at path '%s' " +
+                    "Unable to perform paste operation", sourcePath));
+        }
+        String sourceTopLevel = StudioUtils.getTopLevelFolder(sourcePath);
+        String targetTopLevel = StudioUtils.getTopLevelFolder(targetPath);
+
+        if (!Objects.equals(sourceTopLevel, targetTopLevel)) {
+            throw new InvalidParametersException(String.format("Cannot perform paste operation " +
+                            "from '%s' (%s) into '%s' (%s) for site '%s'. " +
+                            "Pasting across top level folders is not supported.",
+                    sourcePath, sourceTopLevel, targetPath, targetTopLevel, siteId));
+        }
+    }
+
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
+        validatePasteItemsAction(siteId, item.getPath(), targetPath);
         var pastedItems = new LinkedList<String>();
         pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
+        logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
+                pastedItems.size(), siteId, item.getPath(), targetPath);
         return pastedItems;
     }
 
@@ -83,14 +115,14 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                         }
                         break;
                     default:
-                        logger.warn1("Unsupported clipboard operation {}", operation);
+                        logger.warn1("Unsupported clipboard operation '{}'", operation);
                 }
 
                 pastedItems.add(newPath);
             } catch (Exception e) {
-                logger.error1("Paste operation {} failed for item {} to dest path {}", err, operation,
-                        item.getPath(), targetPath);
-                throw err;
+                logger.error1("Paste operation '{}' failed for item '{}' to dest path '{}'", operation,
+                        item.getPath(), targetPath, e);
+                throw e;
             }
         }
     }
