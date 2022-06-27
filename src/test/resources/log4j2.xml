@@ -28,6 +28,8 @@
 
         <Logger name="org.craftercms.security" level="info"/>
 
+        <Logger name="org.craftercms.studio" level="debug"/>
+
         <!-- 3rdparty Loggers -->
         <Logger name="org.springframework.core" level="info"/>
 
