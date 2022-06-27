@@ -49,17 +49,17 @@ public class AuditLoginListener extends AbstractAuditListener {
 //            Disabled because every request to the API triggers this event
 //            recordAuthenticationEvent(OPERATION_PRE_AUTH, event, null);
         } else {
-            recordAuthenticationEvent(OPERATION_LOGIN, event, "User {} logged in from IP: {}");
+            recordAuthenticationEvent(OPERATION_LOGIN, event, "User '{}' logged in from IP '{}'");
         }
     }
 
     @EventListener
     public void recordAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
         recordAuthenticationEvent(OPERATION_LOGIN_FAILED, event,
-                "Failed to authenticate user {} logging in from IP: {}. Reason: " +
+                "Failed to authenticate user '{}' from IP '{}'. Reason: " +
                         event.getException().getLocalizedMessage());
-        logger.debug1("Authentication error for user {}", event.getException(),
-                event.getAuthentication().getName());
+        logger.debug("Failed to authenticate user '{}'",
+                event.getAuthentication().getName(), event.getException());
     }
 
 }

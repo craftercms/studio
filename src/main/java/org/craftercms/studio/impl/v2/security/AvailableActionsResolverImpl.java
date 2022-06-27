@@ -59,10 +59,10 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
 
     public static final String CACHE_KEY = ":available-actions";
 
-    private StudioConfiguration studioConfiguration;
-    private ConfigurationService configurationService;
-    private UserServiceInternal userServiceInternal;
-    private Cache<String, SitePermissionMappings> cache;
+    private final StudioConfiguration studioConfiguration;
+    private final ConfigurationService configurationService;
+    private final UserServiceInternal userServiceInternal;
+    private final Cache<String, SitePermissionMappings> cache;
 
     public AvailableActionsResolverImpl(StudioConfiguration studioConfiguration,
                                         ConfigurationService configurationService,
@@ -108,7 +108,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     private SitePermissionMappings loadRoles(Document document, SitePermissionMappings sitePermissionMappings) {
         Element root = document.getRootElement();
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
-            Map<String, List<String>> rolesMap = new HashMap<String, List<String>>();
+            Map<String, List<String>> rolesMap = new HashMap<>();
 
             List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
             rolesMap = getRoles(userNodes, rolesMap);
@@ -126,7 +126,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
             String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
             if (!StringUtils.isEmpty(name)) {
                 List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                List<String> roles = new ArrayList<String>();
+                List<String> roles = new ArrayList<>();
                 for (Node roleNode : roleNodes) {
                     roles.add(roleNode.getText());
                 }
@@ -177,7 +177,7 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
         var cacheKey = site + CACHE_KEY;
         SitePermissionMappings mappings = cache.getIfPresent(cacheKey);
         if (mappings == null) {
-            logger.debug1("Cache miss for {}", cacheKey);
+            logger.debug("Cache miss for site '{}' cache key '{}'", site, cacheKey);
             mappings = fetchSitePermissionMappings(site);
             cache.put(cacheKey, mappings);
         }

@@ -94,7 +94,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     // Code based on the original clipboard service v1
     protected void pasteItemsInternal(String siteId, Operation operation, String targetPath, List<PasteItem> items,
                                       List<String> pastedItems) throws ServiceLayerException, UserNotFoundException {
-        for(var item : items) {
+        for (var item: items) {
             try {
                 String newPath = null;
                 switch (operation) {
@@ -115,13 +115,15 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                         }
                         break;
                     default:
-                        logger.warn1("Unsupported clipboard operation '{}'", operation);
+                        logger.warn("Unsupported clipboard operation '{}' attempted in site '{}' item '{}' " +
+                                        "target path '{}'",
+                                operation, siteId, item.getPath(), targetPath);
                 }
 
                 pastedItems.add(newPath);
             } catch (Exception e) {
-                logger.error1("Paste operation '{}' failed for item '{}' to dest path '{}'", operation,
-                        item.getPath(), targetPath, e);
+                logger.error("Paste operation '{}' failed in site '{}' item '{}' to target path '{}'",
+                        operation, siteId, item.getPath(), targetPath, e);
                 throw e;
             }
         }
