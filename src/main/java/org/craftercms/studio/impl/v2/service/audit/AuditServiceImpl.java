@@ -98,22 +98,25 @@ public class AuditServiceImpl implements AuditService {
     public List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
                                                  boolean excludeLive, String filterType) throws ServiceLayerException {
         int startPos = 0;
-        List<ContentItemTO> contentItems = new ArrayList<ContentItemTO>();
+        List<ContentItemTO> contentItems = new ArrayList<>();
         boolean hasMoreItems = true;
         String user = securityService.getCurrentUser();
+
         while(contentItems.size() < limit && hasMoreItems){
             int remainingItems = limit - contentItems.size();
             hasMoreItems = getActivityFeeds(user, site, startPos, limit , filterType, excludeLive,contentItems,
                     remainingItems);
             startPos = startPos + limit;
         }
+
         if(contentItems.size() > limit){
             return contentItems.subList(0, limit);
         }
+
         return contentItems;
     }
 
-    protected boolean getActivityFeeds(String user, String site,int startPos, int size, String filterType,
+    protected boolean getActivityFeeds(String user, String site, int startPos, int size, String filterType,
                                        boolean hideLiveItems, List<ContentItemTO> contentItems, int remainingItem) {
 
         List<AuditLog> activityFeeds = auditServiceInternal.selectUserFeedEntries(user, site, startPos, size, filterType,
@@ -121,11 +124,12 @@ public class AuditServiceImpl implements AuditService {
 
         boolean hasMoreItems = true;
 
-        //if number of items returned is less than size it means that table has no more records
-        if(activityFeeds.size()<size){
-            hasMoreItems=false;
+        // If the number of items returned is less than the size, then it means that the table has no more records
+        if (activityFeeds.size() < size) {
+            hasMoreItems = false;
         }
 
+        // TODO: SJ: Consider having this done via a single query
         if (activityFeeds != null && activityFeeds.size() > 0) {
             for (int index = 0; index < activityFeeds.size() && remainingItem!=0; index++) {
                 AuditLog auditLog = activityFeeds.get(index);
@@ -135,7 +139,9 @@ public class AuditServiceImpl implements AuditService {
                 remainingItem--;
             }
         }
-        logger.debug1("Total Item post live filter : " + contentItems.size() + " hasMoreItems : "+hasMoreItems);
+
+        logger.debug("The total items retrieved from the activity feed in site '{}' is '{}' and hasMore is '{}'",
+                site, contentItems.size(), hasMoreItems);
 
         return hasMoreItems;
     }
@@ -161,7 +167,7 @@ public class AuditServiceImpl implements AuditService {
 
             return item;
         } catch (Exception e) {
-            logger.error1("Error fetching content item for [" + id + "]", e.getMessage());
+            logger.error("Failed to fetch content item in site '{}' id '{}'", site, id, e);
             return null;
         }
     }
