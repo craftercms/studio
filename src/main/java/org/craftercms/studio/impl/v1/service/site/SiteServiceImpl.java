@@ -422,6 +422,8 @@ public class SiteServiceImpl implements SiteService {
         logger.info("Starting site creation process for site " + siteName + " from " + blueprintId + " blueprint.");
         boolean success = true;
 
+        String creator = securityService.getCurrentUser();
+
 	    // We must fail site creation if any of the site creations steps fail and rollback
 	    // For example: Create site => create Deployer Target (fail) = fail
 	    // and rollback the whole thing.
@@ -446,7 +448,7 @@ public class SiteServiceImpl implements SiteService {
 	    if (success) {
 	 		try {
 	 		    logger.info("Copying site content from blueprint.");
-                success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc, params);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteName, siteId, sandboxBranch, desc, params, creator);
                 ZonedDateTime now = ZonedDateTime.now();
 
                 logger.debug("Adding site UUID.");
@@ -481,7 +483,6 @@ public class SiteServiceImpl implements SiteService {
                 addDefaultGroupsForNewSite(siteId);
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-                String creator = securityService.getCurrentUser();
 
                 long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
                 Map<String, String> createdFiles =
@@ -492,7 +493,7 @@ public class SiteServiceImpl implements SiteService {
                 }
 
                 logger.info("Adding audit log");
-                insertCreateSiteAuditLog(siteId, siteName, createdFiles);
+                insertCreateSiteAuditLog(siteId, siteName, createdFiles, creator);
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
@@ -535,14 +536,13 @@ public class SiteServiceImpl implements SiteService {
 	    logger.info("Finished creating site " + siteId);
     }
 
-    private void insertCreateSiteAuditLog(String siteId, String siteName, Map<String, String> createdFiles)
+    private void insertCreateSiteAuditLog(String siteId, String siteName, Map<String, String> createdFiles, String creator)
             throws SiteNotFoundException {
 	    SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-        String user = securityService.getCurrentUser();
 	    AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(user);
+        auditLog.setActorId(creator);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteName);
@@ -620,12 +620,13 @@ public class SiteServiceImpl implements SiteService {
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteName, String siteId,
-                                                 String sandboxBranch, String desc, Map<String, String> params)
+                                                 String sandboxBranch, String desc, Map<String, String> params,
+                                                 String creator)
             throws Exception {
         boolean success = true;
 
         // create site with git repo
-        success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+        success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -733,13 +734,15 @@ public class SiteServiceImpl implements SiteService {
         // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
+        String creator = securityService.getCurrentUser();
+
         try {
             // create site by cloning remote git repo
             logger.info("Creating site " + siteId + " by cloning remote repository " + remoteName +
                 " (" + remoteUrl + ")");
             success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                 remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                remotePrivateKey, params, createAsOrphan);
+                remotePrivateKey, params, createAsOrphan, creator);
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
             RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
@@ -798,7 +801,6 @@ public class SiteServiceImpl implements SiteService {
 
         if (success) {
             ZonedDateTime now = ZonedDateTime.now();
-            String creator = securityService.getCurrentUser();
             try {
                 logger.debug("Adding site UUID.");
                 addSiteUuidFile(siteId, siteUuid);
@@ -834,7 +836,7 @@ public class SiteServiceImpl implements SiteService {
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark) + " milliseconds");
                 }
 
-                insertCreateSiteAuditLog(siteId, siteId, createdFiles);
+                insertCreateSiteAuditLog(siteId, siteId, createdFiles, creator);
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
                 contentRepositoryV2.populateGitLog(siteId);
 
@@ -906,6 +908,8 @@ public class SiteServiceImpl implements SiteService {
         // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
+        String creator = securityService.getCurrentUser();
+
         logger.info("Starting site creation process for site " + siteId + " from " + blueprintId + " blueprint.");
         // Create the site in the preview deployer
         try {
@@ -924,7 +928,7 @@ public class SiteServiceImpl implements SiteService {
             try {
                 logger.info("Creating site " + siteId + " from blueprint " + blueprintId);
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, siteId, sandboxBranch, description,
-                        params);
+                        params, creator);
 
                 addSiteUuidFile(siteId, siteUuid);
 
@@ -965,7 +969,6 @@ public class SiteServiceImpl implements SiteService {
 
             if (success) {
                 ZonedDateTime now = ZonedDateTime.now();
-                String creator = securityService.getCurrentUser();
                 try {
 
                     logger.info("Pushing site " + siteId + " to remote repository " + remoteName + " (" +
@@ -982,27 +985,27 @@ public class SiteServiceImpl implements SiteService {
                     contentRepositoryV2.removeRemote(siteId, remoteName);
                 }
 
-            try {
-                // Add default groups
-                logger.info("Adding default groups for site " + siteId);
-                addDefaultGroupsForNewSite(siteId);
+                try {
+                    // Add default groups
+                    logger.info("Adding default groups for site " + siteId);
+                    addDefaultGroupsForNewSite(siteId);
 
-                logger.debug("Adding audit logs.");
-                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-                Map<String, String> createdFiles =
-                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-                insertCreateSiteAuditLog(siteId, siteId, createdFiles);
-                insertAddRemoteAuditLog(siteId, remoteName);
+                    logger.debug("Adding audit logs.");
+                    String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+                    Map<String, String> createdFiles =
+                            contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+                    insertCreateSiteAuditLog(siteId, siteId, createdFiles, creator);
+                    insertAddRemoteAuditLog(siteId, remoteName);
 
-                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+                    processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
-                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
-                updateLastCommitId(siteId, lastCommitId);
-                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-                updateLastSyncedGitlogCommitId(siteId, lastCommitId);
+                    contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
+                    updateLastCommitId(siteId, lastCommitId);
+                    updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
+                    updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
-                logger.info("Loading configuration for site " + siteId);
-                reloadSiteConfiguration(siteId);
+                    logger.info("Loading configuration for site " + siteId);
+                    reloadSiteConfiguration(siteId);
                 } catch (Exception e) {
                     success = false;
                     logger.error("Error while creating site: " + siteId + " ID: " + siteId + " from blueprint: " +

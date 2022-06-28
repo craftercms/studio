@@ -520,8 +520,8 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
 
     @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                           Map<String, String> params) {
-        return localRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+                                           Map<String, String> params, String creator) {
+        return localRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
     }
 
     @Override
@@ -569,12 +569,13 @@ public class BlobAwareContentRepository implements ContentRepository, Deployment
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+                                         String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
         return localRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                 singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                params, createAsOrphan);
+                params, createAsOrphan, creator);
     }
 
     @Override

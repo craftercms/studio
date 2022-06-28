@@ -788,9 +788,11 @@ public class GitRepositoryHelper {
      * Perform an initial commit after large changes to a site. Will not work against the global config repo.
      * @param site
      * @param message
+     * @param sandboxBranch
+     * @param creator       site creator
      * @return true if successful, false otherwise
      */
-    public boolean performInitialCommit(String site, String message, String sandboxBranch) {
+    public boolean performInitialCommit(String site, String message, String sandboxBranch, String creator) {
         boolean toReturn = true;
 
         Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
@@ -803,8 +805,7 @@ public class GitRepositoryHelper {
                 DirCache dirCache = git.add().addFilepattern(GIT_COMMIT_ALL_ITEMS).call();
                 CommitCommand commitCommand = git.commit()
                         .setMessage(message);
-                String username = securityService.getCurrentUser();
-                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+                User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
                 if (Objects.nonNull(user)) {
                     commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
                 }
@@ -829,7 +830,8 @@ public class GitRepositoryHelper {
     public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
                                                 String remoteUrl, String remoteBranch, boolean singleBranch,
                                                 String authenticationType, String remoteUsername, String remotePassword,
-                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan)
+                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan,
+                                                String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
 
@@ -893,7 +895,7 @@ public class GitRepositoryHelper {
 
             // Make repository orphan if needed
             if (createAsOrphan) {
-                makeRepoOrphan(sandboxRepo, siteId);
+                makeRepoOrphan(sandboxRepo, siteId, creator);
             }
 
             sandboxes.put(siteId, sandboxRepo);
@@ -960,7 +962,7 @@ public class GitRepositoryHelper {
         return repository;
     }
 
-    private void makeRepoOrphan(Repository repository, String site) throws IOException, GitAPIException,
+    private void makeRepoOrphan(Repository repository, String site, String creator) throws IOException, GitAPIException,
             ServiceLayerException, UserNotFoundException {
         logger.debug("Make repository orphan fir site " + site);
         String sandboxBranchName = repository.getBranch();
@@ -986,8 +988,7 @@ public class GitRepositoryHelper {
             logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
             CommitCommand commitCommand = git.commit()
                     .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
-            String username = securityService.getCurrentUser();
-            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+            User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
             if (Objects.nonNull(user)) {
                 commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
             }
