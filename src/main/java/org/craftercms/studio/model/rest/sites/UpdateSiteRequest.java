@@ -25,7 +25,6 @@ import javax.validation.constraints.Size;
  * @author joseross
  * @since 4.0.0
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class UpdateSiteRequest {
 
     /**
