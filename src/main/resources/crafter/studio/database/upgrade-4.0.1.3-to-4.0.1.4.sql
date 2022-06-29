@@ -15,9 +15,8 @@
  */
 
 -- Delete orphan audit_parameters records from deleted sites
-DELETE ap.*
-FROM audit_parameters ap
-WHERE audit_id NOT IN (SELECT id FROM audit a) ;
+DELETE FROM audit_parameters
+WHERE audit_id NOT IN (SELECT id FROM audit) ;
 
 -- Add missing FK audit_parameters -> audit
 ALTER TABLE `audit_parameters`
