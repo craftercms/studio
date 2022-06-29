@@ -126,6 +126,7 @@ public final class StudioConstants {
     public static final String CONTENT_TYPE_USER = "user";
     public static final String CONTENT_TYPE_GROUP = "group";
     public static final String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";
+    public static final String CONTENT_TYPE_CONFIG_REGEX = "/config/([^<]+)\\.xml";
     public static final String CONTENT_TYPE_ALL = "all";
     public static final String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
     public static final String CONTENT_TYPE_SITE = "site";
