@@ -16,14 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.cmis;
 
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Document;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.QueryResult;
-import org.apache.chemistry.opencmis.client.api.Repository;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.api.SessionFactory;
+import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
@@ -35,15 +28,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
-import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.dal.DataSourceRepository;
@@ -53,12 +39,10 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.rest.CmisUploadItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,20 +51,10 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
-import static org.apache.chemistry.opencmis.commons.PropertyIds.NAME;
-import static org.apache.chemistry.opencmis.commons.PropertyIds.OBJECT_ID;
-import static org.apache.chemistry.opencmis.commons.PropertyIds.OBJECT_TYPE_ID;
-import static org.apache.chemistry.opencmis.commons.SessionParameter.ATOMPUB_URL;
-import static org.apache.chemistry.opencmis.commons.SessionParameter.BINDING_TYPE;
-import static org.apache.chemistry.opencmis.commons.SessionParameter.COOKIES;
-import static org.apache.chemistry.opencmis.commons.SessionParameter.PASSWORD;
-import static org.apache.chemistry.opencmis.commons.SessionParameter.USER;
+import static org.apache.chemistry.opencmis.commons.PropertyIds.*;
+import static org.apache.chemistry.opencmis.commons.SessionParameter.*;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_DOCUMENT;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_FOLDER;
 import static org.apache.chemistry.opencmis.commons.enums.BindingType.ATOMPUB;
@@ -198,7 +172,7 @@ public class CmisServiceImpl implements CmisService {
                 HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
                 HttpsURLConnection.setDefaultHostnameVerifier(hv);
             } catch (KeyManagementException | NoSuchAlgorithmException e) {
-                logger.error1("Error initializing SSL context", e);
+                logger.error("Failed to initialize the SSL context", e);
             }
         }
 
@@ -302,18 +276,20 @@ public class CmisServiceImpl implements CmisService {
             throws CmisRepositoryNotFoundException, CmisUnavailableException,
             CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException, UserNotFoundException {
         if (!contentService.contentExists(siteId, studioPath)) {
-            // create all missing folders in the path
+            // Create the missing folders in the path
             contentService.createFolder(siteId, FilenameUtils.getFullPathNoEndSeparator(studioPath),
                                         FilenameUtils.getName(studioPath));
         }
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
-        logger.debug1("Create new CMIS session");
+        logger.debug("Create a CMIS session in site '{}' to CMIS repository '{}'", siteId, cmisRepoId);
         Session session = createCMISSession(repositoryConfig);
         if (session == null) {
+            logger.error("Failed to create a CMIS session in site '{}' to CMIS repository '{}'. Check credentials.",
+                    siteId, cmisRepoId);
             throw new CmisUnauthorizedException();
         }
         String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
-        logger.debug1("Find object for CMIS path: {}", contentPath);
+        logger.debug("Find the object at CMIS path '{}' for site '{}'", contentPath, siteId);
         CmisObject cmisObject = session.getObjectByPath(contentPath);
         if (cmisObject == null || !CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
             throw new CmisPathNotFoundException();
@@ -321,11 +297,12 @@ public class CmisServiceImpl implements CmisService {
         Document cmisDoc = (Document) cmisObject;
         String fileName = cmisDoc.getName();
         ContentStream contentStream = cmisDoc.getContentStream();
-        logger.debug1("Save CMIS file {} to: {}", fileName, studioPath);
+        logger.debug("Save the CMIS file '{}' to site '{}' path '{}'", fileName, siteId, studioPath);
         try (InputStream inputStream = contentStream.getStream()) {
             contentService.writeContentAsset(siteId, studioPath, fileName, inputStream, null, null,
                                  null, null, null, "true", null);
         } catch (IOException e) {
+            // TODO: SJ: Should we log here as well?
             throw new ServiceLayerException("Error cloning CMIS object " + cmisPath + " to site " + siteId + " at " +
                                             studioPath);
         }
@@ -338,13 +315,14 @@ public class CmisServiceImpl implements CmisService {
                               String filename, InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
             CmisPathNotFoundException, ConfigurationException {
+        // TODO: SJ: Should CMIS session creation go to a helper method?
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
         CmisUploadItem cmisUploadItem = new CmisUploadItem();
-        logger.debug1("Create new CMIS session");
+        logger.debug("Create a CMIS session in site '{}' to CMIS repository '{}'", siteId, cmisRepoId);
         Session session = createCMISSession(repositoryConfig);
         if (session != null) {
             String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
-            logger.debug1("Find object for CMIS path: " + contentPath);
+            logger.debug("Find the object at CMIS path '{}' for site '{}'", contentPath, siteId);
             CmisObject cmisObject = session.getObjectByPath(contentPath);
             if (cmisObject != null) {
                 if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
@@ -353,7 +331,8 @@ public class CmisServiceImpl implements CmisService {
                         docObject = session.getObjectByPath(Paths.get(contentPath, filename).toString());
                     } catch (CmisBaseException e) {
                         // Content does not exist - no error
-                        logger.debug1("File " + filename + " does not exist at " + contentPath);
+                        logger.debug("CMIS file '{}' doesn't exist at path '{}' for site '{}'",
+                                filename, contentPath, siteId);
                     }
                     String mimeType = StudioUtils.getMimeType(filename);
                     ContentStream contentStream =

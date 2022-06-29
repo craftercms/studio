@@ -68,15 +68,15 @@ public class StudioNodeActivityCheckJob implements Runnable{
                         removeInactiveMembers(inactiveMembersToRemove);
                     }
                 } catch (Exception e) {
-                    logger.error1("Error while executing node activity check job", error);
+                    logger.error("Failed to execute node activity check job", e);
                 } finally {
                     singleWorkerLock.unlock();
                 }
             } else {
-                logger.debug1("Another worker is checking cluster nodes activity. Skipping cycle.");
+                logger.debug("Another worker is checking the cluster nodes activity. Skip cycle.");
             }
         } else {
-            logger.debug1("System is not ready yet. Skipping cycle.");
+            logger.debug("The system is not ready yet. Skip cycle.");
         }
     }
 
@@ -89,14 +89,14 @@ public class StudioNodeActivityCheckJob implements Runnable{
 
     private List<ClusterMember> getMembersWithStaleHeartbeat() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(CLUSTER_HEARTBEAT_STALE_LIMIT, getHeartbeatStalePeriod());
         return clusterDao.getMembersWithStaleHeartbeat(params);
     }
 
     private List<ClusterMember> getInactiveMembersForRemoval() {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(CLUSTER_INACTIVITY_LIMIT, getInactivityPeriod() + getHeartbeatStalePeriod());
         params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
         return clusterDao.getInactiveMembersWithStaleHeartbeat(params);
@@ -107,7 +107,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
                 .map(ClusterMember::getId)
                 .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(idsToRemove)) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put(CLUSTER_MEMBER_IDS, idsToRemove);
             params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
             retryingDatabaseOperationFacade.removeClusterMembers(params);

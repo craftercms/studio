@@ -20,10 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -32,6 +29,8 @@ import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -96,7 +95,7 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     public List<ContentItemTO> getUserActivities(String site, int limit, String sort, boolean ascending,
-                                                 boolean excludeLive, String filterType) throws ServiceLayerException {
+                                                 boolean excludeLive, String filterType) {
         int startPos = 0;
         List<ContentItemTO> contentItems = new ArrayList<>();
         boolean hasMoreItems = true;
@@ -122,12 +121,9 @@ public class AuditServiceImpl implements AuditService {
         List<AuditLog> activityFeeds = auditServiceInternal.selectUserFeedEntries(user, site, startPos, size, filterType,
                 hideLiveItems);
 
-        boolean hasMoreItems = true;
+        boolean hasMoreItems = activityFeeds.size() >= size;
 
         // If the number of items returned is less than the size, then it means that the table has no more records
-        if (activityFeeds.size() < size) {
-            hasMoreItems = false;
-        }
 
         // TODO: SJ: Consider having this done via a single query
         if (activityFeeds != null && activityFeeds.size() > 0) {
@@ -194,10 +190,6 @@ public class AuditServiceImpl implements AuditService {
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public DeploymentService getDeploymentService() {
-        return deploymentService;
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {

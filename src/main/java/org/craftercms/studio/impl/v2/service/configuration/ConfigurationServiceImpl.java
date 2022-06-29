@@ -167,8 +167,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 }
             }
         } catch (ServiceLayerException e) {
-            throw new ConfigurationException("Error while reading role mappings file for site " + siteId +
-                    " @ " + roleMappingsConfigPath);
+            logger.error("Failed to load role mappings from site '{}' path '{}'", siteId, roleMappingsConfigPath, e);
+            throw new ConfigurationException(String.format("Failed to load role mappings from site '%s' path '%s'",
+                    siteId, roleMappings), e);
         }
 
         return roleMappings;
@@ -204,7 +205,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 }
             }
         } catch (ServiceLayerException e) {
-            throw new ConfigurationException("Error while reading global role mappings file "  +
+            logger.error("Failed to load the Global Role Mappings from '{}'", globalRoleMappingsConfigPath, e);
+            throw new ConfigurationException("Failed to load the Global role mappings file "  +
                     globalRoleMappingsConfigPath);
         }
 
@@ -229,7 +231,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         Document doc = (Document) configurationCache.getIfPresent(cacheKey);
         if (doc == null) {
             try {
-                logger.debug1("CACHE MISS: {}", cacheKey);
+                logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
                 String content = getEnvironmentConfiguration(siteId, module, normalizedPath, environment);
                 if (isNotEmpty(content)) {
                     SAXReader saxReader = new SAXReader();
@@ -238,7 +240,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                         saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                         saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
                     } catch (SAXException e) {
-                        logger.error1("Unable to turn off external entity loading, this could be a security risk.", ex);
+                        logger.error("Failed to turn off external entity loading, " +
+                                "this could be pose a security risk.", e);
                     }
                     try (InputStream is = IOUtils.toInputStream(content, UTF_8)) {
                         doc = saxReader.read(is);
@@ -246,7 +249,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                     }
                 }
             } catch (IOException | DocumentException e) {
-                throw new ServiceLayerException("Error loading configuration", e);
+                logger.error("Failed to load configuration from site '{}' module '{}' " +
+                        "path '{}' environment '{}'", siteId, module, path, environment, e);
+                throw new ServiceLayerException(String.format("Failed to load configuration from site '%s' module " +
+                        "'%s' path '%s' environment '%s'", siteId, module, path, environment), e);
             }
         }
         return doc;
@@ -258,13 +264,15 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
         if (config == null) {
             try {
-                logger.debug1("CACHE MISS: {}", cacheKey);
+                logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
                 if (contentService.contentExists(siteId, path)) {
                     config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, path));
                     configurationCache.put(cacheKey, config);
                 }
             } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
-                throw new ConfigurationException("Error loading configuration", e);
+                logger.error("Failed to load configuration from site '{}' path '{}'", siteId, path, e);
+                throw new ConfigurationException(String.format("Failed to load configuration from site " +
+                        "'%s' path '%s'", siteId, path), e);
             }
         }
         return config;
@@ -276,13 +284,16 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
         if (config == null) {
             try {
-                logger.debug1("Cache miss: {}", cacheKey);
+                logger.debug("Cache miss in the Global repository cache key '{}'", cacheKey);
                 if (contentService.contentExists(EMPTY, path)) {
                     config = configurationReader.readXmlConfiguration(contentService.getContent(EMPTY, path));
                     configurationCache.put(cacheKey,config);
                 }
             } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
-                throw new ConfigurationException("Error loading configuration", e);
+                logger.error("Failed to load configuration from the Global repository path '{}'",
+                        path, e);
+                throw new ConfigurationException(String.format("Failed to load configuration from the Global " +
+                        "repository path '%s'", path), e);
             }
         }
         return config;
@@ -293,11 +304,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         Document doc = (Document) configurationCache.getIfPresent(path);
         if (doc == null) {
             try {
-                logger.debug1("Cache miss: {}", path);
+                logger.debug("Cache miss in the Global repository path '{}'", path);
                 doc = contentService.getContentAsDocument(EMPTY, path);
                 configurationCache.put(path, doc);
             } catch (DocumentException e) {
-                throw new ServiceLayerException("Error getting global config " + path, e);
+                logger.error("Failed to load the Global config at path '{}'", path, e);
+                throw new ServiceLayerException(String.format("Failed to load the Global config at path '%s'",
+                        path), e);
             }
         }
         return doc;
@@ -628,7 +641,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     public void invalidateConfiguration(String siteId) {
-        logger.debug1("Clearing configuration cache for site {}", siteId);
+        logger.debug1("Clearing configuration cache for site '{}'", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);
