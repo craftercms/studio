@@ -201,7 +201,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             String user = securityService.getCurrentUser();
             for (Item item : items) {
                 if (!contentRepository.contentExists(siteId, item.getPath())) {
-                    logger.warn1("Content not found at path " + item.getPath() + " site " + siteId);
+                    logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
                 } else {
                     item.setAvailableActions(
                             semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));

@@ -66,8 +66,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
-        logger.debug1("Get soft dependencies for site: " + site + " path:" + path);
-        List<String> paths = new ArrayList<String>();
+        logger.trace("Get soft dependencies for site '{}' path '{}'", site, path);
+        List<String> paths = new ArrayList<>();
         paths.add(path);
         return getSoftDependencies(site, paths);
     }
@@ -80,23 +80,23 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         }
         Map<String, String> toRet = calculateSoftDependencies(site, paths);
 
-        return new ArrayList<String>(toRet.keySet());
+        return new ArrayList<>(toRet.keySet());
     }
 
     private Map<String, String> calculateSoftDependencies(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<String>();
-        Set<String> pathsParams = new HashSet<String>();
+        Set<String> toRet = new HashSet<>();
+        Set<String> pathsParams = new HashSet<>();
 
-        logger.debug1("Get all soft dependencies");
+        logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
         pathsParams.addAll(paths);
         boolean exitCondition = false;
-        Map<String, String> softDeps = new HashMap<String, String>();
+        Map<String, String> softDeps = new HashMap<>();
         for (String p : paths) {
             softDeps.put(p, p);
         }
         do {
             List<Map<String, String>> deps = getSoftDependenciesForListFromDB(site, pathsParams);
-            List<String> targetPaths = new ArrayList<String>();
+            List<String> targetPaths = new ArrayList<>();
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
@@ -121,7 +121,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     protected List<String> getItemSpecificDependenciesPatterns() {
         StringTokenizer st = new StringTokenizer(
                 studioConfiguration.getProperty(CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS), ",");
-        List<String> itemSpecificDependenciesPatterns = new ArrayList<String>(st.countTokens());
+        List<String> itemSpecificDependenciesPatterns = new ArrayList<>(st.countTokens());
         while (st.hasMoreTokens()) {
             itemSpecificDependenciesPatterns.add(st.nextToken().trim());
         }
@@ -133,8 +133,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException(site);
         }
-        logger.debug1("Get hard dependencies for site: " + site + " path:" + path);
-        List<String> paths = new ArrayList<String>();
+        logger.trace("Get hard dependencies for site '{}' path '{}'", site, path);
+        List<String> paths = new ArrayList<>();
         paths.add(path);
         return getHardDependencies(site, paths);
     }
@@ -150,14 +150,14 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private Map<String, String> calculateHardDependencies(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<String>();
-        Set<String> pathsParams = new HashSet<String>();
+        Set<String> toRet = new HashSet<>();
+        Set<String> pathsParams = new HashSet<>();
 
-        logger.debug1("Get all hard dependencies");
+        logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);
         pathsParams.addAll(paths);
         List<String> mandatoryParents = itemServiceInternal.getMandatoryParentsForPublishing(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);
-        Map<String, String> ancestors = new HashMap<String, String>();
+        Map<String, String> ancestors = new HashMap<>();
         if (CollectionUtils.isNotEmpty(mandatoryParents)) {
             pathsParams.addAll(mandatoryParents);
             Set<String> existingRenamedChildrenOfMandatoryParents =
@@ -181,7 +181,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         }
         do {
             List<Map<String, String>> deps = calculateHardDependenciesForListFromDB(site, pathsParams);
-            List<String> targetPaths = new ArrayList<String>();
+            List<String> targetPaths = new ArrayList<>();
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
@@ -200,13 +200,13 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private Set<String> getExistingRenamedChildrenOfMandatoryParents(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<String>();
+        Set<String> toRet = new HashSet<>();
         toRet.addAll(itemServiceInternal.getExistingRenamedChildrenOfMandatoryParentsForPublishing(site, paths));
         return toRet;
     }
 
     private Set<String> calculatePossibleParents(List<String> paths) {
-        Set<String> possibleParents = new HashSet<String>();
+        Set<String> possibleParents = new HashSet<>();
         for (String path : paths) {
             StringTokenizer stPath =
                     new StringTokenizer(path.replace(FILE_SEPARATOR + INDEX_FILE, ""), FILE_SEPARATOR);
@@ -231,7 +231,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     @Override
     public List<String> getDependentItems(String siteId, String path) {
-        List<String> paths = new ArrayList<String>(1);
+        List<String> paths = new ArrayList<>(1);
         paths.add(path);
         return getDependentItems(siteId, paths);
     }
@@ -239,7 +239,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     @Override
     public List<String> getDependentItems(String siteId, List<String> paths) {
         if (CollectionUtils.isEmpty(paths)) {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
         List<String> result = dependencyDao.getDependentItems(siteId, paths);
         return result.stream().distinct().collect(Collectors.toList());
@@ -257,7 +257,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         if (CollectionUtils.isNotEmpty(paths)) {
             return dependencyDao.getItemSpecificDependencies(siteId, paths, getItemSpecificDependenciesPatterns());
         } else {
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 

@@ -68,6 +68,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
+    // TODO: SJ: Add logging to this class
 
     public final static String INTERNAL_NAME = "//internal-name";
     public final static String CONTENT_TYPE = "//content-type";

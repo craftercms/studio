@@ -145,7 +145,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         Document document;
 
         try {
-            // The write seems to always send env = null
+            // The `write` seems to always send env = null
             document = getConfigurationAsDocument(siteId, MODULE_STUDIO, roleMappingsConfigPath, null);
             if (document != null) {
                 Element root = document.getRootElement();
@@ -463,6 +463,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         String extension = getExtension(filename);
         if (isEmpty(extension)) {
             // without extension there is no way to know
+            logger.debug("Configuration file '{}' is of unknown type, will not validate", filename);
             return content;
         }
         try {
@@ -476,7 +477,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                     try {
                         DocumentHelper.parseText(new String(bytes));
                     } catch (Exception e) {
-                        throw new InvalidConfigurationException("Invalid XML file", e);
+                        logger.error("Failed to validate configuration file '{}'", filename, e);
+                        throw new InvalidConfigurationException(String.format("Invalid XML configuration file '%s'",
+                                filename), e);
                     }
                     break;
                 case "yaml":
@@ -486,7 +489,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                         // The assign is needed to detect invalid files
                         Map<String, Object> map = yaml.load(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
-                        throw new InvalidConfigurationException("Invalid YAML file", e);
+                        logger.error("Failed to validate configuration file '{}'", filename, e);
+                        throw new InvalidConfigurationException(String.format("Invalid YAML configuration file '%s'",
+                                filename), e);
                     }
             }
 
@@ -494,7 +499,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             return new ByteArrayInputStream(bytes);
 
         } catch (IOException e) {
-            throw new ServiceLayerException("Error validating configuration", e);
+            logger.error("Failed to validate configuration file '{}'", filename, e);
+            throw new ServiceLayerException(String.format("Failed to validate configuration file '%s'", filename), e);
         }
     }
 
@@ -641,14 +647,14 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     public void invalidateConfiguration(String siteId) {
-        logger.debug1("Clearing configuration cache for site '{}'", siteId);
+        logger.debug("Invalidate configuration cache for site '{}'", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);
     }
 
     protected void invalidateCache(String key) {
-        logger.debug1("Invalidating cache: {}", key);
+        logger.debug("Invalidate cache key '{}'", key);
         cacheInvalidators.forEach(invalidator -> invalidator.invalidate(configurationCache, key));
     }
 
@@ -666,7 +672,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         } else {
             if (path.startsWith(FILE_SEPARATOR + CONTENT_TYPE_CONFIG_FOLDER + FILE_SEPARATOR)) {
                 configPath = getSitesConfigPath() + path;
-                // the write config is receiving env = null so this needs to match
+                // Write config received env = null so this needs to match
                 xmlCacheKey = getCacheKey(site, MODULE_STUDIO, path, null);
             } else {
                 useContentService = false;
@@ -684,7 +690,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             Document doc = (Document) configurationCache.getIfPresent(xmlCacheKey);
             if (doc == null) {
                 try {
-                    logger.debug1("CACHE MISS: {}", xmlCacheKey);
+                    logger.debug("Cache miss in site '{}' key '{}'", site, xmlCacheKey);
                     String configContent;
                     if (useContentService) {
                         configContent = contentService.getContentAsString(site, finalConfigPath);
