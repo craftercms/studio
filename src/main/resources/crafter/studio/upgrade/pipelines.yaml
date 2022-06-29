@@ -991,6 +991,11 @@ pipelines:
                 dest: /configuration/samples/sample-notification-config.xml
           commitDetails: Update sample file for notifications
         - type: dbVersionUpgrader
+    - currentVersion: 3.1.24
+      nextVersion: 3.1.24.1
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.24-to-3.1.24.1.sql
 
   # Pipeline to upgrade site repositories
   site:
