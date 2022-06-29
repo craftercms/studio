@@ -149,6 +149,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SUPPORT_RENAME_CONTENT_TYPES;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -2536,7 +2537,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
-    public boolean renameFolder(@ValidateStringParam(name = "site") String site,
+    public boolean renameContent(@ValidateStringParam(name = "site") String site,
                                 @ValidateSecurePathParam(name = "path") String path,
                                 @ValidateStringParam(name = "name") String name)
             throws ServiceLayerException, UserNotFoundException {
@@ -2545,13 +2546,26 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
 
-        if (contentExists(site, targetPath)) {
-            Map<String,String> ids = contentItemIdGenerator.getIds();
-            String id = ids.get(KEY_PAGE_GROUP_ID);
-            targetPath += "-" + id;
+        if (!contentExists(site, path)) {
+            throw new ContentNotFoundException(path, site, String.format("Content '%s' for site '%s', cannot be renamed " +
+                    "to '%s' because it does not exist.", path, site, targetPath));
         }
 
-        logger.debug("Rename folder for site {0} sourcePath {3} to target path {4}", site, path, targetPath);
+        if (contentExists(site, targetPath)) {
+            throw new ContentExistException(String.format("Content '%s' for site '%s', cannot be renamed " +
+                                "because an item with the name '%s' already exists.", path, site, name));
+        }
+
+        ContentItemTO sourceContentItem = getContentItem(site, path);
+        boolean isFolder = sourceContentItem.isFolder();
+        String contentType = sourceContentItem.getContentType();
+
+        if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
+            throw new ServiceLayerException(String.format("Not supported rename operation for content '%s' " +
+                    "with content type '%s'", path, contentType));
+        }
+
+        logger.debug("Rename item for site {0} sourcePath {3} to target path {4}", site, path, targetPath);
         // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
         // historically with MOVE it is not
         Map<String, String> commitIds = _contentRepository.moveContent(site, path, targetPath);
@@ -2561,10 +2575,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             updateDatabaseOnMove(site, path, targetPath);
             String commitId = commitIds.get(targetPath);
             if (isEmpty(commitId)) commitId = contentRepository.getRepoLastCommitId(site);
-            itemServiceInternal.persistItemAfterRenameFolder(site, targetPath, name,
-                    securityService.getCurrentUser(), commitId);
 
-            updateChildrenOnMove(site, path, targetPath);
+            itemServiceInternal.persistItemAfterRenameContent(site, targetPath, name,
+                    securityService.getCurrentUser(), commitId, contentType);
+
+            if (isFolder) {
+                updateChildrenOnMove(site, path, targetPath);
+            }
+
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                 contentRepository.insertGitLog(site, entry.getValue(), 1);

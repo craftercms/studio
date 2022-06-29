@@ -89,6 +89,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private SecurityService securityService;
     private GeneralLockService generalLockService;
     private ApplicationContext applicationContext;
+    private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -275,6 +276,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+    public boolean renameContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
+     throws ServiceLayerException, UserNotFoundException{
+        logger.debug("rename path {} to new name {} for site {}", path, name, site);
+        return contentServiceV1.renameContent(site, path, name);
+    }
+
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
@@ -317,5 +327,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentService) {
+        this.contentServiceV1 = contentService;
     }
 }

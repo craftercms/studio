@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -58,6 +59,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RENAME;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONTENT_BY_COMMIT_ID;
@@ -299,5 +301,18 @@ public class ContentController {
                 .ok()
                 .contentType(MediaType.parseMediaType(item.getMimeType()))
                 .body(resource);
+    }
+
+    @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody rename(@RequestBody RenameRequestBody renameRequestBody)
+            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
+
+        contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
     }
 }

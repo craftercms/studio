@@ -135,6 +135,13 @@ public final class StudioConstants {
     public static final String CONTENT_TYPE_SCRIPT = "script";
     public static final String CONTENT_TYPE_LEVEL_DESCRIPTOR = "levelDescriptor";
     public static final String CONTENT_TYPE_FILE = "file";
+    public static final List<String> SUPPORT_RENAME_CONTENT_TYPES = List.of(
+        CONTENT_TYPE_ASSET,
+        CONTENT_TYPE_FOLDER,
+        CONTENT_TYPE_SCRIPT,
+        CONTENT_TYPE_RENDERING_TEMPLATE,
+        CONTENT_TYPE_FILE
+    );
 
     /**
      * System constants

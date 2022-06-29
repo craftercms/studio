@@ -231,7 +231,7 @@ class SpringContentServices {
      */
     def renameFolder(site, path, name){
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.renameFolder(site, path, name)
+        return springBackedService.renameContent(site, path, name)
     }
 
     def pushToRemote(siteId, remoteName, remoteBranch) {

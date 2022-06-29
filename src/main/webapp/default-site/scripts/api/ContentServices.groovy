@@ -25,7 +25,7 @@ class ContentServices {
 
 	/**
 	 * create the context object
-	 * @param applicationContext - studio application's contect (spring container etc) 
+	 * @param applicationContext - studio application's contect (spring container etc)
 	 * @param request - web request if in web request context
 	 */
 	static createContext(applicationContext, request) {
@@ -110,7 +110,7 @@ class ContentServices {
   	 */
 	static doesContentItemExist(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.doesContentItemExist(site, path) 
+		return contentServicesImpl.doesContentItemExist(site, path)
 	}
 
 	/**
@@ -121,7 +121,7 @@ class ContentServices {
 	 */
 	static getContentItemTree(site, path, depth, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemTree(site, path, depth) 
+		return contentServicesImpl.getContentItemTree(site, path, depth)
 	}
 
 	/**
@@ -132,7 +132,7 @@ class ContentServices {
 	 */
 	static getContentItem(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItem(site, path) 
+		return contentServicesImpl.getContentItem(site, path)
 	}
 
 	/**
@@ -179,7 +179,7 @@ class ContentServices {
 	}
 
 	//  Currently not supporting this as edit operations will lock for the caller autormaticall
-	//	/** 
+	//	/**
 	//	 * lock a given item
 	//	 * @param site - the project ID
 	//	 * @param path - the path of the item to lock
@@ -188,7 +188,7 @@ class ContentServices {
 	//	static lockContentItem(site, path, context) {
 	//	}
 
-	/** 
+	/**
 	 * unlock a given item
 	 * @param site - the project ID
 	 * @param path - the path of the item to unlock
@@ -196,21 +196,21 @@ class ContentServices {
 	 */
 	static unlockContentItem(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.unlockContentItem(site, path) 
+		return contentServicesImpl.unlockContentItem(site, path)
 	}
 
-	/** 
+	/**
 	 * get the version history for an item
 	 * @param site - the project ID
-	 * @param path - the path of the item 
+	 * @param path - the path of the item
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
 	static getContentItemVersionHistory(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentItemVersionHistory(site, path) 
+		return contentServicesImpl.getContentItemVersionHistory(site, path)
 	}
 
-	/** 
+	/**
 	 * revert a version (create a new version based on an old version)
 	 * @param site - the project ID
 	 * @param path - the path of the item to "revert"
@@ -219,10 +219,10 @@ class ContentServices {
 	 */
 	static revertContentItem(site, path, version, major, comment, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.revertContentItem(site, path, version, major, comment) 		
+		return contentServicesImpl.revertContentItem(site, path, version, major, comment)
 	}
 
-	/** 
+	/**
 	 * Get the content for a specific version
 	 * @param site - the project ID
 	 * @param path - the path of the item to "revert"
@@ -231,12 +231,12 @@ class ContentServices {
 	 */
 	static getContentVersionAtPath(site, path, version, context){
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentVersionAtPath(site, path, version) 		
+		return contentServicesImpl.getContentVersionAtPath(site, path, version)
 	}
-	
-	/** 
+
+	/**
 	 * search the repository
-	 * @param site - the project ID	 
+	 * @param site - the project ID
 	 * @param keywords - keywords
 	 * @param filters - Filters object (document based)
 	 * @param sort - sort object
@@ -317,4 +317,4 @@ class ContentServices {
         def contentServiceImpl = ServiceFactory.getContentServices(context)
         return contentServiceImpl.pullFromRemote(siteId, remoteName, remoteBranch)
     }
-}	
+}
