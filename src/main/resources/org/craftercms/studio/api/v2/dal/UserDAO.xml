@@ -103,12 +103,22 @@
 
     <update id="updateUser" parameterType="java.util.Map">
         UPDATE `user`
-        SET record_last_updated = CURRENT_TIMESTAMP,
-            first_name = #{firstName},
-            last_name = #{lastName},
-            email = #{email},
-            timezone = #{timezone},
-            locale = #{locale}
+        SET record_last_updated = CURRENT_TIMESTAMP
+        <if test="firstName != null" >
+            ,first_name = #{firstName}
+        </if>
+        <if test="lastName != null" >
+            ,last_name = #{lastName}
+        </if>
+        <if test="email != null" >
+            ,email = #{email}
+        </if>
+        <if test="timezone != null" >
+            ,timezone = #{timezone}
+        </if>
+        <if test="locale != null" >
+            ,locale = #{locale}
+        </if>
         WHERE id = #{userId}
     </update>
 
