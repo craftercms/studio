@@ -6497,7 +6497,7 @@ paths:
             schema:
               type: object
               properties:
-                siteId: 
+                siteId:
                   type: string
                   description: site ID
                 items:
@@ -6557,7 +6557,7 @@ paths:
                 query:
                   type: object
                   properties:
-                    siteId: 
+                    siteId:
                       type: string
                       description: site ID
                     path:
@@ -6666,7 +6666,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6732,7 +6732,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6795,7 +6795,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6858,7 +6858,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6941,7 +6941,7 @@ paths:
           description: ascending or descending (ASC | DESC). Default ascending
           required: false
           schema:
-            type: string       
+            type: string
       responses:
         '200':
           description: OK
@@ -7016,7 +7016,7 @@ paths:
               required:
                 - siteId
                 - paths
-                - publishingTarget   
+                - publishingTarget
       responses:
         '201':
           description: CREATED
@@ -7087,7 +7087,7 @@ paths:
           required: true
           schema:
             type: string
-            format: UUID                
+            format: UUID
       responses:
         '200':
           description: OK
@@ -7205,7 +7205,7 @@ paths:
                       - rejectionComment
               required:
                 - siteId
-                - packages              
+                - packages
       responses:
         '200':
           description: OK
@@ -7245,7 +7245,7 @@ components:
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
           * `CODE:` 5000, `MESSAGE:` Site not found, `REMEDIAL ACTION:` Check if you sent in the right Site Id
           * `CODE:` 5001, `MESSAGE:` Site already exists, `REMEDIAL ACTION:` Try a different site name
-          * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
+          * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID or username
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
           * `CODE:` 6003, `MESSAGE:` User password does not fulfill requirements, `REMEDIAL ACTION:` Use password that will fulfill password requirements
@@ -7397,7 +7397,7 @@ components:
           description: Site UUID unique and immutable
         name:
           type: string
-          description: site name 
+          description: site name
         desc:
           type: string
           description: Site description
@@ -8954,7 +8954,7 @@ components:
           description: workflow package ID
         siteId:
           type: string
-          description: site identifier 
+          description: site identifier
         status:
           type: string
           description: workflow package status
@@ -8974,10 +8974,10 @@ components:
         authorComment:
           type: string
           description: author's comment
-        reviewerComment: 
+        reviewerComment:
           type: string
           description: reviewer's comment
-        label: 
+        label:
           type: string
           description: user friendly label for package
       required:
