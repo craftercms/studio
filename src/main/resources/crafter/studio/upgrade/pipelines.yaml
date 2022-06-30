@@ -397,6 +397,13 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt
             commitDetails: Added log_monitor permissions for system_admin
+      - currentVersion: 4.0.1.5
+        nextVersion: 4.0.1.6
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/dependency/resolver-config.xml
+            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
+            commitDetails: Add view templates and controllers as content-type dependencies
 
   # Pipeline to upgrade site repositories
   site:
@@ -855,6 +862,12 @@ configurations:
       # Switch to the new version schema
       - currentVersion: 3
         nextVersion: 4.0.1
+      - currentVersion: 4.0.1
+        nextVersion: 4.0.1.1
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
+            commitDetails: Add view templates and controllers as content-type dependencies
 
   engine-site-config:
     module: engine
