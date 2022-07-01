@@ -161,7 +161,8 @@ CREATE TABLE IF NOT EXISTS `audit_parameters` (
   PRIMARY KEY (`id`),
   KEY `audit_parameters_audit_id_idx` (`audit_id`),
   KEY `audit_parameters_target_id_idx` (`target_id`),
-  KEY `audit_parameters_target_value_idx` (`target_value`)
+  KEY `audit_parameters_target_value_idx` (`target_value`),
+  CONSTRAINT `audit_parameters_ix_audit_id` FOREIGN KEY (`audit_id`) REFERENCES `audit` (`id`) ON DELETE CASCADE
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8
