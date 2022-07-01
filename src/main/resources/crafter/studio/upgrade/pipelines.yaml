@@ -666,6 +666,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.6.xslt
               commitDetails: Add content_search permissions for all users
+        - currentVersion: 4.0.6
+          nextVersion: 4.0.7
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.7.xslt
+              commitDetails: Add log_monitor permission for developer role
 
   role-mappings-config:
     module: studio

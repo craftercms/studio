@@ -1670,5 +1670,10 @@
     <bean id="cstudioMonitorService" class="org.craftercms.studio.impl.v2.service.monitor.MonitorServiceImpl">
     </bean>
 
+    <bean id="cstudioProxyService" class="org.craftercms.studio.impl.v2.service.proxy.ProxyServiceImpl">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
+    </bean>
+
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>
