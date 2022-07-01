@@ -95,6 +95,7 @@
     <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="monitorService" ref="cstudioMonitorService"/>
     </bean>
 
     <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">

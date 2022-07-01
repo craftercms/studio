@@ -20,9 +20,9 @@ import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.monitoring.MemoryInfo;
 import org.craftercms.commons.monitoring.StatusInfo;
 import org.craftercms.commons.monitoring.VersionInfo;
-import org.craftercms.engine.util.logging.CircularQueueLogAppender;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
@@ -55,9 +55,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping("/api/2")
 public class MonitoringController extends ManagementTokenAware {
 
-    @ConstructorProperties({"studioConfiguration", "securityService"})
-    public MonitoringController(StudioConfiguration studioConfiguration, SecurityService securityService) {
+    protected final MonitorService monitorService;
+
+    @ConstructorProperties({"studioConfiguration", "securityService", "monitorService"})
+    public MonitoringController(StudioConfiguration studioConfiguration, SecurityService securityService, MonitorService monitorService) {
         super(studioConfiguration, securityService);
+        this.monitorService = monitorService;
     }
 
     @GetMapping(value = ROOT_URL + MEMORY_URL)
@@ -97,7 +100,7 @@ public class MonitoringController extends ManagementTokenAware {
         validateToken(token);
         ResultList<Map<String, Object>> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_EVENTS, CircularQueueLogAppender.getLoggedEvents("craftercms", since));
+        result.setEntities(RESULT_KEY_EVENTS, monitorService.getLogEvents("craftercms", since));
         return result;
     }
 

@@ -390,6 +390,13 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.1.3-to-4.0.1.4.sql
+      - currentVersion: 4.0.1.4
+        nextVersion: 4.0.1.5
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt
+            commitDetails: Added log_monitor permissions for system_admin
 
   # Pipeline to upgrade site repositories
   site:
