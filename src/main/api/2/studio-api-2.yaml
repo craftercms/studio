@@ -554,7 +554,7 @@ paths:
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: updateUser
       requestBody:
-        description: User entity to update. The `password` and `externallyManaged` fields will be ignored if sent.
+        description: User entity to update. The `password`, `externallyManaged` and `username` fields will be ignored if sent.
         required: true
         content:
           application/json:
