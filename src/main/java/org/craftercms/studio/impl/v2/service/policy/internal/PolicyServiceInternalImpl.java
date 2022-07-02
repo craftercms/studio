@@ -124,17 +124,17 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                     var statement = statementConfig.get();
 
                     for (var validator : policyValidators) {
-                        logger.debug1("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                        logger.debug1("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
                         validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action);
                     }
                 } else {
-                    logger.debug1("No statement matches found, skipping '{}'", action);
+                    logger.debug1("No matching statements found, skipping the action '{}'", action);
                 }
             } else {
-                logger.debug1("No policy configuration found, skipping '{}'", action);
+                logger.debug1("No policy configuration found, skipping the action '{}'", action);
             }
             if (includeAllowed) {
-                logger.debug1("Allowed '{}'", action);
+                logger.debug1("Action '{}' is permitted", action);
                 results.add(ValidationResult.allowed(action));
             }
         } catch (ValidationException e) {
