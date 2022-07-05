@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.api.v2.service.proxy;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,7 +37,7 @@ public interface ProxyService {
      * @return response from Crafter Engine
      * @throws URISyntaxException, if request URI is not valid
      */
-    ResponseEntity<Object> proxyEngine(String body, String siteId, HttpServletRequest request) throws URISyntaxException;
+    ResponseEntity<Object> proxyEngine(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
 
     /**
      * Proxies a request to Crafter Engine log monitor service, after checking
@@ -48,5 +49,5 @@ public interface ProxyService {
      * @return response from Crafter Engine
      * @throws URISyntaxException, if request URI is not valid
      */
-    ResponseEntity<Object> getSiteLogEvents(String body, String siteId, HttpServletRequest request) throws URISyntaxException;
+    ResponseEntity<Object> getSiteLogEvents(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
 }

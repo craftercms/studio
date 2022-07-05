@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -45,18 +46,18 @@ public class ProxyController {
      * This handler exists to allow securing the preview log monitor URL
      */
     @GetMapping(LOG_MONITOR_ENGINE_PROXY)
-    public ResponseEntity<Object> getSiteLogEvents(@RequestBody(required = false) String body,
-                                                   @RequestParam("crafterSite") String siteId,
-                                                   HttpServletRequest request) throws URISyntaxException {
+    public ResponseEntity<Object> getSiteLogEvents(@RequestBody(required = false) final String body,
+                                                   @RequestParam("crafterSite") final String siteId,
+                                                   final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         return proxyService.getSiteLogEvents(body, siteId, request);
     }
 
 
     @RequestMapping(ALL_SUB_URLS)
-    public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) String body,
-                                              @RequestParam("crafterSite") String siteId,
-                                              HttpMethod method, HttpServletRequest request)
-            throws URISyntaxException {
+    public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) final String body,
+                                              @RequestParam("crafterSite") final String siteId,
+                                              final HttpServletRequest request)
+            throws URISyntaxException, SiteNotFoundException {
         return proxyService.proxyEngine(body, siteId, request);
     }
 

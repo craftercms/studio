@@ -20,7 +20,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.permissions.StudioPermissionsConstants;
@@ -54,23 +58,32 @@ public class ProxyServiceImpl implements ProxyService {
 
     protected final ServicesConfig servicesConfig;
 
+    protected final SiteService siteService;
+
     protected final RestTemplate restTemplate = new RestTemplate();
 
-    @ConstructorProperties({"studioConfiguration", "servicesConfig"})
-    public ProxyServiceImpl(final StudioConfiguration studioConfiguration, final ServicesConfig servicesConfig) {
+    @ConstructorProperties({"studioConfiguration", "servicesConfig", "siteService"})
+    public ProxyServiceImpl(final StudioConfiguration studioConfiguration, final ServicesConfig servicesConfig, final SiteService siteService) {
         this.studioConfiguration = studioConfiguration;
         this.servicesConfig = servicesConfig;
+        this.siteService = siteService;
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = StudioPermissionsConstants.PERMISSION_LOG_MONITOR)
-    public ResponseEntity<Object> getSiteLogEvents(final String body, @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
-                                                   final HttpServletRequest request) throws URISyntaxException {
+    public ResponseEntity<Object> getSiteLogEvents(final String body,
+                                                   @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
+                                                   final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         return proxyEngine(body, siteId, request);
     }
 
     @Override
-    public ResponseEntity<Object> proxyEngine(final String body, final String siteId, final HttpServletRequest request) throws URISyntaxException {
+    @ValidateParams
+    public ResponseEntity<Object> proxyEngine(final String body, @ValidateStringParam(name = "siteId", notEmpty = true) final String siteId,
+                                              final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(String.format("Site '%s' not found", siteId));
+        }
         String requestUrl = request.getRequestURI();
         String proxiedUrl = StringUtils.replace(requestUrl, request.getContextPath(), StringUtils.EMPTY);
         proxiedUrl = StringUtils.replace(proxiedUrl, PROXY_ENGINE, StringUtils.EMPTY);
@@ -126,6 +139,6 @@ public class ProxyServiceImpl implements ProxyService {
      */
     protected List<String> getEngineProtectedUrls() {
         return Arrays.asList(
-                studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS).split(","));
+                studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS).split("\\s*,\\s*"));
     }
 }
