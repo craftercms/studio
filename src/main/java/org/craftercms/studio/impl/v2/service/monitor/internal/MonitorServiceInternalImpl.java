@@ -15,15 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.service.monitor.internal;
 
-import org.craftercms.commons.security.permissions.DefaultPermission;
-import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.engine.util.logging.CircularQueueLogAppender;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 
 import java.util.List;
 import java.util.Map;
-
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_VIEW_LOGS;
 
 /**
  * Default internal implementation for {@link MonitorService}.
