@@ -396,7 +396,7 @@ pipelines:
           - type: xsltFileUpgrader
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt
-            commitDetails: Added log_monitor permissions for system_admin
+            commitDetails: Added view_logs permissions for system_admin
 
   # Pipeline to upgrade site repositories
   site:
@@ -671,7 +671,7 @@ configurations:
           operations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.7.xslt
-              commitDetails: Add log_monitor permission for developer role
+              commitDetails: Add view_logs permission for 'developer' and 'site_admin' roles
 
   role-mappings-config:
     module: studio

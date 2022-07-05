@@ -16,37 +16,21 @@
 
 package org.craftercms.studio.impl.v2.service.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.permissions.StudioPermissionsConstants;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 import java.beans.ConstructorProperties;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.List;
 
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_PREVIEW_AUTHORIZATION_TOKEN;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PROXY_ENGINE;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 /**
@@ -54,23 +38,18 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
  */
 public class ProxyServiceImpl implements ProxyService {
 
-    protected final StudioConfiguration studioConfiguration;
-
-    protected final ServicesConfig servicesConfig;
-
     protected final SiteService siteService;
 
-    protected final RestTemplate restTemplate = new RestTemplate();
+    protected final ProxyService proxyServiceInternal;
 
-    @ConstructorProperties({"studioConfiguration", "servicesConfig", "siteService"})
-    public ProxyServiceImpl(final StudioConfiguration studioConfiguration, final ServicesConfig servicesConfig, final SiteService siteService) {
-        this.studioConfiguration = studioConfiguration;
-        this.servicesConfig = servicesConfig;
+    @ConstructorProperties({"siteService", "proxyServiceInternal"})
+    public ProxyServiceImpl(final SiteService siteService, final ProxyService proxyServiceInternal) {
         this.siteService = siteService;
+        this.proxyServiceInternal = proxyServiceInternal;
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = StudioPermissionsConstants.PERMISSION_LOG_MONITOR)
+    @HasPermission(type = DefaultPermission.class, action = StudioPermissionsConstants.PERMISSION_VIEW_LOGS)
     public ResponseEntity<Object> getSiteLogEvents(final String body,
                                                    @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
                                                    final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
@@ -84,61 +63,7 @@ public class ProxyServiceImpl implements ProxyService {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(String.format("Site '%s' not found", siteId));
         }
-        String requestUrl = request.getRequestURI();
-        String proxiedUrl = StringUtils.replace(requestUrl, request.getContextPath(), StringUtils.EMPTY);
-        proxiedUrl = StringUtils.replace(proxiedUrl, PROXY_ENGINE, StringUtils.EMPTY);
-        List<String> engineProtectedUrls = getEngineProtectedUrls();
-        boolean managementTokenRequired = engineProtectedUrls.contains(proxiedUrl);
 
-        // Prepare URL to execute proxied request
-        URI uri = new URI(getAuthoringUrl(siteId));
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUri(uri)
-                .path(proxiedUrl)
-                .query(request.getQueryString())
-                .replaceQueryParam("site", siteId);
-        if (managementTokenRequired) {
-            uriComponentsBuilder = uriComponentsBuilder.queryParam("token", getEngineManagementTokenValue());
-        }
-        uri = uriComponentsBuilder.build(true).toUri();
-
-        // Copy all headers
-        HttpHeaders headers = new HttpHeaders();
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            headers.set(headerName, request.getHeader(headerName));
-        }
-
-        // Execute proxied request and return response
-        HttpEntity<Object> httpEntity = new HttpEntity<>(body, headers);
-        try {
-            return restTemplate.exchange(uri, HttpMethod.valueOf(request.getMethod()), httpEntity, Object.class);
-        } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getRawStatusCode())
-                    .headers(e.getResponseHeaders())
-                    .body(e.getResponseBodyAsString());
-        }
-    }
-
-    /**
-     * Returns the full authoring url used for preview
-     */
-    protected String getAuthoringUrl(String siteId) {
-        return servicesConfig.getAuthoringUrl(siteId);
-    }
-
-    /**
-     * Returns the management token for preview
-     */
-    protected String getEngineManagementTokenValue() {
-        return studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_AUTHORIZATION_TOKEN);
-    }
-
-    /**
-     * Returns the list of preview URLs that require the management token
-     */
-    protected List<String> getEngineProtectedUrls() {
-        return Arrays.asList(
-                studioConfiguration.getProperty(CONFIGURATION_MANAGEMENT_PREVIEW_PROTECTED_URLS).split("\\s*,\\s*"));
+        return proxyServiceInternal.proxyEngine(body, siteId, request);
     }
 }

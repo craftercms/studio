@@ -1671,9 +1671,13 @@
     </bean>
 
     <bean id="cstudioProxyService" class="org.craftercms.studio.impl.v2.service.proxy.ProxyServiceImpl">
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="proxyServiceInternal" ref="cstudioProxyServiceInternal"/>
+    </bean>
+
+    <bean id="cstudioProxyServiceInternal" class="org.craftercms.studio.impl.v2.service.proxy.internal.ProxyServiceInternalImpl">
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

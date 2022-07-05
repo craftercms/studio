@@ -23,7 +23,7 @@ import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LOG_MONITOR;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_VIEW_LOGS;
 
 /**
  * Default implementation for {@link MonitorService}.
@@ -32,7 +32,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class MonitorServiceImpl implements MonitorService {
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_LOG_MONITOR)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS)
     public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
         return CircularQueueLogAppender.getLoggedEvents(siteId, since);
     }

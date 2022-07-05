@@ -37,13 +37,13 @@
     </xsl:template>
 
 
-    <xsl:template match="permissions/role[@name='developer']/rule[@regex='.*']/allowed-permissions">
+    <xsl:template match="permissions/role[@name='developer' or @name='admin']/rule[@regex='.*']/allowed-permissions">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
             <xsl:apply-templates/>
-            <xsl:if test="not(permission = 'log_monitor')">
+            <xsl:if test="not(permission = 'view_logs')">
                 <xsl:element name="permission">
-                    <xsl:text>log_monitor</xsl:text>
+                    <xsl:text>view_logs</xsl:text>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
