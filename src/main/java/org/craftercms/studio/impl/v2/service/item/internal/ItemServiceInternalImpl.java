@@ -49,6 +49,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.ItemState.IN_PROGRESS_MASK;
@@ -360,6 +361,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
+            return null;
+        } else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_CONFIG_REGEX))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getAssetPatterns(site))) {
             replacePattern = StringUtils.EMPTY;

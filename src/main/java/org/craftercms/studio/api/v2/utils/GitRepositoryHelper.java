@@ -812,9 +812,10 @@ public class GitRepositoryHelper implements DisposableBean {
      * @param site site identifier
      * @param message commit message
      * @param sandboxBranch sandbox branch name
+     * @param creator site creator
      * @return true if successful, false otherwise
      */
-    public boolean performInitialCommit(String site, String message, String sandboxBranch) {
+    public boolean performInitialCommit(String site, String message, String sandboxBranch, String creator) {
         boolean toReturn = true;
 
         Repository repo = getRepository(site, GitRepositories.SANDBOX, sandboxBranch);
@@ -829,8 +830,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 retryingRepositoryOperationFacade.call(addCommand);
                 CommitCommand commitCommand = git.commit()
                         .setMessage(message);
-                String username = securityService.getCurrentUser();
-                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+                User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
                 if (Objects.nonNull(user)) {
                     commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
                 }
@@ -850,7 +850,8 @@ public class GitRepositoryHelper implements DisposableBean {
     public boolean createSiteCloneRemoteGitRepo(String siteId, String sandboxBranch, String remoteName,
                                                 String remoteUrl, String remoteBranch, boolean singleBranch,
                                                 String authenticationType, String remoteUsername, String remotePassword,
-                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan)
+                                                String remoteToken, String remotePrivateKey, boolean createAsOrphan,
+                                                String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
 
@@ -887,7 +888,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
                 // Make repository orphan if needed
                 if (createAsOrphan) {
-                    makeRepoOrphan(sandboxRepo, siteId);
+                    makeRepoOrphan(sandboxRepo, siteId, creator);
                 }
 
                 repositoryCache.put(getRepoCacheKey(siteId, SANDBOX), sandboxRepo);
@@ -948,7 +949,7 @@ public class GitRepositoryHelper implements DisposableBean {
         return repository;
     }
 
-    private void makeRepoOrphan(Repository repository, String site) throws IOException, GitAPIException,
+    private void makeRepoOrphan(Repository repository, String site, String creator) throws IOException, GitAPIException,
             ServiceLayerException, UserNotFoundException {
         logger.debug("Make repository orphan fir site " + site);
         String sandboxBranchName = repository.getBranch();
@@ -975,8 +976,7 @@ public class GitRepositoryHelper implements DisposableBean {
             logger.debug("Commit empty repo, because we need to have HEAD to delete old and rename new branch");
             CommitCommand commitCommand = git.commit()
                     .setMessage(getCommitMessage(REPO_CREATE_AS_ORPHAN_COMMIT_MESSAGE));
-            String username = securityService.getCurrentUser();
-            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+            User user = userServiceInternal.getUserByIdOrUsername(-1, creator);
             if (Objects.nonNull(user)) {
                 commitCommand = commitCommand.setAuthor(getAuthorIdent(user));
             }

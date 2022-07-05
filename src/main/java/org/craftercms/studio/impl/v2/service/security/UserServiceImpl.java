@@ -32,14 +32,7 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -56,6 +49,8 @@ import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -68,42 +63,17 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.toSet;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DISABLE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ENABLE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_USER;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_CIPHER_SALT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_RESET_PASSWORD_SERVICE_URL;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_USERS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_DELETE_USERS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_READ_USERS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_UPDATE_USERS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class UserServiceImpl implements UserService {
 
@@ -178,14 +148,15 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userServiceInternal.updateUser(user);
+        User updatedUser = userServiceInternal.getUserByIdOrUsername(user.getId(), StringUtils.EMPTY);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(getCurrentUser().getUsername());
-        auditLog.setPrimaryTargetId(user.getUsername());
+        auditLog.setPrimaryTargetId(updatedUser.getUsername());
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-        auditLog.setPrimaryTargetValue(user.getUsername());
+        auditLog.setPrimaryTargetValue(updatedUser.getUsername());
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -238,7 +209,7 @@ public class UserServiceImpl implements UserService {
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
 
-            logger.debug("Searching for current sessions for users: {0}", toDelete);
+            logger.debug("Searching for current sessions for users: '{}'", toDelete);
             Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
                     .map(principal -> (AuthenticatedUser) principal)
                     .filter(authenticatedUser -> toDelete.stream()
@@ -248,7 +219,7 @@ public class UserServiceImpl implements UserService {
                 // Invalidate any open session
                 List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
                 sessions.forEach(session -> {
-                    logger.debug("Invalidating session {0} for user {1}",
+                    logger.debug("Invalidating session '{}' for user '{}'",
                                     session.getSessionId(), principal.getUsername());
                     session.expireNow();
                 });
@@ -336,7 +307,7 @@ public class UserServiceImpl implements UserService {
 
                     sites.add(site);
                 } catch (SiteNotFoundException e) {
-                    logger.error("Site not found: {0}", e, siteId);
+                    logger.error("Site not found: '{}'", siteId, e);
                 }
             }
         }
@@ -419,11 +390,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException,
             UserExternallyManagedException {
-        logger.debug("Getting user profile for " + username);
+        logger.debug("Getting user profile for username: '{}'", username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         boolean success;
         if (user == null) {
-            logger.info("User profile not found for " + username);
+            logger.info("User profile not found for username: '{}'", username);
             throw new UserNotFoundException();
         } else {
             if (user.isExternallyManaged()) {
@@ -443,8 +414,8 @@ public class UserServiceImpl implements UserService {
                     sendForgotPasswordEmail(email, hashedToken);
                     success = true;
                 } else {
-                    logger.info("User " + username + " does not have assigned email with account");
-                    throw new ServiceLayerException("User " + username + " does not have assigned email with account");
+                    logger.info("User '{}' does not have assigned email with account", username);
+                    throw new ServiceLayerException(String.format("User '%s' does not have assigned email with account", username));
                 }
             }
         }
@@ -461,7 +432,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private String decryptToken(String hashedToken) {
+    protected String decryptToken(String hashedToken) {
         try {
             byte[] hashedTokenBytes = Base64.getDecoder().decode(hashedToken.getBytes(StandardCharsets.UTF_8));
             return encryptor.decrypt(new String(hashedTokenBytes, StandardCharsets.UTF_8));
@@ -552,30 +523,50 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean validateToken(String token) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
-        boolean toRet = false;
         String decryptedToken = decryptToken(token);
-        if (StringUtils.isNotEmpty(decryptedToken)) {
-            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
-            if (tokenElements.countTokens() == 4) {
-                String username = tokenElements.nextToken();
-                User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (userProfile == null) {
-                    logger.info("User profile not found for " + username);
-                    throw new UserNotFoundException();
-                } else {
-                    if (userProfile.isExternallyManaged()) {
-                        throw new UserExternallyManagedException();
-                    } else {
-                        String studioId = tokenElements.nextToken();
-                        if (StringUtils.equals(studioId, instanceService.getInstanceId())) {
-                            long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
-                            toRet = tokenTimestamp >= System.currentTimeMillis();
-                        }
-                    }
-                }
-            }
+        if (StringUtils.isEmpty(decryptedToken)) {
+            logger.warn("Invalid Token. Decrypted token is empty");
+            return false;
         }
-        return toRet;
+
+        return validateDecryptedToken(decryptedToken);
+    }
+
+    protected boolean validateDecryptedToken(String decryptedToken)
+            throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
+        StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+        if (tokenElements.countTokens() != 4) {
+            logger.warn("Invalid Token. '{}' elements were found. Valid tokens must contain exactly 4 elements.",
+                    tokenElements.countTokens());
+            return false;
+        }
+
+        String username = tokenElements.nextToken();
+        User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
+        if (userProfile == null) {
+            logger.warn("Invalid Token. User profile not found for username: '{}'", username);
+            throw new UserNotFoundException();
+        }
+
+        if (userProfile.isExternallyManaged()) {
+            logger.warn("Invalid Token. User '{}' is externally managed", username);
+            throw new UserExternallyManagedException();
+        }
+
+        String studioId = tokenElements.nextToken();
+        if (!StringUtils.equals(studioId, instanceService.getInstanceId())) {
+            logger.warn("Invalid Token. Token instance ID: '{}' does not match current value: '{}'",
+                    studioId, instanceService.getInstanceId());
+            return false;
+        }
+
+        long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
+        boolean isExpired = tokenTimestamp < System.currentTimeMillis();
+        if (isExpired) {
+            logger.debug("Invalid Token. Token timestamp '{}' is in the past", tokenTimestamp);
+        }
+
+        return !isExpired;
     }
 
     private String getUsernameFromToken(String token) {

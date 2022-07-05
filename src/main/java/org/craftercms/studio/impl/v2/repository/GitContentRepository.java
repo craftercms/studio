@@ -756,7 +756,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
-                                           Map<String, String> params) {
+                                           Map<String, String> params, String creator) {
         boolean toReturn;
         String gitLockKey = helper.getSandboxRepoLockKey(site);
         generalLockService.lock(gitLockKey);
@@ -785,7 +785,7 @@ public class GitContentRepository implements ContentRepository {
             if (toReturn) {
                 // commit everything so it is visible
                 toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
-                        sandboxBranch);
+                        sandboxBranch, creator);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1182,7 +1182,8 @@ public class GitContentRepository implements ContentRepository {
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+                                         String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
         boolean toReturn;
@@ -1195,7 +1196,7 @@ public class GitContentRepository implements ContentRepository {
         try {
             toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                     singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                    createAsOrphan);
+                    createAsOrphan, creator);
 
             if (toReturn) {
                 try {
@@ -1220,7 +1221,7 @@ public class GitContentRepository implements ContentRepository {
                     // commit everything so it is visible
                     logger.debug("Perform initial commit for site " + siteId);
                     toReturn = helper.performInitialCommit(siteId,
-                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
+                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
                 }
             } else {
                 logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
