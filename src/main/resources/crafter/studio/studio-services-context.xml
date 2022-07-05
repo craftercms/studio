@@ -1668,6 +1668,10 @@
     </bean>
 
     <bean id="cstudioMonitorService" class="org.craftercms.studio.impl.v2.service.monitor.MonitorServiceImpl">
+        <constructor-arg name="monitorServiceInternal" ref="cstudioMonitorServiceInternal"/>
+    </bean>
+
+    <bean id="cstudioMonitorServiceInternal" class="org.craftercms.studio.impl.v2.service.monitor.internal.MonitorServiceInternalImpl">
     </bean>
 
     <bean id="cstudioProxyService" class="org.craftercms.studio.impl.v2.service.proxy.ProxyServiceImpl">
