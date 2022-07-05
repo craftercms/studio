@@ -81,7 +81,8 @@ public class ProxyServiceImpl implements ProxyService {
         URI uri = new URI(getAuthoringUrl(siteId));
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromUri(uri)
                 .path(proxiedUrl)
-                .query(request.getQueryString());
+                .query(request.getQueryString())
+                .replaceQueryParam("site", siteId);
         if (managementTokenRequired) {
             uriComponentsBuilder = uriComponentsBuilder.queryParam("token", getEngineManagementTokenValue());
         }
