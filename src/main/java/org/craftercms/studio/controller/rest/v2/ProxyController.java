@@ -18,7 +18,6 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,7 +34,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*
 @RequestMapping(PROXY_ENGINE)
 public class ProxyController {
 
-    protected ProxyService proxyService;
+    protected final ProxyService proxyService;
 
     @ConstructorProperties({"proxyService"})
     public ProxyController(final ProxyService proxyService) {
