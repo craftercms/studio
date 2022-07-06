@@ -751,7 +751,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
 
     @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
-                                           Map<String, String> params) {
+                                           Map<String, String> params, String creator) {
         boolean toReturn;
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
@@ -783,7 +783,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
             if (toReturn) {
                 // commit everything so it is visible
                 toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
-                        sandboxBranch);
+                        sandboxBranch, creator);
             }
         } catch (CryptoException e) {
             logger.error("Error creating site from blueprint", e);
@@ -1244,7 +1244,8 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+                                         String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
         boolean toReturn = false;
@@ -1259,7 +1260,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
             toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                     singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                    createAsOrphan);
+                    createAsOrphan, creator);
 
             if (toReturn) {
                 try {
@@ -1284,7 +1285,7 @@ public class GitContentRepository implements ContentRepository, DeploymentHistor
                     // commit everything so it is visible
                     logger.debug("Perform initial commit for site " + siteId);
                     toReturn = helper.performInitialCommit(siteId,
-                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
+                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
                 }
             } else {
                 logger.error("Error while creating site " + siteId + " by cloning remote repository " + remoteName +
