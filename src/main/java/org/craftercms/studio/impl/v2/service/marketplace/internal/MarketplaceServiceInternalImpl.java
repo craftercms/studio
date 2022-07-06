@@ -458,7 +458,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         throws MarketplaceException {
         validate();
 
-        logger.debug1("Load plugin descriptor for plugin '{}' version '{}'", id, version);
+        logger.debug("Load plugin descriptor for plugin '{}' version '{}'", id, version);
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
             .path(Paths.GET_PLUGIN)
             .pathSegment(id, version.toString())
@@ -749,7 +749,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         List<String> changedFiles = new LinkedList<>();
 
         try {
-            logger.info1("Copy the plugin from '{}' to site '{}'", localPath, siteId);
+            logger.info("Copy the plugin from '{}' to site '{}'", localPath, siteId);
             Path descriptorFile = pluginFolder.resolve(pluginDescriptorFilename);
             try (InputStream is = Files.newInputStream(descriptorFile)) {
                 PluginDescriptor descriptor = pluginDescriptorReader.read(is);
@@ -763,7 +763,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
                 var files = new LinkedList<FileRecord>();
 
-                logger.info1("Copying files from plugin {} v{} for site {}",
+                logger.info("Copy files from plugin '{}' version '{}' to site '{}'",
                         plugin.getId(), plugin.getVersion(), siteId);
 
                 for (Map.Entry<String, String> mapping : folderMapping.entrySet()) {
@@ -793,7 +793,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 commitChanges(siteId, changedFiles, false, false,
                         format("Copy plugin %s %s", plugin.getId(), plugin.getVersion()));
 
-                logger.info1("Copy of plugin {} v{} completed for site {}",
+                logger.info("Successfully copied the plugin '{}' version '{}' to site '{}'",
                         plugin.getId(), plugin.getVersion(), siteId);
             }
         } catch (Exception e) {
@@ -801,23 +801,25 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 try {
                     resetChanges(siteId, changedFiles);
                 } catch (IOException | GitAPIException e2) {
-                    throw new PluginInstallationException("Error during rollback for plugin removal", e2);
+                    throw new PluginInstallationException(format("Failed to rollback the plugin removal in site '%s'",
+                            siteId), e2);
                 }
             }
             if (e instanceof MissingPluginParameterException) {
                 throw (MissingPluginParameterException) e;
             }
-            throw new PluginInstallationException("Error copying plugin from " + localPath, e);
+            throw new PluginInstallationException(format("Failed to copy the plugin from '%s' to site '%s'",
+                    localPath, siteId), e);
         }
     }
 
     @Override
     public void removePlugin(String siteId, String pluginId, boolean force) throws ServiceLayerException {
-        logger.debug1("Starting removal of plugin {} from site {}", pluginId, siteId);
+        logger.info("Start the removal of plugin '{}' from site '{}'", pluginId, siteId);
         Optional<PluginRecord> record = getPluginRecord(siteId, pluginId);
         // if the plugin is not installed do anything
         if (record.isEmpty()) {
-            logger.debug1("Plugin {} is not installed in site {}, nothing to do", pluginId, siteId);
+            logger.info("The plugin '{}' is not installed in site '{}', nothing to do", pluginId, siteId);
             return;
         }
 
@@ -826,7 +828,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
         if (!force && CollectionUtils.isNotEmpty(dependantItems)) {
             throw new RemovePluginException(
-                    format("Plugin %s in site %s is in used by one or more items", pluginId, siteId));
+                    format("The plugin '%s' in site '%s' is in use by one or more items", pluginId, siteId));
         }
 
         // otherwise, start the removal process
