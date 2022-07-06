@@ -666,7 +666,7 @@ public class SecurityServiceImpl implements SecurityService {
                     for (Group group : groups) {
                         String groupName = group.getGroupName();
                         List<String> roles = roleMappings.get(groupName);
-                        if (roles.contains(ADMIN_ROLE)) {
+                        if (roles != null && roles.contains(ADMIN_ROLE)) {
                             toRet = true;
                         }
                     }
