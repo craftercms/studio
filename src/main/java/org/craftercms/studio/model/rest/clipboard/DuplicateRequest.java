@@ -25,7 +25,6 @@ import javax.validation.constraints.NotEmpty;
  * @author joseross
  * @since 3.2
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class DuplicateRequest {
 
     /**
