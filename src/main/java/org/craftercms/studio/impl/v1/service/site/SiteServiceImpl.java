@@ -1341,6 +1341,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @ValidateParams
+    public void checkSiteExists(@ValidateStringParam(name = "site") final String site) throws SiteNotFoundException {
+        if (!exists(site)) {
+            throw new SiteNotFoundException(String.format("Site '%s' not found.", site));
+        }
+    }
+
+    @Override
+    @ValidateParams
     public boolean existsById(@ValidateStringParam(name = "siteId") String siteId) {
         return siteFeedMapper.existsById(siteId) > 0;
     }
