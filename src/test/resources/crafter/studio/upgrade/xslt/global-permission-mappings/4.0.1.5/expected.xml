@@ -93,7 +93,7 @@
                 <permission>publish_status</permission>
                 <permission>repair_repository</permission>
                 <permission>content_search</permission>
-                <permission>log_monitor</permission>
+                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
     </role>

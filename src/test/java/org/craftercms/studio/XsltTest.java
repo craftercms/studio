@@ -108,15 +108,15 @@ public class XsltTest {
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/permission-mappings-config/" +
                                         "permission-mappings-config-v4.0.3.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.3/input.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.3/expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.3/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.3/expected.xml"),
                 emptyMap()
             },
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/permission-mappings-config/" +
                                         "permission-mappings-config-v4.0.4.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.4/input.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.4/expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.4/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.4/expected.xml"),
                 emptyMap()
             },
             new Object[] {
@@ -135,6 +135,13 @@ public class XsltTest {
                     new ClassPathResource("crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.0.1.5/input.xml"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.0.1.5/expected.xml"),
+                    emptyMap()
+            },
+            new Object[]{
+                    new ClassPathResource("crafter/studio/upgrade/4.0.x/config/permission-mappings-config/" +
+                            "permission-mappings-config-v4.0.7.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.7/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.7/expected.xml"),
                     emptyMap()
             },
             new Object[]{

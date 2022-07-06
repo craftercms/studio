@@ -221,6 +221,7 @@
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -298,6 +299,7 @@
                 <permission>publish_clear_lock</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
+                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">

@@ -13,35 +13,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.impl.v2.service.monitor;
+package org.craftercms.studio.impl.v2.service.monitor.internal;
 
-import org.craftercms.commons.security.permissions.DefaultPermission;
-import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.engine.util.logging.CircularQueueLogAppender;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 
-import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_VIEW_LOGS;
-
 /**
- * Default implementation for {@link MonitorService}.
+ * Default internal implementation for {@link MonitorService}.
  *
  * @author jmendeza
  */
-public class MonitorServiceImpl implements MonitorService {
-
-    protected final MonitorService monitorServiceInternal;
-
-    @ConstructorProperties({"monitorServiceInternal"})
-    public MonitorServiceImpl(final MonitorService monitorServiceInternal) {
-        this.monitorServiceInternal = monitorServiceInternal;
-    }
-
+public class MonitorServiceInternalImpl implements MonitorService {
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS)
     public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
-        return monitorServiceInternal.getLogEvents(siteId, since);
+        return CircularQueueLogAppender.getLoggedEvents(siteId, since);
     }
 }
