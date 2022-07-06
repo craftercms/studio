@@ -23,6 +23,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -193,10 +194,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @ValidateParams
     public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(notEmpty = true) String siteId,
-                        @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten) throws SiteNotFoundException {
+                        @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
+            throws SiteNotFoundException, ContentNotFoundException {
         siteService.checkSiteExists(siteId);
 
-        return contentServiceInternal.getItem(siteId, path, flatten);
+        try {
+            return contentServiceInternal.getItem(siteId, path, flatten);
+        } catch (PathNotFoundException e) {
+            logger.error("Content not found for site '{}' at path '{}'", siteId, path, e);
+            throw new ContentNotFoundException(path, siteId, String.format("Content not found for site '%s' at path '%s'", siteId, path));
+        }
     }
 
     @Override

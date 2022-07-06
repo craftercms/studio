@@ -117,7 +117,7 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
 
-    Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException;
+    Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
     /**
      * Get detailed item for given path
