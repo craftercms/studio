@@ -633,7 +633,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                        List<String> optionalDependencies, String comment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(String.format("Site '%s' not found", siteId));
+            throw new SiteNotFoundException(format("Site '%s' not found", siteId));
         }
 
         // create submission package (aad folders and children if pages)
