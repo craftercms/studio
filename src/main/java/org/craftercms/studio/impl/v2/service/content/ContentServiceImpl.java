@@ -202,7 +202,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             return contentServiceInternal.getItem(siteId, path, flatten);
         } catch (PathNotFoundException e) {
             logger.error("Content not found for site '{}' at path '{}'", siteId, path, e);
-            throw new ContentNotFoundException(path, siteId, String.format("Content not found for site '%s' at path '%s'", siteId, path));
+            throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'", siteId, path));
         }
     }
 
