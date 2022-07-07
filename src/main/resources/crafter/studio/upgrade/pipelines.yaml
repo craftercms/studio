@@ -404,6 +404,13 @@ pipelines:
             path: /configuration/dependency/resolver-config.xml
             template: crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt
             commitDetails: Add view templates and controllers as content-type dependencies
+      - currentVersion: 4.0.1.6
+        nextVersion: 4.0.1.7
+        operations:
+          - type: xsltFileUpgrader
+            path: configuration/samples/sample-site-config.xml
+            template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt
+            commitDetails: Allowing closing parenthesis in asset names
 
   # Pipeline to upgrade site repositories
   site:
@@ -569,6 +576,12 @@ configurations:
         # Switch to the new version schema
         - currentVersion: 10
           nextVersion: 4.0.1
+        - currentVersion: 4.0.1
+          nextVersion: 4.0.1.1
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt
+              commitDetails: Allowing closing parenthesis in asset names
 
   permission-mappings-config:
     module: studio
