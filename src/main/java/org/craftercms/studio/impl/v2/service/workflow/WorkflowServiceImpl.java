@@ -102,6 +102,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
+import static java.lang.String.format;
 
 public class WorkflowServiceImpl implements WorkflowService, ApplicationContextAware {
 
