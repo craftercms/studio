@@ -67,6 +67,7 @@ import static org.craftercms.studio.api.v1.dal.DependencyMapper.TARGET_PATH_COLU
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
+import static java.lang.String.format;
 
 public class DependencyServiceImpl implements DependencyService {
 

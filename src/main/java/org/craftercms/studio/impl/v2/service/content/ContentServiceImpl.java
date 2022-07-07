@@ -76,6 +76,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
+import static java.lang.String.format;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
 
