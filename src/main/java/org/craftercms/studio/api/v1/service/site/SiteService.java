@@ -194,6 +194,13 @@ public interface SiteService {
      */
     boolean exists(String site);
 
+	/**
+	 * Checks if a site exists. If it does not, it throws a {@link SiteNotFoundException}
+	 * @param site site ID
+	 * @throws SiteNotFoundException if no site is found for the given site ID
+	 */
+	void checkSiteExists(String site) throws SiteNotFoundException;
+
     /**
      * Check if site already exists
      *

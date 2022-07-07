@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.content;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -116,7 +117,7 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
 
-    Item getItem(String siteId, String path, boolean flatten);
+    Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
     /**
      * Get detailed item for given path

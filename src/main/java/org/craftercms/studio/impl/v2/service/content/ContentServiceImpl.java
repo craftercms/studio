@@ -20,7 +20,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -189,9 +192,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                        @ValidateSecurePathParam String path, boolean flatten) {
-        return contentServiceInternal.getItem(siteId, path, flatten);
+    @ValidateParams
+    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(notEmpty = true) String siteId,
+                        @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
+            throws SiteNotFoundException, ContentNotFoundException {
+        siteService.checkSiteExists(siteId);
+
+        try {
+            return contentServiceInternal.getItem(siteId, path, flatten);
+        } catch (PathNotFoundException e) {
+            logger.error("Content not found for site '{}' at path '{}'", siteId, path, e);
+            throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'", siteId, path));
+        }
     }
 
     @Override
