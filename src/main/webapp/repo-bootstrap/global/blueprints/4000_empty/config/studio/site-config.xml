@@ -160,7 +160,7 @@
             </pattern-group>
 
             <pattern-group name="asset">
-                <pattern>/static-assets/([^&lt;"'\)]+)</pattern>
+                <pattern>/static-assets/([^&lt;"']+)</pattern>
             </pattern-group>
 
             <pattern-group name="rendering-template">

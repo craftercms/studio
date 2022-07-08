@@ -95,6 +95,7 @@
     <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="monitorService" ref="cstudioMonitorService"/>
     </bean>
 
     <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
@@ -151,8 +152,7 @@
     </bean>
 
     <bean id="proxyController" class="org.craftercms.studio.controller.rest.v2.ProxyController">
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
-        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
+        <constructor-arg name="proxyService" ref="cstudioProxyService"/>
     </bean>
 
     <bean id="dashboardController" class="org.craftercms.studio.controller.rest.v2.DashboardController">

@@ -230,6 +230,7 @@
                 <permission>encryption_tool</permission>
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
+                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">
@@ -311,6 +312,7 @@
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
                 <permission>repair_repository</permission>
+                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
         <rule regex="^/(?!site/website/index\.xml)(.*)">

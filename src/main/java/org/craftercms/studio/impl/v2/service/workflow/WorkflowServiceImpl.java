@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
@@ -101,6 +102,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
+import static java.lang.String.format;
 
 public class WorkflowServiceImpl implements WorkflowService, ApplicationContextAware {
 
@@ -631,6 +633,10 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                        List<String> optionalDependencies, String comment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(format("Site '%s' not found", siteId));
+        }
+
         // create submission package (aad folders and children if pages)
         List<String> pathsToDelete = calculateDeleteSubmissionPackage(siteId, paths, optionalDependencies);
         String deletedBy = securityService.getCurrentUser();

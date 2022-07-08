@@ -29,7 +29,6 @@ import javax.validation.constraints.NotNull;
  * @author joseross
  * @since 3.2
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class PasteRequest {
 
     /**
