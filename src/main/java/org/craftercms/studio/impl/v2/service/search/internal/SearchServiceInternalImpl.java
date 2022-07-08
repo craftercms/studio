@@ -540,7 +540,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                             .should(q -> q
                                 .regexp(r -> r
                                     .field(pathFieldName)
-                                    .value(keyword + ".*")
+                                    .value(format(".*%s.*", keyword))
                                 )
                             );
                     }
