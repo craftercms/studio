@@ -54,9 +54,11 @@ public interface WorkflowService {
      * @param clearUserLocked if true clear user locked flag, otherwise ignore
      * @param live if true set live flag, otherwise reset it
      * @param staged if true set staged flag, otherwise reset it
+     * @param isNew value to set the 'new' flag to, or null if the flag should not change
+     * @param modified value to set the 'modified' flag to, or null if the flag should not change
      */
     void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked,
-                          Boolean live, Boolean staged);
+                          Boolean live, Boolean staged, Boolean isNew, Boolean modified);
 
     /**
      * Update item state flags for given path query
@@ -66,9 +68,11 @@ public interface WorkflowService {
      * @param clearUserLocked if true clear user locked flag, otherwise ignore
      * @param live if true set live flag, otherwise reset it
      * @param staged if true set staged flag, otherwise reset it
+     * @param isNew value to set the 'new' flag to, or null if the flag should not change
+     * @param modified value to set the 'modified' flag to, or null if the flag should not change
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged);
+                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified);
 
     /**
      * Get workflow affected paths if content is edited

@@ -27,6 +27,8 @@ public class ItemStatesPostRequestBody {
     private List<String> items;
     private boolean clearSystemProcessing;
     private boolean clearUserLocked;
+    private Boolean isNew;
+    private Boolean modified;
     private Boolean live;
     private Boolean staged;
 
@@ -60,6 +62,22 @@ public class ItemStatesPostRequestBody {
 
     public void setClearUserLocked(boolean clearUserLocked) {
         this.clearUserLocked = clearUserLocked;
+    }
+
+    public Boolean getNew() {
+        return isNew;
+    }
+
+    public void setNew(final Boolean isNew) {
+        this.isNew = isNew;
+    }
+
+    public Boolean getModified() {
+        return modified;
+    }
+
+    public void setModified(final Boolean modified) {
+        this.modified = modified;
     }
 
     public Boolean getLive() {
