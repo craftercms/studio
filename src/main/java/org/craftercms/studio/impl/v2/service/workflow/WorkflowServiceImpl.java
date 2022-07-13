@@ -139,15 +139,15 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged) {
-        itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged);
+                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+        itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
     }
 
     @Override
     public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-                                        boolean clearUserLocked, Boolean live, Boolean staged) {
+                                        boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
         itemServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
-                live, staged);
+                live, staged, isNew, modified);
     }
 
     @Override

@@ -6517,6 +6517,12 @@ paths:
                 staged:
                   type: boolean
                   description: true if item is to be set as staged, otherwise false
+                new:
+                  type: boolean
+                  description: true if item is to be set as new, otherwise false
+                modified:
+                  type: boolean
+                  description: true if item is to be set as modified, otherwise false
               required:
                 - siteId
                 - items
@@ -6585,6 +6591,12 @@ paths:
                     staged:
                       type: boolean
                       description: true if item is to be set as staged, otherwise false
+                    new:
+                      type: boolean
+                      description: true if item is to be set as new, otherwise false
+                    modified:
+                      type: boolean
+                      description: true if item is to be set as modified, otherwise false
               required:
                 - query
                 - update

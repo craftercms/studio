@@ -129,7 +129,7 @@ public class WorkflowController {
 
         workflowService.updateItemStates(requestBody.getSiteId(), requestBody.getItems(),
                 requestBody.isClearSystemProcessing(), requestBody.isClearUserLocked(), requestBody.getLive(),
-                requestBody.getStaged());
+                requestBody.getStaged(), requestBody.getNew(), requestBody.getModified());
 
         var responseBody = new ResponseBody();
         var result = new Result();
@@ -147,8 +147,8 @@ public class WorkflowController {
 
         workflowService.updateItemStatesByQuery(requestBody.getQuery().getSiteId(), requestBody.getQuery().getPath(),
                 requestBody.getQuery().getStates(), requestBody.getUpdate().isClearSystemProcessing(),
-                requestBody.getUpdate().isClearUserLocked(), requestBody.getUpdate().isLive(),
-                requestBody.getUpdate().isStaged());
+                requestBody.getUpdate().isClearUserLocked(), requestBody.getUpdate().getLive(),
+                requestBody.getUpdate().getStaged(), requestBody.getUpdate().getNew(), requestBody.getUpdate().getModified());
 
         var responseBody = new ResponseBody();
         var result = new Result();

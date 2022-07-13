@@ -23,7 +23,7 @@ public class UpdateItemStatesByQueryRequestBody {
     @NotEmpty
     private Query query;
     @NotEmpty
-    private Update update;
+    private ItemStatesPostRequestBody update;
 
     public Query getQuery() {
         return query;
@@ -33,11 +33,11 @@ public class UpdateItemStatesByQueryRequestBody {
         this.query = query;
     }
 
-    public Update getUpdate() {
+    public ItemStatesPostRequestBody getUpdate() {
         return update;
     }
 
-    public void setUpdate(Update update) {
+    public void setUpdate(ItemStatesPostRequestBody update) {
         this.update = update;
     }
 
@@ -69,45 +69,6 @@ public class UpdateItemStatesByQueryRequestBody {
 
         public void setStates(Long states) {
             this.states = states;
-        }
-    }
-
-    public class Update {
-        private boolean clearSystemProcessing;
-        private boolean clearUserLocked;
-        private Boolean live;
-        private Boolean staged;
-
-        public boolean isClearSystemProcessing() {
-            return clearSystemProcessing;
-        }
-
-        public void setClearSystemProcessing(boolean clearSystemProcessing) {
-            this.clearSystemProcessing = clearSystemProcessing;
-        }
-
-        public boolean isClearUserLocked() {
-            return clearUserLocked;
-        }
-
-        public void setClearUserLocked(boolean clearUserLocked) {
-            this.clearUserLocked = clearUserLocked;
-        }
-
-        public Boolean isLive() {
-            return live;
-        }
-
-        public void setLive(Boolean live) {
-            this.live = live;
-        }
-
-        public Boolean isStaged() {
-            return staged;
-        }
-
-        public void setStaged(Boolean staged) {
-            this.staged = staged;
         }
     }
 }
