@@ -67,6 +67,7 @@ import static org.craftercms.studio.api.v1.dal.DependencyMapper.TARGET_PATH_COLU
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.MODIFIED_MASK;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NEW_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEPENDENCY_ITEM_SPECIFIC_PATTERNS;
+import static java.lang.String.format;
 
 public class DependencyServiceImpl implements DependencyService {
 
@@ -416,12 +417,12 @@ public class DependencyServiceImpl implements DependencyService {
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
+            throw new SiteNotFoundException(format("Site '%s' not found", site));
         }
 
         // Check if content exists
         if (!contentService.contentExists(site, path)) {
-            throw new ContentNotFoundException();
+            throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'", site, path));
         }
 
         logger.debug("Get delete dependencies for content - site " + site + " path " + path);
@@ -436,13 +437,13 @@ public class DependencyServiceImpl implements DependencyService {
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         // Check if site exists
         if (!siteService.exists(site)) {
-            throw new SiteNotFoundException();
+            throw new SiteNotFoundException(format("Site '%s' not found", site));
         }
         StringBuilder sbPaths = new StringBuilder();
         for (String path : paths) {
             // Check if content exists
             if (!contentService.contentExists(site, path)) {
-                throw new ContentNotFoundException();
+                throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'", site, path));
             }
             sbPaths.append("\n").append(path);
         }

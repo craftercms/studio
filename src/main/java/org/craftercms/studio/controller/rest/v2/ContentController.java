@@ -40,6 +40,7 @@ import org.craftercms.studio.model.rest.content.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -134,7 +135,7 @@ public class ContentController {
     }
 
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody delete(@RequestBody DeleteRequestBody deleteRequestBody)
+    public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
             throws UserNotFoundException, ServiceLayerException, DeploymentException {
         workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
                 deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
@@ -165,7 +166,7 @@ public class ContentController {
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getDescriptor(@RequestParam String siteId, @RequestParam String path,
                                       @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
-            ContentNotFoundException {
+            ContentNotFoundException, SiteNotFoundException {
         var item = contentService.getItem(siteId, path, flatten);
         var descriptor = item.getDescriptorDom();
         if (descriptor == null) {

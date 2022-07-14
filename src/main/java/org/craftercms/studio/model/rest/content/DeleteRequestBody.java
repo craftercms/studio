@@ -22,7 +22,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class DeleteRequestBody {
 
     @NotEmpty

@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<permissions>
+    <role name="author">
+        <rule regex="/site/website/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="/site/components|/site/components/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="/static-assets|/static-assets/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="publisher">
+        <rule regex="/site/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>get_children</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="^/site/(?!website/index\.xml)(.*)">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="/static-assets.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>content_create</permission>
+                <permission>folder_create</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>content_delete</permission>
+                <permission>get_children</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>publish_status</permission>
+                <permission>cancel_publish</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="developer">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>folder_create</permission>
+                <permission>content_create</permission>
+                <permission>Change Content Type</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>write_configuration</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="^/(?!site/website/index\.xml)(.*)">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>write_configuration</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
+                <permission>remove_plugins</permission>
+                <permission>get_children</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>folder_create</permission>
+                <permission>content_create</permission>
+                <permission>Change Content Type</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>write_configuration</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
+                <permission>unlock_repository</permission>
+                <permission>item_unlock</permission>
+                <permission>repair_repository</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="^/(?!site/website/index\.xml)(.*)">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_delete</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>write_configuration</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>encryption_tool</permission>
+                <permission>publish_status</permission>
+                <permission>publish_clear_lock</permission>
+                <permission>unlock_repository</permission>
+                <permission>item_unlock</permission>
+                <permission>repair_repository</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>edit_site</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
+                <permission>remove_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>item_unlock</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="reviewer">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex="~DASHBOARD~">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>publish</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>publish_status</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>S3 Read</permission>
+                <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="*">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+            </allowed-permissions>
+        </rule>
+        <rule regex=".*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>S3 Read</permission>
+                <permission>webdav_read</permission>
+                <permission>list_plugins</permission>
+                <permission>get_children</permission>
+                <permission>publish_status</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+</permissions>
