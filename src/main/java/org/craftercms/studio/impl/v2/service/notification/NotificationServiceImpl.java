@@ -137,8 +137,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
             notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                     templateModel);
-        } catch (Throwable ex) {
-            logger.error1("Unable to Notify Error", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send publishing error notification for site '{}'", site, e);
         }
     }
 
@@ -166,8 +166,8 @@ public class NotificationServiceImpl implements NotificationService {
                     null : Date.from(scheduleDate.toInstant()));
             notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
-        } catch (Throwable ex) {
-            logger.error1("Unable to Notify Content Approval", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send content approval notification for site '{}'", site, e);
         }
     }
 
@@ -195,8 +195,8 @@ public class NotificationServiceImpl implements NotificationService {
                     message = getCannedMessage(notificationConfig.getCannedMessages(), key);
                     break;
                 default:
-                    logger.error1("Requested notification message bundle not recognized: site: {}, type: {}," +
-                        "key: {}.", site, type.toString(), key);
+                    logger.error("Unknown notification message bundle type '{}' key '{}' for site '{}'",
+                            type.toString(), key, site);
                     break;
             }
             if (message != null) {
@@ -207,9 +207,9 @@ public class NotificationServiceImpl implements NotificationService {
                 model.put(SITE_NAME, site);
                 return processMessage(key, message, model);
             }
-        } catch (Throwable ex) {
-            logger.error1("Unable to get notification message from notification configuration for site: {} type: {}"
-                + " key: {}.", (Exception)ex, site, type, key);
+        } catch (Throwable e) {
+            logger.error("Failed to get notification message from the notification configuration in site '{}' " +
+                    "type '{}' key '{}'", site, type, key, e);
             return EMPTY;
         }
         return EMPTY;
@@ -248,8 +248,8 @@ public class NotificationServiceImpl implements NotificationService {
             } else {
                 notify(site, usersToNotify, NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, templateModel);
             }
-        } catch (Throwable ex) {
-            logger.error1("Unable to notify content submission", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send content submission notification for site '{}'", site, e);
         }
     }
 
@@ -274,10 +274,10 @@ public class NotificationServiceImpl implements NotificationService {
                 final String subject = processMessage(key, emailTemplate.getSubject(), templateModel);
                 sendEmail(messageBody, subject, toUsers);
             } else {
-                logger.error1("Unable to find " + key );
+                logger.error("Failed to find key '{}' in site '{}'", key, site);
             }
-        } catch (Throwable ex) {
-            logger.error1("Unable to notify ", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send notification with key '{}' for site '{}'", key, site, e);
         }
     }
 
@@ -290,8 +290,8 @@ public class NotificationServiceImpl implements NotificationService {
                 namedParams.add(new ImmutablePair<>(paramKey, params.get(paramKey)));
             }
             notify(site, toUsers, key, namedParams.toArray(new Pair[params.size()]));
-        } catch (Throwable ex) {
-            logger.error1("Unable to notify", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send notification with key '{}' for site '{}'", key, site, e);
         }
     }
 
@@ -308,14 +308,14 @@ public class NotificationServiceImpl implements NotificationService {
                 Map<String, Object> userProfile = null;
                 try {
                     userProfile = securityService.getUserProfile(submittedBy);
-
                 } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.debug1("User not found by username " + submittedBy);
+                    logger.debug("Username '{}' was not found while trying to send notification in site '{}'",
+                            submittedBy, site);
                     try {
                         userProfile = securityService.getUserProfileByGitName(submittedBy);
-                    } catch (ServiceLayerException | UserNotFoundException e) {
-                        logger.debug1("Didn't find user " + submittedBy + ". Notification will not be sent " +
-                                "to that user.", ex);
+                    } catch (ServiceLayerException | UserNotFoundException e2) {
+                        logger.error("Failed to notify the user '{}' because the user was not found for " +
+                                        "site '{}'", submittedBy, site, e2);
                     }
                 }
                 if (Objects.nonNull(userProfile)) {
@@ -331,11 +331,11 @@ public class NotificationServiceImpl implements NotificationService {
                         .collect(Collectors.toList());
                 notify(site, emails, NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
             } else {
-                logger.info1("Unable to notify content rejection. User(s) " +
-                        StringUtils.join(submittedByList, ", ") + " not found.");
+                logger.info("Failed to send content rejection notification because the user(s) '{}' were not found " +
+                                "for site '{}'", submittedByList, site);
             }
         } catch (Exception e) {
-            logger.error1("Unable to notify content rejection", ex);
+            logger.error("Failed to send content rejection notification for site '{}'", site, e);
         }
     }
 
@@ -347,7 +347,8 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationConfigTO config = cache.getIfPresent(cacheKey);
             if (Objects.isNull(config)) {
-                logger.debug1("Cache miss {}", cacheKey);
+                logger.debug("Cache miss for key '{}' while loading notification config in site '{}'",
+                        cacheKey, site);
 
                 config = new NotificationConfigTO();
                 Document document =
@@ -370,14 +371,16 @@ public class NotificationServiceImpl implements NotificationService {
                     loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION),
                             config.getRepositoryMergeConflictNotifications());
                 } else {
-                    logger.info1("Unable to execute against a non-XML-element: " + root.getUniquePath());
+                    logger.info("Failed to execute against non-XML-element '{}' in site '{}'",
+                            root.getUniquePath(), site);
                 }
 
                 cache.put(cacheKey, config);
             }
             return config;
         } catch (Exception e) {
-            logger.error1("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, e);
+            logger.error("Failed to load notification configuration for site '{}' from path '{}'",
+                    site, getConfigPath(), e);
             return null;
         }
     }
