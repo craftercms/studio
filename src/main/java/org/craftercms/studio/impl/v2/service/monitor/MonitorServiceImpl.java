@@ -40,7 +40,7 @@ public class MonitorServiceImpl implements MonitorService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS, acceptManagementToken = true)
     public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
         return monitorServiceInternal.getLogEvents(siteId, since);
     }

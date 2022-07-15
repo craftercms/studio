@@ -133,6 +133,7 @@
                        value-ref="crafter.studioPermissionOrOwnershipEvaluator"/>
             </map>
         </property>
+        <property name="managementToken" value="#{studioConfiguration.getProperty('studio.configuration.management.authorizationToken')}" />
     </bean>
 
     <bean id="studio.HasAnyPermissionsAnnotationHandler"
