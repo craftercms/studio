@@ -512,7 +512,13 @@ pipelines:
               - config/studio/context-nav/contextual-nav.xml
               - config/studio/mime-type.xml
             commitDetails: Delete unused configurations
-
+      - currentVersion: 4.0.0.5
+        nextVersion: 4.0.0.6
+        operations:
+          - type: xsltFileUpgrader
+            path: /config/studio/site-policy-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.6/site/site-policy-config.xslt
+            commitDetails: Update site-policy-config.xml to prevent asset file names from including parenthesis
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
