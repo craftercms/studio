@@ -19,7 +19,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
-import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
@@ -32,6 +31,8 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,42 +112,48 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         }
     }
 
-    protected void evaluateAction(HierarchicalConfiguration<?> config, Action action, List<ValidationResult> results,
-                                  boolean includeAllowed) {
-        try {
-            systemValidator.validate(null, null, action);
+    protected void evaluateAction(final HierarchicalConfiguration<?> config, final Action action, final List<ValidationResult> results,
+                                  final boolean includeAllowed) {
+        ValidationResult systemResult = ValidationResult.allowed(action);
+        systemValidator.validate(null, null, action, systemResult);
+        if (!systemResult.isAllowed()) {
+            results.add(systemResult);
+            return;
+        }
 
-            if (config != null) {
-                var statementConfig = config.configurationsAt(CONFIG_KEY_STATEMENT).stream()
-                        .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
-                        .findFirst();
-
-                if (statementConfig.isPresent()) {
-                    var statement = statementConfig.get();
-
-                    for (var validator : policyValidators) {
-                        logger.debug("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
-                        validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action);
-                    }
-                } else {
-                    logger.debug("No statement matches found, skipping '{}'", action);
-                }
-            } else {
-                logger.debug("No policy configuration found, skipping '{}'", action);
-            }
+        if (config == null) {
+            logger.debug("No policy configuration found, skipping '{}'", action);
             if (includeAllowed) {
-                logger.debug("Allowed '{}'", action);
                 results.add(ValidationResult.allowed(action));
             }
-        } catch (ValidationException e) {
-            logger.error("Validation failed for '{}'", action, e);
-            if (e.getModifiedValue() != null) {
-                logger.debug("Allowed with modifications '{}'", action);
-                results.add(ValidationResult.allowedWithModifications(action, e.getModifiedValue()));
-            } else {
-                logger.debug("Not allowed '{}'", action);
-                results.add(ValidationResult.notAllowed(action));
+            return;
+        }
+
+        List<? extends HierarchicalConfiguration<?>> statements = config.configurationsAt(CONFIG_KEY_STATEMENT)
+                .stream()
+                .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
+                .collect(Collectors.toList());
+        if (statements.size() == 0) {
+            logger.debug("No statement matches found, skipping '{}'", action);
+        }
+        ValidationResult result = ValidationResult.allowed(action);
+        statementsLoop:
+        for (HierarchicalConfiguration<?> statement : statements) {
+            for (var validator : policyValidators) {
+                logger.debug("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
+                if (result.getModifiedValue() != null) {
+                    logger.debug("Allowed with modifications '{}'", action);
+                } else if (result.isAllowed()) {
+                    logger.debug("Allowed '{}'", action);
+                } else {
+                    logger.error("Validation failed for '{}'", action);
+                    break statementsLoop;
+                }
             }
+        }
+        if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
+            results.add(result);
         }
     }
 
