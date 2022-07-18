@@ -25,7 +25,7 @@ import java.util.Objects;
 
 public class PublishingProgressServiceInternalImpl implements PublishingProgressServiceInternal {
 
-    private Map<String, PublishingProgressObserver> publishingProgress = new HashMap<>();
+    private final Map<String, PublishingProgressObserver> publishingProgress = new HashMap<>();
 
     @Override
     public void addObserver(PublishingProgressObserver observer) {

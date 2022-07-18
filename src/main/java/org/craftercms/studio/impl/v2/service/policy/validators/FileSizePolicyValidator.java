@@ -40,7 +40,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
 
     private void validatePermitted(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug1("Target is a folder, skipping action");
+            logger.debug("Target is a folder, skipping action");
             return;
         }
 
@@ -51,7 +51,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
                 throw new ValidationException("File size should be at least " + minSize);
             }
         } else {
-            logger.debug1("No min size found, skipping action");
+            logger.debug("No min size found, skipping action");
         }
 
 
@@ -62,7 +62,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
                 throw new ValidationException("File size should be less than " + maxSize);
             }
         } else {
-            logger.debug1("No max size found, skipping action");
+            logger.debug("No max size found, skipping action");
         }
     }
 

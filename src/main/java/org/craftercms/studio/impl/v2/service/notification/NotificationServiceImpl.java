@@ -196,7 +196,7 @@ public class NotificationServiceImpl implements NotificationService {
                     break;
                 default:
                     logger.error("Unknown notification message bundle type '{}' key '{}' for site '{}'",
-                            type.toString(), key, site);
+                            type, key, site);
                     break;
             }
             if (message != null) {
@@ -400,7 +400,7 @@ public class NotificationServiceImpl implements NotificationService {
                 deploymentFailureNotifications.add(servicesConfig.getAdminEmailAddress(site));
             }
         } else {
-            logger.error1("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load email list in site '{}'", site);
         }
     }
 
@@ -414,10 +414,10 @@ public class NotificationServiceImpl implements NotificationService {
                     messageContainer.put(messageKey, messageText);
                 }
             } else {
-                logger.error1("completed Messages is empty");
+                logger.error("Failed to load generic messages");
             }
         } else {
-            logger.error1("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load generic messages, the email template element is not found");
         }
     }
 
@@ -435,14 +435,14 @@ public class NotificationServiceImpl implements NotificationService {
                                 new EmailMessageTemplateTO(subjectNode.getText(), bodyNode.getText());
                         messageContainer.put(messageKey, emailMessageTemplateTO);
                     } else {
-                        logger.error1("Email message malformed");
+                        logger.error("Failed to load email templates, message malformed");
                     }
                 }
             } else {
-                logger.error1("completed Messages is empty");
+                logger.error("Failed to load email templates, messages element is empty");
             }
         } else {
-            logger.error1("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load email templates, the email template element is not found");
         }
     }
 
@@ -462,10 +462,10 @@ public class NotificationServiceImpl implements NotificationService {
                     messageTOs.add(new MessageTO(messageTitle, messageContent, messageKey));
                 }
             } else {
-                logger.error1("completed Messages is empty");
+                logger.error("Failed to load canned messages, the messages field is empty");
             }
         } else {
-            logger.error1("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load canned messages, the email template element is not found");
         }
     }
 
@@ -487,7 +487,7 @@ public class NotificationServiceImpl implements NotificationService {
             t.process(templateModel, out);
             return out.toString();
         } catch (TemplateException | IOException e) {
-            logger.error1("Unable to process notification message " + templateName, ex);
+            logger.error("Failed to process notification message with template '{}'", templateName, e);
         }
         return null;
     }
@@ -510,8 +510,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToMerge);
             notify(site, notificationConfig.getRepositoryMergeConflictNotifications(),
                     NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT, templateModel);
-        } catch (Throwable ex) {
-            logger.error1("Unable to Notify Error", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to notify on repository merge conflict in site '{}'", site, e);
         }
     }
 

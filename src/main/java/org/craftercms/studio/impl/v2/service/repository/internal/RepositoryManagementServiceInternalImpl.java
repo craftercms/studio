@@ -161,7 +161,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
-            logger.debug1("Add remote " + remoteRepository.getRemoteName() + " to the sandbox repo for the site " + siteId);
+            logger.debug("Add the remote '{}' to the sandbox repository in site '{}'",
+                    remoteRepository.getRemoteName(), siteId);
             Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
 
@@ -210,7 +211,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 }
 
             } catch (URISyntaxException e) {
-                logger.error1("Remote URL is invalid " + remoteRepository.getRemoteUrl(), e);
+                logger.error("Failed to add the remote '{}' URL '{}' to site '{}' because the URL is invalid",
+                        remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId, e);
                 throw new InvalidRemoteUrlException();
             } catch (GitAPIException | IOException e) {
                 if (e.getCause() instanceof NoRemoteRepositoryException) {

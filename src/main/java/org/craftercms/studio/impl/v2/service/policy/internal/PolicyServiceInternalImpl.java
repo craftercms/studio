@@ -124,26 +124,26 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                     var statement = statementConfig.get();
 
                     for (var validator : policyValidators) {
-                        logger.debug1("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
+                        logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
                         validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action);
                     }
                 } else {
-                    logger.debug1("No matching statements found, skipping the action '{}'", action);
+                    logger.debug("No matching statements found, skipping the action '{}'", action);
                 }
             } else {
-                logger.debug1("No policy configuration found, skipping the action '{}'", action);
+                logger.debug("No policy configuration found, skipping the action '{}'", action);
             }
             if (includeAllowed) {
-                logger.debug1("Action '{}' is permitted", action);
+                logger.debug("Action '{}' is permitted", action);
                 results.add(ValidationResult.allowed(action));
             }
         } catch (ValidationException e) {
-            logger.error1("Validation failed for '{}'", action, e);
+            logger.error("Failed validation for action '{}'", action, e);
             if (e.getModifiedValue() != null) {
-                logger.debug1("Allowed with modifications '{}'", action);
+                logger.debug("Action '{}' allowed with modifications", action);
                 results.add(ValidationResult.allowedWithModifications(action, e.getModifiedValue()));
             } else {
-                logger.debug1("Not allowed '{}'", action);
+                logger.debug("Action '{}' is not allowed", action);
                 results.add(ValidationResult.notAllowed(action));
             }
         }
