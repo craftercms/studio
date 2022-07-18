@@ -136,8 +136,14 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         if (statements.size() == 0) {
             logger.debug("No statement matches found, skipping '{}'", action);
         }
+        ValidationResult result = validateStatements(action, statements);
+        if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
+            results.add(result);
+        }
+    }
+
+    private ValidationResult validateStatements(Action action, List<? extends HierarchicalConfiguration<?>> statements) {
         ValidationResult result = ValidationResult.allowed(action);
-        statementsLoop:
         for (HierarchicalConfiguration<?> statement : statements) {
             for (var validator : policyValidators) {
                 logger.debug("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
@@ -148,13 +154,11 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                     logger.debug("Allowed '{}'", action);
                 } else {
                     logger.error("Validation failed for '{}'", action);
-                    break statementsLoop;
+                    return result;
                 }
             }
         }
-        if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
-            results.add(result);
-        }
+        return result;
     }
 
     protected HierarchicalConfiguration<?> getSubConfig(HierarchicalConfiguration<?> statement, String configKey) {

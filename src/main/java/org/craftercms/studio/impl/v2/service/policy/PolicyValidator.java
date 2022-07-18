@@ -33,6 +33,7 @@ public interface PolicyValidator {
      * @param permittedConfig the permitted policy configuration
      * @param deniedConfig the denied policy configuration
      * @param action the action to validate
+     * @param result result of the validation. Implementing methods should update status accordingly
      */
     void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result);
 }
