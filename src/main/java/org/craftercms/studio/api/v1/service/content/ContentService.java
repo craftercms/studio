@@ -42,7 +42,7 @@ public interface ContentService {
 
     /**
      * Check if content exists
-     * 
+     *
      * @param site site identifier
      * @param path path of the content
      * @return true if site has content object at path
@@ -334,16 +334,16 @@ public interface ContentService {
         throws ServiceLayerException;
 
     /**
-     * rename a folder
-     *
-     * @param site - the project ID
-     * @param path path to a folder to rename
-     * @param name a new folder name
-     * @return return the reference to the folder renamed
-     *
-     * @throws ServiceLayerException general service error
-     */
-    boolean renameFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
+    * rename a content item
+    *
+    * @param site - the project ID
+    * @param path path to a folder to rename
+    * @param name a new folder name
+    * @return return the reference to the folder renamed
+    *
+    * @throws ServiceLayerException general service error
+    */
+    boolean renameContent(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Push content to remote repository

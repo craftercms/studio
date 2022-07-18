@@ -478,19 +478,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void persistItemAfterRenameFolder(String siteId, String folderPath, String folderName, String username,
-                                             String commitId)
+    public void persistItemAfterRenameContent(String siteId, String path, String name, String username,
+                                             String commitId, String contentType)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        Item item = instantiateItem(siteId, folderPath)
-                .withPreviewUrl(null)
+        Item item = instantiateItem(siteId, path)
+                .withPreviewUrl(contentType == CONTENT_TYPE_FOLDER ? null : getBrowserUrl(siteId, path))
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(DateUtils.getCurrentTime())
-                .withLabel(folderName)
+                .withLabel(name)
                 .withCommitId(commitId)
                 .build();
         item.setState(ItemState.savedAndClosed(item.getState()));
-        item.setSystemType("folder");
+        item.setSystemType(contentType);
         updateItem(item);
     }
 

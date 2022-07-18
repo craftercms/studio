@@ -3872,6 +3872,57 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/rename:
+    post:
+      tags:
+        - content
+      summary: Rename content
+      description: 'Required permission "content_write"'
+      operationId: contentRename
+      requestBody:
+        description: parameters for rename content
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site identifier
+                path:
+                  type: string
+                  description: full path to the item to rename
+                name:
+                  type: string
+                  description: new item name (just the name, no path)
+              required:
+                - siteId
+                - path
+                - name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/children_by_path:
     post:
       tags:

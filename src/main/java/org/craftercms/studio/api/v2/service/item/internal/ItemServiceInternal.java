@@ -348,15 +348,16 @@ public interface ItemServiceInternal {
     /**
      * Persist item metadata after rename folder
      * @param siteId site identifier
-     * @param folderPath folder path
-     * @param folderName folder name
+     * @param path file path
+     * @param name file name
      * @param username user that executed create folder operation
      * @param commitId commit id of the create folder operation
+     * @param contentType content type
      * @throws ServiceLayerException
      * @throws UserNotFoundException
      */
-    void persistItemAfterRenameFolder(String siteId, String folderPath, String folderName, String username,
-                                      String commitId)
+    void persistItemAfterRenameContent(String siteId, String path, String name, String username,
+                                      String commitId, String contentType)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
