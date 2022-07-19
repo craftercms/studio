@@ -413,6 +413,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             if (unlock) {
                 item.setState(ItemState.savedAndClosed(item.getState()));
             } else {
+                item.setLockedBy(userObj.getId());
                 item.setState(ItemState.savedAndNotClosed(item.getState()));
             }
             if (disabled) {
