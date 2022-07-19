@@ -4786,9 +4786,13 @@ paths:
                   description: site ID
                 publishingTarget:
                   type: string
-                  description: the publishing target (staging or live). If not specified, live is assumed
+                  description: the publishing target (staging or live)
+                submissionComment:
+                  type: string
+                  description: optional submission comment
               required:
                 - siteId
+                - publishingTarget
       responses:
         '200':
           description: OK
