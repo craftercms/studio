@@ -16,6 +16,15 @@
   -->
 <site-policy>
     <statement>
+        <target-path-pattern>/static-assets/.*</target-path-pattern>
+        <permitted>
+            <path>
+                <source-regex>[\(\)]</source-regex>
+                <target-regex>-</target-regex>
+            </path>
+        </permitted>
+    </statement>
+    <statement>
         <target-path-pattern>/.*</target-path-pattern>
         <permitted>
             <mime-types>*/*</mime-types>

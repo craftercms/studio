@@ -19,6 +19,24 @@
 <!-- Site Policy configuration used for testing -->
 <site-policy>
 
+    <statement>
+        <target-path-pattern>/static-assets/.*</target-path-pattern>
+        <permitted>
+            <path>
+                <source-regex>[\(\)]</source-regex>
+                <target-regex>-</target-regex>
+            </path>
+        </permitted>
+    </statement>
+    <statement>
+        <target-path-pattern>/static-assets/.*</target-path-pattern>
+        <permitted>
+            <path>
+                <source-regex>_</source-regex>
+                <target-regex>-</target-regex>
+            </path>
+        </permitted>
+    </statement>
     <!-- Only allow small files -->
     <statement>
         <target-path-pattern>/static-assets/small.*</target-path-pattern>
