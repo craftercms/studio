@@ -19,8 +19,8 @@
         <target-path-pattern>/static-assets/.*</target-path-pattern>
         <permitted>
             <path>
-                <source-regex>[\(\)]</source-regex>
-                <target-regex>-</target-regex>
+                <source-regex>something else</source-regex>
+                <target-regex>someregex</target-regex>
             </path>
         </permitted>
     </statement>

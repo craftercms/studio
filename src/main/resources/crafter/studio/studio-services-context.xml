@@ -550,6 +550,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="contentServiceV1" ref="cstudioContentService" />
     </bean>
 
     <bean id="contentServiceInternal"

@@ -14,20 +14,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.dependency;
+package org.craftercms.studio.model.rest.content;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import java.util.List;
 
-public class GetSoftDependenciesRequestBody {
+public class RenameRequestBody {
 
     @NotEmpty
     private String siteId;
     @NotEmpty
-    private List<@Valid @NotEmpty String> paths;
+    private String path;
+    @NotEmpty
+    private String name;
 
     public String getSiteId() {
         return siteId;
@@ -37,11 +35,19 @@ public class GetSoftDependenciesRequestBody {
         this.siteId = siteId;
     }
 
-    public List<String> getPaths() {
-        return paths;
+    public String getPath() {
+        return path;
     }
 
-    public void setPaths(List<String> paths) {
-        this.paths = paths;
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }

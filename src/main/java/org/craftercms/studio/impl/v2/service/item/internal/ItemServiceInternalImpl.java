@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.item.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -52,19 +53,9 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_REGEX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_PROGRESS_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.MODIFIED_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.STAGED;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SYSTEM_PROCESSING;
-import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
 
@@ -487,19 +478,19 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void persistItemAfterRenameFolder(String siteId, String folderPath, String folderName, String username,
-                                             String commitId)
+    public void persistItemAfterRenameContent(String siteId, String path, String name, String username,
+                                             String commitId, String contentType)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
-        Item item = instantiateItem(siteId, folderPath)
-                .withPreviewUrl(null)
+        Item item = instantiateItem(siteId, path)
+                .withPreviewUrl(contentType == CONTENT_TYPE_FOLDER ? null : getBrowserUrl(siteId, path))
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(DateUtils.getCurrentTime())
-                .withLabel(folderName)
+                .withLabel(name)
                 .withCommitId(commitId)
                 .build();
         item.setState(ItemState.savedAndClosed(item.getState()));
-        item.setSystemType("folder");
+        item.setSystemType(contentType);
         updateItem(item);
     }
 
@@ -664,66 +655,65 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged) {
+                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            long setStatesMask = 0L;
-            long resetStatesMask = 0L;
+            long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
+            long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 
-            if (clearSystemProcessing) {
-                resetStatesMask = resetStatesMask | SYSTEM_PROCESSING.value;
-            }
-            if (clearUserLocked) {
-                resetStatesMask = resetStatesMask | USER_LOCKED.value;
-            }
-            if (live != null) {
-                if (live) {
-                    setStatesMask = setStatesMask | LIVE.value;
-                } else {
-                    resetStatesMask = resetStatesMask | LIVE.value;
-                }
-            }
-            if (staged != null) {
-                if (staged) {
-                    setStatesMask = setStatesMask | STAGED.value;
-                } else {
-                    resetStatesMask = resetStatesMask | STAGED.value;
-                }
-            }
-
-            Map<String, String> params = new HashMap<>();
-            params.put(SITE_ID, siteId);
-            SiteFeed siteFeed = siteFeedMapper.getSite(params);
+            SiteFeed siteFeed = siteFeedMapper.getSite(Collections.singletonMap(SITE_ID, siteId));
             retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, setStatesMask,
                     resetStatesMask);
         }
     }
 
-    @Override
-    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-                                        boolean clearUserLocked, Boolean live, Boolean staged) {
+    protected long getSetStatesMask(Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
         long setStatesMask = 0L;
+        if (BooleanUtils.isTrue(live)) {
+            setStatesMask |= LIVE.value;
+        }
+        if (BooleanUtils.isTrue(staged)) {
+            setStatesMask |= STAGED.value;
+        }
+        if (BooleanUtils.isTrue(isNew)) {
+            setStatesMask |= NEW.value;
+        }
+        if (BooleanUtils.isTrue(modified)) {
+            setStatesMask |= MODIFIED.value;
+        }
+        return setStatesMask;
+    }
+
+    protected long getResetStatesMask(boolean clearSystemProcessing, boolean clearUserLocked, Boolean live,
+                                      Boolean staged, Boolean isNew, Boolean modified) {
         long resetStatesMask = 0L;
 
         if (clearSystemProcessing) {
-            resetStatesMask = resetStatesMask | SYSTEM_PROCESSING.value;
+            resetStatesMask |= SYSTEM_PROCESSING.value;
         }
         if (clearUserLocked) {
-            resetStatesMask = resetStatesMask | USER_LOCKED.value;
+            resetStatesMask |= USER_LOCKED.value;
         }
-        if (live != null) {
-            if (live) {
-                setStatesMask = setStatesMask | LIVE.value;
-            } else {
-                resetStatesMask = resetStatesMask | LIVE.value;
-            }
+        if (BooleanUtils.isFalse(live)) {
+            resetStatesMask |= LIVE.value;
         }
-        if (staged != null) {
-            if (staged) {
-                setStatesMask = setStatesMask | STAGED.value;
-            } else {
-                resetStatesMask = resetStatesMask | STAGED.value;
-            }
+        if (BooleanUtils.isFalse(staged)) {
+            resetStatesMask |= STAGED.value;
         }
+        if (BooleanUtils.isFalse(isNew)) {
+            resetStatesMask |= NEW.value;
+        }
+        if (BooleanUtils.isFalse(modified)) {
+            resetStatesMask |= MODIFIED.value;
+        }
+        return resetStatesMask;
+    }
+
+    @Override
+    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
+                                        boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+        long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
+        long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
+
         retryingDatabaseOperationFacade.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask);
     }
 

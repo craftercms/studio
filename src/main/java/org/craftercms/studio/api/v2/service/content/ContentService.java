@@ -163,4 +163,18 @@ public interface ContentService {
      */
     Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException;
+
+    /**
+    * Rename content for given path
+    * @param site  site identifier
+    * @param path path of the content
+    * @param name new name of the content
+    * @return true if success, otherwise false
+    *
+    * @throws ServiceLayerException general service error
+    * @throws UserNotFoundException user not found error
+    */
+    public boolean renameContent( String site, String path, String name)
+         throws ServiceLayerException, UserNotFoundException;
+
 }

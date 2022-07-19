@@ -19,9 +19,9 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.log.Logger;
 import org.craftercms.studio.api.v1.log.LoggerFactory;
-import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
+import org.craftercms.studio.model.policy.ValidationResult;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -38,7 +38,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
     public static final String CONFIG_KEY_MIN_SIZE = "minimum-file-size";
     public static final String CONFIG_KEY_MAX_SIZE = "maximum-file-size";
 
-    private void validatePermitted(HierarchicalConfiguration<?> config, Action action) throws ValidationException {
+    private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
             logger.debug("Target is a folder, skipping action");
             return;
@@ -48,7 +48,9 @@ public class FileSizePolicyValidator implements PolicyValidator {
             long minSize = config.getLong(CONFIG_KEY_MIN_SIZE);
             Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
             if (value.longValue() < minSize) {
-                throw new ValidationException("File size should be at least " + minSize);
+                logger.error("File size should be at least {0}", minSize);
+                result.setAllowed(false);
+                return;
             }
         } else {
             logger.debug("No min size found, skipping action");
@@ -59,7 +61,8 @@ public class FileSizePolicyValidator implements PolicyValidator {
             long maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
             Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
             if (value.longValue() > maxSize) {
-                throw new ValidationException("File size should be less than " + maxSize);
+                logger.error("File size should be less than {0}", maxSize);
+                result.setAllowed(false);
             }
         } else {
             logger.debug("No max size found, skipping action");
@@ -67,9 +70,9 @@ public class FileSizePolicyValidator implements PolicyValidator {
     }
 
     @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
         if (permittedConfig != null) {
-            validatePermitted(permittedConfig, action);
+            validatePermitted(permittedConfig, action, result);
         }
     }
 
