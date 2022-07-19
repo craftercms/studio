@@ -16,11 +16,11 @@
 package org.craftercms.studio.impl.v2.service.policy.validators;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.studio.api.v2.exception.validation.FilenameTooLongException;
-import org.craftercms.studio.api.v2.exception.validation.PathTooLongException;
-import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
+import org.craftercms.studio.model.policy.ValidationResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Path;
@@ -33,6 +33,8 @@ import java.nio.file.Path;
  */
 public class SystemPolicyValidator implements PolicyValidator {
 
+    private static final Logger logger = LoggerFactory.getLogger(SystemPolicyValidator.class);
+
     protected int filenameMaxSize;
 
     protected int fullPathMaxSize;
@@ -43,11 +45,13 @@ public class SystemPolicyValidator implements PolicyValidator {
         this.fullPathMaxSize = fullPathMaxSize;
     }
 
-    private void validateSystem(Action action) throws ValidationException {
+    private void validateSystem(Action action, ValidationResult result) {
         // Check if the full path exceeds the limit
         String fullPath = action.getTarget();
         if (fullPath.length() >= fullPathMaxSize) {
-            throw new PathTooLongException(fullPath);
+            logger.error("Full path should not exceed '{}'", fullPathMaxSize);
+            result.setAllowed(false);
+            return;
         }
 
         // Check if any folder in the path exceeds the limit
@@ -55,15 +59,16 @@ public class SystemPolicyValidator implements PolicyValidator {
         while (path != null && path.getFileName() != null) {
             String filename = path.getFileName().toString();
             if (filename.length() >= filenameMaxSize) {
-                throw new FilenameTooLongException(filename);
+                logger.error("Folder names in path should not exceed '{}'", filenameMaxSize);
+                result.setAllowed(false);
             }
             path = path.getParent();
         }
     }
 
     @Override
-    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action) throws ValidationException {
-        validateSystem(action);
+    public void validate(HierarchicalConfiguration<?> permittedConfig, HierarchicalConfiguration<?> deniedConfig, Action action, ValidationResult result) {
+        validateSystem(action, result);
     }
 
 }
