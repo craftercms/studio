@@ -356,7 +356,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
         // this method should not be called
         throw new UnsupportedOperationException();
     }
@@ -368,7 +368,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 

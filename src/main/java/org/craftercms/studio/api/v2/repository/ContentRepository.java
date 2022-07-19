@@ -402,8 +402,9 @@ public interface ContentRepository {
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
+     * @param comment submission comment
      */
-    RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+    RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
     /**
      * Prepares the repository to publish all changes for the given site & target
@@ -421,9 +422,10 @@ public interface ContentRepository {
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
      * @param changes the set of changed files
+     * @param comment submission comment
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
             throws ServiceLayerException;
 
     /**

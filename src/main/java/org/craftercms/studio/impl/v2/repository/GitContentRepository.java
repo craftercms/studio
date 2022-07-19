@@ -1876,7 +1876,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
         // this method should not be called
         throw new UnsupportedOperationException();
     }
@@ -1965,7 +1965,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
             throws ServiceLayerException {
         if (changes.isInitialPublish()) {
             return;
@@ -1977,9 +1977,9 @@ public class GitContentRepository implements ContentRepository {
             try (Git git = Git.wrap(repo)) {
                 try {
                     // commit all files
+                    String commitMessage = StringUtils.isNotEmpty(comment) ? comment : helper.getCommitMessage(REPO_PUBLISH_ALL_COMMIT_MESSAGE);
                     retryingRepositoryOperationFacade.call(git.commit()
-                                                              .setMessage(helper.getCommitMessage(
-                                                                          REPO_PUBLISH_ALL_COMMIT_MESSAGE))
+                                                              .setMessage(commitMessage)
                                                               .setAllowEmpty(false));
                     // checkout target branch
                     checkoutBranch(git, publishingTarget);

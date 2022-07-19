@@ -215,9 +215,9 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
-    public void publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+    public void publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
         // do the operations in the repo
-        RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget);
+        RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget, comment);
         // update the state for the changed items
         long onMask;
         long offMask;
