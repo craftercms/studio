@@ -733,7 +733,7 @@ public class BlobAwareContentRepository implements ContentRepository,
         }
     }
 
-    public RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
         try {
             RepositoryChanges gitChanges = localRepositoryV2.preparePublishAll(siteId, publishingTarget);
 
@@ -750,11 +750,11 @@ public class BlobAwareContentRepository implements ContentRepository,
 
                 if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
                     blobStore.completePublishAll(siteId, publishingTarget,
-                                                 new RepositoryChanges(updatedBlobs, deletedBlobs));
+                                                 new RepositoryChanges(updatedBlobs, deletedBlobs), comment);
                 }
             }
 
-            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges);
+            localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges, comment);
 
             Set<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
             Set<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
@@ -794,7 +794,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes) {
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
         // this method should not be called directly
         throw new UnsupportedOperationException();
     }

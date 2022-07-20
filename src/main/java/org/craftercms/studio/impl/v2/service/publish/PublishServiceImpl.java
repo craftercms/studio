@@ -231,9 +231,11 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget)
+    public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
-        publishServiceInternal.publishAll(siteId, publishingTarget);
+        siteService.checkSiteExists(siteId);
+
+        publishServiceInternal.publishAll(siteId, publishingTarget, comment);
 
         SiteFeed siteFeed = siteService.getSite(siteId);
         String username = securityService.getCurrentUser();

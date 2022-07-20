@@ -155,8 +155,9 @@ public interface PublishService {
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
+     * @param comment submission comment
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException, UserNotFoundException;
+    void publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException;
 
 }
