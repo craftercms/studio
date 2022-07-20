@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -217,7 +218,7 @@ public class PublishController {
     @PostMapping("/all")
     public ResponseBody publishAll(@Valid @RequestBody PublishAllRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        publishService.publishAll(request.getSiteId(), request.getPublishingTarget());
+        publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
 
         Result result = new Result();
         result.setResponse(OK);
@@ -239,10 +240,11 @@ public class PublishController {
     }
 
     public static class PublishAllRequest {
-
+        @NotEmpty
         protected String siteId;
-
+        @NotEmpty
         protected String publishingTarget;
+        protected String submissionComment;
 
         public String getSiteId() {
             return siteId;
@@ -260,6 +262,13 @@ public class PublishController {
             this.publishingTarget = publishingTarget;
         }
 
+        public String getSubmissionComment() {
+            return submissionComment;
+        }
+
+        public void setSubmissionComment(String submissionComment) {
+            this.submissionComment = submissionComment;
+        }
     }
 
 }
