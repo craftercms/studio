@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.0.4</version>
+	<version>4.0.5</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -95,10 +95,69 @@
 	<widget id="craftercms.components.ICEToolsPanel">
 		<configuration>
 			<widgets>
+				<widget id="craftercms.components.PaddingModeSwitchListItem">
+					<configuration>
+						<disabled>false</disabled>
+					</configuration>
+				</widget>
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-						<title id="previewAudiencesPanel.title" defaultMessage="Audience Targeting"/>
+						<title id="previewSearchPanel.title" defaultMessage="Search"/>
+						<icon id="@mui/icons-material/SearchRounded"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewSearchPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="previewComponentsPanel.title"
+						       defaultMessage="Add Components"/>
+						<icon id="@mui/icons-material/ExtensionOutlined"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewComponentsPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="previewBrowseComponentsPanel.title"
+						       defaultMessage="Browse Components"/>
+						<icon id="@mui/icons-material/ExtensionOutlined"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewBrowseComponentsPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="previewDropTargetsPanel.title"
+						       defaultMessage="Component Drop Targets"/>
+						<icon id="@mui/icons-material/ExtensionOutlined"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewDropTargetsPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="previewAssetsPanel.title" defaultMessage="Assets"/>
+						<icon id="@mui/icons-material/ImageOutlined"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewAssetsPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="previewAudiencesPanel.title"
+						       defaultMessage="Audience Targeting"/>
 						<icon id="@mui/icons-material/EmojiPeopleRounded"/>
 						<widgets>
 							<widget id="craftercms.components.PreviewAudiencesPanel">
@@ -107,33 +166,49 @@
 										<segment>
 											<id>segment</id>
 											<name>Segment</name>
-											<description>User segment.</description>
+											<description>User segment.
+											</description>
 											<type>dropdown</type>
-											<defaultValue>anonymous</defaultValue>
+											<defaultValue>anonymous
+											</defaultValue>
 											<values>
 												<value>
-													<label>Guy</label>
-													<value>guy</value>
+													<label>Guy
+													</label>
+													<value>guy
+													</value>
 												</value>
 												<value>
-													<label>Gal</label>
-													<value>gal</value>
+													<label>Gal
+													</label>
+													<value>gal
+													</value>
 												</value>
 												<value>
-													<label>Anonymous</label>
-													<value>anonymous</value>
+													<label>
+														Anonymous
+													</label>
+													<value>
+														anonymous
+													</value>
 												</value>
 											</values>
-											<helpText>Setting the segment will change content targeting to the audience
-												selected.
+											<helpText>Setting the segment
+												will change content
+												targeting to the
+												audience selected.
 											</helpText>
 										</segment>
 										<name>
 											<id>name</id>
 											<name>Name</name>
-											<description>User's first and last name.</description>
+											<description>User's first and
+												last name.
+											</description>
 											<type>input</type>
-											<helpText>Enter user's first and last name.</helpText>
+											<helpText>Enter user's first and
+												last name.
+											</helpText>
 										</name>
 									</fields>
 								</configuration>
@@ -141,16 +216,22 @@
 						</widgets>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.LegacyComponentsPanel">
+				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
-						<title id="words.components" defaultMessage="Components"/>
-						<icon id="@mui/icons-material/ExtensionOutlined"/>
+						<target id="icePanel"/>
+						<title id="previewPageExplorerPanel.title"
+						       defaultMessage="Page Explorer"/>
+						<icon id="craftercms.icons.PageExplorer"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewPageExplorerPanel"/>
+						</widgets>
 					</configuration>
 				</widget>
 				<widget id="craftercms.components.ToolsPanelPageButton">
 					<configuration>
 						<target id="icePanel"/>
-						<title id="previewSimulatorPanel.title" defaultMessage="Device Simulator"/>
+						<title id="previewSimulatorPanel.title"
+						       defaultMessage="Device Simulator"/>
 						<icon id="@mui/icons-material/DevicesRounded"/>
 						<widgets>
 							<widget id="craftercms.components.PreviewSimulatorPanel">
@@ -172,6 +253,16 @@
 						</widgets>
 					</configuration>
 				</widget>
+				<widget id="craftercms.components.ToolsPanelPageButton">
+					<configuration>
+						<target id="icePanel"/>
+						<title id="words.settings" defaultMessage="Settings"/>
+						<icon id="@mui/icons-material/SettingsOutlined"/>
+						<widgets>
+							<widget id="craftercms.components.PreviewSettingsPanel"/>
+						</widgets>
+					</configuration>
+				</widget>
 			</widgets>
 		</configuration>
 	</widget>
@@ -181,19 +272,22 @@
 				<widget id="craftercms.components.LauncherSection">
 					<configuration>
 						<title id="launcher.siteSectionTitle">
-							<defaultMessage><![CDATA[Site <muted>• {siteName}</muted>]]></defaultMessage>
+							<defaultMessage>
+								<![CDATA[Site <muted>• {siteName}</muted>]]></defaultMessage>
 						</title>
 						<widgets>
 							<widget id="craftercms.components.LauncherLinkTile">
 								<configuration>
-									<title id="words.dashboard" defaultMessage="Dashboard"/>
+									<title id="words.dashboard"
+									       defaultMessage="Dashboard"/>
 									<systemLinkId>siteDashboardDialog</systemLinkId>
 									<icon id="@mui/icons-material/DashboardRounded"/>
 								</configuration>
 							</widget>
 							<widget id="craftercms.components.LauncherLinkTile">
 								<configuration>
-									<title id="words.preview" defaultMessage="Preview"/>
+									<title id="words.preview"
+									       defaultMessage="Preview"/>
 									<systemLinkId>preview</systemLinkId>
 									<icon id="craftercms.icons.Preview"/>
 								</configuration>
@@ -204,14 +298,16 @@
 									<role>developer</role>
 								</permittedRoles>
 								<configuration>
-									<title id="siteTools.title" defaultMessage="Site Tools"/>
+									<title id="siteTools.title"
+									       defaultMessage="Site Tools"/>
 									<systemLinkId>siteToolsDialog</systemLinkId>
 									<icon id="@mui/icons-material/ConstructionRounded"/>
 								</configuration>
 							</widget>
 							<widget id="craftercms.components.LauncherLinkTile">
 								<configuration>
-									<title id="words.search" defaultMessage="Search"/>
+									<title id="words.search"
+									       defaultMessage="Search"/>
 									<systemLinkId>siteSearchDialog</systemLinkId>
 									<icon id="@mui/icons-material/SearchRounded"/>
 								</configuration>
@@ -238,7 +334,7 @@
 			</middleSection>
 			<rightSection>
 				<widgets>
-					<widget id="craftercms.components.EditModeSwitch"/>
+					<widget id="craftercms.components.EditModesSwitcher"/>
 					<widget id="craftercms.components.PublishingStatusButton">
 						<configuration>
 							<variant>icon</variant>
@@ -262,9 +358,27 @@
 	<widget id="craftercms.components.Dashboard">
 		<configuration>
 			<widgets>
-				<widget id="craftercms.components.AwaitingApprovalDashlet"/>
-				<widget id="craftercms.components.ApprovedScheduledDashlet"/>
-				<widget id="craftercms.components.RecentlyPublishedDashlet"/>
+				<widget id="craftercms.components.AwaitingApprovalDashlet">
+					<permittedRoles>
+						<role>admin</role>
+						<role>developer</role>
+						<role>publisher</role>
+					</permittedRoles>
+				</widget>
+				<widget id="craftercms.components.ApprovedScheduledDashlet">
+					<permittedRoles>
+						<role>admin</role>
+						<role>developer</role>
+						<role>publisher</role>
+					</permittedRoles>
+				</widget>
+				<widget id="craftercms.components.RecentlyPublishedDashlet">
+					<permittedRoles>
+						<role>admin</role>
+						<role>developer</role>
+						<role>publisher</role>
+					</permittedRoles>
+				</widget>
 				<widget id="craftercms.components.RecentActivityDashlet"/>
 				<widget id="craftercms.components.IconGuideDashlet"/>
 			</widgets>
@@ -278,42 +392,41 @@
 					<!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
 					<tinymceOptions>
 						<![CDATA[
-							{
-								"menubar": true,
-								"theme": "silver",
-								"plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste",
-								"extended_valid_elements": "",
-								"valid_children": "",
-								"toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
-								"code_editor_wrap": false,
-								"toolbar_sticky": true,
-								"image_advtab": true,
-								"encoding": "xml",
-								"relative_urls": false,
-								"remove_script_host": false,
-								"convert_urls": false,
-								"remove_trailing_brs": false,
-								"media_live_embeds": true,
-								"autoresize_on_init": false,
-								"autoresize_bottom_margin": 0,
-								"menu": {
-										"tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
-								},
-								"automatic_uploads": true,
-								"file_picker_types":  "image media file",
-								"paste_data_images": true,
-								"templates": [],
-								"content_css": [],
-								"content_style": "body {}",
-								"contextmenu": false
-							}
-						]]>
+                            {
+                                "menubar": true,
+                                "theme": "silver",
+                                "plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste",
+                                "extended_valid_elements": "",
+                                "valid_children": "",
+                                "toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
+                                "code_editor_wrap": false,
+                                "toolbar_sticky": true,
+                                "image_advtab": true,
+                                "encoding": "xml",
+                                "relative_urls": false,
+                                "remove_script_host": false,
+                                "convert_urls": false,
+                                "remove_trailing_brs": false,
+                                "media_live_embeds": true,
+                                "autoresize_on_init": false,
+                                "autoresize_bottom_margin": 0,
+                                "menu": {
+                                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
+                                },
+                                "automatic_uploads": true,
+                                "file_picker_types":  "image media file",
+                                "paste_data_images": true,
+                                "templates": [],
+                                "content_css": [],
+                                "content_style": "body {}",
+                                "contextmenu": false
+                            }
+                        ]]>
 					</tinymceOptions>
 				</setup>
 			</setups>
 		</configuration>
 	</widget>
-
 	<references>
 		<reference id="craftercms.siteTools">
 			<tools>
@@ -324,7 +437,8 @@
 					<widget id="craftercms.components.ContentTypeManagement"/>
 				</tool>
 				<tool>
-					<title id="GlobalMenu.EncryptionToolEntryLabel" defaultMessage="Encryption Tool"/>
+					<title id="GlobalMenu.EncryptionToolEntryLabel"
+					       defaultMessage="Encryption Tool"/>
 					<icon id="@mui/icons-material/LockOutlined"/>
 					<url>encrypt-tool</url>
 					<widget id="craftercms.components.SiteEncryptTool"/>
@@ -391,42 +505,26 @@
 				<value><![CDATA[${RequestParameters["PARAM_NAME"]!"DEFAULT"}]]></value>
 			</requestParameter>
 			<crafterSupportMacros label="Crafter support macros">
-				<value><![CDATA[<#import "/templates/system/common/cstudio-support.ftl" as studio />
-...
-<@studio.toolSupport />]]></value>
+				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />]]></value>
 			</crafterSupportMacros>
-			<dynamicNavigation label="Dynamic Navigation">
-				<value><![CDATA[<#include "/templates/web/navigation/navigation.ftl">
-...
-<@renderNavigation "/site/website", 1 />]]></value>
-			</dynamicNavigation>
 			<transformPathToUrl label="Transform PATH to URL">
-				<value><![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
-			</transformPathToUrl>
-			<iceAttr label="Incontext editing attribute (pencil)">
-				<value><![CDATA[<@studio.iceAttr iceGroup="ICEGROUID"/>]]></value>
-			</iceAttr>
-			<componentDropzoneAttr label="Component DropZone attribute">
 				<value>
-					<![CDATA[<@studio.componentContainerAttr target="TARGETID" objectId=contentModel.objectId />]]></value>
-			</componentDropzoneAttr>
-			<componentAttr label="Component attribute">
-				<value><![CDATA[<@studio.componentAttr path=contentModel.storeUrl ice=false />]]></value>
-			</componentAttr>
+					<![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
+			</transformPathToUrl>
 			<renderComponentsList label="Render list of components">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
-	<@renderComponent component=module />
+        <@renderComponent component=module />
 </#list>]]></value>
 			</renderComponentsList>
 			<iterateItemsListLoadContentItem label="Iterate over a list of items and load content item">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as myItem>
-	<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
-	${myContentItem.variableName}
+        <#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
+        ${myContentItem.variableName}
 </#list>]]></value>
 			</iterateItemsListLoadContentItem>
 			<iterateRepeatGroup label="Iterate over repeat group">
 				<value><![CDATA[<#list contentModel.VARIABLE_NAME.item as row>
-	${row.VARIABLE_NAME}
+        ${row.VARIABLE_NAME}
 </#list>]]></value>
 			</iterateRepeatGroup>
 			<fremarkerValueAssignment label="Freemarker value assignment">
@@ -434,12 +532,12 @@
 			</fremarkerValueAssignment>
 			<freemarkerIf label="Freemarker value IF">
 				<value><![CDATA[<#if CONDITION>
-	...
+        ...
 </#if>]]></value>
 			</freemarkerIf>
 			<freemarkerLoop label="Freemarker value LOOP">
 				<value><![CDATA[<#list ARRAY as value>
-	${value_index}: ${value}
+        ${value_index}: ${value}
 </#list>]]></value>
 			</freemarkerLoop>
 			<freemarkerFragmentInclude label="Freemarker Fragment include">
@@ -449,22 +547,20 @@
 				<value><![CDATA[<#import "/templates/PATH" as NAMESPACE />]]></value>
 			</freemarkerLibraryImport>
 			<htmlPage label="HTML Page">
-				<value><![CDATA[<#import "/templates/system/common/cstudio-support.ftl" as studio />
+				<value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
+<!doctype html>
 <html lang="en">
-<head>
-	</head>
-	<body>
-		<h1>CONTENT HERE</h1>
-	<@studio.toolSupport/>
-	</body>
+  <head>
+    <#-- Insert your head markup here -->
+    <@crafter.head />
+  </head>
+  <body>
+    <@crafter.body_top />
+    <#-- Insert your body markup  here -->
+    <@crafter.body_bottom />
+  </body>
 </html>]]></value>
 			</htmlPage>
-			<htmlComponent label="HTML Component">
-				<value><![CDATA[<#import "/templates/system/common/cstudio-support.ftl" as studio />
-<div <@studio.componentAttr path=contentModel.storeUrl ice=false /> >
-    COMPONENT MARKUP
-</div>]]></value>
-			</htmlComponent>
 		</reference>
 		<reference id="craftercms.groovyCodeSnippets">
 			<accessContentModel label="Access Content variable">
@@ -492,7 +588,8 @@
 				<value><![CDATA[session]]></value>
 			</session>
 			<transformPathToUrl label="Transform PATH to URL">
-				<value><![CDATA[urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)]]></value>
+				<value>
+					<![CDATA[urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)]]></value>
 			</transformPathToUrl>
 			<userProfile label="User Profile">
 				<value><![CDATA[profile]]></value>
