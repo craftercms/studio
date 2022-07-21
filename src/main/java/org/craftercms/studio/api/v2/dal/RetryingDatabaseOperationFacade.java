@@ -29,6 +29,15 @@ import java.util.Map;
 @SuppressWarnings("rawtypes")
 public interface RetryingDatabaseOperationFacade {
 
+    /**
+     * Retries the database operation {@code op} up to the configured maximum retries.
+     * See {@link org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler}
+     *
+     * @param op operation to execute
+     */
+    void retry(Runnable op);
+
+
     // Dependency API v1
 
     /**
@@ -521,20 +530,6 @@ public interface RetryingDatabaseOperationFacade {
      * @param newPath new path
      */
     void moveItem(String siteId, String oldPath, String newPath);
-
-    /**
-     * Move items
-     * @param siteId site identifier
-     * @param oldPath old path
-     * @param newPath new path
-     * @param parentId new parent id, if null parent will not be changed
-     * @param oldPreviewUrl old preview url
-     * @param newPreviewUrl new preview url
-     * @param onStatesBitMap state bitmap to flip on
-     * @param offStatesBitMap state bitmap to flip off
-     */
-    void moveItems(String siteId, String oldPath, String newPath, Long parentId, String oldPreviewUrl,
-                   String newPreviewUrl, long onStatesBitMap, long offStatesBitMap);
 
     /**
      * Clear previous path of the content

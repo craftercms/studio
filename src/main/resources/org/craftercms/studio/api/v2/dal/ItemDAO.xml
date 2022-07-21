@@ -977,6 +977,9 @@
         <if test="parentId != null">
             , i.parent_id = #{parentId}
         </if>
+        <if test="label != null">
+            , i.label = #{label}
+        </if>
         WHERE s.site_id = #{siteId} AND s.deleted = 0 AND (i.path = #{oldPath} OR i.path = '${oldPath}/index.xml')
     </update>
 

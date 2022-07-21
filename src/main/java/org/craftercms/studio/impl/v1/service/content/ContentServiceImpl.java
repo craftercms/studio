@@ -1019,7 +1019,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
                 Long parentId = newParent != null? newParent.getId() : null;
-                updateDatabaseOnMove(site, fromPath, movePath, parentId);
+                updateDatabaseOnMove(site, fromPath, movePath, parentId, moveFileName);
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
@@ -1045,10 +1045,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath)
             throws ServiceLayerException, UserNotFoundException {
-        updateDatabaseOnMove(site, fromPath, movePath, null);
+        updateDatabaseOnMove(site, fromPath, movePath, null, null);
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId)
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label)
             throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
@@ -1071,7 +1071,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
         String targetPath = (movePath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
                 movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR)) : movePath;
-        itemServiceInternal.moveItems(site, sourcePath, targetPath, parentId);
+        itemServiceInternal.moveItems(site, sourcePath, targetPath, parentId, label);
 
         // write activity stream
         SiteFeed siteFeed = siteService.getSite(site);
