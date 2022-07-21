@@ -119,6 +119,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -216,16 +217,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 throw new InvalidRemoteUrlException();
             } catch (GitAPIException | IOException e) {
                 if (e.getCause() instanceof NoRemoteRepositoryException) {
-                    logger.error1("Remote repository not found " + remoteRepository.getRemoteName() + " (url: " +
-                            remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
-                    throw new RemoteRepositoryNotFoundException("Remote repository not found " +
-                            remoteRepository.getRemoteName() + " (url: " + remoteRepository.getRemoteUrl() +
-                            ") for site " + siteId, e);
+                    logger.error("Failed to add the remote '{}' URL '{}' to site '{}' because the remote repository " +
+                            "was not found",
+                            remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId, e);
+                    throw new RemoteRepositoryNotFoundException(format("Failed to add the remote '%s' URL '%s'" +
+                                    " to site '%s' because the remote repository was not found",
+                                    remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId), e);
                 } else {
-                    logger.error1("Error while adding remote " + remoteRepository.getRemoteName() + " (url: " +
-                            remoteRepository.getRemoteUrl() + ") " + "for site " + siteId, e);
-                    throw new ServiceLayerException("Error while adding remote " + remoteRepository.getRemoteName() +
-                            " (url: " + remoteRepository.getRemoteUrl() + ") for site " + siteId, e);
+                    logger.error("Failed to add the remote '{}' URL '{}' to site '{}'",
+                            remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId, e);
+                    throw new ServiceLayerException(format("Failed to add the remote '%s' URL '%s'" +
+                                    " to site '%s'",
+                            remoteRepository.getRemoteName(), remoteRepository.getRemoteUrl(), siteId), e);
                 }
             }
 
@@ -241,8 +244,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     private void insertRemoteToDb(String siteId, RemoteRepository remoteRepository) throws CryptoException {
-        logger.debug1("Inserting remote " + remoteRepository.getRemoteName() + " for site " + siteId +
-                " into database.");
+        // TODO: SJ: Avoid using string literals
+        logger.debug("Insert the remote repository '{}' from site '{}' into the database",
+                remoteRepository.getRemoteName(), siteId);
         Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteRepository.getRemoteName());
@@ -251,28 +255,28 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         params.put("remoteUsername", remoteRepository.getRemoteUsername());
 
         if (StringUtils.isNotEmpty(remoteRepository.getRemotePassword())) {
-            logger.debug1("Encrypt password before inserting to database");
+            logger.trace("Encrypt the password before inserting into the database for site '{}'", siteId);
             String hashedPassword = encryptor.encrypt(remoteRepository.getRemotePassword());
             params.put("remotePassword", hashedPassword);
         } else {
             params.put("remotePassword", remoteRepository.getRemotePassword());
         }
         if (StringUtils.isNotEmpty(remoteRepository.getRemoteToken())) {
-            logger.debug1("Encrypt token before inserting to database");
+            logger.trace("Encrypt the token before inserting into the database for site '{}'", siteId);
             String hashedToken = encryptor.encrypt(remoteRepository.getRemoteToken());
             params.put("remoteToken", hashedToken);
         } else {
             params.put("remoteToken", remoteRepository.getRemoteToken());
         }
         if (StringUtils.isNotEmpty(remoteRepository.getRemotePrivateKey())) {
-            logger.debug1("Encrypt private key before inserting to database");
+            logger.trace("Encrypt the private key before inserting into the database for site '{}'", siteId);
             String hashedPrivateKey = encryptor.encrypt(remoteRepository.getRemotePrivateKey());
             params.put("remotePrivateKey", hashedPrivateKey);
         } else {
             params.put("remotePrivateKey", remoteRepository.getRemotePrivateKey());
         }
 
-        logger.debug1("Insert site remote record into database");
+        logger.debug("Insert the site remote record into database for site '{}'", siteId);
         retryingDatabaseOperationFacade.insertRemoteRepository(params);
     }
 
@@ -289,7 +293,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                         try {
                             fetchRemote(siteId, git, conf);
                         } catch (Exception e) {
-                            logger.warn1("Failed to fetch from remote repository " + conf.getName());
+                            logger.warn("Failed to fetch from the remote repository '{}' in site '{}'",
+                                    conf.getName(), siteId, e);
                             unreachableRemotes.put(conf.getName(), e.getMessage());
                         }
                     }
@@ -301,7 +306,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     res = getRemoteRepositoryInfo(resultRemotes, remoteBranches, unreachableRemotes, sandboxBranchName);
                 }
             } catch (GitAPIException e) {
-                logger.error1("Error getting remote repositories for site " + siteId, e);
+                logger.error("Failed to get the remote repositories for site '{}'", siteId, e);
             }
         }
         return res;
