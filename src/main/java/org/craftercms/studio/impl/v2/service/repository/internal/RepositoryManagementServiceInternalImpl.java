@@ -418,18 +418,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public MergeResult pullFromRemote(String siteId, String remoteName, String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException, InvalidRemoteRepositoryCredentialsException,
                     RemoteRepositoryNotFoundException {
-        logger.debug1("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
+                remoteName, siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
-        logger.debug1("Prepare pull command");
+        logger.trace("Prepare the JGit pull command in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         generalLockService.lock(gitLockKey);
         Path tempKey = null;
         try (Git git = new Git(repo)) {
             PullCommand pullCommand = git.pull();
-            logger.debug1("Set remote " + remoteName);
+            logger.trace("Set the JGit pull command remote to '{}' in site '{}'", remoteName, siteId);
             pullCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug1("Set branch to be " + remoteBranch);
+            logger.trace("Set the JGit pull command branch to '{}' in site '{}'", remoteBranch, siteId);
             pullCommand.setRemoteBranchName(remoteBranch);
             tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
             gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
@@ -449,7 +450,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             PullResult pullResult = retryingRepositoryOperationFacade.call(pullCommand);
             String pullResultMessage = pullResult.toString();
             if (StringUtils.isNotEmpty(pullResultMessage)) {
-                logger.info1(pullResultMessage);
+                logger.info("Git pull in site '{}' returned '{}'", siteId, pullResultMessage);
             }
             if (pullResult.isSuccessful()) {
                 String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
@@ -458,10 +459,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
                 List<String> commitIds = new LinkedList<>();
                 if (isNotEmpty(newMergedCommits)) {
-                    logger.debug1("Really pulled commits:");
+                    logger.debug("Actual commits pulled for site '{}':", siteId);
                     int cnt = 0;
                     for (String commitId : newMergedCommits) {
-                        logger.debug1(commitId);
+                        logger.debug(commitId);
                         if (!StringUtils.equals(lastCommitId, commitId)) {
                             commitIds.add(commitId);
                             if (cnt++ >= batchSizeGitLog) {
@@ -485,16 +486,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 notificationService.notifyRepositoryMergeConflict(siteId, conflictFiles);
             }
         } catch (InvalidRemoteException e) {
-            logger.error1("Remote is invalid " + remoteName, e);
+            logger.error("Failed to pull from the remote '{}' in site '{}' because the remote is invalid",
+                    remoteName, siteId, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
+            // TODO: SJ: Seems like the actual logging is being done inside the util, not great, need to fix
             GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
                                         remoteRepository.getRemoteUsername());
         } catch (GitAPIException e) {
-            logger.error1("Error while pulling from remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
-            throw new ServiceLayerException("Error while pulling from remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
+            logger.error("Failed to pull from remote '{}' branch '{}' in site '{}'",
+                    remoteName, remoteBranch, siteId, e);
+            throw new ServiceLayerException(format("Failed to pull from remote '%s' branch '%s' in site '%s'",
+                    remoteName, remoteBranch, siteId), e);
         } catch (CryptoException | IOException e) {
             throw new ServiceLayerException(e);
         } finally {
@@ -503,7 +506,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     Files.deleteIfExists(tempKey);
                 }
             } catch (IOException e) {
-                logger.warn1("Error deleting file '{}'", tempKey, e);
+                logger.warn("Failed to delete the file '{}'", tempKey, e);
             }
             generalLockService.unlock(gitLockKey);
         }
