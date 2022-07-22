@@ -604,9 +604,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                             break;
                         case REJECTED_REMOTE_CHANGED:
                             toRet = false;
-                            logger.error1111("Failed to push to remote '{}' ref '{}' from site '{}'. Old object ID " +
-                                            "in the remote repository wasn't the same as defined expected old " +
-                                            "object\n'{}'",
+                            logger.error("Failed to push to remote '{}' ref '{}' from site '{}'. The remote " +
+					    "has changed\n'{}'",
                                     remoteName, remoteRefUpdate.getSrcRef(), siteId, remoteRefUpdate.getMessage());
                             break;
                         case REJECTED_OTHER_REASON:
@@ -640,7 +639,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         if (!isRemovableRemote(siteId, remoteName)) {
             throw new RemoteNotRemovableException("Remote repository " + remoteName + " is not removable");
         }
-        logger.debug1("Remove remote " + remoteName + " from the sandbox repo for the site " + siteId);
+        logger.debug("Remove the remote '{}' from the sandbox repository in site '{}'", remoteName, siteId);
 
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
@@ -667,14 +666,16 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 retryingRepositoryOperationFacade.call(delBranch);
             }
         } catch (GitAPIException e) {
-            logger.error1("Failed to remove remote " + remoteName + " for site " + siteId, e);
+            logger.error("Failed to remove the remote '{}' from site '{}'", remoteName, siteId, e);
             return false;
         } finally {
             generalLockService.unlock(gitLockKey);
         }
 
-        logger.debug1("Remove remote record from database for remote " + remoteName + " and site " + siteId);
+        logger.debug("Remove the database record for remote '{}' from site '{}'", remoteName, siteId);
         Map<String, String> params = new HashMap<>();
+
+	// TODO: SJ: Avoid using string literals
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         retryingDatabaseOperationFacade.deleteRemoteRepository(params);
