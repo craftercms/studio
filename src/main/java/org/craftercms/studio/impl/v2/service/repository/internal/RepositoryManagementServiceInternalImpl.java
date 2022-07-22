@@ -557,17 +557,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch, boolean force)
             throws ServiceLayerException, InvalidRemoteUrlException, InvalidRemoteRepositoryCredentialsException,
                     RemoteRepositoryNotFoundException {
-        logger.debug1("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug("Get the git remote repository information from the database for remote '{}' in site '{}'",
+                remoteName, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
 
-        logger.debug1("Prepare push command.");
+        logger.trace("Prepare the JGit push command in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             Iterable<PushResult> pushResultIterable;
             PushCommand pushCommand = git.push();
-            logger.debug1("Set remote " + remoteName);
+            logger.trace("Set the JGit push command remote to '{}' in site '{}'", remoteName, siteId);
             pushCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug1("Set branch to be " + remoteBranch);
+            logger.trace("Set the JGit push command branch to '{}' in site '{}'", remoteBranch, siteId);
             RefSpec r = new RefSpec();
             r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
                     Constants.R_HEADS +  remoteBranch);
@@ -584,32 +585,34 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             for (PushResult pushResult : pushResultIterable) {
                 String pushResultMessage = pushResult.getMessages();
                 if (StringUtils.isNotEmpty(pushResultMessage)) {
-                    logger.info1(pushResultMessage);
+                    logger.info("Git push in site '{}' returned '{}'", siteId, pushResultMessage);
                 }
                 Collection<RemoteRefUpdate> updates = pushResult.getRemoteUpdates();
                 for (RemoteRefUpdate remoteRefUpdate : updates) {
                     switch (remoteRefUpdate.getStatus()) {
                         case REJECTED_NODELETE:
                             toRet = false;
-                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, " +
-                                    "because remote side doesn't support/allow deleting refs.\n" +
-                                    remoteRefUpdate.getMessage());
+                            logger.error("Failed to push to remote '{}' ref '{}' from site '{}'. Remote side " +
+                                    "doesn't support/allow deleting refs\n'{}'",
+                                    remoteName, remoteRefUpdate.getSrcRef(), siteId, remoteRefUpdate.getMessage());
                             break;
                         case REJECTED_NONFASTFORWARD:
                             toRet = false;
-                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, as it " +
-                                    "would cause non fast-forward update.\n" + remoteRefUpdate.getMessage());
+                            logger.error("Failed to push to remote '{}' ref '{}' from site '{}'. Push would " +
+                                            "cause a non-fast-forward update\n'{}'",
+                                    remoteName, remoteRefUpdate.getSrcRef(), siteId, remoteRefUpdate.getMessage());
                             break;
                         case REJECTED_REMOTE_CHANGED:
                             toRet = false;
-                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected, because" +
-                                    " old object id on remote repository " + remoteRefUpdate.getRemoteName() +
-                                    " wasn't the same as defined expected old object. \n" + remoteRefUpdate.getMessage());
+                            logger.error1111("Failed to push to remote '{}' ref '{}' from site '{}'. Old object ID " +
+                                            "in the remote repository wasn't the same as defined expected old " +
+                                            "object\n'{}'",
+                                    remoteName, remoteRefUpdate.getSrcRef(), siteId, remoteRefUpdate.getMessage());
                             break;
                         case REJECTED_OTHER_REASON:
                             toRet = false;
-                            logger.error1("Remote ref " + remoteRefUpdate.getSrcRef() + " update was rejected for "
-                                    + "other reason.\n" + remoteRefUpdate.getMessage());
+                            logger.error("Failed to push to remote '{}' ref '{}' from site '{}'. Message:\n'{}'",
+                                    remoteName, remoteRefUpdate.getSrcRef(), siteId, remoteRefUpdate.getMessage());
                         default:
                             break;
                     }
@@ -617,17 +620,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             }
             return toRet;
         } catch (InvalidRemoteException e) {
-            logger.error1("Remote is invalid " + remoteName, e);
+            logger.error("Failed to push to the remote '{}' from site '{}', the remote is invalid. ",
+                    remoteName, siteId, e);
             throw new InvalidRemoteUrlException();
         } catch (TransportException e) {
             GitUtils.translateException(e, logger, remoteName, remoteRepository.getRemoteUrl(),
                                         remoteRepository.getRemoteUsername());
             return false;
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
-            logger.error1("Error while pushing to remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
-            throw new ServiceLayerException("Error while pushing to remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
+            logger.error("Failed to push to the remote '{}' branch '{}' from site '{}'",
+                    remoteName, remoteBranch, siteId, e);
+            throw new ServiceLayerException(format("Failed to push to the remote '%s' branch '%s' from site '%s'",
+                    remoteName, remoteBranch, siteId), e);
         }
     }
 
