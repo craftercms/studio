@@ -229,6 +229,6 @@ public interface PublishServiceInternal {
      * @param publishingTarget the publishing target
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+    void publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
 }

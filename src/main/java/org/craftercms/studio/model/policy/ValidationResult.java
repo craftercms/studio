@@ -88,7 +88,7 @@ public class ValidationResult {
     }
 
     public String getModifiedValue() {
-        return modifiedValue;
+        return allowed ? modifiedValue : null;
     }
 
     public void setModifiedValue(String modifiedValue) {

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!--
+    This file contains global permissions configuration for Crafter Studio. Permissions per site are managed
+    within Crafter Studio's UI.
+
+    The structure of this file is:
+    <permissions>
+        <site id="###GLOBAL###"> (global management)
+            <role name="">
+                <rule regex="/.*">
+                    <allowed-permissions>
+                        <permission>Read</permission>
+                        <permission>Write</permission>
+                        <permission>Delete</permission>
+                        <permission>Create Folder</permission>
+                         <permission>Publish</permission>
+                    </allowed-permissions>
+                </rule>
+            </role>
+        </site>
+    </permissions>
+
+    This binds a set of permissions to a role globally for the entire application.
+-->
+<permissions>
+    <role name="system_admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>content_read</permission>
+                <permission>content_copy</permission>
+                <permission>content_write</permission>
+                <permission>folder_create</permission>
+                <permission>publish</permission>
+                <permission>create-site</permission>
+                <permission>read_groups</permission>
+                <permission>create_groups</permission>
+                <permission>update_groups</permission>
+                <permission>delete_groups</permission>
+                <permission>read_users</permission>
+                <permission>create_users</permission>
+                <permission>update_users</permission>
+                <permission>delete_users</permission>
+                <permission>read_cluster</permission>
+                <permission>create_cluster</permission>
+                <permission>update_cluster</permission>
+                <permission>delete_cluster</permission>
+                <permission>audit_log</permission>
+                <permission>read_logs</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
+                <permission>add_remote</permission>
+                <permission>list_remotes</permission>
+                <permission>pull_from_remote</permission>
+                <permission>push_to_remote</permission>
+                <permission>rebuild_database</permission>
+                <permission>remove_remote</permission>
+                <permission>S3 Read</permission>
+                <permission>S3 Write</permission>
+                <permission>content_delete</permission>
+                <permission>webdav_read</permission>
+                <permission>webdav_write</permission>
+                <permission>write_configuration</permission>
+                <permission>write_global_configuration</permission>
+                <permission>encryption_tool</permission>
+                <permission>get_children</permission>
+                <permission>edit_site</permission>
+                <permission>manage_access_token</permission>
+                <permission>search_plugins</permission>
+                <permission>list_plugins</permission>
+                <permission>install_plugins</permission>
+                <permission>remove_plugins</permission>
+                <permission>site_delete</permission>
+                <permission>unlock_repository</permission>
+                <permission>item_unlock</permission>
+                <permission>publish_status</permission>
+                <permission>repair_repository</permission>
+                <permission>content_search</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+    <role name="site_admin">
+        <rule regex="/.*">
+            <allowed-permissions>
+                <permission>search_plugins</permission>
+            </allowed-permissions>
+        </rule>
+    </role>
+</permissions>

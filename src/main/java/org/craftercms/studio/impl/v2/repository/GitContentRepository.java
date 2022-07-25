@@ -730,7 +730,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public boolean createSiteFromBlueprint(String blueprintLocation, String site, String sandboxBranch,
-                                           Map<String, String> params) {
+                                           Map<String, String> params, String creator) {
         boolean toReturn;
         String gitLockKey = helper.getSandboxRepoLockKey(site);
         generalLockService.lock(gitLockKey);
@@ -759,7 +759,7 @@ public class GitContentRepository implements ContentRepository {
             if (toReturn) {
                 // commit everything so it is visible
                 toReturn = helper.performInitialCommit(site, helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE),
-                        sandboxBranch);
+                        sandboxBranch, creator);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1177,7 +1177,8 @@ public class GitContentRepository implements ContentRepository {
     public boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                          String remoteBranch, boolean singleBranch, String authenticationType,
                                          String remoteUsername, String remotePassword, String remoteToken,
-                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+                                         String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+                                         String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, ServiceLayerException {
         boolean toReturn;
@@ -1189,7 +1190,7 @@ public class GitContentRepository implements ContentRepository {
         try {
             toReturn = helper.createSiteCloneRemoteGitRepo(siteId, sandboxBranch, remoteName, remoteUrl, remoteBranch,
                     singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken, remotePrivateKey,
-                    createAsOrphan);
+                    createAsOrphan, creator);
 
             if (toReturn) {
                 try {
@@ -1215,7 +1216,7 @@ public class GitContentRepository implements ContentRepository {
                     // Commit everything so it is visible
                     logger.debug("Perform initial commit for site '{}'", siteId);
                     toReturn = helper.performInitialCommit(siteId,
-                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch);
+                            helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE), sandboxBranch, creator);
                 }
             } else {
                 logger.error("Error while creating site '{}' by cloning remote repository '{} ({})'",
@@ -1715,7 +1716,7 @@ public class GitContentRepository implements ContentRepository {
                     Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
                     Iterator<RevCommit> iterator = commits.iterator();
                     boolean found = false;
-                    while (!found || iterator.hasNext()) {
+                    while (!found && iterator.hasNext()) {
                         RevCommit revCommit = iterator.next();
                         if (StringUtils.equals(commitId, revCommit.getName())) {
                             found = true;
@@ -1860,7 +1861,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public RepositoryChanges publishAll(String siteId, String publishingTarget) {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
         // this method should not be called
         throw new UnsupportedOperationException();
     }
@@ -1950,7 +1951,7 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+    public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
             throws ServiceLayerException {
         if (changes.isInitialPublish()) {
             return;
@@ -1962,9 +1963,9 @@ public class GitContentRepository implements ContentRepository {
             try (Git git = Git.wrap(repo)) {
                 try {
                     // commit all files
+                    String commitMessage = StringUtils.isNotEmpty(comment) ? comment : helper.getCommitMessage(REPO_PUBLISH_ALL_COMMIT_MESSAGE);
                     retryingRepositoryOperationFacade.call(git.commit()
-                                                              .setMessage(helper.getCommitMessage(
-                                                                          REPO_PUBLISH_ALL_COMMIT_MESSAGE))
+                                                              .setMessage(commitMessage)
                                                               .setAllowEmpty(false));
                     // checkout target branch
                     checkoutBranch(git, publishingTarget);

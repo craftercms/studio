@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -40,6 +41,7 @@ import org.craftercms.studio.model.rest.content.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,6 +60,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RENAME;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONTENT_BY_COMMIT_ID;
@@ -134,7 +137,7 @@ public class ContentController {
     }
 
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody delete(@RequestBody DeleteRequestBody deleteRequestBody)
+    public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
             throws UserNotFoundException, ServiceLayerException, DeploymentException {
         workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
                 deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
@@ -165,7 +168,7 @@ public class ContentController {
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getDescriptor(@RequestParam String siteId, @RequestParam String path,
                                       @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
-            ContentNotFoundException {
+            ContentNotFoundException, SiteNotFoundException {
         var item = contentService.getItem(siteId, path, flatten);
         var descriptor = item.getDescriptorDom();
         if (descriptor == null) {
@@ -299,5 +302,18 @@ public class ContentController {
                 .ok()
                 .contentType(MediaType.parseMediaType(item.getMimeType()))
                 .body(resource);
+    }
+
+    @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
+    public ResponseBody rename(@RequestBody RenameRequestBody renameRequestBody)
+            throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
+
+        contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
+
+        var responseBody = new ResponseBody();
+        var result = new Result();
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
     }
 }

@@ -111,7 +111,7 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                            Map<String, String> params) {
+                                            Map<String, String> params, String creator) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
@@ -174,7 +174,8 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     default boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                           String remoteBranch, boolean singleBranch, String authenticationType,
                                           String remoteUsername, String remotePassword, String remoteToken,
-                                          String remotePrivateKey, Map<String, String> params, boolean createAsOrphan) {
+                                          String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+                                          String creator) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }

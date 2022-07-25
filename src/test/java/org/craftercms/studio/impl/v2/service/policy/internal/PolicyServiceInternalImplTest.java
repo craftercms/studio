@@ -441,6 +441,15 @@ public class PolicyServiceInternalImplTest {
         checkSingleResult(results, true);
     }
 
+    @Test
+    public void multipleTransformationTest() throws ConfigurationException {
+        Action action = new Action();
+        action.setType(Type.CREATE);
+        action.setTarget("/static-assets/test/paren(thesis)in_name.png");
+        List<ValidationResult> results = policyService.validate(SITE_ID, List.of(action));
+        checkSingleResult(results, true, "/static-assets/test/paren-thesis-in-name.png");
+    }
+
     protected void checkSingleResult(List<ValidationResult> results, boolean allowed) {
         checkSingleResult(results, allowed, null);
     }

@@ -18,6 +18,8 @@ package org.craftercms.studio;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.testng.annotations.DataProvider;
@@ -40,6 +42,8 @@ import static org.testng.Assert.assertEquals;
  */
 public class XsltTest {
 
+    private static final Logger logger = LoggerFactory.getLogger(XsltTest.class);
+
     /**
      * Each array must follow this structure:
      * 0: resource for the XSLT template
@@ -52,14 +56,14 @@ public class XsltTest {
         return new Object[][] {
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config/site-config-v9.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v9/input.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v9/expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config/v9/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config/v9/expected.xml"),
                 emptyMap()
             },
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config/site-config-v10.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v10/input.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-v10/expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config/v10/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config/v10/expected.xml"),
                 emptyMap()
             },
             new Object[] {
@@ -108,15 +112,15 @@ public class XsltTest {
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/permission-mappings-config/" +
                                         "permission-mappings-config-v4.0.3.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.3/input.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.3/expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.3/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.3/expected.xml"),
                 emptyMap()
             },
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/permission-mappings-config/" +
                                         "permission-mappings-config-v4.0.4.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.4/input.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config-v4.0.4/expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.4/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.4/expected.xml"),
                 emptyMap()
             },
             new Object[] {
@@ -130,6 +134,37 @@ public class XsltTest {
                     new ClassPathResource("crafter/studio/upgrade/xslt/ui-v4.0.5/input.xml"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/ui-v4.0.5/expected.xml"),
                     emptyMap()
+            },
+            new Object[]{
+                    new ClassPathResource("crafter/studio/upgrade/4.0.x/4.0.1.5/system/global-permission-mappings-config.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.0.1.5/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.0.1.5/expected.xml"),
+                    emptyMap()
+            },
+            new Object[]{
+                    new ClassPathResource("crafter/studio/upgrade/4.0.x/config/permission-mappings-config/" +
+                            "permission-mappings-config-v4.0.7.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.7/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/permission-mappings-config/permission-mappings-config-v4.0.7/expected.xml"),
+                    emptyMap()
+            },
+            new Object[]{
+                    new ClassPathResource("crafter/studio/upgrade/4.0.x/config/resolver-config/resolver-config-v4.xslt"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v4/input.xml"),
+                    new ClassPathResource("crafter/studio/upgrade/xslt/resolver-config-v4/expected.xml"),
+                    emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.1.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.0.1.1/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config/4.0.1.1/expected.xml"),
+                emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/4.0.0.6/site/site-policy-config.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-policy/4.0.0.6/input.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-policy/4.0.0.6/expected.xml"),
+                emptyMap()
             }
         };
     }
@@ -153,6 +188,10 @@ public class XsltTest {
                     .checkForSimilar()
                     .build();
 
+            if (diff.hasDifferences()){
+                logger.debug(result);
+            }
+
             // there should not be any differences
             assertEquals(IterableUtils.size(diff.getDifferences()), 0,
                     "The result XML should be equal to the expected XML");
@@ -174,6 +213,7 @@ public class XsltTest {
                 // there should not be any differences
                 assertEquals(IterableUtils.size(diff.getDifferences()), 0,
                         "The result XML should not change the second time");
+
             }
         }
     }

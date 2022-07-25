@@ -29,6 +29,7 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.slf4j.Logger;
@@ -77,7 +78,7 @@ public abstract class AbstractContentUpgradeOperation extends AbstractUpgradeOpe
         try {
             List<Path> includedPaths = findIncludedPaths(context);
             // This is required to support upgrades in config pipelines
-            if (isEmpty(includedPaths)) {
+            if (isEmpty(includedPaths) && StringUtils.isNotEmpty(context.getCurrentConfigPath())) {
                 Path repo = context.getRepositoryPath(); //TODO: Check if parent is needed
                 includedPaths = singletonList(repo.resolve(removeStart(context.getCurrentConfigPath(), //TODO: Check if path is ok
                         File.separator)));

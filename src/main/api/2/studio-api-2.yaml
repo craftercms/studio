@@ -554,7 +554,7 @@ paths:
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: updateUser
       requestBody:
-        description: User entity to update. The `password` and `externallyManaged` fields will be ignored if sent.
+        description: User entity to update. The `password`, `externallyManaged` and `username` fields will be ignored if sent.
         required: true
         content:
           application/json:
@@ -3872,6 +3872,57 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/rename:
+    post:
+      tags:
+        - content
+      summary: Rename content
+      description: 'Required permission "content_write"'
+      operationId: contentRename
+      requestBody:
+        description: parameters for rename content
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                  description: site identifier
+                path:
+                  type: string
+                  description: full path to the item to rename
+                name:
+                  type: string
+                  description: new item name (just the name, no path)
+              required:
+                - siteId
+                - path
+                - name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/children_by_path:
     post:
       tags:
@@ -4735,9 +4786,13 @@ paths:
                   description: site ID
                 publishingTarget:
                   type: string
-                  description: the publishing target (staging or live). If not specified, live is assumed
+                  description: the publishing target (staging or live)
+                submissionComment:
+                  type: string
+                  description: optional submission comment
               required:
                 - siteId
+                - publishingTarget
       responses:
         '200':
           description: OK
@@ -6497,7 +6552,7 @@ paths:
             schema:
               type: object
               properties:
-                siteId: 
+                siteId:
                   type: string
                   description: site ID
                 items:
@@ -6517,6 +6572,12 @@ paths:
                 staged:
                   type: boolean
                   description: true if item is to be set as staged, otherwise false
+                new:
+                  type: boolean
+                  description: true if item is to be set as new, otherwise false
+                modified:
+                  type: boolean
+                  description: true if item is to be set as modified, otherwise false
               required:
                 - siteId
                 - items
@@ -6557,7 +6618,7 @@ paths:
                 query:
                   type: object
                   properties:
-                    siteId: 
+                    siteId:
                       type: string
                       description: site ID
                     path:
@@ -6585,6 +6646,12 @@ paths:
                     staged:
                       type: boolean
                       description: true if item is to be set as staged, otherwise false
+                    new:
+                      type: boolean
+                      description: true if item is to be set as new, otherwise false
+                    modified:
+                      type: boolean
+                      description: true if item is to be set as modified, otherwise false
               required:
                 - query
                 - update
@@ -6666,7 +6733,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6732,7 +6799,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6795,7 +6862,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6858,7 +6925,7 @@ paths:
           application/json:
             schema:
               type: object
-              properties: 
+              properties:
                 siteId:
                   type: string
                   description: site identifier
@@ -6941,7 +7008,7 @@ paths:
           description: ascending or descending (ASC | DESC). Default ascending
           required: false
           schema:
-            type: string       
+            type: string
       responses:
         '200':
           description: OK
@@ -7016,7 +7083,7 @@ paths:
               required:
                 - siteId
                 - paths
-                - publishingTarget   
+                - publishingTarget
       responses:
         '201':
           description: CREATED
@@ -7087,7 +7154,7 @@ paths:
           required: true
           schema:
             type: string
-            format: UUID                
+            format: UUID
       responses:
         '200':
           description: OK
@@ -7205,7 +7272,7 @@ paths:
                       - rejectionComment
               required:
                 - siteId
-                - packages              
+                - packages
       responses:
         '200':
           description: OK
@@ -7245,7 +7312,7 @@ components:
           * `CODE:` 4000, `MESSAGE:` Group not found, `REMEDIAL ACTION:` Check if you sent in the right Group Id
           * `CODE:` 5000, `MESSAGE:` Site not found, `REMEDIAL ACTION:` Check if you sent in the right Site Id
           * `CODE:` 5001, `MESSAGE:` Site already exists, `REMEDIAL ACTION:` Try a different site name
-          * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID
+          * `CODE:` 6000, `MESSAGE:` User not found, `REMEDIAL ACTION:` Check if you're using the correct User ID or username
           * `CODE:` 6001, `MESSAGE:` User already exists, `REMEDIAL ACTION:` Try a different username
           * `CODE:` 6002, `MESSAGE:` User is externally managed, `REMEDIAL ACTION:` Update the user in the main identity system (e.g. LDAP)
           * `CODE:` 6003, `MESSAGE:` User password does not fulfill requirements, `REMEDIAL ACTION:` Use password that will fulfill password requirements
@@ -7397,7 +7464,7 @@ components:
           description: Site UUID unique and immutable
         name:
           type: string
-          description: site name 
+          description: site name
         desc:
           type: string
           description: Site description
@@ -8954,7 +9021,7 @@ components:
           description: workflow package ID
         siteId:
           type: string
-          description: site identifier 
+          description: site identifier
         status:
           type: string
           description: workflow package status
@@ -8974,10 +9041,10 @@ components:
         authorComment:
           type: string
           description: author's comment
-        reviewerComment: 
+        reviewerComment:
           type: string
           description: reviewer's comment
-        label: 
+        label:
           type: string
           description: user friendly label for package
       required:

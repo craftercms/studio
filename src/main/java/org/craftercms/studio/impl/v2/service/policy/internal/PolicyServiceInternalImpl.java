@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
-import org.craftercms.studio.api.v2.exception.validation.ValidationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.policy.internal.PolicyServiceInternal;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
@@ -34,6 +33,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
@@ -110,43 +110,53 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         }
     }
 
-    protected void evaluateAction(HierarchicalConfiguration<?> config, Action action, List<ValidationResult> results,
-                                  boolean includeAllowed) {
-        try {
-            systemValidator.validate(null, null, action);
+    protected void evaluateAction(final HierarchicalConfiguration<?> config, final Action action, final List<ValidationResult> results,
+                                  final boolean includeAllowed) {
+        ValidationResult systemResult = ValidationResult.allowed(action);
+        systemValidator.validate(null, null, action, systemResult);
+        if (!systemResult.isAllowed()) {
+            results.add(systemResult);
+            return;
+        }
 
-            if (config != null) {
-                var statementConfig = config.configurationsAt(CONFIG_KEY_STATEMENT).stream()
-                        .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
-                        .findFirst();
-
-                if (statementConfig.isPresent()) {
-                    var statement = statementConfig.get();
-
-                    for (var validator : policyValidators) {
-                        logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
-                        validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action);
-                    }
-                } else {
-                    logger.debug("No matching statements found, skipping the action '{}'", action);
-                }
-            } else {
-                logger.debug("No policy configuration found, skipping the action '{}'", action);
-            }
+        if (config == null) {
+            logger.debug("No policy configuration found, skipping action '{}'", action);
             if (includeAllowed) {
-                logger.debug("Action '{}' is permitted", action);
                 results.add(ValidationResult.allowed(action));
             }
-        } catch (ValidationException e) {
-            logger.error("Failed validation for action '{}'", action, e);
-            if (e.getModifiedValue() != null) {
-                logger.debug("Action '{}' allowed with modifications", action);
-                results.add(ValidationResult.allowedWithModifications(action, e.getModifiedValue()));
-            } else {
-                logger.debug("Action '{}' is not allowed", action);
-                results.add(ValidationResult.notAllowed(action));
+            return;
+        }
+
+        List<? extends HierarchicalConfiguration<?>> statements = config.configurationsAt(CONFIG_KEY_STATEMENT)
+                .stream()
+                .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
+                .collect(Collectors.toList());
+        if (statements.size() == 0) {
+            logger.debug("No statement matches found, skipping action '{}'", action);
+        }
+        ValidationResult result = validateStatements(action, statements);
+        if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
+            results.add(result);
+        }
+    }
+
+    private ValidationResult validateStatements(Action action, List<? extends HierarchicalConfiguration<?>> statements) {
+        ValidationResult result = ValidationResult.allowed(action);
+        for (HierarchicalConfiguration<?> statement : statements) {
+            for (var validator : policyValidators) {
+                logger.debug("Evaluating action '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
+                if (result.getModifiedValue() != null) {
+                    logger.debug("Allowed with modifications the action '{}'", action);
+                } else if (result.isAllowed()) {
+                    logger.debug("Allowed action '{}'", action);
+                } else {
+                    logger.error("Validation failed for action '{}'", action);
+                    return result;
+                }
             }
         }
+        return result;
     }
 
     protected HierarchicalConfiguration<?> getSubConfig(HierarchicalConfiguration<?> statement, String configKey) {

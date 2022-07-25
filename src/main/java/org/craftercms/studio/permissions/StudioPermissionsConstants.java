@@ -79,6 +79,8 @@ public final class StudioPermissionsConstants {
 
     public static final String PERMISSION_CONTENT_SEARCH = "content_search";
 
+    public static final String PERMISSION_VIEW_LOGS = "view_logs";
+
     private StudioPermissionsConstants() {
     }
 }

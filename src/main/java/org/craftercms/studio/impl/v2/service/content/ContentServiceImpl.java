@@ -20,7 +20,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -73,6 +76,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_R
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
+import static java.lang.String.format;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
 
@@ -89,6 +93,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private SecurityService securityService;
     private GeneralLockService generalLockService;
     private ApplicationContext applicationContext;
+    private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 
     @Override
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
@@ -189,9 +194,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                        @ValidateSecurePathParam String path, boolean flatten) {
-        return contentServiceInternal.getItem(siteId, path, flatten);
+    @ValidateParams
+    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(notEmpty = true) String siteId,
+                        @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
+            throws SiteNotFoundException, ContentNotFoundException {
+        siteService.checkSiteExists(siteId);
+
+        try {
+            return contentServiceInternal.getItem(siteId, path, flatten);
+        } catch (PathNotFoundException e) {
+            logger.error("Content not found for site '{}' at path '{}'", siteId, path, e);
+            throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'", siteId, path));
+        }
     }
 
     @Override
@@ -275,6 +289,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
+    public boolean renameContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
+     throws ServiceLayerException, UserNotFoundException{
+        logger.debug("rename path {} to new name {} for site {}", path, name, site);
+        return contentServiceV1.renameContent(site, path, name);
+    }
+
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
@@ -317,5 +340,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
         this.generalLockService = generalLockService;
+    }
+
+    public void setContentServiceV1(org.craftercms.studio.api.v1.service.content.ContentService contentService) {
+        this.contentServiceV1 = contentService;
     }
 }

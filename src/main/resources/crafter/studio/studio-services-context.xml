@@ -550,6 +550,7 @@
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
+        <property name="contentServiceV1" ref="cstudioContentService" />
     </bean>
 
     <bean id="contentServiceInternal"
@@ -1665,6 +1666,23 @@
 
     <bean id="accessTokenService" class="org.craftercms.studio.impl.v2.service.security.AccessTokenServiceImpl">
         <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
+    </bean>
+
+    <bean id="cstudioMonitorService" class="org.craftercms.studio.impl.v2.service.monitor.MonitorServiceImpl">
+        <constructor-arg name="monitorServiceInternal" ref="cstudioMonitorServiceInternal"/>
+    </bean>
+
+    <bean id="cstudioMonitorServiceInternal" class="org.craftercms.studio.impl.v2.service.monitor.internal.MonitorServiceInternalImpl">
+    </bean>
+
+    <bean id="cstudioProxyService" class="org.craftercms.studio.impl.v2.service.proxy.ProxyServiceImpl">
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="proxyServiceInternal" ref="cstudioProxyServiceInternal"/>
+    </bean>
+
+    <bean id="cstudioProxyServiceInternal" class="org.craftercms.studio.impl.v2.service.proxy.internal.ProxyServiceInternalImpl">
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.content;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -116,7 +117,7 @@ public interface ContentService {
             throws ServiceLayerException, UserNotFoundException;
 
 
-    Item getItem(String siteId, String path, boolean flatten);
+    Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
     /**
      * Get detailed item for given path
@@ -162,4 +163,18 @@ public interface ContentService {
      */
     Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException;
+
+    /**
+    * Rename content for given path
+    * @param site  site identifier
+    * @param path path of the content
+    * @param name new name of the content
+    * @return true if success, otherwise false
+    *
+    * @throws ServiceLayerException general service error
+    * @throws UserNotFoundException user not found error
+    */
+    public boolean renameContent( String site, String path, String name)
+         throws ServiceLayerException, UserNotFoundException;
+
 }

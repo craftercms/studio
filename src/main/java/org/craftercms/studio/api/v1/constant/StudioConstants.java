@@ -126,6 +126,7 @@ public final class StudioConstants {
     public static final String CONTENT_TYPE_USER = "user";
     public static final String CONTENT_TYPE_GROUP = "group";
     public static final String CONTENT_TYPE_TAXONOMY_REGEX = "/site/taxonomy/([^<]+)\\.xml";
+    public static final String CONTENT_TYPE_CONFIG_REGEX = "/config/([^<]+)\\.xml";
     public static final String CONTENT_TYPE_ALL = "all";
     public static final String CONTENT_TYPE_FORM_DEFINITION = "formDefinition";
     public static final String CONTENT_TYPE_SITE = "site";
@@ -134,6 +135,13 @@ public final class StudioConstants {
     public static final String CONTENT_TYPE_SCRIPT = "script";
     public static final String CONTENT_TYPE_LEVEL_DESCRIPTOR = "levelDescriptor";
     public static final String CONTENT_TYPE_FILE = "file";
+    public static final List<String> SUPPORT_RENAME_CONTENT_TYPES = List.of(
+        CONTENT_TYPE_ASSET,
+        CONTENT_TYPE_FOLDER,
+        CONTENT_TYPE_SCRIPT,
+        CONTENT_TYPE_RENDERING_TEMPLATE,
+        CONTENT_TYPE_FILE
+    );
 
     /**
      * System constants

@@ -148,14 +148,15 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
         userServiceInternal.updateUser(user);
+        User updatedUser = userServiceInternal.getUserByIdOrUsername(user.getId(), StringUtils.EMPTY);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(getCurrentUser().getUsername());
-        auditLog.setPrimaryTargetId(user.getUsername());
+        auditLog.setPrimaryTargetId(updatedUser.getUsername());
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
-        auditLog.setPrimaryTargetValue(user.getUsername());
+        auditLog.setPrimaryTargetValue(updatedUser.getUsername());
         auditServiceInternal.insertAuditLog(auditLog);
     }
 

@@ -34,7 +34,7 @@ public interface ContentServiceInternal {
      * Get subtree items for given path.
      *
      * @param siteId site identifier
-     * @param path path to get subtree items for
+     * @param path   path to get subtree items for
      * @return list of paths of subtree items
      */
     List<String> getSubtreeItems(String siteId, String path);
@@ -43,7 +43,7 @@ public interface ContentServiceInternal {
      * Get subtree items for given paths.
      *
      * @param siteId site identifier
-     * @param path list of paths to get subtree items for
+     * @param path   list of paths to get subtree items for
      * @return list of paths of subtree items
      */
     List<String> getSubtreeItems(String siteId, List<String> path);
@@ -72,8 +72,9 @@ public interface ContentServiceInternal {
 
     /**
      * Get content size
+     *
      * @param siteId site identifier
-     * @param path content path
+     * @param path   content path
      * @return size in bytes
      */
     long getContentSize(String siteId, String path);
@@ -81,8 +82,8 @@ public interface ContentServiceInternal {
     /**
      * Get detailed for given path
      *
-     * @param siteId site identifier
-     * @param path item for path
+     * @param siteId        site identifier
+     * @param path          item for path
      * @param preferContent if true return content item if available
      * @return detailed item
      */
@@ -91,8 +92,9 @@ public interface ContentServiceInternal {
 
     /**
      * Get sandbox items for given list of paths
-     * @param siteId site identifier
-     * @param paths list of paths to get sandbox items
+     *
+     * @param siteId        site identifier
+     * @param paths         list of paths to get sandbox items
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
@@ -101,8 +103,9 @@ public interface ContentServiceInternal {
 
     /**
      * Get sandbox items for given list of paths
-     * @param siteId site identifier
-     * @param ids list of ids to get sandbox items
+     *
+     * @param siteId        site identifier
+     * @param ids           list of ids to get sandbox items
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
@@ -111,7 +114,8 @@ public interface ContentServiceInternal {
 
     /**
      * Check if item is editable
-     * @param itemPath item path
+     *
+     * @param itemPath     item path
      * @param itemMimeType item mime type
      * @return true if item is editable
      */
@@ -119,22 +123,25 @@ public interface ContentServiceInternal {
 
     /**
      * Lock item by path for given site
+     *
      * @param siteId site identifier
-     * @param path item path to lock
+     * @param path   item path to lock
      */
     void itemLockByPath(String siteId, String path);
 
     /**
      * Unlock item by path for given site
+     *
      * @param siteId site identifier
-     * @param path item path
+     * @param path   item path
      */
     void itemUnlockByPath(String siteId, String path);
 
     /**
      * Get content for commit id
-     * @param siteId  site identifier
-     * @param path path of the content
+     *
+     * @param siteId   site identifier
+     * @param path     path of the content
      * @param commitId commit id of the content version
      * @return the resource if available
      */

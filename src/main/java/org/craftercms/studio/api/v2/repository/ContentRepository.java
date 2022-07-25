@@ -146,10 +146,11 @@ public interface ContentRepository {
      * @param siteId site identifier
      * @param sandboxBranch sandbox branch name
      * @param params site parameters
+     * @param creator site creator
      * @return true if successful, false otherwise
      */
     boolean createSiteFromBlueprint(String blueprintLocation, String siteId, String sandboxBranch,
-                                    Map<String, String> params);
+                                    Map<String, String> params, String creator);
 
     /**
      * Publish content to specified environment.
@@ -208,7 +209,7 @@ public interface ContentRepository {
      * @param remotePrivateKey remote private key
      * @param params         site parameters
      * @param createAsOrphan create as orphan
-     *
+     * @param creator        site creator
      * @return true if success
      *
      * @throws InvalidRemoteRepositoryException invalid remote repository
@@ -220,7 +221,8 @@ public interface ContentRepository {
     boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                   String remoteBranch, boolean singleBranch, String authenticationType,
                                   String remoteUsername, String remotePassword, String remoteToken,
-                                  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan)
+                                  String remotePrivateKey, Map<String, String> params, boolean createAsOrphan,
+                                  String creator)
             throws InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException, ServiceLayerException;
 
@@ -400,8 +402,9 @@ public interface ContentRepository {
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
+     * @param comment submission comment
      */
-    RepositoryChanges publishAll(String siteId, String publishingTarget) throws ServiceLayerException;
+    RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
     /**
      * Prepares the repository to publish all changes for the given site & target
@@ -419,9 +422,10 @@ public interface ContentRepository {
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
      * @param changes the set of changed files
+     * @param comment submission comment
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes)
+    void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment)
             throws ServiceLayerException;
 
     /**

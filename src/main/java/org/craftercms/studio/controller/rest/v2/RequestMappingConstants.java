@@ -51,6 +51,7 @@ public final class RequestMappingConstants {
     public static final String ITEM_LOCK_BY_PATH = "/item_lock_by_path";
     public static final String ITEM_UNLOCK_BY_PATH = "/item_unlock_by_path";
     public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
+    public static final String RENAME = "/rename";
 
     /** Groups controller */
     public static final String GROUPS = "/groups";
@@ -119,6 +120,8 @@ public final class RequestMappingConstants {
     public static final String REQUEST_PUBLISH = "/request_publish";
     public static final String REJECT = "/reject";
     public static final String APPROVE = "/approve";
+
+     public static final String LOG_MONITOR_ENGINE_PROXY = "/api/1/monitoring/log.json";
 
     private RequestMappingConstants() {
     }

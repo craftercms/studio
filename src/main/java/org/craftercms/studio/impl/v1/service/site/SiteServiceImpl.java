@@ -159,6 +159,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
+import static java.lang.String.format;
 
 /**
  * Note: consider renaming
@@ -280,6 +281,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         // 1) deployer target, 2) git repo, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
+        String creator = securityService.getCurrentUser();
+
         // Create the site in the preview deployer
         logger.info("Creating the deployer targets for site '{}'", siteName);
         try {
@@ -295,7 +298,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (success) {
             try {
                 logger.info("Initialize site '{}' with the blueprint '{}'", siteName, blueprintId);
-                success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params);
+                success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params, creator);
                 ZonedDateTime now = DateUtils.getCurrentTime();
 
                 logger.debug("Add the site UUID to site '{}'", siteName);
@@ -320,7 +323,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 addDefaultGroupsForNewSite();
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-                String creator = securityService.getCurrentUser();
 
                 long startGetChangeSetCreatedFilesMark = 0;
                 if (logger.isDebugEnabled()) {
@@ -335,7 +337,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 }
 
                 logger.debug("Add audit log to site '{}'", siteName);
-                insertCreateSiteAuditLog(siteId, siteName, blueprintId);
+                insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
@@ -382,13 +384,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         logger.info("Site '{}' id '{}' created successfully", siteName, siteId);
     }
 
-    private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint) throws SiteNotFoundException {
+    private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint, String creator) throws SiteNotFoundException {
         SiteFeed siteFeed = getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
-        String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
         auditLog.setSiteId(siteFeed.getId());
-        auditLog.setActorId(user);
+        auditLog.setActorId(creator);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
         auditLog.setPrimaryTargetValue(siteName);
@@ -562,12 +563,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     protected boolean createSiteFromBlueprintGit(String blueprintLocation, String siteId, String sandboxBranch,
-                                                 Map<String, String> params)
+                                                 Map<String, String> params, String creator)
             throws Exception {
         boolean success;
 
         // create site with git repo
-        success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params);
+        success = contentRepositoryV2.createSiteFromBlueprint(blueprintLocation, siteId, sandboxBranch, params, creator);
 
         String siteConfigFolder = FILE_SEPARATOR + "config" + FILE_SEPARATOR + "studio";
         replaceFileContentGit(siteId, siteConfigFolder + FILE_SEPARATOR + "site-config.xml", "SITENAME",
@@ -667,13 +668,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         // 1) git repo, 2) deployer target, 3) database, 4) kick deployer
         String siteUuid = UUID.randomUUID().toString();
 
+        String creator = securityService.getCurrentUser();
+
         try {
             // create site by cloning remote git repo
             logger.info("Create site '{}' by cloning the remote '{}' url '{}' branch '{}'",
                     siteId, remoteName, remoteUrl, remoteBranch);
             success = contentRepositoryV2.createSiteCloneRemote(siteId, sandboxBranch, remoteName, remoteUrl,
                     remoteBranch, singleBranch, authenticationType, remoteUsername, remotePassword, remoteToken,
-                    remotePrivateKey, params, createAsOrphan);
+                    remotePrivateKey, params, createAsOrphan, creator);
 
         } catch (InvalidRemoteRepositoryException | InvalidRemoteRepositoryCredentialsException |
                 RemoteRepositoryNotFoundException | InvalidRemoteUrlException | ServiceLayerException e) {
@@ -750,7 +753,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         if (success) {
             ZonedDateTime now = DateUtils.getCurrentTime();
-            String creator = securityService.getCurrentUser();
             try {
                 logger.debug("Adding site UUID to site '{}'", siteId);
                 addSiteUuidFile(siteId, siteUuid);
@@ -784,7 +786,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
                 }
 
-                insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch);
+                insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
                 contentRepositoryV2.populateGitLog(siteId);
 
@@ -1372,6 +1374,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @ValidateParams
     public boolean exists(@ValidateStringParam(name = "site") String site) {
         return siteFeedMapper.exists(site) > 0;
+    }
+
+    @Override
+    @ValidateParams
+    public void checkSiteExists(@ValidateStringParam(name = "site") final String site) throws SiteNotFoundException {
+        if (!exists(site)) {
+            throw new SiteNotFoundException(format("Site '%s' not found.", site));
+        }
     }
 
     @Override

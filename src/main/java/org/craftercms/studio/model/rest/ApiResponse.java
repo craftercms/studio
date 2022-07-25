@@ -68,7 +68,7 @@ public class ApiResponse {
 
     // 6000 - 7000
     public static final ApiResponse USER_NOT_FOUND = new ApiResponse(6000, "User not found",
-            "Check if you're using the correct User ID", StringUtils.EMPTY);
+            "Check if you're using the correct User ID or username", StringUtils.EMPTY);
     public static final ApiResponse USER_ALREADY_EXISTS = new ApiResponse(6001, "User already exists" ,
             "Try a different username", StringUtils.EMPTY);
     public static final ApiResponse USER_EXTERNALLY_MANAGED = new ApiResponse(6002, "User is externally managed",

@@ -22,7 +22,7 @@
 -->
 
 <dependency-resolver>
-    <version>4.0.1</version>
+    <version>4.0.1.1</version>
     <item-types>
         <item-type>
             <!-- name of type -->
@@ -386,6 +386,28 @@
                                     <split>true</split>
                                     <match>&lt;value&gt;(\/(?:component|page).+?)&lt;\/value&gt;</match>
                                     <replace>/config/studio/content-types$1/form-definition.xml</replace>
+                                </transform>
+                            </transforms>
+                        </pattern>
+                    </includes>
+                </dependency-type>
+                <dependency-type>
+                    <name>rendering-template</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>/templates/([^&lt;"]+)\.ftl</find-regex>
+                        </pattern>
+                    </includes>
+                </dependency-type>
+                <dependency-type>
+                    <name>script</name>
+                    <includes>
+                        <pattern>
+                            <find-regex>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</find-regex>
+                            <transforms>
+                                <transform>
+                                    <match>&lt;content-type&gt;/(.*)/(.*)&lt;/content-type&gt;</match>
+                                    <replace>/scripts/$1s/$2.groovy</replace>
                                 </transform>
                             </transforms>
                         </pattern>

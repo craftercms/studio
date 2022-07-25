@@ -348,15 +348,16 @@ public interface ItemServiceInternal {
     /**
      * Persist item metadata after rename folder
      * @param siteId site identifier
-     * @param folderPath folder path
-     * @param folderName folder name
+     * @param path file path
+     * @param name file name
      * @param username user that executed create folder operation
      * @param commitId commit id of the create folder operation
+     * @param contentType content type
      * @throws ServiceLayerException
      * @throws UserNotFoundException
      */
-    void persistItemAfterRenameFolder(String siteId, String folderPath, String folderName, String username,
-                                      String commitId)
+    void persistItemAfterRenameContent(String siteId, String path, String name, String username,
+                                      String commitId, String contentType)
             throws ServiceLayerException, UserNotFoundException;
 
     /**
@@ -567,9 +568,11 @@ public interface ItemServiceInternal {
      * @param clearUserLocked if true clear user locked flag, otherwise ignore
      * @param live if true set live flag, otherwise reset it
      * @param staged if true set staged flag, otherwise reset it
+     * @param isNew value to set the 'new' flag to, or null if the flag should not change
+     * @param modified value to set the 'modified' flag to, or null if the flag should not change
      */
     void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked,
-                          Boolean live, Boolean staged);
+                          Boolean live, Boolean staged, Boolean isNew, Boolean modified);
 
     /**
      * Update item state flags for given path query
@@ -579,9 +582,11 @@ public interface ItemServiceInternal {
      * @param clearUserLocked if true clear user locked flag, otherwise ignore
      * @param live if true set live flag, otherwise reset it
      * @param staged if true set staged flag, otherwise reset it
+     * @param isNew value to set the 'new' flag to, or null if the flag should not change
+     * @param modified value to set the 'modified' flag to, or null if the flag should not change
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged);
+                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified);
 
     /**
      * Get subtree for delete
