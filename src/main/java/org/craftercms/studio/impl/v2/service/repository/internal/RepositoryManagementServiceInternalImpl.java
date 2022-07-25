@@ -704,7 +704,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         RepositoryStatus repositoryStatus = new RepositoryStatus();
-        logger.debug1("Execute git status and return conflicting paths and uncommitted changes");
+        logger.trace("Execute git status in site '{}' and return any conflicting paths and uncommitted changes",
+                siteId);
         try (Git git = new Git(repo)) {
             StatusCommand statusCommand = git.status();
             Status status = retryingRepositoryOperationFacade.call(statusCommand);
@@ -712,8 +713,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             repositoryStatus.setConflicting(status.getConflicting());
             repositoryStatus.setUncommittedChanges(status.getUncommittedChanges());
         } catch (GitAPIException e) {
-            logger.error1("Error while getting repository status for site " + siteId, e);
-            throw new ServiceLayerException("Error getting repository status for site " + siteId, e);
+            logger.error("Failed to execute git status in site '{}'", siteId, e);
+            throw new ServiceLayerException(format("Failed to execute git status in site '%s'", siteId), e);
         }
         return repositoryStatus;
     }
@@ -729,21 +730,21 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         try (Git git = new Git(repo)) {
             switch (resolution.toLowerCase()) {
                 case "ours" :
-                    logger.debug1("Resolve conflict using OURS strategy for site " + siteId + " and path " + path);
-                    logger.debug1("Reset merge conflict in git index");
+                    logger.debug("Resolve conflicts using _OURS_ strategy for site '{}' path '{}'", siteId, path);
+                    logger.trace("Reset merge conflict in git index in site '{}'", siteId);
                     resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
                     retryingRepositoryOperationFacade.call(resetCommand);
-                    logger.debug1("Checkout content from HEAD of studio repository");
+                    logger.trace("Checkout the content from local merge HEAD in site '{}'", siteId);
                     checkoutCommand =
                             git.checkout().addPath(gitRepositoryHelper.getGitPath(path)).setStartPoint(Constants.HEAD);
                     retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 case "theirs" :
-                    logger.debug1("Resolve conflict using THEIRS strategy for site " + siteId + " and path " + path);
-                    logger.debug1("Reset merge conflict in git index");
+                    logger.debug("Resolve conflicts using _THEIRS_ strategy for site '{}' path '{}'", siteId, path);
+                    logger.trace("Reset merge conflict in git index in site '{}'", siteId);
                     resetCommand = git.reset().addPath(gitRepositoryHelper.getGitPath(path));
                     retryingRepositoryOperationFacade.call(resetCommand);
-                    logger.debug1("Checkout content from merge HEAD of remote repository");
+                    logger.trace("Checkout the content from remote merge HEAD in site '{}'", siteId);
                     List<ObjectId> mergeHeads = repo.readMergeHeads();
                     ObjectId mergeCommitId = mergeHeads.get(0);
                     checkoutCommand = git.checkout().addPath(gitRepositoryHelper.getGitPath(path))
@@ -751,15 +752,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                     retryingRepositoryOperationFacade.call(checkoutCommand);
                     break;
                 default:
-                    throw new ServiceLayerException("Unsupported resolution strategy for repository conflicts");
+                    logger.error("Unsupported resolution strategy for repository conflicts " +
+                            "in site '{}", siteId);
+                    throw new ServiceLayerException(format("Unsupported resolution strategy for repository conflicts " +
+                            "in site '%s'", siteId));
             }
 
             if (repo.getRepositoryState() == RepositoryState.MERGING_RESOLVED) {
-                logger.debug1("Merge resolved. Check if there are no uncommitted changes (repo is clean)");
+                logger.debug("Check for any uncommitted changes and make sure the repo is clean in site '{}'.",
+                        siteId);
                 StatusCommand statusCommand = git.status();
                 Status status = retryingRepositoryOperationFacade.call(statusCommand);
                 if (!status.hasUncommittedChanges()) {
-                    logger.debug1("Repository is clean. Committing to complete merge");
+                    logger.debug("The repository is clean. Commit to complete the merge in site '{}'.", siteId);
                     String userName = securityService.getCurrentUser();
                     User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
                     PersonIdent personIdent = gitRepositoryHelper.getAuthorIdent(user);
@@ -771,10 +776,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 }
             }
         } catch (GitAPIException | IOException | UserNotFoundException | ServiceLayerException e) {
-            logger.error1("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
-                    "strategy", e);
-            throw new ServiceLayerException("Error while resolving conflict for site " + siteId + " using " + resolution + " resolution " +
-                    "strategy", e);
+            logger.error("Failed to resolve conflicts in site '{}' using the resolution strategy '{}'",
+                    siteId, resolution, e);
+            throw new ServiceLayerException(format("Failed to resolve conflicts in site '%s' using the resolution " +
+                            "strategy '%s'", siteId, resolution), e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -789,20 +794,19 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         try (Git git = new Git(repo)) {
             List<ObjectId> mergeHeads = repo.readMergeHeads();
             ObjectId mergeCommitId = mergeHeads.get(0);
-            logger.debug1("Get content for studio version of conflicted file " + path + " for site " + siteId);
+            logger.debug("Get the local content of the conflicting file from site '{}' path '{}'", siteId, path);
             InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD)
                                                              .orElseThrow()
                                                              .getInputStream();
             diffResult.setStudioVersion(IOUtils.toString(studioVersionIs, UTF_8));
-            logger.debug1("Get content for remote version of conflicted file " + path + " for site " + siteId);
+            logger.debug("Get the remote content of the conflicting file from site '{}' path '{}'", siteId, path);
             InputStream remoteVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, mergeCommitId.getName())
                                                              .orElseThrow()
                                                              .getInputStream();
             diffResult.setRemoteVersion(IOUtils.toString(remoteVersionIs, UTF_8));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-            logger.debug1("Get diff between studio and remote version of conflicted file " + path + " for site "
-                    + siteId);
+            logger.debug("Diff the local and remote versions of the conflicting file in site '{}' path '{}'", siteId, path);
             RevTree headTree = gitRepositoryHelper.getTreeForCommit(repo, Constants.HEAD);
             RevTree remoteTree = gitRepositoryHelper.getTreeForCommit(repo, mergeCommitId.getName());
 
@@ -821,11 +825,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 retryingRepositoryOperationFacade.call(diffCommand);
                 diffResult.setDiff(baos.toString());
             }
-
-
         } catch (IOException | GitAPIException e) {
-            logger.error1("Error while getting diff for conflicting file " + path + " site " + siteId);
-            throw new ServiceLayerException("Error while getting diff for conflicting file " + path + " site " + siteId);
+            logger.error("Failed to diff the conflicting file in site '{}' path '{}'", siteId, path, e);
+            throw new ServiceLayerException(format("Failed to diff the conflicting file in site '%s' path '%s'",
+                    siteId, path), e);
         }
         return diffResult;
     }
@@ -834,20 +837,20 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     public boolean commitResolution(String siteId, String commitMessage)
             throws ServiceLayerException {
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
-        logger.debug1("Commit resolution for merge conflict for site " + siteId);
+        logger.debug("Commit after resolving the merge conflicts in site '{}'", siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             StatusCommand statusCommand = git.status();
             Status status = retryingRepositoryOperationFacade.call(statusCommand);
 
-            logger.debug1("Add all uncommitted changes/files");
+            logger.trace("Add all uncommitted files in site '{}'", siteId);
             AddCommand addCommand = git.add();
             for (String uncommitted : status.getUncommittedChanges()) {
                 addCommand.addFilepattern(uncommitted);
             }
             retryingRepositoryOperationFacade.call(addCommand);
-            logger.debug1("Commit changes");
+            logger.trace("Commit the changes in site '{}'", siteId);
             CommitCommand commitCommand = git.commit();
             String userName = securityService.getCurrentUser();
             User user = userServiceInternal.getUserByIdOrUsername(-1, userName);
@@ -867,8 +870,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             retryingRepositoryOperationFacade.call(commitCommand);
             return true;
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
-            logger.error1("Error while committing conflict resolution for site " + siteId, e);
-            throw new ServiceLayerException("Error while committing conflict resolution for site " + siteId, e);
+            logger.error("Failed to commit the conflict resolution in site '{}'", siteId, e);
+            throw new ServiceLayerException(format("Failed to commit the conflict resolution in site '%s'",
+                    siteId), e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -876,7 +880,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     @Override
     public boolean cancelFailedPull(String siteId) throws ServiceLayerException {
-        logger.debug1("To cancel failed pull, reset hard needs to be executed");
+        logger.debug("Cancel the failed pull operation by performing a 'reset --hard' in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
@@ -884,8 +888,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             ResetCommand resetCommand = git.reset().setMode(ResetCommand.ResetType.HARD);
             retryingRepositoryOperationFacade.call(resetCommand);
         } catch (GitAPIException e) {
-            logger.error1("Error while canceling failed pull for site " + siteId, e);
-            throw new ServiceLayerException("Reset hard failed for site " + siteId, e);
+            logger.error("Failed to cancel the pull operation in site '{}'", siteId, e);
+            throw new ServiceLayerException(format("Failed to cancel the pull operation in site '%s'", siteId), e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }

@@ -69,7 +69,7 @@ public class SecurityServiceImpl implements SecurityService {
         String key = siteId + ":" + CACHE_KEY + username;
         List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
         if (isEmpty(permissions)) {
-            logger.debug1("Cache miss for {}", key);
+            logger.debug("Cache miss for key '{}'", key);
             permissions = loadUserPermission(siteId, roles);
             configurationCache.put(key, permissions);
         }
@@ -79,7 +79,7 @@ public class SecurityServiceImpl implements SecurityService {
     private List<String> loadUserPermission(String siteId, List<String> roles) {
         Set<String> permissions;
         String configPath;
-        List<String> toRet = new ArrayList<String>();
+        List<String> toRet = new ArrayList<>();
         if (StringUtils.isNotEmpty(siteId)) {
             configPath = studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME);
             permissions = getPermissionsFromConfig(siteId, configPath, roles);
@@ -98,7 +98,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<String> roles) {
         Document document = null;
-        Set<String> permissions = new HashSet<String>();
+        Set<String> permissions = new HashSet<>();
         try {
             if (StringUtils.isEmpty(siteId)) {
                 document = configurationService.getGlobalConfigurationAsDocument(configPath);
@@ -107,7 +107,7 @@ public class SecurityServiceImpl implements SecurityService {
                         studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
         } catch (ServiceLayerException e) {
-            logger.error1("Permission mapping not found for " + siteId + ":" + configPath);
+            logger.error("Permission mapping not found in site '{}' path '{}'", siteId, configPath);
         }
         if (Objects.nonNull(document)) {
             Element root = document.getRootElement();
@@ -140,10 +140,6 @@ public class SecurityServiceImpl implements SecurityService {
         return permissions;
     }
 
-    public AvailableActionsResolver getAvailableActionsResolver() {
-        return availableActionsResolver;
-    }
-
     public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {
         this.availableActionsResolver = availableActionsResolver;
     }
@@ -162,10 +158,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public Cache<String, Object> getConfigurationCache() {
-        return configurationCache;
     }
 
     public void setConfigurationCache(Cache<String, Object> configurationCache) {

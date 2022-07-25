@@ -411,7 +411,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     public User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException {
         User user =  userDao.getUserByGitName(gitName);
         if (Objects.isNull(user)) {
-            logger.info1("Git user " + gitName + " not found in DB.");
+            logger.info("Git user '{}' was not found in the database", gitName);
             user = getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
         }
         return user;
@@ -442,7 +442,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             return singletonMap(siteId, getUserProperties(user, dbSiteId));
         } catch (UserNotFoundException e) {
             // This should never happen...
-            logger.error1("Error getting current user", e);
+            logger.error("Failed to get the current user with username '{}' in site '{}'", username, siteId, e);
             return null;
         }
     }
@@ -460,7 +460,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             return getUserProperties(user, dbSiteId);
         } catch (UserNotFoundException e) {
             // This should never happen...
-            logger.error1("Error getting current user", e);
+            logger.error("Failed to get the current user with username '{}' in site '{}'", username, siteId, e);
             return null;
         }
     }
@@ -479,7 +479,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             return getUserProperties(user, dbSiteId);
         } catch (UserNotFoundException e) {
             // This should never happen...
-            logger.error1("Error getting current user", e);
+            logger.error("Failed to get the current user with username '{}' in site '{}'", username, siteId, e);
             return null;
         }
     }
