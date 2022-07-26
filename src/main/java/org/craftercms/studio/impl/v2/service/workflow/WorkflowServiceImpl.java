@@ -568,8 +568,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         submitterList.add(submitter.getUsername());
                     }
                 } catch (UserNotFoundException | ServiceLayerException e) {
-                    logger.debug1("Didn't find submitter user for path {}. Notification will not be sent.",
-                            paths, e);
+                    logger.debug("Failed to send notification because the submitter's username was not found for " +
+                                    "the paths '{}' in site '{}'", paths, siteId, e);
                 }
             }
 

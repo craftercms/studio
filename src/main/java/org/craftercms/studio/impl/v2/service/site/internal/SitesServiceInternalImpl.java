@@ -59,7 +59,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
         RepositoryItem[] blueprintsFolders = getBlueprintsFolders();
-        List<PluginDescriptor> toRet = new ArrayList<PluginDescriptor>();
+        List<PluginDescriptor> toRet = new ArrayList<>();
         for (RepositoryItem folder : blueprintsFolders) {
             if (folder.isFolder) {
                 PluginDescriptor descriptor = loadDescriptor(folder);
@@ -108,7 +108,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
             try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
                 return loadDescriptor(is);
             } catch (Exception e) {
-                logger.error1("Error while getting blueprint descriptor for site " + id, e);
+                logger.error("Failed to get site blueprint descriptor for site '{}'", id, e);
             }
         }
         return null;
@@ -129,7 +129,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         try {
            return descriptorReader.read(is);
         } catch (PluginException e) {
-            logger.error1("Error while getting descriptor from stream", e);
+            logger.error("Failed to load descriptor", e);
         }
         return null;
     }
@@ -140,7 +140,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
             try (FileReader reader = new FileReader(descriptorPath.toString())) {
                 return descriptorReader.read(reader);
             } catch (PluginException | IOException e) {
-                logger.error1("Error while getting descriptor for blueprint " + folder.name, e);
+                logger.error("Failed to load descriptor from blueprint '{}'", folder.name, e);
             }
         }
         return null;
@@ -167,10 +167,6 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
     @Override
     public void clearPublishingLock(String siteId) {
         retryingDatabaseOperationFacade.clearPublishingLockForSite(siteId);
-    }
-
-    public PluginDescriptorReader getDescriptorReader() {
-        return descriptorReader;
     }
 
     public void setDescriptorReader(PluginDescriptorReader descriptorReader) {
