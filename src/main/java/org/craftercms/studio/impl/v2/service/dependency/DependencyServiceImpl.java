@@ -30,6 +30,7 @@ import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public class DependencyServiceImpl implements DependencyService {
 
@@ -45,6 +46,7 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
             throws ServiceLayerException {
@@ -59,7 +61,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public List<String> getHardDependencies(String site, List<String> paths) throws ServiceLayerException {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public List<String> getHardDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
+                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
         return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 

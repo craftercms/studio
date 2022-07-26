@@ -126,20 +126,30 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     private ActivityStreamServiceInternal activityStreamServiceInternal;
 
     @Override
-    public int getItemStatesTotal(String siteId, String path, Long states) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public int getItemStatesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         return itemServiceInternal.getItemStatesTotal(siteId, path, states);
     }
 
     @Override
-    public List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public List<SandboxItem> getItemStates(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                           @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
+                                           int offset, int limit) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         return itemServiceInternal.getItemStates(siteId, path, states, offset, limit).stream()
                 .map(SandboxItem::getInstance)
                 .collect(toList());
     }
 
     @Override
-    public void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    public void updateItemStates(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                 @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, boolean clearSystemProcessing,
+                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         itemServiceInternal.updateItemStates(siteId, paths, clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
     }
 
@@ -155,6 +165,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public List<SandboxItem> getWorkflowAffectedPaths(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                       @ProtectedResourceId(PATH_RESOURCE_ID)
                                                       String path) throws UserNotFoundException, ServiceLayerException {
+        siteService.checkSiteExists(siteId);
         List<String> affectedPaths = new LinkedList<>();
         List<SandboxItem> result = new LinkedList<>();
         Item item = itemServiceInternal.getItem(siteId, path);
@@ -210,6 +221,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                                String comment, boolean sendEmailNotifications)
             throws ServiceLayerException, UserNotFoundException, DeploymentException {
+        siteService.checkSiteExists(siteId);
         // Create submission package
         List<String> pathsToAddToWorkflow = calculateSubmissionPackage(siteId, paths, optionalDependencies);
         try {

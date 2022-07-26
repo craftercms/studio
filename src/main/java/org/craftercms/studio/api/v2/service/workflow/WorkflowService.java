@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.workflow;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -33,7 +34,7 @@ public interface WorkflowService {
      * @param states states mask to filter items by state
      * @return number of records
      */
-    int getItemStatesTotal(String siteId, String path, Long states);
+    int getItemStatesTotal(String siteId, String path, Long states) throws SiteNotFoundException;
 
     /**
      * Get item states for given filters by path regex and states mask
@@ -44,7 +45,7 @@ public interface WorkflowService {
      * @param limit number of item states records to return
      * @return list of sandbox items
      */
-    List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit);
+    List<SandboxItem> getItemStates(String siteId, String path, Long states, int offset, int limit) throws SiteNotFoundException;
 
     /**
      * Update item state flags for given items
@@ -58,7 +59,7 @@ public interface WorkflowService {
      * @param modified value to set the 'modified' flag to, or null if the flag should not change
      */
     void updateItemStates(String siteId, List<String> paths, boolean clearSystemProcessing, boolean clearUserLocked,
-                          Boolean live, Boolean staged, Boolean isNew, Boolean modified);
+                          Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException;
 
     /**
      * Update item state flags for given path query
