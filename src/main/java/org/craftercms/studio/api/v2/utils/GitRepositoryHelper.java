@@ -109,6 +109,7 @@ import java.nio.file.FileVisitResult;
 import java.util.*;
 import java.util.concurrent.Callable;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
@@ -215,7 +216,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
 
             if (repo == null) {
-                logger.debug1("failure in getting the repository for site: " + siteId);
+                logger.debug("Failed to get the repository in site '{}'", siteId);
             }
         }
 
@@ -241,7 +242,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
         } catch (IOException e) {
             toReturn = false;
-            logger.error("Failed to create sandbox repo for site '{}' using path '{}'",
+            logger.error("Failed to create the sandbox repository in site '{}' using path '{}'",
                     siteId, siteSandboxRepoPath, e);
         }
 
@@ -256,7 +257,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
         } catch (IOException e) {
             toReturn = false;
-            logger.error("Failed to create published repo for site '{}' using path '{}'",
+            logger.error("Failed to create the published repository in site '{}' using path '{}'",
                     siteId, sitePublishedRepoPath, e);
         }
 
@@ -416,7 +417,7 @@ public class GitRepositoryHelper implements DisposableBean {
      */
     public PersonIdent getAuthorIdent(User user) {
         PersonIdent currentUserIdent =
-                new PersonIdent(String.format("%s %s", user.getFirstName(), user.getLastName()), user.getEmail());
+                new PersonIdent(format("%s %s", user.getFirstName(), user.getLastName()), user.getEmail());
 
         return currentUserIdent;
     }
@@ -447,7 +448,7 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
-        List<String> files = new ArrayList<String>();
+        List<String> files = new ArrayList<>();
         RevWalk rw = new RevWalk(repository);
         try (Git git = new Git(repository)) {
             if (commit.getParentCount() > 0) {
@@ -861,9 +862,9 @@ public class GitRepositoryHelper implements DisposableBean {
         Path siteSandboxPath = buildRepoPath(SANDBOX, siteId);
         File localPath = siteSandboxPath.toFile();
         localPath.delete();
-        logger.trace1("Add user credentials if provided");
+        logger.debug("Add the user credentials if provided to site '{}'", siteId);
         // then clone
-        logger.debug1("Cloning from '{}' to '{}'", remoteUrl, localPath);
+        logger.debug("Clone site '{}' from '{}' to '{}'", siteId, remoteUrl, localPath);
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(remoteUrl)
                 .setDirectory(localPath)
@@ -894,8 +895,9 @@ public class GitRepositoryHelper implements DisposableBean {
 
                 repositoryCache.put(getRepoCacheKey(siteId, SANDBOX), sandboxRepo);
             } catch (InvalidRemoteException e) {
-                logger.error("Invalid remote repository '{} ({})'", remoteName, remoteUrl, e);
-                throw new InvalidRemoteRepositoryException(String.format("Invalid remote repository '%s (%s)'",
+                logger.error("Invalid remote repository '{}' URL '{}' while creating site '{}'",
+                        remoteName, remoteUrl, siteId, e);
+                throw new InvalidRemoteRepositoryException(format("Invalid remote repository '%s (%s)'",
                         remoteName, remoteUrl));
             } catch (TransportException e) {
                 GitUtils.translateException(e, logger, remoteName, remoteUrl, remoteUsername);
@@ -903,7 +905,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 Files.deleteIfExists(tempKey);
             }
         } catch (GitAPIException | IOException | UserNotFoundException | CryptoException e) {
-            logger.error("Error while creating repository for site '{}' with path '{}'", siteId, siteSandboxPath, e);
+            logger.error("Failed to create the repository for site '{}' with path '{}'", siteId, siteSandboxPath, e);
             toRet = false;
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -928,21 +930,21 @@ public class GitRepositoryHelper implements DisposableBean {
             throws InvalidRemoteRepositoryException {
         // Check if cloneResult is null , if so die.
         if (cloneResult == null) {
-            String msg = String.format("Remote Clone Error: '%s (%s)' cloneResult is null", remoteName, remoteUrl);
+            String msg = format("Remote Clone Error: '%s (%s)' cloneResult is null", remoteName, remoteUrl);
             logger.error(msg);
             throw new InvalidRemoteRepositoryException(msg);
         }
         Repository repository = cloneResult.getRepository();
         // Check if cloneResult is null , if so die.
         if (repository == null) {
-            String msg = String.format("Remote Clone Error: '%s (%s)' sandboxRepo is null", remoteName, remoteUrl);
+            String msg = format("Remote Clone Error: '%s (%s)' sandboxRepo is null", remoteName, remoteUrl);
             logger.error(msg);
             throw new InvalidRemoteRepositoryException(msg);
         }
         File repoDir = repository.getDirectory();
         // Check if  sandbox repo,: exists, is a dir, we can RW to it.
         if (!repoDir.exists() ||  !repoDir.isDirectory() || !repoDir.canRead() || !repoDir.canWrite()) {
-            String msg = String.format("Remote Clone Error: '%s' doesn't exist, is not a directory, " +
+            String msg = format("Remote Clone Error: '%s' doesn't exist, is not a directory, " +
                     "or we don't have write permissions", repository.getDirectory());
             logger.error(msg);
             throw new InvalidRemoteRepositoryException(msg);
@@ -1142,13 +1144,13 @@ public class GitRepositoryHelper implements DisposableBean {
             }
 
             if (result) {
-                logger.debug1("Writing file: site: '{}', path: '{}'", site, path);
+                logger.debug("Write file to site '{}' path '{}'", site, path);
 
                 // Write the bits
                 try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
-                    logger.trace1("created the file output channel");
+                    logger.trace("Created the file output channel site '{}' path '{}'", site, path);
                     ReadableByteChannel inChannel = Channels.newChannel(content);
-                    logger.trace1("created the file input channel");
+                    logger.trace("Created the file input channel site '{}' path '{}'", site, path);
                     long amount = 1024 * 1024; // 1MB at a time
                     long count;
                     long offset = 0;
@@ -1160,7 +1162,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 result = addFiles(repo, site, path);
             }
         } catch (IOException e) {
-            logger.error("error writing file: site: " + site + ", path: " + path, e);
+            logger.error("Failed to write file to site '{}' path '{}'", site, path, e);
             result = false;
         }
 
@@ -1172,7 +1174,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
-                logger.debug1("Adding files: site: '{}', path: '{}', gitCliEnabled: '{}'", site,
+                logger.debug("Add files to git in site '{}' paths '{}', gitCliEnabled is '{}'", site,
                              ArrayUtils.toString(paths), gitCliEnabled);
             }
 
@@ -1194,8 +1196,8 @@ public class GitRepositoryHelper implements DisposableBean {
 
                 result = true;
             } catch (Exception e) {
-                logger.error1("error adding files to git: site: '{}', paths: '{}'", site,
-                             ArrayUtils.toString(paths), e);
+                logger.error("Failed to add files to git in site '{}' paths '{}'",
+                        site, ArrayUtils.toString(paths), e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
@@ -1209,7 +1211,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
         if (ArrayUtils.isNotEmpty(paths)) {
             if (logger.isDebugEnabled()) {
-                logger.debug1("Adding files: site: '{}', path: '{}', gitCliEnabled: '{}'", site,
+                logger.debug("Commit files to git in site '{}' paths '{}', gitCliEnabled is '{}'", site,
                              ArrayUtils.toString(paths), gitCliEnabled);
             }
 
@@ -1238,10 +1240,10 @@ public class GitRepositoryHelper implements DisposableBean {
                 if (cause instanceof NoChangesToCommitException ||
                     (cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
                     // we should ignore empty commit errors
-                    logger.debug1("No changes were committed to git: site: '{}', paths: '{}'", site,
+                    logger.debug("No changes were committed to git in site '{}' paths '{}'", site,
                                  ArrayUtils.toString(paths));
                 } else {
-                    logger.error1("error adding files to git: site: '{}', paths: '{}'", site,
+                    logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
                                  ArrayUtils.toString(paths), e);
                 }
             } finally {
@@ -1277,7 +1279,7 @@ public class GitRepositoryHelper implements DisposableBean {
     public PersonIdent getAuthorIdent(String author) throws ServiceLayerException, UserNotFoundException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, author);
         PersonIdent currentUserIdent =
-                new PersonIdent(String.format("%s %s", user.getFirstName(),user.getLastName()), user.getEmail());
+                new PersonIdent(format("%s %s", user.getFirstName(),user.getLastName()), user.getEmail());
 
         return currentUserIdent;
     }
@@ -1324,10 +1326,6 @@ public class GitRepositoryHelper implements DisposableBean {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public TextEncryptor getEncryptor() {
-        return encryptor;
     }
 
     public void setEncryptor(TextEncryptor encryptor) {

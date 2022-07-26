@@ -224,7 +224,7 @@ public final class ContentItemAvailableActionsConstants {
                 result = BITMAP_ITEM_UNLOCK;
                 break;
             default:
-                logger.debug1("Permission " + permission + " not declared with content item available actions");
+                logger.debug("Permission '{}' is not declared with content item available actions", permission);
                 result = BITMAP_UNDEFINED;
                 break;
         }
