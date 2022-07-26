@@ -105,21 +105,21 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        logger.debug1("Upgrading global repo files");
+        logger.debug("Upgrade the global repo files");
         for(Map.Entry<Resource, String> entry : files.entrySet()) {
             var path = entry.getValue();
             var file = context.getFile(path);
             if (overwrite || !Files.exists(file)) {
-                logger.debug1("Upgrading global repo file: {}", path);
+                logger.debug("Upgrade the global repo file '{}'", path);
                 try (InputStream in = entry.getKey().getInputStream();
                      OutputStream out = Files.newOutputStream(file)) {
                     IOUtils.copy(in, out);
                     trackChangedFiles(path);
                 } catch (IOException e) {
-                    throw new UpgradeException("Error while upgrading global repo file " + path, e);
+                    throw new UpgradeException("Failed to upgrade the global repository file " + path, e);
                 }
             } else {
-                logger.debug1("File {} already exists in global repo, it will not be changed", path);
+                logger.debug("File '{}' already exists in the global repository, it will not be changed", path);
             }
         }
     }

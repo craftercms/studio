@@ -87,7 +87,8 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
                 if (overwrite) {
                     FileUtils.forceDelete(toFile);
                 } else {
-                    logger.info1("Rename operation not executed because target path {} already exists.", to);
+                    logger.info("The rename operation was not executed because the target path '{}' already exists.",
+                            to);
                     return false;
                 }
             }

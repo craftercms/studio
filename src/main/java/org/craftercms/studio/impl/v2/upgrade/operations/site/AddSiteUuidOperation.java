@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
@@ -43,7 +44,7 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
 
     private static final Logger logger = LoggerFactory.getLogger(AddSiteUuidOperation.class);
 
-    private SiteFeedMapper siteFeedMapper;
+    private final SiteFeedMapper siteFeedMapper;
 
     @ConstructorProperties({"studioConfiguration", "siteFeedMapper"})
     public AddSiteUuidOperation(StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper) {
@@ -54,16 +55,16 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.debug1("Get site data from database for site " + site);
-        Map<String, String> params = new HashMap<String, String>();
+        logger.debug("Get the site data from the database for site '{}'", site);
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, site);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
         if (siteFeed != null) {
             try {
-                logger.debug1("Add UUID file for site " + site);
+                logger.debug("Add a UUID file to site '{}'", site);
                 addSiteUuidFile(site, siteFeed.getSiteUuid());
             } catch (IOException e) {
-                throw new UpgradeException("Error when adding UUID file for site " + site, e);
+                throw new UpgradeException(format("Failed to add a UUID file to site '%s'", site), e);
             }
         }
     }
@@ -74,7 +75,7 @@ public class AddSiteUuidOperation extends AbstractUpgradeOperation {
                     studioConfiguration.getProperty(SITES_REPOS_PATH), site,
                     StudioConstants.SITE_UUID_FILENAME);
             String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
-            logger.debug1("Write UUID " + siteUuid + " to the file " + path.toString() + " for site " + site);
+            logger.debug("Write UUID '{}' to the file '{}' in site '{}'", siteUuid, path, site);
             Files.write(path, toWrite.getBytes());
         }
     }

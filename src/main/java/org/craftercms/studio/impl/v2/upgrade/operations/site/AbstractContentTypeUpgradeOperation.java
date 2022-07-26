@@ -44,6 +44,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import static java.lang.String.format;
+
 /**
  * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all content-type related upgrades
  *
@@ -121,14 +123,14 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
 
     @Override
     protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException {
-        logger.debug1("Checking file {} for site {}", file, context);
+        logger.debug("Check the file '{}' in site '{}'", file, context);
         try {
             Document document = loadDocument(file);
 
             String contentTypeName = (String) select(document, contentTypeXpath, XPathConstants.STRING);
 
-            if(CollectionUtils.isNotEmpty(includedContentTypes) && !includedContentTypes.contains(contentTypeName)) {
-                logger.debug1("File {} of content-type {} will not be updated", file, contentTypeName);
+            if (CollectionUtils.isNotEmpty(includedContentTypes) && !includedContentTypes.contains(contentTypeName)) {
+                logger.debug("The file '{}' of content-type '{}' will not be updated", file, contentTypeName);
                 return false;
             }
 
@@ -141,10 +143,10 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
                 return true;
             }
         } catch (ExecutionException e) {
-            logger.error1("Invalid XML file found at " + file, e);
+            logger.error("Failed to parse the XML file '{}'", file, e);
             return false;
         } catch (Exception e) {
-            throw new UpgradeException("Error parsing xml file " + file, e);
+            throw new UpgradeException(format("Failed to parse the XML file '%s'", file), e);
         }
     }
 
@@ -156,7 +158,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
      */
     protected Document loadDocument(Path file) throws ExecutionException {
         return cache.get(file, () -> {
-            logger.debug1("Parsing file {}", file);
+            logger.debug("Load and parse the file '{}'", file);
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(file.toFile());
         });

@@ -33,7 +33,8 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import javax.sql.DataSource;
 
 /**
- * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates multiple files using a XSLT template.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates multiple files using
+ * an XSLT template.
  *
  * <p>Supported YAML properties:</p>
  * <ul>
@@ -64,12 +65,12 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.debug1("Looking site {} for files that match: {}", site, regex);
+        logger.debug("Find files that match the regex '{}' in site '{}'", regex, site);
         Path repository = context.getRepositoryPath();
         try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
             (path, attrs) -> repository.relativize(path).toString().matches(regex) )) {
             paths.forEach(path -> {
-                logger.debug1("Executing XSLT template in site {} for file {}", site, path);
+                logger.debug("Execute the XSLT template against site '{}' path '{}'", site, path);
                 try {
                     Path temp = Files.createTempFile("upgrade-manager", "xslt");
                     try {
@@ -83,7 +84,7 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
                         Files.deleteIfExists(temp);
                     }
                 } catch (Exception e) {
-                    logger.error1("Error upgrading file {} in site {}", e, site, path);
+                    logger.error("Failed to upgrade site '{}' path '{}'", site, path, e);
                 }
             });
         } catch (IOException e) {

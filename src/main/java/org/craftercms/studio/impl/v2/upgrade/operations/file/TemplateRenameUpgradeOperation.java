@@ -88,10 +88,10 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
                     .map(base::relativize)
                     .collect(toList());
 
-            logger.debug1("Found {} matches in site {}", matches.size(), site);
+            logger.debug("Found '{}' matches in site '{}'", matches.size(), site);
 
             for(Path matchedPath : matches) {
-                logger.debug1("Processing file {} in site {}", matchedPath, site);
+                logger.debug("Process file '{}' in site '{}'", matchedPath, site);
                 Matcher matcher = Pattern.compile(oldPath).matcher(matchedPath.toString());
                 if (matcher.matches()) { // we already know it matches but it needs to be called
                     String actualPath = newPath;
@@ -99,7 +99,7 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
                     for (int i = 1; i <= total; i++) {
                         actualPath = actualPath.replace("$" + i, matcher.group(i));
                     }
-                    logger.debug1("Renaming file {} to {} in site {}", matchedPath, actualPath, site);
+                    logger.debug("Rename file '{}' to '{}' in site '{}'", matchedPath, actualPath, site);
                     renamePath(base.resolve(matchedPath), base.resolve(actualPath));
                     trackChangedFiles(matchedPath.toString(), actualPath);
                 }
