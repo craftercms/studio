@@ -53,7 +53,7 @@ public class SiteVersionProvider extends XmlFileVersionProvider {
         var file = studioContext.getFile(path);
 
         if (!Files.exists(file)) {
-            logger.info1("Creating new version file in site '{}'", context);
+            logger.info("Create a new version file in site '{}'", context);
             try (InputStream in = defaultFile.getInputStream();
                  OutputStream out = Files.newOutputStream(file)) {
                 IOUtils.copy(in, out);
@@ -61,7 +61,7 @@ public class SiteVersionProvider extends XmlFileVersionProvider {
 
             }
         } else {
-            logger.debug1("Version file already exists in site '{}'", context);
+            logger.debug("Version file already exists in site '{}'", context.getTarget());
         }
 
         super.doSetVersion(context, newVersion);

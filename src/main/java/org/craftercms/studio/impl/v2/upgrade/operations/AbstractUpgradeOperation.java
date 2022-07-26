@@ -125,7 +125,7 @@ public abstract class AbstractUpgradeOperation extends
             changedFiles = new LinkedList<>();
         }
 
-        logger.debug1("Tracking changed files: {}", Arrays.toString(files));
+        logger.debug("Track changed files '{}'", Arrays.toString(files));
         changedFiles.addAll(Arrays.asList(files));
     }
 
@@ -134,17 +134,17 @@ public abstract class AbstractUpgradeOperation extends
             deletedFiles = new LinkedList<>();
         }
 
-        logger.debug1("Tracking deleted files: {}", Arrays.toString(files));
+        logger.debug("Track deleted files '{}'", Arrays.toString(files));
         deletedFiles.addAll(Arrays.asList(files));
     }
 
     protected void commitAllChanges(StudioUpgradeContext context) throws Exception {
         if (isEmpty(changedFiles) && isEmpty(deletedFiles)) {
-            logger.debug1("No changes pending to commit");
+            logger.debug("No pending changes to commit");
             return;
         }
 
-        logger.debug1("Committing tracked files");
+        logger.debug("Commit tracked files");
         context.commitChanges(getCommitMessage(), changedFiles, deletedFiles);
     }
 

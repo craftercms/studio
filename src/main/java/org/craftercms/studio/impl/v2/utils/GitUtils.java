@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -70,19 +71,18 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
                                           String remoteUsername) throws RemoteRepositoryNotFoundException,
                                                                         InvalidRemoteRepositoryCredentialsException {
         if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-            logger.error1("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
-                    e);
-            throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                    remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+            logger.error("Bad credentials or read-only repository '{}' URL '{}'",
+                    remoteName, remoteUrl, e);
+            throw new InvalidRemoteRepositoryCredentialsException(
+                    format("Bad credentials or read-only repository '%s' URL '%s'", remoteName, remoteUrl), e);
         } else if (StringUtils.endsWithIgnoreCase(e.getMessage(), "key did not validate")) {
-            logger.error1("Invalid private key: " + remoteName + " (" + remoteUrl + ")",
-                    e);
-            throw new InvalidRemoteRepositoryCredentialsException("Invalid private key for repository: " +
-                    remoteName + " (" + remoteUrl + ")", e);
+            logger.error("Invalid private key for repository '{}' URL '{}'", remoteName, remoteUrl, e);
+            throw new InvalidRemoteRepositoryCredentialsException(
+                    format("Invalid private key for repository '%s' URL '%s'", remoteName, remoteUrl), e);
         } else {
-            logger.error1("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
-            throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
-                    remoteUrl + ")");
+            logger.error("Remote repository '{}' URL '{}' was not found", remoteName, remoteUrl, e);
+            throw new RemoteRepositoryNotFoundException(
+                    format("Remote repository '%s' URL '%s' was not found", remoteName, remoteUrl), e);
         }
     }
 

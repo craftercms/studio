@@ -34,7 +34,7 @@ public class DefaultCacheInvalidator<K, V> implements CacheInvalidator<K, V> {
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug1("Invalidating cache for {}", key);
+        logger.debug("Invalidate the cache for key '{}'", key);
         cache.invalidate(key);
     }
 

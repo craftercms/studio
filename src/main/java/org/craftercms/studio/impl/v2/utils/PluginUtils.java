@@ -49,12 +49,12 @@ public abstract class PluginUtils {
     public static void validatePluginParameters(final Plugin plugin, final Map<String, String> params)
             throws MissingPluginParameterException {
         if (CollectionUtils.isEmpty(plugin.getParameters())) {
-            logger.debug1("There are no parameters defined for plugin: {}", plugin.getId());
+            logger.debug("No parameters defined for plugin '{}'", plugin.getId());
             return;
         }
 
         for(Parameter param : plugin.getParameters()) {
-            logger.debug1("Checking parameter {} for blueprint {}", param.getName(), plugin.getId());
+            logger.debug("Check parameter '{}' for blueprint '{}'", param.getName(), plugin.getId());
             if (param.isRequired()) {
                 if (!params.containsKey(param.getName()) || StringUtils.isEmpty(params.get(param.getName()))) {
                     throw new MissingPluginParameterException(plugin, param);
@@ -63,7 +63,7 @@ public abstract class PluginUtils {
                 params.putIfAbsent(param.getName(), param.getDefaultValue());
             }
         }
-        logger.debug1("All required parameters are present for blueprint: {}", plugin.getId());
+        logger.debug("All required parameters are present for blueprint '{}'", plugin.getId());
     }
 
     public static String getPluginPath(String pluginId) {

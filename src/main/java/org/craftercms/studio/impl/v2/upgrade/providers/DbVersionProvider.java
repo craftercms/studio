@@ -28,6 +28,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.beans.ConstructorProperties;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.VERSION_3_0_0;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
@@ -43,6 +44,8 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
     public static final String SQL_QUERY_META = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
         + "'{schema}' AND table_name = '_meta' LIMIT 1";
     public static final String SQL_QUERY_VERSION = "select version from _meta";
+
+    // TODO: SJ: Does this still apply?
     public static final String SQL_QUERY_GROUP = "SELECT count(*) FROM information_schema.tables WHERE table_schema = "
         + "'{schema}' AND table_name = 'cstudio_group' LIMIT 1";
     public static final String SQL_UPDATE_VERSION = "UPDATE _meta SET version = ?";
@@ -57,20 +60,20 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
     @Override
     protected String doGetVersion(UpgradeContext<String> context) throws Exception {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(((StudioUpgradeContext) context).getDataSource());
-        logger.debug1("Check if _meta table exists.");
+        logger.debug("Check if the _meta table exists");
         int count = jdbcTemplate.queryForObject(
                 SQL_QUERY_META.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
         if(count != 0) {
-            logger.debug1("_meta table exists.");
-            logger.debug1("Get version from _meta table.");
+            logger.debug("The _meta table exists");
+            logger.debug("Get the version from the _meta table");
             return jdbcTemplate.queryForObject(SQL_QUERY_VERSION, String.class);
 
         } else {
-            logger.debug1("Check if group table exists.");
+            logger.debug("Check if the group table exists");
             count = jdbcTemplate.queryForObject(
                     SQL_QUERY_GROUP.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)), Integer.class);
             if(count != 0) {
-                logger.debug1("Database version is 3.0.0");
+                logger.debug("Database version is 3.0.0");
                 return VERSION_3_0_0;
             } else {
                 throw new UpgradeNotSupportedException("Automated migration from 2.5.x DB is not supported yet.");
@@ -84,11 +87,11 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
         try {
             int updated = jdbcTemplate.update(SQL_UPDATE_VERSION, nextVersion);
             if (updated != 1) {
-                throw new UpgradeException("Error updating the db version");
+                throw new UpgradeException("Error updating the database version");
             }
-            logger.info1("Database version updated to {}", nextVersion);
+            logger.info("Database version updated to '{}'", nextVersion);
         } catch (Exception e) {
-            throw new UpgradeException("Error updating the db version", e);
+            throw new UpgradeException(format("Failed to update the database version to '%s'", nextVersion), e);
         }
     }
 

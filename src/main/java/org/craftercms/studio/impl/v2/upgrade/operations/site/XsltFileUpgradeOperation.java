@@ -28,7 +28,8 @@ import java.nio.file.Files;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
- * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates a single file using a XSLT template.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates a single file using
+ * an XSLT template.
  *
  * <p>Supported YAML properties:</p>
  * <ul>

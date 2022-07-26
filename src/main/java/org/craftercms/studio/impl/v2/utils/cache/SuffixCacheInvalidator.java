@@ -64,7 +64,7 @@ public class SuffixCacheInvalidator<K extends String, V> implements CacheInvalid
     public void invalidate(Cache<K, V> cache, K key) {
         if (!endsWithIgnoreCase(key, separator + suffix)) {
             var newKey = key + separator + suffix;
-            logger.debug1("Invalidating cache for {}", newKey);
+            logger.debug("Invalidate the cache for key '{}'", newKey);
             cache.invalidate(newKey);
         }
     }
