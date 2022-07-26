@@ -15,8 +15,6 @@
  */
 package org.craftercms.studio.model.rest.sites;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import javax.validation.constraints.Size;
 
 /**
