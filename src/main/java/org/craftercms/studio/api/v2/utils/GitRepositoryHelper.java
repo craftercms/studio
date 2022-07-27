@@ -195,14 +195,14 @@ public class GitRepositoryHelper implements DisposableBean {
                             checkoutSandboxBranch(siteId, repo, sandboxBranch);
                         }
                     } else {
-                        logger.warn("Couldn't get the sandbox repository for site '{}'", siteId);
+                        logger.warn("Failed to get the sandbox repository for site '{}'", siteId);
                     }
                     break;
                 case PUBLISHED:
                     if (buildSiteRepo(siteId)) {
                         repo = repositoryCache.getIfPresent(cacheKey);
                     } else {
-                        logger.warn("Couldn't get the published repository for site '{}'", siteId);
+                        logger.warn("Failed to get the published repository for site '{}'", siteId);
                     }
                     break;
                 case GLOBAL:
@@ -210,7 +210,7 @@ public class GitRepositoryHelper implements DisposableBean {
                     try {
                         repo = openRepository(globalConfigRepoPath);
                     } catch (IOException e) {
-                        logger.error("Error getting the global repository.", e);
+                        logger.error("Failed to get the global repository.", e);
                     }
                     break;
             }
@@ -479,14 +479,14 @@ public class GitRepositoryHelper implements DisposableBean {
                                 files.add(FILE_SEPARATOR + diffEntry.getNewPath());
                             }
                         }
+                        // TODO: SJ: See if the exceptions can be caught once at the end
                     } catch (IOException | GitAPIException e) {
-                        logger.error("Error while getting the list of files in commit '{}'", commit.getId().getName());
+                        logger.error("Failed to get the list of files from commit '{}'", commit.getId().getName());
                     }
                 }
             }
-
         } catch (IOException e) {
-            logger.error("Error while getting the list of files in commit '{}'", commit.getId().getName());
+            logger.error("Failed to get the list of files from commit '{}'", commit.getId().getName());
         } finally {
             rw.dispose();
         }
@@ -554,7 +554,7 @@ public class GitRepositoryHelper implements DisposableBean {
             publishedGit.close();
             toRet = true;
         } catch (GitAPIException | IOException e) {
-            logger.error("Error adding origin (sandbox) to published repository", e);
+            logger.error("Failed to add origin (sandbox) to the published repository in site '{}'", siteId, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -575,11 +575,11 @@ public class GitRepositoryHelper implements DisposableBean {
                         .setMessage(getCommitMessage(REPO_CREATE_REPOSITORY_COMMIT_MESSAGE));
                 retryingRepositoryOperationFacade.call(commitCommand);
             } catch (GitAPIException e) {
-                logger.error("Error while creating repository for site with path '{}'", path, e);
+                logger.error("Failed to create the repository for site with path '{}'", path, e);
                 toReturn = null;
             }
         } catch (IOException e) {
-            logger.error("Error while creating repository for site with path '{}'", path, e);
+            logger.error("Failed to create the repository for site with path '{}'", path, e);
             toReturn = null;
         }
 
@@ -656,7 +656,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
             return true;
         } catch (GitAPIException | IOException e) {
-            logger.error("Error checking out sandbox branch '{}' for site '{}'", sandboxBranchName, site, e);
+            logger.error("Failed to checkout the sandbox branch '{}' in site '{}'", sandboxBranchName, site, e);
             return false;
         }
     }
@@ -686,7 +686,7 @@ public class GitRepositoryHelper implements DisposableBean {
             retryingRepositoryOperationFacade.call(rmCommand);
             return true;
         } catch (GitAPIException | IOException e) {
-            logger.error("Error while removing publishing blacklist pattern", e);
+            logger.error("Failed to remove the publishing blacklist pattern", e);
             return false;
         }
     }
@@ -704,7 +704,7 @@ public class GitRepositoryHelper implements DisposableBean {
         try {
             Files.walkFileTree(blueprintPath, opts, Integer.MAX_VALUE, tc);
         } catch (IOException e) {
-            logger.error("Error copying files from blueprint '{}' for site '{}'", blueprintLocation, site, e);
+            logger.error("Failed to copy the files from blueprint '{}' to site '{}'", blueprintLocation, site, e);
             toReturn = false;
         }
 
@@ -742,7 +742,7 @@ public class GitRepositoryHelper implements DisposableBean {
             Files.write(path, content.getBytes(charset));
             toReturn = true;
         } catch (IOException e) {
-            logger.error("Error replacing the _sitename_ variable inside the configuration file '{}' for site '{}'",
+            logger.error("Failed to replace the _sitename_ variable inside the configuration file '{}' in site '{}'",
                     path, site);
             toReturn = false;
         }
@@ -751,7 +751,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
     public boolean replaceParameters(String siteId, Map<String, String> parameters) {
         if (MapUtils.isEmpty(parameters)) {
-            logger.debug("Skipping parameter replacement for site '{}'", siteId);
+            logger.debug("Skip parameter replacement in site '{}'", siteId);
             return true;
         }
         String configRootPath = FilenameUtils.getPath(
@@ -762,7 +762,7 @@ public class GitRepositoryHelper implements DisposableBean {
             Files.walkFileTree(configFolder, new StrSubstitutorVisitor(parameters));
             return true;
         } catch (IOException e) {
-            logger.error("Error looking for configuration files for site '{}'", siteId, e);
+            logger.error("Failed to find parameters in the configuration files in site '{}'", siteId, e);
             return false;
         }
     }
@@ -774,35 +774,35 @@ public class GitRepositoryHelper implements DisposableBean {
             return true;
         }
 
-        logger.debug("Adding ignore files for site '{}'", siteId);
+        logger.debug("Add ignore files to site '{}'", siteId);
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, siteId);
 
         for (HierarchicalConfiguration<ImmutableNode> ignore : ignores) {
             String ignoreLocation = ignore.getString(CONFIG_KEY_RESOURCE);
             Resource ignoreFile = new ClassPathResource(ignoreLocation);
             if (!ignoreFile.exists()) {
-                logger.warn("Couldn't find ignore file at '{}'", ignoreLocation);
+                logger.warn("Failed to find ignore file at '{}' in site '{}'", ignoreLocation, siteId);
                 continue;
             }
 
             String repoFolder = ignore.getString(CONFIG_KEY_FOLDER);
             Path actualFolder = StringUtils.isEmpty(repoFolder)? siteSandboxPath : siteSandboxPath.resolve(repoFolder);
             if (!Files.exists(actualFolder)) {
-                logger.debug("Repository doesn't contain a '{}' folder for site '{}'", repoFolder, siteId);
+                logger.debug("Repository doesn't contain a '{}' folder in site '{}'", repoFolder, siteId);
                 continue;
             }
 
             Path actualFile = actualFolder.resolve(GitContentRepositoryConstants.IGNORE_FILE);
             if (!Files.exists(actualFile)) {
-                logger.debug("Adding ignore file at '{}' for site '{}'", repoFolder, siteId);
+                logger.debug("Add git ignore file at '{}' in site '{}'", repoFolder, siteId);
                 try (InputStream in = ignoreFile.getInputStream()) {
                     Files.copy(in, actualFile);
                 } catch (IOException e) {
-                    logger.error("Error writing ignore file at '{}' for site '{}'", repoFolder, siteId, e);
+                    logger.error("Failed to write the git ignore file at '{}' in site '{}'", repoFolder, siteId, e);
                     return false;
                 }
             } else {
-                logger.debug("Repository already contains an ignore file at '{}' for site '{}'", actualFolder, siteId);
+                logger.debug("The repository already contains an ignore file at '{}' in site '{}'", actualFolder, siteId);
             }
         }
 
@@ -930,21 +930,21 @@ public class GitRepositoryHelper implements DisposableBean {
             throws InvalidRemoteRepositoryException {
         // Check if cloneResult is null , if so die.
         if (cloneResult == null) {
-            String msg = format("Remote Clone Error: '%s (%s)' cloneResult is null", remoteName, remoteUrl);
+            String msg = format("Remote Clone Error '%s (%s)' cloneResult is null", remoteName, remoteUrl);
             logger.error(msg);
             throw new InvalidRemoteRepositoryException(msg);
         }
         Repository repository = cloneResult.getRepository();
         // Check if cloneResult is null , if so die.
         if (repository == null) {
-            String msg = format("Remote Clone Error: '%s (%s)' sandboxRepo is null", remoteName, remoteUrl);
+            String msg = format("Remote Clone Error '%s (%s)' sandboxRepo is null", remoteName, remoteUrl);
             logger.error(msg);
             throw new InvalidRemoteRepositoryException(msg);
         }
         File repoDir = repository.getDirectory();
         // Check if  sandbox repo,: exists, is a dir, we can RW to it.
         if (!repoDir.exists() ||  !repoDir.isDirectory() || !repoDir.canRead() || !repoDir.canWrite()) {
-            String msg = format("Remote Clone Error: '%s' doesn't exist, is not a directory, " +
+            String msg = format("Remote Clone Error '%s' doesn't exist, is not a directory, " +
                     "or we don't have write permissions", repository.getDirectory());
             logger.error(msg);
             throw new InvalidRemoteRepositoryException(msg);
@@ -1049,7 +1049,7 @@ public class GitRepositoryHelper implements DisposableBean {
                     toReturn = true;
                 } catch (IOException e) {
                     // Something very wrong has happened
-                    logger.error("Error bootstrapping the global repository", e);
+                    logger.error("Failed to bootstrap the global repository", e);
                 }
             } else {
                 logger.info("Detected an existing global repository, will not create a new one.");
@@ -1059,7 +1059,7 @@ public class GitRepositoryHelper implements DisposableBean {
                     try {
                         GitUtils.unlock(path);
                     } catch (IOException e) {
-                        logger.warn("Error unlocking git repository '{}'", path, e);
+                        logger.warn("Failed to unlock the git repository '{}'", path, e);
                     }
                 }
             }
@@ -1134,11 +1134,11 @@ public class GitRepositoryHelper implements DisposableBean {
             if (!file.exists()) {
                 try {
                     if (!file.createNewFile()) {
-                        logger.error("Error creating file in site '{}' path '{}'", site, path);
+                        logger.error("Failed to create the file in site '{}' path '{}'", site, path);
                         result = false;
                     }
                 } catch (IOException e) {
-                    logger.error("Error creating file in site '{}' path '{}'", site, path, e);
+                    logger.error("Failed to create the file in site '{}' path '{}'", site, path, e);
                     result = false;
                 }
             }
