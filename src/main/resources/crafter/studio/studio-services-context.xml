@@ -31,11 +31,6 @@
 
     <aop:aspectj-autoproxy proxy-target-class="true"/>
 
-    <!-- ////////////////////////////////////// -->
-    <!--         logging                        -->
-    <!-- ////////////////////////////////////// -->
-    <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider" init-method="init"/>
-
     <bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
