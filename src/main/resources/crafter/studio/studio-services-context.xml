@@ -1394,7 +1394,7 @@
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
-          init-method="init"  depends-on="cstudioLogProvider">
+          init-method="init">
         <constructor-arg name="configurationCache" ref="configurationCache"/>
         <constructor-arg name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>
