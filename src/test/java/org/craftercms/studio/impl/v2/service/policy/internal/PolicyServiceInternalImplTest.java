@@ -15,11 +15,9 @@
  */
 package org.craftercms.studio.impl.v2.service.policy.internal;
 
-import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
 import org.apache.commons.configuration2.io.FileHandler;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -27,16 +25,12 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
-import org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider;
-import org.craftercms.studio.impl.v2.service.policy.validators.ContentTypePolicyValidator;
-import org.craftercms.studio.impl.v2.service.policy.validators.FileSizePolicyValidator;
-import org.craftercms.studio.impl.v2.service.policy.validators.MimeTypePolicyValidator;
-import org.craftercms.studio.impl.v2.service.policy.validators.PathPolicyValidator;
-import org.craftercms.studio.impl.v2.service.policy.validators.SystemPolicyValidator;
+import org.craftercms.studio.impl.v2.service.policy.validators.*;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
 import org.mockito.Mock;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.testng.annotations.BeforeClass;
@@ -51,10 +45,7 @@ import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 /**
  * @author joseross
@@ -105,8 +96,7 @@ public class PolicyServiceInternalImplTest {
 
     @BeforeClass
     public static void setUpLogger() {
-        var provider = new L4jLogProvider();
-        provider.init();
+        var provider = LoggerFactory.getLogger(PolicyServiceInternalImplTest.class);
     }
 
     @BeforeMethod
