@@ -40,7 +40,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
 
     private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
         if (isEmpty(FilenameUtils.getExtension(action.getTarget()))) {
-            logger.debug1("Target is a folder, skipping action");
+            logger.debug("The target is a folder, skip action '{}'", action);
             return;
         }
 
@@ -48,12 +48,12 @@ public class FileSizePolicyValidator implements PolicyValidator {
             long minSize = config.getLong(CONFIG_KEY_MIN_SIZE);
             Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
             if (value.longValue() < minSize) {
-                logger.error1("File size should be at least {0}", minSize);
+                logger.error("File size should be at least '{}' for action '{}'", minSize, action);
                 result.setAllowed(false);
                 return;
             }
         } else {
-            logger.debug("No min size found, skipping action");
+            logger.debug("No min size found, skip action '{}'", action);
         }
 
 
@@ -61,11 +61,11 @@ public class FileSizePolicyValidator implements PolicyValidator {
             long maxSize = config.getLong(CONFIG_KEY_MAX_SIZE);
             Number value = action.getMetadata(Action.METADATA_FILE_SIZE);
             if (value.longValue() > maxSize) {
-                logger.error1("File size should be less than {0}", maxSize);
+                logger.error("File size should be less than '{}' for action '{}'", maxSize, action);
                 result.setAllowed(false);
             }
         } else {
-            logger.debug("No max size found, skipping action");
+            logger.debug("No max size found, skip action '{}'", action);
         }
     }
 

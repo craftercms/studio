@@ -134,16 +134,6 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
-    <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="contentRepository" ref="contentRepository"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-    </bean>
-
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
         <property name="notificationService" ref="cstudioNotificationService" />
         <property name="servicesConfig" ref="cstudioServicesConfig"/>

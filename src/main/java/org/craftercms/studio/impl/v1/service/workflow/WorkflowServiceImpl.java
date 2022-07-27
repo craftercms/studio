@@ -1822,7 +1822,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     return approve_new(site, request, Operation.GO_LIVE);
                 }
             } catch (RuntimeException e) {
-                logger.error1("error making go live", e);
+                logger.error("Failed to publish the site '{}'", site, e);
                 throw e;
             }
         }

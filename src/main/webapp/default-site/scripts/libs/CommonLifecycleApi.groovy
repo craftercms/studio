@@ -16,8 +16,7 @@
 
 package scripts.libs
 
-import org.craftercms.studio.api.v1.log.*
-
+import org.slf4j.LoggerFactory
 
 class CommonLifecycleApi {
     static logger = LoggerFactory.getLogger(CommonLifecycleApi.class)
@@ -28,31 +27,31 @@ class CommonLifecycleApi {
     }
 
     def onCopy(site, path) {
-        logger.debug1("running copy operation event on " + site + ":" + path)
+        logger.debug("Run copy operation event on site '{}' path '{}'", site, path)
     }
 
     def onDelete(site, path) {
-        logger.debug1("running delete operation event on " + site + ":" + path)
+        logger.debug("Run delete operation event on site '{}' path '{}'", site, path)
     }
 
     def onDuplicate(site, path) {
-        logger.debug1("running duplicate operation event on " + site + ":" + path)
+        logger.debug("Run duplicate operation event on site '{}' path '{}'", site, path)
     }
 
     def onNew(site, path) {
-        logger.debug1("running new operation event on " + site + ":" + path)
+        logger.debug("Run new operation event on site '{}' path '{}'", site, path)
     }
 
     def onRename(site, path) {
-        logger.debug1("running rename operation event on " + site + ":" + path)
+        logger.debug("Run rename operation event on site '{}' path '{}'", site, path)
     }
 
     def onRevert(site, path) {
-        logger.debug1("running revert operation event on " + site + ":" + path)
+        logger.debug("Run revert operation event on site '{}' path '{}'", site, path)
     }
 
     def onUpdate(site, path) {
-        logger.debug1("running update operation event on " + site + ":" + path)
+        logger.debug("Run update operation event on site '{}' path '{}'", site, path)
     }
 
     def execute () {
@@ -71,8 +70,10 @@ class CommonLifecycleApi {
         } else if (contentLifecycleParams.contentLifecycleOperation == "UPDATE") {
             onUpdate(contentLifecycleParams.site, contentLifecycleParams.path)
         } else {
-            logger.info1("Unknown operation: " + contentLifecycleParams.contentLifecycleOperation + " for " +
-                    contentLifecycleParams.site + ":" + contentLifecycleParams.path)
+            logger.info("Unknown operation '{}' on site '{}' path '{}'",
+                    contentLifecycleParams.contentLifecycleOperation,
+                    contentLifecycleParams.site,
+                    contentLifecycleParams.path)
         }
     }
 }

@@ -49,7 +49,7 @@ class ContentMonitoring {
 	 * @return a list of notifications that were made
 	 */
 	static doContentMonitoringForSite(context, site, logger) {
-		logger.debug1("monitoring for expired content for site: " + site)
+		logger.debug("Monitoring expired content in site '{}'", site)
 
 		def results = [:]
 
@@ -58,6 +58,7 @@ class ContentMonitoring {
 		def servicesConfig = context.get(SERVICES_CONFIG_BEAN)
 		def configurationService = context.get(CONFIGURATION_SERVICE_BEAN)
 
+		// TODO: SJ: Avoid string literals
 		def config = configurationService.legacyGetConfiguration(site, "site-config.xml")
 
 		if(config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
@@ -70,7 +71,7 @@ class ContentMonitoring {
 			config.contentMonitoring.monitor.each { monitor ->
 				def authoringBaseUrl = servicesConfig.getAuthoringUrl(site)
 
-				logger.debug1("executing monitor: ${monitor.name}")
+				logger.debug("Executing monitor '{}'", monitor.name)
 
 				if(monitor.paths !=null && monitor.paths.path!=null) {
 					if(monitor.paths.path instanceof Map) {
@@ -87,7 +88,7 @@ class ContentMonitoring {
 					def executedQuery = searchService.search(site, Collections.emptyList(), searchParams)
 					def itemsFound = executedQuery.total
 					def items = executedQuery.items
-					logger.debug1("content monitor (${monitor.name}) found $itemsFound items")
+					logger.debug("Content monitor '{}' has found '{}' items", monitor.name, itemsFound)
 
 					monitor.paths.path.each { path ->
 						// there are paths, query for items and then match against paths patterns
@@ -111,7 +112,8 @@ class ContentMonitoring {
 
 						if(monitorPathResult.items) {
 							results.monitors.add(monitorPathResult)
-							logger.info1("content monitor: ${monitor.name} Sending notification (${path.emailTemplate})")
+							logger.info("Content monitor '{}' will send notification '{}'",
+									monitor.name, path.emailTemplate)
 							notificationService.notify(
 									site,
 									path.emails.split(",") as List,
@@ -125,7 +127,7 @@ class ContentMonitoring {
 			} // end looping through site monitors
 		}
 		else {
-			logger.debug1("no items to report")
+			logger.debug("No expired content items to report")
 		}
 		return results
 	}

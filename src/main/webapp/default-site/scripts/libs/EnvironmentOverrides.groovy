@@ -108,11 +108,11 @@ class EnvironmentOverrides {
                 result.role = roles[0]
               }
             } else {
-              logger.info1("[EnvironmentOverrides] Attempt to visit '${result.site}' site without the necessary roles")
+              logger.info("Attempt to visit the site '{}' without the necessary role", result.site)
               response.sendRedirect("/studio/?roles")
             }
           } catch (error) {
-            logger.info1("[EnvironmentOverrides] Error retrieving roles for site '${result.site}'")
+            logger.info("Failed to get roles for site '{}'", result.site)
             response.sendRedirect("/studio/?error")
           }
 
