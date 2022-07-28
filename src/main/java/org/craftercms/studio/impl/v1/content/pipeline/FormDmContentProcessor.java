@@ -217,7 +217,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fileItem = contentService.getContentItem(site, itemPath, 0);
             return fileItem;
         } else {
-            throw new ContentNotFoundException(format("Parent item at '%s' doesn't exist in site '%s'",
+            throw new ContentNotFoundException(format("The parent item at '%s' doesn't exist in site '%s'",
                     parentItem.getUri(), site));
         }
     }

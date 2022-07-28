@@ -61,7 +61,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                         StudioConstants.CONTENT_ENCODING, params);
                     chain.processContent(content, result);
                 } catch (ContentProcessException | UserNotFoundException | RuntimeException e) {
-                    logger.error("Error writing content in processor chain", e);
+                    logger.error("Failed to write content with ID '{}' in processor chain", id, e);
                     throw e;
                 } finally {
                     ContentUtils.release(input);
