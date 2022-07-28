@@ -74,6 +74,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.NoSuchElementException;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
 import static org.slf4j.event.Level.*;
 
@@ -337,7 +338,7 @@ public class ExceptionHandlers {
     public ResponseBody handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
-            String.format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+            format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -355,7 +356,7 @@ public class ExceptionHandlers {
                                                                       MissingServletRequestParameterException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         response.setRemedialAction(
-            String.format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
+            format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
         return handleExceptionInternal(request, e, response);
     }
 

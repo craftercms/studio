@@ -35,6 +35,8 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import java.io.InputStream;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 /**
  * @author Dejan Brkic
  */
@@ -68,9 +70,9 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
 
             } else {
                 ContentUtils.release(input);
-                throw new ServiceLayerException(String.format("Chain '%s' is not defined", chainName));
+                throw new ServiceLayerException(format("Chain '%s' is not defined", chainName));
             }
-        }finally {
+        } finally {
             String s = params.get(DmConstants.KEY_USER);
             //AuthenticationUtil.setFullyAuthenticatedUser(s);
         }

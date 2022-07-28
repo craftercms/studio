@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeStart;
@@ -183,7 +184,7 @@ public abstract class AwsUtils {
     }
 
     public static String getS3Url(String bucket, String key) {
-        return String.format("s3://%s/%s", bucket, key);
+        return format("s3://%s/%s", bucket, key);
     }
 
 }

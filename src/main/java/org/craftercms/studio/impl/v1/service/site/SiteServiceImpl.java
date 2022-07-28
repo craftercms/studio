@@ -291,7 +291,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             success = false;
             logger.error("Failed to create site '{}' id '{}' based on blueprint '{}'. The deployer targets " +
                     "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId, e);
-            throw new DeployerTargetException(String.format("Failed to create site '%s' id '%s' based on blueprint '%s'. The deployer targets " +
+            throw new DeployerTargetException(format("Failed to create site '%s' id '%s' based on blueprint '%s'. The deployer targets " +
                     "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId), e);
         }
 
@@ -354,7 +354,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                 deleteSite(siteId);
 
-                throw new SiteCreationException(String.format("Failed to create site '%s' id '%s' based on " +
+                throw new SiteCreationException(format("Failed to create site '%s' id '%s' based on " +
                         "blueprint '%s'. Rolling back site creation.",
                         siteName, siteId, blueprintId), e);
             }
@@ -370,7 +370,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             "successful, the site won't be preview-able until the Preview Deployer is reachable " +
                             "and has successfully synced.",
                             siteName, siteId, e);
-                throw new SiteCreationException(String.format("Failed to sync site content to preview for site '%s' " +
+                throw new SiteCreationException(format("Failed to sync site content to preview for site '%s' " +
                                 "id '%s'. While site creation was " +
                                 "successful, the site won't be preview-able until the Preview Deployer is reachable " +
                                 "and has successfully synced.",
@@ -378,7 +378,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             }
             setSiteState(siteId, STATE_READY);
         } else {
-            throw new SiteCreationException(String.format("Site creation failed site '%s' id '%s' based on " +
+            throw new SiteCreationException(format("Site creation failed site '%s' id '%s' based on " +
                     "blueprint '%s'", siteName, siteId, blueprintId));
         }
         logger.info("Site '{}' id '{}' created successfully", siteName, siteId);

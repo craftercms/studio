@@ -93,6 +93,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
@@ -1048,7 +1049,7 @@ public class GitContentRepository implements ContentRepository {
         } catch (Exception e) {
             logger.error("Error publishing site '{}' to publishing target '{}' commit ID is '{}'",
                     site, environment, commitId, e);
-            throw new DeploymentException(String.format("Error publishing site '%s' to publishing target " +
+            throw new DeploymentException(format("Error publishing site '%s' to publishing target " +
                             "'%s' commit ID is '%s'", site, environment, commitId), e);
         } finally {
             generalLockService.unlock(gitLockKey);

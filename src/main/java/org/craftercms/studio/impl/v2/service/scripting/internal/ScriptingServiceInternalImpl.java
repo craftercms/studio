@@ -46,6 +46,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
 
 /**
@@ -141,7 +142,7 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
         // Get the method of the request
         var requestMethod = request.getMethod().toLowerCase();
 
-        var scriptPath = String.format(scriptPathFormat, scriptUrl, requestMethod, scriptExtension);
+        var scriptPath = format(scriptPathFormat, scriptUrl, requestMethod, scriptExtension);
 
         // Get the script engine for this site
         var scriptEngine = scriptEngineManager.getScriptEngine(siteId);

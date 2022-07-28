@@ -42,6 +42,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import java.io.InputStream;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -82,7 +83,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             writeContent(content, result);
         } catch (ServiceLayerException e) {
             logger.error("Failed to write content '{}'", content.getId(), e);
-            throw new ContentProcessException(String.format("Failed to write content '%s'", content.getId(), e));
+            throw new ContentProcessException(format("Failed to write content '%s'", content.getId(), e));
         } finally {
             content.closeContentStream();
         }
@@ -142,7 +143,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     }
                 }
             } else {
-                throw new ContentNotFoundException(String.format("Content not found site '%s' path '%s'", site, path));
+                throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
             }
         } catch (ContentNotFoundException | RepositoryLockedException e) {
             throw e;
@@ -216,7 +217,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fileItem = contentService.getContentItem(site, itemPath, 0);
             return fileItem;
         } else {
-            throw new ContentNotFoundException(String.format("Parent item at '%s' doesn't exist in site '%s'",
+            throw new ContentNotFoundException(format("Parent item at '%s' doesn't exist in site '%s'",
                     parentItem.getUri(), site));
         }
     }

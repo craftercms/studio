@@ -53,6 +53,8 @@ import com.amazonaws.services.mediaconvert.model.OutputGroupType;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 
+import static java.lang.String.format;
+
 /**
  * Default implementation of {@link AwsMediaConvertService}
  *
@@ -249,7 +251,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      */
     protected String createUrl(String profileId, String fullUri) {
         AmazonS3URI uri = new AmazonS3URI(fullUri);
-        return String.format(urlPattern, profileId, uri.getKey());
+        return format(urlPattern, profileId, uri.getKey());
     }
 
 }

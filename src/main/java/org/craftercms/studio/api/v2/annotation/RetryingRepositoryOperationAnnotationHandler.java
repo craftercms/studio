@@ -33,6 +33,8 @@ import org.springframework.core.annotation.Order;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
+import static java.lang.String.format;
+
 @Aspect
 @Order(1)
 public class RetryingRepositoryOperationAnnotationHandler {
@@ -87,14 +89,14 @@ public class RetryingRepositoryOperationAnnotationHandler {
                         Thread.sleep(sleep);
                     }
                 } else {
-                    throw new RetryingOperationErrorException(String.format("Git operation '%s' has failed",
+                    throw new RetryingOperationErrorException(format("Git operation '%s' has failed",
                             method.getName()), e);
                 }
             }
         } while (numAttempts < maxRetries);
 
         // If it gets here, numAttempts >= maxRetries, so we should fail entirely
-        throw new RetryingOperationErrorException(String.format("Failed to execute '%s' after '%d' attempts " +
+        throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%d' attempts " +
                 "because the git repository was locked", method.getName(), numAttempts), lastException);
     }
 

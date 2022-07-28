@@ -16,6 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -63,45 +64,45 @@ public class UserServiceImplTest {
     @Test
     public void onlyTokensWith4ElementsAreValidTest() throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         Long timestamp = System.currentTimeMillis();
-        String token = String.format("%s|%s|%s|%s|something_else", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
+        String token = format("%s|%s|%s|%s|something_else", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
         assertFalse(userService.validateDecryptedToken(token));
 
-        token = String.format("%s|%s|%s", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp);
+        token = format("%s|%s|%s", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp);
         assertFalse(userService.validateDecryptedToken(token));
     }
 
     @Test
     public void tokenIsInvalidIfUserDoesNotExistTest() throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         Long timestamp = System.currentTimeMillis();
-        String token = String.format("%s|%s|%s|%s", NON_EXISTENT_USERNAME, INSTANCE_ID, timestamp, SALT);
+        String token = format("%s|%s|%s|%s", NON_EXISTENT_USERNAME, INSTANCE_ID, timestamp, SALT);
         assertThrows(UserNotFoundException.class, () -> userService.validateDecryptedToken(token));
     }
 
     @Test
     public void tokenIsInvalidIfUserIsExternallyManagedTest() {
         Long timestamp = System.currentTimeMillis();
-        String token = String.format("%s|%s|%s|%s", EXTERNALLY_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
+        String token = format("%s|%s|%s|%s", EXTERNALLY_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
         assertThrows(UserExternallyManagedException.class, () -> userService.validateDecryptedToken(token));
     }
 
     @Test
     public void tokenIsInvalidIfInstanceIdDoesNotMatchTest() throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         Long timestamp = System.currentTimeMillis();
-        String token = String.format("%s|%s|%s|%s", STUDIO_MANAGED_USERNAME, INVALID_INSTANCE_ID, timestamp, SALT);
+        String token = format("%s|%s|%s|%s", STUDIO_MANAGED_USERNAME, INVALID_INSTANCE_ID, timestamp, SALT);
         assertFalse(userService.validateDecryptedToken(token));
     }
 
     @Test
     public void tokenIsInvalidIfTimestampIsInThePastTest() throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         Long timestamp = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
-        String token = String.format("%s|%s|%s|%s", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
+        String token = format("%s|%s|%s|%s", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
         assertFalse(userService.validateDecryptedToken(token));
     }
 
     @Test
     public void validTokenTest() throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         Long timestamp = System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1);
-        String token = String.format("%s|%s|%s|%s", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
+        String token = format("%s|%s|%s|%s", STUDIO_MANAGED_USERNAME, INSTANCE_ID, timestamp, SALT);
         assertTrue(userService.validateDecryptedToken(token));
     }
 }

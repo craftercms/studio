@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublish
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
@@ -152,7 +153,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
                 String aprover = securityService.getCurrentUser();
                 if (StringUtils.isEmpty(comment)) {
-                    comment = String.format("Bulk Publish invoked by '%s'", aprover);
+                    comment = format("Bulk Publish invoked by '%s'", aprover);
                 }
                 logger.info("Publishing a package of '{}' items in site '{}' path '{}' to target '{}'",
                         pathsToPublish.size(), site, childPath, environment);

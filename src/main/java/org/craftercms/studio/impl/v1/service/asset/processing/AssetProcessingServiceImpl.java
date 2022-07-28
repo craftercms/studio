@@ -48,6 +48,8 @@ import org.craftercms.studio.api.v1.service.asset.processing.AssetProcessingServ
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;
 
+import static java.lang.String.format;
+
 /**
  * Default implementation of {@link AssetProcessingService}.
  *
@@ -183,7 +185,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
             return new Asset(repoPath, tmpFile);
         } catch (IOException e) {
-            throw new AssetProcessingException(String.format("Unable to create a temp file to hold the " +
+            throw new AssetProcessingException(format("Unable to create a temp file to hold the " +
                             "input stream of '%s'", repoPath), e);
         }
     }

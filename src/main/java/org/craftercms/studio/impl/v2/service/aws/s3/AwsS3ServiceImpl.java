@@ -42,6 +42,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.stripStart;
 
@@ -168,7 +169,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     }
 
     protected String createUrl(String profileId, String key) {
-        return Paths.get(String.format(urlPattern, profileId, key)).normalize().toString();
+        return Paths.get(format(urlPattern, profileId, key)).normalize().toString();
     }
 
     protected String normalizePrefix(String prefix) {
