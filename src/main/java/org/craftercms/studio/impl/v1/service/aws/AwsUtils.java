@@ -144,7 +144,7 @@ public abstract class AwsUtils {
 
             try {
                 while (bytePosition < objectSize) {
-                    logger.debug("Copy part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
+                    logger.trace("Copy part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
                     long lastByte = Math.min(bytePosition + partSize - 1, objectSize - 1);
 
                     CopyPartRequest copyRequest = new CopyPartRequest()
