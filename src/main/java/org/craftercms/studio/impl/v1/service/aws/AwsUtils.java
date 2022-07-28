@@ -110,7 +110,7 @@ public abstract class AwsUtils {
 
     public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
                                   int partSize, AmazonS3 client) {
-        logger.debug("Copying all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
+        logger.debug("Copy all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
         ListObjectsV2Request request = new ListObjectsV2Request()
                 .withBucketName(sourceBucket)
                 .withPrefix(sourcePrefix);
@@ -128,7 +128,7 @@ public abstract class AwsUtils {
 
     public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
                                 int partSize, AmazonS3 client) {
-        logger.debug("Copying file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
+        logger.debug("Copy file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
         GetObjectMetadataRequest metadataRequest = new GetObjectMetadataRequest(sourceBucket, sourceKey);
         ObjectMetadata metadataResult = client.getObjectMetadata(metadataRequest);
         long objectSize = metadataResult.getContentLength();
@@ -144,7 +144,7 @@ public abstract class AwsUtils {
 
             try {
                 while (bytePosition < objectSize) {
-                    logger.debug("Copying part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
+                    logger.debug("Copy part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
                     long lastByte = Math.min(bytePosition + partSize - 1, objectSize - 1);
 
                     CopyPartRequest copyRequest = new CopyPartRequest()
