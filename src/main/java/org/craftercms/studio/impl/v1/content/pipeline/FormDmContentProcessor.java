@@ -148,7 +148,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         } catch (ContentNotFoundException | RepositoryLockedException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("Error writing content site '{}' path '{}'", site, path, e);
+            logger.error("Failed to write content site '{}' path '{}'", site, path, e);
             throw new ContentNotFoundException("Unexpected exception ", e);
         } finally {
             ContentUtils.release(input);
@@ -160,9 +160,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected void unlock(String siteId, String path) throws ContentNotFoundException {
         try {
             contentServiceV2.unlockContent(siteId, path);
-            logger.debug("Unlocked the content site: {0} path: {1}", siteId, path);
+            logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
         } catch (ContentAlreadyUnlockedException e) {
-            logger.debug("Content already unlocked site: {0} path: {1}", siteId, path);
+            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
         }
     }
 
@@ -202,7 +202,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
             } catch (Exception e) {
-                logger.error("Error creating a new file in site '{}' name '{}'", site, fileName, e);
+                logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
             } finally {
                 IOUtils.closeQuietly(input);
             }

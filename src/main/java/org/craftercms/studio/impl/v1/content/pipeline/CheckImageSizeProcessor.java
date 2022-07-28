@@ -158,7 +158,7 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
             }
             if (!success) {
                 throw new ContentNotAllowedException(format("The width and height of the image must " +
-                        "be less than or equal to the configured '{}x{}', however, the actual asset is '{}x{}'",
+                        "be less than or equal to the permitted '{}x{}', however, the actual asset is '{}x{}'",
                         allowedWidth, allowedHeight, width, height));
             }
         }
