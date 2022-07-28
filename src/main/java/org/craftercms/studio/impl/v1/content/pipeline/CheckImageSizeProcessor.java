@@ -145,8 +145,8 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(format("The width and the height of the image must " +
-                        "match to the allowed width and height of '{}x{}' whereas the actual asset is '{}x{}'",
+                throw new ContentNotAllowedException(format("The width and height of the image must " +
+                        "match the permitted '{}x{}', however, the actual asset is '{}x{}'",
                         allowedWidth, allowedHeight, width, height));
             }
         } else {
@@ -157,8 +157,8 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(format("The width and the height of the image must " +
-                        "be less than or equal to width and height of '{}x{}' whereas the actual asset is '{}x{}'",
+                throw new ContentNotAllowedException(format("The width and height of the image must " +
+                        "be less than or equal to the configured '{}x{}', however, the actual asset is '{}x{}'",
                         allowedWidth, allowedHeight, width, height));
             }
         }
