@@ -214,7 +214,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             try {
                 original = contentService.getContentAsDocument(site, path);
             } catch (DocumentException e) {
-                logger.error("Error getting content as document for site '{}' path '{}'", site, path, e);
+                logger.error("Failed to get content as document for site '{}' path '{}'", site, path, e);
                 return false;
             }
             throw new RuntimeException("Unexpected code path");
@@ -253,7 +253,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                                                       List<ContentTypeConfigTO> contentTypes) {
         String contentTypesRootPath = getConfigPath().replaceAll(StudioConstants.PATTERN_SITE, site);
         String fullPath = node.path + FILE_SEPARATOR + node.name;
-        logger.debug("Get Content Type Config in site '{}' for children path '{}'", site, fullPath);
+        logger.debug("Get Content Type Config from site '{}' for children path '{}'", site, fullPath);
         RepositoryItem[] folders = contentRepository.getContentChildren(site, fullPath);
         if (folders != null) {
             for (int i = 0; i < folders.length; i++) {

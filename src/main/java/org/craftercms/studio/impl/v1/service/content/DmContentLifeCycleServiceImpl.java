@@ -87,7 +87,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             return;
         }
         if (StringUtils.isEmpty(contentType) || StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
-            logger.warn("Skipping content lifecycle script execution since no content type was provided for " +
+            logger.warn("Skip content lifecycle script execution since no content type was provided for " +
                     "site '{}' path '{}'", site, path);
             return;
         }
@@ -105,7 +105,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             try {
                 scriptExecutor.executeScriptString(script, model);
             } catch (Exception e) {
-                logger.error("Error executing content lifecycle script in site '{}' path '{}'", site, path, e);
+                logger.error("Failed to execute content lifecycle script in site '{}' path '{}'", site, path, e);
             }
         }
     }
@@ -200,13 +200,13 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {
-                logger.error("Error reading content from site '{}' path '{}'", site, path, e);
+                logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }
                 return null;
             } catch (ContentNotFoundException e) {
-                logger.error("Error reading content from site '{}' path '{}'", site, path, e);
+                logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }
