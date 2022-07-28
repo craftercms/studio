@@ -288,12 +288,12 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     @Override
     // TODO: after login insert LOGIN audit
     public boolean insertAuditLog(AuditLog auditLog) {
-        int result = retryingDatabaseOperationFacade.insertAuditLog(auditLog);
+        int result = retryingDatabaseOperationFacade.retry(() -> auditDao.insertAuditLog(auditLog));
         if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("auditId", auditLog.getId());
             params.put("parameters", auditLog.getParameters());
-            retryingDatabaseOperationFacade.insertAuditLogParams(params);
+            retryingDatabaseOperationFacade.retry(() -> auditDao.insertAuditLogParams(params));
         }
         return result > 0;
     }
