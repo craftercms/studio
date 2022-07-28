@@ -206,7 +206,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                 config.setItemTypes(itemTypes);
             }
         } else {
-            logger.warn("Dependency resolver XML configuration for site '{}' does not exist at '{}'",
+            logger.warn("The dependency resolver XML configuration for site '{}' does not exist at '{}'",
                     site, configLocation);
         }
 
