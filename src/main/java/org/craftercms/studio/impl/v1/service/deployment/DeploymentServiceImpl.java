@@ -175,7 +175,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             Item item = itemServiceInternal.getItem(site, p);
             boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
             if (isFolder) {
-                logger.debug("Content item in site '{}' path '{}' is a folder and will not be added " +
+                logger.trace("The content item in site '{}' path '{}' is a folder and will not be added " +
                         "to the publishing queue", site, p);
             } else {
                 if (isNew(item.getState())) {
@@ -203,12 +203,12 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         try {
             sendContentApprovalEmail(items, scheduleDateNow);
         } catch (Exception e) {
-            logger.error("Error sending approval email notification for site '{}'", site, e);
+            logger.error("Failed to send approval email notification for site '{}'", site, e);
         }
         try {
             siteService.updatePublishingStatus(site, QUEUED);
         } catch (SiteNotFoundException e) {
-            logger.error("Error updating publishing status for site '{}'", site, e);
+            logger.error("Failed to update publishing status for site '{}'", site, e);
         }
         applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
     }
@@ -281,10 +281,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             item.setCommitId(commitId);
                         } else {
                             if (StringUtils.isNotEmpty(commitId)) {
-                                logger.warn("Item in site '{}' path '{}' has a null commit ID. Was the git " +
+                                logger.warn("The item in site '{}' path '{}' has a null commit ID. Was the git " +
                                         "repository reset at some point?", site, path);
                             } else {
-                                logger.warn("Item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
+                                logger.warn("The item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
                                         "site's git repository. Was the git repository reset at some point?",
                                         site, path, commitId);
                             }
@@ -350,7 +350,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         try {
             siteService.updatePublishingStatus(site, QUEUED);
         } catch (SiteNotFoundException e) {
-            logger.error("Error updating the publishing status for site '{}'", site, e);
+            logger.error("Failed to update the publishing status for site '{}'", site, e);
         }
     }
 
@@ -383,10 +383,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             item.setCommitId(commitId);
                         } else {
                             if (StringUtils.isNotEmpty(commitId)) {
-                                logger.warn("Item in site '{}' path '{}' has a null commit ID. Was the git " +
+                                logger.warn("The item in site '{}' path '{}' has a null commit ID. Was the git " +
                                         "repository reset at some point?", site, path);
                             } else {
-                                logger.warn("Item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
+                                logger.warn("The item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
                                                 "site's git repository. Was the git repository reset at some point?",
                                         site, path, commitId);
                             }
