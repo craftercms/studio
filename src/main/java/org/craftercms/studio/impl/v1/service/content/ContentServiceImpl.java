@@ -119,6 +119,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
@@ -328,7 +329,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             return new ContentResource(this, site, path);
         } else {
             throw new ContentNotFoundException(path, site,
-                String.format("File '%s' not found in site '%s'", path, site));
+                format("File '%s' not found in site '%s'", path, site));
         }
     }
 
@@ -390,7 +391,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         // TODO: SJ: Review and refactor/redo
                         logger.error("Error Content path '{}' is being processed (Object State is system processing)",
                                 path);
-                        throw new ServiceLayerException(String.format("Content '%s' is in system processing," +
+                        throw new ServiceLayerException(format("Content '%s' is in system processing," +
 								" we can't write it", path));
                     }
                     itemServiceInternal.setSystemProcessing(site, path, true);
@@ -408,7 +409,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                 // Content does not exist; check for moved content and deleted content
                 if (itemServiceInternal.previousPathExists(site, path)) {
-                    throw new ServiceLayerException(String.format("Content '%s' for site '%s', cannot be created " +
+                    throw new ServiceLayerException(format("Content '%s' for site '%s', cannot be created " +
                             "because this name/URL was in use by another content item that has been moved or" +
                             " deleted but not yet published.", path, site));
                 }
@@ -566,13 +567,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     logger.error("Error Content '{}' is being processed " +
                             "(Object State is SYSTEM_PROCESSING)", path);
 					// TODO: Review the exception below
-                    throw new RuntimeException(String.format("Content '%s' is being processed", path));
+                    throw new RuntimeException(format("Content '%s' is being processed", path));
                 }
                 itemServiceInternal.setSystemProcessing(site, path, true);
             }
 
             if (itemServiceInternal.previousPathExists(site, path)) {
-                throw new ServiceLayerException(String.format("Content '%s' for site '%s', cannot be created because"
+                throw new ServiceLayerException(format("Content '%s' for site '%s', cannot be created because"
                     + " this name/URL was in use by another content item that has been moved or deleted but"
                     + " not yet published.", path, site));
             }
@@ -1269,7 +1270,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     if (!proposedDestPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                         int pdpli = proposedDestPath.lastIndexOf(".");
                         if (pdpli == -1) pdpli = proposedDestPath.length();
-                        proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
+                        proposedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
                                 proposedDestPath.substring(0, pdpli), modifier, proposedDestPath.substring(pdpli));
 
                         // a regex would be better
@@ -1278,7 +1279,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                         proposedDestPath_folder =
                                 proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
                     } else {
-                        proposedDestPath = String.format(COPY_FILE_MODIFIER_FORMAT,
+                        proposedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
                                 proposedDestPath.substring(0,
                                         proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)),
                                 modifier,
@@ -1307,7 +1308,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 result.put("ALT_NAME", "true");
             }
             catch(Exception e) {
-                throw new ServiceLayerException(String.format("Unable to generate an alternative path" +
+                throw new ServiceLayerException(format("Unable to generate an alternative path" +
                                 " for name collision '{}'", proposedDestPath, e));
             }
         }
@@ -1401,7 +1402,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
             if (internalNameNode != null) {
                 String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
-                internalNameNode.setText(String.format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
+                internalNameNode.setText(format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
             }
         }
 
@@ -2542,12 +2543,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String targetPath = parentPath + FILE_SEPARATOR + name;
 
         if (!contentExists(site, path)) {
-            throw new ContentNotFoundException(path, site, String.format("Content '%s' for site '%s', cannot be renamed " +
+            throw new ContentNotFoundException(path, site, format("Content '%s' for site '%s', cannot be renamed " +
                     "to '%s' because it does not exist.", path, site, targetPath));
         }
 
         if (contentExists(site, targetPath)) {
-            throw new ContentExistException(String.format("Content '%s' for site '%s', cannot be renamed " +
+            throw new ContentExistException(format("Content '%s' for site '%s', cannot be renamed " +
                                 "because an item with the name '%s' already exists.", path, site, name));
         }
 
@@ -2556,7 +2557,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String contentType = sourceContentItem.getContentType();
 
         if (!SUPPORT_RENAME_CONTENT_TYPES.contains(contentType)) {
-            throw new ServiceLayerException(String.format("Not supported rename operation for content '%s' " +
+            throw new ServiceLayerException(format("Not supported rename operation for content '%s' " +
                     "with content type '%s'", path, contentType));
         }
 

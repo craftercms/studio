@@ -48,6 +48,8 @@ import org.craftercms.studio.api.v1.service.asset.processing.AssetProcessingServ
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;
 
+import static java.lang.String.format;
+
 /**
  * Default implementation of {@link AssetProcessingService}.
  *
@@ -129,7 +131,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                             }
                         } else {
                             // No outputs mean that the input wasn't matched by any pipeline and processing was skipped
-                            logger.debug("No pipeline matched for path '{}' in site '{}'. Skipping asset processing...",
+                            logger.debug("No pipeline matched for path '{}' in site '{}'. Skip asset processing ...",
                                     repoPath, site);
 
                             // We already read input so open the temp file
@@ -148,20 +150,20 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
                 } else {
                     // Ignore if no pipelines config
                     logger.debug("No asset processing pipelines config found at '{}' in site '{}'. " +
-                                    "Skipping asset processing...", repoPath, site);
+                                    "Skip asset processing ...", repoPath, site);
 
                     return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight,
                                                             allowLessSize, draft, unlock, systemAsset);
                 }
             } else {
-                logger.debug("No asset processing config found at '{}' in site '{}'. Skipping asset processing...",
+                logger.debug("No asset processing config found at '{}' in site '{}'. Skip asset processing ...",
                         repoPath, site);
 
                 return contentService.writeContentAsset(site, folder, assetName, in, isImage, allowedWidth, allowedHeight, allowLessSize,
                                                         draft, unlock, systemAsset);
             }
         } catch (Exception e) {
-            logger.error("Error processing asset in site '{}'", site, e);
+            logger.error("Failed to process asset '{}' in site '{}'", assetName, site, e);
 
             Map<String, Object> result = new HashMap<>();
             result.put("success", true);
@@ -183,8 +185,8 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
             return new Asset(repoPath, tmpFile);
         } catch (IOException e) {
-            throw new AssetProcessingException(String.format("Unable to create temp file to hold input stream of '%s'",
-                    repoPath), e);
+            throw new AssetProcessingException(format("Unable to create a temp file to hold the " +
+                            "input stream of '%s'", repoPath), e);
         }
     }
 

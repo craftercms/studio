@@ -168,7 +168,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             }
         } catch (ServiceLayerException e) {
             logger.error("Failed to load role mappings from site '{}' path '{}'", siteId, roleMappingsConfigPath, e);
-            throw new ConfigurationException(String.format("Failed to load role mappings from site '%s' path '%s'",
+            throw new ConfigurationException(format("Failed to load role mappings from site '%s' path '%s'",
                     siteId, roleMappings), e);
         }
 
@@ -251,7 +251,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             } catch (IOException | DocumentException e) {
                 logger.error("Failed to load configuration from site '{}' module '{}' " +
                         "path '{}' environment '{}'", siteId, module, path, environment, e);
-                throw new ServiceLayerException(String.format("Failed to load configuration from site '%s' module " +
+                throw new ServiceLayerException(format("Failed to load configuration from site '%s' module " +
                         "'%s' path '%s' environment '%s'", siteId, module, path, environment), e);
             }
         }
@@ -271,7 +271,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 }
             } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
                 logger.error("Failed to load configuration from site '{}' path '{}'", siteId, path, e);
-                throw new ConfigurationException(String.format("Failed to load configuration from site " +
+                throw new ConfigurationException(format("Failed to load configuration from site " +
                         "'%s' path '%s'", siteId, path), e);
             }
         }
@@ -292,7 +292,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
                 logger.error("Failed to load configuration from the Global repository path '{}'",
                         path, e);
-                throw new ConfigurationException(String.format("Failed to load configuration from the Global " +
+                throw new ConfigurationException(format("Failed to load configuration from the Global " +
                         "repository path '%s'", path), e);
             }
         }
@@ -309,7 +309,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 configurationCache.put(path, doc);
             } catch (DocumentException e) {
                 logger.error("Failed to load the Global config at path '{}'", path, e);
-                throw new ServiceLayerException(String.format("Failed to load the Global config at path '%s'",
+                throw new ServiceLayerException(format("Failed to load the Global config at path '%s'",
                         path), e);
             }
         }
@@ -478,7 +478,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                         DocumentHelper.parseText(new String(bytes));
                     } catch (Exception e) {
                         logger.error("Failed to validate configuration file '{}'", filename, e);
-                        throw new InvalidConfigurationException(String.format("Invalid XML configuration file '%s'",
+                        throw new InvalidConfigurationException(format("Invalid XML configuration file '%s'",
                                 filename), e);
                     }
                     break;
@@ -490,7 +490,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                         Map<String, Object> map = yaml.load(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
                         logger.error("Failed to validate configuration file '{}'", filename, e);
-                        throw new InvalidConfigurationException(String.format("Invalid YAML configuration file '%s'",
+                        throw new InvalidConfigurationException(format("Invalid YAML configuration file '%s'",
                                 filename), e);
                     }
             }
@@ -500,7 +500,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
         } catch (IOException e) {
             logger.error("Failed to validate configuration file '{}'", filename, e);
-            throw new ServiceLayerException(String.format("Failed to validate configuration file '%s'", filename), e);
+            throw new ServiceLayerException(format("Failed to validate configuration file '%s'", filename), e);
         }
     }
 

@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.removeStart;
@@ -63,7 +64,7 @@ public abstract class AwsUtils {
             byte[] buffer = new byte[partSize];
             int read;
 
-            logger.debug("Starting upload for file '{}'", filename);
+            logger.debug("Start upload for file '{}'", filename);
 
             while (0 < (read = IOUtils.read(content, buffer))) {
                 totalBytes += read;
@@ -109,7 +110,7 @@ public abstract class AwsUtils {
 
     public static void copyFolder(String sourceBucket, String sourcePrefix, String destBucket, String destPrefix,
                                   int partSize, AmazonS3 client) {
-        logger.debug("Copying all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
+        logger.debug("Copy all files from '{}/{}' to '{}/{}'", sourceBucket, sourcePrefix, destBucket, destPrefix);
         ListObjectsV2Request request = new ListObjectsV2Request()
                 .withBucketName(sourceBucket)
                 .withPrefix(sourcePrefix);
@@ -127,13 +128,13 @@ public abstract class AwsUtils {
 
     public static void copyFile(String sourceBucket, String sourceKey, String destBucket, String destKey,
                                 int partSize, AmazonS3 client) {
-        logger.debug("Copying file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
+        logger.debug("Copy file from '{}/{}' to '{}/{}'", sourceBucket, sourceKey, destBucket, destKey);
         GetObjectMetadataRequest metadataRequest = new GetObjectMetadataRequest(sourceBucket, sourceKey);
         ObjectMetadata metadataResult = client.getObjectMetadata(metadataRequest);
         long objectSize = metadataResult.getContentLength();
 
         if (objectSize >= MAX_COPY_FILE_SIZE) {
-            logger.debug("Starting multipart copy for '{}/{}'", sourceBucket, sourceKey);
+            logger.debug("Start multipart copy for '{}/{}'", sourceBucket, sourceKey);
             InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(destBucket, destKey);
             InitiateMultipartUploadResult initResult = client.initiateMultipartUpload(initRequest);
 
@@ -143,7 +144,7 @@ public abstract class AwsUtils {
 
             try {
                 while (bytePosition < objectSize) {
-                    logger.debug("Copying part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
+                    logger.trace("Copy part '{}' for '{}/{}'", partNum, sourceBucket, sourceKey);
                     long lastByte = Math.min(bytePosition + partSize - 1, objectSize - 1);
 
                     CopyPartRequest copyRequest = new CopyPartRequest()
@@ -176,14 +177,14 @@ public abstract class AwsUtils {
                 throw e;
             }
         } else {
-            logger.debug("Starting copy operation for '{}/{}'", sourceBucket, sourceKey);
+            logger.debug("Start copy operation for '{}/{}'", sourceBucket, sourceKey);
             client.copyObject(sourceBucket, sourceKey, destBucket, destKey);
             logger.debug("Completed copy for '{}/{}'", sourceBucket, sourceKey);
         }
     }
 
     public static String getS3Url(String bucket, String key) {
-        return String.format("s3://%s/%s", bucket, key);
+        return format("s3://%s/%s", bucket, key);
     }
 
 }

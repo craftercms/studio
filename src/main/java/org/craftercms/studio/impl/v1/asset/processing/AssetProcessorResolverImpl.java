@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Required;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import static java.lang.String.format;
+
 /**
  * Default implementation for {@link AssetProcessorResolver}.
  *
@@ -46,7 +48,7 @@ public class AssetProcessorResolverImpl implements AssetProcessorResolver, Appli
 
     @Override
     public AssetProcessor getProcessor(ProcessorConfiguration config) throws AssetProcessingException {
-        String beanName = String.format(beanNameFormat, config.getType());
+        String beanName = format(beanNameFormat, config.getType());
         AssetProcessor processor = applicationContext.getBean(beanName, AssetProcessor.class);
 
         if (processor != null) {

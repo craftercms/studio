@@ -36,6 +36,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static java.lang.String.format;
+
 public class CheckImageSizeProcessor extends PathMatchProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(CheckImageSizeProcessor.class);
@@ -143,7 +145,7 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(String.format("The width and the height of the image must " +
+                throw new ContentNotAllowedException(format("The width and the height of the image must " +
                         "match to the allowed width and height of '{}x{}' whereas the actual asset is '{}x{}'",
                         allowedWidth, allowedHeight, width, height));
             }
@@ -155,7 +157,7 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(String.format("The width and the height of the image must " +
+                throw new ContentNotAllowedException(format("The width and the height of the image must " +
                         "be less than or equal to width and height of '{}x{}' whereas the actual asset is '{}x{}'",
                         allowedWidth, allowedHeight, width, height));
             }

@@ -108,7 +108,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
-            logger.error("Error getting the new NavOrder for site '{}' path '{}'", site, path, e);
+            logger.error("Failed to get the new NavOrder for site '{}' path '{}'", site, path, e);
         }
         return lastNavOrder;
 
