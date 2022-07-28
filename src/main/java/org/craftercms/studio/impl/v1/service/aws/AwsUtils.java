@@ -64,7 +64,7 @@ public abstract class AwsUtils {
             byte[] buffer = new byte[partSize];
             int read;
 
-            logger.debug("Starting upload for file '{}'", filename);
+            logger.debug("Start upload for file '{}'", filename);
 
             while (0 < (read = IOUtils.read(content, buffer))) {
                 totalBytes += read;
@@ -134,7 +134,7 @@ public abstract class AwsUtils {
         long objectSize = metadataResult.getContentLength();
 
         if (objectSize >= MAX_COPY_FILE_SIZE) {
-            logger.debug("Starting multipart copy for '{}/{}'", sourceBucket, sourceKey);
+            logger.debug("Start multipart copy for '{}/{}'", sourceBucket, sourceKey);
             InitiateMultipartUploadRequest initRequest = new InitiateMultipartUploadRequest(destBucket, destKey);
             InitiateMultipartUploadResult initResult = client.initiateMultipartUpload(initRequest);
 
@@ -177,7 +177,7 @@ public abstract class AwsUtils {
                 throw e;
             }
         } else {
-            logger.debug("Starting copy operation for '{}/{}'", sourceBucket, sourceKey);
+            logger.debug("Start copy operation for '{}/{}'", sourceBucket, sourceKey);
             client.copyObject(sourceBucket, sourceKey, destBucket, destKey);
             logger.debug("Completed copy for '{}/{}'", sourceBucket, sourceKey);
         }
