@@ -125,7 +125,7 @@ public class AuditServiceImpl implements AuditService {
 
         // If the number of items returned is less than the size, then it means that the table has no more records
 
-        // TODO: SJ: Consider having this done via a single query
+        // TODO: SJ: Simplify the code below
         if (activityFeeds != null && activityFeeds.size() > 0) {
             for (int index = 0; index < activityFeeds.size() && remainingItem!=0; index++) {
                 AuditLog auditLog = activityFeeds.get(index);

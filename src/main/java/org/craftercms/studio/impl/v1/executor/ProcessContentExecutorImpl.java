@@ -48,7 +48,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
     public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
                                    String chainName) throws ServiceLayerException, UserNotFoundException {
         final ContentProcessorPipeline chain = processorChains.get(chainName);
-        try{
+        try {
             if (chain != null) {
                 if (StringUtils.isEmpty(params.get(DmConstants.KEY_USER))) {
                     String user = securityService.getCurrentUser();

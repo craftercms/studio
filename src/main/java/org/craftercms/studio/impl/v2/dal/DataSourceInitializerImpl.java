@@ -140,20 +140,21 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setDelimiter(delimiter);
         sr.setStopOnError(true);
         sr.setLogWriter(null);
-        InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-        // TODO: SJ: Check for null 'is'
-        String scriptContent = IOUtils.toString(is, UTF_8);
-        Reader reader = new StringReader(
-                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
+
         try {
-            sr.runScript(reader);
+            // TODO: Use Apache Commons or Spring Utils to avoid using the Class Loader directly
+            InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
+            String scriptContent = IOUtils.toString(is, UTF_8);
+            Reader reader = new StringReader(
+                    scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
+                sr.runScript(reader);
 
             if (isRandomAdminPasswordEnabled()) {
                 setRandomAdminPassword(conn, statement);
             }
 
             integrityValidator.store(conn);
-        } catch (RuntimeSqlException e) {
+        } catch (Exception e) {
             logger.error("Failed to run the DB create script '{}'", createDbScriptPath, e);
         }
     }
@@ -179,16 +180,17 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
         sr.setDelimiter(delimiter);
         sr.setStopOnError(true);
         sr.setLogWriter(null);
-        InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
-        // TODO: SJ: Check for null 'is'
-        String scriptContent = IOUtils.toString(is, UTF_8);
-        Reader reader = new StringReader(
-                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA))
-                        .replaceAll(CRAFTER_USER, studioConfiguration.getProperty(DB_USER))
-                        .replaceAll(CRAFTER_PASSWORD, studioConfiguration.getProperty(DB_PASSWORD)));
+
         try {
+            // TODO: Use Apache Commons or Spring Utils to avoid using the Class Loader directly
+            InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
+            String scriptContent = IOUtils.toString(is, UTF_8);
+            Reader reader = new StringReader(
+                    scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA))
+                            .replaceAll(CRAFTER_USER, studioConfiguration.getProperty(DB_USER))
+                            .replaceAll(CRAFTER_PASSWORD, studioConfiguration.getProperty(DB_PASSWORD)));
             sr.runScript(reader);
-        } catch (RuntimeSqlException e) {
+        } catch (Exception e) {
             logger.error("Failed to run the DB schema create script '{}'", createSchemaScriptPath, e);
         }
     }
