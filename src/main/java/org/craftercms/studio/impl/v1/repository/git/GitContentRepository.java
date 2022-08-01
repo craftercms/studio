@@ -214,11 +214,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     }
                 } catch (IOException e) {
-                    logger.debug("Content not found in site '{}' path '{}'", site, path, e);
+                    logger.debug("Content not found at site '{}' path '{}'", site, path, e);
                 }
             }
         } catch (Exception e) {
-            logger.error("Error checking for content existence in site '{}' path '{}'", site, path, e);
+            logger.error("Failed to check for content existence at site '{}' path '{}'", site, path, e);
         }
 
         return toReturn;
@@ -249,7 +249,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
         } catch (IOException e) {
-            logger.error("Error getting content from site '{}' path '{}'", site, path, e);
+            logger.error("Failed to get content from site '{}' path '{}'", site, path, e);
         }
 
         return toReturn;
@@ -278,7 +278,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 logger.error("Missing repository during write for site '{}' path '{}'", site, path);
             }
         }  catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Service error during write to site '{}' path '{}'", site, path, e);
+            logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -311,14 +311,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // Create the file
                 if (!file.createNewFile()) {
-                    logger.error("Error writing file to site '{}' path '{}'", site, emptyFilePath);
+                    logger.error("Failed to write file to site '{}' path '{}'", site, emptyFilePath);
                     result = false;
                 } else {
                     // Add the file to git
                     result = helper.addFiles(repo, site, emptyFilePath.toString());
                 }
             } catch (Exception e) {
-                logger.error("Error adding file to git site '{}' path '{}'", site, emptyFilePath, e);
+                logger.error("Failed to add file to git in site '{}' path '{}'", site, emptyFilePath, e);
                 result = false;
             }
 
@@ -331,7 +331,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                                     helper.getCurrentUserIdent(),
                                                     emptyFilePath.toString());
                 } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.error("Error committing file in site '{}' path '{}'", site, emptyFilePath, e);
+                    logger.error("Failed to commit file in site '{}' path '{}'", site, emptyFilePath, e);
                 }
             }
         } finally {
@@ -368,7 +368,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 // TODO: SJ: we need to define messages in a string table of sorts
                 commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit);
             } catch (GitAPIException | UserNotFoundException | IOException | ServiceLayerException e) {
-                logger.error("Error deleting content in site '{}' path '{}'", site, path, e);
+                logger.error("Failed to delete content at site '{}' path '{}'", site, path, e);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -447,7 +447,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sourceFile.renameTo(targetFile);
                         } else {
                             // This is not a valid operation
-                            logger.error("Invalid move operation: Trying to rename a directory to a file " +
+                            logger.error("Failed to move. Trying to rename a directory to a file " +
                                             "in site '{}' from path '{}' to path '{}' with name '{}'",
                                     site, fromPath, toPath, newName);
                         }
@@ -488,11 +488,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         toRet.put(pathToCommit, commitId);
                     }
                 } else {
-                    logger.error("Error moving item in site '{}' from path '{}' to path '{}' with name '{}'",
+                    logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
                             site, fromPath, toPath, newName);
                 }
             } catch (Exception e) {
-                logger.error("Error moving item in site '{}' from path '{}' to path '{}' with name '{}'",
+                logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
                         site, fromPath, toPath, newName, e);
             }
         } finally {
@@ -526,11 +526,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                                 helper.getCurrentUserIdent(),
                                                 fromPath, toPath);
             } else {
-                logger.error("Error copying item in site '{}' from path '{}' to path '{}'",
+                logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
                         site, fromPath, toPath);
             }
         } catch (Exception e) {
-            logger.error("Error copying item in site '{}' from path '{}' to path '{}'",
+            logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
                     site, fromPath, toPath, e);
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -576,7 +576,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         tw.close();
                     } else {
-                        logger.debug("Item in site '{}' path '{}' doesn't have any children",
+                        logger.debug("Item at site '{}' path '{}' doesn't have any children",
                                 site, path);
                     }
                 } else {
@@ -608,7 +608,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
         } catch (IOException e) {
-            logger.error("Error getting children for site '{}' path '{}'", site, path, e);
+            logger.error("Failed to get children at site '{}' path '{}'", site, path, e);
         }
 
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
@@ -641,7 +641,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
         } catch (IOException | GitAPIException e) {
-            logger.error("Error getting history for item in site '{}' path '{}'", site, path, e);
+            logger.error("Failed to get the history for item at site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -659,7 +659,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String createVersion(String site, String path, String comment, boolean majorVersion) {
         // SJ: Will ignore minor revisions since git handles that via write/commit
         // SJ: Major revisions become git tags
-        // TODO: SJ: Redesign/refactor the whole approach in 3.1+
         String toReturn = EMPTY;
         String gitLockKey = StringUtils.isEmpty(site) ?
                                 GLOBAL_REPOSITORY_GIT_LOCK :
@@ -684,10 +683,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     toReturn = versionLabel;
 
                 } catch (GitAPIException | ServiceLayerException | UserNotFoundException e) {
-                    logger.error("Error creating new version for site '{}' path '{}'", site, path, e);
+                    logger.error("Failed to create a new version for site '{}' path '{}'", site, path, e);
                 }
             } else {
-                logger.info("Ignoring request to create a minor version for site '{}' path '{}' since " +
+                logger.info("Ignore the request to create a minor version for site '{}' path '{}' since " +
                         "we no longer support that mechanism of versioning", site, path);
             }
         } finally {
@@ -732,7 +731,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 }
             }
         } catch (IOException e) {
-            logger.error("Error getting content for item in site '{}' path '{}' version '{}'",
+            logger.error("Failed to get the content item at site '{}' path '{}' version '{}'",
                     site, path, version, e);
         }
 
