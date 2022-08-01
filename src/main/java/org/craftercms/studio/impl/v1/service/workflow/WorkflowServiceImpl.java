@@ -424,8 +424,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         itemServiceInternal.deleteItem(site, it.getPath());
                     }
                 } catch (Exception e) {
-                    // TODO: SJ: This can get excessive since it's in a loop. Refactor.
-                    logger.error("Failed to warm the cache for site '{}' path '{}'",
+                    logger.trace("Failed to warm the cache in site '{}' path '{}'",
                             site, it.getPath(), e);
                 }
             }
@@ -581,7 +580,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 paths.add(affectedItem);
             } catch (DeploymentException e) {
                 // TODO: SJ: This can get excessive since it's in a loop. Refactor.
-                logger.error("Failed to cancel workflow for site '{}' path '{}'", site, affectedItem, e);
+                logger.trace("Failed to cancel workflow in site '{}' path '{}'", site, affectedItem, e);
             }
         }
         if (CollectionUtils.isNotEmpty(paths)) {

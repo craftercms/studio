@@ -135,9 +135,9 @@ public class WebDavServiceImpl implements WebDavService {
             String basePath = new URL(profile.getBaseUrl()).getPath();
             String baseDomain = profile.getBaseUrl();
             String deliveryUrl = profile.getDeliveryBaseUrl();
-            logger.debug("List resources at in site '{}' path '{}'", site, listPath);
+            logger.debug("List resources at site '{}' path '{}'", site, listPath);
             List<DavResource> resources = sardine.propfind(listPath, 1, properties);
-            logger.debug("Found '{}' resources in site '{}' path '{}'", resources.size(), site, listPath);
+            logger.debug("Found '{}' resources at site '{}' path '{}'", resources.size(), site, listPath);
             return resources.stream()
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))

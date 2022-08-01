@@ -97,7 +97,7 @@ public class WorkflowProcessor {
                     workflowBatch.getPaths(), site, e);
             rollbackOnError(site,workflowBatch.getPaths());
         }
-        logger.debug("Go Live processor finished executing for site '{}'", site);
+        logger.debug("Go Live processor finished executing in site '{}'", site);
 
     }
     

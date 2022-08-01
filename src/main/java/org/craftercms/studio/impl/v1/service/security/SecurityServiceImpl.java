@@ -196,7 +196,7 @@ public class SecurityServiceImpl implements SecurityService {
                     ContentTypeConfigTO config = contentTypeService.getContentTypeForContent(site, path);
                     boolean isAllowed = contentTypeService.isUserAllowed(roles, config);
                     if (!isAllowed) {
-                        logger.trace("User '{}' is not permitted to access site '{}' path '{}', adding " +
+                        logger.trace("User '{}' is not permitted to access site '{}' path '{}', add " +
                                 "permission '{}'", user, site, path, StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
                         // If no default role is set
                         permissions.add(StudioConstants.PERMISSION_VALUE_NOT_ALLOWED);
