@@ -64,7 +64,7 @@ public abstract class StudioClockTask implements SiteJob {
                 logger.debug("Sleep for an offset of '{}' milliseconds in site '{}'", sleepTime, site);
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
-                logger.debug("Woke up from the random offset for site '{}'", site);
+                logger.debug("Woke up from the random offset in site '{}'", site);
             }
             executeInternal(site);
             setCycleCounter(site, executeEveryNCycles);
