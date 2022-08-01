@@ -90,7 +90,7 @@ public class StudioClockExecutor implements Job {
             if (singleWorkerLock.tryLock()) {
                 try {
                     setRunning(true);
-                    logger.debug("Executing Studio Clock Job in thread '{}'", threadCounter);
+                    logger.debug("Execute the Studio Clock Job in thread '{}'", threadCounter);
                     executeTasks();
                 } catch (Exception e) {
                     logger.error("Studio Clock Job failed", e);
@@ -100,7 +100,7 @@ public class StudioClockExecutor implements Job {
                 }
             }
         } else {
-            logger.debug("The system is not ready yet to execute Studio Clock Job. Skipping a cycle.");
+            logger.debug("The system is not ready yet to execute Studio Clock Job. Skip a cycle.");
         }
     }
 
