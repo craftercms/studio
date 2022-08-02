@@ -1489,7 +1489,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     siteId, remoteName, remoteBranch, remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
-            logger.error("Failed to push from site '{}' to remote '{}' branch '{}'", siteId, remoteName, remoteBranch, e);
+            logger.error("Failed to push from site '{}' to remote '{}' branch '{}'",
+                    siteId, remoteName, remoteBranch, e);
             throw new ServiceLayerException(format("Failed to push from site '%s' to remote '%s' branch '%s'",
                     siteId, remoteName, remoteBranch, e));
         }
@@ -1532,7 +1533,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
             logger.error("The remote '{}' branch '{}' in site '{}' is invalid ", remoteName, remoteBranch, siteId, e);
-            throw new InvalidRemoteUrlException();
+            throw new InvalidRemoteUrlException(format("The remote '%s' branch '%s' in site '%s' is invalid ",
+                    remoteName, remoteBranch, siteId), e);
         } catch (GitAPIException e) {
             logger.error("Failed to pull from remote '{}' branch '{}' in site '{}'",
                     remoteName, remoteBranch, siteId, e);
