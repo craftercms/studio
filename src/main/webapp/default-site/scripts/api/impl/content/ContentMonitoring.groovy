@@ -61,7 +61,7 @@ class ContentMonitoring {
 		// TODO: SJ: Avoid string literals
 		def config = configurationService.legacyGetConfiguration(site, "site-config.xml")
 
-		if(config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
+		if (config.contentMonitoring != null && config.contentMonitoring.monitor != null) {
 			if(config.contentMonitoring.monitor instanceof Map) {
 				// there is only one monitor
 				config.contentMonitoring.monitor = [ config.contentMonitoring.monitor ]
@@ -71,7 +71,7 @@ class ContentMonitoring {
 			config.contentMonitoring.monitor.each { monitor ->
 				def authoringBaseUrl = servicesConfig.getAuthoringUrl(site)
 
-				logger.debug("Executing monitor '{}'", monitor.name)
+				logger.debug("Execute monitor '{}' in site '{}'", monitor.name, site)
 
 				if(monitor.paths !=null && monitor.paths.path!=null) {
 					if(monitor.paths.path instanceof Map) {
@@ -88,7 +88,8 @@ class ContentMonitoring {
 					def executedQuery = searchService.search(site, Collections.emptyList(), searchParams)
 					def itemsFound = executedQuery.total
 					def items = executedQuery.items
-					logger.debug("Content monitor '{}' has found '{}' items", monitor.name, itemsFound)
+					logger.debug("Content monitor '{}' has found '{}' items in site '{}'",
+							monitor.name, itemsFound, site)
 
 					monitor.paths.path.each { path ->
 						// there are paths, query for items and then match against paths patterns
@@ -127,7 +128,7 @@ class ContentMonitoring {
 			} // end looping through site monitors
 		}
 		else {
-			logger.debug("No expired content items to report")
+			logger.debug("No expired content items to report in site '{}'", site)
 		}
 		return results
 	}
