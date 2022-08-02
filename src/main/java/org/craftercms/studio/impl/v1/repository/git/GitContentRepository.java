@@ -45,7 +45,6 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.crypto.CryptoException;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
@@ -1356,6 +1355,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                         remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(),
                                         tempKey, true);
                                 retryingRepositoryOperationFacade.call(fetchCommand);
+                            } catch (CryptoException e) {
+                                logger.error("Failed to list the remote repositories in site '{}'.", siteId, e);
+                                throw new ServiceLayerException(format("Failed to list the remote repositories " +
+                                        "in site '%s'.", siteId), e);
                             } finally {
                                 Files.deleteIfExists(tempKey);
                             }
@@ -1518,6 +1521,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                         remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
                 pullResult = retryingRepositoryOperationFacade.call(pullCommand);
+            } catch (CryptoException e) {
+                logger.error("Failed to pull from the remote repository '{}' branch '{}' in site '{}'",
+                        remoteName, remoteBranch, siteId, e);
+                throw new ServiceLayerException(format("Failed to pull from the remote repository '%s' branch '%s' " +
+                                "in site '%s'", remoteName, remoteBranch, siteId), e);
             } finally {
                 Files.deleteIfExists(tempKey);
             }
