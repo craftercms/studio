@@ -49,7 +49,7 @@ class ContentMonitoring {
 	 * @return a list of notifications that were made
 	 */
 	static doContentMonitoringForSite(context, site, logger) {
-		logger.debug("Monitoring expired content in site '{}'", site)
+		logger.debug("Monitor expired content in site '{}'", site)
 
 		def results = [:]
 
@@ -113,8 +113,8 @@ class ContentMonitoring {
 
 						if(monitorPathResult.items) {
 							results.monitors.add(monitorPathResult)
-							logger.info("Content monitor '{}' will send notification '{}'",
-									monitor.name, path.emailTemplate)
+							logger.info("Content monitor '{}' in site '{}' will send the notification '{}'",
+									monitor.name, site, path.emailTemplate)
 							notificationService.notify(
 									site,
 									path.emails.split(",") as List,
