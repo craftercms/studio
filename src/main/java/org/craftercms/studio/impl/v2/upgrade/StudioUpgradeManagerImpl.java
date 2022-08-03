@@ -298,7 +298,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         try (InputStream is = configurationFile.getInputStream()) {
             configuration.read(is);
         } catch (Exception e) {
-            throw new UpgradeException("Error reading configuration file", e);
+            throw new UpgradeException("Failed to read configuration file", e);
         }
         return configuration;
     }
