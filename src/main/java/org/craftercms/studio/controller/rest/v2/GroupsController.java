@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,7 +118,7 @@ public class GroupsController {
      */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody createGroup(@RequestBody Group group)
+    public ResponseBody createGroup(@Valid @RequestBody Group group)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group newGroup =
                 groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription());
@@ -136,7 +137,7 @@ public class GroupsController {
      * @return Response object
      */
     @PatchMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseBody updateGroup(@RequestBody Group group)
+    public ResponseBody updateGroup(@Valid @RequestBody Group group)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
         ResponseBody responseBody = new ResponseBody();
         Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);

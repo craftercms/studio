@@ -20,6 +20,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -92,7 +94,8 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "create_groups")
-    public Group createGroup(long orgId, String groupName, String groupDescription)
+    @ValidateParams
+    public Group createGroup(long orgId, @ValidateStringParam(maxLength = 512, notEmpty = true) String groupName, String groupDescription)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
