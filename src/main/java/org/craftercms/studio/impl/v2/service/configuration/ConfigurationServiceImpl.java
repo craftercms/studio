@@ -477,7 +477,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                     try {
                         DocumentHelper.parseText(new String(bytes));
                     } catch (Exception e) {
-                        logger.error("Failed to validate configuration file '{}'", filename, e);
+                        logger.error("Failed to validate the configuration file '{}'", filename, e);
                         throw new InvalidConfigurationException(format("Invalid XML configuration file '%s'",
                                 filename), e);
                     }
@@ -489,7 +489,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                         // The assign is needed to detect invalid files
                         Map<String, Object> map = yaml.load(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
-                        logger.error("Failed to validate configuration file '{}'", filename, e);
+                        logger.error("Failed to validate the configuration file '{}'", filename, e);
                         throw new InvalidConfigurationException(format("Invalid YAML configuration file '%s'",
                                 filename), e);
                     }
@@ -499,8 +499,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             return new ByteArrayInputStream(bytes);
 
         } catch (IOException e) {
-            logger.error("Failed to validate configuration file '{}'", filename, e);
-            throw new ServiceLayerException(format("Failed to validate configuration file '%s'", filename), e);
+            logger.error("Failed to validate the configuration file '{}'", filename, e);
+            throw new ServiceLayerException(format("Failed to validate the configuration file '%s'", filename), e);
         }
     }
 
@@ -647,7 +647,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     public void invalidateConfiguration(String siteId) {
-        logger.debug("Invalidate configuration cache for site '{}'", siteId);
+        logger.debug("Invalidate configuration cache in site '{}'", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);
@@ -704,7 +704,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                     doc = DocumentHelper.parseText(configContent);
                     configurationCache.put(xmlCacheKey, doc);
                 } catch (DocumentException e) {
-                    throw new ServiceLayerException("Error loading configuration", e);
+                    throw new ServiceLayerException("Failed to load configuration", e);
                 }
             }
             map = createMap(doc.getRootElement());
