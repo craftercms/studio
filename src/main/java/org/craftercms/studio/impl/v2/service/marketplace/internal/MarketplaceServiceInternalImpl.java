@@ -1031,7 +1031,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                     // check if the wiring has already been performed
                     if (document.selectSingleNode(installation.getElementXpath()) != null) {
                         logger.debug("Wiring of type '{}' was already performed for plugin '{}' in site '{}'," +
-                                        " skipping...", installation.getType(), plugin.getId(), siteId);
+                                        " skip...", installation.getType(), plugin.getId(), siteId);
                         continue;
                     }
 
