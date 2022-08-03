@@ -62,6 +62,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -525,7 +526,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             for (DeploymentItemTO item : deploymentItems) {
                 if (pointersExist(site, item.getPath()) &&
                         (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()))) {
-                    logger.trace("Looking for the blob store for the item '{}'", item);
+                    logger.trace("Look for the blob store for the item at site '{}' path '{}'", site, item);
                     StudioBlobStore store = getBlobStore(site, item.getPath());
                     if (store != null) {
                         stores.putIfAbsent(store.getId(), store);
@@ -545,8 +546,8 @@ public class BlobAwareContentRepository implements ContentRepository,
             localRepositoryV2.publish(site, sandboxBranch, localItems, environment, author, comment);
         } catch (Exception e) {
             logger.error("Failed to publish items in site '{}' to target '{}'", site, environment, e);
-            throw new DeploymentException("Error during deployment to environment " +
-                    environment + " for site " + site, e);
+            throw new DeploymentException(format("Failed to publish items in site '%s' to target '%s'",
+                    site, environment), e);
         }
     }
 
