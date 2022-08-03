@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import static com.rometools.utils.Strings.isNotEmpty;
+import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_ID;
 import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
@@ -116,7 +117,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
 
     @Override
     public List<StudioBlobStore> getAll(String siteId) throws ServiceLayerException {
-        logger.debug("Looking up all blob stores for site '{}'", siteId);
+        logger.debug("Look up all the blob stores for site '{}'", siteId);
         List<StudioBlobStore> result = new LinkedList<>();
         try {
             HierarchicalConfiguration config = getConfiguration(siteId);
@@ -130,7 +131,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             }
             return result;
         } catch (ExecutionException e) {
-            logger.error("Failed to lookup blob stores for site '{}'", siteId, e);
+            logger.error("Failed to lookup the blob stores for site '{}'", siteId, e);
             throw new ServiceLayerException("Error looking for blob store", e);
         }
     }
@@ -140,12 +141,12 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             throws ServiceLayerException {
 
         if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
-            logger.debug("One of the paths '{}' in site '{}' should not be intercepted, skipping",
+            logger.debug("One of the paths '{}' in site '{}' should not be intercepted, skip",
                     paths, site);
             return null;
         }
 
-        logger.debug("Looking up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
+        logger.debug("Look up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
         try {
             HierarchicalConfiguration config = getConfiguration(site);
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
@@ -154,7 +155,8 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 // We have to compare each one to know if the exception should be thrown
                 if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
                     logger.error("Unsupported operation in site '{}' paths '{}'", site, Arrays.toString(paths));
-                    throw new ServiceLayerException("Unsupported operation for paths " + Arrays.toString(paths));
+                    throw new ServiceLayerException(format("Unsupported operation in site '%s' paths '%s'",
+                            site, Arrays.toString(paths)));
                 }
                 return blobStore;
             } else {
@@ -162,8 +164,8 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                 return null;
             }
         } catch (ExecutionException e) {
-            logger.error("Failed to look up blob store for site '{}'", site, e);
-            throw new ServiceLayerException("Error looking for blob store", e);
+            logger.error("Failed to look up the blob store for site '{}'", site, e);
+            throw new ServiceLayerException(format("Failed to look up the blob store for site '%s'", site), e);
         }
     }
 
@@ -202,7 +204,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             try {
                 return StudioBlobStoreResolverImpl.this.contentRepository.getContent(site, path);
             } catch (Exception e) {
-                throw new IOException("Error reading file", e);
+                throw new IOException(format("Failed to read the file '{}'", path), e);
             }
         }
 
