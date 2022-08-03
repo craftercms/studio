@@ -173,7 +173,7 @@ public class StudioClusterUtils {
 
                         String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
 
-                        logger.trace("Executing the clone command for repository at path '{}'", siteSandboxPath);
+                        logger.trace("Execute the clone command for repository at path '{}'", siteSandboxPath);
                         cloneResult = cloneCommand
                                 .setURI(cloneUrl)
                                 .setRemote(remoteNode.getGitRemoteName())
@@ -201,7 +201,7 @@ public class StudioClusterUtils {
                 generalLockService.unlock(gitLockKey);
             }
         } else {
-            logger.debug("Failed to obtain Git lock '{}'", gitLockKey);
+            logger.debug("Failed to obtain the Git lock '{}'", gitLockKey);
         }
         return cloned;
     }
