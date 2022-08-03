@@ -120,7 +120,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         }
 
         if (config == null) {
-            logger.debug("No policy configuration found, skipping action '{}'", action);
+            logger.debug("No policy configuration found, skip the action '{}'", action);
             if (includeAllowed) {
                 results.add(ValidationResult.allowed(action));
             }
@@ -132,7 +132,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                 .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
                 .collect(Collectors.toList());
         if (statements.size() == 0) {
-            logger.debug("No statement matches found, skipping action '{}'", action);
+            logger.debug("No statement matches found, skip the action '{}'", action);
         }
         ValidationResult result = validateStatements(action, statements);
         if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
@@ -144,7 +144,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         ValidationResult result = ValidationResult.allowed(action);
         for (HierarchicalConfiguration<?> statement : statements) {
             for (var validator : policyValidators) {
-                logger.debug("Evaluating action '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
                 validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
                 if (result.getModifiedValue() != null) {
                     logger.debug("Allowed with modifications the action '{}'", action);
