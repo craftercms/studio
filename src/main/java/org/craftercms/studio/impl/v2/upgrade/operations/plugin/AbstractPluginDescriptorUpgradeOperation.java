@@ -37,6 +37,8 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
+import static java.lang.String.format;
+
 /**
  * @author joseross
  * @since 3.1.1
@@ -70,16 +72,16 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
         var site = context.getTarget();
         Path descriptorFile = context.getRepositoryPath().resolve(descriptorPath);
         if (Files.notExists(descriptorFile)) {
-            logger.info("The plugin descriptor file was not found for site '{}'", site);
+            logger.info("The plugin descriptor file was not found in site '{}'", site);
             return;
         }
         try (Reader reader = Files.newBufferedReader(descriptorFile)) {
             PluginDescriptor descriptor = descriptorReader.read(reader);
             if (descriptor.getDescriptorVersion().equals(descriptorVersion)) {
-                logger.info("The plugin descriptor was already updated for site '{}'", site);
+                logger.info("The plugin descriptor was already updated in site '{}'", site);
                 return;
             }
-            logger.info("Update the plugin descriptor for site '{}'", site);
+            logger.info("Update the plugin descriptor in site '{}'", site);
             doPluginDescriptorUpdates(descriptor);
             descriptor.setDescriptorVersion(descriptorVersion);
 
@@ -104,7 +106,7 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
             Files.writeString(context.getFile(descriptorPath), content);
             trackChangedFiles(descriptorPath);
         } catch (Exception e) {
-            throw new UpgradeException("Plugin descriptor can't be read for site " + site);
+            throw new UpgradeException(format("Plugin descriptor can't be read from site '%s'", site));
         }
     }
 
