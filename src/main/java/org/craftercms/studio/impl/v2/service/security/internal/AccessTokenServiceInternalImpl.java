@@ -252,7 +252,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
             int deleted = retryingDatabaseOperationFacade.deleteExpiredTokens(sessionTimeout, inactiveUsers);
             logger.debug("Deleted '{}' expired Refresh Tokens", deleted);
         } else {
-            logger.debug("The system is not ready yet, skipping Refresh Token cleanup");
+            logger.debug("The system is not ready yet, skip the Refresh Token cleanup");
         }
     }
 
