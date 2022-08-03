@@ -794,7 +794,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
             Path actualFile = actualFolder.resolve(GitContentRepositoryConstants.IGNORE_FILE);
             if (!Files.exists(actualFile)) {
-                logger.debug("Add git ignore file at '{}' in site '{}'", repoFolder, siteId);
+                logger.debug("Add a git ignore file at '{}' in site '{}'", repoFolder, siteId);
                 try (InputStream in = ignoreFile.getInputStream()) {
                     Files.copy(in, actualFile);
                 } catch (IOException e) {
@@ -802,7 +802,7 @@ public class GitRepositoryHelper implements DisposableBean {
                     return false;
                 }
             } else {
-                logger.debug("The repository already contains an ignore file at '{}' in site '{}'", actualFolder, siteId);
+                logger.debug("The repository already contains a git ignore file at '{}' in site '{}'", actualFolder, siteId);
             }
         }
 
@@ -840,7 +840,7 @@ public class GitRepositoryHelper implements DisposableBean {
             }
             checkoutSandboxBranch(site, repo, sandboxBranch);
         } catch (GitAPIException | UserNotFoundException | ServiceLayerException e) {
-            logger.error("error creating initial commit for site '{}'", site, e);
+            logger.error("Failed to create the initial commit for site '{}'", site, e);
             toReturn = false;
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -974,7 +974,7 @@ public class GitRepositoryHelper implements DisposableBean {
             retryingRepositoryOperationFacade.call(checkoutCommand);
 
             // Reset everything to simulate first commit as created empty repo
-            logger.debug("Soft reset then commit empty repo for site '{}'.", site);
+            logger.debug("Soft reset then commit empty repo for site '{}'", site);
             ResetCommand resetCommand = git.reset();
             retryingRepositoryOperationFacade.call(resetCommand);
 
@@ -1042,7 +1042,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 // Create the global repository folder
                 try {
                     Files.deleteIfExists(globalConfigPath);
-                    logger.info("Bootstrapping the global repository...");
+                    logger.info("Bootstrap the global repository");
                     Files.createDirectories(globalConfigPath);
                     Repository repo = createGitRepository(globalConfigPath);
                     repositoryCache.put(getRepoCacheKey(EMPTY, GLOBAL), repo);
@@ -1052,7 +1052,7 @@ public class GitRepositoryHelper implements DisposableBean {
                     logger.error("Failed to bootstrap the global repository", e);
                 }
             } else {
-                logger.info("Detected an existing global repository, will not create a new one.");
+                logger.info("Detected an existing global repository, will not create a new one");
                 // unlock if global repository is locked
                 String path = globalConfigRepoPath.getParent().toAbsolutePath().toString();
                 if (GitUtils.isRepositoryLocked(path)) {
@@ -1101,7 +1101,7 @@ public class GitRepositoryHelper implements DisposableBean {
 
             toReturn = true;
 
-            logger.debug("Deleted site'{}' at path '{}'", site, sitePath);
+            logger.debug("Deleted site '{}' at path '{}'", site, sitePath);
         } catch (IOException e) {
             logger.error("Failed to delete site '{}' at path '{}'", site, sitePath, e);
             toReturn = false;
@@ -1116,7 +1116,7 @@ public class GitRepositoryHelper implements DisposableBean {
     public boolean writeFile(Repository repo, String site, String path, InputStream content) {
         boolean result = true;
 
-        logger.debug("Writing file in site '{}' path '{}'.", site, path);
+        logger.debug("Write a file at site '{}' path '{}'", site, path);
 
         try {
             // Create basic file
@@ -1134,23 +1134,23 @@ public class GitRepositoryHelper implements DisposableBean {
             if (!file.exists()) {
                 try {
                     if (!file.createNewFile()) {
-                        logger.error("Failed to create the file in site '{}' path '{}'", site, path);
+                        logger.error("Failed to create a file in site '{}' path '{}'", site, path);
                         result = false;
                     }
                 } catch (IOException e) {
-                    logger.error("Failed to create the file in site '{}' path '{}'", site, path, e);
+                    logger.error("Failed to create a file in site '{}' path '{}'", site, path, e);
                     result = false;
                 }
             }
 
             if (result) {
-                logger.debug("Write file to site '{}' path '{}'", site, path);
+                logger.debug("Write a file to site '{}' path '{}'", site, path);
 
                 // Write the bits
                 try (FileChannel outChannel = new FileOutputStream(file.getPath()).getChannel()) {
-                    logger.trace("Created the file output channel site '{}' path '{}'", site, path);
+                    logger.trace("Created the file output channel for site '{}' path '{}'", site, path);
                     ReadableByteChannel inChannel = Channels.newChannel(content);
-                    logger.trace("Created the file input channel site '{}' path '{}'", site, path);
+                    logger.trace("Created the file input channel for site '{}' path '{}'", site, path);
                     long amount = 1024 * 1024; // 1MB at a time
                     long count;
                     long offset = 0;
@@ -1162,7 +1162,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 result = addFiles(repo, site, path);
             }
         } catch (IOException e) {
-            logger.error("Failed to write file to site '{}' path '{}'", site, path, e);
+            logger.error("Failed to write the file to site '{}' path '{}'", site, path, e);
             result = false;
         }
 
