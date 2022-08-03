@@ -666,7 +666,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         boolean toRet = siteService.enablePublishing(site, enabled);
         String status;
         if (enabled) {
-            logger.info("Publishing started for site {}", site);
+            logger.info("Publishing started for site '{}'", site);
             if (publishingManager.isPublishingQueueEmpty(site)) {
                 status = READY;
             } else {
@@ -674,7 +674,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             }
 
         } else {
-            logger.info("Publishing stopped for site {}", site);
+            logger.info("Publishing stopped for site '{}'", site);
             status = STOPPED;
         }
         siteService.updatePublishingStatus(site, status);
@@ -683,10 +683,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setSiteId(siteFeed.getId());
         if (enabled) {
-            logger.info("Publishing started for site {}", site);
+            logger.info("Publishing started for site '{}'", site);
             auditLog.setOperation(OPERATION_START_PUBLISHER);
         } else {
-            logger.info("Publishing stopped for site {}", site);
+            logger.info("Publishing stopped for site '{}'", site);
             auditLog.setOperation(OPERATION_STOP_PUBLISHER);
         }
         auditLog.setActorId(securityService.getCurrentUser());
