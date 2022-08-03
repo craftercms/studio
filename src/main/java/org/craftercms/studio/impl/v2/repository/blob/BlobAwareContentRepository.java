@@ -734,7 +734,7 @@ public class BlobAwareContentRepository implements ContentRepository,
         } catch (SiteNotFoundException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("Failed to perform initial publish for site '{}'", siteId, e);
+            logger.error("Failed to perform the initial publish for site '{}'", siteId, e);
         }
     }
 
