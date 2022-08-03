@@ -163,7 +163,7 @@ public class AuditServiceImpl implements AuditService {
 
             return item;
         } catch (Exception e) {
-            logger.error("Failed to fetch content item in site '{}' id '{}'", site, id, e);
+            logger.error("Failed to fetch content item from site '{}' with ID '{}'", site, id, e);
             return null;
         }
     }
