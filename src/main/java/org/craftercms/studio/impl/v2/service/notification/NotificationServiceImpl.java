@@ -417,7 +417,7 @@ public class NotificationServiceImpl implements NotificationService {
                 logger.error("Failed to load generic messages");
             }
         } else {
-            logger.error("Failed to load generic messages, the email template element is not found");
+            logger.error("Failed to load generic messages, the email template element was not found");
         }
     }
 
@@ -442,7 +442,7 @@ public class NotificationServiceImpl implements NotificationService {
                 logger.error("Failed to load email templates, messages element is empty");
             }
         } else {
-            logger.error("Failed to load email templates, the email template element is not found");
+            logger.error("Failed to load email templates, the email template element was not found");
         }
     }
 
@@ -465,7 +465,7 @@ public class NotificationServiceImpl implements NotificationService {
                 logger.error("Failed to load canned messages, the messages field is empty");
             }
         } else {
-            logger.error("Failed to load canned messages, the email template element is not found");
+            logger.error("Failed to load canned messages, the email template element was not found");
         }
     }
 
