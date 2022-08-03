@@ -87,7 +87,7 @@ public class DbVersionProvider extends AbstractVersionProvider<String> {
         try {
             int updated = jdbcTemplate.update(SQL_UPDATE_VERSION, nextVersion);
             if (updated != 1) {
-                throw new UpgradeException("Error updating the database version");
+                throw new UpgradeException("Failed to update the database version");
             }
             logger.info("Database version updated to '{}'", nextVersion);
         } catch (Exception e) {
