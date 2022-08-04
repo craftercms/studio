@@ -122,7 +122,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     }
 
                 } catch (SQLException | IOException e) {
-                    logger.error("Failed to initializing the database", e);
+                    logger.error("Failed to initialize the database", e);
                 }
             } catch (SQLException e) {
                 logger.error("Failed to connect to the database while trying to initialize it", e);
