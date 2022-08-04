@@ -90,29 +90,29 @@ public class DependencyServiceImpl implements DependencyService {
     public Set<String> upsertDependencies(String site, String path)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException {
         Set<String> toRet = new HashSet<String>();
-        logger.debug("Resolving dependencies for content in site '{}' path '{}'", site, path);
+        logger.debug("Resolve dependencies for content in site '{}' path '{}'", site, path);
         Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
         List<DependencyEntity> dependencyEntities = new ArrayList<>();
         if (dependencies != null) {
-            logger.debug("Found '{}' dependencies for path '{}' in site '{}'", dependencies.size(), path, site);
+            logger.debug("Found '{}' dependencies for site '{}' path '{}'", dependencies.size(), site, path);
             for (String type : dependencies.keySet()) {
                 dependencyEntities.addAll(createDependencyEntities(site, path, dependencies.get(type), type, toRet));
             }
 
-            logger.trace("Preparing transaction for dependencies insertion for site '{}' path '{}'", site, path);
+            logger.trace("Prepare the transaction for dependencies insertion for site '{}' path '{}'", site, path);
             DefaultTransactionDefinition defaultTransactionDefinition = new DefaultTransactionDefinition();
             defaultTransactionDefinition.setName("upsertDependencies");
             String lock = site + ":upsertDependencies";
             generalLockService.lock(lock);
-            logger.trace("Starting transaction to insert dependencies for site '{}' path '{}'", site, path);
+            logger.trace("Start transaction to insert dependencies for site '{}' path '{}'", site, path);
             TransactionStatus txStatus = transactionManager.getTransaction(defaultTransactionDefinition);
 
             try {
-                logger.debug("Deleting all source dependencies for site '{}' path '{}'", site, path);
+                logger.debug("Delete all source dependencies for site '{}' path '{}'", site, path);
                 deleteAllSourceDependencies(site, path);
-                logger.debug("Inserting all extracted dependencies for site '{}' path '{}'", site, path);
+                logger.debug("Insert all extracted dependencies for site '{}' path '{}'", site, path);
                 insertDependenciesIntoDatabase(dependencyEntities);
-                logger.trace("Committing transaction to insert dependencies for site '{}' path '{}'", site, path);
+                logger.trace("Commit transaction to insert dependencies for site '{}' path '{}'", site, path);
                 transactionManager.commit(txStatus);
             } catch (Exception e) {
                 logger.error("Failed to insert dependencies for site '{}' path '{}'", site, path, e);
@@ -133,10 +133,10 @@ public class DependencyServiceImpl implements DependencyService {
         Set<String> toRet = new HashSet<String>();
         List<DependencyEntity> dependencyEntities = new ArrayList<>();
         StringBuilder sbPaths = new StringBuilder();
-        logger.debug("Resolving dependencies in site '{}'", site);
+        logger.debug("Resolve dependencies in site '{}'", site);
         for (String path : paths) {
             sbPaths.append("\n").append(path);
-            logger.debug("Resolving dependencies in site '{}' for path '{}'", site, path);
+            logger.debug("Resolve dependencies in site '{}' for path '{}'", site, path);
             Map<String, Set<String>> dependencies = dependencyResolver.resolve(site, path);
             if (dependencies != null) {
                 logger.debug("Found '{}' dependencies for site '{}' path '{}'", dependencies.size(), site, path);
@@ -163,10 +163,10 @@ public class DependencyServiceImpl implements DependencyService {
             logger.debug("Commit the dependency update transaction in site '{}'", site);
             transactionManager.commit(txStatus);
         } catch (Exception e) {
-            logger.error("Failed to update dependencies in site '{}'", site, e);
+            logger.error("Failed to update dependencies in site '{}' paths '{}'", site, sbPaths, e);
             transactionManager.rollback(txStatus);
-            throw new ServiceLayerException("Failed to upsert dependencies in site: " + site + " paths: " +
-                    sbPaths.toString(), e);
+            throw new ServiceLayerException(format("Failed update dependencies in site '{}' paths '{}'",
+                    site, sbPaths), e);
         } finally {
             generalLockService.unlock(lock);
         }
@@ -423,10 +423,11 @@ public class DependencyServiceImpl implements DependencyService {
 
         // Check if content exists
         if (!contentService.contentExists(site, path)) {
-            throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'", site, path));
+            throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'",
+                    site, path));
         }
 
-        logger.debug("Get delete dependencies in site '{}' path '{}'", site, path);
+        logger.debug("Get delete dependencies for site '{}' path '{}'", site, path);
         List<String> paths = new ArrayList<String>();
         paths.add(path);
         Set<String> processedPaths = new HashSet<String>();
@@ -444,7 +445,8 @@ public class DependencyServiceImpl implements DependencyService {
         for (String path : paths) {
             // Check if content exists
             if (!contentService.contentExists(site, path)) {
-                throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'", site, path));
+                throw new ContentNotFoundException(path, site, format("Content not found in site '%s' at path '%s'",
+                        site, path));
             }
             sbPaths.append("\n").append(path);
         }
@@ -462,7 +464,7 @@ public class DependencyServiceImpl implements DependencyService {
         toRet.addAll(children);
 
         // Step 2: collect all dependencies from DB
-        logger.debug("Get the dependencies from the DB for all the paths in the subtree(s) and filter them " +
+        logger.debug("Get the dependencies from the database for all the paths in the subtree(s) and filter them " +
                 "by item specificity and content type in site '{}'", site);
         Set<String> depsSource = new HashSet<String>();
         depsSource.addAll(paths);
