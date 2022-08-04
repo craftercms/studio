@@ -125,23 +125,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FILE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_LEVEL_DESCRIPTOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SUPPORT_RENAME_CONTENT_TYPES;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -998,7 +982,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             boolean moveAltFileName = movePathMap.altName;
             boolean targetIsIndex = DmConstants.INDEX_FILE.equals(moveFileName);
             boolean sourceIsIndex = DmConstants.INDEX_FILE.equals(fromPath);
-            String targetLabel = targetIsIndex ? movePathMap.fileFolder : moveFileName;
 
             String targetPath = movePathOnly;
             if(movePathOnly.equals(sourcePathOnly)
@@ -1014,9 +997,20 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             // NOTE: IN WRITE SCENARIOS the repository OP IS PART of this PIPELINE, for some reason,
             // historically with MOVE it is not
-            Map<String, String> commitIds = _contentRepository.moveContent(site, sourcePath, targetPath, targetLabel);
+            Map<String, String> commitIds = _contentRepository.moveContent(site, sourcePath, targetPath);
 
             if (commitIds != null) {
+                String targetLabel = moveFileName;
+                // For page and components: update label in both DB and xml
+                if (movePath.endsWith(DmConstants.XML_PATTERN)) {
+                    InputStream fromContent = getContent(site, movePath);
+                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                    Element root = fromDocument.getRootElement();
+                    updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
+                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(fromDocument, CONTENT_ENCODING));
+                    targetLabel = root.selectSingleNode(String.format("//%s", ELM_INTERNAL_NAME)).getText();
+                }
+
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
                 Long parentId = newParent != null? newParent.getId() : null;
@@ -1026,6 +1020,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                     contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
+                // For page and components: update label in both DB and xml
+                if(movePath.endsWith(DmConstants.XML_PATTERN)) {
+                    InputStream fromContent = getContent(site, movePath);
+                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
+                    updateContentOnMove(fromDocument.getRootElement(), moveFileName, movePathMap.fileFolder, movePathMap.modifier);
+                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(fromDocument, CONTENT_ENCODING));
+                }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
             }
             else {
@@ -1034,11 +1035,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
 
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, movePath));
-        }
-        catch(ServiceLayerException | UserNotFoundException e) {
+        } catch(ServiceLayerException e) {
             logger.error("Failed to move item. Content not found while moving content in site '{}' from '{}' to '{}'," +
                             " new name is '{}'",
                             site, fromPath, toPath, movePath, e);
+        } catch(UserNotFoundException e) {
+            logger.error("Current user could not be found while moving content for site {0} from {1} to {2}, new name is {3}",
+                    e, site, fromPath, toPath, movePath);
+        } catch (DocumentException e) {
+            logger.error("Failed to update XML while moving content for site {0} from {1} to {2}, new name is {3}",
+                    site, fromPath, toPath, movePath, e);
         }
 
         return movePath;
@@ -1381,6 +1387,31 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return ids;
     }
 
+    private void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
+        Node node = root.selectSingleNode(String.format("//%s", nodeName));
+        if (node != null) {
+            node.setText(value);
+        }
+    }
+
+    protected void updateContentOnMove(final Element root, final String filename, final String folder,
+                                           final String modifier) {
+        updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
+        updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
+
+        if (StringUtils.isNotEmpty(modifier)) {
+            Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
+            if (internalNameNode != null) {
+                String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
+                internalNameNode.setText(String.format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
+            }
+        }
+
+        String nowFormatted = getCurrentTimeIso();
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
+    }
+
     protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
         String> params, String modifier) {
 
@@ -1389,15 +1420,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String originalPageId = null;
         String originalGroupId = null;
 
-        Node filenameNode = root.selectSingleNode("//" + ELM_FILE_NAME);
-        if (filenameNode != null) {
-            filenameNode.setText(filename);
-        }
-
-        Node folderNode = root.selectSingleNode("//" + ELM_FOLDER_NAME);
-        if (folderNode != null) {
-            folderNode.setText(folder);
-        }
+        updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
+        updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 
         Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
         if (pageIdNode != null) {
@@ -1454,26 +1478,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         String nowFormatted = getCurrentTimeIso();
-
-        Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
-        if (createdDateNode != null) {
-            createdDateNode.setText(nowFormatted);
-        }
-
-        Node createdDateDtNode = root.selectSingleNode("//" + ELM_CREATED_DATE_DT);
-        if (createdDateDtNode != null) {
-            createdDateDtNode.setText(nowFormatted);
-        }
-
-        Node lastModifiedDateNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE);
-        if (lastModifiedDateNode != null) {
-            lastModifiedDateNode.setText(nowFormatted);
-        }
-
-        Node lastModifiedDateDtNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE_DT);
-        if (lastModifiedDateDtNode != null) {
-            lastModifiedDateDtNode.setText(nowFormatted);
-        }
+        updateSingleDocumentNode(root, ELM_CREATED_DATE, nowFormatted);
+        updateSingleDocumentNode(root, ELM_CREATED_DATE_DT, nowFormatted);
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
 
         return document;
     }
