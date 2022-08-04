@@ -29,8 +29,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -44,6 +44,7 @@ import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublish
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 public class DmPublishServiceImpl extends AbstractRegistrableService implements DmPublishService {
@@ -75,14 +76,12 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         final String approver = securityService.getCurrentUser();
         final ZonedDateTime ld = launchDate;
 
-
         try {
             deploymentService.deploy(site, mcpContext.getPublishingChannelGroup(), paths, ld, approver,
                         mcpContext.getSubmissionComment(),scheduledDateIsNow );
         } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error while submitting paths to publish");
+            logger.error("Failed to submit items for publishing in site '{}'", site, e);
         }
-
     }
 
     @Override
@@ -100,8 +99,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
         try {
             deploymentService.delete(site, paths, approver, scheduleDate, null);
-        } catch (DeploymentException | ServiceLayerException | UserNotFoundException ex) {
-            logger.error("Unable to delete files due a error ",ex);
+        } catch (DeploymentException | ServiceLayerException | UserNotFoundException e) {
+            logger.error("Failed to delete files during publishing site '{}'", site, e);
         }
     }
 
@@ -112,7 +111,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         try {
             deploymentService.cancelWorkflow(site, path);
         } catch (DeploymentException e) {
-            logger.error(String.format("Error while canceling workflow for content at %s, site %s", path, site), e);
+            logger.error("Failed to cancel workflow for site '{}' path '{}'", site, path, e);
         }
     }
 
@@ -122,25 +121,24 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                            @ValidateStringParam String environment,
                            @ValidateSecurePathParam(name = "path") String path,
                            String comment) throws ServiceLayerException {
-        logger.info("Starting Bulk Publish to '" + environment + "' for path " + path + " site " + site);
+        logger.info("Start Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
 
         String queryPath = path;
         if (queryPath.startsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
             queryPath = queryPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
         }
 
-        logger.debug("Get change set for subtree for site: " + site + " root path: " + queryPath);
+        logger.debug("Get a change-set from site '{}' root path '{}'", site, queryPath);
         List<String> childrenPaths = new ArrayList<String>();
 
         childrenPaths = itemServiceInternal.getChangeSetForSubtree(site, queryPath);
 
-        logger.debug("Collected " + childrenPaths.size() + " content items for site " + site + " and root path "
-                + queryPath);
+        logger.debug("Collected '{}' items from site '{}' root path '{}'", childrenPaths.size(), site, queryPath);
         Set<String> processedPaths = new HashSet<String>();
         ZonedDateTime launchDate = DateUtils.getCurrentTime();
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
-            logger.debug("Processing dependencies for site " + site + " path " + childPath);
+            logger.debug("Process bulk publish dependencies in site '{}' path '{}'", site, childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<String>();
                 List<String> candidatesToPublish = new ArrayList<String>();
@@ -155,20 +153,21 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 }
                 String aprover = securityService.getCurrentUser();
                 if (StringUtils.isEmpty(comment)) {
-                    comment = "Bulk Publish invoked by " + aprover;
+                    comment = format("Bulk Publish invoked by '%s'", aprover);
                 }
-                logger.info("Deploying package of " + pathsToPublish.size() + " items to '" + environment +
-                        "' for site" + site + " path " + childPath);
+                logger.info("Publish a package of '{}' items in site '{}' path '{}' to target '{}'",
+                        pathsToPublish.size(), site, childPath, environment);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
                 } catch (DeploymentException | UserNotFoundException e) {
-                    logger.error("Error while running Bulk Publish operation", e);
+                    logger.error("Failed to bulk publish site '{}' path '{}'", site, childPath, e);
                 } finally {
-                    logger.debug("Finished processing deployment package for path " + childPath + " site " + site);
+                    logger.debug("Finished bulk publish processing of package in site '{}' path '{}'",
+                            site, childPath);
                 }
             }
         }
-        logger.info("Finished Bulk Publish to '" + environment + "' for path " + path + " site " + site);
+        logger.info("Finished Bulk Publish site '{}' path '{}' to target '{}'", site, path, environment);
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {

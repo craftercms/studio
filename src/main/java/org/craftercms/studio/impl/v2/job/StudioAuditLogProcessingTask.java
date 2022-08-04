@@ -22,8 +22,8 @@ import org.apache.tika.io.FilenameUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.GitLog;
@@ -64,26 +64,23 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
     @Override
     protected void executeInternal(String site) {
         try {
-            try {
-                String siteState = siteService.getSiteState(site);
-                if (StringUtils.equals(siteState, STATE_READY)) {
-                    processAuditLog(site);
-                }
-            } catch (Exception e) {
-                logger.error("Failed to process audit log from repository for site " + site, e);
+            String siteState = siteService.getSiteState(site);
+            if (StringUtils.equals(siteState, STATE_READY)) {
+                processAuditLog(site);
             }
         } catch (Exception e) {
-            logger.error("Failed to process audit log from repository for site " + site, e);
+            logger.error("Failed to process the audit log in site '{}'", site, e);
         }
     }
 
     private void processAuditLog(String site) throws SiteNotFoundException {
-        logger.debug("Getting last verified commit for site: " + site);
+        logger.trace("Get the last verified commit for site '{}'", site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastSyncedCommit = siteService.getLastSyncedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastSyncedCommit)) {
-                logger.debug("Update gitlog for site " + site + " from last synced commit " + lastSyncedCommit);
+                logger.debug("Update the GitLog table for site '{}' starting from the last synced commit ID '{}'",
+                        site, lastSyncedCommit);
                 contentRepository.updateGitlog(site, lastSyncedCommit, batchSizeGitLog);
                 processAuditLogFromRepo(site, batchSizeAudited);
             }
@@ -104,7 +101,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
                             continue;
                         }
-                        Map<String, String> activityInfo = new HashMap<String, String>();
+                        Map<String, String> activityInfo = new HashMap<>();
                         String contentClass;
                         AuditLog auditLog;
                         switch (repoOperation.getAction()) {
@@ -115,8 +112,8 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                        repoOperation.getPath());
+                                logger.debug("Add an audit log entry in site '{}' for path '{}'",
+                                        siteId, repoOperation.getPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_CREATE);
                                 auditLog.setOperationTimestamp(repoOperation.getDateTime());
@@ -139,8 +136,8 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                        repoOperation.getPath());
+                                logger.debug("Add an audit log entry in site '{}' for path '{}'",
+                                        siteId, repoOperation.getPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_UPDATE);
                                 auditLog.setOperationTimestamp(repoOperation.getDateTime());
@@ -162,8 +159,8 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                        repoOperation.getPath());
+                                logger.debug("Add an audit log entry in site '{}' for path '{}'",
+                                        siteId, repoOperation.getPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_DELETE);
                                 auditLog.setOperationTimestamp(repoOperation.getDateTime());
@@ -186,8 +183,8 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 if (repoOperation.getMoveToPath().endsWith(DmConstants.XML_PATTERN)) {
                                     activityInfo.put(DmConstants.KEY_CONTENT_TYPE, contentClass);
                                 }
-                                logger.debug("Insert audit log for site: " + siteId + " path: " +
-                                        repoOperation.getMoveToPath());
+                                logger.debug("Add an audit log entry in site '{}' for path '{}'",
+                                        siteId, repoOperation.getMoveToPath());
                                 auditLog = auditServiceInternal.createAuditLogEntry();
                                 auditLog.setOperation(OPERATION_MOVE);
                                 auditLog.setOperationTimestamp(repoOperation.getDateTime());
@@ -205,8 +202,9 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 break;
 
                             default:
-                                logger.error("Error: Unknown repo operation for site " + siteId + " operation: " +
-                                        repoOperation.getAction());
+                                logger.error("Failed to add an audit entry in site '{}' for the unknown " +
+                                                "repo operation '{}'",
+                                        siteId, repoOperation.getAction());
                                 break;
                         }
                     }
@@ -217,6 +215,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
     }
 
     private boolean checkSiteUuid(String siteId, String siteUuid) {
+        // TODO: SJ: This may be a duplicate of StudioClockExecutor::checkSiteUuid
         boolean toRet = false;
         try {
             Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
@@ -229,7 +228,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
+            logger.info("Invalid site UUID in site '{}'. The local copy will not be deleted", siteId);
         }
         return toRet;
     }

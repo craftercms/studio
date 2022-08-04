@@ -99,7 +99,7 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
                 throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
             }
         } else if(!contentRepository.contentExists(site, filePath)) {
-            logger.debug("Missing file {} in site {}", filePath, site);
+            logger.debug("Missing file '{}' in site '{}'", filePath, site);
             if (skipIfMissing) {
                 return SKIP;
             } else {

@@ -16,8 +16,7 @@
 
 package scripts.libs
 
-import org.craftercms.studio.api.v1.log.*
-
+import org.slf4j.LoggerFactory
 
 class ExtractMetadataApi {
     static logger = LoggerFactory.getLogger(ExtractMetadataApi.class)
@@ -28,6 +27,7 @@ class ExtractMetadataApi {
     }
 
     def execute () {
-        logger.info("running extract metadata on " + extractMetadataParams.site + ":" + extractMetadataParams.path)
+        logger.info("Run extract metadata on site '{}' path '{}'",
+                extractMetadataParams.site, extractMetadataParams.path)
     }
 }

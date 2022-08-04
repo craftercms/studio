@@ -76,7 +76,7 @@ try {
                 invalidParams = true
                 paramsList.add("site_id")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("site_id")
         }
@@ -87,7 +87,7 @@ try {
                 invalidParams = true
                 paramsList.add("cmis_repo_id")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("cmis_repo_id")
         }
@@ -98,7 +98,7 @@ try {
                 invalidParams = true
                 paramsList.add("cmis_path")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("cmis_path")
         }

@@ -29,6 +29,8 @@ public class DmConstants {
 
 
 	public final static String INDEX_FILE = "index.xml";
+	public final static String SLASH_INDEX_FILE = "/index.xml";
+	public final static String SLASH_SITE_WEBSITE = "/site/website";
 	public final static String XML_PATTERN = ".xml";
     public final static String CSS_PATTERN = ".css";
     public final static String JS_PATTERN = ".js";

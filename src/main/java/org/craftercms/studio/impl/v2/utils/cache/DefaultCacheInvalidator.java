@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.utils.cache;
 
 import com.google.common.cache.Cache;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
 /**
@@ -34,7 +34,7 @@ public class DefaultCacheInvalidator<K, V> implements CacheInvalidator<K, V> {
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug("Invalidating cache for {0}", key);
+        logger.debug("Invalidate the cache for key '{}'", key);
         cache.invalidate(key);
     }
 

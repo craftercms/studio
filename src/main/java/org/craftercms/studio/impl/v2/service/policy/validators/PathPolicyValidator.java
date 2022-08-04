@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.service.policy.validators;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
@@ -40,7 +40,7 @@ public class PathPolicyValidator implements PolicyValidator {
 
     private void validatePermitted(HierarchicalConfiguration<?> config, Action action, ValidationResult result) {
         if (!config.containsKey(CONFIG_KEY_SOURCE_REGEX)) {
-            logger.debug("No path restrictions found, skipping action");
+            logger.debug("No path restrictions found, skip action '{}'", action);
             return;
         }
         String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
@@ -61,7 +61,8 @@ public class PathPolicyValidator implements PolicyValidator {
                                 modifiedValue = modifiedValue.toLowerCase();
                                 break;
                             default:
-                                logger.warn("Unsupported case transformation: {0}", caseTransform);
+                                logger.warn("Unsupported case transformation '{}' for action '{}'",
+                                        caseTransform, action);
                         }
                     }
 
@@ -73,7 +74,7 @@ public class PathPolicyValidator implements PolicyValidator {
                 result.setAllowed(modifiedValue != null);
                 result.setModifiedValue(modifiedValue);
                 if (!result.isAllowed()) {
-                    logger.error("Path {0} is invalid", action.getTarget());
+                    logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
                 }
         }
     }

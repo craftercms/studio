@@ -17,8 +17,8 @@ package org.craftercms.studio.impl.v2.upgrade.operations.file;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
@@ -88,10 +88,10 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
                     .map(base::relativize)
                     .collect(toList());
 
-            logger.debug("Found {0} matches in site {1}", matches.size(), site);
+            logger.debug("Found '{}' matches in site '{}'", matches.size(), site);
 
             for(Path matchedPath : matches) {
-                logger.debug("Processing file {0} in site {1}", matchedPath, site);
+                logger.debug("Process file '{}' in site '{}'", matchedPath, site);
                 Matcher matcher = Pattern.compile(oldPath).matcher(matchedPath.toString());
                 if (matcher.matches()) { // we already know it matches but it needs to be called
                     String actualPath = newPath;
@@ -99,7 +99,7 @@ public class TemplateRenameUpgradeOperation extends RenameUpgradeOperation {
                     for (int i = 1; i <= total; i++) {
                         actualPath = actualPath.replace("$" + i, matcher.group(i));
                     }
-                    logger.debug("Renaming file {0} to {1} in site {2}", matchedPath, actualPath, site);
+                    logger.debug("Rename file '{}' to '{}' in site '{}'", matchedPath, actualPath, site);
                     renamePath(base.resolve(matchedPath), base.resolve(actualPath));
                     trackChangedFiles(matchedPath.toString(), actualPath);
                 }

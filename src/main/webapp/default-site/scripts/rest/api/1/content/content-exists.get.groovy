@@ -34,7 +34,7 @@ try {
             paramsList.add("site_id")
         }
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("site_id")
 }

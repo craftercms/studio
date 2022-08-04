@@ -83,7 +83,7 @@ try {
             invalidParams = true
             paramsList.add("blueprint")
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add("blueprint")
     }
@@ -99,7 +99,7 @@ try {
             invalidParams = true
             paramsList.add("site_id")
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add("site_id")
     }
@@ -121,7 +121,7 @@ try {
                 invalidParams = true
                 paramsList.add("remote_url")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("remote_url")
         }
@@ -132,7 +132,7 @@ try {
                 invalidParams = true
                 paramsList.add("authentication_type")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("authentication_type")
         }
@@ -144,7 +144,7 @@ try {
                 invalidParams = true
                 paramsList.add("remote_username")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("remote_username")
         }
@@ -156,7 +156,7 @@ try {
                 invalidParams = true
                 paramsList.add("remote_passsword")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("remote_password")
         }
@@ -167,7 +167,7 @@ try {
                 invalidParams = true
                 paramsList.add("remote_token")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("remote_token")
         }
@@ -179,7 +179,7 @@ try {
                 invalidParams = true
                 paramsList.add("remote_private_key")
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("remote_private_key")
         }
@@ -191,7 +191,7 @@ try {
                 paramsList.add("create_option")
             } else {
             }
-        } catch (Exception exc) {
+        } catch (Exception e) {
             invalidParams = true
             paramsList.add("create_option")
         }

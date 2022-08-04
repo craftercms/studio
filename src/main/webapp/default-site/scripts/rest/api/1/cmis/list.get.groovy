@@ -42,7 +42,7 @@ try {
         invalidParams = true
         paramsList.add("site_id")
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("site_id")
 }
@@ -53,7 +53,7 @@ try {
         invalidParams = true
         paramsList.add("cmis_repo_id")
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("cmis_repo_id")
 }
@@ -67,7 +67,7 @@ try {
             paramsList.add("start")
         }
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("start")
 }
@@ -81,7 +81,7 @@ try {
             paramsList.add("number")
         }
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("number")
 }

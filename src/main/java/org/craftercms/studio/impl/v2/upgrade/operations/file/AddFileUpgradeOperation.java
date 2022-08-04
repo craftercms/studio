@@ -24,8 +24,8 @@ import java.nio.file.Files;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
@@ -82,7 +82,7 @@ public class AddFileUpgradeOperation extends AbstractUpgradeOperation {
         var site = context.getTarget();
         var newFile = context.getFile(path);
         if(Files.exists(newFile)) {
-            logger.info("File {0} already exist in site {1}, it will not be changed", path, site);
+            logger.info("File '{}' already exist in site '{}' and it will not be changed", path, site);
         } else {
             try(InputStream in = file.getInputStream();
                 OutputStream out = Files.newOutputStream(newFile)) {

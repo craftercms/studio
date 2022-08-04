@@ -43,7 +43,7 @@ public class CompositePermission implements Permission {
     public CompositePermission addPermission(Permission permission) {
         if (Objects.nonNull(permission)) {
             if (Objects.isNull(permissions)) {
-                permissions = new HashSet<Permission>();
+                permissions = new HashSet<>();
             }
             permissions.add(permission);
         }

@@ -37,8 +37,8 @@ import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -76,7 +76,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_
 
 public class PublishingManagerImpl implements PublishingManager {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PublishingManagerImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(PublishingManagerImpl.class);
 
     public static final String LIVE_ENVIRONMENT = "live";
     private static final String PRODUCTION_ENVIRONMENT = "Production";
@@ -222,13 +222,13 @@ public class PublishingManagerImpl implements PublishingManager {
                             itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
                         }
                     } else {
-                        LOGGER.warn("Content item: '" + site + "':'" + path + "' doesn't exists in " +
-                                "the database, but does exist in git. This may cause problems " +
-                                "in the environment: '" + environment + "'");
+                        logger.warn("Item in site '{}' path '{}' doesn't exist in the database, but it does exist " +
+                                "in git. This may cause problems in the publishing target '{}'",
+                                site, path, environment);
                     }
                 } else {
-                    LOGGER.warn("Content item: '" + site + "':'" + path + "' cannot be published. " +
-                            "Content does not exist in git nor in the database. Skipping...");
+                    logger.warn("Item in site '{}' path '{}' doesn't exist in the database nor the git repository. " +
+                            "Skipping publishing of this item.", site, path);
                     return null;
                 }
             } else {
@@ -243,8 +243,8 @@ public class PublishingManagerImpl implements PublishingManager {
             String blacklistConfig = studioConfiguration.getProperty(CONFIGURATION_PUBLISHING_BLACKLIST_REGEX);
             if (isNotEmpty(blacklistConfig) &&
                     ContentUtils.matchesPatterns(item.getPath(), Arrays.asList(StringUtils.split(blacklistConfig, ",")))) {
-                LOGGER.debug("File " + item.getPath() + " of the site " + site + " will not be published because it " +
-                        "matches the configured publishing blacklist regex patterns.");
+                logger.debug("The file in site '{}' path '{}' matches the publishing blacklist and will not be " +
+                                "published", site, item.getPath());
                 markItemsCompleted(site, item.getEnvironment(), List.of(item));
                 deploymentItem = null;
             }

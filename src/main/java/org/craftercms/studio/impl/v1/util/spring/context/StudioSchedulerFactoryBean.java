@@ -27,7 +27,7 @@ public class StudioSchedulerFactoryBean extends SchedulerFactoryBean {
         try {
             Thread.sleep(1000L);
         } catch (InterruptedException e) {
-            logger.warn("Interrupted while Thread.sleep()", e);
+            logger.warn("Studio Scheduler Factory interrupted while Thread.sleep()", e);
             Thread.currentThread().interrupt();
         }
     }

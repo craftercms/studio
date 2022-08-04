@@ -27,8 +27,8 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -568,8 +568,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         submitterList.add(submitter.getUsername());
                     }
                 } catch (UserNotFoundException | ServiceLayerException e) {
-                    logger.debug("Didn't find submitter user for path {0}. Notification will not be sent.", e,
-                            workflowItem.getItem().getPath());
+                    logger.debug("Failed to send notification because the submitter's username was not found for " +
+                                    "the paths '{}' in site '{}'", paths, siteId, e);
                 }
             }
 

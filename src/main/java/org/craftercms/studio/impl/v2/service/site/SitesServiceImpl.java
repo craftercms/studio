@@ -91,16 +91,8 @@ public class SitesServiceImpl implements SitesService {
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 
-    public SitesServiceInternal getSitesServiceInternal() {
-        return sitesServiceInternal;
-    }
-
     public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
         this.sitesServiceInternal = sitesServiceInternal;
-    }
-
-    public PublishingProgressServiceInternal getPublishingProgressServiceInternal() {
-        return publishingProgressServiceInternal;
     }
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {

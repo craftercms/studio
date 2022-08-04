@@ -24,8 +24,8 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
@@ -42,6 +42,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import java.io.InputStream;
 import java.util.List;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
@@ -81,8 +82,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         try {
             writeContent(content, result);
         } catch (ServiceLayerException e) {
-            logger.error("Failed to write " + content.getId(),e);
-            throw new ContentProcessException("Failed to write " + content.getId(), e);
+            logger.error("Failed to write content '{}'", content.getId(), e);
+            throw new ContentProcessException(format("Failed to write content '%s'", content.getId(), e));
         } finally {
             content.closeContentStream();
         }
@@ -142,12 +143,12 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                     }
                 }
             } else {
-                throw new ContentNotFoundException(path + " does not exist in site: " + site);
+                throw new ContentNotFoundException(format("Content not found site '%s' path '%s'", site, path));
             }
         } catch (ContentNotFoundException | RepositoryLockedException e) {
             throw e;
         } catch (Exception e) {
-            logger.error("Error: ", e);
+            logger.error("Failed to write content site '{}' path '{}'", site, path, e);
             throw new ContentNotFoundException("Unexpected exception ", e);
         } finally {
             ContentUtils.release(input);
@@ -159,9 +160,9 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected void unlock(String siteId, String path) throws ContentNotFoundException {
         try {
             contentServiceV2.unlockContent(siteId, path);
-            logger.debug("Unlocked the content site: {0} path: {1}", siteId, path);
+            logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);
         } catch (ContentAlreadyUnlockedException e) {
-            logger.debug("Content already unlocked site: {0} path: {1}", siteId, path);
+            logger.debug("Content at site '{}' path '{}' is already unlocked", siteId, path);
         }
     }
 
@@ -201,7 +202,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
             } catch (Exception e) {
-                logger.error("Error writing new file: " + fileName, e);
+                logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
             } finally {
                 IOUtils.closeQuietly(input);
             }
@@ -216,7 +217,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             fileItem = contentService.getContentItem(site, itemPath, 0);
             return fileItem;
         } else {
-            throw new ContentNotFoundException(parentItem.getUri() + " does not exist in site: " + site);
+            throw new ContentNotFoundException(format("The parent item at '%s' doesn't exist in site '%s'",
+                    parentItem.getUri(), site));
         }
     }
 
@@ -260,7 +262,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         // unlock the content upon save if the flag is true
         if (unlock) {
             contentRepositoryV1.unLockItem(site, path);
-            logger.debug("Unlocked the content site: " + site + " path: " + path);
         } else {
             contentRepository.lockItem(site, path);
         }
@@ -346,7 +347,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             contentService.createFolder(site, folderPath, folderName);
             folderPath = folderPath + FILE_SEPARATOR + folderName;
             contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
-            logger.debug("Changed file to folder from " + path + " to " + folderPath);
+            logger.debug("Changed file to folder from '{}' to '{}'", path, folderPath);
 
             return folderPath;
         } else {

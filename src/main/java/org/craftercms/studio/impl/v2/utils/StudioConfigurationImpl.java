@@ -26,8 +26,8 @@ import org.apache.commons.configuration2.tree.ExpressionEngine;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.craftercms.commons.config.YamlConfiguration;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -73,9 +73,9 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             baseConfig.setExpressionEngine(getExpressionEngine());
             baseConfig.read(in);
 
-            logger.debug("Loaded configuration from location: {0} \n {1}", configLocation, baseConfig);
+            logger.debug("Load configuration from '{}'\n'{}'}", configLocation, baseConfig);
         } catch (IOException | ConfigurationException e) {
-            logger.error("Failed to load studio configuration from: " + configLocation, e);
+            logger.error("Failed to load Studio configuration from '{}'", configLocation, e);
         }
 
         if (baseConfig.containsKey(STUDIO_CONFIG_OVERRIDE_CONFIG)) {
@@ -87,11 +87,11 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                 overrideConfig.read(in);
 
                 if (!overrideConfig.isEmpty()) {
-                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                    logger.debug("Load additional configuration from '{}'\n'{}'",
                         overrideConfigLocation, overrideConfig);
                 }
             } catch (IOException | ConfigurationException e) {
-                logger.error("Failed to load studio configuration from: " + overrideConfigLocation, e);
+                logger.error("Failed to load Studio configuration from '{}'", overrideConfigLocation, e);
             }
         }
 
@@ -128,7 +128,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                                 globalRepoOverrideConfig.read(in);
 
                                 if (!globalRepoOverrideConfig.isEmpty()) {
-                                    logger.debug("Loaded additional configuration from location: {0} \n {1}",
+                                    logger.debug("Load additional configuration from '{}'\n'{}'",
                                             fsr.getPath(), globalRepoOverrideConfig);
 
                                     CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
@@ -140,7 +140,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
                                 }
                             }
                         } catch (IOException | ConfigurationException e) {
-                            logger.error("Failed to load studio configuration from: " + fsr.getPath(), e);
+                            logger.error("Failed to load Studio configuration from '{}'", fsr.getPath(), e);
                         }
                     }
                 }
@@ -148,7 +148,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
             }
             return config;
         } catch (Exception e) {
-            logger.error("Error loading configuration from global repo", e);
+            logger.error("Failed to load configuration from the global repository", e);
             return systemConfig;
         }
     }
@@ -198,7 +198,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         try {
             return getConfig().configurationAt(key);
         } catch (Exception e) {
-            logger.debug("Failed to load configuration value for key " + key + ". Returning null.");
+            logger.debug("Failed to load the configuration value for key '{}'. Returning null.", key);
         }
         return null;
     }
@@ -208,7 +208,7 @@ public class StudioConfigurationImpl implements StudioConfiguration {
         try {
             return getConfig().configurationsAt(key);
         } catch (Exception e) {
-            logger.error("Failed to load values for " + key);
+            logger.error("Failed to load values for key '{}'", key);
             return null;
         }
     }

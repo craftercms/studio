@@ -18,8 +18,8 @@ package org.craftercms.studio.impl.v2.service.cluster;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
@@ -53,16 +53,16 @@ public class StudioNodeHeartbeatJob implements Runnable {
             if (singleWorkerLock.tryLock()) {
                 try {
                     updateHeartbeat();
-                } catch (Exception error) {
-                    logger.error("Error during execution of node heartbeat job", error);
+                } catch (Exception e) {
+                    logger.error("Failed to execute the node heartbeat job", e);
                 } finally {
                     singleWorkerLock.unlock();
                 }
             } else {
-                logger.debug("Another worker is updating heartbeat. Skipping cycle.");
+                logger.debug("Another worker is updating the heartbeat. Skip cycle.");
             }
         } else {
-            logger.debug("System not ready yet. Skipping cycle");
+            logger.debug("The system not ready yet. Skip cycle");
         }
     }
 
@@ -70,10 +70,10 @@ public class StudioNodeHeartbeatJob implements Runnable {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
-            logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
+            logger.debug("Update the heartbeat of the cluster member with the local address '{}'", localAddress);
             retryingDatabaseOperationFacade.updateClusterNodeHeartbeat(params);
         }
     }

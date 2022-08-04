@@ -21,8 +21,8 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.collections.MapUtils;
 import org.craftercms.commons.rest.RestTemplate;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.beans.factory.annotation.Required;
@@ -73,10 +73,13 @@ public abstract class AbstractDeployer implements Deployer {
                                                                             .contentType(MediaType.APPLICATION_JSON)
                                                                             .body(requestBody);
 
-            logger.debug("Calling create target API: {0}", requestEntity);
+            logger.debug("Call create target API '{}' for site '{}' publishing target '{}'",
+                    requestEntity, site, environment);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (URISyntaxException e) {
+            logger.error("Invalid format of create target URL '{}' for site '{}' publishing target '{}'",
+                    requestUrl, site, environment, e);
             throw new IllegalStateException("Invalid format of create target URL: " + requestUrl, e);
         }
     }
@@ -89,11 +92,14 @@ public abstract class AbstractDeployer implements Deployer {
                                                              .contentType(MediaType.APPLICATION_JSON)
                                                              .build();
 
-            logger.debug("Calling delete target API: {0}", requestEntity);
+            logger.debug("Call delete target API '{}' for site '{}' publishing target '{}'",
+                    requestEntity, site, environment);
 
             restTemplate.exchange(requestEntity, Map.class);
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Invalid format of create target URL: " + requestUrl, e);
+            logger.error("Invalid format of delete target URL '{}' for site '{}' publishing target '{}'",
+                    requestUrl, site, environment, e);
+            throw new IllegalStateException("Invalid format of delete target URL: " + requestUrl, e);
         }
     }
 

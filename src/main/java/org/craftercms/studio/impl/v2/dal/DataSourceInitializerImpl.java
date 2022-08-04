@@ -34,8 +34,8 @@ import org.apache.ibatis.jdbc.RuntimeSqlException;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.DataSourceInitializer;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
@@ -82,11 +82,11 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
             try {
                 Class.forName(studioConfiguration.getProperty(DB_DRIVER));
             } catch (Exception e) {
-                logger.error("Error loading JDBC driver", e);
+                logger.error("Error loading the JDBC driver", e);
             }
 
             try (Connection conn = DriverManager.getConnection(studioConfiguration.getProperty(DB_INITIALIZER_URL))) {
-                logger.debug("Check if database schema already exists");
+                logger.debug("Check if the database schema already exists");
                 try(Statement statement = conn.createStatement();
                     ResultSet rs = statement.executeQuery(
                             DB_QUERY_CHECK_SCHEMA_EXISTS.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)))) {
@@ -95,7 +95,7 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                         logger.debug("Database schema exists. Check if it is empty.");
                         try (ResultSet rs2 = statement.executeQuery(
                                 DB_QUERY_CHECK_TABLES.replace(SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)))) {
-                            List<String> tableNames = new ArrayList<String>();
+                            List<String> tableNames = new ArrayList<>();
                             while (rs2.next()) {
                                 tableNames.add(rs2.getString(1));
                             }
@@ -122,71 +122,76 @@ public class DataSourceInitializerImpl implements DataSourceInitializer {
                     }
 
                 } catch (SQLException | IOException e) {
-                    logger.error("Error while initializing database", e);
+                    logger.error("Failed to initialize the database", e);
                 }
             } catch (SQLException e) {
-                logger.error("Error while connecting to initialize DB", e);
+                logger.error("Failed to connect to the database while trying to initialize it", e);
             }
         }
     }
 
     private void createDatabaseTables(Connection conn, Statement statement) throws SQLException, IOException {
         String createDbScriptPath = getCreateDBScriptPath();
-        // Database does not exist
-        logger.info("Database tables do not exist.");
-        logger.info("Creating database tables from script " + createDbScriptPath);
+        // The database does not exist
+        logger.info("The database tables do not exist.");
+        logger.info("Create the database tables from the script '{}'", createDbScriptPath);
         ScriptRunner sr = new ScriptRunner(conn);
 
         sr.setDelimiter(delimiter);
         sr.setStopOnError(true);
         sr.setLogWriter(null);
-        InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
-        String scriptContent = IOUtils.toString(is);
-        Reader reader = new StringReader(
-                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
+
         try {
-            sr.runScript(reader);
+            // TODO: Use Apache Commons or Spring Utils to avoid using the Class Loader directly
+            InputStream is = getClass().getClassLoader().getResourceAsStream(createDbScriptPath);
+            String scriptContent = IOUtils.toString(is, UTF_8);
+            Reader reader = new StringReader(
+                    scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA)));
+                sr.runScript(reader);
 
             if (isRandomAdminPasswordEnabled()) {
                 setRandomAdminPassword(conn, statement);
             }
 
             integrityValidator.store(conn);
-        } catch (RuntimeSqlException e) {
-            logger.error("Error while running create DB script", e);
+        } catch (Exception e) {
+            logger.error("Failed to run the DB create script '{}'", createDbScriptPath, e);
         }
     }
 
     private void setRandomAdminPassword(Connection conn, Statement statement) throws SQLException {
+        // TODO: SJ: Avoid using literal strings
         String randomPassword = generateRandomPassword();
         String hashedPassword = CryptoUtils.hashPassword(randomPassword);
         String update = DB_QUERY_SET_ADMIN_PASSWORD.replace(
                 SCHEMA, studioConfiguration.getProperty(DB_SCHEMA)).replace("{password}", hashedPassword);
         statement.executeUpdate(update);
         conn.commit();
-        logger.info("*** Admin Account Password: \"" + randomPassword + "\" ***");
+        logger.info("*** Admin Account Password: \"{}\" ***", randomPassword);
     }
 
     private void createSchema(Connection conn) throws IOException {
         String createSchemaScriptPath = getCreateSchemaScriptPath();
         // Database does not exist
-        logger.info("Database schema does not exists.");
-        logger.info("Creating database schema from script " + createSchemaScriptPath);
+        logger.info("The database schema does not exists.");
+        logger.info("Create the database schema from the script '{}'", createSchemaScriptPath);
         ScriptRunner sr = new ScriptRunner(conn);
 
         sr.setDelimiter(delimiter);
         sr.setStopOnError(true);
         sr.setLogWriter(null);
-        InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
-        String scriptContent = IOUtils.toString(is, UTF_8);
-        Reader reader = new StringReader(
-                scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA))
-                        .replaceAll(CRAFTER_USER, studioConfiguration.getProperty(DB_USER))
-                        .replaceAll(CRAFTER_PASSWORD, studioConfiguration.getProperty(DB_PASSWORD)));
+
         try {
+            // TODO: Use Apache Commons or Spring Utils to avoid using the Class Loader directly
+            InputStream is = getClass().getClassLoader().getResourceAsStream(createSchemaScriptPath);
+            String scriptContent = IOUtils.toString(is, UTF_8);
+            Reader reader = new StringReader(
+                    scriptContent.replaceAll(CRAFTER_SCHEMA_NAME, studioConfiguration.getProperty(DB_SCHEMA))
+                            .replaceAll(CRAFTER_USER, studioConfiguration.getProperty(DB_USER))
+                            .replaceAll(CRAFTER_PASSWORD, studioConfiguration.getProperty(DB_PASSWORD)));
             sr.runScript(reader);
-        } catch (RuntimeSqlException e) {
-            logger.error("Error while running create DB script", e);
+        } catch (Exception e) {
+            logger.error("Failed to run the DB schema create script '{}'", createSchemaScriptPath, e);
         }
     }
 

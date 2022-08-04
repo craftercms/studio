@@ -25,6 +25,8 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.dal.ClusterDAO;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
@@ -56,8 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_PUBLISHING_LOCK_OWNER_ID;
@@ -92,7 +92,7 @@ public class StudioClusterUtils {
     }
 
     public List<ClusterMember> getClusterNodes(String localAddress) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
         params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
         return clusterDao.getOtherMembers(params);
@@ -107,7 +107,7 @@ public class StudioClusterUtils {
                 .setListMode(ListBranchCommand.ListMode.REMOTE);
         List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
-        List<String> branchesToDelete = new ArrayList<String>();
+        List<String> branchesToDelete = new ArrayList<>();
         for (Ref remoteBranchRef : resultRemoteBranches) {
             if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
                 branchesToDelete.add(remoteBranchRef.getName());
@@ -151,7 +151,7 @@ public class StudioClusterUtils {
             try {
                 while (!cloned && idx < clusterNodes.size()) {
                     ClusterMember remoteNode = clusterNodes.get(idx++);
-                    logger.debug("Cloning global repository from " + remoteNode.getLocalAddress());
+                    logger.info("Clone the Global repository from '{}'", remoteNode.getLocalAddress());
 
                     // prepare a new folder for the cloned repository
                     Path siteSandboxPath = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
@@ -159,20 +159,21 @@ public class StudioClusterUtils {
                     File localPath = siteSandboxPath.toFile();
                     localPath.delete();
                     // then clone
-                    logger.debug("Cloning from " + remoteNode.getGitUrl() + " to " + localPath);
+                    logger.debug("Clone the repo '{}' to '{}'", remoteNode.getGitUrl(), siteSandboxPath);
                     CloneCommand cloneCommand = Git.cloneRepository();
                     Git cloneResult = null;
 
                     Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
                     try {
-                        logger.debug("Add user credentials if provided");
+                        logger.debug("Add the user credentials if provided for the repository at path '{}'",
+                                localPath);
                         helper.setAuthenticationForCommand(cloneCommand, remoteNode.getGitAuthType(),
                                 remoteNode.getGitUsername(), remoteNode.getGitPassword(), remoteNode.getGitToken(),
                                 remoteNode.getGitPrivateKey(), tempKey, true);
 
                         String cloneUrl = remoteNode.getGitUrl().replace("/sites/{siteId}", "/global");
 
-                        logger.debug("Executing clone command");
+                        logger.trace("Execute the clone command for repository at path '{}'", siteSandboxPath);
                         cloneResult = cloneCommand
                                 .setURI(cloneUrl)
                                 .setRemote(remoteNode.getGitRemoteName())
@@ -182,13 +183,13 @@ public class StudioClusterUtils {
                         cloned = true;
 
                     } catch (InvalidRemoteException e) {
-                        logger.error("Invalid remote repository: " + remoteNode.getGitRemoteName() +
-                                " (" + remoteNode.getGitUrl() + ")", e);
+                        logger.error("Failed to clone the Global repository. Invalid remote repository '{}' at '{}'.",
+                                remoteNode.getGitRemoteName(), remoteNode.getGitUrl(), e);
                     } catch (TransportException e) {
                         GitUtils.translateException(e, logger, remoteNode.getGitRemoteName(), remoteNode.getGitUrl(),
                                 remoteNode.getGitUsername());
                     } catch (GitAPIException | IOException e) {
-                        logger.error("Error while creating repository for site with path" + siteSandboxPath, e);
+                        logger.error("Failed to create the Global repository at path '{}'", siteSandboxPath, e);
                     } finally {
                         Files.deleteIfExists(tempKey);
                         if (cloneResult != null) {
@@ -200,7 +201,7 @@ public class StudioClusterUtils {
                 generalLockService.unlock(gitLockKey);
             }
         } else {
-            logger.debug("Failed to get lock " + gitLockKey);
+            logger.debug("Failed to obtain the Git lock '{}'", gitLockKey);
         }
         return cloned;
     }
@@ -209,16 +210,8 @@ public class StudioClusterUtils {
         return studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
     }
 
-    public TextEncryptor getEncryptor() {
-        return encryptor;
-    }
-
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
-    }
-
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
     }
 
     public void setClusterDao(ClusterDAO clusterDao) {

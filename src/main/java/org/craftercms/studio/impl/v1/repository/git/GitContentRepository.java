@@ -62,8 +62,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -125,6 +125,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.web.context.ServletContextAware;
 
 import static java.lang.Integer.MAX_VALUE;
+import static java.lang.String.format;
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -213,12 +214,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     }
                 } catch (IOException e) {
-                    logger.info("Content not found for site: " + site + " path: " + path, e);
+                    logger.debug("Content not found at site '{}' path '{}'", site, path, e);
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
+            logger.error("Failed to check for content existence at site '{}' path '{}'", site, path, e);
         }
+
         return toReturn;
     }
 
@@ -245,11 +247,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     toReturn = objectLoader.openStream();
                     tw.close();
                 }
-            } catch (IOException e) {
-                logger.error("Error while getting content for file at site: " + site + " path: " + path, e);
             }
         } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
+            logger.error("Failed to get content from site '{}' path '{}'", site, path, e);
         }
 
         return toReturn;
@@ -272,13 +272,13 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             .replace(REPO_COMMIT_MESSAGE_PATH_VAR, path);
                     commitId = helper.commitFiles(repo, site, comment, user, path);
                 } else {
-                    logger.error("Failed to write content site: " + site + " path: " + path);
+                    logger.error("Failed to write content to site '{}' path '{}'", site, path);
                 }
             } else {
-                logger.error("Missing repository during write for site: " + site + " path: " + path);
+                logger.error("Missing repository during write for site '{}' path '{}'", site, path);
             }
         }  catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Unknown service error during write for site: " + site + " path: " + path, e);
+            logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -311,14 +311,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // Create the file
                 if (!file.createNewFile()) {
-                    logger.error("error writing file: site: " + site + " path: " + emptyFilePath);
+                    logger.error("Failed to write file to site '{}' path '{}'", site, emptyFilePath);
                     result = false;
                 } else {
                     // Add the file to git
                     result = helper.addFiles(repo, site, emptyFilePath.toString());
                 }
             } catch (Exception e) {
-                logger.error("error writing file: site: " + site + " path: " + emptyFilePath, e);
+                logger.error("Failed to add file to git in site '{}' path '{}'", site, emptyFilePath, e);
                 result = false;
             }
 
@@ -331,8 +331,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                                     helper.getCurrentUserIdent(),
                                                     emptyFilePath.toString());
                 } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.error("Unknown service error during commit for site: " + site + " path: "
-                                    + emptyFilePath, e);
+                    logger.error("Failed to commit file in site '{}' path '{}'", site, emptyFilePath, e);
                 }
             }
         } finally {
@@ -368,10 +367,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                 // TODO: SJ: we need to define messages in a string table of sorts
                 commitId = helper.commitFiles(repo, site, commitMsg, user, pathToCommit);
-            } catch (GitAPIException | UserNotFoundException | IOException e) {
-                logger.error("Error while deleting content for site: " + site + " path: " + path, e);
-            } catch (ServiceLayerException e) {
-                logger.error("Unknown service error during delete for site: " + site + " path: " + path, e);
+            } catch (GitAPIException | UserNotFoundException | IOException | ServiceLayerException e) {
+                logger.error("Failed to delete content at site '{}' path '{}'", site, path, e);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -450,9 +447,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             sourceFile.renameTo(targetFile);
                         } else {
                             // This is not a valid operation
-                            logger.error("Invalid move operation: Trying to rename a directory to a file " +
-                                    "for site: " + site + " fromPath: " + fromPath + " toPath: " + toPath +
-                                    " newName: " + newName);
+                            logger.error("Failed to move. Trying to rename a directory to a file " +
+                                            "in site '{}' from path '{}' to path '{}' with name '{}'",
+                                    site, fromPath, toPath, newName);
                         }
                     } else if (sourceFile.isDirectory()) {
                         // Check if we're moving a single file or whole subtree
@@ -491,12 +488,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         toRet.put(pathToCommit, commitId);
                     }
                 } else {
-                    logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
-                                    " toPath: " + toPath + " newName: " + newName);
+                    logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
+                            site, fromPath, toPath, newName);
                 }
             } catch (Exception e) {
-                logger.error("Error while moving content for site: " + site + " fromPath: " + fromPath +
-                                " toPath: " + toPath + " newName: " + newName);
+                logger.error("Failed to move item in site '{}' from path '{}' to path '{}' with name '{}'",
+                        site, fromPath, toPath, newName, e);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -529,12 +526,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                                 helper.getCurrentUserIdent(),
                                                 fromPath, toPath);
             } else {
-                logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
-                                " toPath: " + toPath + " newName: ");
+                logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
+                        site, fromPath, toPath);
             }
         } catch (Exception e) {
-            logger.error("Error while copying content for site: " + site + " fromPath: " + fromPath +
-                         " toPath: " + toPath + " newName: ", e);
+            logger.error("Failed to copy item in site '{}' from path '{}' to path '{}'",
+                    site, fromPath, toPath, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -579,8 +576,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                         tw.close();
                     } else {
-                        logger.debug("Object is not tree for site: " + site + " path: " + path +
-                                " - it does not have children");
+                        logger.debug("Item at site '{}' path '{}' doesn't have any children",
+                                site, path);
                     }
                 } else {
                     String gitPath = helper.getGitPath(path);
@@ -606,18 +603,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                     retItems.add(item);
                                 }
                             }
-
-                        } catch (IOException e) {
-                            logger.error("Error while getting children for site: " + site + " path: " + path, e);
                         }
-
                     }
                 }
-            } catch (IOException e) {
-                logger.error("Error while getting children for site: " + site + " path: " + path, e);
             }
         } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path, e);
+            logger.error("Failed to get children at site '{}' path '{}'", site, path, e);
         }
 
         RepositoryItem[] items = new RepositoryItem[retItems.size()];
@@ -648,12 +639,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     versionTO.setComment(revCommit.getFullMessage());
                     versionHistory.add(versionTO);
                 }
-
-            } catch (IOException e) {
-                logger.error("error while getting history for content item " + path);
             }
         } catch (IOException | GitAPIException e) {
-            logger.error("Failed to create Git repo for site: " + site + " path: " + path, e);
+            logger.error("Failed to get the history for item at site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -671,7 +659,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public String createVersion(String site, String path, String comment, boolean majorVersion) {
         // SJ: Will ignore minor revisions since git handles that via write/commit
         // SJ: Major revisions become git tags
-        // TODO: SJ: Redesign/refactor the whole approach in 3.1+
         String toReturn = EMPTY;
         String gitLockKey = StringUtils.isEmpty(site) ?
                                 GLOBAL_REPOSITORY_GIT_LOCK :
@@ -695,11 +682,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
                     toReturn = versionLabel;
 
-                } catch (GitAPIException | ServiceLayerException | UserNotFoundException err) {
-                    logger.error("error creating new version for site:  " + site + " path: " + path, err);
+                } catch (GitAPIException | ServiceLayerException | UserNotFoundException e) {
+                    logger.error("Failed to create a new version for site '{}' path '{}'", site, path, e);
                 }
             } else {
-                logger.info("request to create minor revision ignored for site: " + site + " path: " + path);
+                logger.info("Ignore the request to create a minor version for site '{}' path '{}' since " +
+                        "we no longer support that mechanism of versioning", site, path);
             }
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -727,6 +715,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     private InputStream getContentVersion(String site, String path, String version) {
         InputStream toReturn = null;
+
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
 
@@ -739,14 +728,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         toReturn = objectLoader.openStream();
                         tw.close();
                     }
-                } catch (IOException e) {
-                    logger.error("Error while getting content for file at site: " + site + " path: " + path +
-                            " version: " + version, e);
                 }
             }
         } catch (IOException e) {
-            logger.error("Failed to create RevTree for site: " + site + " path: " + path + " version: " +
-                    version, e);
+            logger.error("Failed to get the content item at site '{}' path '{}' version '{}'",
+                    site, path, version, e);
         }
 
         return toReturn;
@@ -774,7 +760,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             lock.lock();
 
         } catch (IOException e) {
-            logger.error("Error while locking file for site: " + site + " path: " + path, e);
+            logger.error("Failed to lock the item at site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -802,7 +788,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             lock.unlock();
 
         } catch (IOException e) {
-            logger.error("Error while unlocking file for site: " + site + " path: " + path, e);
+            logger.error("Failed to unlock the item at site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -830,33 +816,34 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             lock.unlock();
 
         } catch (IOException e) {
-            logger.error("Error while unlocking file for site: " + site + " path: " + path, e);
+            logger.error("Failed to unlock the item at site '{}' path '{}'", site, path, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
     }
 
     /**
-     * bootstrap the repository
+     * bootstrap the global repository
      */
     @Order(1)
     @EventListener(ContextRefreshedEvent.class)
     public void bootstrap() throws Exception {
-        logger.debug("Bootstrap global repository.");
+        logger.debug("Bootstrap the Global repository");
 
         boolean bootstrapRepo = Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO));
         boolean isCreated = false;
 
+        // TODO: SJ: Check that this still happens in the clustering
         HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
         if (bootstrapRepo && registrationData != null && !registrationData.isEmpty()) {
             String firstCommitId = getRepoFirstCommitId(StringUtils.EMPTY);
             String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
             List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
             if (StringUtils.isEmpty(firstCommitId)) {
-                logger.debug("Creating global repository as cluster clone");
+                logger.debug("Creating the Global repository as a clone from the Primary cluster node");
                 isCreated = studioClusterUtils.cloneGlobalRepository(clusterNodes);
             } else {
-                logger.debug("Global repository exists syncing with cluster siblings");
+                logger.debug("The Global repository exists, sync with the Primary cluster node");
                 isCreated = true;
                 Repository repo = helper.getRepository(EMPTY, GLOBAL);
                 try (Git git = new Git(repo)) {
@@ -864,7 +851,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         try {
                             syncFromRemote(git, remoteNode);
                         } catch (Exception e) {
-                            logger.error("Error syncing global repository from cluster sibling " +
+                            // TODO: SJ: We don't have siblings, review this code and kill it if not valid
+                            logger.error("Error syncing the Global repository from the Primary node '{}'",
                                     remoteNode.getGitRemoteName());
                         }
                     }
@@ -879,7 +867,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     FILE_SEPARATOR + BOOTSTRAP_REPO_GLOBAL_PATH);
             Path source = java.nio.file.FileSystems.getDefault().getPath(bootstrapFolderPath);
 
-            logger.info("Bootstrapping with baseline @ " + source.toFile());
+            logger.info("Bootstrap with baseline @'{}'", source.toFile());
 
             // Copy the bootstrap repo to the global repo
             Path globalConfigPath = helper.buildRepoPath(GLOBAL);
@@ -889,6 +877,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             Files.walkFileTree(source, opts, MAX_VALUE, tc);
 
             String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+            // TODO: SJ: Clean up string literals
             if (Files.exists(Paths.get(studioManifestLocation))) {
                 FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
                         Paths.get(globalConfigPath.toAbsolutePath().toString(),
@@ -909,14 +898,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                             git.commit().setMessage(helper.getCommitMessage(REPO_INITIAL_COMMIT_COMMIT_MESSAGE));
                     retryingRepositoryOperationFacade.call(commitCommand);
                 }
-            } catch (GitAPIException err) {
-                logger.error("error creating initial commit for global configuration", err);
+            } catch (GitAPIException e) {
+                logger.error("Failed to create the initial commit for the global repository", e);
             }
         }
 
         // Create global repository object
         if (!helper.buildGlobalRepo()) {
-            logger.error("Failed to create global repository!");
+            logger.error("Failed to create the global repository");
         }
     }
 
@@ -937,7 +926,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
             }
         } else {
-            logger.debug("Failed to get lock " + GLOBAL_REPOSITORY_GIT_LOCK);
+            logger.debug("Failed to get the lock '{}'", GLOBAL_REPOSITORY_GIT_LOCK);
         }
     }
 
@@ -969,7 +958,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     FileUtils.deleteDirectory(sitePath.toFile());
                     toReturn = true;
                 } catch (IOException e) {
-                    logger.error("Error while deleting site " + site, e);
+                    logger.error("Failed to delete the site '{}'", site, e);
                     toReturn = false;
                 }
             }
@@ -984,7 +973,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws DeploymentException {
         String gitLockKey = helper.getPublishedRepoLockKey(site);
         Repository repo = helper.getRepository(site, PUBLISHED);
-        String commitId = EMPTY;
 
         String sandboxBranchName = sandboxBranch;
         if (StringUtils.isEmpty(sandboxBranchName)) {
@@ -994,12 +982,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         try (Git git = new Git(repo)) {
             // fetch "origin/master"
-            logger.debug("Fetch from sandbox for site " + site);
+            logger.debug("Fetch from sandbox for site '{}'", site);
             FetchCommand fetchCommand = git.fetch();
             retryingRepositoryOperationFacade.call(fetchCommand);
 
             // checkout master and pull from sandbox
-            logger.debug("Checkout published/master branch for site " + site);
+            logger.debug("Checkout published/master branch in site '{}'", site);
             try {
                 CheckoutCommand checkoutCommand = git.checkout()
                         .setName(sandboxBranchName);
@@ -1010,14 +998,14 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .setStrategy(THEIRS);
                 retryingRepositoryOperationFacade.call(pullCommand);
             } catch (RefNotFoundException e) {
-                logger.error("Failed to checkout published master and to pull content from sandbox for site "
-                        + site, e);
-                throw new DeploymentException("Failed to checkout published master and to pull content from " +
-                        "sandbox for site " + site);
+                logger.error("Failed to checkout published/master and to pull content from sandbox for site '{}'",
+                        site, e);
+                throw new DeploymentException(format("Failed to checkout published master and to pull " +
+                        "content from sandbox for site '%s'", site), e);
             }
 
-            // checkout environment branch
-            logger.debug("Checkout environment branch " + environment + " for site " + site);
+            // Checkout the publishing target branch
+            logger.debug("Checkout the publishing target branch '{}' for site '{}'", environment, site);
             try {
                 CheckoutCommand checkoutCommand =
                         git.checkout().setCreateBranch(true).setForceRefUpdate(true).setStartPoint(sandboxBranchName)
@@ -1025,8 +1013,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         .setName(environment);
                 retryingRepositoryOperationFacade.call(checkoutCommand);
             } catch (RefNotFoundException e) {
-                logger.info("Not able to find branch " + environment + " for site " + site +
-                        ". Creating new branch");
+                logger.info("Unable to find branch '{}' for site '{}'. Will create a new branch.",
+                        environment, site);
             }
 
             // tag
@@ -1036,9 +1024,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             TagCommand tagCommand = git.tag().setTagger(authorIdent).setName(tagName).setMessage(comment);
             retryingRepositoryOperationFacade.call(tagCommand);
         } catch (Exception e) {
-            logger.error("Error when publishing site " + site + " to environment " + environment, e);
-            throw new DeploymentException("Error when publishing site " + site + " to environment " +
-                    environment + " [commit ID = " + commitId + "]");
+            logger.error("Failed to publish site '{}' to publishing target '{}'", site, environment, e);
+            throw new DeploymentException(format("Failed to publish site '%s' to publishing target '%s'",
+                    site, environment));
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -1058,7 +1046,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     toReturn = commitId.getName();
                 }
             } catch (IOException e) {
-                logger.error("Error getting last commit ID for site " + site, e);
+                logger.error("Failed to get the last commit ID from site '{}'", site, e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
@@ -1082,10 +1070,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     rw.markStart(root);
                     ObjectId first = rw.next();
                     toReturn = first.getName();
-                    logger.debug("getRepoFirstCommitId for site: " + site + " First commit ID: " + toReturn);
+                    logger.debug("The first commit ID for site '{}' is '{}'", site, toReturn);
                 }
             } catch (IOException e) {
-                logger.error("Error getting first commit ID for site " + site, e);
+                logger.error("Failed to get the first commit ID from site '{}'", site, e);
             } finally {
                 generalLockService.unlock(gitLockKey);
             }
@@ -1133,13 +1121,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         commitIds.add(0, commit.getId().getName());
                     }
                 }
-            } catch (GitAPIException e) {
-                logger.error("Error getting commit ids for site " + site + " and path " + path +
-                        " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
             }
-        } catch (IOException e) {
-            logger.error("Error getting operations for site " + site + " and path " + path +
-                    " from commit ID: " + commitIdFrom + " to commit ID: " + commitIdTo, e);
+        } catch (IOException | GitAPIException e) {
+            logger.error("Failed to get operations from site '{}' path '{}' from commit ID '{}' to " +
+                    "commit ID '{}'", site, path, commitIdFrom, commitIdTo, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -1165,7 +1150,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 gitLogs.add(gitLog);
             }
         } catch (GitAPIException e) {
-            logger.error("Error getting full git log for site " + siteId, e);
+            logger.error("Failed to get the full git log from site '{}'", siteId, e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }
@@ -1192,11 +1177,12 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws InvalidRemoteUrlException, ServiceLayerException {
         boolean isValid = false;
         try {
-            logger.debug("Add remote " + remoteName + " to the sandbox repo for the site " + siteId);
+            logger.debug("Add the remote '{}' url '{}' to the sandbox in site '{}'", remoteName, remoteUrl, siteId);
             Repository repo = helper.getRepository(siteId, SANDBOX);
             try (Git git = new Git(repo)) {
 
                 Config storedConfig = repo.getConfig();
+                // TODO: SJ: Clean up string literals
                 Set<String> remotes = storedConfig.getSubsections("remote");
 
                 if (remotes.contains(remoteName)) {
@@ -1236,15 +1222,16 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
                     }
                 }
-
             } catch (URISyntaxException | ClassCastException e) {
-                logger.error("Remote URL is invalid " + remoteUrl, e);
-                throw new InvalidRemoteUrlException("Remote URL is invalid " + remoteUrl, e);
+                logger.error("Failed to add the remote '{}' to the site '{}'. The remote URL '{}' is invalid.",
+                        remoteName, siteId, remoteUrl, e);
+                throw new InvalidRemoteUrlException(format("Failed to add the remote '%s' to the site '%s'. " +
+                                "The remote URL '%s' is invalid.", remoteName, siteId, remoteUrl), e);
             } catch (GitAPIException | IOException e) {
-                logger.error("Error while adding remote " + remoteName + " (url: " + remoteUrl + ") for site " +
-                        siteId, e);
-                throw new ServiceLayerException("Error while adding remote " + remoteName + " (url: " + remoteUrl +
-                        ") for site " + siteId, e);
+                logger.error("Failed to add the remote '{}' url '{}' to the sandbox in site '{}'",
+                        remoteName, remoteUrl, siteId, e);
+                throw new ServiceLayerException(format("Failed to add the remote '%s' url '%s' to site '%s'",
+                        remoteName, remoteUrl, siteId), e);
             }
 
             if (isValid) {
@@ -1263,6 +1250,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         LsRemoteCommand lsRemoteCommand = git.lsRemote();
         lsRemoteCommand.setRemote(remote);
+        // TODO: SJ: Clean up string literals
         Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
         try {
             helper.setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername, remotePassword,
@@ -1278,7 +1266,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     private void insertRemoteToDb(String siteId, String remoteName, String remoteUrl,
                                   String authenticationType, String remoteUsername, String remotePassword,
                                   String remoteToken, String remotePrivateKey) throws CryptoException {
-        logger.debug("Inserting remote " + remoteName + " for site " + siteId + " into database.");
+        // TODO: SJ: Refactor to shorten and reduce duplication
+        // TODO: SJ: Clean up string literals
+        logger.debug("Adding remote '{}' to the database for site '{}'", remoteName, siteId);
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
@@ -1287,28 +1277,28 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         params.put("remoteUsername", remoteUsername);
 
         if (StringUtils.isNotEmpty(remotePassword)) {
-            logger.debug("Encrypt password before inserting to database");
+            // Encrypt password before inserting to database
             String hashedPassword = encryptor.encrypt(remotePassword);
             params.put("remotePassword", hashedPassword);
         } else {
             params.put("remotePassword", remotePassword);
         }
         if (StringUtils.isNotEmpty(remoteToken)) {
-            logger.debug("Encrypt token before inserting to database");
+            // Encrypt token before inserting to database
             String hashedToken = encryptor.encrypt(remoteToken);
             params.put("remoteToken", hashedToken);
         } else {
             params.put("remoteToken", remoteToken);
         }
         if (StringUtils.isNotEmpty(remotePrivateKey)) {
-            logger.debug("Encrypt private key before inserting to database");
+            // Encrypt private key before inserting to database
             String hashedPrivateKey = encryptor.encrypt(remotePrivateKey);
             params.put("remotePrivateKey", hashedPrivateKey);
         } else {
             params.put("remotePrivateKey", remotePrivateKey);
         }
 
-        logger.debug("Insert site remote record into database");
+        // Insert site remote record into database
         retryingDatabaseOperationFacade.insertRemoteRepository(params);
         params = new HashMap<String, String>();
         params.put("siteId", siteId);
@@ -1334,6 +1324,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public void removeRemoteRepositoriesForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
+        // TODO: SJ: Clean up string literals
         params.put("siteId", siteId);
         retryingDatabaseOperationFacade.deleteRemoteRepositoriesForSite(params);
     }
@@ -1350,6 +1341,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
                         Map<String, String> params = new HashMap<String, String>();
+                        // TODO: SJ: Clean up string literals
                         params.put("siteId", siteId);
                         params.put("remoteName", conf.getName());
                         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
@@ -1363,6 +1355,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                         remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(),
                                         tempKey, true);
                                 retryingRepositoryOperationFacade.call(fetchCommand);
+                            } catch (CryptoException e) {
+                                logger.error("Failed to list the remote repositories in site '{}'.", siteId, e);
+                                throw new ServiceLayerException(format("Failed to list the remote repositories " +
+                                        "in site '%s'.", siteId), e);
                             } finally {
                                 Files.deleteIfExists(tempKey);
                             }
@@ -1375,6 +1371,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         String branchFullName = remoteBranchRef.getName().replace(R_REMOTES, "");
                         String remotePart = EMPTY;
                         String branchNamePart = EMPTY;
+                        // TODO: SJ: Clean up string literals
+                        // TODO: SJ: Refactor to reduce code duplication
                         int slashIndex = branchFullName.indexOf("/");
                         if (slashIndex > 0) {
                             remotePart = branchFullName.substring(0, slashIndex);
@@ -1437,8 +1435,8 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         res.add(rri);
                     }
                 }
-            } catch (GitAPIException | CryptoException | IOException e) {
-                logger.error("Error getting remote repositories for site " + siteId, e);
+            } catch (GitAPIException | IOException e) {
+                logger.error("Failed to get the remote repositories for site '{}'", siteId, e);
             }
         }
         return res;
@@ -1447,20 +1445,20 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
-        logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug("Push from site '{}' to remote '{}' branch '{}'", siteId, remoteName, remoteBranch);
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
 
-        logger.debug("Prepare push command.");
+        // Prepare push command
         Repository repo = helper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             Iterable<PushResult> pushResultIterable = null;
             PushCommand pushCommand = git.push();
-            logger.debug("Set remote " + remoteName);
+            // Set remote to remoteName
             pushCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug("Set branch to be " + remoteBranch);
+            // Set branch to remoteBranch
             RefSpec r = new RefSpec();
             r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
                     Constants.R_HEADS +  remoteBranch);
@@ -1487,35 +1485,36 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             }
             return toRet;
         } catch (InvalidRemoteException e) {
-            logger.error("Remote is invalid " + remoteName, e);
+            logger.error("Failed to push from site '{}' to remote '{}' branch '{}'. Remote '{}' is invalid.",
+                    siteId, remoteName, remoteBranch, remoteName, e);
             throw new InvalidRemoteUrlException();
         } catch (IOException | JGitInternalException | GitAPIException | CryptoException e) {
-            logger.error("Error while pushing to remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
-            throw new ServiceLayerException("Error while pushing to remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
+            logger.error("Failed to push from site '{}' to remote '{}' branch '{}'",
+                    siteId, remoteName, remoteBranch, e);
+            throw new ServiceLayerException(format("Failed to push from site '%s' to remote '%s' branch '%s'",
+                    siteId, remoteName, remoteBranch, e));
         }
     }
 
     @Override
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
-        logger.debug("Get remote data from database for remote " + remoteName + " and site " + siteId);
+        logger.debug("Pull from remote '{}' branch '{}' in site '{}'", remoteName, remoteBranch, siteId);
         Map<String, String> params = new HashMap<String, String>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
 
-        logger.debug("Prepare pull command");
+        // Prepare pull command
         Repository repo = helper.getRepository(siteId, SANDBOX);
         String gitLockKey = helper.getSandboxRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
             PullResult pullResult = null;
             PullCommand pullCommand = git.pull();
-            logger.debug("Set remote " + remoteName);
+            // Set remote remoteName
             pullCommand.setRemote(remoteRepository.getRemoteName());
-            logger.debug("Set branch to be " + remoteBranch);
+            // Set branch remoteBranch
             pullCommand.setRemoteBranchName(remoteBranch);
             Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
             try {
@@ -1523,19 +1522,25 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                         remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
                 pullResult = retryingRepositoryOperationFacade.call(pullCommand);
+            } catch (CryptoException e) {
+                logger.error("Failed to pull from the remote repository '{}' branch '{}' in site '{}'",
+                        remoteName, remoteBranch, siteId, e);
+                throw new ServiceLayerException(format("Failed to pull from the remote repository '%s' branch '%s' " +
+                                "in site '%s'", remoteName, remoteBranch, siteId), e);
             } finally {
                 Files.deleteIfExists(tempKey);
             }
             return pullResult != null && pullResult.isSuccessful();
         } catch (InvalidRemoteException e) {
-            logger.error("Remote is invalid " + remoteName, e);
-            throw new InvalidRemoteUrlException();
+            logger.error("The remote '{}' branch '{}' in site '{}' is invalid ", remoteName, remoteBranch, siteId, e);
+            throw new InvalidRemoteUrlException(format("The remote '%s' branch '%s' in site '%s' is invalid ",
+                    remoteName, remoteBranch, siteId), e);
         } catch (GitAPIException e) {
-            logger.error("Error while pulling from remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
-            throw new ServiceLayerException("Error while pulling from remote " + remoteName + " branch "
-                    + remoteBranch + " for site " + siteId, e);
-        } catch (CryptoException | IOException e) {
+            logger.error("Failed to pull from remote '{}' branch '{}' in site '{}'",
+                    remoteName, remoteBranch, siteId, e);
+            throw new ServiceLayerException(format("Failed to pull from remote '%s' branch '%s' in site '%s'",
+                    remoteName, remoteBranch, siteId), e);
+        } catch (IOException e) {
             throw new ServiceLayerException(e);
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1552,27 +1557,30 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void resetStagingRepository(String siteId) throws ServiceLayerException {
+        // TODO: SJ: Refactor if still in use
         Repository repo = helper.getRepository(siteId, PUBLISHED);
         String stagingName = servicesConfig.getStagingEnvironment(siteId);
         String liveName = servicesConfig.getLiveEnvironment(siteId);
         String gitLockKey = helper.getPublishedRepoLockKey(siteId);
         generalLockService.lock(gitLockKey);
         try (Git git = new Git(repo)) {
-            logger.debug("Checkout live first because it is not allowed to delete checkedout branch");
+            logger.trace("Checkout the live branch in site '{}' first since we cannot delete a checked out branch",
+                    siteId);
             CheckoutCommand checkoutCommand = git.checkout().setName(liveName);
             retryingRepositoryOperationFacade.call(checkoutCommand);
-            logger.debug("Delete staging branch in order to reset it for site: " + siteId);
+            logger.debug("Delete the staging branch in order to reset it in site '{}'", siteId);
             DeleteBranchCommand deleteBranchCommand =
                     git.branchDelete().setBranchNames(stagingName).setForce(true);
             retryingRepositoryOperationFacade.call(deleteBranchCommand);
 
-            logger.debug("Create new branch for staging with live HEAD as starting point");
+            logger.debug("Create a new branch for staging with live/HEAD as starting point in site '{}'",
+                    siteId);
             CreateBranchCommand createBranchCommand = git.branchCreate()
                     .setName(stagingName)
                     .setStartPoint(liveName);
             retryingRepositoryOperationFacade.call(createBranchCommand);
         } catch (GitAPIException e) {
-            logger.error("Error while reseting staging environment for site: " + siteId);
+            logger.error("Failed to reset the staging environment in site '{}'", siteId, e);
             throw new ServiceLayerException(e);
         } finally {
             generalLockService.unlock(gitLockKey);
@@ -1581,16 +1589,18 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void reloadRepository(String siteId) {
+        // TODO: SJ: What's the purpose of this method?
         helper.removeSandbox(siteId);
         helper.getRepository(siteId, SANDBOX);
     }
 
     protected void cleanup(String siteId, GitRepositories repository) {
+        // TODO: SJ: Rename this to indicate what it actually does, garbage collect git
         Repository sandbox = helper.getRepository(siteId, repository);
         try (Git git = new Git(sandbox)) {
             retryingRepositoryOperationFacade.call(git.gc());
         }  catch (Exception e) {
-            logger.warn("Error cleaning up repository for site " + siteId, e);
+            logger.warn("Failed to garbage collect the git repository in site '{}'", siteId, e);
         }
     }
 
@@ -1599,8 +1609,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
      */
     @Override
     public void cleanupRepositories(final String siteId) {
+        // TODO: SJ: Rename to indicate what this actually does, garbage collect the git repos
         if(StringUtils.isEmpty(siteId)) {
-            logger.info("Cleaning up global repository");
+            logger.info("Garbage collect the global repository");
             String gitLockKey = GLOBAL_REPOSITORY_GIT_LOCK;
             generalLockService.lock(gitLockKey);
             try {
@@ -1609,10 +1620,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 generalLockService.unlock(gitLockKey);
             }
         } else {
-            logger.info("Cleaning up repositories for site {0}", siteId);
+            logger.info("Garbage collect the git repositories in site '{}'", siteId);
             String gitLockKeySandbox = helper.getSandboxRepoLockKey(siteId);
             String gitLockKeyPublished = helper.getPublishedRepoLockKey(siteId);
             generalLockService.lock(gitLockKeySandbox);
+            // TODO: SJ: Redo the exception handling as part of refactoring this method
             try {
                 cleanup(siteId, SANDBOX);
             } finally {

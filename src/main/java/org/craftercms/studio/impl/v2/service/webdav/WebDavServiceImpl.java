@@ -34,8 +34,8 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
 import org.craftercms.studio.api.v2.service.webdav.WebDavService;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
@@ -44,6 +44,7 @@ import org.springframework.web.util.UriUtils;
 import com.github.sardine.DavResource;
 import com.github.sardine.Sardine;
 
+import static java.lang.String.format;
 import static org.craftercms.commons.file.stores.WebDavUtils.createClient;
 import static org.springframework.util.MimeTypeUtils.ALL_VALUE;
 
@@ -90,39 +91,39 @@ public class WebDavServiceImpl implements WebDavService {
                                  @ValidateStringParam(name = "path") final String path,
                                  @ValidateStringParam(name = "type") final String type) throws WebDavException {
         WebDavProfile profile = getProfile(siteId, profileId);
-        String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
+        StringBuilder listPath = new StringBuilder(StringUtils.appendIfMissing(profile.getBaseUrl(), "/"));
         MimeType filterType;
         try {
             Sardine sardine = createClient(profile);
-            if(StringUtils.isEmpty(type) || type.equals(FILTER_ALL_ITEMS)) {
+            if (StringUtils.isEmpty(type) || type.equals(FILTER_ALL_ITEMS)) {
                 filterType = MimeType.valueOf(ALL_VALUE);
             } else {
                 filterType = new MimeType(type);
             }
 
-            if(StringUtils.isNotEmpty(path)) {
+            if (StringUtils.isNotEmpty(path)) {
                 String[] tokens = StringUtils.split(path, "/");
-                for(String token : tokens) {
-                    if(StringUtils.isNotEmpty(token)) {
-                        listPath += StringUtils.appendIfMissing(UriUtils.encode(token, charset.name()), "/");
+                for (String token : tokens) {
+                    if (StringUtils.isNotEmpty(token)) {
+                        listPath.append(StringUtils.appendIfMissing(UriUtils.encode(token, charset.name()), "/"));
                     }
                 }
             }
 
-            if (!sardine.exists(listPath)) {
-                logger.debug("Folder {0} doesn't exist", listPath);
+            if (!sardine.exists(listPath.toString())) {
+                logger.debug("Folder doesn't exist at site '{}' path '{}'", siteId, listPath.toString());
                 return Collections.emptyList();
             }
-            logger.debug("Listing resources at {0}", listPath);
-            List<DavResource> resources = sardine.list(listPath, 1, true);
-            logger.debug("Found {0} resources at {0}", resources.size(), listPath);
+            logger.debug("List resources at site '{}' path '{}'", siteId, listPath.toString());
+            List<DavResource> resources = sardine.list(listPath.toString(), 1, true);
+            logger.debug("Found '{}' resources at site '{}' path '{}'", resources.size(), siteId, listPath.toString());
             return resources.stream()
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
                 .map(r -> new WebDavItem(getName(r), getUrl(r, profileId, profile), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
-            throw new WebDavException("Error listing resources", e);
+            throw new WebDavException(format("Error listing resources at site '%s' path '%s'", siteId, listPath.toString()), e);
         }
     }
 
@@ -136,7 +137,7 @@ public class WebDavServiceImpl implements WebDavService {
     }
 
     protected String getRemoteAssetUrl(String profileId, String fullPath) {
-        return String.format(urlPattern, profileId, StringUtils.removeStart(fullPath, "/"));
+        return format(urlPattern, profileId, StringUtils.removeStart(fullPath, "/"));
     }
 
     protected String getRemoteAssetUrl(String profileId, String path, String filename) {
@@ -179,13 +180,13 @@ public class WebDavServiceImpl implements WebDavService {
                 for(String folder : folders) {
                     uploadUrl += StringUtils.appendIfMissing(folder, "/");
 
-                    logger.debug("Checking folder {0}", uploadUrl);
+                    logger.trace("Check folder in site '{}' URL '{}'", siteId, uploadUrl);
                     if(!sardine.exists(uploadUrl)) {
-                        logger.debug("Creating folder {0}", uploadUrl);
+                        logger.trace("Create folder in site '{}' URL '{}'", siteId, uploadUrl);
                         sardine.createDirectory(uploadUrl);
-                        logger.debug("Folder {0} created", uploadUrl);
+                        logger.trace("Successfully created folder in site '{}' URL '{}'", siteId, uploadUrl);
                     } else {
-                        logger.debug("Folder {0} already exists", uploadUrl);
+                        logger.trace("Folder in site '{}' URL '{}' already exists", siteId, uploadUrl);
                     }
                 }
             }
@@ -193,29 +194,20 @@ public class WebDavServiceImpl implements WebDavService {
             uploadUrl =  StringUtils.appendIfMissing(uploadUrl, "/");
             String fileUrl = uploadUrl + UriUtils.encode(filename, charset.name());
 
-            logger.debug("Starting upload of file {0}", filename);
-            logger.debug("Uploading file to {0}", fileUrl);
-
+            logger.debug("Upload the file '{}' to the URL '{}' in site '{}'", filename, fileUrl, siteId);
             sardine.put(fileUrl, content);
-            logger.debug("Upload complete for file {0}", fileUrl);
+            logger.debug("Successfully uploaded the file '{}' to URL '{}' in site '{}'", filename, fileUrl, siteId);
 
 
             return new WebDavItem(filename, getRemoteAssetUrl(profileId, path, filename), false);
-        } catch (Exception e ) {
-            throw new WebDavException("Error uploading file", e);
+        } catch (Exception e) {
+            logger.error("Failed to upload file '{}' in site '{}'", filename, siteId, e);
+            throw new WebDavException(format("Failed to upload file '%s' in site '%s'", filename, siteId), e);
         }
-    }
-
-    public String getUrlPattern() {
-        return urlPattern;
     }
 
     public void setUrlPattern(String urlPattern) {
         this.urlPattern = urlPattern;
-    }
-
-    public SiteAwareConfigProfileLoader<WebDavProfile> getProfileLoader() {
-        return profileLoader;
     }
 
     public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {

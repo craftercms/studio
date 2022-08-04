@@ -25,8 +25,8 @@ import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
@@ -36,6 +36,8 @@ import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
+
+import static java.lang.String.format;
 
 /**
  * @author joseross
@@ -70,16 +72,16 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
         var site = context.getTarget();
         Path descriptorFile = context.getRepositoryPath().resolve(descriptorPath);
         if (Files.notExists(descriptorFile)) {
-            logger.info("Plugin descriptor file not found for site {0}", site);
+            logger.info("The plugin descriptor file was not found in site '{}'", site);
             return;
         }
         try (Reader reader = Files.newBufferedReader(descriptorFile)) {
             PluginDescriptor descriptor = descriptorReader.read(reader);
             if (descriptor.getDescriptorVersion().equals(descriptorVersion)) {
-                logger.info("Plugin descriptor already update for site " + site);
+                logger.info("The plugin descriptor was already updated in site '{}'", site);
                 return;
             }
-            logger.info("Updating plugin descriptor for site " + site);
+            logger.info("Update the plugin descriptor in site '{}'", site);
             doPluginDescriptorUpdates(descriptor);
             descriptor.setDescriptorVersion(descriptorVersion);
 
@@ -104,7 +106,7 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
             Files.writeString(context.getFile(descriptorPath), content);
             trackChangedFiles(descriptorPath);
         } catch (Exception e) {
-            throw new UpgradeException("Plugin descriptor can't be read for site " + site);
+            throw new UpgradeException(format("Plugin descriptor can't be read from site '%s'", site));
         }
     }
 

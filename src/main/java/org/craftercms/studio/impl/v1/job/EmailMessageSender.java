@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.impl.v1.job;
 
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
 import org.craftercms.studio.api.v1.to.EmailMessageTO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -71,9 +71,9 @@ public class EmailMessageSender implements Runnable {
                         String personalFromName = emailMessage.getPersonalFromName();
                         boolean success = sendEmail(subject, content, userEmailAddress, replyTo, personalFromName);
                         if (success) {
-                            logger.debug("Successfully sent email to:" + userEmailAddress);
+                            logger.debug("Successfully sent email to '{}'", userEmailAddress);
                         } else {
-                            logger.error("Could not send email to:" + userEmailAddress);
+                            logger.error("Could not send email to '{}'", userEmailAddress);
                         }
                         emailMessage = null;
                     }
@@ -107,19 +107,18 @@ public class EmailMessageSender implements Runnable {
                 mimeMessage.setFrom(fromAddress);
                 mimeMessage.setContent(content, "text/html; charset=utf-8");
                 mimeMessage.setSubject(subject);
-                logger.debug("sending email to [" + userEmailAddress + "]subject subject :[" + subject + "]");
+                logger.debug("Sending an email to '{}' with subject '{}'", userEmailAddress, subject);
             }
         };
+
         try {
             if (isAuthenticatedSMTP()) {
                 emailService.send(preparator);
             } else {
                 emailServiceNoAuth.send(preparator);
             }
-        } catch (MailException ex) {
-            // simply log it and go on...
-            logger.error("Error sending email notification to:" + userEmailAddress, ex);
-
+        } catch (MailException e) {
+            logger.error("Error sending email to '{}'", userEmailAddress, e);
             success = false;
         }
 

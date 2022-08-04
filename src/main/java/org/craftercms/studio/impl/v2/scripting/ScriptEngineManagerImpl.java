@@ -23,8 +23,8 @@ import groovy.util.ResourceException;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.engine.util.url.ContentStoreUrlConnection;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
 import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
@@ -84,10 +84,10 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
     }
 
     protected GroovyScriptEngine createScriptEngine(String siteId) {
-        logger.debug("Creating script engine for site {0}", siteId);
+        logger.debug("Create a Script Engine for site '{}'", siteId);
         var compilerConfig = new CompilerConfiguration();
         if (sandboxEnabled) {
-            logger.debug("Enabling sandbox for site {0}", siteId);
+            logger.debug("Enable the Groovy sandbox for site '{}'", siteId);
             compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
         }
 
@@ -99,7 +99,7 @@ public class ScriptEngineManagerImpl implements ScriptEngineManager {
 
     @Override
     public void reloadScriptEngine(String siteId) {
-        logger.debug("Reloading script engine for site {0}", siteId);
+        logger.debug("Reload the Script Engine for site '{}'", siteId);
         scriptEngines.compute(siteId, (key, old) -> createScriptEngine(siteId));
     }
 
