@@ -85,8 +85,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     @Override
     public boolean isUserAllowed(Set<String> userRoles, ContentTypeConfigTO item) {
         if (item == null) {
-            logger.debug("No content type config provided for item '{}' to limit user access, " +
-                    "defaulting to permit the user", item.getName());
+            logger.debug("No content type config provided for null item to limit user access, " +
+                    "defaulting to permit the user");
             return true;
         }
 
