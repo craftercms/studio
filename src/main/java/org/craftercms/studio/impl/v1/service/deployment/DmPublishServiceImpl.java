@@ -121,7 +121,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                            @ValidateStringParam String environment,
                            @ValidateSecurePathParam(name = "path") String path,
                            String comment) throws ServiceLayerException {
-        logger.info("Started Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
+        logger.info("Start Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
 
         String queryPath = path;
         if (queryPath.startsWith(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
@@ -138,7 +138,7 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         ZonedDateTime launchDate = DateUtils.getCurrentTime();
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
-            logger.debug("Processing bulk publish dependencies in site '{}' path '{}'", site, childPath);
+            logger.debug("Process bulk publish dependencies in site '{}' path '{}'", site, childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<String>();
                 List<String> candidatesToPublish = new ArrayList<String>();
@@ -155,19 +155,19 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
                 if (StringUtils.isEmpty(comment)) {
                     comment = format("Bulk Publish invoked by '%s'", aprover);
                 }
-                logger.info("Publishing a package of '{}' items in site '{}' path '{}' to target '{}'",
+                logger.info("Publish a package of '{}' items in site '{}' path '{}' to target '{}'",
                         pathsToPublish.size(), site, childPath, environment);
                 try {
                     deploymentService.deploy(site, environment, pathsToPublish, launchDate, aprover, comment, true);
                 } catch (DeploymentException | UserNotFoundException e) {
-                    logger.error("Failed to bulk publish in site '{}' path '{}'", site, childPath, e);
+                    logger.error("Failed to bulk publish site '{}' path '{}'", site, childPath, e);
                 } finally {
                     logger.debug("Finished bulk publish processing of package in site '{}' path '{}'",
                             site, childPath);
                 }
             }
         }
-        logger.info("Finished Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
+        logger.info("Finished Bulk Publish site '{}' path '{}' to target '{}'", site, path, environment);
     }
 
     public void setDeploymentService(DeploymentService deploymentService) {
