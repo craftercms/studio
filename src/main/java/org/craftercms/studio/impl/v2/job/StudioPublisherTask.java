@@ -133,7 +133,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                             if (!commitPresent) {
                                                 sbMissingCommits.append(commit).append("; ");
                                                 logger.trace("Commit ID '{}' is not in the git repo for " +
-                                                        "site '{}'. Skipping a publishing cycle and will try " +
+                                                        "site '{}'. Skip a publishing cycle and try " +
                                                         "again next cycle.", commit, siteId);
                                                 allCommitsPresent = false;
                                             }
@@ -163,7 +163,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                         if (retriesLeft > 0) {
                                             retryCounter.put(siteId, retriesLeft);
                                             logger.info("The commit IDs '{}' are not in the git repo for site '{}'. " +
-                                                    "Skipping a publishing cycle and will try again next cycle. " +
+                                                    "Skip a publishing cycle and try again next cycle. " +
                                                     "'{}' retries left.",
                                                     sbMissingCommits, siteId, retriesLeft);
                                         } else {
@@ -173,7 +173,7 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
                                                     "due to missing commit IDs '{}'",
                                                     siteId, maxRetryCounter, sbMissingCommits);
                                             throw new DeploymentException("Deployment failed after " + maxRetryCounter
-                                                    + " retries. Following commits are not present in local " +
+                                                    + " retries. The following commits are not present in local " +
                                                     "repository " + sbMissingCommits);
                                         }
                                     }
