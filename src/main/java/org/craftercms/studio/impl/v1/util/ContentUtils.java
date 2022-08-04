@@ -45,7 +45,7 @@ public class ContentUtils {
                 in.close();
             }
         } catch (IOException e) {
-            logger.error("Failed to InputStream", e);
+            logger.error("Failed to release InputStream", e);
         } finally {
             IOUtils.closeQuietly(in);
         }
@@ -62,7 +62,7 @@ public class ContentUtils {
                 out.close();
             }
         } catch (IOException e) {
-			logger.error("Failed to OutputStream", e);
+			logger.error("Failed to release OutputStream", e);
         } finally {
             IOUtils.closeQuietly(out);
         }
@@ -80,7 +80,7 @@ public class ContentUtils {
                 reader.close();
             }
         } catch (IOException e) {
-			logger.error("Failed to Reader", e);
+			logger.error("Failed to release Reader", e);
         } finally {
             IOUtils.closeQuietly(reader);
         }
