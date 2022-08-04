@@ -91,40 +91,39 @@ public class WebDavServiceImpl implements WebDavService {
                                  @ValidateStringParam(name = "path") final String path,
                                  @ValidateStringParam(name = "type") final String type) throws WebDavException {
         WebDavProfile profile = getProfile(siteId, profileId);
-        String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
+        StringBuilder listPath = new StringBuilder(StringUtils.appendIfMissing(profile.getBaseUrl(), "/"));
         MimeType filterType;
         try {
             Sardine sardine = createClient(profile);
-            if(StringUtils.isEmpty(type) || type.equals(FILTER_ALL_ITEMS)) {
+            if (StringUtils.isEmpty(type) || type.equals(FILTER_ALL_ITEMS)) {
                 filterType = MimeType.valueOf(ALL_VALUE);
             } else {
                 filterType = new MimeType(type);
             }
 
-            if(StringUtils.isNotEmpty(path)) {
+            if (StringUtils.isNotEmpty(path)) {
                 String[] tokens = StringUtils.split(path, "/");
-                for(String token : tokens) {
-                    if(StringUtils.isNotEmpty(token)) {
-                        // TODO: SJ: This is inefficient, revise
-                        listPath += StringUtils.appendIfMissing(UriUtils.encode(token, charset.name()), "/");
+                for (String token : tokens) {
+                    if (StringUtils.isNotEmpty(token)) {
+                        listPath.append(StringUtils.appendIfMissing(UriUtils.encode(token, charset.name()), "/"));
                     }
                 }
             }
 
-            if (!sardine.exists(listPath)) {
-                logger.debug("Folder doesn't exist at site '{}' path '{}'", siteId, listPath);
+            if (!sardine.exists(listPath.toString())) {
+                logger.debug("Folder doesn't exist at site '{}' path '{}'", siteId, listPath.toString());
                 return Collections.emptyList();
             }
-            logger.debug("List resources at site '{}' path '{}'", siteId, listPath);
-            List<DavResource> resources = sardine.list(listPath, 1, true);
-            logger.debug("Found '{}' resources at site '{}' path '{}'", resources.size(), siteId, listPath);
+            logger.debug("List resources at site '{}' path '{}'", siteId, listPath.toString());
+            List<DavResource> resources = sardine.list(listPath.toString(), 1, true);
+            logger.debug("Found '{}' resources at site '{}' path '{}'", resources.size(), siteId, listPath.toString());
             return resources.stream()
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
                 .map(r -> new WebDavItem(getName(r), getUrl(r, profileId, profile), r.isDirectory()))
                 .collect(Collectors.toList());
         } catch (Exception e) {
-            throw new WebDavException(format("Error listing resources at site '%s' path '%s'", siteId, listPath), e);
+            throw new WebDavException(format("Error listing resources at site '%s' path '%s'", siteId, listPath.toString()), e);
         }
     }
 
