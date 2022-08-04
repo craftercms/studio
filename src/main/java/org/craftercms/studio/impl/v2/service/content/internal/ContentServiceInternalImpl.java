@@ -23,8 +23,8 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.Item;
@@ -201,7 +201,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             String user = securityService.getCurrentUser();
             for (Item item : items) {
                 if (!contentRepository.contentExists(siteId, item.getPath())) {
-                    logger.warn("Content not found at path " + item.getPath() + " site " + siteId);
+                    logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
                 } else {
                     item.setAvailableActions(
                             semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));

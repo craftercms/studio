@@ -20,8 +20,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
@@ -87,7 +87,8 @@ public class RenameUpgradeOperation extends AbstractUpgradeOperation {
                 if (overwrite) {
                     FileUtils.forceDelete(toFile);
                 } else {
-                    logger.info("Rename operation not executed because target path {0} already exists.", to);
+                    logger.info("The rename operation was not executed because the target path '{}' already exists.",
+                            to);
                     return false;
                 }
             }

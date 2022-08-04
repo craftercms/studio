@@ -15,25 +15,24 @@
  */
 package org.craftercms.studio.impl.v2.utils.git;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliOutputException;
-import org.craftercms.studio.api.v2.exception.git.cli.GitRepositoryLockedException;
-import org.craftercms.studio.api.v2.exception.git.cli.NoChangesToCommitException;
 import org.craftercms.studio.api.v2.utils.git.cli.GitCliOutputExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.CompositeGitCliExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.NoChangesToCommitExceptionResolver;
 import org.craftercms.studio.impl.v2.utils.git.cli.RepositoryLockedExceptionResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Allows doing Git operations throw the CLI.
@@ -50,15 +49,15 @@ public class GitCli {
     private static final Logger logger = LoggerFactory.getLogger(GitCli.class);
 
     private static final String DEFAULT_GIT_COMMAND_NAME = "git";
-    private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 mins
+    private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 minutes
 
     // Exception resolvers
     public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
     public final GitCliOutputExceptionResolver COMMIT_EX_RESOLVER = new CompositeGitCliExceptionResolver(
             RepositoryLockedExceptionResolver.INSTANCE, NoChangesToCommitExceptionResolver.INSTANCE);
 
-    private String gitProcName;
-    private int gitProcWaitForTimeoutSecs;
+    private final String gitProcName;
+    private final int gitProcWaitForTimeoutSecs;
 
     public GitCli() {
         this.gitProcName = DEFAULT_GIT_COMMAND_NAME;

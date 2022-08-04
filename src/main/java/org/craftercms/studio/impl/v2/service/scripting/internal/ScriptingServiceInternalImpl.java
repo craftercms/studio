@@ -25,8 +25,8 @@ import org.apache.commons.lang3.RegExUtils;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.spring.context.RestrictedApplicationContext;
 import org.craftercms.engine.util.spring.ApplicationContextAccessor;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.scripting.ScriptEngineManager;
@@ -46,6 +46,7 @@ import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.getPluginConfigurationPath;
 
 /**
@@ -141,7 +142,7 @@ public class ScriptingServiceInternalImpl implements ScriptingServiceInternal, A
         // Get the method of the request
         var requestMethod = request.getMethod().toLowerCase();
 
-        var scriptPath = String.format(scriptPathFormat, scriptUrl, requestMethod, scriptExtension);
+        var scriptPath = format(scriptPathFormat, scriptUrl, requestMethod, scriptExtension);
 
         // Get the script engine for this site
         var scriptEngine = scriptEngineManager.getScriptEngine(siteId);

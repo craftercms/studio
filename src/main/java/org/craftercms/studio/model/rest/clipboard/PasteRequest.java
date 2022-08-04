@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.model.rest.clipboard;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
 

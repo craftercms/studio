@@ -18,8 +18,8 @@ package org.craftercms.studio.impl.v2.upgrade.operations.site;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
@@ -38,7 +38,8 @@ import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_SI
 import static org.craftercms.studio.api.v2.upgrade.UpgradeConstants.PARAM_KEY_VERSION;
 
 /**
- * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all operations related to a XSLT template.
+ * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all operations related
+ * to an XSLT template.
  *
  * <p>Supported YAML properties:</p>
  * <ul>
@@ -80,7 +81,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
         if(Files.exists(file)) {
             try(InputStream templateIs = template.getInputStream();
                 InputStream sourceIs = Files.newInputStream(file)) {
-                logger.info("Applying XSLT template {0} to file {1} for site {2}", template, path, site);
+                logger.info("Apply the XSLT template '{}' to file '{}' in site '{}'", template, path, site);
                 Map<String, Object> params = Map.of(PARAM_KEY_SITE, site, PARAM_KEY_VERSION, nextVersion);
                 XsltUtils.executeTemplate(templateIs, params, getURIResolver(context), sourceIs, os);
                 trackChangedFiles(path);
@@ -88,7 +89,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
                 throw new UpgradeException("Error processing file", e);
             }
         } else {
-            logger.warn("Source file {0} does not exist in site {1}", path, site);
+            logger.warn("Source file '{}' does not exist in site '{}'", path, site);
         }
     }
 
@@ -97,7 +98,7 @@ public abstract class AbstractXsltFileUpgradeOperation extends AbstractUpgradeOp
             try {
                 return new StreamSource(context.getRepositoryPath().resolve(href).toFile());
             } catch (Exception e) {
-                logger.info("Error creating resolver for referencing documents inside xslt forms", e);
+                logger.info("Failed to create a resolver for referencing documents inside XSLT forms", e);
                 return  null;
             }
 

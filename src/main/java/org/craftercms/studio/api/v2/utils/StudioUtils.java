@@ -17,9 +17,9 @@
 package org.craftercms.studio.api.v2.utils;
 
 import org.craftercms.commons.http.RequestContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.util.List;

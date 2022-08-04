@@ -37,7 +37,7 @@ try {
             paramsList.add("start")
         }
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("start")
 }
@@ -51,7 +51,7 @@ try {
             paramsList.add("number")
         }
     }
-} catch (Exception exc) {
+} catch (Exception e) {
     invalidParams = true
     paramsList.add("number")
 }

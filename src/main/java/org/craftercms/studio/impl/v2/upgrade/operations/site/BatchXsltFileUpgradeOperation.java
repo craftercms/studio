@@ -25,15 +25,16 @@ import java.util.stream.Stream;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
 import javax.sql.DataSource;
 
 /**
- * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates multiple files using a XSLT template.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates multiple files using
+ * an XSLT template.
  *
  * <p>Supported YAML properties:</p>
  * <ul>
@@ -64,12 +65,12 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.debug("Looking site {0} for files that match: {1}", site, regex);
+        logger.debug("Find files that match the regex '{}' in site '{}'", regex, site);
         Path repository = context.getRepositoryPath();
         try (Stream<Path> paths = Files.find(repository, Integer.MAX_VALUE,
             (path, attrs) -> repository.relativize(path).toString().matches(regex) )) {
             paths.forEach(path -> {
-                logger.debug("Executing XSLT template in site {0} for file {1}", site, path);
+                logger.debug("Execute the XSLT template against site '{}' path '{}'", site, path);
                 try {
                     Path temp = Files.createTempFile("upgrade-manager", "xslt");
                     try {
@@ -83,7 +84,7 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
                         Files.deleteIfExists(temp);
                     }
                 } catch (Exception e) {
-                    logger.error("Error upgrading file {0} in site {1}", e, site, path);
+                    logger.error("Failed to upgrade site '{}' path '{}'", site, path, e);
                 }
             });
         } catch (IOException e) {

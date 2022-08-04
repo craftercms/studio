@@ -22,8 +22,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.w3c.dom.Document;
@@ -43,6 +43,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import static java.lang.String.format;
 
 /**
  * Base implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} for all content-type related upgrades
@@ -121,14 +123,14 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
 
     @Override
     protected boolean shouldBeUpdated(StudioUpgradeContext context, Path file) throws UpgradeException {
-        logger.debug("Checking file {0} for site {1}", file, context);
+        logger.debug("Check the file '{}' in site '{}'", file, context);
         try {
             Document document = loadDocument(file);
 
             String contentTypeName = (String) select(document, contentTypeXpath, XPathConstants.STRING);
 
-            if(CollectionUtils.isNotEmpty(includedContentTypes) && !includedContentTypes.contains(contentTypeName)) {
-                logger.debug("File {0} of content-type {1} will not be updated", file, contentTypeName);
+            if (CollectionUtils.isNotEmpty(includedContentTypes) && !includedContentTypes.contains(contentTypeName)) {
+                logger.debug("The file '{}' of content-type '{}' will not be updated", file, contentTypeName);
                 return false;
             }
 
@@ -141,10 +143,10 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
                 return true;
             }
         } catch (ExecutionException e) {
-            logger.error("Invalid XML file found at " + file, e);
+            logger.error("Failed to parse the XML file '{}'", file, e);
             return false;
         } catch (Exception e) {
-            throw new UpgradeException("Error parsing xml file " + file, e);
+            throw new UpgradeException(format("Failed to parse the XML file '%s'", file), e);
         }
     }
 
@@ -156,7 +158,7 @@ public abstract class AbstractContentTypeUpgradeOperation extends AbstractConten
      */
     protected Document loadDocument(Path file) throws ExecutionException {
         return cache.get(file, () -> {
-            logger.debug("Parsing file {0}", file);
+            logger.debug("Load and parse the file '{}'", file);
             DocumentBuilder builder = factory.newDocumentBuilder();
             return builder.parse(file.toFile());
         });

@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.utils.cache;
 
 import com.google.common.cache.Cache;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
 import java.beans.ConstructorProperties;
@@ -52,9 +52,9 @@ public class ConditionalCacheInvalidator<K extends String, V> implements CacheIn
 
     @Override
     public void invalidate(Cache<K, V> cache, K key) {
-        logger.debug("Checking if key {0} matches patterns {1}", key, patterns);
+        logger.debug("Check if the key '{}' matches the patterns '{}'", key, patterns);
         if (matchesAny(key, patterns)) {
-            logger.debug("Invalidating cache for {0}", key);
+            logger.debug("Invalidate the cache for key '{}'", key);
             actualCacheInvalidator.invalidate(cache, key);
         }
     }

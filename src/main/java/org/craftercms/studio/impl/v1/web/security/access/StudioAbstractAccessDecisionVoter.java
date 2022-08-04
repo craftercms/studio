@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -83,10 +83,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             Collection intersection = CollectionUtils.intersection(sites1, sites2);
             return CollectionUtils.isNotEmpty(intersection);
         } catch (UserNotFoundException e) {
-            logger.info("User is not site member", e);
+            logger.info("User '{}' is not a site member", currentUser.getUsername(), e);
             return false;
         } catch (ServiceLayerException e) {
-            logger.warn("Error getting user membership", e);
+            logger.warn("Failed to get site membership for user '{}'", currentUser.getUsername(), e);
             return false;
         }
     }
@@ -103,10 +103,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
 
             return sites.contains(siteId);
         } catch (UserNotFoundException e) {
-            logger.info("User is not site member", e);
+            logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
             return false;
         } catch (ServiceLayerException e) {
-            logger.warn("Error getting user membership", e);
+            logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
             return false;
         }
     }
@@ -134,10 +134,10 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             }
             return toRet;
         } catch (UserNotFoundException e) {
-            logger.info("User is not site member", e);
+            logger.info("User '{}' is not a member of site '{}'", currentUser.getUsername(), siteId, e);
             return false;
         } catch (ServiceLayerException e) {
-            logger.error("Error getting user memberships", e);
+            logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
             return false;
         }
     }
@@ -150,10 +150,14 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
         List<Group> userGroups = null;
         try {
             userGroups = userServiceInternal.getUserGroups(-1, user.getUsername());
-        } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error getting user memberships", e);
+        } catch (UserNotFoundException e) {
+            logger.info("User '{}' is not a site member", user.getUsername(), e);
+            return false;
+        } catch (ServiceLayerException e) {
+            logger.warn("Failed to get site membership for user '{}'", user.getUsername(), e);
             return false;
         }
+
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {
             for (Group group : userGroups) {

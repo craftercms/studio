@@ -22,8 +22,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
@@ -83,7 +83,7 @@ public class FindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperat
         }
 
         if(StringUtils.isNotEmpty(updated) && !StringUtils.equals(content, updated)) {
-            logger.info("Updating file {0}", path);
+            logger.info("Update the file '{}'", path);
             writeFile(path, updated);
         }
     }

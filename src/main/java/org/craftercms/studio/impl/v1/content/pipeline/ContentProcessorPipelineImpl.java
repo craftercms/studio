@@ -21,8 +21,8 @@ import org.craftercms.studio.api.v1.content.pipeline.ContentProcessorPipeline;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 import java.util.List;
@@ -46,11 +46,11 @@ public class ContentProcessorPipelineImpl implements ContentProcessorPipeline {
 			throws ServiceLayerException, UserNotFoundException {
 		if (_chain != null && _chain.size() > 0) {
 			for (ContentProcessor processor : _chain) {
-				logger.debug("Running " + content.getId() + " through " + processor.getName());
+				logger.debug("Running {} through {}", content.getId(), processor.getName());
 				if (processor.isProcessable(content)) {
 					processor.process(content, result);
 				} else {
-					logger.debug(content.getId() + " was not processed by " + processor.getName());
+					logger.debug("{} was not processed by {}", content.getId(), processor.getName());
 				}
 			}
 		} else {

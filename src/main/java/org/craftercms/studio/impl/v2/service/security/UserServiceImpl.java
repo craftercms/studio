@@ -67,6 +67,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
@@ -209,7 +210,7 @@ public class UserServiceImpl implements UserService {
             List<User> toDelete = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
             userServiceInternal.deleteUsers(userIds, usernames);
 
-            logger.debug("Searching for current sessions for users: '{}'", toDelete);
+            logger.debug("Search the current sessions for deleted users '{}'", toDelete);
             Set<AuthenticatedUser> principals = sessionRegistry.getAllPrincipals().stream()
                     .map(principal -> (AuthenticatedUser) principal)
                     .filter(authenticatedUser -> toDelete.stream()
@@ -219,7 +220,7 @@ public class UserServiceImpl implements UserService {
                 // Invalidate any open session
                 List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
                 sessions.forEach(session -> {
-                    logger.debug("Invalidating session '{}' for user '{}'",
+                    logger.debug("Invalidate the session '{}' for user '{}'",
                                     session.getSessionId(), principal.getUsername());
                     session.expireNow();
                 });
@@ -307,7 +308,8 @@ public class UserServiceImpl implements UserService {
 
                     sites.add(site);
                 } catch (SiteNotFoundException e) {
-                    logger.error("Site not found: '{}'", siteId, e);
+                    logger.error("Site '{}' was not found while getting user sites for user '{}'",
+                            siteId, username, e);
                 }
             }
         }
@@ -390,11 +392,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException,
             UserExternallyManagedException {
-        logger.debug("Getting user profile for username: '{}'", username);
+        logger.debug("Get the user profile for username '{}'", username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
         boolean success;
         if (user == null) {
-            logger.info("User profile not found for username: '{}'", username);
+            logger.info("User profile not found for username '{}' while performing forgot password", username);
             throw new UserNotFoundException();
         } else {
             if (user.isExternallyManaged()) {
@@ -403,19 +405,22 @@ public class UserServiceImpl implements UserService {
                 if (user.getEmail() != null) {
                     String email = user.getEmail();
 
-                    logger.debug("Creating security token for forgot password");
+                    logger.debug("Create a forgot password security token for username '{}'", username);
                     long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
                             Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
                     String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
                     String studioId = instanceService.getInstanceId();
+                    // TODO: SJ: Avoid string literals
                     String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
                     String hashedToken = encryptToken(token);
-                    logger.debug("Sending forgot password email to " + email);
+                    logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
                     sendForgotPasswordEmail(email, hashedToken);
                     success = true;
                 } else {
-                    logger.info("User '{}' does not have assigned email with account", username);
-                    throw new ServiceLayerException(String.format("User '%s' does not have assigned email with account", username));
+                    logger.info("Failed to send forgot password email to username '{}' because that user " +
+                            "does not have an email address in the system", username);
+                    throw new ServiceLayerException(format("Failed to send forgot password email to username " +
+                            "'%s' because that user does not have an email address in the system", username));
                 }
             }
         }
@@ -427,7 +432,7 @@ public class UserServiceImpl implements UserService {
             String hashedToken = encryptor.encrypt(token);
             return Base64.getEncoder().encodeToString(hashedToken.getBytes(StandardCharsets.UTF_8));
         } catch (CryptoException e) {
-            logger.error("Error while encrypting forgot password token", e);
+            logger.error("Failed to encrypt the forgot password token", e);
             return null;
         }
     }
@@ -437,7 +442,7 @@ public class UserServiceImpl implements UserService {
             byte[] hashedTokenBytes = Base64.getDecoder().decode(hashedToken.getBytes(StandardCharsets.UTF_8));
             return encryptor.decrypt(new String(hashedTokenBytes, StandardCharsets.UTF_8));
         } catch (CryptoException e) {
-            logger.error("Error while decrypting forgot password token", e);
+            logger.error("Failed to decrypt the forgot password token", e);
             return null;
         }
     }
@@ -467,15 +472,15 @@ public class UserServiceImpl implements UserService {
             messageHelper.setTo(emailAddress);
             messageHelper.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
             messageHelper.setText(out.toString(), true);
-            logger.info("Sending password recovery message to " + emailAddress);
+            logger.info("Send the password recovery email to '{}'", emailAddress);
             if (isAuthenticatedSMTP()) {
                 emailService.send(mimeMessage);
             } else {
                 emailServiceNoAuth.send(mimeMessage);
             }
-            logger.info("Password recovery message successfully sent to " + emailAddress);
+            logger.info("Successfully sent the password recovery email to '{}'", emailAddress);
         } catch (Exception e) {
-            logger.error("Failed to send password recovery message to " + emailAddress, e);
+            logger.error("Failed to send the password recovery email to '{}'", emailAddress, e);
         }
     }
 
@@ -525,7 +530,7 @@ public class UserServiceImpl implements UserService {
             UserExternallyManagedException, ServiceLayerException {
         String decryptedToken = decryptToken(token);
         if (StringUtils.isEmpty(decryptedToken)) {
-            logger.warn("Invalid Token. Decrypted token is empty");
+            logger.warn("Failed to validate forgot password token. The decrypted token is empty.");
             return false;
         }
 
@@ -536,7 +541,7 @@ public class UserServiceImpl implements UserService {
             throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
         StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
         if (tokenElements.countTokens() != 4) {
-            logger.warn("Invalid Token. '{}' elements were found. Valid tokens must contain exactly 4 elements.",
+            logger.warn("Failed to validate forgot password token. Found '{}' elements when expecting 4.",
                     tokenElements.countTokens());
             return false;
         }
@@ -544,26 +549,30 @@ public class UserServiceImpl implements UserService {
         String username = tokenElements.nextToken();
         User userProfile = userServiceInternal.getUserByIdOrUsername(-1, username);
         if (userProfile == null) {
-            logger.warn("Invalid Token. User profile not found for username: '{}'", username);
+            logger.warn("Failed to validate forgot password token. User profile not found for username '{}'",
+                    username);
             throw new UserNotFoundException();
         }
 
         if (userProfile.isExternallyManaged()) {
-            logger.warn("Invalid Token. User '{}' is externally managed", username);
+            logger.warn("Failed to validate forgot password token. User '{}' is externally managed and therefore " +
+                    "the password is not managed by us.", username);
             throw new UserExternallyManagedException();
         }
 
         String studioId = tokenElements.nextToken();
         if (!StringUtils.equals(studioId, instanceService.getInstanceId())) {
-            logger.warn("Invalid Token. Token instance ID: '{}' does not match current value: '{}'",
-                    studioId, instanceService.getInstanceId());
+            logger.warn("Failed to validate forgot password token. Token's Studio instance ID is '{}' and " +
+                            "does not match the current value '{}'",
+                            studioId, instanceService.getInstanceId());
             return false;
         }
 
         long tokenTimestamp = Long.parseLong(tokenElements.nextToken());
         boolean isExpired = tokenTimestamp < System.currentTimeMillis();
         if (isExpired) {
-            logger.debug("Invalid Token. Token timestamp '{}' is in the past", tokenTimestamp);
+            logger.info("Failed to validate forgot password token. The token timestamp '{}' is in the past.",
+                    tokenTimestamp);
         }
 
         return !isExpired;

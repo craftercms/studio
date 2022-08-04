@@ -23,8 +23,8 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.content.pipeline.ContentProcessorPipeline;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.to.ResultTO;
@@ -34,6 +34,8 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 
 import java.io.InputStream;
 import java.util.Map;
+
+import static java.lang.String.format;
 
 /**
  * @author Dejan Brkic
@@ -46,7 +48,7 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
     public ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
                                    String chainName) throws ServiceLayerException, UserNotFoundException {
         final ContentProcessorPipeline chain = processorChains.get(chainName);
-        try{
+        try {
             if (chain != null) {
                 if (StringUtils.isEmpty(params.get(DmConstants.KEY_USER))) {
                     String user = securityService.getCurrentUser();
@@ -58,23 +60,19 @@ public class ProcessContentExecutorImpl implements ProcessContentExecutor {
                     final PipelineContent content = new PipelineContentImpl(id, input, isXml, null,
                         StudioConstants.CONTENT_ENCODING, params);
                     chain.processContent(content, result);
-
-                } catch (ContentProcessException | UserNotFoundException e) {
-                    logger.error("Error in chain for write content", e);
+                } catch (ContentProcessException | UserNotFoundException | RuntimeException e) {
+                    logger.error("Failed to write content with ID '{}' in processor chain", id, e);
                     throw e;
-                } catch (RuntimeException e) {
-                    logger.error("Error in chain for write content", e);
-                    throw e;
-                }finally{
+                } finally {
                     ContentUtils.release(input);
                 }
                 return result;
 
             } else {
                 ContentUtils.release(input);
-                throw new ServiceLayerException(chainName + " is not defined.");
+                throw new ServiceLayerException(format("Chain '%s' is not defined", chainName));
             }
-        }finally {
+        } finally {
             String s = params.get(DmConstants.KEY_USER);
             //AuthenticationUtil.setFullyAuthenticatedUser(s);
         }

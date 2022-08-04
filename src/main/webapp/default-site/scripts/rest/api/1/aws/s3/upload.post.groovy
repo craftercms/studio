@@ -62,7 +62,7 @@ if (ServletFileUpload.isMultipartContent(request)) {
                 writer.println("[{\"bucket\":\"${output.bucket}\",\"key\":\"${output.key}\"}]")
                 writer.flush()
             } catch (e) {
-                logger.error("Upload of file ${filename} failed", e)
+                logger.error("Failed to upload the file '{}' to site '{}'", filename, site, e)
 
                 sendError(500, "Upload of file failed: ${e.message}")
             }

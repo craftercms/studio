@@ -19,8 +19,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.plugin.model.Parameter;
 import org.craftercms.commons.plugin.model.Plugin;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
@@ -49,12 +49,12 @@ public abstract class PluginUtils {
     public static void validatePluginParameters(final Plugin plugin, final Map<String, String> params)
             throws MissingPluginParameterException {
         if (CollectionUtils.isEmpty(plugin.getParameters())) {
-            logger.debug("There are no parameters defined for plugin: {0}", plugin.getId());
+            logger.debug("No parameters defined for the plugin '{}'", plugin.getId());
             return;
         }
 
         for(Parameter param : plugin.getParameters()) {
-            logger.debug("Checking parameter {0} for blueprint {1}", param.getName(), plugin.getId());
+            logger.debug("Check parameter '{}' for the blueprint '{}'", param.getName(), plugin.getId());
             if (param.isRequired()) {
                 if (!params.containsKey(param.getName()) || StringUtils.isEmpty(params.get(param.getName()))) {
                     throw new MissingPluginParameterException(plugin, param);
@@ -63,7 +63,7 @@ public abstract class PluginUtils {
                 params.putIfAbsent(param.getName(), param.getDefaultValue());
             }
         }
-        logger.debug("All required parameters are present for blueprint: {0}", plugin.getId());
+        logger.debug("All required parameters are present for blueprint '{}'", plugin.getId());
     }
 
     public static String getPluginPath(String pluginId) {

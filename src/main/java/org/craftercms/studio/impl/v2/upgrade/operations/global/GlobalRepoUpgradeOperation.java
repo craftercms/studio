@@ -29,8 +29,8 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
@@ -105,21 +105,21 @@ public class GlobalRepoUpgradeOperation extends AbstractUpgradeOperation {
      */
     @Override
     public void doExecute(final StudioUpgradeContext context) throws UpgradeException {
-        logger.debug("Upgrading global repo files");
+        logger.debug("Upgrade the global repo files");
         for(Map.Entry<Resource, String> entry : files.entrySet()) {
             var path = entry.getValue();
             var file = context.getFile(path);
             if (overwrite || !Files.exists(file)) {
-                logger.debug("Upgrading global repo file: {0}", path);
+                logger.debug("Upgrade the global repo file '{}'", path);
                 try (InputStream in = entry.getKey().getInputStream();
                      OutputStream out = Files.newOutputStream(file)) {
                     IOUtils.copy(in, out);
                     trackChangedFiles(path);
                 } catch (IOException e) {
-                    throw new UpgradeException("Error while upgrading global repo file " + path, e);
+                    throw new UpgradeException("Failed to upgrade the global repository file " + path, e);
                 }
             } else {
-                logger.debug("File {0} already exists in global repo, it will not be changed", path);
+                logger.debug("File '{}' already exists in the global repository, it will not be changed", path);
             }
         }
     }

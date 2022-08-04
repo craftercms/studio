@@ -63,10 +63,6 @@ public class EncryptionServiceInternalImpl implements EncryptionServiceInternal 
         this.maxLength = maxLength;
     }
 
-    public TextEncryptor getTextEncryptor() {
-        return textEncryptor;
-    }
-
     public void setTextEncryptor(TextEncryptor textEncryptor) {
         this.textEncryptor = textEncryptor;
     }

@@ -29,8 +29,8 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
@@ -52,6 +52,8 @@ import com.amazonaws.services.mediaconvert.model.MsSmoothGroupSettings;
 import com.amazonaws.services.mediaconvert.model.OutputGroupType;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
+
+import static java.lang.String.format;
 
 /**
  * Default implementation of {@link AwsMediaConvertService}
@@ -159,9 +161,9 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         AmazonS3 s3Client = getS3Client(profile);
         AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);
 
-        logger.info("Starting upload of file {0} for site {1}", filename, site);
+        logger.debug("Upload file '{}' to site '{}'", filename, site);
         AwsUtils.uploadStream(profile.getInputPath(), filename, s3Client, partSize, filename, content);
-        logger.info("Upload of file {0} for site {1} complete", filename, site);
+        logger.debug("Completed upload of file '{}' to site '{}'", filename, site);
 
         String originalName = FilenameUtils.getBaseName(filename);
 
@@ -178,9 +180,10 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
             .withRole(profile.getRole())
             .withQueue(profile.getQueue());
 
-        logger.info("Starting transcode job of file {0} for site {1}", filename, site);
+        logger.info("Transcode file '{}' in site '{}'", filename, site);
         CreateJobResult createJobResult = mediaConvertClient.createJob(createJobRequest);
-        logger.debug("Job {0} started", createJobResult.getJob().getArn());
+        logger.debug("Transcode job '{}' in site '{}' started successfully",
+                createJobResult.getJob().getArn(), site);
 
         return buildResult(jobTemplate, createJobResult, outputProfileId, originalName);
     }
@@ -190,7 +193,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                                              String outputProfileId, String originalName) {
         List<String> urls = new LinkedList<>();
         jobTemplate.getSettings().getOutputGroups().forEach(outputGroup -> {
-            logger.debug("Adding urls from group {0}", outputGroup.getName());
+            logger.debug("Add the URLs from group '{}'", outputGroup.getName());
             OutputGroupType type = OutputGroupType.valueOf(outputGroup.getOutputGroupSettings().getType());
             switch (type) {
                 case FILE_GROUP_SETTINGS:
@@ -239,8 +242,8 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                             String modifier, String extension) {
         String url = StringUtils.appendIfMissing(destination, delimiter) + originalName + modifier + "." + extension;
         url = createUrl(outputProfileId, url);
+        logger.debug("Add the URL '{}'", url);
         urls.add(url);
-        logger.debug("Added url {0}", url);
     }
 
     /**
@@ -248,7 +251,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      */
     protected String createUrl(String profileId, String fullUri) {
         AmazonS3URI uri = new AmazonS3URI(fullUri);
-        return String.format(urlPattern, profileId, uri.getKey());
+        return format(urlPattern, profileId, uri.getKey());
     }
 
 }

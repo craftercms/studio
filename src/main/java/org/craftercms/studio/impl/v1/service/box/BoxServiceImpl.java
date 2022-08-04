@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.service.box.BoxService;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.springframework.beans.factory.annotation.Required;
 
+import static java.lang.String.format;
+
 /**
  * {@inheritDoc}
  */
@@ -76,7 +78,6 @@ public class BoxServiceImpl implements BoxService {
     public String getUrl(final String site, final String profileId, final String fileId,
                          final String filename) throws BoxException {
         getProfile(site, profileId); // validate that the profileId exists in the site
-        return String.format(URL_FORMAT, profileId, fileId, FilenameUtils.getExtension(filename));
+        return format(URL_FORMAT, profileId, fileId, FilenameUtils.getExtension(filename));
     }
-
 }

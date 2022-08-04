@@ -26,8 +26,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.FileVisitResult.SKIP_SUBTREE;
@@ -48,17 +48,16 @@ public class TreeCopier  implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+        // TODO: SJ: What does this method actually do?
         CopyOption[] options = new CopyOption[0];
 
-        Path newdir = target.resolve(source.relativize(dir));
+        Path newDir = target.resolve(source.relativize(dir));
         try {
-            Files.copy(dir, newdir, options);
-        } catch (FileAlreadyExistsException x) {
+            Files.copy(dir, newDir, options);
+        } catch (FileAlreadyExistsException e) {
             // ignore
         } catch (IOException e) {
-            logger.error("Dir: " + dir.toString() + " NewDir: " + newdir.toString());
-            logger.error("!!!!!!!!!!!!!!!!############# Exception is: ", e);
-            logger.error("Unable to create: %s: %s%n", newdir, e);
+            logger.error("Failed to copy files from '{}' to '{}' with options '{}'", dir, newDir, options, e);
             return SKIP_SUBTREE;
         }
         return CONTINUE;
@@ -69,18 +68,19 @@ public class TreeCopier  implements FileVisitor<Path> {
         CopyOption[] options = new CopyOption[] { REPLACE_EXISTING };
         try {
             Files.copy(file, target.resolve(source.relativize(file)), options);
-        } catch (IOException err) {
-            logger.error("Unable to copy: " + source + " to " + target.resolve(source.relativize(file)), err);
+        } catch (IOException e) {
+            logger.error("Failed to copy '{}' to '{}' with options '{}'",
+                    source, target.resolve(source.relativize(file)), options, e);
         }
         return CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-        if (exc instanceof FileSystemLoopException) {
-            logger.error("cycle detected: " + file);
+    public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
+        if (e instanceof FileSystemLoopException) {
+            logger.error("File system loop detected for file '{}'", file, e);
         } else {
-            logger.error("Unable to copy: %s: %s%n", file, exc);
+            logger.error("Failed to copy file '{}'", file, e);
         }
         return CONTINUE;
     }

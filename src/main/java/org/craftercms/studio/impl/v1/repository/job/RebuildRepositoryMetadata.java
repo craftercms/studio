@@ -22,8 +22,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
@@ -58,7 +58,7 @@ public class RebuildRepositoryMetadata {
     public void execute(String site) {
         if (taskLock.tryLock()) {
             try {
-                logger.debug("Starting Rebuild Repository Metadata Task.");
+                logger.debug("Started the Rebuild Repository Metadata background task for site '{}'", site);
                 CronJobContext securityContext = new CronJobContext(securityService.getCurrentUser());
                 RebuildRepositoryMetadataTask task = new RebuildRepositoryMetadataTask(securityContext, site);
                 taskExecutor.execute(task);
@@ -80,60 +80,60 @@ public class RebuildRepositoryMetadata {
 
         @Override
         public void run() {
-            logger.debug("Start rebuilding repository metadata for site " + site);
+            logger.debug("Rebuild repository metadata for site '{}' started", site);
             CronJobContext.setCurrent(securityContext);
-            logger.debug("Cleaning existing repository metadata for site " + site);
+            logger.debug("Cleaning up existing repository metadata for site '{}'", site);
             try {
                 cleanOldMetadata(site);
             } catch (SiteNotFoundException e) {
-                logger.error("Error while cleaning up old metadata");
+                logger.error("Error cleaning up old metadata for site '{}'", site, e);
             }
-            logger.debug("Initiate rebuild metadata process for site " + site);
+            logger.debug("Started the rebuild metadata process for site '{}'", site);
             try {
                 rebuildMetadata(site);
             } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error("Error while rebuilding metadata", e);
+                logger.error("Failed to rebuild the metadata for site '{}'", site, e);
             }
             CronJobContext.clear();
-            logger.debug("Finished rebuilding repository metadata for site " + site);
+            logger.debug("Rebuild repository metadata for site '{}' ended", site);
         }
     }
 
     public boolean cleanOldMetadata(String site) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
-        logger.debug("Clean repository metadata for site " + site);
+        logger.debug("Clean the repository metadata in site '{}'", site);
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
 
         try {
             // Delete all dependencies
-            logger.debug("Deleting dependencies for site " + site);
+            logger.debug("Delete the dependencies in site '{}'", site);
             dependencyService.deleteSiteDependencies(site);
-        } catch (Exception error) {
-            logger.error("Failed to delete dependencies for site " + site);
+        } catch (Exception e) {
+            logger.error("Failed to delete the dependencies in site '{}'", site, e);
         }
 
         try {
             // Delete deployment queue
-            logger.debug("Deleting deployment queue for site " + site);
+            logger.debug("Delete the deployment queue in site '{}'", site);
             retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
-        } catch (Exception error) {
-            logger.error("Failed to delete deployment queue for site " + site);
+        } catch (Exception e) {
+            logger.error("Failed to delete the deployment queue in site '{}'", site, e);
         }
 
         try {
             // Delete item table
-            logger.debug("Deleting item table for site " + site);
+            logger.debug("Delete the item table for site '{}'", site);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
-        } catch (Exception error) {
-            logger.error("Failed to delete item data for site " + site);
+        } catch (Exception e) {
+            logger.error("Failed to delete the item data for site '{}'", site, e);
         }
 
         try {
-            logger.debug("Deleting git log data for site " + site);
+            logger.debug("Delete the git log data for site '{}'", site);
             contentRepository.deleteGitLogForSite(site);
-        } catch (Exception error) {
-            logger.error("Failed to delete git log data for site " + site);
+        } catch (Exception e) {
+            logger.error("Failed to delete the git log data for site '{}'", site, e);
         }
 
         return true;

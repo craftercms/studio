@@ -17,8 +17,8 @@ package org.craftercms.studio.impl.v1.content.pipeline;
 
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v1.util.XmlUtils;
 import org.dom4j.Document;
@@ -48,7 +48,7 @@ public class PipelineContentImpl implements PipelineContent {
     /** is this XML content? **/
     protected boolean _xml = false;
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(PipelineContentImpl.class);
+    public static final Logger logger = LoggerFactory.getLogger(PipelineContentImpl.class);
 
     /**
      * constructor
@@ -125,8 +125,8 @@ public class PipelineContentImpl implements PipelineContent {
                         saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                         saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                         saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                    }catch (SAXException ex){
-                        LOGGER.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                    } catch (SAXException e){
+                        logger.error("Unable to turn off external entity loading, this could be a security risk.", e);
                     }
                     saxReader.setEncoding(_encoding);
                     _document = saxReader.read(_contentStream);

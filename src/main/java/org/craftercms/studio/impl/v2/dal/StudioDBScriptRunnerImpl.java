@@ -17,8 +17,8 @@
 package org.craftercms.studio.impl.v2.dal;
 
 import org.apache.ibatis.jdbc.ScriptRunner;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
 
 import javax.sql.DataSource;
@@ -53,8 +53,8 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
                 connection = dataSource.getConnection();
 				autoCommit = connection.getAutoCommit();
 				connection.setAutoCommit(false);
-            } catch (SQLException throwables) {
-                logger.error("Failed to open connection with DB", throwables);
+            } catch (SQLException e) {
+                logger.error("Failed to open a connection to the DB", e);
             }
         }
     }
@@ -64,8 +64,8 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
             try {
 				connection.setAutoCommit(autoCommit);
                 connection.close();
-            } catch (SQLException throwables) {
-                logger.error("Failed to close connection with DB", throwables);
+            } catch (SQLException e) {
+                logger.error("Failed to close the connection to the DB", e);
             }
             connection = null;
         }
@@ -103,11 +103,11 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
             connection.commit();
         } catch (SQLException | IOException e) {
-			logger.error("Error executing DB script", e);
+			logger.error("Failed to execute the DB script '{}'", sqlScriptFile.getAbsolutePath(), e);
 			try {
 				connection.rollback();
-			} catch (SQLException throwables) {
-				logger.error("Failed to rollback after error when running DB script", throwables);
+			} catch (SQLException e2) {
+				logger.error("Failed to rollback the DB transaction", e2);
 			}
 		} finally {
 			closeConnection();

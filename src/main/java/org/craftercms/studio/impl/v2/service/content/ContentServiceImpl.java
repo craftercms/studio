@@ -258,23 +258,23 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void unlockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException {
-        logger.debug("Trying to unlock item at {} in site {}", path, siteId);
+        logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
         generalLockService.lockContentItem(siteId, path);
         try {
             var item = itemServiceInternal.getItem(siteId, path);
             if (Objects.nonNull(item)) {
                 if (StringUtils.isEmpty(item.getLockOwner())) {
-                    logger.debug("Item at {} in site {} is already unlocked", path, siteId);
+                    logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
                     throw new ContentAlreadyUnlockedException();
                 } else {
                     contentServiceInternal.itemUnlockByPath(siteId, path);
                     itemServiceInternal.unlockItemByPath(siteId, path);
-                    logger.debug("Item at {} in site {} successfully unlocked", path, siteId);
+                    logger.debug("Item in site '{}' path '{}' successfully unlocked", siteId, path);
                     applicationContext.publishEvent(
                             new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
                 }
             } else {
-                logger.debug("Item not found at {} in site {}", path, siteId);
+                logger.debug("Item not found in site '{}' path '{}'", siteId, path);
                 throw new ContentNotFoundException();
             }
         } finally {

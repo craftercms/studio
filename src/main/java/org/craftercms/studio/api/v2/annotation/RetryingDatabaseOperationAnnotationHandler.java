@@ -20,14 +20,16 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.craftercms.commons.aop.AopUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DeadlockLoserDataAccessException;
 
 import java.lang.reflect.Method;
+
+import static java.lang.String.format;
 
 @Aspect
 @Order(1)
@@ -40,16 +42,8 @@ public class RetryingDatabaseOperationAnnotationHandler {
     private int maxRetries = DEFAULT_MAX_RETRIES;
     private int maxSleep = 0;
 
-    public int getMaxRetries() {
-        return maxRetries;
-    }
-
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
-    }
-
-    public int getMaxSleep() {
-        return maxSleep;
     }
 
     public void setMaxSleep(int maxSleep) {
@@ -62,27 +56,27 @@ public class RetryingDatabaseOperationAnnotationHandler {
     // the fixed code or consolidate the code
     public Object doRetryingOperation(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
-        logger.debug("Execute retrying operation " + method.getDeclaringClass() + "." + method.getName());
+        logger.debug("Execute retrying operation '{}.{}'", method.getDeclaringClass(), method.getName());
         int numAttempts = 0;
         do {
             numAttempts++;
             try {
 				 // Execute the business code again
                 if (numAttempts > 1) {
-                    logger.debug("Retrying operation attempt " + (numAttempts - 1));
+                    logger.debug("Retrying operation attempt '{}'", (numAttempts - 1));
                 }
                 return pjp.proceed();
-            } catch (DeadlockLoserDataAccessException | JGitInternalException ex) {
-                logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+            } catch (DeadlockLoserDataAccessException | JGitInternalException e) {
+                logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
                 if (numAttempts > maxRetries) {
-                    //log failure information, and throw exception
+                    // Log failure information, and throw exception
                     // If it is greater than the default number of retry mechanisms, we will actually throw it out this time.
-                    throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " after " +
-                            numAttempts + " attempts", ex);
+                    throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%s' attempts",
+                            method.getName(), numAttempts), e);
                 } else {
-					 // If the maximum number of retries is not reached, it will be executed again
+					 // The maximum number of retries has not been reached, try again
                     long sleep = (long)(Math.random() * maxSleep);
-                    logger.debug("Wait for " + sleep + " before next retry" + method.getName());
+                    logger.debug("Sleep for '{}' before the next retry of '{}'", sleep, method.getName());
                     Thread.sleep(sleep);
                 }
             }

@@ -28,8 +28,8 @@ import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -115,16 +115,12 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public void upgradeDatabaseAndConfiguration() throws UpgradeException, ConfigurationException {
-        logger.info("Checking upgrades for the database and configuration");
+        logger.info("Check for upgrades to the database and configuration");
 
         var context = createUpgradeContext(StringUtils.EMPTY);
         var pipeline = dbPipelineFactory.getPipeline(context);
         pipeline.execute(context);
 
-    }
-
-    protected VersionProvider getVersionProvider(String name, Object... args) {
-        return (VersionProvider) applicationContext.getBean(name, args);
     }
 
     protected UpgradePipelineFactory<String> getPipelineFactory(String factoryName) {
@@ -136,7 +132,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public void doUpgrade(final UpgradeContext<String> context) throws UpgradeException, ConfigurationException {
-        logger.info("Checking upgrades for site {0}", context.getTarget());
+        logger.info("Check for upgrades in site '{}'", context.getTarget());
 
         UpgradePipeline pipeline = getPipelineFactory("sitePipelineFactory").getPipeline(context);
         pipeline.execute(context);
@@ -171,7 +167,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     @Override
     public void upgradeSiteConfiguration(StudioUpgradeContext context) throws UpgradeException {
         var site = context.getTarget();
-        logger.info("Checking upgrades for configuration in site {0}", site);
+        logger.info("Check for upgrades to configuration in site '{}'", site);
 
         HierarchicalConfiguration config = loadUpgradeConfiguration();
         List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
@@ -196,7 +192,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                                 CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN);
                     }
                     configPath = get(replace(basePath, values, "{", "}"), file).toString();
-                    logger.info("Checking upgrades for file {0}", configPath);
+                    logger.info("Check for upgrades to file '{}' in site '{}'", configPath, site);
                     context.setCurrentConfigName(configFile.getRootElementName());
                     context.setCurrentConfigPath(configPath);
 
@@ -205,7 +201,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                 }
             }
         } catch (Exception e) {
-            logger.error("Error upgrading configuration file {0}", e, configPath);
+            logger.error("Failed to upgrade the configuration file '{}'", configPath, e);
         } finally {
             context.clearCurrentConfig();
         }
@@ -233,7 +229,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public void upgradeBlueprints() throws UpgradeException, ConfigurationException {
-        logger.info("Checking upgrades for the blueprints");
+        logger.info("Check for upgrades to the blueprints");
 
         var context = createUpgradeContext(StringUtils.EMPTY);
         UpgradePipeline pipeline = bpPipelineFactory.getPipeline(context);
@@ -245,7 +241,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public List<String> getExistingEnvironments(String site) {
-        logger.debug("Looking for existing environments in site {0}", site);
+        // TODO: SJ: With fixed publishing targets, is this necessary? Remove in 4.2
+        logger.debug("Look for configured publishing targets in site '{}'", site);
         List<String> result = new LinkedList<>();
 
         // add the default env that will always exist
@@ -258,7 +255,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                 replace(basePath, Collections.singletonMap(CONFIG_KEY_MODULE, StringUtils.EMPTY), "{", "}"));
 
         for (RepositoryItem module : modules) {
-            logger.debug("Looking for existing environments for module {0} in site {1}", module.name, site);
+            logger.debug("Look for configured publishing targets for module '{}' in site '{}'", module.name, site);
 
             Map<String, String> values = new HashMap<>();
             values.put(CONFIG_KEY_MODULE, module.name);
@@ -268,7 +265,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
                     contentRepository.getContentChildren(site, replace(envPath, values, "{", "}"));
 
             for (RepositoryItem env : environments) {
-                logger.debug("Adding environment {0}", env.name);
+                logger.debug("Add publishing target '{}' in site '{}'", env.name, site);
                 result.add(env.name);
             }
         }
@@ -291,8 +288,8 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         try {
             integrityValidator.validate(dataSource.getConnection());
         } catch (SQLException e) {
-            logger.error("Could not connect to database for integrity validation", e);
-            throw new UpgradeException("Could not connect to database for integrity validation", e);
+            logger.error("Failed to connect to the database to perform integrity validation", e);
+            throw new UpgradeException("Failed to connect to the database to perform integrity validation", e);
         }
     }
 
@@ -301,7 +298,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         try (InputStream is = configurationFile.getInputStream()) {
             configuration.read(is);
         } catch (Exception e) {
-            throw  new UpgradeException("Error reading configuration file", e);
+            throw new UpgradeException("Failed to read configuration file", e);
         }
         return configuration;
     }

@@ -26,8 +26,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.job.Job;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -58,7 +58,7 @@ public class StudioClockExecutor implements Job {
     private static final Logger logger = LoggerFactory.getLogger(StudioClockExecutor.class);
     private static final ReentrantLock singleWorkerLock = new ReentrantLock();
 
-    private final static Map<String, String> deletedSitesMap = new HashMap<String, String>();
+    private final static Map<String, String> deletedSitesMap = new HashMap<>();
 
     private static boolean running = false;
 
@@ -90,17 +90,17 @@ public class StudioClockExecutor implements Job {
             if (singleWorkerLock.tryLock()) {
                 try {
                     setRunning(true);
-                    logger.debug("Executing tasks thread num " + threadCounter);
+                    logger.debug("Execute the Studio Clock Job in thread '{}'", threadCounter);
                     executeTasks();
                 } catch (Exception e) {
-                    logger.error("Error executing Studio Clock Job", e);
+                    logger.error("Studio Clock Job failed", e);
                 } finally {
                     setRunning(false);
                     singleWorkerLock.unlock();
                 }
             }
         } else {
-            logger.debug("System not ready yet. Skipping cycle");
+            logger.debug("The system is not ready yet to execute Studio Clock Job. Skip a cycle.");
         }
     }
 
@@ -129,7 +129,7 @@ public class StudioClockExecutor implements Job {
     }
 
     private void cleanupDeletedSites() {
-        logger.debug("Remove local copies of deleted sites if present");
+        logger.debug("Remove any local copies of deleted sites");
         List<SiteFeed> deletedSites = siteService.getDeletedSites();
         deletedSites.forEach(siteFeed -> {
             String key = siteFeed.getSiteId() + ":" + siteFeed.getSiteUuid();
@@ -158,7 +158,7 @@ public class StudioClockExecutor implements Job {
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID for site " + siteId + ". Local copy will not be deleted");
+            logger.info("Invalid site UUID in site '{}'. The local copy will not be deleted", siteId);
         }
         return toRet;
     }
@@ -178,7 +178,7 @@ public class StudioClockExecutor implements Job {
                 toReturn = false;
             }
         } catch (IOException e) {
-            logger.error("Error while sending destroy preview context request for site " + site, e);
+            logger.error("Failed to destroy preview context in site '{}'", site, e);
             toReturn = false;
         } finally {
             getRequest.releaseConnection();

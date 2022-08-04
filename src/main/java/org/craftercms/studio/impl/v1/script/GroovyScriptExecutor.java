@@ -32,6 +32,7 @@ public class GroovyScriptExecutor implements ScriptExecutor {
     public void executeScriptString(String script, Map<String, Object> model) throws ScriptException {
         ScriptEngineManager factory = new ScriptEngineManager();
         factory.setBindings(new SimpleBindings(model));
+        // TODO: SJ: Avoid string literals
         ScriptEngine engine = factory.getEngineByName("groovy");
         GroovyScriptEngineImpl gse = (GroovyScriptEngineImpl)engine;
         for (String classPath : scriptsClassPath) {

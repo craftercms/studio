@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.slf4j.Logger;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.TransportException;
@@ -27,8 +28,8 @@ import org.eclipse.jgit.lib.ObjectId;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -70,19 +71,18 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
                                           String remoteUsername) throws RemoteRepositoryNotFoundException,
                                                                         InvalidRemoteRepositoryCredentialsException {
         if (StringUtils.endsWithIgnoreCase(e.getMessage(), "not authorized")) {
-            logger.error("Bad credentials or read only repository: " + remoteName + " (" + remoteUrl + ")",
-                    e);
-            throw new InvalidRemoteRepositoryCredentialsException("Bad credentials or read only repository: " +
-                    remoteName + " (" + remoteUrl + ") for username " + remoteUsername, e);
+            logger.error("Bad credentials or read-only repository '{}' URL '{}'",
+                    remoteName, remoteUrl, e);
+            throw new InvalidRemoteRepositoryCredentialsException(
+                    format("Bad credentials or read-only repository '%s' URL '%s'", remoteName, remoteUrl), e);
         } else if (StringUtils.endsWithIgnoreCase(e.getMessage(), "key did not validate")) {
-            logger.error("Invalid private key: " + remoteName + " (" + remoteUrl + ")",
-                    e);
-            throw new InvalidRemoteRepositoryCredentialsException("Invalid private key for repository: " +
-                    remoteName + " (" + remoteUrl + ")", e);
+            logger.error("Invalid private key for repository '{}' URL '{}'", remoteName, remoteUrl, e);
+            throw new InvalidRemoteRepositoryCredentialsException(
+                    format("Invalid private key for repository '%s' URL '%s'", remoteName, remoteUrl), e);
         } else {
-            logger.error("Remote repository not found: " + remoteName + " (" + remoteUrl + ")", e);
-            throw new RemoteRepositoryNotFoundException("Remote repository not found: " + remoteName + " (" +
-                    remoteUrl + ")");
+            logger.error("Remote repository '{}' URL '{}' was not found", remoteName, remoteUrl, e);
+            throw new RemoteRepositoryNotFoundException(
+                    format("Remote repository '%s' URL '%s' was not found", remoteName, remoteUrl), e);
         }
     }
 

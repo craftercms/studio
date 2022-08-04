@@ -43,7 +43,7 @@ try {
             invalidParams = true
             paramsList.add("site_id")
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add("site_id")
     }
@@ -54,7 +54,7 @@ try {
             invalidParams = true
             paramsList.add("remote_name")
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add("remote_name")
     }
@@ -65,7 +65,7 @@ try {
             invalidParams = true
             paramsList.add("remote_branch")
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add("remote_branch")
     }
