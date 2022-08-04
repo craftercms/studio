@@ -1135,7 +1135,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         try {
                             userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                         } catch (UserNotFoundException | ServiceLayerException e) {
-                            // TODO: SJ: Should this be a warning or info?
                             logger.debug("User '{}' not found while processing operations in site '{}'",
                                     repoOperation.getAuthor(), siteId, e);
                         }
@@ -1206,7 +1205,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             try {
                                 userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                             } catch (UserNotFoundException | ServiceLayerException e) {
-                                // TODO: SJ: Should this be a warning or info?
                                 logger.debug("User '{}' not found while processing operations in site '{}'",
                                         repoOperation.getAuthor(), siteId, e);
                             }
@@ -1284,7 +1282,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         try {
                             userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
                         } catch (UserNotFoundException | ServiceLayerException e) {
-                            // TODO: SJ: Should this be a warning or info?
                             logger.debug("User '{}' not found while processing operations in site '{}'",
                                     repoOperation.getAuthor(), siteId, e);
                         }

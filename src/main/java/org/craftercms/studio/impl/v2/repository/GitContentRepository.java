@@ -873,8 +873,8 @@ public class GitContentRepository implements ContentRepository {
                             .setName(inProgressBranchName);
                     retryingRepositoryOperationFacade.call(checkoutCommand);
                 } catch (GitAPIException e) {
-                    // TODO: DB: Error ?
                     logger.error("Failed to create in-progress published branch in site '{}'", site, e);
+                    throw e;
                 }
 
                 Set<String> deployedCommits = new HashSet<>();

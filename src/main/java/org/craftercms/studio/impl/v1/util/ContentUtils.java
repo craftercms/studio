@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v1.util;
 
+import com.mchange.v1.util.ClosableResource;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.slf4j.Logger;
@@ -35,54 +36,19 @@ public class ContentUtils {
 	private static final Logger logger = LoggerFactory.getLogger(ContentUtils.class);
 
     /**
-     * release resource
+     * Release a resource
      *
-     * @param in
+     * @param resource resource to close
      */
-    public static void release(InputStream in) {
+    public static void release(Closeable resource) {
         try {
-            if (in != null) {
-                in.close();
+            if (resource != null) {
+				resource.close();
             }
         } catch (IOException e) {
-            logger.error("Failed to release InputStream", e);
+            logger.error("Failed to release resource", e);
         } finally {
-            IOUtils.closeQuietly(in);
-        }
-    }
-
-    /**
-     * release resource
-     *
-     * @param out
-     */
-    public static void release(OutputStream out) {
-        try {
-            if (out != null) {
-                out.close();
-            }
-        } catch (IOException e) {
-			logger.error("Failed to release OutputStream", e);
-        } finally {
-            IOUtils.closeQuietly(out);
-        }
-    }
-
-
-    /**
-     * release a reader
-     *
-     * @param reader
-     */
-    public static void release(Reader reader) {
-        try {
-            if (reader != null) {
-                reader.close();
-            }
-        } catch (IOException e) {
-			logger.error("Failed to release Reader", e);
-        } finally {
-            IOUtils.closeQuietly(reader);
+            IOUtils.closeQuietly(resource);
         }
     }
 

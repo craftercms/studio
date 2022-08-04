@@ -383,8 +383,8 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             item.setCommitId(commitId);
                         } else {
                             if (StringUtils.isNotEmpty(commitId)) {
-                                logger.warn("The item in site '{}' path '{}' has a null commit ID. Was the git " +
-                                        "repository reset at some point?", site, path);
+                                logger.warn("The item in site '{}' path '{}' has a null commit ID in the database. " +
+                                        "Was the git repository reset at some point?", site, path);
                             } else {
                                 logger.warn("The item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
                                                 "site's git repository. Was the git repository reset at some point?",

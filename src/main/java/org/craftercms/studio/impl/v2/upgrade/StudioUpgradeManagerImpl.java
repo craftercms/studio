@@ -241,7 +241,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
      */
     @Override
     public List<String> getExistingEnvironments(String site) {
-        // TODO: SJ: With fixed publishing targets, is this necessary?
+        // TODO: SJ: With fixed publishing targets, is this necessary? Remove in 4.2
         logger.debug("Look for configured publishing targets in site '{}'", site);
         List<String> result = new LinkedList<>();
 
