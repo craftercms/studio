@@ -257,7 +257,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             throw new BlueprintNotFoundException("Blueprint not found " + blueprintId);
         }
 
-        logger.debug("Validate the parameter for the blueprint '{}'", blueprintId);
+        logger.debug("Validate the parameters for blueprint '{}'", blueprintId);
         validatePluginParameters(descriptor.getPlugin(), params);
 
         String blueprintLocation = sitesServiceInternal.getBlueprintLocation(blueprintId);
@@ -284,27 +284,28 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String creator = securityService.getCurrentUser();
 
         // Create the site in the preview deployer
-        logger.info("Creating the deployer targets for site '{}'", siteName);
+        logger.info("Create the deployer targets for site '{}'", siteName);
         try {
             deployer.createTargets(siteId);
         } catch (Exception e) {
             success = false;
-            logger.error("Failed to create site '{}' id '{}' based on blueprint '{}'. The deployer targets " +
+            logger.error("Failed to create site '{}' ID '{}' based on blueprint '{}'. The deployer targets " +
                     "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId, e);
-            throw new DeployerTargetException(format("Failed to create site '%s' id '%s' based on blueprint '%s'. The deployer targets " +
-                    "couldn't be created. Rolling back site creation.", siteName, siteId, blueprintId), e);
+            throw new DeployerTargetException(format("Failed to create site '%s' ID '%s' based on blueprint '%s'. " +
+                    "The deployer targets couldn't be created. Rolling back site creation.",
+                    siteName, siteId, blueprintId), e);
         }
 
         if (success) {
             try {
-                logger.info("Initialize site '{}' with the blueprint '{}'", siteName, blueprintId);
+                logger.info("Initialize site '{}' with blueprint '{}'", siteName, blueprintId);
                 success = createSiteFromBlueprintGit(blueprintLocation, siteId, sandboxBranch, params, creator);
                 ZonedDateTime now = DateUtils.getCurrentTime();
 
                 logger.debug("Add the site UUID to site '{}'", siteName);
                 addSiteUuidFile(siteId, siteUuid);
 
-                logger.debug("Add the site record to the database for site '{}' id '{}'", siteName, siteId);
+                logger.debug("Add the site record to the database for site '{}' ID '{}'", siteName, siteId);
                 // insert database records
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
@@ -326,7 +327,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                 long startGetChangeSetCreatedFilesMark = 0;
                 if (logger.isDebugEnabled()) {
-                    logger.debug("Started change-set calculation for site '{}'", siteName);
+                    logger.debug("Start change-set calculation for site '{}'", siteName);
                     startGetChangeSetCreatedFilesMark = System.currentTimeMillis();
                 }
                 Map<String, String> createdFiles =
@@ -349,12 +350,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 logger.info("Reload the site configuration for site '{}'", siteName);
             } catch (Exception e) {
                 success = false;
-                logger.error("Failed to create site '{}' id '{}' based on blueprint '{}'. Rolling back site creation.",
+                logger.error("Failed to create site '{}' ID '{}' based on blueprint '{}'. Rolling back site creation.",
                         siteName, siteId, blueprintId, e);
 
                 deleteSite(siteId);
 
-                throw new SiteCreationException(format("Failed to create site '%s' id '%s' based on " +
+                throw new SiteCreationException(format("Failed to create site '%s' ID '%s' based on " +
                         "blueprint '%s'. Rolling back site creation.",
                         siteName, siteId, blueprintId), e);
             }
@@ -366,22 +367,21 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
-                logger.warn("Failed to sync site content to preview for site '{}' id '{}'. While site creation was " +
+                logger.warn("Failed to sync site content to preview for site '{}' ID '{}'. While site creation was " +
                             "successful, the site won't be preview-able until the Preview Deployer is reachable " +
                             "and has successfully synced.",
                             siteName, siteId, e);
                 throw new SiteCreationException(format("Failed to sync site content to preview for site '%s' " +
-                                "id '%s'. While site creation was " +
-                                "successful, the site won't be preview-able until the Preview Deployer is reachable " +
-                                "and has successfully synced.",
+                                "ID '%s'. While site creation was successful, the site won't be preview-able until " +
+                                "the Preview Deployer is reachable and has successfully synced.",
                                 siteName, siteId), e);
             }
             setSiteState(siteId, STATE_READY);
         } else {
-            throw new SiteCreationException(format("Site creation failed site '%s' id '%s' based on " +
+            throw new SiteCreationException(format("Site creation failed site '%s' ID '%s' based on " +
                     "blueprint '%s'", siteName, siteId, blueprintId));
         }
-        logger.info("Site '{}' id '{}' created successfully", siteName, siteId);
+        logger.info("Site '{}' ID '{}' created successfully", siteName, siteId);
     }
 
     private void insertCreateSiteAuditLog(String siteId, String siteName, String blueprint, String creator) throws SiteNotFoundException {
@@ -411,14 +411,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             siteFeed = getSite(siteId);
         } catch (SiteNotFoundException e) {
-            logger.error("Failed to process created files, site id '{}' not found", siteId, e);
+            logger.error("Failed to process created files, site ID '{}' not found", siteId, e);
             return;
         }
         User userObj;
         try {
             userObj = userServiceInternal.getUserByGitName(creator);
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to process created files in site id '{}', user '{}' not found",
+            logger.error("Failed to process created files in site ID '{}', user '{}' not found",
                     siteId, creator, e);
             return;
         }
@@ -457,7 +457,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                         }
                     } catch (DocumentException e) {
-                        logger.error("Failed to extract metadata from XML file site '{}' path '{}'", siteId, path, e);
+                        logger.error("Failed to extract metadata from XML file at site '{}' path '{}'",
+                                siteId, path, e);
                     }
                 }
                 String previewUrl = null;
@@ -495,7 +496,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         (System.currentTimeMillis() - startProcessCreatedFilesMark));
             }
         } catch (IOException e) {
-            logger.error("Failed to create DB script file for processingCreatedFiles in site '{}'", siteId, e);
+            logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
         }
     }
 
@@ -527,7 +528,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (StringUtils.isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
             addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
             if (StringUtils.endsWith(path, "/index.xml")) {
-                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path, "/index.xml", ""), updateParentIdScriptPath);
+                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
+                        "/index.xml", ""), updateParentIdScriptPath);
             }
             Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
@@ -646,8 +648,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     params, createAsOrphan);
         } else {
             logger.error("Invalid site creation option '{}' for site '{}'", createOption, siteId);
-            throw new SiteCreationException("Invalid create option for create site using remote repository: "
-                    + createOption);
+            throw new SiteCreationException(format("Invalid site creation option '%s' for site '%s'",
+                    createOption, siteId));
         }
     }
 
@@ -754,11 +756,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (success) {
             ZonedDateTime now = DateUtils.getCurrentTime();
             try {
-                logger.debug("Adding site UUID to site '{}'", siteId);
+                logger.debug("Add site UUID to site '{}'", siteId);
                 addSiteUuidFile(siteId, siteUuid);
 
                 // insert database records
-                logger.debug("Adding site record to the database for site '{}'", siteId);
+                logger.debug("Add site record to the database for site '{}'", siteId);
                 SiteFeed siteFeed = new SiteFeed();
                 siteFeed.setName(siteName);
                 siteFeed.setSiteId(siteId);
@@ -772,7 +774,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
 
                 // Add default groups
-                logger.info("Adding default groups to site '{}'", siteId);
+                logger.info("Add default groups to site '{}'", siteId);
                 addDefaultGroupsForNewSite();
 
                 String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
@@ -794,7 +796,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
                 updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
-                logger.info("Loading the configuration for site '{}'", siteId);
+                logger.info("Load the configuration for site '{}'", siteId);
             } catch (Exception e) {
                 success = false;
                 logger.error("Failed to create site '{}' by cloning '{}' url '{}' branch '{}'",
@@ -814,16 +816,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
                 // TODO: SJ: This seems to leave the site in a bad state, review
-                logger.error("Failed to sync site '{}' to preview. Site will become previewable once " +
+                logger.error("Failed to sync site '{}' to preview. The site will become previewable once " +
                         "the preview deployer is reachable.", siteId, e);
 
-                throw new SiteCreationException("Error while syncing site: " + siteId + " ID: " + siteId +
-                        " to preview. Site was successfully created, but it won't be preview-able until the " +
-                        "Preview Deployer is reachable.");
+                throw new SiteCreationException(format("Failed to sync site '%s' to preview. The site will become " +
+                        "previewable once the preview deployer is reachable.", siteId), e);
             }
             setSiteState(siteId, STATE_READY);
         } else {
-            throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId + ".");
+            throw new SiteCreationException(format("Failed to create site '%s'", siteId));
         }
         logger.info("Site '{}' created successfully", siteId);
     }
@@ -1025,19 +1026,19 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
                 repoLastCommitId);
         if (logger.isDebugEnabled()) {
-            logger.debug("Get Repo Operations from Delta finished in '{}' milliseconds",
+            logger.debug("Get Repo Operations from delta finished in '{}' milliseconds",
                     (System.currentTimeMillis() - startGetOperationsFromDeltaMark));
             logger.debug("The number of repo operations from delta is '{}'", repoOperationsDelta.size());
         }
         if (CollectionUtils.isEmpty(repoOperationsDelta)) {
-            logger.debug("The database is up to date with the repository for site '{}'", site);
+            logger.debug("The database is up to date with the repository in site '{}'", site);
             contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
             updateLastCommitId(site, repoLastCommitId);
             updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             return toReturn;
         }
 
-        logger.info("Sync the database with the repository for site '{}' starting at commit ID '{}'",
+        logger.info("Sync the database with the repository in site '{}' starting at commit ID '{}'",
                 site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId));
         logger.debug("The operations to sync for site '{}' are", site);
         for (RepoOperation repoOperation : repoOperationsDelta) {
@@ -1113,7 +1114,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         try {
             cachedUsers.put(GIT_REPO_USER_USERNAME, userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME));
         } catch (UserNotFoundException | ServiceLayerException e) {
-            logger.error("Failed to process repo operations in site '{}'. git_repo_user should be in the DB",
+            logger.error("Failed to process repo operations in site '{}'. git_repo_user should be in the the database",
                     siteId,e);
         }
 
@@ -1158,7 +1159,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from the XML site '{}' path '{}'",
+                            logger.error("Failed to extract metadata from the XML site '{}' path '{}'",
                                     siteId, repoOperation.getPath(), e);
                         }
                     }
@@ -1229,7 +1230,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                     disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                                 }
                             } catch (DocumentException e) {
-                                logger.error("Error extracting metadata from the XML site '{}' path '{}'",
+                                logger.error("Failed to extract metadata from the XML site '{}' path '{}'",
                                         siteId, repoOperation.getPath(), e);
                             }
                         }
@@ -1307,7 +1308,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
                             }
                         } catch (DocumentException e) {
-                            logger.error("Error extracting metadata from the XML site '{}' path '{}'",
+                            logger.error("Failed to extact metadata from the XML site '{}' path '{}'",
                                     siteId, repoOperation.getMoveToPath(), e);
                         }
                     }
@@ -1350,7 +1351,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     break;
 
                 default:
-                    logger.error("Unable to process unknown repo operation '{}' in site '{}'",
+                    logger.error("Failed to process unknown repo operation '{}' in site '{}'",
                             siteId, repoOperation.getAction());
                     toReturn = false;
                     break;
