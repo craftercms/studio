@@ -1387,6 +1387,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return ids;
     }
 
+    /**
+     * Helper method to update a single node element with the indicated value
+     * @param root root element
+     * @param nodeName name of the node to update
+     * @param value new text value of the node, if found
+     */
     private void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
         Node node = root.selectSingleNode(String.format("//%s", nodeName));
         if (node != null) {
@@ -1394,6 +1400,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
+    /**
+     * Updates the XML after a move operation.
+     *
+     * @param root     root element
+     * @param filename new filename
+     * @param folder   new folder
+     * @param modifier numeric modifier used to update the internal-name. e.g.: for modifier 3, the internal-name
+     *                 will set to something like "Initial Name (Copy 3)"
+     */
     protected void updateContentOnMove(final Element root, final String filename, final String folder,
                                            final String modifier) {
         updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
@@ -2750,6 +2765,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.contentServiceV2 = contentServiceV2;
     }
 
+    /**
+     * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
+     */
     protected class PastedPathMap {
         protected String filePath;
         protected String fileName;
