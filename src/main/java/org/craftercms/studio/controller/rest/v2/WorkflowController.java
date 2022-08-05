@@ -81,10 +81,6 @@ public class WorkflowController {
                                                   int offset,
                                       @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
                                                   int limit) throws SiteNotFoundException, InvalidParametersException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
-
         String path = rpPath.isPresent() ? rpPath.get() : null;
         Long states = rpStates.isPresent() ? rpStates.get() : null;
         int total = 0;
@@ -123,10 +119,6 @@ public class WorkflowController {
     @PostMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
     public ResponseBody updateItemStates(@RequestBody ItemStatesPostRequestBody requestBody)
             throws SiteNotFoundException {
-        if (!siteService.exists(requestBody.getSiteId())) {
-            throw new SiteNotFoundException(requestBody.getSiteId());
-        }
-
         workflowService.updateItemStates(requestBody.getSiteId(), requestBody.getItems(),
                 requestBody.isClearSystemProcessing(), requestBody.isClearUserLocked(), requestBody.getLive(),
                 requestBody.getStaged(), requestBody.getNew(), requestBody.getModified());
@@ -161,9 +153,6 @@ public class WorkflowController {
     public ResponseBody getWorkflowAffectedPaths(@RequestParam(REQUEST_PARAM_SITEID) String siteId,
                                                  @RequestParam(REQUEST_PARAM_PATH) String path)
             throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
         List<SandboxItem> sandboxItems = workflowService.getWorkflowAffectedPaths(siteId, path);
         var responseBody = new ResponseBody();
         var result = new ResultList<SandboxItem>();
