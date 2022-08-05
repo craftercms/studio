@@ -73,10 +73,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 import static java.lang.String.format;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
 
@@ -195,8 +193,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(notEmpty = true) String siteId,
-                        @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
+                        @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
             throws SiteNotFoundException, ContentNotFoundException {
         siteService.checkSiteExists(siteId);
 

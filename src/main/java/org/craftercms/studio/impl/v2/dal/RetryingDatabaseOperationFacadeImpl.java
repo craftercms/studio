@@ -47,6 +47,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @RetryingDatabaseOperation
 @SuppressWarnings("rawtypes")
@@ -68,10 +69,14 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     private WorkflowDAO workflowDao;
     private ActivityStreamDAO activityStreamDAO;
 
-
     @Override
     public void retry(final Runnable op) {
         op.run();
+    }
+    
+    @Override
+    public <T> T retry(final Supplier<T> op) {
+        return op.get();
     }
 
     // Dependency API v1
@@ -219,15 +224,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     // Audit API v2
-    @Override
-    public int insertAuditLog(AuditLog auditLog) {
-        return auditDao.insertAuditLog(auditLog);
-    }
-
-    @Override
-    public void insertAuditLogParams(Map params) {
-        auditDao.insertAuditLogParams(params);
-    }
 
     @Override
     public void deleteAuditLogForSite(long siteId) {

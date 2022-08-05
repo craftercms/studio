@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 @SuppressWarnings("rawtypes")
 public interface RetryingDatabaseOperationFacade {
@@ -37,6 +38,13 @@ public interface RetryingDatabaseOperationFacade {
      */
     void retry(Runnable op);
 
+    /**
+     * Retries the database operation {@code op} up to the configured maximum retries.
+     * See {@link org.craftercms.studio.api.v2.annotation.RetryingDatabaseOperationAnnotationHandler}
+     *
+     * @param op operation to execute
+     */
+    <T> T retry(Supplier<T> op);
 
     // Dependency API v1
 
@@ -218,18 +226,6 @@ public interface RetryingDatabaseOperationFacade {
     void clearPublishingLockForSite(String siteId);
 
     // Audit API v2
-    /**
-     * Insert audit log record
-     * @param auditLog Audit log
-     * @return number of rows affected
-     */
-    int insertAuditLog(AuditLog auditLog);
-
-    /**
-     * Insert audit log parameters
-     * @param params SQL query parameters
-     */
-    void insertAuditLogParams(Map params);
 
     /**
      * Delete audit log for site

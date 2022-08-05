@@ -114,7 +114,7 @@ public class SecurityServiceImpl implements SecurityService {
         String username = null;
         var context = SecurityContextHolder.getContext();
 
-        if(context != null) {
+        if (context != null) {
             var auth = context.getAuthentication();
 
             if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
@@ -420,55 +420,44 @@ public class SecurityServiceImpl implements SecurityService {
      */
     protected Set<String> populateUserPermissions(String site, String path, Set<String> roles,
                                                   PermissionsConfigTO permissionsConfig) {
-        // TODO: SJ: Refactor to reduce nesting and repeated code
-        Set<String> permissions = new HashSet<String>();
-        if (roles != null && !roles.isEmpty()) {
-            for (String role : roles) {
-                Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
-                Map<String, List<Node>> siteRoles = permissionsMap.get(site);
-                if (siteRoles == null || siteRoles.isEmpty()) {
-                    siteRoles = permissionsMap.get("*");
-                }
-                if (siteRoles != null && !siteRoles.isEmpty()) {
-                    List<Node> ruleNodes = siteRoles.get(role);
-                    if (ruleNodes == null || ruleNodes.isEmpty()) {
-                        ruleNodes = siteRoles.get("*");
-                    }
-                    if (ruleNodes != null && !ruleNodes.isEmpty()) {
-                        for (Node ruleNode : ruleNodes) {
-                            String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
-                            if (path.matches(regex)) {
-                                logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
-                                        site, regex, role);
+        Set<String> permissions = new HashSet<>();
+        if (CollectionUtils.isEmpty(roles)) {
+            // User has no access to the site
+            return permissions;
+        }
+        Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
+        Map<String, List<Node>> siteRoles = permissionsMap.getOrDefault(site, permissionsMap.get("*"));
+        if (MapUtils.isEmpty(siteRoles)) {
+            logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
+                    site, path, PERMISSION_CONTENT_READ);
+            // This site has no role configured
+            permissions.add(PERMISSION_CONTENT_READ);
+            return permissions;
+        }
+        for (String role : roles) {
+            List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get("*"));
+            if (CollectionUtils.isEmpty(ruleNodes)) {
+                logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
+                        site, path, PERMISSION_CONTENT_READ);
+                // No rule for this role
+                permissions.add(PERMISSION_CONTENT_READ);
+            }
+            for (Node ruleNode : ruleNodes) {
+                String regex = ruleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_REGEX);
+                if (path.matches(regex)) {
+                    logger.debug("Permissions found in site '{}' matching regex '{}' for role '{}'",
+                            site, regex, role);
 
-                                List<Node> permissionNodes = ruleNode.selectNodes(
-                                        StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
-                                for (Node permissionNode : permissionNodes) {
-                                    String permission = permissionNode.getText().toLowerCase();
-                                    logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
-                                            permission, site, path, role);
-                                    permissions.add(permission);
-                                }
-                            }
-                        }
-                    } else {
-                        logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
-                                site, path, PERMISSION_CONTENT_READ);
-                        // If no default role is set, set content read permission
-                        permissions.add(PERMISSION_CONTENT_READ);
+                    List<Node> permissionNodes = ruleNode.selectNodes(
+                            StudioXmlConstants.DOCUMENT_ELM_ALLOWED_PERMISSIONS);
+                    for (Node permissionNode : permissionNodes) {
+                        String permission = permissionNode.getText().toLowerCase();
+                        logger.trace("Add permission '{}' to site '{}' path '{}' role '{}'",
+                                permission, site, path, role);
+                        permissions.add(permission);
                     }
-                } else {
-                    logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
-                            site, path, PERMISSION_CONTENT_READ);
-                    // If no default site is set, set content read permission
-                    permissions.add(PERMISSION_CONTENT_READ);
                 }
             }
-        } else {
-            logger.debug("No matching role is found site '{}' path '{}'. Add the default permission '{}'",
-                    site, path, PERMISSION_CONTENT_READ);
-            // If user or group did not match the roles-mapping file
-            permissions.add(PERMISSION_CONTENT_READ);
         }
         return permissions;
     }
@@ -541,7 +530,7 @@ public class SecurityServiceImpl implements SecurityService {
             //backwards compatibility for nested <site>
             Element permissionsRoot = root;
             Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
-            if(siteNode != null) {
+            if (siteNode != null) {
                 permissionsRoot = siteNode;
             }
 
