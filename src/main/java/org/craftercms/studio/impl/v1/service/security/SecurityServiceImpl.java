@@ -114,7 +114,7 @@ public class SecurityServiceImpl implements SecurityService {
         String username = null;
         var context = SecurityContextHolder.getContext();
 
-        if(context != null) {
+        if (context != null) {
             var auth = context.getAuthentication();
 
             if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
@@ -427,7 +427,7 @@ public class SecurityServiceImpl implements SecurityService {
         }
         Map<String, Map<String, List<Node>>> permissionsMap = permissionsConfig.getPermissions();
         Map<String, List<Node>> siteRoles = permissionsMap.getOrDefault(site, permissionsMap.get("*"));
-        if(MapUtils.isEmpty(siteRoles)) {
+        if (MapUtils.isEmpty(siteRoles)) {
             logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
                     site, path, PERMISSION_CONTENT_READ);
             // This site has no role configured
@@ -436,7 +436,7 @@ public class SecurityServiceImpl implements SecurityService {
         }
         for (String role : roles) {
             List<Node> ruleNodes = siteRoles.getOrDefault(role, siteRoles.get("*"));
-            if(CollectionUtils.isEmpty(ruleNodes)) {
+            if (CollectionUtils.isEmpty(ruleNodes)) {
                 logger.debug("No default role is set site '{}' path '{}'. Add the default permission '{}'",
                         site, path, PERMISSION_CONTENT_READ);
                 // No rule for this role
@@ -530,7 +530,7 @@ public class SecurityServiceImpl implements SecurityService {
             //backwards compatibility for nested <site>
             Element permissionsRoot = root;
             Element siteNode = (Element) permissionsRoot.selectSingleNode(StudioXmlConstants.DOCUMENT_ELM_SITE);
-            if(siteNode != null) {
+            if (siteNode != null) {
                 permissionsRoot = siteNode;
             }
 
