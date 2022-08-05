@@ -1002,34 +1002,32 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             if (commitIds != null) {
                 String targetLabel = moveFileName;
                 // For page and components: update label in both DB and xml
+                Document movedDocument = null;
                 if (movePath.endsWith(DmConstants.XML_PATTERN)) {
-                    InputStream fromContent = getContent(site, movePath);
-                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                    Element root = fromDocument.getRootElement();
-                    updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
-                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(fromDocument, CONTENT_ENCODING));
-                    targetLabel = root.selectSingleNode(String.format("//%s", ELM_INTERNAL_NAME)).getText();
+                    InputStream movedContentStream = getContent(site, movePath);
+                    movedDocument = ContentUtils.convertStreamToXml(movedContentStream);
+                    if (movedDocument != null) {
+                        Element root = movedDocument.getRootElement();
+                        updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
+                        targetLabel = root.selectSingleNode(String.format("//%s", ELM_INTERNAL_NAME)).getText();
+                    }
                 }
 
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
-                Long parentId = newParent != null? newParent.getId() : null;
-                updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel);
+                Long parentId = newParent != null ? newParent.getId() : null;
+                updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                     contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
-                // For page and components: update label in both DB and xml
-                if(movePath.endsWith(DmConstants.XML_PATTERN)) {
-                    InputStream fromContent = getContent(site, movePath);
-                    Document fromDocument = ContentUtils.convertStreamToXml(fromContent);
-                    updateContentOnMove(fromDocument.getRootElement(), moveFileName, movePathMap.fileFolder, movePathMap.modifier);
-                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(fromDocument, CONTENT_ENCODING));
+                // This write is performed after processing the commitIds so we don't miss any commit
+                if (movedDocument != null) {
+                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
                 }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
-            }
-            else {
+            } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
             }
@@ -1040,10 +1038,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                             " new name is '{}'",
                             site, fromPath, toPath, movePath, e);
         } catch(UserNotFoundException e) {
-            logger.error("Current user could not be found while moving content for site {0} from {1} to {2}, new name is {3}",
-                    e, site, fromPath, toPath, movePath);
+            logger.error("Current user could not be found while moving content for site '{}' from '{}' to '{}', new name is '{}'",
+                    site, fromPath, toPath, movePath, e);
         } catch (DocumentException e) {
-            logger.error("Failed to update XML while moving content for site {0} from {1} to {2}, new name is {3}",
+            logger.error("Failed to update XML while moving content for site '{}' from '{}' to '{}', new name is '{}'",
                     site, fromPath, toPath, movePath, e);
         }
 
@@ -1052,10 +1050,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath)
             throws ServiceLayerException, UserNotFoundException {
-        updateDatabaseOnMove(site, fromPath, movePath, null, null);
+        updateDatabaseOnMove(site, fromPath, movePath, null, null, null);
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label)
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label, String folderLabel)
             throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
@@ -1074,11 +1072,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         // Item update
-        String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
-                fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
-        String targetPath = (movePath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
-                movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR)) : movePath;
-        itemServiceInternal.moveItems(site, sourcePath, targetPath, parentId, label);
+        itemServiceInternal.moveItem(site, fromPath, movePath, parentId, label);
+        // Update folder when we are moving a /index.xml
+        if (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+            String sourcePath = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
+            String targetPath = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
+            itemServiceInternal.moveItem(site, sourcePath, targetPath, parentId, folderLabel);
+        }
 
         // write activity stream
         SiteFeed siteFeed = siteService.getSite(site);
@@ -1126,7 +1126,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         ContentItemTO movedTO = getContentItem(site, movePath, 2);
         List<ContentItemTO> childrenTOs = movedTO.getChildren();
 
-        for(ContentItemTO childTO : childrenTOs) {
+        for (ContentItemTO childTO : childrenTOs) {
             // calculate the child's from path by looking at it's parent's from path and the child new path
             // (parent move operation has already happened)
             String childToPath = childTO.getUri();
@@ -1207,7 +1207,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 proposedDestPath_filename = DmConstants.INDEX_FILE;
                 proposedDestPath_folder = newFileNameOnly;
             }
-        } else if (fromFileIsIndex && !newFileIsIndex) {
+        } else if (fromFileIsIndex) {
             // Example MOVE LOCATION, INDEX TO FOLDER
             // fromPath: "/site/website/search/index.xml"
             // toPath:   "/site/website/a-folder"
@@ -1216,7 +1216,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     DmConstants.INDEX_FILE;
             proposedDestPath_filename = DmConstants.INDEX_FILE;
             proposedDestPath_folder = fromFileNameOnly;
-        } else if(!fromFileIsIndex && newFileIsIndex) {
+        } else if (newFileIsIndex) {
             proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR + fromFileNameOnly;
             proposedDestPath_filename = fromFileNameOnly;
             proposedDestPath_folder = newFileNameOnly;

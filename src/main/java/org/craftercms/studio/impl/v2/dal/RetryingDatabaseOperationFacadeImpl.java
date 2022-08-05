@@ -425,11 +425,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     }
 
     @Override
-    public void moveItem(String siteId, String oldPath, String newPath) {
-        itemDao.moveItem(siteId, oldPath, newPath);
-    }
-
-    @Override
     public void clearPreviousPath(String siteId, String path) {
         itemDao.clearPreviousPath(siteId, path);
     }

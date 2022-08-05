@@ -365,8 +365,10 @@ public interface ItemServiceInternal {
      * @param siteId site identifier
      * @param oldPath old path
      * @param newPath new path
+     * @param parentId new parent ID
+     * @param label new label
      */
-    void moveItem(String siteId, String oldPath, String newPath);
+    void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label);
 
     /**
      * Move items

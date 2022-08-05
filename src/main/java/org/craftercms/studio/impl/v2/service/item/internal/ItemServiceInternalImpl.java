@@ -499,8 +499,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void moveItem(String siteId, String oldPath, String newPath) {
-        retryingDatabaseOperationFacade.moveItem(siteId, oldPath, newPath);
+    public void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) {
+        retryingDatabaseOperationFacade.retry(() ->
+                itemDao.moveItem(siteId, oldPath, newPath, parentId, label));
     }
 
     @Override

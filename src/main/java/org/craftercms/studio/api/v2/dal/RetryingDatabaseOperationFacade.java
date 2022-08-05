@@ -524,14 +524,6 @@ public interface RetryingDatabaseOperationFacade {
     void deleteBySiteAndPathForFolder(long siteId, String path);
 
     /**
-     * Move item
-     * @param siteId site identifier
-     * @param oldPath old path
-     * @param newPath new path
-     */
-    void moveItem(String siteId, String oldPath, String newPath);
-
-    /**
      * Clear previous path of the content
      * @param siteId site identifier
      * @param path path of the content

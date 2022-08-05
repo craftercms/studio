@@ -292,7 +292,8 @@ public interface ItemDAO {
      * @param oldPath old path
      * @param newPath new path
      */
-    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath);
+    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
+                  @Param(PARENT_ID) Long parentId, @Param(LABEL) String label);
 
     /**
      * Get item for given path from database
