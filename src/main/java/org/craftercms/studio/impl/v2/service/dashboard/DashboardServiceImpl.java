@@ -266,7 +266,8 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public PublishingStats getPublishingStats(String siteId, int days) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public PublishingStats getPublishingStats(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int days) {
         var publishingStats = new PublishingStats();
         publishingStats.setNumberOfPublishes(publishServiceInternal.getNumberOfPublishes(siteId, days));
         publishingStats.setNumberOfNewAndPublishedItems(
