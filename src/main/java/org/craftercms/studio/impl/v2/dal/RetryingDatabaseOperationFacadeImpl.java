@@ -73,7 +73,7 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     public void retry(final Runnable op) {
         op.run();
     }
-
+    
     @Override
     public <T> T retry(final Supplier<T> op) {
         return op.get();
@@ -418,18 +418,6 @@ public class RetryingDatabaseOperationFacadeImpl implements RetryingDatabaseOper
     @Override
     public void deleteBySiteAndPathForFolder(long siteId, String path) {
         itemDao.deleteBySiteAndPathForFolder(siteId, path);
-    }
-
-    @Override
-    public void moveItem(String siteId, String oldPath, String newPath) {
-        itemDao.moveItem(siteId, oldPath, newPath);
-    }
-
-    @Override
-    public void moveItems(String siteId, String oldPath, String newPath, Long parentId, String oldPreviewUrl,
-                          String newPreviewUrl, long onStatesBitMap, long offStatesBitMap) {
-        itemDao.moveItems(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, onStatesBitMap,
-                offStatesBitMap);
     }
 
     @Override

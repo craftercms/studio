@@ -214,6 +214,8 @@ public final class  QueryParameterNames {
 
     public static final String NEW_PREVIEW_URL = "newPreviewUrl";
 
+    public static final String LABEL = "label";
+
     public static final String EXCLUDES = "excludes";
 
     public static final String SYSTEM_TYPES = "systemTypes";

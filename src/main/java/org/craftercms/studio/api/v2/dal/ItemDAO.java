@@ -291,8 +291,18 @@ public interface ItemDAO {
      * @param siteId site identifier
      * @param oldPath old path
      * @param newPath new path
+     * @param parentId new parent ID
+     * @param oldPreviewUrl old preview url
+     * @param newPreviewUrl new preview url
+     * @param label the new label
+     * @param onStatesBitMap state bitmap to flip on
+     * @param offStatesBitMap state bitmap to flip off
      */
-    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath);
+    void moveItem(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
+                  @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
+                  @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
+                  @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                  @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
      * Get item for given path from database
@@ -338,12 +348,14 @@ public interface ItemDAO {
      * @param parentId new parent id, if null parent will not be changed
      * @param oldPreviewUrl old preview url
      * @param newPreviewUrl new preview url
+     * @param label the new label
      * @param onStatesBitMap state bitmap to flip on
      * @param offStatesBitMap state bitmap to flip off
      */
     void moveItems(@Param(SITE_ID) String siteId, @Param(OLD_PATH) String oldPath, @Param(NEW_PATH) String newPath,
                    @Param(PARENT_ID) Long parentId, @Param(OLD_PREVIEW_URL) String oldPreviewUrl,
-                   @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
+                   @Param(NEW_PREVIEW_URL) String newPreviewUrl, @Param(LABEL) String label,
+                   @Param(ON_STATES_BIT_MAP) long onStatesBitMap,
                    @Param(OFF_STATES_BIT_MAP) long offStatesBitMap);
 
     /**
