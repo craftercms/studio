@@ -520,28 +520,6 @@ public interface RetryingDatabaseOperationFacade {
     void deleteBySiteAndPathForFolder(long siteId, String path);
 
     /**
-     * Move item
-     * @param siteId site identifier
-     * @param oldPath old path
-     * @param newPath new path
-     */
-    void moveItem(String siteId, String oldPath, String newPath);
-
-    /**
-     * Move items
-     * @param siteId site identifier
-     * @param oldPath old path
-     * @param newPath new path
-     * @param parentId new parent id, if null parent will not be changed
-     * @param oldPreviewUrl old preview url
-     * @param newPreviewUrl new preview url
-     * @param onStatesBitMap state bitmap to flip on
-     * @param offStatesBitMap state bitmap to flip off
-     */
-    void moveItems(String siteId, String oldPath, String newPath, Long parentId, String oldPreviewUrl,
-                   String newPreviewUrl, long onStatesBitMap, long offStatesBitMap);
-
-    /**
      * Clear previous path of the content
      * @param siteId site identifier
      * @param path path of the content

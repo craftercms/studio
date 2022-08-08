@@ -499,16 +499,22 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public void moveItem(String siteId, String oldPath, String newPath) {
-        retryingDatabaseOperationFacade.moveItem(siteId, oldPath, newPath);
+    public void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label) {
+        String oldPreviewUrl = getBrowserUrl(siteId, oldPath);
+        String newPreviewUrl = getBrowserUrl(siteId, newPath);
+        retryingDatabaseOperationFacade.retry(() ->
+                itemDao.moveItem(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label,
+                        SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK));
     }
 
     @Override
-    public void moveItems(String siteId, String oldPath, String newPath, Long parentId) {
+    public void moveItems(String siteId, String oldPath, String newPath, Long parentId, String label) {
         String oldPreviewUrl = getBrowserUrl(siteId, oldPath);
         String newPreviewUrl = getBrowserUrl(siteId, newPath);
-        retryingDatabaseOperationFacade.moveItems(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl,
-                SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
+
+        retryingDatabaseOperationFacade.retry(() ->
+                itemDao.moveItems(siteId, oldPath, newPath, parentId, oldPreviewUrl, newPreviewUrl, label, SAVE_AND_CLOSE_ON_MASK,
+                        SAVE_AND_CLOSE_OFF_MASK));
     }
 
     @Override

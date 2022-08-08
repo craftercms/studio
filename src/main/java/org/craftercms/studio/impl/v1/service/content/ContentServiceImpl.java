@@ -122,26 +122,11 @@ import org.xml.sax.SAXException;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_ENCODING;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FILE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_LEVEL_DESCRIPTOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_RENDERING_TEMPLATE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_TAXONOMY_REGEX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SUPPORT_RENAME_CONTENT_TYPES;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
@@ -796,11 +781,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String copyPath = null;
 
         try {
-            Map<String, String> copyPathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
-            copyPath = copyPathMap.get("FILE_PATH");
-            String copyPathModifier = copyPathMap.get("MODIFIER");
-            String copyPathFileName = copyPathMap.get("FILE_NAME");
-            String copyPathFolder = copyPathMap.get("FILE_FOLDER");
+            PastedPathMap copyPathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
+            copyPath = copyPathMap.filePath;
+            String copyPathModifier = copyPathMap.modifier;
+            String copyPathFileName = copyPathMap.fileName;
+            String copyPathFolder = copyPathMap.fileFolder;
 
             String copyPathOnly = copyPath.substring(0, copyPath.lastIndexOf(FILE_SEPARATOR));
             String copyFileName = copyPath.substring(copyPath.lastIndexOf(FILE_SEPARATOR)+1);
@@ -991,11 +976,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
             String sourcePathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
 
-            Map<String, String> movePathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
-            movePath = movePathMap.get("FILE_PATH");
-            String moveFileName = movePathMap.get("FILE_NAME");
+            PastedPathMap movePathMap = constructNewPathForCutCopy(site, fromPath, toPath, true);
+            movePath = movePathMap.filePath;
+            String moveFileName = movePathMap.fileName;
             String movePathOnly = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
-            boolean moveAltFileName = "true".equals(movePathMap.get("ALT_NAME"));
+            boolean moveAltFileName = movePathMap.altName;
             boolean targetIsIndex = DmConstants.INDEX_FILE.equals(moveFileName);
             boolean sourceIsIndex = DmConstants.INDEX_FILE.equals(fromPath);
 
@@ -1016,28 +1001,49 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Map<String, String> commitIds = _contentRepository.moveContent(site, sourcePath, targetPath);
 
             if (commitIds != null) {
+                String targetLabel = moveFileName;
+                // For page and components: update label in both DB and xml
+                Document movedDocument = null;
+                if (movePath.endsWith(DmConstants.XML_PATTERN)) {
+                    InputStream movedContentStream = getContent(site, movePath);
+                    movedDocument = ContentUtils.convertStreamToXml(movedContentStream);
+                    if (movedDocument != null) {
+                        Element root = movedDocument.getRootElement();
+                        updateContentOnMove(root, moveFileName, movePathMap.fileFolder, movePathMap.modifier);
+                        targetLabel = root.selectSingleNode(format("//%s", ELM_INTERNAL_NAME)).getText();
+                    }
+                }
+
                 // Update the database with the commitId for the target item
                 var newParent = itemServiceInternal.getItem(site, toPath, true);
-                Long parentId = newParent != null? newParent.getId() : null;
-                updateDatabaseOnMove(site, fromPath, movePath, parentId);
+                Long parentId = newParent != null ? newParent.getId() : null;
+                updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
                     contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
+                // This write is performed after processing the commitIds so we don't miss any commit
+                if (movedDocument != null) {
+                    writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
+                }
                 siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
-            }
-            else {
+            } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
             }
 
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, fromPath, movePath));
-        }
-        catch(ServiceLayerException | UserNotFoundException e) {
+        } catch(ServiceLayerException e) {
             logger.error("Failed to move item. Content not found while moving content in site '{}' from '{}' to '{}'," +
                             " new name is '{}'",
                             site, fromPath, toPath, movePath, e);
+        } catch(UserNotFoundException e) {
+            logger.error("Current user could not be found while moving content for site '{}' from '{}' to '{}', new name is '{}'",
+                    site, fromPath, toPath, movePath, e);
+        } catch (DocumentException e) {
+            logger.error("Failed to update XML while moving content for site '{}' from '{}' to '{}', new name is '{}'",
+                    site, fromPath, toPath, movePath, e);
         }
 
         return movePath;
@@ -1045,10 +1051,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     protected void updateDatabaseOnMove(String site, String fromPath, String movePath)
             throws ServiceLayerException, UserNotFoundException {
-        updateDatabaseOnMove(site, fromPath, movePath, null);
+        updateDatabaseOnMove(site, fromPath, movePath, null, null, null);
     }
 
-    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId)
+    protected void updateDatabaseOnMove(String site, String fromPath, String movePath, Long parentId, String label, String folderLabel)
             throws ServiceLayerException, UserNotFoundException {
         logger.debug("updateDatabaseOnMove from '{}' to '{}'", fromPath, movePath);
 
@@ -1067,11 +1073,13 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         // Item update
-        String sourcePath = (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
-                fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR)) : fromPath;
-        String targetPath = (movePath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) ?
-                movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR)) : movePath;
-        itemServiceInternal.moveItems(site, sourcePath, targetPath, parentId);
+        itemServiceInternal.moveItem(site, fromPath, movePath, parentId, label);
+        // Update folder when we are moving a /index.xml
+        if (fromPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+            String sourcePath = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
+            String targetPath = movePath.substring(0, movePath.lastIndexOf(FILE_SEPARATOR));
+            itemServiceInternal.moveItem(site, sourcePath, targetPath, parentId, folderLabel);
+        }
 
         // write activity stream
         SiteFeed siteFeed = siteService.getSite(site);
@@ -1119,7 +1127,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         ContentItemTO movedTO = getContentItem(site, movePath, 2);
         List<ContentItemTO> childrenTOs = movedTO.getChildren();
 
-        for(ContentItemTO childTO : childrenTOs) {
+        for (ContentItemTO childTO : childrenTOs) {
             // calculate the child's from path by looking at it's parent's from path and the child new path
             // (parent move operation has already happened)
             String childToPath = childTO.getUri();
@@ -1140,14 +1148,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
     }
 
-    protected Map<String, String> constructNewPathForCutCopy(String site, String fromPath, String toPath,
+    protected PastedPathMap constructNewPathForCutCopy(String site, String fromPath, String toPath,
                                                              boolean adjustOnCollide) throws ServiceLayerException {
-        Map<String, String> result = new HashMap<>();
+        PastedPathMap result = new PastedPathMap();
 
         // The following rules apply to content under the site folder
         String fromPathOnly = fromPath.substring(0, fromPath.lastIndexOf(FILE_SEPARATOR));
-        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf(FILE_SEPARATOR)+1);
-        boolean fromFileIsIndex = ("index.xml".equals(fromFileNameOnly));
+        String fromFileNameOnly = fromPath.substring(fromPath.lastIndexOf(FILE_SEPARATOR) + 1);
+        boolean fromFileIsIndex = (INDEX_FILE.equals(fromFileNameOnly));
         logger.debug("Cut/copy name rules for site '{}' from path '{}' name '{}'", site,
                 fromPathOnly, fromFileNameOnly);
 
@@ -1162,11 +1170,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 toPath.substring(0, toPath.lastIndexOf(FILE_SEPARATOR)) : toPath;
         String newFileNameOnly = (toPath.contains(".xml")) ?
                 toPath.substring(toPath.lastIndexOf(FILE_SEPARATOR)+1) : fromFileNameOnly;
-        boolean newFileIsIndex = ("index.xml".equals(newFileNameOnly));
-        logger.debug("Cut/copy name rules for site '{}' to path '{}' name '{}'", site, newPathOnly, newFileNameOnly);
 
+        boolean newFileIsIndex = (INDEX_FILE.equals(newFileNameOnly));
+        logger.debug("Cut/copy name rules for site '{}' to path '{}' name '{}'", site, newPathOnly, newFileNameOnly);
         if (newFileIsIndex) {
-            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf(FILE_SEPARATOR)+1);
+            newFileNameOnly = newPathOnly.substring(newPathOnly.lastIndexOf(FILE_SEPARATOR) + 1);
             newPathOnly = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
             logger.debug("Cut/copy name rules index for site '{}' to path '{}' name '{}'", site,
                     newPathOnly, newFileNameOnly);
@@ -1175,9 +1183,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String proposedDestPath;
         String proposedDestPath_filename;
         String proposedDestPath_folder;
-        boolean targetPathExistsPriorToOp;
-
-        targetPathExistsPriorToOp = contentExists(site, toPath);
+        boolean targetPathExistsPriorToOp = contentExists(site, toPath);
 
         if (fromFileIsIndex && newFileIsIndex) {
             // Example MOVE LOCATION, INDEX FILES
@@ -1200,9 +1206,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR +
                         fromFileNameOnly + FILE_SEPARATOR + DmConstants.INDEX_FILE;
                 proposedDestPath_filename = DmConstants.INDEX_FILE;
-                proposedDestPath_folder = fromFileNameOnly;
+                proposedDestPath_folder = newFileNameOnly;
             }
-        } else if (fromFileIsIndex && !newFileIsIndex) {
+        } else if (fromFileIsIndex) {
             // Example MOVE LOCATION, INDEX TO FOLDER
             // fromPath: "/site/website/search/index.xml"
             // toPath:   "/site/website/a-folder"
@@ -1211,7 +1217,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     DmConstants.INDEX_FILE;
             proposedDestPath_filename = DmConstants.INDEX_FILE;
             proposedDestPath_folder = fromFileNameOnly;
-        } else if(!fromFileIsIndex && newFileIsIndex) {
+        } else if (newFileIsIndex) {
             proposedDestPath = newPathOnly + FILE_SEPARATOR + newFileNameOnly + FILE_SEPARATOR + fromFileNameOnly;
             proposedDestPath_filename = fromFileNameOnly;
             proposedDestPath_folder = newFileNameOnly;
@@ -1240,91 +1246,93 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 proposedDestPath_filename = newFileNameOnly;
             }
             proposedDestPath_folder = newPathOnly.substring(0, newPathOnly.lastIndexOf(FILE_SEPARATOR));
-
         }
 
         logger.debug("Initial Proposed Path '{}' for site '{}' ", proposedDestPath, site);
 
-        result.put("FILE_PATH", proposedDestPath);
-        result.put("FILE_NAME", proposedDestPath_filename);
-        result.put("FILE_FOLDER", proposedDestPath_folder);
-        result.put("MODIFIER", "");
-        result.put("ALT_NAME", "false");
+        result.filePath = proposedDestPath;
+        result.fileName = proposedDestPath_filename;
+        result.fileFolder = proposedDestPath_folder;
+        result.modifier = "";
 
-        boolean contentExists = false;
-
-        if (adjustOnCollide) {
-            // if adjustOnCollide is true we need to check, otherwise we don't
-            contentExists = contentExists(site, proposedDestPath);
-        }
-
-        if (adjustOnCollide && contentExists) {
-            logger.debug("File already found at path '{}' in site '{}', create a new name", proposedDestPath, site);
-            try {
-                var siblings = _contentRepository.getContentChildren(site, newPathOnly);
-                var modifier = 1;
-                var collisionFound = true;
-                while (collisionFound) {
-                    var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(proposedDestPath);
-                    // check if the file already has a modifier (it is a copy of something)
-                    if (matcher.matches()) {
-                        // extract the values from the path
-                        var existingModifier = matcher.group(1); // the full modifier
-                        var modifierVersion = matcher.group(2); // the number of the modifier
-                        // remove the existing modifier
-                        proposedDestPath = proposedDestPath.replaceFirst(existingModifier, "");
-                        // calculate the new modifier
-                        modifier = Integer.parseInt(modifierVersion) + 1;
-                    }
-                    if (!proposedDestPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
-                        int pdpli = proposedDestPath.lastIndexOf(".");
-                        if (pdpli == -1) pdpli = proposedDestPath.length();
-                        proposedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
-                                proposedDestPath.substring(0, pdpli), modifier, proposedDestPath.substring(pdpli));
-
-                        // a regex would be better
-                        proposedDestPath_filename =
-                                proposedDestPath.substring(proposedDestPath.lastIndexOf(FILE_SEPARATOR) + 1);
-                        proposedDestPath_folder =
-                                proposedDestPath.substring(0, proposedDestPath.lastIndexOf(FILE_SEPARATOR));
-                    } else {
-                        proposedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
-                                proposedDestPath.substring(0,
-                                        proposedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)),
-                                modifier,
-                                proposedDestPath.substring(
-                                        proposedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)));
-
-                        proposedDestPath_filename = DmConstants.INDEX_FILE;
-                        proposedDestPath_folder =
-                                proposedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
-                    }
-                    proposedDestPath_folder =
-                            proposedDestPath_folder.substring(proposedDestPath_folder.lastIndexOf(FILE_SEPARATOR) + 1);
-                    // for pages, we have to check the parent folder, in any other case the full path
-                    String newCollisionCheck = fromFileIsIndex?
-                                                newPathOnly + File.separator + proposedDestPath_folder :
-                                                proposedDestPath;
-                    collisionFound = Stream.of(siblings)
-                                        .map(item -> item.path + File.separator + item.name)
-                                        .anyMatch(newCollisionCheck::equals);
-                }
-
-                result.put("FILE_PATH", proposedDestPath);
-                result.put("FILE_NAME", proposedDestPath_filename);
-                result.put("FILE_FOLDER", proposedDestPath_folder);
-                result.put("MODIFIER", Integer.toString(modifier));
-                result.put("ALT_NAME", "true");
-            }
-            catch(Exception e) {
-                throw new ServiceLayerException(format("Unable to generate an alternate path " +
-                                "for the name collision '%s' in site '%s'", proposedDestPath, site), e);
-            }
+        if (adjustOnCollide && contentExists(site, proposedDestPath)) {
+            adjustOnCollide(site, result, fromFileIsIndex, newFileIsIndex, newPathOnly, proposedDestPath, proposedDestPath_filename, proposedDestPath_folder);
         }
 
         logger.debug("Final proposed path in site '{}' from '{}' to '{}' final name '{}'", site, fromPath, toPath,
-            proposedDestPath);
+                proposedDestPath);
         return result;
+    }
+
+    private void adjustOnCollide(final String site, final PastedPathMap result, final boolean fromFileIsIndex, final boolean newFileIsIndex,
+                                 final String newPathOnly, final String initialDestPath, final String initialDestFilename,
+                                 final String initialDestFolder) throws ServiceLayerException {
+        logger.debug("File already found at path '{}' in site '{}', create a new name", initialDestPath, site);
+        try {
+            String adjustedDestPath = initialDestPath;
+            String adjustedDestFilename = initialDestFilename;
+            String adjustedDestFolder = initialDestFolder;
+            String pasteTargetFolder = newFileIsIndex ?
+                    newPathOnly + File.separator + adjustedDestFolder :
+                    newPathOnly;
+            var siblings = _contentRepository.getContentChildren(site, pasteTargetFolder);
+            var modifier = 1;
+            var collisionFound = true;
+            while (collisionFound) {
+                var matcher = COPY_FILE_MODIFIER_PATTERN.matcher(adjustedDestPath);
+                // check if the file already has a modifier (it is a copy of something)
+                if (matcher.matches()) {
+                    // extract the values from the path
+                    var existingModifier = matcher.group(1); // the full modifier
+                    var modifierVersion = matcher.group(2); // the number of the modifier
+                    // remove the existing modifier
+                    adjustedDestPath = adjustedDestPath.replaceFirst(existingModifier, "");
+                    // calculate the new modifier
+                    modifier = Integer.parseInt(modifierVersion) + 1;
+                }
+                if (!adjustedDestPath.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
+                    int pdpli = adjustedDestPath.lastIndexOf(".");
+                    if (pdpli == -1) pdpli = adjustedDestPath.length();
+                    adjustedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
+                            adjustedDestPath.substring(0, pdpli), modifier, adjustedDestPath.substring(pdpli));
+
+                    // a regex would be better
+                    adjustedDestFilename =
+                            adjustedDestPath.substring(adjustedDestPath.lastIndexOf(FILE_SEPARATOR) + 1);
+                    adjustedDestFolder =
+                            adjustedDestPath.substring(0, adjustedDestPath.lastIndexOf(FILE_SEPARATOR));
+                } else {
+                    adjustedDestPath = format(COPY_FILE_MODIFIER_FORMAT,
+                            adjustedDestPath.substring(0,
+                                    adjustedDestPath.indexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)),
+                            modifier,
+                            adjustedDestPath.substring(
+                                    adjustedDestPath.lastIndexOf(FILE_SEPARATOR + DmConstants.INDEX_FILE)));
+
+                    adjustedDestFilename = DmConstants.INDEX_FILE;
+                    adjustedDestFolder =
+                            adjustedDestPath.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, "");
+                }
+                adjustedDestFolder =
+                        adjustedDestFolder.substring(adjustedDestFolder.lastIndexOf(FILE_SEPARATOR) + 1);
+                // for pages, we have to check the parent folder, in any other case the full path
+                String newCollisionCheck = fromFileIsIndex ?
+                        pasteTargetFolder + File.separator + adjustedDestFolder :
+                        adjustedDestPath;
+                collisionFound = Stream.of(siblings)
+                        .map(item -> item.path + File.separator + item.name)
+                        .anyMatch(newCollisionCheck::equals);
+            }
+
+            result.filePath = adjustedDestPath;
+            result.fileName = adjustedDestFilename;
+            result.fileFolder = adjustedDestFolder;
+            result.modifier = Integer.toString(modifier);
+            result.altName = true;
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Unable to generate an alternate path " +
+                    "for the name collision '%s' in site '%s'", initialDestPath, site), e);
+        }
     }
 
     protected Map<String, String> getItemSpecificDependencies(String site, String path, Document document,
@@ -1383,6 +1391,46 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return ids;
     }
 
+    /**
+     * Helper method to update a single node element with the indicated value
+     * @param root root element
+     * @param nodeName name of the node to update
+     * @param value new text value of the node, if found
+     */
+    private void updateSingleDocumentNode(final Element root, final String nodeName, final String value) {
+        Node node = root.selectSingleNode(format("//%s", nodeName));
+        if (node != null) {
+            node.setText(value);
+        }
+    }
+
+    /**
+     * Updates the XML after a move operation.
+     *
+     * @param root     root element
+     * @param filename new filename
+     * @param folder   new folder
+     * @param modifier numeric modifier used to update the internal-name. e.g.: for modifier 3, the internal-name
+     *                 will set to something like "Initial Name (Copy 3)"
+     */
+    protected void updateContentOnMove(final Element root, final String filename, final String folder,
+                                           final String modifier) {
+        updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
+        updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
+
+        if (StringUtils.isNotEmpty(modifier)) {
+            Node internalNameNode = root.selectSingleNode("//" + ELM_INTERNAL_NAME);
+            if (internalNameNode != null) {
+                String internalNameValue = internalNameNode.getText().replaceFirst(INTERNAL_NAME_MODIFIER_PATTERN, "");
+                internalNameNode.setText(format(INTERNAL_NAME_MODIFIER_FORMAT, internalNameValue, modifier));
+            }
+        }
+
+        String nowFormatted = getCurrentTimeIso();
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
+    }
+
     protected Document updateContentOnCopy(Document document, String filename, String folder, Map<String,
         String> params, String modifier) {
 
@@ -1391,15 +1439,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String originalPageId = null;
         String originalGroupId = null;
 
-        Node filenameNode = root.selectSingleNode("//" + ELM_FILE_NAME);
-        if (filenameNode != null) {
-            filenameNode.setText(filename);
-        }
-
-        Node folderNode = root.selectSingleNode("//" + ELM_FOLDER_NAME);
-        if (folderNode != null) {
-            folderNode.setText(folder);
-        }
+        updateSingleDocumentNode(root, ELM_FILE_NAME, filename);
+        updateSingleDocumentNode(root, ELM_FOLDER_NAME, folder);
 
         Node pageIdNode = root.selectSingleNode("//" + ELM_PAGE_ID);
         if (pageIdNode != null) {
@@ -1456,26 +1497,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         String nowFormatted = getCurrentTimeIso();
-
-        Node createdDateNode = root.selectSingleNode("//" + ELM_CREATED_DATE);
-        if (createdDateNode != null) {
-            createdDateNode.setText(nowFormatted);
-        }
-
-        Node createdDateDtNode = root.selectSingleNode("//" + ELM_CREATED_DATE_DT);
-        if (createdDateDtNode != null) {
-            createdDateDtNode.setText(nowFormatted);
-        }
-
-        Node lastModifiedDateNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE);
-        if (lastModifiedDateNode != null) {
-            lastModifiedDateNode.setText(nowFormatted);
-        }
-
-        Node lastModifiedDateDtNode = root.selectSingleNode("//" + ELM_LAST_MODIFIED_DATE_DT);
-        if (lastModifiedDateDtNode != null) {
-            lastModifiedDateDtNode.setText(nowFormatted);
-        }
+        updateSingleDocumentNode(root, ELM_CREATED_DATE, nowFormatted);
+        updateSingleDocumentNode(root, ELM_CREATED_DATE_DT, nowFormatted);
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE, nowFormatted);
+        updateSingleDocumentNode(root, ELM_LAST_MODIFIED_DATE_DT, nowFormatted);
 
         return document;
     }
@@ -2742,6 +2767,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
+    }
+
+    /**
+     * Simple Object to hold result of calculating target paths for copy/cut and paste operation.
+     */
+    protected class PastedPathMap {
+        protected String filePath;
+        protected String fileName;
+        protected String fileFolder;
+        protected String modifier;
+        protected boolean altName;
     }
 
 }
