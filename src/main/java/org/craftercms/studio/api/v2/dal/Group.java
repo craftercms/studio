@@ -35,7 +35,7 @@ public class Group implements Serializable, GrantedAuthority {
     @NotNull
     @Size(max=512)
     private String groupName;
-    @Size(max=512)
+    @Size(max=1024)
     private String groupDescription;
 
     @Override
