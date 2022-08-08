@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.security.core.GrantedAuthority;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
 
@@ -30,6 +32,8 @@ public class Group implements Serializable, GrantedAuthority {
     private long id = -1;
     private ZonedDateTime recordLastUpdated;
     private Organization organization;
+    @NotNull
+    @Size(max=512)
     private String groupName;
     private String groupDescription;
 
