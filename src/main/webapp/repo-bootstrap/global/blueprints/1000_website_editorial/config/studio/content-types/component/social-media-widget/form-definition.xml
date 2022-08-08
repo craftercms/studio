@@ -142,7 +142,7 @@
           <iceId />
           <title>Accounts</title>
           <description />
-          <minOccurs>0</minOccurs>
+          <minOccurs>1</minOccurs>
           <maxOccurs>*</maxOccurs>
           <properties>
             <property>
