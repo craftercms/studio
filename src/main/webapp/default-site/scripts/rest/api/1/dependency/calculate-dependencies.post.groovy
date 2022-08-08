@@ -48,7 +48,7 @@ try {
             invalidParams = true
             paramsList.add(API_REQUEST_PARAM_SITE_ID)
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add(API_REQUEST_PARAM_SITE_ID)
     }
@@ -59,7 +59,7 @@ try {
             invalidParams = true
             paramsList.add(API_REQUEST_PARAM_ENTITIES)
         }
-    } catch (Exception exc) {
+    } catch (Exception e) {
         invalidParams = true
         paramsList.add(API_REQUEST_PARAM_ENTITIES)
     }

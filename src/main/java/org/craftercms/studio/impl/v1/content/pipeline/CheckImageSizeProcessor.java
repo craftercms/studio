@@ -21,8 +21,8 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentNotAllowedException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -35,6 +35,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static java.lang.String.format;
 
 public class CheckImageSizeProcessor extends PathMatchProcessor {
 
@@ -143,10 +145,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(
-                        "The width and the height of the image must match to the specified width and height: "
-                                + allowedWidth + "X" + allowedHeight
-                                + ". The actual width and height: "+ width + "X" + height);
+                throw new ContentNotAllowedException(format("The width and height of the image must " +
+                        "match the permitted '{}x{}', however, the actual asset is '{}x{}'",
+                        allowedWidth, allowedHeight, width, height));
             }
         } else {
             if (allowedWidth > 0 && allowedWidth < width) {
@@ -156,10 +157,9 @@ public class CheckImageSizeProcessor extends PathMatchProcessor {
                 success = false;
             }
             if (!success) {
-                throw new ContentNotAllowedException(
-                        "The width and the height of the image must be less then or equal to the specified width and height: "
-                                + allowedWidth + "X" + allowedHeight
-                                + ". The actual width and height: "+ width + "X" + height);
+                throw new ContentNotAllowedException(format("The width and height of the image must " +
+                        "be less than or equal to the permitted '{}x{}', however, the actual asset is '{}x{}'",
+                        allowedWidth, allowedHeight, width, height));
             }
         }
     }

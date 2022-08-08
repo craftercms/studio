@@ -67,7 +67,7 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
             auditLog.setPrimaryTargetId(siteFeed.getSiteId());
             auditLog.setPrimaryTargetType(TARGET_TYPE_CLUSTER_NODE);
             auditLog.setPrimaryTargetValue(siteFeed.getName());
-            List<AuditLogParameter> paramters = new ArrayList<AuditLogParameter>();
+            List<AuditLogParameter> paramters = new ArrayList<>();
             for (ClusterMember m : members) {
                 AuditLogParameter paramter = new AuditLogParameter();
                 paramter.setTargetId(Long.toString(m.getId()));

@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.to.ResultTO;
 
 import java.io.File;

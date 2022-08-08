@@ -22,8 +22,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -85,14 +85,17 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                 .replaceAll(StudioConstants.PATTERN_CONTENT_TYPE, contentType);
         String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
 
-        var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath, null, "object");
+        // TODO: SJ: Add general lock service lock around this key to avoid having more than one thread do this work
+        var cacheKey = configurationService.getCacheKey(site, null, configFileFullPath,
+                null, "object");
         ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
         if (contentTypeConfig == null) {
             try {
-                logger.debug("Cache miss: {0}", cacheKey);
+                logger.debug("Cache miss for key '{}'", cacheKey);
 
                 if (contentService.contentExists(site, configFileFullPath)) {
-                    Document document = configurationService.getConfigurationAsDocument(site, null, configFileFullPath, null);
+                    Document document = configurationService.getConfigurationAsDocument(site, null,
+                            configFileFullPath, null);
                     Element root = document.getRootElement();
                     String name = root.valueOf("@name");
                     contentTypeConfig = new ContentTypeConfigTO();
@@ -130,7 +133,8 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                     cache.put(cacheKey, contentTypeConfig);
                 }
             } catch (ServiceLayerException e) {
-                logger.debug("No content type configuration document found at " + configFileFullPath);
+                logger.error("No content type configuration document found in site '{}' at '{}'",
+                        site, configFileFullPath, e);
             }
         }
         return contentTypeConfig;

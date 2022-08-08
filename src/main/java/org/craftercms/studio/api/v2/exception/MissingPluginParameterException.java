@@ -20,6 +20,8 @@ import org.craftercms.commons.plugin.model.Parameter;
 import org.craftercms.commons.plugin.model.Plugin;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 
+import static java.lang.String.format;
+
 /**
  * Exception thrown when a required parameter is not provided for a plugin
  *
@@ -32,7 +34,7 @@ public class MissingPluginParameterException extends PluginInstallationException
     protected Parameter parameter;
 
     public MissingPluginParameterException(final Plugin plugin, final Parameter parameter) {
-        super(String.format("Missing required parameter '%s' for plugin '%s'", parameter.getLabel(),
+        super(format("Missing required parameter '%s' for plugin '%s'", parameter.getLabel(),
                 plugin.getId()));
         this.plugin = plugin;
         this.parameter = parameter;

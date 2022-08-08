@@ -21,8 +21,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.craftercms.commons.aop.AopUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.RetryingOperationErrorException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.craftercms.studio.api.v2.exception.git.cli.GitRepositoryLockedException;
@@ -32,6 +32,8 @@ import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
+
+import static java.lang.String.format;
 
 @Aspect
 @Order(1)
@@ -72,31 +74,30 @@ public class RetryingRepositoryOperationAnnotationHandler {
             try {
                 // Execute the business code again
                 if (numAttempts > 1) {
-                    logger.debug("Retrying repository operation attempt " + (numAttempts - 1));
+                    logger.debug("Retrying repository operation attempt '{}'", (numAttempts - 1));
                 }
                 return pjp.proceed();
-            } catch (JGitInternalException | GitCliException ex) {
-                lastException = ex;
-                if (isRepositoryLocked(ex)) {
-                    logger.debug("Failed to execute " + method.getName() + " after " + numAttempts + " attempts", ex);
+            } catch (JGitInternalException | GitCliException e) {
+                lastException = e;
+                if (isRepositoryLocked(e)) {
+                    logger.debug("Failed to execute '{}' after '{}' attempts", method.getName(), numAttempts, e);
                     if (numAttempts < maxRetries) {
                         // If the maximum number of retries is not reached, sleep and execute it again
                         long sleep = (long) (Math.random() * maxSleep);
-                        logger.debug("Git operation failed due to the repository being locked. Will wait for " +
-                                     sleep + " before next retry" + method.getName());
+                        logger.debug("Git repository locked, will retry the operation '{}' after '{}' milliseconds",
+                                method.getName(), sleep);
                         Thread.sleep(sleep);
                     }
                 } else {
-                    throw new RetryingOperationErrorException("Failed to execute " + method.getName() + " due to " +
-                                                              "a Git error that does not cause retry attempts", ex);
+                    throw new RetryingOperationErrorException(format("Git operation '%s' has failed",
+                            method.getName()), e);
                 }
             }
         } while (numAttempts < maxRetries);
 
         // If it gets here, numAttempts >= maxRetries, so we should fail entirely
-        throw new RetryingOperationErrorException("Failed to execute " + method.getName() +
-                                                  " due to the Git repository being locked after " +
-                                                  numAttempts + " attempts", lastException);
+        throw new RetryingOperationErrorException(format("Failed to execute '%s' after '%d' attempts " +
+                "because the git repository was locked", method.getName(), numAttempts), lastException);
     }
 
     protected boolean isRepositoryLocked(Throwable ex) {

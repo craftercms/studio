@@ -15,20 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -43,8 +29,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
@@ -59,23 +43,11 @@ import org.craftercms.studio.api.v1.service.workflow.context.GoLiveContext;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v1.service.workflow.context.RequestContext;
 import org.craftercms.studio.api.v1.service.workflow.context.RequestContextBuilder;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.DmDependencyTO;
-import org.craftercms.studio.api.v1.to.DmError;
-import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
-import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
-import org.craftercms.studio.api.v1.to.GoLiveQueue;
-import org.craftercms.studio.api.v1.to.GoLiveQueueChildFilter;
-import org.craftercms.studio.api.v1.to.ResultTO;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v2.dal.WorkflowItem;
-import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
+import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -94,36 +66,21 @@ import org.craftercms.studio.impl.v1.util.GoLiveQueueOrganizer;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE_SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REJECT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REQUEST_PUBLISH;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REJECTION_COMMENT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SUBMISSION_COMMENT;
-import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_WORKFLOW_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_LIVE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_LIVE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
-import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
-import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
-import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_OPENED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
@@ -272,7 +229,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         } catch (Exception e) {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
-            logger.error("Error while submitting content for approval.", e);
+            logger.error("Failed to submit content for approval in site '{}'",
+                    site, e);
         }
         return result;
 
@@ -466,8 +424,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                         itemServiceInternal.deleteItem(site, it.getPath());
                     }
                 } catch (Exception e) {
-                    logger.error("Could not warm cache for [" + site + " : " + it.getPath()
-                            + "] " + e.getMessage());
+                    logger.trace("Failed to warm the cache in site '{}' path '{}'",
+                            site, it.getPath(), e);
                 }
             }
         }
@@ -621,8 +579,8 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                 deploymentService.cancelWorkflow(site, affectedItem);
                 paths.add(affectedItem);
             } catch (DeploymentException e) {
-                logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem
-                        + "], site " + site, e);
+                // TODO: SJ: This can get excessive since it's in a loop. Refactor.
+                logger.trace("Failed to cancel workflow in site '{}' path '{}'", site, affectedItem, e);
             }
         }
         if (CollectionUtils.isNotEmpty(paths)) {
@@ -819,8 +777,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             result.setMessage(notificationService.getNotificationMessage(site,
                     NotificationMessageType.CompleteMessages, responseMessageKey));
         } catch (JSONException | ServiceLayerException e) {
-            logger.error("error performing operation " + operation + " " + e);
-
+            logger.error("Failed to approve workflow in site '{}' operation '{}'", site, operation, e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1019,8 +976,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     responseMessageKey));
 
         } catch (JSONException | ServiceLayerException | UserNotFoundException e) {
-            logger.error("error performing operation " + operation + " " + e);
-
+            logger.error("Failed to approve workflow in site '{}' operation '{}'", site, operation, e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1147,8 +1103,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             result.setMessage(notificationService.getNotificationMessage(site,
                     NotificationMessageType.CompleteMessages,responseMessageKey));
         } catch (JSONException | ServiceLayerException e) {
-            logger.error("error performing operation " + operation + " " + e);
-
+            logger.error("Failed to approve workflow in site '{}' operation '{}'", site, operation, e);
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }
@@ -1866,7 +1821,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     return approve_new(site, request, Operation.GO_LIVE);
                 }
             } catch (RuntimeException e) {
-                logger.error("error making go live", e);
+                logger.error("Failed to publish the site '{}'", site, e);
                 throw e;
             }
         }

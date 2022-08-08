@@ -23,8 +23,8 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -115,8 +115,8 @@ public class UsersController {
 
     private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
-    private UserService userService;
-    private StudioConfiguration studioConfiguration;
+    private final UserService userService;
+    private final StudioConfiguration studioConfiguration;
 
     @ConstructorProperties({"userService", "studioConfiguration"})
     public UsersController(UserService userService, StudioConfiguration studioConfiguration) {
@@ -452,10 +452,10 @@ public class UsersController {
         try {
             userService.forgotPassword(username);
         } catch (UserExternallyManagedException | UserNotFoundException e) {
-            logger.error("Error processing user's forgot password request", e);
+            logger.error("Failed to process forgot password for user '{}'", username, e);
         }
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<String> result = new ResultOne<String>();
+        ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -470,7 +470,7 @@ public class UsersController {
                 changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<User> resultOne = new ResultOne<User>();
+        ResultOne<User> resultOne = new ResultOne<>();
         resultOne.setEntity(RESULT_KEY_USER, result);
         resultOne.setResponse(OK);
         responseBody.setResult(resultOne);
@@ -484,12 +484,12 @@ public class UsersController {
         try {
             TimeUnit.SECONDS.sleep(delay);
         } catch (InterruptedException e) {
-            logger.debug("Interrupted while delaying request by " + delay + " seconds.", e);
+            logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
         }
         User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<User> result = new ResultOne<User>();
+        ResultOne<User> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_USER, user);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -517,7 +517,7 @@ public class UsersController {
         try {
             TimeUnit.SECONDS.sleep(delay);
         } catch (InterruptedException e) {
-            logger.debug("Interrupted while delaying request by " + delay + " seconds.", e);
+            logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
         }
         
         boolean valid = userService.validateToken(token);
@@ -581,7 +581,7 @@ public class UsersController {
             throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
         List<String> permissions = userService.getCurrentUserSitePermissions(site);
 
-        ResultList<String> result = new ResultList<String>();
+        ResultList<String> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
 
@@ -604,7 +604,7 @@ public class UsersController {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserSitePermissions(site, permissionsRequest.getPermissions());
 
-        ResultOne<Map> result = new ResultOne<Map>();
+        ResultOne<Map> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PERMISSIONS, hasPermissions);
 
@@ -624,7 +624,7 @@ public class UsersController {
             throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
         List<String> permissions = userService.getCurrentUserGlobalPermissions();
 
-        ResultList<String> result = new ResultList<String>();
+        ResultList<String> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
 
@@ -646,7 +646,7 @@ public class UsersController {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserGlobalPermissions(permissionsRequest.getPermissions());
 
-        ResultOne<Map> result = new ResultOne<Map>();
+        ResultOne<Map> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PERMISSIONS, hasPermissions);
 

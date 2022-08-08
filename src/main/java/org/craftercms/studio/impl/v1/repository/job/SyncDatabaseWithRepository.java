@@ -19,8 +19,8 @@ package org.craftercms.studio.impl.v1.repository.job;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.springframework.core.task.TaskExecutor;
@@ -36,7 +36,7 @@ public class SyncDatabaseWithRepository {
     public void execute(String site, String lastDbCommitId) {
         if (taskLock.tryLock()) {
             try {
-                logger.debug("Starting Sync Database With Repository Task.");
+                logger.debug("Started the Sync Database with Repository Task.");
                 SyncDatabaseWithRepositoryTask task = new SyncDatabaseWithRepositoryTask(site, lastDbCommitId);
                 taskExecutor.execute(task);
             } finally {
@@ -57,11 +57,11 @@ public class SyncDatabaseWithRepository {
 
         @Override
         public void run() {
-            logger.debug("Start synchronizing database with repository  for site " + site);
+            logger.debug("Started the synchronization of the database with the repository for site '{}'", site);
             try {
                 siteService.syncDatabaseWithRepo(site, lastDbCommitId);
             } catch (ServiceLayerException | UserNotFoundException e) {
-                logger.error("Error while syncing database with repository", e);
+                logger.error("Error syncing the database with the repository for site '{}'", site, e);
             }
         }
     }

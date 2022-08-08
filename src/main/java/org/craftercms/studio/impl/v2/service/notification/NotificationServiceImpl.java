@@ -47,8 +47,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -137,8 +137,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToPublish);
             notify(site, notificationConfig.getDeploymentFailureNotifications(), NOTIFICATION_KEY_DEPLOYMENT_ERROR,
                     templateModel);
-        } catch (Throwable ex) {
-            logger.error("Unable to Notify Error", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send publishing error notification for site '{}'", site, e);
         }
     }
 
@@ -166,8 +166,8 @@ public class NotificationServiceImpl implements NotificationService {
                     null : Date.from(scheduleDate.toInstant()));
             notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
-        } catch (Throwable ex) {
-            logger.error("Unable to Notify Content Approval", ex);
+        } catch (Throwable e) {
+            logger.warn("Failed to send content approval notification for site '{}'", site, e.getMessage());
         }
     }
 
@@ -195,8 +195,8 @@ public class NotificationServiceImpl implements NotificationService {
                     message = getCannedMessage(notificationConfig.getCannedMessages(), key);
                     break;
                 default:
-                    logger.error("Requested notification message bundle not recognized: site: {0}, type: {1}," +
-                        "key: {2}.", site, type.toString(), key);
+                    logger.error("Unknown notification message bundle type '{}' key '{}' for site '{}'",
+                            type, key, site);
                     break;
             }
             if (message != null) {
@@ -207,9 +207,9 @@ public class NotificationServiceImpl implements NotificationService {
                 model.put(SITE_NAME, site);
                 return processMessage(key, message, model);
             }
-        } catch (Exception ex) {
-            logger.error("Unable to get notification message from notification configuration for site: {0} type: {1}"
-                + " key: {2}.", ex, site, type, key);
+        } catch (Throwable e) {
+            logger.error("Failed to get notification message from the notification configuration in site '{}' " +
+                    "type '{}' key '{}'", site, type, key, e);
             return EMPTY;
         }
         return EMPTY;
@@ -248,8 +248,8 @@ public class NotificationServiceImpl implements NotificationService {
             } else {
                 notify(site, usersToNotify, NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, templateModel);
             }
-        } catch (Throwable ex) {
-            logger.error("Unable to notify content submission", ex);
+        } catch (Throwable e) {
+            logger.warn("Failed to send content submission notification for site '{}'", site, e.getMessage());
         }
     }
 
@@ -274,10 +274,10 @@ public class NotificationServiceImpl implements NotificationService {
                 final String subject = processMessage(key, emailTemplate.getSubject(), templateModel);
                 sendEmail(messageBody, subject, toUsers);
             } else {
-                logger.error("Unable to find " + key );
+                logger.error("Failed to find key '{}' in site '{}'", key, site);
             }
-        } catch (Throwable ex) {
-            logger.error("Unable to notify ", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send notification with key '{}' for site '{}'", key, site, e);
         }
     }
 
@@ -290,8 +290,8 @@ public class NotificationServiceImpl implements NotificationService {
                 namedParams.add(new ImmutablePair<>(paramKey, params.get(paramKey)));
             }
             notify(site, toUsers, key, namedParams.toArray(new Pair[params.size()]));
-        } catch (Throwable ex) {
-            logger.error("Unable to notify", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to send notification with key '{}' for site '{}'", key, site, e);
         }
     }
 
@@ -308,14 +308,14 @@ public class NotificationServiceImpl implements NotificationService {
                 Map<String, Object> userProfile = null;
                 try {
                     userProfile = securityService.getUserProfile(submittedBy);
-
                 } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.debug("User not found by username " + submittedBy);
+                    logger.debug("Username '{}' was not found while trying to send notification in site '{}'",
+                            submittedBy, site);
                     try {
                         userProfile = securityService.getUserProfileByGitName(submittedBy);
-                    } catch (ServiceLayerException | UserNotFoundException ex) {
-                        logger.debug("Didn't find user " + submittedBy + ". Notification will not be sent " +
-                                "to that user.", ex);
+                    } catch (ServiceLayerException | UserNotFoundException e2) {
+                        logger.error("Failed to notify the user '{}' because the user was not found for " +
+                                        "site '{}'", submittedBy, site, e2);
                     }
                 }
                 if (Objects.nonNull(userProfile)) {
@@ -331,11 +331,11 @@ public class NotificationServiceImpl implements NotificationService {
                         .collect(Collectors.toList());
                 notify(site, emails, NOTIFICATION_KEY_CONTENT_REJECTED, templateModel);
             } else {
-                logger.info("Unable to notify content rejection. User(s) " +
-                        StringUtils.join(submittedByList, ", ") + " not found.");
+                logger.info("Failed to send content rejection notification because the user(s) '{}' were not found " +
+                                "for site '{}'", submittedByList, site);
             }
-        } catch (Exception ex) {
-            logger.error("Unable to notify content rejection", ex);
+        } catch (Exception e) {
+            logger.error("Failed to send content rejection notification for site '{}'", site, e);
         }
     }
 
@@ -347,7 +347,8 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationConfigTO config = cache.getIfPresent(cacheKey);
             if (Objects.isNull(config)) {
-                logger.debug("Cache miss {0}", cacheKey);
+                logger.debug("Cache miss for key '{}' while loading notification config in site '{}'",
+                        cacheKey, site);
 
                 config = new NotificationConfigTO();
                 Document document =
@@ -370,14 +371,16 @@ public class NotificationServiceImpl implements NotificationService {
                     loadEmailList(site, (Element)root.selectSingleNode(DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION),
                             config.getRepositoryMergeConflictNotifications());
                 } else {
-                    logger.info("Unable to execute against a non-XML-element: " + root.getUniquePath());
+                    logger.info("Failed to execute against non-XML-element '{}' in site '{}'",
+                            root.getUniquePath(), site);
                 }
 
                 cache.put(cacheKey, config);
             }
             return config;
         } catch (Exception e) {
-            logger.error("Unable to read or load notification '" + getConfigPath() + "' configuration for " + site, e);
+            logger.error("Failed to load notification configuration for site '{}' from path '{}'",
+                    site, getConfigPath(), e);
             return null;
         }
     }
@@ -397,7 +400,7 @@ public class NotificationServiceImpl implements NotificationService {
                 deploymentFailureNotifications.add(servicesConfig.getAdminEmailAddress(site));
             }
         } else {
-            logger.error("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load email list in site '{}'", site);
         }
     }
 
@@ -411,10 +414,10 @@ public class NotificationServiceImpl implements NotificationService {
                     messageContainer.put(messageKey, messageText);
                 }
             } else {
-                logger.error("completed Messages is empty");
+                logger.error("Failed to load generic messages");
             }
         } else {
-            logger.error("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load generic messages, the email template element was not found");
         }
     }
 
@@ -432,14 +435,14 @@ public class NotificationServiceImpl implements NotificationService {
                                 new EmailMessageTemplateTO(subjectNode.getText(), bodyNode.getText());
                         messageContainer.put(messageKey, emailMessageTemplateTO);
                     } else {
-                        logger.error("Email message malformed");
+                        logger.error("Failed to load email templates, message malformed");
                     }
                 }
             } else {
-                logger.error("completed Messages is empty");
+                logger.error("Failed to load email templates, messages element is empty");
             }
         } else {
-            logger.error("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load email templates, the email template element was not found");
         }
     }
 
@@ -459,10 +462,10 @@ public class NotificationServiceImpl implements NotificationService {
                     messageTOs.add(new MessageTO(messageTitle, messageContent, messageKey));
                 }
             } else {
-                logger.error("completed Messages is empty");
+                logger.error("Failed to load canned messages, the messages field is empty");
             }
         } else {
-            logger.error("Unable to read completed Messages (they don't exist)");
+            logger.error("Failed to load canned messages, the email template element was not found");
         }
     }
 
@@ -483,8 +486,8 @@ public class NotificationServiceImpl implements NotificationService {
             Template t = new Template(templateName, new StringReader(message), configuration);
             t.process(templateModel, out);
             return out.toString();
-        } catch (TemplateException | IOException ex) {
-            logger.error("Unable to process notification message " + templateName, ex);
+        } catch (TemplateException | IOException e) {
+            logger.error("Failed to process notification message with template '{}'", templateName, e);
         }
         return null;
     }
@@ -507,8 +510,8 @@ public class NotificationServiceImpl implements NotificationService {
             templateModel.put(TEMPLATE_MODEL_FILES, filesUnableToMerge);
             notify(site, notificationConfig.getRepositoryMergeConflictNotifications(),
                     NOTIFICATION_KEY_REPOSITORY_MERGE_CONFLICT, templateModel);
-        } catch (Throwable ex) {
-            logger.error("Unable to Notify Error", ex);
+        } catch (Throwable e) {
+            logger.error("Failed to notify on repository merge conflict in site '{}'", site, e);
         }
     }
 

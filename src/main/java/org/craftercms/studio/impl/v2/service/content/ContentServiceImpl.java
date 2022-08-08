@@ -73,10 +73,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SIT
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 import static java.lang.String.format;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
 
@@ -195,8 +193,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @ValidateParams
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(notEmpty = true) String siteId,
-                        @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
+                        @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ValidateStringParam(notEmpty = true) String path, boolean flatten)
             throws SiteNotFoundException, ContentNotFoundException {
         siteService.checkSiteExists(siteId);
 
@@ -258,23 +257,23 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public void unlockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException {
-        logger.debug("Trying to unlock item at {} in site {}", path, siteId);
+        logger.debug("Unlock item in site '{}' path '{}'", siteId, path);
         generalLockService.lockContentItem(siteId, path);
         try {
             var item = itemServiceInternal.getItem(siteId, path);
             if (Objects.nonNull(item)) {
                 if (StringUtils.isEmpty(item.getLockOwner())) {
-                    logger.debug("Item at {} in site {} is already unlocked", path, siteId);
+                    logger.debug("Item in site '{}' path '{}' is already unlocked", siteId, path);
                     throw new ContentAlreadyUnlockedException();
                 } else {
                     contentServiceInternal.itemUnlockByPath(siteId, path);
                     itemServiceInternal.unlockItemByPath(siteId, path);
-                    logger.debug("Item at {} in site {} successfully unlocked", path, siteId);
+                    logger.debug("Item in site '{}' path '{}' successfully unlocked", siteId, path);
                     applicationContext.publishEvent(
                             new LockContentEvent(securityService.getAuthentication(), siteId, path, false));
                 }
             } else {
-                logger.debug("Item not found at {} in site {}", path, siteId);
+                logger.debug("Item not found in site '{}' path '{}'", siteId, path);
                 throw new ContentNotFoundException();
             }
         } finally {

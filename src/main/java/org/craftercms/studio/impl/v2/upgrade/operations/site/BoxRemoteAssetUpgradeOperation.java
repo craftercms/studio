@@ -19,8 +19,8 @@ package org.craftercms.studio.impl.v2.upgrade.operations.site;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.w3c.dom.Document;
@@ -134,14 +134,14 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
             Path formDefinition = getFormDefinition(context, contentTypeName);
             Document definition = loadDocument(formDefinition);
             NodeList formFields = (NodeList) select(definition, fieldNameXpath, XPathConstants.NODESET);
-            logger.debug("Found {0} Box controls for content-type {1}", formFields.getLength(), contentTypeName);
+            logger.debug("Found '{}' Box controls for content-type '{}'", formFields.getLength(), contentTypeName);
             boolean updated = false;
             for(int i = 0; i < formFields.getLength(); i++) {
                 Node formField = formFields.item(i);
                 updated = findFields(file, definition, descriptor, formField) || updated;
             }
             if(updated) {
-                logger.info("Updating file {0}", file);
+                logger.info("Update the file '{}'", file);
                 writeFile(file, descriptor);
             }
 
@@ -170,7 +170,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
 
         NodeList items = (NodeList) select(descriptor, replace(itemXpath, idValue), XPathConstants.NODESET);
 
-        logger.debug("Found {0} Box fields in file {1}", items.getLength(), file);
+        logger.debug("Found '{}' Box fields in the file '{}'", items.getLength(), file);
 
         boolean updated = false;
 
@@ -197,7 +197,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
         String fileName = (String) select(item, itemNameXpath, XPathConstants.STRING);
 
         if((Boolean) select(item, urlElementName, XPathConstants.BOOLEAN)) {
-            logger.info("Field {0}/{1} already has a {2} element, it will not be updated",
+            logger.info("Field '{}'/'{}' already has a '{}' element, it will not be updated",
                 fieldName, fileId, urlElementName);
         } else {
             Map<String, String> values = new HashMap<>();
@@ -206,7 +206,7 @@ public class BoxRemoteAssetUpgradeOperation extends AbstractContentTypeUpgradeOp
             values.put(PLACEHOLDER_EXTENSION, FilenameUtils.getExtension(fileName));
 
             String urlValue = replace(urlTemplate, values);
-            logger.debug("Adding url element for field {0}/{1} with value {2}",
+            logger.debug("Add the URL element for field '{}'/'{}' with value '{}'",
                 fieldName, fileId, urlValue);
 
             Element urlNode = descriptor.createElement(urlElementName);

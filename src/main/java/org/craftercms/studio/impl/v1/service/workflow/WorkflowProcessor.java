@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.impl.v1.service.workflow;
 
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -34,7 +34,7 @@ public class WorkflowProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowProcessor.class);
 
-    protected Set<String> inflightItems = new HashSet<String>();
+    protected Set<String> inflightItems = new HashSet<>();
 
     protected DmPublishService dmPublishService;
     protected ItemServiceInternal itemServiceInternal;
@@ -44,14 +44,14 @@ public class WorkflowProcessor {
     }
 
     /**
-     * $ToDO get Rid of Rename dependencies on label
+     * Add items to workflow
      *
-     * @param site
-     * @param paths
-     * @param launchDate
-     * @param label
+     * @param site the site
+     * @param paths paths to items to add
+     * @param launchDate date and time when items are to go live
+     * @param label the label to use for submission
      * @param operation
-     * @param approvedBy
+     * @param approvedBy username of the user that approved the submission
      */
     public synchronized void addToWorkflow(String site, List<String> paths, ZonedDateTime launchDate,
                                            String label, SubmitLifeCycleOperation operation, String approvedBy,
@@ -72,7 +72,7 @@ public class WorkflowProcessor {
     }
 
     protected void execute(String site, WorkflowBatch workflowBatch) {
-        logger.debug("[WORKFLOW] executing Go Live Processor for " + site);
+        logger.debug("Execute the Go Live Processor in site '{}'", site);
 
         try {
             try {
@@ -82,9 +82,9 @@ public class WorkflowProcessor {
                         preSubmitOperation.execute();
                     }
                 }
-                logger.debug("[WORKFLOW] submitting " + workflowBatch.getPaths() + " to workflow");
+                logger.debug("Submit the paths '{}' to workflow in site '{}'", workflowBatch.getPaths(), site);
                 if (!workflowBatch.getPaths().isEmpty()) {
-                    dmPublishService.publish(site, new ArrayList<String>(workflowBatch.getPaths()),
+                    dmPublishService.publish(site, new ArrayList<>(workflowBatch.getPaths()),
                             workflowBatch.getLaunchDate(), workflowBatch.getMultiChannelPublishingContext());
                 }
 
@@ -93,23 +93,19 @@ public class WorkflowProcessor {
             }
         } catch (Exception e) {
             this.inflightItems.removeAll(workflowBatch.getPaths());
-            logger.debug("Rolling Back states of "+workflowBatch.getPaths());
+            logger.error("Failed to add the paths '{}' to workflow in site '{}'. Will rollback the item states.",
+                    workflowBatch.getPaths(), site, e);
             rollbackOnError(site,workflowBatch.getPaths());
-            logger.error("[WORKFLOW] Error submitting workflow", e);
         }
-        logger.debug("[WORKFLOW] exiting Go Live Processor for " + site);
+        logger.debug("Go Live processor finished executing in site '{}'", site);
 
     }
     
 	private void rollbackOnError(String site, Set<String> allPaths) {
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
         paths.addAll(allPaths);
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
 	}
-
-    public DmPublishService getDmPublishService() {
-        return dmPublishService;
-    }
 
     public void setDmPublishService(DmPublishService dmPublishService) {
         this.dmPublishService = dmPublishService;

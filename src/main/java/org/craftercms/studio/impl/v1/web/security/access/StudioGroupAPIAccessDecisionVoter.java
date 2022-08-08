@@ -21,8 +21,8 @@ import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.ConfigAttribute;
@@ -82,8 +82,8 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                     }
                     is.reset();
                 } catch (IOException | JSONException e) {
-                    // TODO: ??
-                    logger.debug("Failed to extract username from POST request");
+                    // TODO: SJ: Why isn't this at least INFO if not WARN?
+                    logger.debug("Failed to extract the username from the POST request", e);
                 }
             }
             switch (requestUri) {
@@ -116,7 +116,7 @@ public class StudioGroupAPIAccessDecisionVoter extends StudioAbstractAccessDecis
                     break;
             }
         }
-        logger.debug("Request: " + requestUri + " - Access: " + toRet);
+        logger.trace("The request with URL '{}' has access '{}'", requestUri, toRet);
         return toRet;
     }
 

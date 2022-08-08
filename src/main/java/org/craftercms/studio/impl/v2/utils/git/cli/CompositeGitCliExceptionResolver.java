@@ -30,7 +30,7 @@ import java.util.Collection;
  */
 public class CompositeGitCliExceptionResolver implements GitCliOutputExceptionResolver {
 
-    private Collection<GitCliOutputExceptionResolver> resolvers;
+    private final Collection<GitCliOutputExceptionResolver> resolvers;
 
     public CompositeGitCliExceptionResolver(Collection<GitCliOutputExceptionResolver> resolvers) {
         this.resolvers = resolvers;

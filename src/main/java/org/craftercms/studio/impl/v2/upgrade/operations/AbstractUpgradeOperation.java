@@ -20,8 +20,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.springframework.core.io.Resource;
@@ -125,7 +125,7 @@ public abstract class AbstractUpgradeOperation extends
             changedFiles = new LinkedList<>();
         }
 
-        logger.debug("Tracking changed files: {0}", Arrays.toString(files));
+        logger.debug("Track changed files '{}'", Arrays.toString(files));
         changedFiles.addAll(Arrays.asList(files));
     }
 
@@ -134,17 +134,17 @@ public abstract class AbstractUpgradeOperation extends
             deletedFiles = new LinkedList<>();
         }
 
-        logger.debug("Tracking deleted files: {0}", Arrays.toString(files));
+        logger.debug("Track deleted files '{}'", Arrays.toString(files));
         deletedFiles.addAll(Arrays.asList(files));
     }
 
     protected void commitAllChanges(StudioUpgradeContext context) throws Exception {
         if (isEmpty(changedFiles) && isEmpty(deletedFiles)) {
-            logger.debug("No changes pending to commit");
+            logger.debug("No pending changes to commit");
             return;
         }
 
-        logger.debug("Committing tracked files");
+        logger.debug("Commit tracked files");
         context.commitChanges(getCommitMessage(), changedFiles, deletedFiles);
     }
 

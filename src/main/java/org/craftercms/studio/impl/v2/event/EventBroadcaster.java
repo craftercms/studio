@@ -40,7 +40,7 @@ public class EventBroadcaster {
 
     @EventListener
     public void publishEvent(BroadcastEvent event) {
-        logger.debug("Broadcasting event {}", event);
+        logger.debug("Broadcast event '{}'", event);
         long startTime = System.currentTimeMillis();
         String destination = DESTINATION_ROOT;
         if (event instanceof SiteAwareEvent) {
@@ -49,7 +49,7 @@ public class EventBroadcaster {
         messagingTemplate.convertAndSend(destination, event);
         if (logger.isTraceEnabled()) {
             long total = System.currentTimeMillis() - startTime;
-            logger.trace("Broadcast of event {} took {} ms", event, total);
+            logger.trace("Broadcast of event '{}' took '{}' milliseconds", event, total);
         }
     }
 

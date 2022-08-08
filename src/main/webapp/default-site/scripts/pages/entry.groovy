@@ -16,7 +16,7 @@
 
 
 import org.apache.commons.text.StringEscapeUtils
-import org.craftercms.studio.api.v1.log.LoggerFactory
+import org.slf4j.LoggerFactory
 import scripts.api.SecurityServices
 import scripts.libs.EnvironmentOverrides
 

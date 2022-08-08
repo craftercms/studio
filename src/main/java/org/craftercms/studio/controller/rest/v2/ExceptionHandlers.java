@@ -42,13 +42,13 @@ import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
-import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
@@ -57,6 +57,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.slf4j.event.Level;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -73,11 +74,9 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.NoSuchElementException;
 
-import static org.craftercms.studio.api.v1.log.Logger.LEVEL_DEBUG;
-import static org.craftercms.studio.api.v1.log.Logger.LEVEL_ERROR;
-import static org.craftercms.studio.api.v1.log.Logger.LEVEL_INFO;
-import static org.craftercms.studio.api.v1.log.Logger.LEVEL_WARN;
+import static java.lang.String.format;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
+import static org.slf4j.event.Level.*;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -315,7 +314,7 @@ public class ExceptionHandlers {
     public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
                                                                   PasswordRequirementsFailedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
-        return handleExceptionInternal(request, e, response, LEVEL_DEBUG);
+        return handleExceptionInternal(request, e, response, DEBUG);
     }
 
     @ExceptionHandler(PasswordDoesNotMatchException.class)
@@ -339,7 +338,7 @@ public class ExceptionHandlers {
     public ResponseBody handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
-            String.format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+            format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -357,7 +356,7 @@ public class ExceptionHandlers {
                                                                       MissingServletRequestParameterException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
         response.setRemedialAction(
-            String.format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
+            format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -484,27 +483,27 @@ public class ExceptionHandlers {
     }
 
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response) {
-        return handleExceptionInternal(request, e, response, LEVEL_ERROR);
+        return handleExceptionInternal(request, e, response, ERROR);
     }
 
     protected ResponseBody handleExceptionInternal(HttpServletRequest request, Exception e, ApiResponse response,
-                                                   String logLevel) {
+                                                   Level logLevel) {
         switch (logLevel) {
-            case LEVEL_DEBUG:
-                logger.debug("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
-                        " failed with response: " + response);
+            case DEBUG:
+                logger.debug("API endpoint '{}' failed with response '{}'",
+                        HttpUtils.getFullRequestUri(request, true), response, e);
                 break;
-            case LEVEL_WARN:
-                logger.warn("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
-                        " failed with response: " + response);
+            case WARN:
+                logger.warn("API endpoint '{}' failed with response '{}'",
+                        HttpUtils.getFullRequestUri(request, true), response, e);
                 break;
-            case LEVEL_INFO:
-                logger.info("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
-                        " failed with response: " + response);
+            case INFO:
+                logger.info("API endpoint '{}' failed with response '{}'",
+                        HttpUtils.getFullRequestUri(request, true), response, e);
                 break;
-            case LEVEL_ERROR:
-                logger.error("API endpoint " + HttpUtils.getFullRequestUri(request, true) +
-                        " failed with response: " + response, e);
+            case ERROR:
+                logger.error("API endpoint '{}' failed with response '{}'",
+                        HttpUtils.getFullRequestUri(request, true), response, e);
                 break;
             default:
                 break;

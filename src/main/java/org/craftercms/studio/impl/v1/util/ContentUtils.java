@@ -15,10 +15,11 @@
  */
 package org.craftercms.studio.impl.v1.util;
 
+import com.mchange.v1.util.ClosableResource;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
@@ -35,54 +36,19 @@ public class ContentUtils {
 	private static final Logger logger = LoggerFactory.getLogger(ContentUtils.class);
 
     /**
-     * release resource
+     * Release a resource
      *
-     * @param in
+     * @param resource resource to close
      */
-    public static void release(InputStream in) {
+    public static void release(Closeable resource) {
         try {
-            if (in != null) {
-                in.close();
+            if (resource != null) {
+				resource.close();
             }
         } catch (IOException e) {
-            logger.error("Failed to release a resource.", e);
+            logger.error("Failed to release resource", e);
         } finally {
-            IOUtils.closeQuietly(in);
-        }
-    }
-
-    /**
-     * release resource
-     *
-     * @param out
-     */
-    public static void release(OutputStream out) {
-        try {
-            if (out != null) {
-                out.close();
-            }
-        } catch (IOException e) {
-            logger.error("Failed to relase a resource.", e);
-        } finally {
-            IOUtils.closeQuietly(out);
-        }
-    }
-
-
-    /**
-     * release a reader
-     *
-     * @param reader
-     */
-    public static void release(Reader reader) {
-        try {
-            if (reader != null) {
-                reader.close();
-            }
-        } catch (IOException e) {
-            logger.error("Failed to release a reader.", e);
-        } finally {
-            IOUtils.closeQuietly(reader);
+            IOUtils.closeQuietly(resource);
         }
     }
 
@@ -101,18 +67,19 @@ public class ContentUtils {
 				saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
 				saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
 				saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				// TODO: SJ: Investigate the need for the following
+				// TODO: SJ: saxReader.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				// TODO: SJ: saxReader.setXIncludeAware(false);
+				// TODO: SJ: saxReader.setExpandEntityReferences(false);
 				saxReader.setMergeAdjacentText(true);
-			} catch (SAXException ex){
-				logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+			} catch (SAXException e){
+				logger.error("Failed to turn off external entity loading. This could be a security risk.", e);
 			}
 			return saxReader.read(isReader);
-		} catch (DocumentException e) {
-				logger.error("Error while coverting stream to XML", e);
+		} catch (DocumentException | UnsupportedEncodingException e) {
+				logger.error("Failed to parse XML document", e);
 			return null;
-		} catch (UnsupportedEncodingException e) {
-            logger.error("Error while coverting stream to XML", e);
-            return null;
-        } finally {
+		} finally {
             ContentUtils.release(is);
             ContentUtils.release(isReader);
         }
@@ -135,7 +102,7 @@ public class ContentUtils {
 	}
 
 	/**
-	 * Returns the page name part (eg.index.xml) of a given URL
+	 * Returns the page name part (e.g.index.xml) of a given URL
 	 *
 	 * @param url
 	 * @return page name
@@ -156,11 +123,8 @@ public class ContentUtils {
 		try {
 			return new ByteArrayInputStream(
 					(XmlUtils.convertDocumentToString(document)).getBytes(encoding));
-		} catch (UnsupportedEncodingException e) {
-			logger.error("Failed to convert document to stream with encoding: " + encoding, e);
-			return null;
 		} catch (IOException e) {
-			logger.error("Failed to convert document to stream with encoding: " + encoding, e);
+			logger.error("Failed to convert XML document to String with encoding '{}'", encoding, e);
 			return null;
 		}
 	}

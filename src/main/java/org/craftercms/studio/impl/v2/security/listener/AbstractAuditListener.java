@@ -15,10 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.security.listener;
 
+import org.apache.commons.lang.StringUtils;
 import org.craftercms.commons.http.RequestContext;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -37,6 +38,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
  */
 public abstract class AbstractAuditListener {
 
+    private static final int MAX_USERNAME_LENGTH = 255;
+
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     protected final StudioConfiguration studioConfiguration;
@@ -52,7 +55,7 @@ public abstract class AbstractAuditListener {
 
     protected void recordAuthenticationEvent(String operation, AbstractAuthenticationEvent event, String message) {
         try {
-            var username = event.getAuthentication().getName();
+            var username = StringUtils.substring(event.getAuthentication().getName(), 0, MAX_USERNAME_LENGTH);
             var site = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(operation);

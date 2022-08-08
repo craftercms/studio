@@ -24,9 +24,9 @@ import java.util.*;
 
 public class WorkflowBatch {
 
-    protected Set<String> paths = new HashSet<String>();
+    protected Set<String> paths = new HashSet<>();
 
-    protected List<SubmitLifeCycleOperation> preSubmitOperations = new ArrayList<SubmitLifeCycleOperation>();
+    protected List<SubmitLifeCycleOperation> preSubmitOperations = new ArrayList<>();
 
     protected ZonedDateTime launchDate;
 
@@ -65,14 +65,6 @@ public class WorkflowBatch {
 
     public void setLabel(String label) {
         this.label = label;
-    }
-
-    public String getApprovedBy() {
-        return approvedBy;
-    }
-
-    public void setApprovedBy(String approvedBy) {
-        this.approvedBy = approvedBy;
     }
 
     public void addOperation(SubmitLifeCycleOperation preSubmitOperation) {

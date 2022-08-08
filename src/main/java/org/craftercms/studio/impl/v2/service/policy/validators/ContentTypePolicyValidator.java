@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-
 /**
  * Implementation of {@link PolicyValidator} for content-type aware actions
  *

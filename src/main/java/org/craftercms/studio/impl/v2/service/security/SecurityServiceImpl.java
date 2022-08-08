@@ -22,8 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -69,7 +69,7 @@ public class SecurityServiceImpl implements SecurityService {
         String key = siteId + ":" + CACHE_KEY + username;
         List<String> permissions = (List<String>) configurationCache.getIfPresent(key);
         if (isEmpty(permissions)) {
-            logger.debug("Cache miss for {0}", key);
+            logger.debug("Cache miss for key '{}'", key);
             permissions = loadUserPermission(siteId, roles);
             configurationCache.put(key, permissions);
         }
@@ -79,7 +79,7 @@ public class SecurityServiceImpl implements SecurityService {
     private List<String> loadUserPermission(String siteId, List<String> roles) {
         Set<String> permissions;
         String configPath;
-        List<String> toRet = new ArrayList<String>();
+        List<String> toRet = new ArrayList<>();
         if (StringUtils.isNotEmpty(siteId)) {
             configPath = studioConfiguration.getProperty(CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME);
             permissions = getPermissionsFromConfig(siteId, configPath, roles);
@@ -98,7 +98,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     private Set<String> getPermissionsFromConfig(String siteId, String configPath, List<String> roles) {
         Document document = null;
-        Set<String> permissions = new HashSet<String>();
+        Set<String> permissions = new HashSet<>();
         try {
             if (StringUtils.isEmpty(siteId)) {
                 document = configurationService.getGlobalConfigurationAsDocument(configPath);
@@ -107,7 +107,7 @@ public class SecurityServiceImpl implements SecurityService {
                         studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             }
         } catch (ServiceLayerException e) {
-            logger.error("Permission mapping not found for " + siteId + ":" + configPath);
+            logger.error("Permission mapping not found in site '{}' path '{}'", siteId, configPath);
         }
         if (Objects.nonNull(document)) {
             Element root = document.getRootElement();
@@ -140,10 +140,6 @@ public class SecurityServiceImpl implements SecurityService {
         return permissions;
     }
 
-    public AvailableActionsResolver getAvailableActionsResolver() {
-        return availableActionsResolver;
-    }
-
     public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {
         this.availableActionsResolver = availableActionsResolver;
     }
@@ -162,10 +158,6 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public Cache<String, Object> getConfigurationCache() {
-        return configurationCache;
     }
 
     public void setConfigurationCache(Cache<String, Object> configurationCache) {

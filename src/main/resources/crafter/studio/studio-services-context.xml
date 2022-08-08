@@ -31,11 +31,6 @@
 
     <aop:aspectj-autoproxy proxy-target-class="true"/>
 
-    <!-- ////////////////////////////////////// -->
-    <!--         logging                        -->
-    <!-- ////////////////////////////////////// -->
-    <bean id="cstudioLogProvider" class="org.craftercms.studio.impl.v1.log.l4j.L4jLogProvider" init-method="init"/>
-
     <bean id="repositoryStartupCleanup" class="org.craftercms.studio.impl.v2.repository.RepositoryStartupCleanup">
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
@@ -132,16 +127,6 @@
         <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-    </bean>
-
-    <bean id="cstudioImportService" class="org.craftercms.studio.impl.v1.service.content.ImportServiceImpl">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="contentRepository" ref="contentRepository"/>
-        <property name="contentService" ref="cstudioContentService"/>
-        <property name="dmPublishService" ref="cstudioDmPublishService"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -1409,7 +1394,7 @@
     </bean>
 
     <bean id="studioConfiguration" class="org.craftercms.studio.impl.v2.utils.StudioConfigurationImpl"
-          init-method="init"  depends-on="cstudioLogProvider">
+          init-method="init">
         <constructor-arg name="configurationCache" ref="configurationCache"/>
         <constructor-arg name="configLocation" value="crafter/studio/studio-config.yaml"/>
     </bean>

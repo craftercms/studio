@@ -20,8 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
@@ -56,23 +56,19 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
     @Override
     protected void executeInternal(String site) {
         try {
-            try {
-                logger.debug("Executing sync repository thread ID = " + threadCounter + "; " +
-                        Thread.currentThread().getId());
-                String siteState = siteService.getSiteState(site);
-                if (StringUtils.equals(siteState, STATE_READY)) {
-                    syncRepository(site);
-                }
-            } catch (Exception e) {
-                logger.error("Failed to sync database from repository for site " + site, e);
+            logger.debug("Execute sync repository thread counter '{}' ID '{}'", threadCounter,
+                    Thread.currentThread().getId());
+            String siteState = siteService.getSiteState(site);
+            if (StringUtils.equals(siteState, STATE_READY)) {
+                syncRepository(site);
             }
         } catch (Exception e) {
-            logger.error("Failed to sync database from repository for site " + site, e);
+            logger.error("Failed to sync the database from the repository in site '{}'", site, e);
         }
     }
 
-    private void syncRepository(String site) throws ServiceLayerException, IOException, UserNotFoundException {
-        logger.debug("Getting last verified commit for site: " + site);
+    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
+        logger.debug("Get the last verified commit ID for site '{}'", site);
         SiteFeed siteFeed = siteService.getSite(site);
         if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
@@ -88,8 +84,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
                             contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                         }
                     } else {
-                        logger.debug("Syncing database with repository for site " + site + " from last processed commit "
-                                + lastProcessedCommit);
+                        logger.debug("Sync the database with the repository in site '{}' from the " +
+                                        "last processed commit '{}'", site, lastProcessedCommit);
                         List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
                         if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
                             siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
@@ -99,10 +95,10 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
 
                             // Sync all preview deployers
                             try {
-                                logger.debug("Sync preview for site " + site);
+                                logger.debug("Sync preview for site '{}'", site);
                                 applicationContext.publishEvent(new RepositoryEvent(site));
                             } catch (Exception e) {
-                                logger.error("Error synchronizing preview with repository for site: " + site, e);
+                                logger.error("Failed to sync preview for site '{}'", site, e);
                             }
                         } else {
                             GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
@@ -120,6 +116,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
     }
 
     private boolean checkSiteUuid(String siteId, String siteUuid) {
+        // TODO: SJ: This may be a duplicate of StudioClockExecutor::checkSiteUuid
         boolean toRet = false;
         try {
             Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
@@ -132,7 +129,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask implements Applica
                 }
             }
         } catch (IOException e) {
-            logger.info("Invalid site UUID for site " + siteId + " . Local copy will not be deleted");
+            logger.info("Invalid site UUID in site '{}'. The local copy will not be deleted", siteId);
         }
         return toRet;
     }

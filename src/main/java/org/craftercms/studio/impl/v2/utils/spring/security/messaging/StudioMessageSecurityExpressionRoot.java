@@ -68,7 +68,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
             List<Group> userGroups = userServiceInternal.getUserGroups(-1, authentication.getName());
             return containsSystemAdminGroup(userGroups);
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error checking groups for user {}", authentication.getName(), e);
+            logger.error("Failed to check the groups for user '{}'", authentication.getName(), e);
         }
         return false;
     }
@@ -90,7 +90,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
                         .anyMatch(siteGroups::contains);
             }
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Error checking groups for user {} in site {}", authentication.getName(), siteId, e);
+            logger.error("Failed to check the groups for user '{}' in site '{}'", authentication.getName(), siteId, e);
         }
         return false;
     }

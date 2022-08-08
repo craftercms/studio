@@ -25,6 +25,8 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -58,6 +60,7 @@ import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
+    // TODO: SJ: Add logging to this class
 
     public final static String INTERNAL_NAME = "//internal-name";
     public final static String CONTENT_TYPE = "//content-type";

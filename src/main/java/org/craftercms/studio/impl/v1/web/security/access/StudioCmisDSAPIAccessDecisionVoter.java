@@ -16,8 +16,8 @@
 
 package org.craftercms.studio.impl.v1.web.security.access;
 
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.User;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.core.Authentication;
@@ -71,7 +71,7 @@ public class StudioCmisDSAPIAccessDecisionVoter extends StudioAbstractAccessDeci
                     break;
             }
         }
-        logger.debug("Request: " + requestUri + " - Access: " + toRet);
+        logger.trace("Request URL '{}' resulted in access '{}'", requestUri, toRet);
         return toRet;
     }
 

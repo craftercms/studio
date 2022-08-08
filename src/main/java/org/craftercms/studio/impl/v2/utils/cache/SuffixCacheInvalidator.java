@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.utils.cache;
 
 import com.google.common.cache.Cache;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 
 import java.beans.ConstructorProperties;
@@ -64,7 +64,7 @@ public class SuffixCacheInvalidator<K extends String, V> implements CacheInvalid
     public void invalidate(Cache<K, V> cache, K key) {
         if (!endsWithIgnoreCase(key, separator + suffix)) {
             var newKey = key + separator + suffix;
-            logger.debug("Invalidating cache for {0}", newKey);
+            logger.debug("Invalidate the cache for key '{}'", newKey);
             cache.invalidate(newKey);
         }
     }

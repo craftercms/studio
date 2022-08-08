@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_BULK_OPERATIONS_BATCH_SIZE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.OBJECT_STATE_BULK_OPERATIONS_BATCH_SIZE;
 
 public class StudioUtils {
 
@@ -34,7 +33,7 @@ public class StudioUtils {
     private StudioConfiguration studioConfiguration;
 
     public List<String> getEnvironmentNames(String siteId) {
-        List<String> toRet = new ArrayList<String>();
+        List<String> toRet = new ArrayList<>();
         toRet.add(servicesConfig.getLiveEnvironment(siteId));
         if (servicesConfig.isStagingEnvironmentEnabled(siteId)) {
             toRet.add(servicesConfig.getStagingEnvironment(siteId));

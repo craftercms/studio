@@ -31,8 +31,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.monitoring.VersionInfo;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
@@ -158,11 +158,11 @@ public class BlueprintsUpgradeOperation extends AbstractUpgradeOperation {
                             .setMessage(studioConfiguration.getProperty(REPO_BLUEPRINTS_UPDATED_COMMIT_MESSAGE));
                     retryingRepositoryOperationFacade.call(commitCommand);
                 }
-            } catch (GitAPIException err) {
-                logger.error("error creating initial commit for global configuration", err);
+            } catch (GitAPIException e) {
+                logger.error("Failed to create the initial commit for the global repository", e);
             }
         } catch (Exception e) {
-            throw new UpgradeException("Error upgrading blueprints in the global repo", e);
+            throw new UpgradeException("Failed to upgrade the blueprints in the global repository", e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }

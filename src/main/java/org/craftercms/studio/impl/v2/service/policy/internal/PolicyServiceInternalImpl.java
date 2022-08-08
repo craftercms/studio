@@ -17,6 +17,8 @@ package org.craftercms.studio.impl.v2.service.policy.internal;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.tika.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -32,10 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
@@ -122,7 +120,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         }
 
         if (config == null) {
-            logger.debug("No policy configuration found, skipping '{}'", action);
+            logger.debug("No policy configuration found, skip the action '{}'", action);
             if (includeAllowed) {
                 results.add(ValidationResult.allowed(action));
             }
@@ -134,7 +132,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
                 .filter(statement -> action.getTarget().matches(statement.getString(CONFIG_KEY_PATTERN)))
                 .collect(Collectors.toList());
         if (statements.size() == 0) {
-            logger.debug("No statement matches found, skipping '{}'", action);
+            logger.debug("No statement matches found, skip the action '{}'", action);
         }
         ValidationResult result = validateStatements(action, statements);
         if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
@@ -146,14 +144,14 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         ValidationResult result = ValidationResult.allowed(action);
         for (HierarchicalConfiguration<?> statement : statements) {
             for (var validator : policyValidators) {
-                logger.debug("Evaluating '{}' using validator '{}'", action, validator.getClass().getSimpleName());
+                logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
                 validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
                 if (result.getModifiedValue() != null) {
-                    logger.debug("Allowed with modifications '{}'", action);
+                    logger.debug("Allowed with modifications the action '{}'", action);
                 } else if (result.isAllowed()) {
-                    logger.debug("Allowed '{}'", action);
+                    logger.debug("Allowed action '{}'", action);
                 } else {
-                    logger.error("Validation failed for '{}'", action);
+                    logger.error("Validation failed for action '{}'", action);
                     return result;
                 }
             }

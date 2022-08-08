@@ -34,8 +34,8 @@ import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookupFactory;
 import org.apache.commons.text.matcher.StringMatcher;
 import org.apache.commons.text.matcher.StringMatcherFactory;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link FileVisitor} that replaces values in the found files
@@ -65,29 +65,29 @@ public class StrSubstitutorVisitor implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-        logger.debug("Replacing parameters in file: {0}", file);
+        logger.debug("Replacing parameters in file '{}'", file);
         try (InputStream inputStream = Files.newInputStream(file)) {
             String originalContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             String updatedContent = strSubstitutor.replace(originalContent);
             if (!StringUtils.equals(originalContent, updatedContent)) {
-                logger.debug("Updating file {}", file);
+                logger.debug("Updating file '{}'", file);
                 Files.write(file, updatedContent.getBytes(StandardCharsets.UTF_8));
             }
             return FileVisitResult.CONTINUE;
         } catch (IOException e) {
-            logger.error("Error reading file {0}", e, file);
+            logger.error("Error reading file '{}'", file, e);
             throw e;
         }
     }
 
     @Override
-    public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-        logger.error("Error reading file at {0}", exc, file);
-        throw exc;
+    public FileVisitResult visitFileFailed(final Path file, final IOException e) throws IOException {
+        logger.error("Error reading file at '{}'", file, e);
+        throw e;
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) {
+    public FileVisitResult postVisitDirectory(final Path dir, final IOException e) {
         return FileVisitResult.CONTINUE;
     }
 

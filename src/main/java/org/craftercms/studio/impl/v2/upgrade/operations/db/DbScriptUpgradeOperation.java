@@ -28,14 +28,15 @@ import org.apache.ibatis.jdbc.ScriptRunner;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 
@@ -105,13 +106,13 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
         try (Connection connection = context.getConnection()) {
             integrityValidator.validate(connection);
         } catch (SQLException e) {
-            // for backwards compatibility
-            logger.warn("Could not validate database integrity", e);
+            // for backward compatibility
+            logger.warn("Failed to validate the database integrity", e);
         } catch (Exception e) {
             throw new UpgradeNotSupportedException("The current database version can't be upgraded", e);
         }
         Resource scriptFile = new ClassPathResource(scriptFolder).createRelative(fileName);
-        logger.info("Executing db script {0}", scriptFile.getFilename());
+        logger.info("Execute the DB script '{}'", scriptFile.getFilename());
         try {
             String scriptContent = IOUtils.toString(scriptFile.getInputStream(), UTF_8);
             try (Reader reader = new StringReader(scriptContent.replaceAll(CRAFTER_SCHEMA_NAME,
@@ -128,8 +129,8 @@ public class DbScriptUpgradeOperation extends AbstractUpgradeOperation {
                 }
             }
         } catch (Exception e) {
-            logger.error("Error executing db script", e);
-            throw new UpgradeException("Error executing sql script " + scriptFile.getFilename(), e);
+            logger.error("Failed to execute the DB script '{}'", scriptFile.getFilename(), e);
+            throw new UpgradeException(format("Failed to execute the DB script '%s'", scriptFile.getFilename()), e);
         }
     }
 

@@ -21,8 +21,8 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ItemState;
@@ -288,12 +288,12 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     @Override
     // TODO: after login insert LOGIN audit
     public boolean insertAuditLog(AuditLog auditLog) {
-        int result = retryingDatabaseOperationFacade.insertAuditLog(auditLog);
+        int result = retryingDatabaseOperationFacade.retry(() -> auditDao.insertAuditLog(auditLog));
         if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
             Map<String, Object> params = new HashMap<String, Object>();
             params.put("auditId", auditLog.getId());
             params.put("parameters", auditLog.getParameters());
-            retryingDatabaseOperationFacade.insertAuditLogParams(params);
+            retryingDatabaseOperationFacade.retry(() -> auditDao.insertAuditLogParams(params));
         }
         return result > 0;
     }

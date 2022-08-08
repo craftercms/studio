@@ -32,8 +32,8 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.webdav.WebDavService;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
@@ -129,15 +129,15 @@ public class WebDavServiceImpl implements WebDavService {
             }
 
             if (!sardine.exists(listPath)) {
-                logger.debug("Folder {0} doesn't exist", listPath);
+                logger.debug("Folder '{}' doesn't exist in site '{}'", listPath, site);
                 return Collections.emptyList();
             }
             String basePath = new URL(profile.getBaseUrl()).getPath();
             String baseDomain = profile.getBaseUrl();
             String deliveryUrl = profile.getDeliveryBaseUrl();
-            logger.debug("Listing resources at {0}", listPath);
+            logger.debug("List resources at site '{}' path '{}'", site, listPath);
             List<DavResource> resources = sardine.propfind(listPath, 1, properties);
-            logger.debug("Found {0} resources at {0}", resources.size(), listPath);
+            logger.debug("Found '{}' resources at site '{}' path '{}'", resources.size(), site, listPath);
             return resources.stream()
                 .skip(1) // to avoid repeating the folder being listed
                 .filter(r -> r.isDirectory() || filterType.includes(MimeType.valueOf(r.getContentType())))
@@ -192,13 +192,13 @@ public class WebDavServiceImpl implements WebDavService {
                 for(String folder : folders) {
                     uploadUrl += StringUtils.appendIfMissing(folder, "/");
 
-                    logger.debug("Checking folder {0}", uploadUrl);
+                    logger.debug("Check folder at site '{}' path '{}'", site, uploadUrl);
                     if(!sardine.exists(uploadUrl)) {
-                        logger.debug("Creating folder {0}", uploadUrl);
+                        logger.debug("Create folder in site '{}' path '{}'", site, uploadUrl);
                         sardine.createDirectory(uploadUrl);
-                        logger.debug("Folder {0} created", uploadUrl);
+                        logger.debug("Folder in site '{}' path '{}' successfully created", site, uploadUrl);
                     } else {
-                        logger.debug("Folder {0} already exists", uploadUrl);
+                        logger.debug("Folder in site '{}' path '{}' already exists", site, uploadUrl);
                     }
                 }
             }
@@ -206,17 +206,18 @@ public class WebDavServiceImpl implements WebDavService {
             uploadUrl =  StringUtils.appendIfMissing(uploadUrl, "/");
             String fileUrl = uploadUrl + UriUtils.encode(filename, charset.name());
 
-            logger.debug("Starting upload of file {0}", filename);
-            logger.debug("Uploading file to {0}", fileUrl);
+            logger.debug("Start uploading file '{}' to site '{}' path '{}' file URL '{}'",
+                    filename, site, uploadUrl, fileUrl);
 
             sardine.put(fileUrl, content);
-            logger.debug("Upload complete for file {0}", fileUrl);
             if(StringUtils.isNotEmpty(profile.getDeliveryBaseUrl())) {
                 fileUrl = StringUtils.replaceFirst(fileUrl, profile.getBaseUrl(), profile.getDeliveryBaseUrl());
             }
             return fileUrl;
-        } catch (Exception e ) {
-            throw new WebDavException("Error uploading file", e);
+        } catch (Exception e) {
+            logger.error("Failed to upload file '{}' to site '{}' path '{}'",
+                    filename, site, uploadUrl, e);
+            throw new WebDavException("Failed to upload file to WebDAV", e);
         }
     }
 

@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 /**
@@ -61,7 +62,7 @@ public class ProxyServiceImpl implements ProxyService {
     public ResponseEntity<Object> proxyEngine(final String body, @ValidateStringParam(name = "siteId", notEmpty = true) final String siteId,
                                               final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(String.format("Site '%s' not found", siteId));
+            throw new SiteNotFoundException(format("Site '%s' not found", siteId));
         }
 
         return proxyServiceInternal.proxyEngine(body, siteId, request);

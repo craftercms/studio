@@ -16,8 +16,8 @@
 package org.craftercms.studio.impl.v2.deployment;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.web.client.RestClientException;
@@ -54,8 +54,8 @@ public class CompositeDeployer implements Deployer {
                 for (Deployer deployer : deployers) {
                     try {
                         deployer.deleteTargets(site);
-                    } catch (Exception ex) {
-                        logger.debug("Error while rolling back targets for site {0}: {1}", site, ex);
+                    } catch (Exception e2) {
+                        logger.debug("Failed to rollback targets for site '{}'", site, e2);
                     }
                 }
 

@@ -28,10 +28,6 @@ public class InstanceServiceImpl implements InstanceService {
         return metaDAO.getInstanceId();
     }
 
-    public MetaDAO getMetaDAO() {
-        return metaDAO;
-    }
-
     public void setMetaDAO(MetaDAO metaDAO) {
         this.metaDAO = metaDAO;
     }

@@ -22,8 +22,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -83,20 +83,19 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                         ContentLifeCycleOperation operation,
                         Map<String, String> params) {
         if (operation == null) {
-            logger.warn("No lifecycle operation provided for " + site + ":" + path);
+            logger.warn("No lifecycle operation provided for site '{}' path '{}'", site, path);
             return;
         }
         if (StringUtils.isEmpty(contentType) || StringUtils.equals(contentType, CONTENT_TYPE_UNKNOWN)) {
-            logger.warn("Skipping content lifecycle script execution. no content type provided for "
-                    + site + ":" + path);
+            logger.warn("Skip content lifecycle script execution since no content type was provided for " +
+                    "site '{}' path '{}'", site, path);
             return;
         }
-
 
         // find the script ref based on content type
         String scriptPath = getScriptPath(site, contentType);
         if (!contentService.contentExists(site, scriptPath)) {
-            logger.error("No script found at " + scriptPath + ", contentType: " + contentType);
+            logger.error("No script found in site '{}' path '{}' content type '{}'", site, scriptPath, contentType);
             return;
         }
         String script = contentService.getContentAsString(site, scriptPath);
@@ -106,7 +105,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
             try {
                 scriptExecutor.executeScriptString(script, model);
             } catch (Exception e) {
-                logger.error("Error while executing content lifecycle script for " + site + ":" + path, e);
+                logger.error("Failed to execute content lifecycle script in site '{}' path '{}'", site, path, e);
             }
         }
     }
@@ -194,19 +193,20 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                     saxReader.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
                     saxReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
                     saxReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-                }catch (SAXException ex){
-                    logger.error("Unable to turn off external entity loading, This could be a security risk.", ex);
+                } catch (SAXException e){
+                    logger.error("Unable to turn off external entity loading in site '{}' path '{}', " +
+                            "this could be a security risk", site, path, e);
                 }
                 Document content = saxReader.read(is);
                 return content;
             } catch (DocumentException e) {
-                logger.error("Error while reading content from site " + site + " path " + path, e);
+                logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }
                 return null;
             } catch (ContentNotFoundException e) {
-                logger.error("Error while reading content from site " + site + " path " + path, e);
+                logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
                 if (is != null) {
                     ContentUtils.release(is);
                 }

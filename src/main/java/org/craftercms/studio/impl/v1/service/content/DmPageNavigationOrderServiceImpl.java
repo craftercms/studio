@@ -23,8 +23,8 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequence;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper;
-import org.craftercms.studio.api.v1.log.Logger;
-import org.craftercms.studio.api.v1.log.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -108,7 +108,7 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
-            logger.error("Unexpected error: ", e);
+            logger.error("Failed to get the new NavOrder for site '{}' path '{}'", site, path, e);
         }
         return lastNavOrder;
 
@@ -139,17 +139,18 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         Element root = document.getRootElement();
         Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_DEFAULT);
 
-        //skip if order value element does not exist
-        if(navOrderNode !=null){
+        // Skip if order value element does not exist
+        if (navOrderNode != null) {
             String value = ((Element) navOrderNode).getText();
 
-            //skip if order value already exist
-            if(StringUtils.isEmpty(value)){
+            // Skip if order value already exist
+            if (StringUtils.isEmpty(value)) {
                 String newOrder = String.valueOf(getNewNavOrder(site, path));
                 ((Element) navOrderNode).setText(newOrder);
-                docUpdated=true;
-            }else{
-                logger.debug("Nav Order value already exist: " +value);
+                docUpdated = true;
+            } else {
+                logger.debug("NavOrder value already exist for site '{}' path '{}' value '{}'",
+                        site, path, value);
             }
         }
         return docUpdated;
