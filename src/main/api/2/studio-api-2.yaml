@@ -62,6 +62,8 @@ tags:
     description: Workflow operations
   - name: tasks
     description: tasks operations
+  - name: loggers
+    description: Logger levels operations
 
 paths:
 
@@ -7293,6 +7295,65 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /loggers:
+    get:
+      tags:
+        - loggers
+      summary: Get all loggers and its configured priority levels
+      description: Required permission "view_log_levels or configure_log_levels"
+      operationId: loggersGetAll
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LoggerConfiguredLevel'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /loggers/log_level:
+    post:
+      tags:
+        - loggers
+      summary: Update logger priority level
+      description: Required permission "configure_log_levels"
+      operationId: loggersUpdateLevel
+      requestBody:
+        description: parameters to update the logger level
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoggerConfiguredLevel'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/LoggerConfiguredLevel'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -9184,6 +9245,19 @@ components:
         - numberOfPublishes
         - numberOfNewAndPublishedItems
         - numberOfEditedAndPublishedItems
+
+    LoggerConfiguredLevel:
+      type: object
+      properties:
+        name:
+          type: string
+          description: the logger name
+        level:
+          type: string
+          description: the logger priority level (off|error|warn|info|debug|trace|all)
+      required:
+        - name
+        - level
 
   responses:
     NotFound:
