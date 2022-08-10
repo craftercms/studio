@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.*;
@@ -98,6 +99,12 @@ public class ExceptionHandlers {
     @ExceptionHandler(ActionDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ResponseBody handleActionDeniedException(HttpServletRequest request, ActionDeniedException e) {
+        return handleExceptionInternal(request, e, ApiResponse.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(ActionsDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseBody handleActionsDeniedException(HttpServletRequest request, ActionsDeniedException e) {
         return handleExceptionInternal(request, e, ApiResponse.UNAUTHORIZED);
     }
 

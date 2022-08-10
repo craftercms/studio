@@ -94,6 +94,8 @@
                 <permission>repair_repository</permission>
                 <permission>content_search</permission>
                 <permission>view_logs</permission>
+                <permission>view_log_levels</permission>
+                <permission>configure_log_levels</permission>
             </allowed-permissions>
         </rule>
     </role>

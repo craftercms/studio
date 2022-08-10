@@ -1670,5 +1670,12 @@
         <constructor-arg name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
 
+    <bean id="loggerService" class="org.craftercms.studio.impl.v2.service.log.LoggerServiceImpl">
+        <constructor-arg name="loggerServiceInternal" ref="loggerServiceInternal"/>
+    </bean>
+
+    <bean id="loggerServiceInternal" class="org.craftercms.studio.impl.v2.service.log.internal.Log4jLoggerServiceImpl">
+    </bean>
+
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>
