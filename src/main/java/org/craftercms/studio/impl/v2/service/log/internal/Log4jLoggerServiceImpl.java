@@ -35,11 +35,15 @@ import java.util.stream.Collectors;
  */
 public class Log4jLoggerServiceImpl implements LoggerService {
 
+    private LoggerConfiguredLevel createLoggerLevel(Logger logger) {
+        return new LoggerConfiguredLevel(logger.getName(), logger.getLevel().toString().toLowerCase());
+    }
+
     @Override
     public List<LoggerConfiguredLevel> getLoggerLevels() {
         LoggerContext context = LoggerContext.getContext(false);
         return context.getLoggers().stream()
-                .map(l -> new LoggerConfiguredLevel(l.getName(), l.getLevel().toString()))
+                .map(this::createLoggerLevel)
                 .collect(Collectors.toList());
     }
 
@@ -47,7 +51,7 @@ public class Log4jLoggerServiceImpl implements LoggerService {
     public LoggerConfiguredLevel getLoggerLevel(final String name) {
         LoggerContext context = LoggerContext.getContext(false);
         Logger logger = context.getLogger(name);
-        return new LoggerConfiguredLevel(logger.getName(), logger.getLevel().toString());
+        return createLoggerLevel(logger);
     }
 
     @Override
