@@ -173,7 +173,8 @@ public class ApiResponse {
 
     // 53000 - 54000
     public static final ApiResponse LOGGER_NOT_FOUND = new ApiResponse(53000, "The logger was not found",
-            "Check if you sent in the right logger name", StringUtils.EMPTY);
+            "Check if you sent in the right logger name or " +
+                    "add 'createIfAbsent=true' parameter to create the logger if it does not exist", StringUtils.EMPTY);
 
     private int code;
     private String message;

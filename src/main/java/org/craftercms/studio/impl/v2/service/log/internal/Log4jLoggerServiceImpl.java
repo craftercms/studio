@@ -53,8 +53,7 @@ public class Log4jLoggerServiceImpl implements LoggerService {
     @Override
     public LoggerConfig getLoggerConfig(final String name, final boolean createIfAbsent) throws ServiceLayerException {
         LoggerContext context = LoggerContext.getContext(false);
-        LoggerRegistry<Logger> loggerRegistry = context.getLoggerRegistry();
-        if (!createIfAbsent && !loggerRegistry.hasLogger(name)) {
+        if (!createIfAbsent && !context.hasLogger(name)) {
             throw new LoggerNotFoundException(name);
         }
         Logger logger = context.getLogger(name);
@@ -63,8 +62,8 @@ public class Log4jLoggerServiceImpl implements LoggerService {
 
     @Override
     public void setLoggerLevel(final String name, final String level, final boolean createIfAbsent) throws ServiceLayerException {
-        LoggerRegistry<Logger> loggerRegistry = LoggerContext.getContext(false).getLoggerRegistry();
-        if (!createIfAbsent && !loggerRegistry.hasLogger(name)) {
+        LoggerContext context = LoggerContext.getContext(false);
+        if (!createIfAbsent && !context.hasLogger(name)) {
             throw new LoggerNotFoundException(name);
         }
         Configurator.setLevel(name, Level.valueOf(level));
