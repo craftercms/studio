@@ -63,7 +63,7 @@ tags:
   - name: tasks
     description: tasks operations
   - name: loggers
-    description: Logger levels operations
+    description: Logger configuration operations
 
 paths:
 
@@ -7299,7 +7299,7 @@ paths:
     get:
       tags:
         - loggers
-      summary: Get all loggers and its configured priority levels
+      summary: Get all loggers and their configured priority levels
       description: Required permission "view_log_levels or configure_log_levels"
       operationId: loggersGetAll
       responses:
@@ -7315,7 +7315,7 @@ paths:
                   results:
                     type: array
                     items:
-                      $ref: '#/components/schemas/LoggerConfiguredLevel'
+                      $ref: '#/components/schemas/LoggerConfig'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -7335,7 +7335,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoggerConfiguredLevel'
+              $ref: '#/components/schemas/LoggerConfig'
       responses:
         '200':
           description: OK
@@ -7347,7 +7347,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   result:
-                    $ref: '#/components/schemas/LoggerConfiguredLevel'
+                    $ref: '#/components/schemas/LoggerConfig'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -9246,7 +9246,7 @@ components:
         - numberOfNewAndPublishedItems
         - numberOfEditedAndPublishedItems
 
-    LoggerConfiguredLevel:
+    LoggerConfig:
       type: object
       properties:
         name:

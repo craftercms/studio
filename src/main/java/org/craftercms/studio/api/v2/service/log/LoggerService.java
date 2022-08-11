@@ -17,7 +17,7 @@
 package org.craftercms.studio.api.v2.service.log;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.model.rest.logging.LoggerConfiguredLevel;
+import org.craftercms.studio.model.rest.logging.LoggerConfig;
 
 import java.util.List;
 
@@ -32,19 +32,19 @@ public interface LoggerService {
     String VALID_LEVEL_PATTERN = "(?i)(off|error|warn|info|debug|trace|all)";
 
     /**
-     * Get all loggers and its configured priority levels
+     * Get all loggers and their configured priority levels
      *
-     * @return list of {@link LoggerConfiguredLevel}
+     * @return list of {@link LoggerConfig}
      */
-    List<LoggerConfiguredLevel> getLoggerLevels() throws ServiceLayerException;
+    List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException;
 
     /**
      * Get the logger with the given name and its configured priority level
      *
      * @param name logger name
-     * @return list of {@link LoggerConfiguredLevel}
+     * @return list of {@link LoggerConfig}
      */
-    LoggerConfiguredLevel getLoggerLevel(String name) throws ServiceLayerException;
+    LoggerConfig getLoggerConfig(String name) throws ServiceLayerException;
 
     /**
      * Updates a logger with a given name to have a given priority level

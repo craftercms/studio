@@ -25,17 +25,17 @@ import javax.validation.constraints.Pattern;
  * @author jmendeza
  * @since 4.0.2
  */
-public class LoggerConfiguredLevel {
+public class LoggerConfig {
     @NotEmpty
     private String name;
     @NotEmpty
     @Pattern(regexp = "off|error|warn|info|debug|trace|all", flags = Pattern.Flag.CASE_INSENSITIVE)
     private String level;
 
-    public LoggerConfiguredLevel() {
+    public LoggerConfig() {
     }
 
-    public LoggerConfiguredLevel(final String name, final String level) {
+    public LoggerConfig(final String name, final String level) {
         this.name = name;
         this.level = level;
     }

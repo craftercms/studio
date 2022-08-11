@@ -23,7 +23,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
-import org.craftercms.studio.model.rest.logging.LoggerConfiguredLevel;
+import org.craftercms.studio.model.rest.logging.LoggerConfig;
 
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -48,15 +48,15 @@ public class LoggerServiceImpl implements LoggerService {
 
     @Override
     @HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
-    public List<LoggerConfiguredLevel> getLoggerLevels() throws ServiceLayerException {
-        return loggerServiceInternal.getLoggerLevels();
+    public List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException {
+        return loggerServiceInternal.getLoggerConfigs();
     }
 
     @Override
     @ValidateParams
     @HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
-    public LoggerConfiguredLevel getLoggerLevel(@ValidateStringParam(notEmpty = true) final String name) throws ServiceLayerException {
-        return loggerServiceInternal.getLoggerLevel(name);
+    public LoggerConfig getLoggerConfig(@ValidateStringParam(notEmpty = true) final String name) throws ServiceLayerException {
+        return loggerServiceInternal.getLoggerConfig(name);
     }
 
     @Override

@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v2.service.log.LoggerService;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.logging.LoggerConfiguredLevel;
+import org.craftercms.studio.model.rest.logging.LoggerConfig;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -53,19 +53,19 @@ public class LoggerController {
     }
 
     @GetMapping
-    public ResultList<LoggerConfiguredLevel> getLoggers() throws ServiceLayerException {
-        ResultList<LoggerConfiguredLevel> result = new ResultList<>();
+    public ResultList<LoggerConfig> getLoggers() throws ServiceLayerException {
+        ResultList<LoggerConfig> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_RESULTS, loggerService.getLoggerLevels());
+        result.setEntities(RESULT_KEY_RESULTS, loggerService.getLoggerConfigs());
         return result;
     }
 
     @PostMapping(value = LOGGER_LEVEL)
-    public ResultOne<LoggerConfiguredLevel> setLoggerLevel(@Valid @RequestBody LoggerConfiguredLevel loggerLevel) throws ServiceLayerException {
-        ResultOne<LoggerConfiguredLevel> result = new ResultOne<>();
+    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfig loggerLevel) throws ServiceLayerException {
+        ResultOne<LoggerConfig> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         loggerService.setLoggerLevel(loggerLevel.getName(), loggerLevel.getLevel());
-        result.setEntity(RESULT_KEY_RESULT, loggerService.getLoggerLevel(loggerLevel.getName()));
+        result.setEntity(RESULT_KEY_RESULT, loggerService.getLoggerConfig(loggerLevel.getName()));
         return result;
     }
 }
