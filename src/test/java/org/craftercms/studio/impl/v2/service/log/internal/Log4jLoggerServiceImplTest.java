@@ -97,7 +97,7 @@ public class Log4jLoggerServiceImplTest {
     @Test(expected = LoggerNotFoundException.class)
     public void getAbsentLoggerLevelWithCreateIfAbsentFalseTest() throws ServiceLayerException {
         String loggerName = UUID.randomUUID().toString();
-        LoggerConfig loggerConfig = log4jLoggerService.getLoggerConfig(loggerName, false);
+        log4jLoggerService.getLoggerConfig(loggerName, false);
     }
 
     @Test

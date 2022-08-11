@@ -20,7 +20,6 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.apache.logging.log4j.spi.LoggerRegistry;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
