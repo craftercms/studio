@@ -14,12 +14,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package org.craftercms.studio.model.rest.logging;
 
-import org.apache.logging.log4j.Level
-import org.apache.logging.log4j.core.config.Configurator
+/**
+ * Simple extension to {@link LoggerConfig} to allow extra parameters. e.g.: createIfAbsent.
+ *
+ * @author jmendeza
+ * @since 4.0.2
+ */
+public class LoggerConfigRequest extends LoggerConfig {
 
-def result = [:]
+    private boolean createIfAbsent;
 
-Configurator.setLevel(params.logger, Level.valueOf(params.level))
+    public boolean isCreateIfAbsent() {
+        return createIfAbsent;
+    }
 
-return result 
+    public void setCreateIfAbsent(boolean createIfAbsent) {
+        this.createIfAbsent = createIfAbsent;
+    }
+}
