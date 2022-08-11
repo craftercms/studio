@@ -55,8 +55,8 @@ public class LoggerServiceImpl implements LoggerService {
     @Override
     @ValidateParams
     @HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
-    public LoggerConfig getLoggerConfig(@ValidateStringParam(notEmpty = true) final String name) throws ServiceLayerException {
-        return loggerServiceInternal.getLoggerConfig(name);
+    public LoggerConfig getLoggerConfig(@ValidateStringParam(notEmpty = true) final String name, boolean createIfAbsent) throws ServiceLayerException {
+        return loggerServiceInternal.getLoggerConfig(name, createIfAbsent);
     }
 
     @Override
@@ -64,7 +64,8 @@ public class LoggerServiceImpl implements LoggerService {
     @HasPermission(action = PERMISSION_CONFIGURE_LOG_LEVELS, type = DefaultPermission.class)
     public void setLoggerLevel(@ValidateStringParam(notEmpty = true) final String name,
                                @ValidateStringParam(notEmpty = true,
-                                       whitelistedPatterns = {VALID_LEVEL_PATTERN}) final String level) throws ServiceLayerException {
-        loggerServiceInternal.setLoggerLevel(name, level);
+                                       whitelistedPatterns = {VALID_LEVEL_PATTERN}) final String level,
+                               boolean createIfAbsent) throws ServiceLayerException {
+        loggerServiceInternal.setLoggerLevel(name, level, createIfAbsent);
     }
 }

@@ -39,18 +39,33 @@ public interface LoggerService {
     List<LoggerConfig> getLoggerConfigs() throws ServiceLayerException;
 
     /**
-     * Get the logger with the given name and its configured priority level
+     * Get the logger with the given name. The logger will be created in case it does not exist
      *
      * @param name logger name
-     * @return list of {@link LoggerConfig}
+     * @return a {@link LoggerConfig} object
+     * @throws ServiceLayerException
      */
-    LoggerConfig getLoggerConfig(String name) throws ServiceLayerException;
+    default LoggerConfig getLoggerConfig(String name) throws ServiceLayerException {
+        return getLoggerConfig(name, true);
+    }
+
+    /**
+     * Get the logger with the given name and its configured priority level
+     *
+     * @param name           logger name
+     * @param createIfAbsent if true, the logger will be created in case it does not exist yet
+     *                       if false, a LoggerNotFoundException will be thrown if logger is not in the registry
+     * @return a {@link LoggerConfig} object
+     */
+    LoggerConfig getLoggerConfig(String name, boolean createIfAbsent) throws ServiceLayerException;
 
     /**
      * Updates a logger with a given name to have a given priority level
      *
-     * @param name  logger name
-     * @param level the priority level
+     * @param name           logger name
+     * @param level          the priority level
+     * @param createIfAbsent if true, the logger will be created in case it does not exist yet
+     *                       if false, a LoggerNotFoundException will be thrown if logger is not in the registry
      */
-    void setLoggerLevel(String name, String level) throws ServiceLayerException;
+    void setLoggerLevel(String name, String level, boolean createIfAbsent) throws ServiceLayerException;
 }

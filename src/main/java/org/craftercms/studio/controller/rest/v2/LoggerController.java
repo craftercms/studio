@@ -22,6 +22,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.logging.LoggerConfig;
+import org.craftercms.studio.model.rest.logging.LoggerConfigRequest;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -61,11 +62,11 @@ public class LoggerController {
     }
 
     @PostMapping(value = LOGGER_LEVEL)
-    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfig loggerLevel) throws ServiceLayerException {
+    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
         ResultOne<LoggerConfig> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        loggerService.setLoggerLevel(loggerLevel.getName(), loggerLevel.getLevel());
-        result.setEntity(RESULT_KEY_RESULT, loggerService.getLoggerConfig(loggerLevel.getName()));
+        loggerService.setLoggerLevel(loggerConfig.getName(), loggerConfig.getLevel(), loggerConfig.isCreateIfAbsent());
+        result.setEntity(RESULT_KEY_RESULT, loggerService.getLoggerConfig(loggerConfig.getName()));
         return result;
     }
 }

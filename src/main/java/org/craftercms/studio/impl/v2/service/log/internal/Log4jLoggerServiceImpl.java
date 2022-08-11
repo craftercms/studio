@@ -20,9 +20,11 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.spi.LoggerRegistry;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
 import org.craftercms.studio.model.rest.logging.LoggerConfig;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,8 +37,6 @@ import java.util.stream.Collectors;
  * @since 4.0.2
  */
 public class Log4jLoggerServiceImpl implements LoggerService {
-
-    org.slf4j.Logger logger = LoggerFactory.getLogger(Log4jLoggerServiceImpl.class);
 
     private LoggerConfig createLoggerLevel(Logger logger) {
         return new LoggerConfig(logger.getName(), logger.getLevel().toString().toLowerCase());
@@ -51,14 +51,22 @@ public class Log4jLoggerServiceImpl implements LoggerService {
     }
 
     @Override
-    public LoggerConfig getLoggerConfig(final String name) {
+    public LoggerConfig getLoggerConfig(final String name, final boolean createIfAbsent) throws ServiceLayerException {
         LoggerContext context = LoggerContext.getContext(false);
+        LoggerRegistry<Logger> loggerRegistry = context.getLoggerRegistry();
+        if (!createIfAbsent && !loggerRegistry.hasLogger(name)) {
+            throw new LoggerNotFoundException(name);
+        }
         Logger logger = context.getLogger(name);
         return createLoggerLevel(logger);
     }
 
     @Override
-    public void setLoggerLevel(final String name, final String level) {
+    public void setLoggerLevel(final String name, final String level, final boolean createIfAbsent) throws ServiceLayerException {
+        LoggerRegistry<Logger> loggerRegistry = LoggerContext.getContext(false).getLoggerRegistry();
+        if (!createIfAbsent && !loggerRegistry.hasLogger(name)) {
+            throw new LoggerNotFoundException(name);
+        }
         Configurator.setLevel(name, Level.valueOf(level));
     }
 }

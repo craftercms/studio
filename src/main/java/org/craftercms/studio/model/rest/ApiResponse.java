@@ -171,6 +171,10 @@ public class ApiResponse {
     public static final ApiResponse AWS_UNREACHABLE = new ApiResponse(52000, "AWS is unreachable",
             "Advise the user that AWS engine is not reachable", StringUtils.EMPTY);
 
+    // 53000 - 54000
+    public static final ApiResponse LOGGER_NOT_FOUND = new ApiResponse(53000, "The logger was not found",
+            "Check if you sent in the right logger name", StringUtils.EMPTY);
+
     private int code;
     private String message;
     private String remedialAction;
