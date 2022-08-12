@@ -11,13 +11,22 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClipboardServiceInternalImplTest {
 
     private static final String SITE_ID = "mySite";
+    private static final String PAGE_URL = "/site/website/articles/testing/my-article/index.xml";
+    private static final String PAGE_URL_PARENT = "/site/website/articles/testing";
+    private static final String COMPONENT_URL = "/site/components/articles/testing/my-article.xml";
+    private static final String COMPONENT_URL_PARENT = "/site/components/articles/testing";
+    private static final String FOLDER_URL = "/site/components/articles/testing";
+    private static final String FOLDER_URL_PARENT = "/site/components/articles";
+
 
     @Mock
     private ContentService contentService;
@@ -248,5 +257,23 @@ public class ClipboardServiceInternalImplTest {
     public void preventPastingNonExistingContentTest()
             throws ContentNotFoundException, InvalidParametersException {
         service.validatePasteItemsAction(SITE_ID, "/templates/web/layout/unexistent.ftl", "/templates/web/blog");
+    }
+
+    @Test
+    public void calculatePageParentUrlTest() {
+        String parentUrl = service.getParentUrl(PAGE_URL);
+        assertEquals(PAGE_URL_PARENT, parentUrl, format("Parent of '%s' does not match expected value", PAGE_URL));
+    }
+
+    @Test
+    public void calculateComponentPageParentUrlTest() {
+        String parentUrl = service.getParentUrl(COMPONENT_URL);
+        assertEquals(COMPONENT_URL_PARENT, parentUrl, format("Parent of '%s' does not match expected value", COMPONENT_URL));
+    }
+
+    @Test
+    public void calculateFolderParentUrlTest() {
+        String parentUrl = service.getParentUrl(FOLDER_URL);
+        assertEquals(FOLDER_URL_PARENT, parentUrl, format("Parent of '%s' does not match expected value", FOLDER_URL));
     }
 }

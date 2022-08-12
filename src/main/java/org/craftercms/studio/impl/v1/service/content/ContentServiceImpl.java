@@ -159,7 +159,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     // TODO: SJ: make that feature available to end user.
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceImpl.class);
 
-    private static final String COPY_DEP_XPATH = "//*/text()[normalize-space(.)='{copyDep}']/parent::*";
+    private static final String COPY_DEP_XPATH = "//*/text()[contains(normalize-space(.),'{copyDep}')]/parent::*";
     private static final String COPY_DEP = "{copyDep}";
     private static final String ELM_ORDER_DEFAULT_SELECTOR = "//" + DmXmlConstants.ELM_ORDER_DEFAULT;
 
@@ -918,7 +918,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         Element root = document.getRootElement();
         List<Node> includes = root.selectNodes(COPY_DEP_XPATH.replace(COPY_DEP, depPath));
         if (includes != null) {
-            for(Node includeNode : includes) {
+            for (Node includeNode : includes) {
                 includeNode.setText(includeNode.getText().replace(depPath, copyDepPath));
             }
         }
