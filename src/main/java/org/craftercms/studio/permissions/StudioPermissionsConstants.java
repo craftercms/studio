@@ -80,6 +80,9 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_CONTENT_SEARCH = "content_search";
 
     public static final String PERMISSION_VIEW_LOGS = "view_logs";
+    public static final String PERMISSION_VIEW_LOG_LEVELS = "view_log_levels";
+    public static final String PERMISSION_CONFIGURE_LOG_LEVELS = "configure_log_levels";
+
 
     private StudioPermissionsConstants() {
     }

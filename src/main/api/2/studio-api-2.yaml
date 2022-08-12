@@ -62,6 +62,8 @@ tags:
     description: Workflow operations
   - name: tasks
     description: tasks operations
+  - name: loggers
+    description: Logger configuration operations
 
 paths:
 
@@ -7293,6 +7295,67 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /loggers:
+    get:
+      tags:
+        - loggers
+      summary: Get all loggers and their configured priority levels
+      description: Required permission "view_log_levels or configure_log_levels"
+      operationId: loggersGetAll
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LoggerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /loggers/log_level:
+    post:
+      tags:
+        - loggers
+      summary: Update logger priority level
+      description: Required permission "configure_log_levels"
+      operationId: loggersUpdateLevel
+      requestBody:
+        description: parameters to update the logger level
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoggerConfigRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/LoggerConfig'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
 components:
   schemas:
@@ -7344,6 +7407,7 @@ components:
           * `CODE:` 50003, `MESSAGE:` Target path does not exist in site repository, `REMEDIAL ACTION:` Check if you sent in the right Studio Path
           * `CODE:` 51000, `MESSAGE:` Box is unreachable, `REMEDIAL ACTION:` Advise the user that Box is not reachable
           * `CODE:` 52000, `MESSAGE:` AWS is unreachable, `REMEDIAL ACTION:` Advise the user that AWS engine is not reachable
+          * `CODE:` 53000, `MESSAGE:` Logger not found, `REMEDIAL ACTION:` Check if you sent in the right logger name or add 'createIfAbsent=true' parameter to create the logger if it does not exist
       properties:
         code:
           type: integer
@@ -9185,6 +9249,27 @@ components:
         - numberOfNewAndPublishedItems
         - numberOfEditedAndPublishedItems
 
+    LoggerConfig:
+      type: object
+      properties:
+        name:
+          type: string
+          description: the logger name
+        level:
+          type: string
+          description: the logger priority level (off|error|warn|info|debug|trace|all)
+      required:
+        - name
+        - level
+    LoggerConfigRequest:
+      allOf:
+        - $ref: '#/components/schemas/LoggerConfig'
+        - type: object
+          properties:
+            createIfAbsent:
+              type: boolean
+              description: if true, the logger will be created in case it does not exist yet.
+                If false, a 404 status code will be returned if logger is not in the registry.
   responses:
     NotFound:
       description: Resource not found
