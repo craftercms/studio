@@ -39,12 +39,8 @@ import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -91,6 +87,7 @@ public class SitesController {
     }
 
     @PostMapping("/create_site_from_marketplace")
+    @ResponseStatus(code = HttpStatus.CREATED)
     public ResponseBody createSite(@Valid @RequestBody CreateSiteRequest request)
         throws RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException, ServiceLayerException,
         InvalidRemoteRepositoryCredentialsException, InvalidRemoteUrlException, RemoteRepositoryNotBareException {
