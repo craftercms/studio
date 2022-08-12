@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author joseross
  * @since 3.1.4
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class CreateSiteRequest {
 
     @NotBlank
