@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -38,7 +39,8 @@ import java.util.Objects;
 import static java.lang.String.format;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
-import static org.apache.commons.io.FilenameUtils.getName;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 
 /**
  * Default implementation of {@link ClipboardServiceInternal}
@@ -131,13 +133,23 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     }
 
     public String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
-        // Get the parent url: for folders & components it's just parent, for pages it's the parent of the parent
-        var filename = getName(path);
-        // TODO: Find a better way to do this?
-        var parentUrl = "index.xml".equals(filename)? getFullPathNoEndSeparator(getFullPathNoEndSeparator(path))
-                                                            : getFullPathNoEndSeparator(path);
+        String parentUrl = getParentUrl(path);
         var item = contentService.getContentItem(siteId, parentUrl, 0);
         return contentService.copyContent(siteId, path, item.uri);
+    }
+
+    /**
+     * Get the parent url: for folders & components it's just parent, for pages it's the parent of the parent.
+     * e.g.:
+     * /site/website/articles/page1/index.xml -> /site/website/articles
+     * /site/components/posts/january/clickbait.xml -> /site/components/posts/january
+     * /site/components/articles/health/ -> /site/components/articles
+     *
+     * @param path path of the content item
+     * @return path of the parent item
+     */
+    protected String getParentUrl(String path) {
+        return getFullPathNoEndSeparator(removeEnd(path, SLASH_INDEX_FILE));
     }
 
     @Override
