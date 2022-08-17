@@ -18,6 +18,7 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.commons.security.exception.ActionDeniedException
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException
 import scripts.api.DeploymentServices
@@ -63,6 +64,9 @@ try {
         } catch (SiteNotFoundException e) {
             response.setStatus(404)
             result.message = "Site not found"
+        } catch (ActionDeniedException e) {
+            response.setStatus(403)
+            result.message = e.message
         } catch (Exception e) {
             response.setStatus(500)
             result.message = "Internal server error: \n" + e

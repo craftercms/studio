@@ -284,6 +284,7 @@
                 <permission>item_unlock</permission>
                 <permission>content_search</permission>
                 <permission>view_logs</permission>
+                <permission>start_stop_publisher</permission>
             </allowed-permissions>
         </rule>
     </role>

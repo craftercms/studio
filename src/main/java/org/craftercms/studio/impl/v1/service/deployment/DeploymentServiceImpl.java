@@ -20,6 +20,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.FilenameUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -34,6 +37,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -105,6 +109,8 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_START_STOP_PUBLISHER;
 
 /**
  */
@@ -654,13 +660,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     @Override
     @ValidateParams
-    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled)
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
+    public boolean enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(name = "site") String site, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
-        }
-        if (!securityService.isSiteAdmin(securityService.getCurrentUser(), site)) {
-            throw new AuthenticationException();
         }
 
         boolean toRet = siteService.enablePublishing(site, enabled);
