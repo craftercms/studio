@@ -21,7 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;

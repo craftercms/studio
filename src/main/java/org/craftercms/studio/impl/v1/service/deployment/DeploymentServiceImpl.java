@@ -37,7 +37,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
