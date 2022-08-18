@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.dal;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -37,10 +36,6 @@ public class RetryingDatabaseOperationFacadeImplTest {
 
     @Autowired
     private RetryingDatabaseOperationFacadeImpl facade;
-
-    @Before
-    public void setup() {
-    }
 
     @Test
     public void retryVoidOperationTest() {
