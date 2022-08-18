@@ -83,7 +83,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
     public void setStaleMembersInactive(List<ClusterMember> staleMembers) {
         staleMembers.forEach(member -> {
             member.setState(INACTIVE);
-            retryingDatabaseOperationFacade.updateClusterMember(member);
+            retryingDatabaseOperationFacade.retry(() -> clusterDao.updateMember(member));
         });
     }
 
@@ -110,7 +110,7 @@ public class StudioNodeActivityCheckJob implements Runnable{
             Map<String, Object> params = new HashMap<>();
             params.put(CLUSTER_MEMBER_IDS, idsToRemove);
             params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
-            retryingDatabaseOperationFacade.removeClusterMembers(params);
+            retryingDatabaseOperationFacade.retry(() -> clusterDao.removeMembers(params));
         }
     }
 

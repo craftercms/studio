@@ -195,7 +195,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
                 submissionComment);
         for (PublishRequest item : items) {
-            retryingDatabaseOperationFacade.insertItemForDeployment(item);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
 
@@ -343,7 +343,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             List<PublishRequest> items =
                     createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
             for (PublishRequest item : items) {
-                retryingDatabaseOperationFacade.insertItemForDeployment(item);
+                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
             }
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
@@ -456,7 +456,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.deleteDeploymentDataForSite(params));
     }
 
     @Override
@@ -488,7 +488,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", DateUtils.getCurrentTime());
-        retryingDatabaseOperationFacade.cancelWorkflow(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.cancelWorkflow(params));
     }
 
     @Override
@@ -500,7 +500,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", DateUtils.getCurrentTime());
-        retryingDatabaseOperationFacade.cancelWorkflowBulk(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.cancelWorkflowBulk(params));
     }
 
     @Override
@@ -719,7 +719,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                 DateUtils.getCurrentTime(), securityService.getCurrentUser(), comment);
         // Insert publish requests in the queue
         for (PublishRequest request : publishRequests) {
-            retryingDatabaseOperationFacade.insertItemForDeployment(request);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(request));
         }
         logger.debug("Done adding publish requests for site '{}' target '{}'", site, environment);
     }

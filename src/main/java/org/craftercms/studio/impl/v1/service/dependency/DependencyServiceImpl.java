@@ -175,10 +175,10 @@ public class DependencyServiceImpl implements DependencyService {
 
     public void deleteAllSourceDependencies(String site, String path) {
         logger.debug("Delete all source dependencies in site '{}' path '{}'", site, path);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put(SITE_PARAM, site);
         params.put(PATH_PARAM, path);
-        retryingDatabaseOperationFacade.deleteAllSourceDependencies(params);
+        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.deleteAllSourceDependencies(params));
     }
 
     public List<DependencyEntity> createDependencyEntities(String site, String path, Set<String> dependencyPaths,
@@ -208,7 +208,7 @@ public class DependencyServiceImpl implements DependencyService {
         if (CollectionUtils.isNotEmpty(dependencyEntities)) {
             Map<String, Object> params = new HashMap<>();
             params.put(StudioConstants.JSON_PROPERTY_DEPENDENCIES, dependencyEntities);
-            retryingDatabaseOperationFacade.insertDependenciesList(params);
+            retryingDatabaseOperationFacade.retry(() -> dependencyMapper.insertList(params));
         }
     }
 
@@ -386,7 +386,7 @@ public class DependencyServiceImpl implements DependencyService {
         params.put(SITE_ID_PARAM, site);
         params.put(OLD_PATH_PARAM, oldPath);
         params.put(NEW_PATH_PARAM, newPath);
-        retryingDatabaseOperationFacade.moveDependency(params);
+        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.moveDependency(params));
 
         return getItemDependencies(site, newPath, 1);
     }
@@ -402,7 +402,7 @@ public class DependencyServiceImpl implements DependencyService {
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);
         params.put(PATH_PARAM, path);
-        retryingDatabaseOperationFacade.deleteDependenciesForSiteAndPath(params);
+        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.deleteDependenciesForSiteAndPath(params));
     }
 
     @Override
@@ -410,7 +410,7 @@ public class DependencyServiceImpl implements DependencyService {
         logger.debug("Delete all dependencies in site '{}'", site);
         Map<String, String> params = new HashMap<String, String>();
         params.put(SITE_PARAM, site);
-        retryingDatabaseOperationFacade.deleteDependenciesForSite(params);
+        retryingDatabaseOperationFacade.retry(() -> dependencyMapper.deleteDependenciesForSite(params));
     }
 
     @Override

@@ -94,7 +94,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
 
     @Override
     public void cancelPublishingPackages(String siteId, List<String> packageIds) {
-        retryingDatabaseOperationFacade.cancelPackages(siteId, packageIds, CANCELLED);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestDao.cancelPackages(siteId, packageIds, CANCELLED));
     }
 
     @Override
@@ -154,8 +154,8 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
 
     @Override
     public void cancelScheduledQueueItems(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.cancelScheduledQueueItems(siteId, paths, DateUtils.getCurrentTime(), CANCELLED,
-                READY_FOR_LIVE);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestDao.cancelScheduledQueueItems(siteId, paths, DateUtils.getCurrentTime(), CANCELLED,
+                READY_FOR_LIVE));
     }
 
     @Override

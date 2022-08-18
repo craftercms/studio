@@ -54,17 +54,17 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public void insertWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.insertWorkflowEntry(workflow);
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntry(workflow));
     }
 
     @Override
     public void insertWorkflowEntries(List<Workflow> workflowEntries) {
-        retryingDatabaseOperationFacade.insertWorkflowEntries(workflowEntries);
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.insertWorkflowEntries(workflowEntries));
     }
 
     @Override
     public void updateWorkflow(Workflow workflow) {
-        retryingDatabaseOperationFacade.updateWorkflowEntry(workflow);
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.updateWorkflowEntry(workflow));
     }
 
     @Override
@@ -74,17 +74,17 @@ public class WorkflowServiceInternalImpl implements WorkflowServiceInternal {
 
     @Override
     public void deleteWorkflowEntries(String siteId, List<String> paths) {
-        retryingDatabaseOperationFacade.deleteWorkflowEntries(siteId, paths);
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntries(siteId, paths));
     }
 
     @Override
     public void deleteWorkflowEntry(String siteId, String path) {
-        retryingDatabaseOperationFacade.deleteWorkflowEntry(siteId, path);
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntry(siteId, path));
     }
 
     @Override
     public void deleteWorkflowEntriesForSite(long siteId) {
-        retryingDatabaseOperationFacade.deleteWorkflowEntriesForSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> workflowDao.deleteWorkflowEntriesForSite(siteId));
     }
 
     @Override

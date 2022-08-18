@@ -74,7 +74,7 @@ public class StudioNodeHeartbeatJob implements Runnable {
             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
             logger.debug("Update the heartbeat of the cluster member with the local address '{}'", localAddress);
-            retryingDatabaseOperationFacade.updateClusterNodeHeartbeat(params);
+            retryingDatabaseOperationFacade.retry(() -> clusterDAO.updateHeartbeat(params));
         }
     }
 

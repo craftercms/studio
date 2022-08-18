@@ -102,7 +102,7 @@ public class RebuildRepositoryMetadata {
     public boolean cleanOldMetadata(String site) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(site);
         logger.debug("Clean the repository metadata in site '{}'", site);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("site", site);
 
         try {
@@ -116,7 +116,7 @@ public class RebuildRepositoryMetadata {
         try {
             // Delete deployment queue
             logger.debug("Delete the deployment queue in site '{}'", site);
-            retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.deleteDeploymentDataForSite(params));
         } catch (Exception e) {
             logger.error("Failed to delete the deployment queue in site '{}'", site, e);
         }

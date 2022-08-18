@@ -204,7 +204,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var refreshToken = UUID.randomUUID().toString();
         var userId = getUserId(auth);
 
-        retryingDatabaseOperationFacade.upsertRefreshToken(userId, refreshToken);
+        retryingDatabaseOperationFacade.retry(() -> securityDao.upsertRefreshToken(userId, refreshToken));
 
         addCookie(response, refreshToken);
     }
@@ -230,14 +230,14 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     public void deleteRefreshToken(Authentication auth) {
         var userId = getUserId(auth);
         userActivity.invalidate(userId);
-        retryingDatabaseOperationFacade.deleteRefreshToken(userId);
+        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshToken(userId));
     }
 
     @Override
     public void deleteRefreshToken(User user) {
         logger.debug("Trigger re-authentication for user '{}'", user.getUsername());
         userActivity.invalidate(user.getId());
-        retryingDatabaseOperationFacade.deleteRefreshToken(user.getId());
+        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshToken(user.getId()));
     }
 
     @Override
@@ -249,7 +249,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
                                         .map(Map.Entry::getKey)
                                         .collect(toList());
             userActivity.invalidateAll(inactiveUsers);
-            int deleted = retryingDatabaseOperationFacade.deleteExpiredTokens(sessionTimeout, inactiveUsers);
+            int deleted = retryingDatabaseOperationFacade.retry(() -> securityDao.deleteExpiredTokens(sessionTimeout, inactiveUsers));
             logger.debug("Deleted '{}' expired Refresh Tokens", deleted);
         } else {
             logger.debug("The system is not ready yet, skip the Refresh Token cleanup");
@@ -264,7 +264,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         token.setLabel(label);
         token.setExpiresAt(expiresAt);
 
-        retryingDatabaseOperationFacade.createAccessToken(getUserId(auth), token);
+        retryingDatabaseOperationFacade.retry(() -> securityDao.createAccessToken(getUserId(auth), token));
 
         token.setToken(createToken(now(), expiresAt, auth.getName(), token.getId()));
 
@@ -285,7 +285,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var auth = SecurityContextHolder.getContext().getAuthentication();
         var userId = getUserId(auth);
 
-        retryingDatabaseOperationFacade.updateAccessToken(userId, tokenId, enabled);
+        retryingDatabaseOperationFacade.retry(() -> securityDao.updateAccessToken(userId, tokenId, enabled));
 
         createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_UPDATE);
 
@@ -296,7 +296,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     public void deleteAccessToken(long tokenId) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
 
-        retryingDatabaseOperationFacade.deleteAccessToken(getUserId(auth), tokenId);
+        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteAccessToken(getUserId(auth), tokenId));
 
         createAuditLog(auth, tokenId, TARGET_TYPE_ACCESS_TOKEN, OPERATION_DELETE);
     }

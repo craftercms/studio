@@ -48,7 +48,7 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
             Map<String, Object> params = new HashMap<String, Object>();
             params.put(CLUSTER_MEMBER_IDS, memberIds);
             params.put(CLUSTER_INACTIVE_STATE, INACTIVE);
-            int result = retryingDatabaseOperationFacade.removeClusterMembers(params);
+            int result = retryingDatabaseOperationFacade.retry(() -> clusterDao.removeMembers(params));
             return result > 0;
         } else {
             return true;

@@ -40,8 +40,8 @@ public class ActivityStreamServiceInternalImpl implements ActivityStreamServiceI
     @Override
     public void insertActivity(long siteId, long userId, String action, ZonedDateTime actionTimestamp, Item item,
                                String packageId) {
-        retryingDatabaseOperationFacade.insertActivity(siteId, userId, action, actionTimestamp, item,
-                packageId);
+        retryingDatabaseOperationFacade.retry(() -> activityStreamDAO.insertActivity(siteId, userId, action, actionTimestamp, item,
+                packageId));
     }
 
     @Override
