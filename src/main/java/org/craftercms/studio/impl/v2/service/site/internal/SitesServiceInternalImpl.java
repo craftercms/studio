@@ -152,7 +152,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
         if (isNotEmpty(name) && siteFeedMapper.isNameUsed(siteId, name)) {
             throw new SiteAlreadyExistsException("A site with name " + name + " already exists");
         }
-        int updated = retryingDatabaseOperationFacade.updateSite(siteId, name, description);
+        int updated = retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateSite(siteId, name, description));
         if (updated != 1) {
             throw new SiteNotFoundException();
         }
@@ -166,7 +166,7 @@ public class SitesServiceInternalImpl implements SitesServiceInternal {
 
     @Override
     public void clearPublishingLock(String siteId) {
-        retryingDatabaseOperationFacade.clearPublishingLockForSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.clearPublishingLockForSite(siteId));
     }
 
     public void setDescriptorReader(PluginDescriptorReader descriptorReader) {

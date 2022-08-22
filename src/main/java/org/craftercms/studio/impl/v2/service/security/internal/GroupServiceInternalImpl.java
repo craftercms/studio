@@ -126,7 +126,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
             throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
         }
         try {
-            retryingDatabaseOperationFacade.createGroup(orgId, groupName, groupDescription);
+            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription));
             return groupDao.getGroupByName(groupName);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
@@ -139,7 +139,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
             throw new GroupNotFoundException("No group found for id '" + group.getId() + "'");
         }
         try {
-            retryingDatabaseOperationFacade.updateGroup(group);
+            retryingDatabaseOperationFacade.retry(() -> groupDao.updateGroup(group));
 
             return group;
         } catch (Exception e) {
@@ -156,7 +156,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
 
         try {
-            retryingDatabaseOperationFacade.deleteGroups(groupIds);
+            retryingDatabaseOperationFacade.retry(() -> groupDao.deleteGroups(groupIds));
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -197,8 +197,8 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
 
         List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
         try {
-            retryingDatabaseOperationFacade.addGroupMembers(groupId,
-                    users.stream().map(User::getId).collect(Collectors.toList()));
+            retryingDatabaseOperationFacade.retry(() -> groupDao.addGroupMembers(groupId,
+                    users.stream().map(User::getId).collect(Collectors.toList())));
 
             return users;
         } catch (Exception e) {
@@ -214,8 +214,8 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         }
         List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
         try {
-            retryingDatabaseOperationFacade.removeGroupMembers(groupId,
-                    users.stream().map(User::getId).collect(Collectors.toList()));
+            retryingDatabaseOperationFacade.retry(() -> groupDao.removeGroupMembers(groupId,
+                    users.stream().map(User::getId).collect(Collectors.toList())));
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }

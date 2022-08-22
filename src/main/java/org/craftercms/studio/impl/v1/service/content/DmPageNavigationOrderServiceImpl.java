@@ -70,8 +70,6 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
                                  @ValidateSecurePathParam(name = "path") String path,
                                  @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
-
-        String lockId = site + ":" + path;
         double lastNavOrder = 1000D;
         try {
             Map<String, String> params = new HashMap<String, String>();
@@ -80,31 +78,12 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
             NavigationOrderSequence navigationOrderSequence =
                     navigationOrderSequenceMapper.getPageNavigationOrderForSiteAndPath(params);
             if (navigationOrderSequence == null) {
-                navigationOrderSequence = new NavigationOrderSequence();
-                navigationOrderSequence.setSite(site);
-                navigationOrderSequence.setPath(path);
-                ContentItemTO itemTreeTO = contentService.getContentItemTree(site, path, 1);
-                if (itemTreeTO == null) {
-                    navigationOrderSequence.setMaxCount(0F);
-                } else {
-                    if (StringUtils.isEmpty(itemTreeTO.getNodeRef())) {
-                        navigationOrderSequence.setFolderId(UUID.randomUUID().toString());
-                    } else {
-                        navigationOrderSequence.setFolderId(itemTreeTO.getNodeRef());
-                    }
-                    if (currentMaxNavOrder < 0) {
-                        navigationOrderSequence.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
-                    } else {
-                        double newMaxCount = currentMaxNavOrder + getPageNavigationOrderIncrement();
-                        navigationOrderSequence.setMaxCount(newMaxCount);
-                    }
-
-                }
-                retryingDatabaseOperationFacade.insertNavigationOrderSequence(navigationOrderSequence);
+                NavigationOrderSequence newNavOrderSequence = getNewNavigationOrderSequence(site, path, currentMaxNavOrder);
+                retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.insert(newNavOrderSequence));
             } else {
                 double newMaxCount = navigationOrderSequence.getMaxCount() + getPageNavigationOrderIncrement();
                 navigationOrderSequence.setMaxCount(newMaxCount);
-                retryingDatabaseOperationFacade.updateNavigationOrderSequence(navigationOrderSequence);
+                retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.update(navigationOrderSequence));
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
@@ -112,6 +91,30 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
         }
         return lastNavOrder;
 
+    }
+
+    private NavigationOrderSequence getNewNavigationOrderSequence(final String site, final String path, final double currentMaxNavOrder) {
+        NavigationOrderSequence navigationOrderSequence;
+        navigationOrderSequence = new NavigationOrderSequence();
+        navigationOrderSequence.setSite(site);
+        navigationOrderSequence.setPath(path);
+        ContentItemTO itemTreeTO = contentService.getContentItemTree(site, path, 1);
+        if (itemTreeTO == null) {
+            navigationOrderSequence.setMaxCount(0F);
+        } else {
+            if (StringUtils.isEmpty(itemTreeTO.getNodeRef())) {
+                navigationOrderSequence.setFolderId(UUID.randomUUID().toString());
+            } else {
+                navigationOrderSequence.setFolderId(itemTreeTO.getNodeRef());
+            }
+            if (currentMaxNavOrder < 0) {
+                navigationOrderSequence.setMaxCount(1000F * itemTreeTO.getNumOfChildren());
+            } else {
+                double newMaxCount = currentMaxNavOrder + getPageNavigationOrderIncrement();
+                navigationOrderSequence.setMaxCount(newMaxCount);
+            }
+        }
+        return navigationOrderSequence;
     }
 
     @Override
@@ -159,9 +162,9 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     @Override
     @ValidateParams
     public void deleteSequencesForSite(@ValidateStringParam(name = "site") String site) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("site", site);
-        retryingDatabaseOperationFacade.deleteNavigationOrderSequencesForSite(params);
+        retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.deleteSequencesForSite(params));
     }
 
     @Override

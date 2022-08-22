@@ -1159,7 +1159,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         params.put("siteId", siteId);
         params.put("gitLogs", gitLogs);
         params.put("processed", 1);
-        retryingDatabaseOperationFacade.insertGitLogList(params);
+        retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertGitLogList(params));
     }
 
 
@@ -1167,7 +1167,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public void deleteGitLogForSite(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("siteId", siteId);
-        retryingDatabaseOperationFacade.deleteGitLogForSite(params);
+        retryingDatabaseOperationFacade.retry(() -> gitLogDao.deleteGitLogForSite(params));
     }
 
     @Override
@@ -1299,11 +1299,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
 
         // Insert site remote record into database
-        retryingDatabaseOperationFacade.insertRemoteRepository(params);
-        params = new HashMap<String, String>();
-        params.put("siteId", siteId);
-        params.put("remoteName", remoteName);
-        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
+        Map<String,String> getRemoteRepoParams = new HashMap<>();
+        getRemoteRepoParams.put("siteId", siteId);
+        getRemoteRepoParams.put("remoteName", remoteName);
+        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(getRemoteRepoParams);
         if (remoteRepository != null) {
             insertClusterRemoteRepository(remoteRepository);
         }
@@ -1316,7 +1316,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
             ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
             if (member != null) {
-                retryingDatabaseOperationFacade.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+                retryingDatabaseOperationFacade.retry(() -> clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId()));
             }
         }
     }
@@ -1326,7 +1326,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String, Object> params = new HashMap<String, Object>();
         // TODO: SJ: Clean up string literals
         params.put("siteId", siteId);
-        retryingDatabaseOperationFacade.deleteRemoteRepositoriesForSite(params);
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.deleteRemoteRepositoriesForSite(params));
     }
 
     @Override
@@ -1340,7 +1340,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 List<RemoteConfig> resultRemotes = retryingRepositoryOperationFacade.call(remoteListCommand);
                 if (CollectionUtils.isNotEmpty(resultRemotes)) {
                     for (RemoteConfig conf : resultRemotes) {
-                        Map<String, String> params = new HashMap<String, String>();
+                        Map<String, String> params = new HashMap<>();
                         // TODO: SJ: Clean up string literals
                         params.put("siteId", siteId);
                         params.put("remoteName", conf.getName());

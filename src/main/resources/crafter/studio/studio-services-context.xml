@@ -127,6 +127,7 @@
         <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="userDao" ref="userDao" />
     </bean>
 
     <bean id="cstudioWorkflowService" class="org.craftercms.studio.impl.v1.service.workflow.WorkflowServiceImpl">
@@ -941,6 +942,7 @@
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="scriptRunnerFactory" ref="studio.dbScriptRunner"/>
+        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="studio.gitCli" class="org.craftercms.studio.impl.v2.utils.git.GitCli">

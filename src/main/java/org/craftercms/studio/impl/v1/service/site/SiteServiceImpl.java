@@ -73,6 +73,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
@@ -85,13 +86,6 @@ import org.craftercms.studio.api.v1.service.site.SiteConfigNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
-import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
@@ -206,6 +200,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected DependencyServiceInternal dependencyServiceInternal;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
+    protected UserDAO userDao;
+
     /**
      * given a site ID return the configuration as a document
      * This method allows extensions to add additional properties to the configuration that
@@ -314,7 +310,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 siteFeed.setDescription(desc);
                 siteFeed.setPublishingStatus(READY);
                 siteFeed.setSandboxBranch(sandboxBranch);
-                retryingDatabaseOperationFacade.createSite(siteFeed);
+                retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.createSite(siteFeed));
 
                 logger.info("Upgrade the site '{}'", siteName);
                 upgradeManager.upgrade(siteId);
@@ -768,7 +764,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 siteFeed.setDescription(description);
                 siteFeed.setPublishingStatus(READY);
                 siteFeed.setSandboxBranch(sandboxBranch);
-                retryingDatabaseOperationFacade.createSite(siteFeed);
+                retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.createSite(siteFeed));
 
                 upgradeManager.upgrade(siteId);
 
@@ -877,8 +873,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             logger.debug("Delete the database records for site '{}'", siteId);
             SiteFeed siteFeed = getSite(siteId);
             workflowServiceInternal.deleteWorkflowEntriesForSite(siteFeed.getId());
-            retryingDatabaseOperationFacade.deleteSite(siteId, STATE_DELETED);
-            retryingDatabaseOperationFacade.deleteUserPropertiesBySiteId(siteFeed.getId());
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.deleteSite(siteId, STATE_DELETED));
+            retryingDatabaseOperationFacade.retry(() -> userDao.deleteUserPropertiesBySiteId(siteFeed.getId()));
             dependencyService.deleteSiteDependencies(siteId);
             deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
@@ -985,7 +981,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
-        retryingDatabaseOperationFacade.updateSiteLastCommitId(params);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateLastCommitId(params));
     }
 
     @Override
@@ -993,7 +989,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        retryingDatabaseOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateLastVerifiedGitlogCommitId(params));
     }
 
     @Override
@@ -1001,7 +997,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        retryingDatabaseOperationFacade.updateSiteLastSyncedGitlogCommitId(params);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateLastSyncedGitlogCommitId(params));
     }
 
     @Override
@@ -1479,7 +1475,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             Map<String, Object> params = new HashMap<>();
             params.put("siteId", siteId);
             params.put("enabled", enabled ? 1 : 0);
-            retryingDatabaseOperationFacade.enableSitePublishing(params);
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.enablePublishing(params));
             return true;
         } else {
             throw new SiteNotFoundException();
@@ -1492,7 +1488,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                           @ValidateStringParam(name = "status") String status)
             throws SiteNotFoundException {
         if (exists(siteId)) {
-            retryingDatabaseOperationFacade.updateSitePublishingStatus(siteId, status);
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updatePublishingStatus(siteId, status));
             return true;
         } else {
             throw new SiteNotFoundException();
@@ -1586,14 +1582,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @Override
     public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
         logger.debug("Unlock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
-        retryingDatabaseOperationFacade.unlockPublishingForSite(siteId, lockOwnerId);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId));
         return true;
     }
 
     @Override
     public void updatePublishingLockHeartbeatForSite(String siteId) {
         logger.debug("Update publishing lock heartbeat in site '{}'", siteId);
-        retryingDatabaseOperationFacade.updatePublishingLockHeartbeatForSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updatePublishingLockHeartbeatForSite(siteId));
     }
 
     @Override
@@ -1613,7 +1609,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public void setSiteState(String siteId, String state) {
-        retryingDatabaseOperationFacade.setSiteState(siteId, state);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, state));
     }
 
     @Override
@@ -1628,7 +1624,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public void setPublishedRepoCreated(String siteId) {
-        retryingDatabaseOperationFacade.setSitePublishedRepoCreated(siteId);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setPublishedRepoCreated(siteId));
     }
 
     @Override
@@ -1752,4 +1748,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
     }
 
+    public void setUserDao(UserDAO userDao) {
+        this.userDao = userDao;
+    }
 }

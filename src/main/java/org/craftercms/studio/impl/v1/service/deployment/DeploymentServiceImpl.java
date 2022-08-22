@@ -20,6 +20,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.io.FilenameUtils;
 import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -105,6 +108,8 @@ import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.PREVIOUS_COMMIT_SUFFIX;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_START_STOP_PUBLISHER;
 
 /**
  */
@@ -195,7 +200,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
                 submissionComment);
         for (PublishRequest item : items) {
-            retryingDatabaseOperationFacade.insertItemForDeployment(item);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
 
@@ -343,7 +348,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             List<PublishRequest> items =
                     createDeleteItems(site, environment, paths, approver, scheduledDate, submissionComment);
             for (PublishRequest item : items) {
-                retryingDatabaseOperationFacade.insertItemForDeployment(item);
+                retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(item));
             }
         }
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
@@ -456,7 +461,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
         Map<String, String> params = new HashMap<String, String>();
         params.put("site", site);
-        retryingDatabaseOperationFacade.deleteDeploymentDataForSite(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.deleteDeploymentDataForSite(params));
     }
 
     @Override
@@ -488,7 +493,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", DateUtils.getCurrentTime());
-        retryingDatabaseOperationFacade.cancelWorkflow(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.cancelWorkflow(params));
     }
 
     @Override
@@ -500,7 +505,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
         params.put("canceledState", CopyToEnvironmentItem.State.CANCELLED);
         params.put("now", DateUtils.getCurrentTime());
-        retryingDatabaseOperationFacade.cancelWorkflowBulk(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.cancelWorkflowBulk(params));
     }
 
     @Override
@@ -654,13 +659,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     @Override
     @ValidateParams
-    public boolean enablePublishing(@ValidateStringParam(name = "site") String site, boolean enabled)
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
+    public boolean enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(name = "site") String site, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
-        }
-        if (!securityService.isSiteAdmin(securityService.getCurrentUser(), site)) {
-            throw new AuthenticationException();
         }
 
         boolean toRet = siteService.enablePublishing(site, enabled);
@@ -719,7 +722,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                 DateUtils.getCurrentTime(), securityService.getCurrentUser(), comment);
         // Insert publish requests in the queue
         for (PublishRequest request : publishRequests) {
-            retryingDatabaseOperationFacade.insertItemForDeployment(request);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.insertItemForDeployment(request));
         }
         logger.debug("Done adding publish requests for site '{}' target '{}'", site, environment);
     }

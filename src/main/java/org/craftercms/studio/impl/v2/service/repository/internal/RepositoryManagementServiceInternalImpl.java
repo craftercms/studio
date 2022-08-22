@@ -277,7 +277,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         }
 
         logger.debug("Insert the site remote record into database for site '{}'", siteId);
-        retryingDatabaseOperationFacade.insertRemoteRepository(params);
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.insertRemoteRepository(params));
     }
 
     @Override
@@ -678,7 +678,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 	// TODO: SJ: Avoid using string literals
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        retryingDatabaseOperationFacade.deleteRemoteRepository(params);
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDao.deleteRemoteRepository(params));
 
         return true;
     }
