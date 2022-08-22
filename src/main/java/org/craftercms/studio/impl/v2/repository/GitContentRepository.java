@@ -33,6 +33,7 @@ import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -132,6 +133,8 @@ public class GitContentRepository implements ContentRepository {
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
+    private SiteFeedMapper siteFeedMapper;
+
     private ServicesConfig servicesConfig;
 
     protected StudioDBScriptRunnerFactory scriptRunnerFactory;
@@ -588,7 +591,7 @@ public class GitContentRepository implements ContentRepository {
         params.put("siteId", siteId);
         params.put("commitId", commitId);
         params.put("processed", 1);
-        retryingDatabaseOperationFacade.markGitLogProcessed(params);
+        retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessed(params));
     }
 
     @Override
@@ -601,7 +604,7 @@ public class GitContentRepository implements ContentRepository {
             }
 
             for (List<String> part : partitions) {
-                retryingDatabaseOperationFacade.markGitLogProcessedBulk(siteId, part);
+                retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessedBulk(siteId, part));
             }
         }
     }
@@ -627,16 +630,16 @@ public class GitContentRepository implements ContentRepository {
         params.put("processed", processed);
         params.put("audited", audited);
         try {
-            retryingDatabaseOperationFacade.insertGitLog(params);
+            retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertGitLog(params));
         } catch (DuplicateKeyException e) {
             logger.debug("Failed to insert commit id '{}' in site '{}' into" +
                     " the gitlog table, because it's a duplicate entry. Marking it as unprocessed so it can be" +
                     " processed by the sync database task.", commitId, siteId);
-            params = new HashMap<>();
-            params.put("siteId", siteId);
-            params.put("commitId", commitId);
-            params.put("processed", 0);
-            retryingDatabaseOperationFacade.markGitLogProcessed(params);
+            HashMap<String,Object> markLogProcessedParams = new HashMap<>();
+            markLogProcessedParams.put("siteId", siteId);
+            markLogProcessedParams.put("commitId", commitId);
+            markLogProcessedParams.put("processed", 0);
+            retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessed(markLogProcessedParams));
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -646,7 +649,7 @@ public class GitContentRepository implements ContentRepository {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("commitId", commitId);
-        retryingDatabaseOperationFacade.updateSiteLastVerifiedGitlogCommitId(params);
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateLastVerifiedGitlogCommitId(params));
     }
 
     @Override
@@ -1261,7 +1264,7 @@ public class GitContentRepository implements ContentRepository {
         Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        retryingDatabaseOperationFacade.deleteRemoteRepository(params);
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.deleteRemoteRepository(params));
 
         return true;
     }
@@ -1300,7 +1303,8 @@ public class GitContentRepository implements ContentRepository {
         }
 
         // Insert site remote record into database
-        retryingDatabaseOperationFacade.insertRemoteRepository(params);
+        Map insertRepoParams = params;
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(insertRepoParams));
 
         params = new HashMap<>();
         params.put("siteId", siteId);
@@ -1318,7 +1322,7 @@ public class GitContentRepository implements ContentRepository {
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
             ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
             if (member != null) {
-                retryingDatabaseOperationFacade.addClusterRemoteRepository(member.getId(), remoteRepository.getId());
+                retryingDatabaseOperationFacade.retry(() -> clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId()));
             }
         }
     }
@@ -1545,7 +1549,7 @@ public class GitContentRepository implements ContentRepository {
         String lockKey = "GitLogLock:" + siteId;
         generalLockService.lock(lockKey);
         try {
-            retryingDatabaseOperationFacade.markGitLogAudited(siteId, commitId, 1);
+            retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogAudited(siteId, commitId, 1));
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -1598,7 +1602,7 @@ public class GitContentRepository implements ContentRepository {
                         }
 
                         if (batch.size() > 0) {
-                            retryingDatabaseOperationFacade.insertIgnoreGitLogList(siteId, batch);
+                            retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertIgnoreGitLogList(siteId, batch));
                             siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
                             logger.debug("Inserted '{}' git commits into the git log table for site '{}'",
                                     batch.size(), siteId);
@@ -1702,7 +1706,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        retryingDatabaseOperationFacade.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0);
+        retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0));
     }
 
     @Override
@@ -1794,7 +1798,7 @@ public class GitContentRepository implements ContentRepository {
 
     @Override
     public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
-        retryingDatabaseOperationFacade.upsertGitLogList(siteId, commitIds, processed ? 1 : 0, audited ? 1 : 0);
+        retryingDatabaseOperationFacade.retry(() -> gitLogDao.upsertGitLogList(siteId, commitIds, processed ? 1 : 0, audited ? 1 : 0));
     }
 
     @Override
@@ -2108,6 +2112,10 @@ public class GitContentRepository implements ContentRepository {
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
+    }
+
+    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
+        this.siteFeedMapper = siteFeedMapper;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

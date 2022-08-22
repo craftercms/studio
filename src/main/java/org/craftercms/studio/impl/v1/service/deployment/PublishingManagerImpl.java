@@ -278,7 +278,7 @@ public class PublishingManagerImpl implements PublishingManager {
         for (PublishRequest item : processedItems) {
             item.setState(PublishRequest.State.COMPLETED);
             item.setPublishedOn(publishedOn);
-            retryingDatabaseOperationFacade.markPublishRequestItemCompleted(item);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.markItemCompleted(item));
         }
     }
 
@@ -289,7 +289,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                     List<PublishRequest> itemsToDeploy) throws DeploymentException {
         for (PublishRequest item : itemsToDeploy) {
             item.setState(PublishRequest.State.PROCESSING);
-            retryingDatabaseOperationFacade.updateItemDeploymentState(item);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.updateItemDeploymentState(item));
         }
     }
 
@@ -300,7 +300,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(READY_FOR_LIVE);
-            retryingDatabaseOperationFacade.updateItemDeploymentState(item);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.updateItemDeploymentState(item));
         }
     }
 
@@ -311,7 +311,7 @@ public class PublishingManagerImpl implements PublishingManager {
                                  List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.BLOCKED);
-            retryingDatabaseOperationFacade.updateItemDeploymentState(item);
+            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.updateItemDeploymentState(item));
         }
     }
 
@@ -482,7 +482,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put(ENVIRONMENT, environment);
         params.put(PROCESSING_STATE, PROCESSING);
         params.put(READY_STATE, READY_FOR_LIVE);
-        retryingDatabaseOperationFacade.resetPublishRequestProcessingQueue(params);
+        retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.resetProcessingQueue(params));
     }
 
     public boolean isEnablePublishingWithoutDependencies() {

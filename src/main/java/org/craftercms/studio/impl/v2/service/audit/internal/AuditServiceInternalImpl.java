@@ -335,7 +335,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     @Override
     public void deleteAuditLogForSite(long siteId) {
-        retryingDatabaseOperationFacade.deleteAuditLogForSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> auditDao.deleteAuditLogForSite(siteId));
     }
 
     public AuditDAO getAuditDao() {

@@ -78,14 +78,14 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean upsertEntry(Item item) {
-        retryingDatabaseOperationFacade.upsertEntry(item);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.upsertEntry(item));
         return true;
     }
 
     @Override
     public void upsertEntries(String siteId, List<Item> items) {
         if (CollectionUtils.isNotEmpty(items)) {
-            retryingDatabaseOperationFacade.upsertEntries(items);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.upsertEntries(items));
         }
     }
 
@@ -137,7 +137,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void deleteItem(long itemId) {
-        retryingDatabaseOperationFacade.deleteById(itemId);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteById(itemId));
     }
 
     @Override
@@ -145,12 +145,12 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        retryingDatabaseOperationFacade.deleteBySiteAndPath(siteFeed.getId(), path);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPath(siteFeed.getId(), path));
     }
 
     @Override
     public void updateItem(Item item) {
-        retryingDatabaseOperationFacade.updateItem(item);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateItem(item));
     }
 
     @Override
@@ -174,13 +174,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.setStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap));
         }
     }
 
     private void setStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(itemIds)) {
-            retryingDatabaseOperationFacade.setStatesByIdBulk(itemIds, statesBitMap);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.setStatesByIdBulk(itemIds, statesBitMap));
         }
     }
 
@@ -189,13 +189,13 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.resetStatesBySiteAndPathBulk(siteFeed.getId(), paths, statesBitMap));
         }
     }
 
     private void resetStatesByIdBulk(List<Long> itemIds, long statesBitMap) {
         if (CollectionUtils.isNotEmpty(itemIds)) {
-            retryingDatabaseOperationFacade.resetStatesByIdBulk(itemIds, statesBitMap);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.resetStatesByIdBulk(itemIds, statesBitMap));
         }
     }
 
@@ -259,7 +259,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap) {
         if (CollectionUtils.isNotEmpty(itemIds)) {
-            retryingDatabaseOperationFacade.updateStatesByIdBulk(itemIds, onStateBitMap, offStateBitMap);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesByIdBulk(itemIds, onStateBitMap, offStateBitMap));
         }
     }
 
@@ -269,8 +269,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteId);
             SiteFeed siteFeed = siteFeedMapper.getSite(params);
-            retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths,
-                                                                          onStateBitMap, offStateBitMap);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths,
+                    onStateBitMap, offStateBitMap));
         }
     }
 
@@ -308,20 +308,20 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void deleteItemsForSite(long siteId) {
-        retryingDatabaseOperationFacade.deleteItemsForSite(siteId);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteItemsForSite(siteId));
     }
 
     @Override
     public void deleteItemsById(List<Long> itemIds) {
         if (CollectionUtils.isNotEmpty(itemIds)) {
-            retryingDatabaseOperationFacade.deleteItemsById(itemIds);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.deleteItemsById(itemIds));
         }
     }
 
     @Override
     public void deleteItemsForSiteAndPaths(long siteId, List<String> paths) {
         if (CollectionUtils.isNotEmpty(paths)) {
-            retryingDatabaseOperationFacade.deleteItemsForSiteAndPath(siteId, paths);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.deleteItemsForSiteAndPath(siteId, paths));
         }
     }
 
@@ -422,7 +422,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             if (disabled) {
                 item.setState(item.getState() | ItemState.DISABLED.value);
             }
-            retryingDatabaseOperationFacade.upsertEntry(item);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.upsertEntry(item));
         } finally {
             generalLockService.unlock(lockKey);
         }
@@ -530,7 +530,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void clearPreviousPath(String siteId, String path) {
-        retryingDatabaseOperationFacade.clearPreviousPath(siteId, path);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.clearPreviousPath(siteId, path));
     }
 
     @Override
@@ -577,7 +577,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void deleteItemForFolder(long siteId, String folderPath) {
-        retryingDatabaseOperationFacade.deleteBySiteAndPathForFolder(siteId, folderPath);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.deleteBySiteAndPathForFolder(siteId, folderPath));
     }
 
     @Override
@@ -597,7 +597,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateCommitId(String siteId, String path, String commitId) {
-        retryingDatabaseOperationFacade.updateCommitId(siteId, path, commitId);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateCommitId(siteId, path, commitId));
     }
 
     @Override
@@ -625,32 +625,32 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn) {
-        retryingDatabaseOperationFacade.updateLastPublishedOn(siteId, path, lastPublishedOn);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOn(siteId, path, lastPublishedOn));
     }
 
     @Override
     public void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn) {
-        retryingDatabaseOperationFacade.updateLastPublishedOnBulk(siteId, paths, lastPublishedOn);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOnBulk(siteId, paths, lastPublishedOn));
     }
 
     @Override
     public void lockItemByPath(String siteId, String path, String username)
             throws UserNotFoundException, ServiceLayerException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        retryingDatabaseOperationFacade.lockItemByPath(siteId, path, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.lockItemByPath(siteId, path, user.getId(), USER_LOCKED.value, CONTENT_TYPE_FOLDER));
     }
 
     @Override
     public void lockItemsByPath(String siteId, List<String> paths, String username)
             throws UserNotFoundException, ServiceLayerException {
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        retryingDatabaseOperationFacade.lockItemsByPath(siteId, paths, user.getId(), USER_LOCKED.value,
-                CONTENT_TYPE_FOLDER);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.lockItemsByPath(siteId, paths, user.getId(), USER_LOCKED.value,
+                CONTENT_TYPE_FOLDER));
     }
 
     @Override
     public void unlockItemByPath(String siteId, String path) {
-        retryingDatabaseOperationFacade.unlockItemByPath(siteId, path, ~USER_LOCKED.value);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.unlockItemByPath(siteId, path, ~USER_LOCKED.value));
     }
 
     @Override
@@ -671,8 +671,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 
             SiteFeed siteFeed = siteFeedMapper.getSite(Collections.singletonMap(SITE_ID, siteId));
-            retryingDatabaseOperationFacade.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, setStatesMask,
-                    resetStatesMask);
+            retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesBySiteAndPathBulk(siteFeed.getId(), paths, setStatesMask,
+                    resetStatesMask));
         }
     }
 
@@ -724,7 +724,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         long setStatesMask = getSetStatesMask(live, staged, isNew, modified);
         long resetStatesMask = getResetStatesMask(clearSystemProcessing, clearUserLocked, live, staged, isNew, modified);
 
-        retryingDatabaseOperationFacade.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesByQuery(siteId, path, states, setStatesMask, resetStatesMask));
     }
 
     @Override
@@ -738,7 +738,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
-        retryingDatabaseOperationFacade.updateStatesForSite(siteFeed.getId(), onStateBitMap, offStateBitMap);
+        retryingDatabaseOperationFacade.retry(() -> itemDao.updateStatesForSite(siteFeed.getId(), onStateBitMap, offStateBitMap));
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
