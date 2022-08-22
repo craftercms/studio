@@ -966,7 +966,8 @@
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
         SET path = #{newPath},
             i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
-            i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl})
+            i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl}),
+            i.previous_path = IFNULL(#{oldPath}, i.path)
         <if test="label != null">
             , i.label = #{label}
         </if>
