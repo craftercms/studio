@@ -4042,11 +4042,11 @@ paths:
                       childItems:
                         type: array
                         items:
-                          type: string
+                          $ref: '#/components/schemas/SandboxItem'
                       dependentItems:
                         type: array
                         items:
-                          type: string
+                          $ref: '#/components/schemas/SandboxItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -4100,6 +4100,9 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
+                  packageId:
+                    type: string
+                    description: ID of the package in the recycle bin
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
