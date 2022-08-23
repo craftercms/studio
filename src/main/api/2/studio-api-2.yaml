@@ -16,6 +16,8 @@ externalDocs:
   description: CrafterCMS - Studio
   url: 'https://docs.craftercms.org/en/3.1/developers/projects/studio/index.html'
 tags:
+  - name: recyclebin
+    description: Recycle Bin operations
   - name: groups
     description: Group management operations
   - name: users
@@ -66,6 +68,241 @@ tags:
     description: Logger configuration operations
 
 paths:
+  /recycle_bin/packages:
+    get:
+      tags:
+        - recyclebin
+      summary: List recycle bin packages
+      operationId: list_recycle_bin_packages
+      description: 'Required Permission: "read_recycle_bin"'
+      parameters:
+        - name: siteId
+          in: query
+          description: The project to retrieve packages from
+          required: true
+          schema:
+            type: string
+        - name: usernames
+          in: query
+          description: Usernames to filter by
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: offset
+          in: query
+          description: Offset of the first record in the response
+          required: false
+          schema:
+            type: number
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: number
+        - name: published
+          in: query
+          description: >
+            Include published packages?:
+             * `No` - Include packages that have not been published
+             * `Staging` - Include packages published to staging
+             * `Live` - Include packages published to live
+          required: false
+          schema:
+            $ref: '#/components/schemas/ItemPublishedState'
+        - name: dateFrom
+          in: query
+          description: Lower boundary in date range query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: dateTo
+          in: query
+          description: Upper boundary in date range query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: sort
+          in: query
+          description: Sort-by column
+          required: false
+          schema:
+            type: string
+            enum: [username, timestamp, path]
+        - name: order
+          in: query
+          description: Sort order
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+        - name: keyword
+          in: query
+          description: A single keyword to find in the content item label
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/ListRecycleBinResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /recycle_bin/package/{packageId}:
+    get:
+      tags:
+        - recyclebin
+      summary: Get recycle bin packages' details
+      operationId: get_recycle_bin_packages
+      description: 'Required Permission: "read_recycle_bin"'
+      parameters:
+        - name: siteId
+          in: query
+          description: The project to retrieve packages from
+          required: true
+          schema:
+            type: string
+        - name: packageId
+          in: path
+          description: ID of the package to retrieve details for
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  package:
+                    $ref: '#/components/schemas/RecycleBinPackageDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /recycle_bin/validate_restore:
+    post:
+      tags:
+        - recyclebin
+      summary: Validate the restore operation for a recycle bin package
+      operationId: validate_recycle_bin_restory
+      description: 'Required Permission: "restore_content"'
+      requestBody:
+        description: Validate restore request params
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                packageId:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  result:
+                    $ref: '#/components/schemas/ValidateRestoreResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /recycle_bin/restore:
+    post:
+      tags:
+        - recyclebin
+      summary: Restore a recycle bin package
+      operationId: recycle_bin_restory
+      description: 'Required Permission: "restore_content"'
+      requestBody:
+        description: Validate restore request params
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  type: string
+                packageId:
+                  type: string
+                comment:
+                  type: string
+                resolvingStategy:
+                  type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      path:
+                        type: string
+                      resolvingStategy:
+                        type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /groups:
     get:
@@ -5315,13 +5552,13 @@ paths:
       operationId: deleteAccessToken
       description: Required permission "manage_access_token"
       parameters:
-       - name: id
-         in: path
-         schema:
-           type: integer
-           format: int64
-         description: The id of the access token to delete
-         required: true
+        - name: id
+          in: path
+          schema:
+            type: integer
+            format: int64
+          description: The id of the access token to delete
+          required: true
       responses:
         '200':
           description: OK
@@ -9270,6 +9507,86 @@ components:
               type: boolean
               description: if true, the logger will be created in case it does not exist yet.
                 If false, a 404 status code will be returned if logger is not in the registry.
+    ListRecycleBinResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+          description: Total number of records matching the search parameters
+        offset:
+          type: integer
+          format: int32
+          description: Offset of the first record in the response
+        limit:
+          type: integer
+          format: int32
+          description: Number of records to return
+        packages:
+          type: array
+          items:
+            type: object
+            $ref: '#/components/schemas/RecycleBinPackage'
+    RecycleBinPackage:
+      type: object
+      properties:
+        packageId:
+          type: string
+        user:
+          $ref: '#/components/schemas/Person'
+        timestamp:
+          type: string
+          description: Date and time of the delete action
+        comment:
+          type: string
+          description: User comment
+        published:
+          $ref: '#/components/schemas/ItemPublishedState'
+    RecycleBinPackageDetails:
+      allOf:
+        - $ref: '#/components/schemas/RecycleBinPackage'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SandboxItem'
+    ItemPublishedState:
+      type: string
+      enum:
+        - No
+        - Staging
+        - Live
+    ValidateRestoreResponse:
+      type: object
+      properties:
+        packageId:
+          type: string
+        resolvingStrategies:
+          type: array
+          items:
+            type: string
+        conflicts:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              resolvingStategies:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    strategy:
+                      $ref: '#/components/schemas/ConflictResolvingStrategy'
+                    resolvedPath:
+                      type: string
+    ConflictResolvingStrategy:
+      type: string
+      enum:
+        - suffix
+        - discard
   responses:
     NotFound:
       description: Resource not found
