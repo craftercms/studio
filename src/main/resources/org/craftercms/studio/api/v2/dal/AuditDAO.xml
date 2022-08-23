@@ -301,7 +301,7 @@
         </foreach>
         and primary_target_type = #{targetType}
         <if test="contentType != null and contentType != 'all' ">
-            and act.primary_target_value = #{contentType}
+            and act.primary_target_subtype = #{contentType}
         </if>
         and os.state NOT IN
         <foreach item="state" index="index" collection="states"
