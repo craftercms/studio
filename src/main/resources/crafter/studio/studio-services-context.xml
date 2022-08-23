@@ -81,7 +81,7 @@
         <property name="contentRepository" ref="contentRepository" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="dependencyMapper" ref="dependencyMapper" />
-        <property name="dependencyService" ref="dependencyService" />
+        <property name="dependencyService" ref="dependencyServiceInternal" />
         <property name="itemDao" ref="itemDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
