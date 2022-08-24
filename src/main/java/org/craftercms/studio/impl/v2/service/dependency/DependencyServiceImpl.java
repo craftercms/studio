@@ -27,7 +27,6 @@ import org.craftercms.studio.permissions.CompositePermission;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
@@ -35,15 +34,6 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class DependencyServiceImpl implements DependencyService {
 
     private DependencyServiceInternal dependencyServiceInternal;
-
-    @Override
-    public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-            throws ServiceLayerException {
-        List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, path);
-        toRet.remove(path);
-        return dependencyServiceInternal.getSoftDependencies(siteId, path);
-    }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
@@ -56,22 +46,10 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public List<String> getHardDependencies(String site, String path) throws ServiceLayerException {
-        return dependencyServiceInternal.getHardDependencies(site, path);
-    }
-
-    @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getHardDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
         return dependencyServiceInternal.getHardDependencies(site, paths);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public List<String> getDependentItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                          @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
-        return dependencyServiceInternal.getDependentItems(siteId, path);
     }
 
     @Override

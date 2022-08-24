@@ -21,8 +21,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -32,14 +30,10 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -227,13 +221,6 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private List<Map<String, String>> calculateHardDependenciesForListFromDB(String site, Set<String> paths) {
         return dependencyDao.getHardDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
-    }
-
-    @Override
-    public List<String> getDependentItems(String siteId, String path) {
-        List<String> paths = new ArrayList<>(1);
-        paths.add(path);
-        return getDependentItems(siteId, paths);
     }
 
     @Override

@@ -67,13 +67,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static java.lang.String.format;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static java.lang.String.format;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
@@ -113,13 +111,37 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
+                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
+        return doGetChildItems(siteId, paths);
+    }
+
+    protected List<String> doGetChildItems(final String siteId, final List<String> paths) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
-        List<String> childItems = new ArrayList<>();
-        childItems.addAll(subtreeItems);
+        List<String> childItems = new ArrayList<>(subtreeItems);
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, paths));
         childItems.addAll(dependencyServiceInternal.getItemSpecificDependencies(siteId, subtreeItems));
         return childItems;
+    }
+
+    @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
+    public List<SandboxItem> getChildSandboxItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
+                                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) final List<String> paths)
+            throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
+        List<String> childItemPaths = doGetChildItems(siteId, paths);
+        return contentServiceInternal.getSandboxItemsByPath(siteId, childItemPaths, true);
+    }
+
+    @Override
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
+    public List<SandboxItem> getDependentSandboxItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
+                                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) final List<String> paths)
+            throws UserNotFoundException, ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+        List<String> dependentPaths = dependencyServiceInternal.getDependentItems(siteId, paths);
+        return contentServiceInternal.getSandboxItemsByPath(siteId, dependentPaths, true);
     }
 
     @Override
@@ -181,7 +203,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
     public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
                                                String keyword, List<String> systemTypes, List<String> excludes,
@@ -208,7 +230,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
     public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
@@ -216,7 +238,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = CompositePermission.class, action = "get_children")
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
     public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                    @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                                    boolean preferContent)

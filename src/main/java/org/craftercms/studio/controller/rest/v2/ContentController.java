@@ -29,7 +29,6 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
-import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -42,12 +41,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
@@ -57,26 +51,8 @@ import java.util.stream.Collectors;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RENAME;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONTENT_BY_COMMIT_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_LOCK_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -86,20 +62,19 @@ public class ContentController {
 
     private final ContentService contentService;
     private final SiteService siteService;
-    private final DependencyService dependencyService;
     private final WorkflowService workflowService;
 
     //TODO: Migrate logic to new content service
     private final ClipboardService clipboardService;
 
-    @ConstructorProperties({"contentService", "siteService", "dependencyService", "clipboardService",
+
+    @ConstructorProperties({"contentService", "siteService", "clipboardService",
             "workflowService"})
     public ContentController(ContentService contentService, SiteService siteService,
-                             DependencyService dependencyService, ClipboardService clipboardService,
+                             ClipboardService clipboardService,
                              WorkflowService workflowService) {
         this.contentService = contentService;
         this.siteService = siteService;
-        this.dependencyService = dependencyService;
         this.clipboardService = clipboardService;
         this.workflowService = workflowService;
     }
@@ -122,15 +97,15 @@ public class ContentController {
     }
 
     @PostMapping(GET_DELETE_PACKAGE)
-    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) {
-        List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
-        List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
+    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws ServiceLayerException, UserNotFoundException {
+        List<SandboxItem> childSandboxItems = contentService.getChildSandboxItems(request.getSiteId(), request.getPaths());
+        List<SandboxItem> dependentSandboxItems = contentService.getDependentSandboxItems(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Map<String, List<String>>> result = new ResultOne<>();
+        ResultOne<Map<String, List<?>>> result = new ResultOne<>();
         result.setResponse(OK);
-        Map<String, List<String>> items = new HashMap<>();
-        items.put(RESULT_KEY_CHILD_ITEMS, childItems);
-        items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentItems);
+        Map<String, List<?>> items = new HashMap<>();
+        items.put(RESULT_KEY_CHILD_ITEMS, childSandboxItems);
+        items.put(RESULT_KEY_DEPENDENT_ITEMS, dependentSandboxItems);
         result.setEntity(RESULT_KEY_ITEMS, items);
         responseBody.setResult(result);
         return responseBody;

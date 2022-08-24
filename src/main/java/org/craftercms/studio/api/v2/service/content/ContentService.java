@@ -63,7 +63,31 @@ public interface ContentService {
      * @param paths list of paths to get child items for
      * @return list of paths of child items
      */
-    List<String> getChildItems(String siteId, List<String> paths);
+    List<String> getChildItems(String siteId, List<String> paths) throws ServiceLayerException;
+
+    /**
+     * Get SandboxItems for each the child items for the given paths.Child item is
+     * - belongs to item subtree
+     * - is item specific dependency
+     *
+     * @param siteId site identifier
+     * @param paths  paths to get child items for
+     * @return list of {@link SandboxItem}
+     * @throws UserNotFoundException if current user cannot be found to calculate the available actions for the user
+     * @throws ServiceLayerException general service error
+     */
+    List<SandboxItem> getChildSandboxItems(String siteId, List<String> paths) throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Get SandboxItems for dependents of each of the given paths
+     *
+     * @param siteId site identifier
+     * @param paths  paths to get dependent items for
+     * @return list of {@link SandboxItem}
+     * @throws UserNotFoundException if current user cannot be found to calculate the available actions for the user
+     * @throws ServiceLayerException general service error
+     */
+    List<SandboxItem> getDependentSandboxItems(String siteId, List<String> paths) throws UserNotFoundException, ServiceLayerException;
 
     /**
      * Delete content for given path. Following content will be deleted:
@@ -174,7 +198,6 @@ public interface ContentService {
     * @throws ServiceLayerException general service error
     * @throws UserNotFoundException user not found error
     */
-    public boolean renameContent( String site, String path, String name)
+    boolean renameContent( String site, String path, String name)
          throws ServiceLayerException, UserNotFoundException;
-
 }

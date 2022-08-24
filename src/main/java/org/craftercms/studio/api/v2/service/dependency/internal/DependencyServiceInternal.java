@@ -93,16 +93,6 @@ public interface DependencyServiceInternal {
             throws SiteNotFoundException, ServiceLayerException;
 
     /**
-     * Get list of paths of content items that are dependant on given path
-     *
-     * @param siteId site identifier
-     * @param path path to get dependent items for
-     *
-     * @return list of paths dependent on given
-     */
-    List<String> getDependentItems(String siteId, String path);
-
-    /**
      * Get list of paths of content items that are dependant on given paths
      *
      * @param siteId site identifier
