@@ -72,18 +72,20 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
                                  @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
         double lastNavOrder = 1000D;
         try {
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String> params = new HashMap<>();
             params.put("site", site);
             params.put("path", path);
             NavigationOrderSequence navigationOrderSequence =
                     navigationOrderSequenceMapper.getPageNavigationOrderForSiteAndPath(params);
             if (navigationOrderSequence == null) {
-                NavigationOrderSequence newNavOrderSequence = getNewNavigationOrderSequence(site, path, currentMaxNavOrder);
-                retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.insert(newNavOrderSequence));
+                navigationOrderSequence = getNewNavigationOrderSequence(site, path, currentMaxNavOrder);
+                NavigationOrderSequence finalNavOrderSequence = navigationOrderSequence;
+                retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.insert(finalNavOrderSequence));
             } else {
                 double newMaxCount = navigationOrderSequence.getMaxCount() + getPageNavigationOrderIncrement();
                 navigationOrderSequence.setMaxCount(newMaxCount);
-                retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.update(navigationOrderSequence));
+                NavigationOrderSequence finalNavOrderSequence = navigationOrderSequence;
+                retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.update(finalNavOrderSequence));
             }
             lastNavOrder = navigationOrderSequence.getMaxCount();
         } catch (Exception e) {
