@@ -172,13 +172,13 @@ paths:
     get:
       tags:
         - recyclebin
-      summary: Get recycle bin packages' details
-      operationId: get_recycle_bin_packages
+      summary: Get recycle bin package details
+      operationId: get_recycle_bin_package
       description: 'Required Permission: "read_recycle_bin"'
       parameters:
         - name: siteId
           in: query
-          description: The project to retrieve packages from
+          description: The project to retrieve the package from
           required: true
           schema:
             type: string
@@ -215,7 +215,7 @@ paths:
       tags:
         - recyclebin
       summary: Validate the restore operation for a recycle bin package
-      operationId: validate_recycle_bin_restory
+      operationId: validate_recycle_bin_restore
       description: 'Required Permission: "restore_content"'
       requestBody:
         description: Validate restore request params
@@ -256,7 +256,7 @@ paths:
       tags:
         - recyclebin
       summary: Restore a recycle bin package
-      operationId: recycle_bin_restory
+      operationId: recycle_bin_restore
       description: 'Required Permission: "restore_content"'
       requestBody:
         description: Validate restore request params
@@ -272,7 +272,7 @@ paths:
                   type: string
                 comment:
                   type: string
-                resolvingStategy:
+                resolutionStrategy:
                   type: string
                 items:
                   type: array
@@ -281,7 +281,7 @@ paths:
                     properties:
                       path:
                         type: string
-                      resolvingStategy:
+                      resolutionStrategy:
                         type: string
       responses:
         '200':
@@ -9533,7 +9533,7 @@ components:
     RecycleBinPackage:
       type: object
       properties:
-        packageId:
+        id:
           type: string
         user:
           $ref: '#/components/schemas/Person'
@@ -9565,7 +9565,7 @@ components:
       properties:
         packageId:
           type: string
-        resolvingStrategies:
+        resolutionStrategies:
           type: array
           items:
             type: string
@@ -9576,20 +9576,19 @@ components:
             properties:
               path:
                 type: string
-              resolvingStategies:
+              resolutionStrategies:
                 type: array
                 items:
                   type: object
                   properties:
                     strategy:
-                      $ref: '#/components/schemas/ConflictResolvingStrategy'
+                      $ref: '#/components/schemas/ConflictResolutionStrategy'
                     resolvedPath:
                       type: string
-    ConflictResolvingStrategy:
+    ConflictResolutionStrategy:
       type: string
       enum:
         - suffix
-        - discard
   responses:
     NotFound:
       description: Resource not found
