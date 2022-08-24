@@ -4018,11 +4018,11 @@ paths:
                 siteId:
                   description: Site ID
                   type: string
-                paths:
+                items:
                   description: Content paths to get a delete package for
                   type: array
                   items:
-                    type: string
+                    $ref: '#/components/schemas/SandboxItem'
               required:
                 - siteId
                 - paths
