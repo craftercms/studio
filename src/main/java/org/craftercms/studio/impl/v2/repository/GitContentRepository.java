@@ -1841,6 +1841,8 @@ public class GitContentRepository implements ContentRepository {
             // Create live branch
             createEnvironmentBranch(siteId, siteFeed.getSandboxBranch(), servicesConfig.getLiveEnvironment(siteId));
         }
+
+        logger.info("Completed the initial publish of the site '{}'", siteId);
     }
 
     private void createEnvironmentBranch(String siteId, String sandboxBranchName, String environment) {
