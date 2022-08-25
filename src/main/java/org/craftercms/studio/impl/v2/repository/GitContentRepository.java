@@ -1965,6 +1965,7 @@ public class GitContentRepository implements ContentRepository {
         }
         String repoLockKey = helper.getPublishedRepoLockKey(siteId);
         try {
+            logger.info("Perform Publish All for site '{}' to target '{}'", siteId, publishingTarget);
             String inProgressBranchName = publishingTarget + IN_PROGRESS_BRANCH_NAME_SUFFIX;
             Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
             try (Git git = Git.wrap(repo)) {
@@ -1995,6 +1996,8 @@ public class GitContentRepository implements ContentRepository {
                 throw new ServiceLayerException(format("Failed to publish changes from site '%s' to target '%s'",
                         siteId, publishingTarget), e);
             }
+
+            logger.info("Completed Publish All for site '{}' to target '{}'", siteId, publishingTarget);
         } finally {
             // unlock the repo in any case
             generalLockService.unlock(repoLockKey);
