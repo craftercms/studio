@@ -526,6 +526,11 @@
 
         <!-- Tinify -->
         <dependency>
+	    <groupId>com.squareup.okhttp3</groupId><!-- Override to address an issue with Tinify's dependencies -->
+            <artifactId>okhttp</artifactId>
+            <version>${okhttp.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.tinify</groupId>
             <artifactId>tinify</artifactId>
             <version>${tinify.version}</version>
