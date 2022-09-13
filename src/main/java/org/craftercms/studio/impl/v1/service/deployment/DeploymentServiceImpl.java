@@ -746,7 +746,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         for (String commitId : commitIds) {
             logger.debug("Get repository operations for site '{}' commit ID '{}'", site, commitId);
             List<RepoOperation> operations =
-                    contentRepositoryV2.getOperations(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
+                    contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
             for (RepoOperation op : operations) {
                 if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getMoveToPath())) ||
