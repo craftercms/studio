@@ -1620,7 +1620,7 @@
           class="org.craftercms.studio.impl.v2.service.security.internal.AccessTokenServiceInternalImpl">
         <constructor-arg name="issuer" value="#{studioConfiguration.getProperty('studio.security.token.issuer')}"/>
         <constructor-arg name="validIssuers"
-                         value="#{studioConfiguration.getArray('studio.security.token.validIssuers', T(java.lang.String))}"/>
+                         value="#{studioConfiguration.getProperty('studio.security.token.validIssuers').split(',')}"/>
         <constructor-arg name="accessTokenExpiration"
                          value="#{studioConfiguration.getProperty('studio.security.token.timeout')}"/>
         <constructor-arg name="signPassword"
