@@ -87,10 +87,10 @@
     </resultMap>
 
     <select id="getAllGroupsForOrganization" resultMap="GroupMap">
-        <bind name="pattern" value="'%' + keyword + '%'" />
         SELECT * FROM `group`
         WHERE org_id = #{orgId}
         <if test="keyword != null" >
+            <bind name="pattern" value="'%' + keyword + '%'" />
             AND group_name like #{pattern}
         </if>
         ORDER BY #{sort}
@@ -98,10 +98,10 @@
     </select>
 
     <select id="getAllGroupsForOrganizationTotal" resultType="Integer" >
-        <bind name="pattern" value="'%' + keyword + '%'" />
         SELECT count(1) FROM `group`
         WHERE org_id = #{orgId}
         <if test="keyword != null" >
+            <bind name="pattern" value="'%' + keyword + '%'" />
             AND group_name like #{pattern}
         </if>
     </select>
