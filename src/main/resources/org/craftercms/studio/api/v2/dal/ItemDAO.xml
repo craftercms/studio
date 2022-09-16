@@ -158,7 +158,8 @@
             AND child.locale_code = #{localeCode}
         </if>
         <if test="keyword != null &amp;&amp; keyword.length > 0">
-            AND child.label LIKE '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND child.label LIKE #{pattern}
         </if>
         <if test="excludes != null &amp;&amp; !excludes.isEmpty()">
             AND child.path NOT IN
@@ -892,7 +893,8 @@
     </delete>
 
     <delete id="deleteBySiteAndPathForFolder">
-        DELETE FROM item WHERE site_id = #{siteId} AND (path = #{folderPath} OR path LIKE '${folderPath}/%')
+        <bind name="pattern" value="folderPath + '/%'" />
+        DELETE FROM item WHERE site_id = #{siteId} AND (path = #{folderPath} OR path LIKE #{pattern})
     </delete>
 
 
@@ -989,7 +991,8 @@
         <if test="label != null">
             , i.label = #{label}
         </if>
-        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND (i.path = #{oldPath} OR i.path = '${oldPath}/index.xml')
+        <bind name="indexPath" value="oldPath + '/index.xml'" />
+        WHERE s.site_id = #{siteId} AND s.deleted = 0 AND (i.path = #{oldPath} OR i.path = #{indexPath})
     </update>
 
     <select id="getMandatoryParentsForPublishing" resultType="String">

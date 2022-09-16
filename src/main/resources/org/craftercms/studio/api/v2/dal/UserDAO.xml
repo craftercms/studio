@@ -65,7 +65,6 @@
     </resultMap>
 
     <select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
-        <bind name="pattern" value="'%' + keyword + '%'" />
         SELECT u.*
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
         INNER JOIN `group` g ON gu.group_id = g.id)
@@ -75,18 +74,19 @@
             #{groupName}
         </foreach>
         <if test="keyword != null" >
-        AND u.username like #{pattern}
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND u.username like #{pattern}
         </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
 
     <select id="getAllUsers" parameterType="java.util.Map" resultMap="UserMap">
-        <bind name="pattern" value="'%' + keyword + '%'" />
         SELECT u.*
         FROM `user` u
         WHERE u.deleted = 0
         <if test="keyword != null" >
+            <bind name="pattern" value="'%' + keyword + '%'" />
             AND u.username like #{pattern}
         </if>
         ORDER BY #{sort}
@@ -162,7 +162,6 @@
     </select>
 
     <select id="getAllUsersForSiteTotal" parameterType="java.util.Map" resultType="Integer">
-        <bind name="pattern" value="'%' + keyword + '%'" />
         SELECT count(1)
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)
         INNER JOIN `group` g ON gu.group_id = g.id)
@@ -171,15 +170,16 @@
             #{groupName}
         </foreach>
         <if test="keyword != null" >
+            <bind name="pattern" value="'%' + keyword + '%'" />
             AND u.username like #{pattern}
         </if>
     </select>
 
     <select id="getAllUsersTotal" resultType="int" parameterType="java.util.Map">
-            <bind name="pattern" value="'%' + keyword + '%'" />
             SELECT COUNT(DISTINCT username)
             FROM `user` WHERE deleted = 0
         <if test="keyword != null" >
+            <bind name="pattern" value="'%' + keyword + '%'" />
             AND username like #{pattern}
         </if>
     </select>
