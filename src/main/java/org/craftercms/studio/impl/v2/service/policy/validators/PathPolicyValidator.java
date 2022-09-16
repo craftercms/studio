@@ -20,9 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
+import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
-
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * Implementation of {@link PolicyValidator} for path aware actions
@@ -43,39 +43,52 @@ public class PathPolicyValidator implements PolicyValidator {
             logger.debug("No path restrictions found, skip action '{}'", action);
             return;
         }
+
+        if (action.getType() != Type.CREATE) {
+            logger.debug("Path policy is only applied to CREATE, skip action '{}'", action);
+            return;
+        }
+
+        if (isEmpty(action.getNewPath())) {
+            logger.debug("No path restrictions found, skip action '{}'", action);
+            return;
+        }
+
         String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
-            var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
-            if (!target.matches(sourceRegex)) {
-                String modifiedValue = null;
-                var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
-                if (targetRegex != null) {
-                    modifiedValue = target.replaceAll(sourceRegex, targetRegex);
+        String item = action.getNewPath();
+        var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
+        if (!item.matches(sourceRegex)) {
+            String modifiedItem = null;
+            var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
+            if (targetRegex != null) {
+                modifiedItem = item.replaceAll(sourceRegex, targetRegex);
 
-                    var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
-                    if (isNotEmpty(caseTransform)) {
-                        switch (caseTransform.toLowerCase()) {
-                            case "uppercase":
-                                modifiedValue = modifiedValue.toUpperCase();
-                                break;
-                            case "lowercase":
-                                modifiedValue = modifiedValue.toLowerCase();
-                                break;
-                            default:
-                                logger.warn("Unsupported case transformation '{}' for action '{}'",
-                                        caseTransform, action);
-                        }
-                    }
-
-                    // special case when creating the folder used in the configuration
-                    if (target.equals(modifiedValue)) {
-                        return;
+                var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
+                if (isNotEmpty(caseTransform)) {
+                    switch (caseTransform.toLowerCase()) {
+                        case "uppercase":
+                            modifiedItem = modifiedItem.toUpperCase();
+                            break;
+                        case "lowercase":
+                            modifiedItem = modifiedItem.toLowerCase();
+                            break;
+                        default:
+                            logger.warn("Unsupported case transformation '{}' for action '{}'",
+                                    caseTransform, action);
                     }
                 }
-                result.setAllowed(modifiedValue != null);
-                result.setModifiedValue(modifiedValue);
-                if (!result.isAllowed()) {
-                    logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
+
+                // special case when creating the folder used in the configuration
+                if (target.equals(modifiedItem)) {
+                    return;
                 }
+            }
+            result.setAllowed(modifiedItem != null);
+            String modifiedValue = removeEnd(target, item) + modifiedItem;
+            result.setModifiedValue(modifiedValue);
+            if (!result.isAllowed()) {
+                logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
+            }
         }
     }
 

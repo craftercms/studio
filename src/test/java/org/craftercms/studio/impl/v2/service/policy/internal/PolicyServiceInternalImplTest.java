@@ -58,6 +58,8 @@ public class PolicyServiceInternalImplTest {
 
     public static final String CONFIG_PATH = "/studio/config/policy-config.xml";
 
+    public static final String STATIC_ASSETS = "/static-assets";
+
     public static final String DOC1_FILENAME = "doc1.pdf";
     public static final String DOC2_FILENAME = "doc2.pdf";
     public static final String DOC3_FILENAME = "doc3.pdf";
@@ -185,6 +187,10 @@ public class PolicyServiceInternalImplTest {
             item.name = SUB_FOLDER_NAME;
 
             return new RepositoryItem[] { item };
+        });
+
+        when(contentRepository.contentExists(SITE_ID, STATIC_ASSETS)).thenAnswer(i -> {
+            return true;
         });
 
         when(contentRepositoryV2.getContentSize(SITE_ID, concat(DOCS_FOLDER_PATH, SUB_FOLDER_NAME, DOC1_FILENAME)))
@@ -350,8 +356,12 @@ public class PolicyServiceInternalImplTest {
         action.setType(Type.CREATE);
         action.setTarget(REMOVE_PATH_RESTRICTED_FOLDER);
 
+        when(contentRepository.contentExists(SITE_ID, REMOVE_PATH_RESTRICTED_FOLDER)).thenAnswer(i -> {
+            return false;
+        });
+
         var results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResultNotModified(results);
+        checkSingleResult(results, true);
     }
 
     @Test
@@ -415,27 +425,23 @@ public class PolicyServiceInternalImplTest {
     }
 
     @Test
-    public void recursiveSimplePathTest() throws ConfigurationException, IOException, ContentNotFoundException {
-        var action = new Action();
-        action.setType(Type.COPY);
-        action.setSource(DOCS_FOLDER_PATH);
-        action.setTarget("/static-assets/no-numbers");
-        action.setRecursive(true);
-
-        var results= policyService.validate(SITE_ID, List.of(action));
-        checkMultipleResults(results, false);
-
-        action.setSource("/static-assets/pics");
-
-        results= policyService.validate(SITE_ID, List.of(action));
-        checkSingleResult(results, true);
-    }
-
-    @Test
     public void multipleTransformationTest() throws ConfigurationException {
         Action action = new Action();
         action.setType(Type.CREATE);
         action.setTarget("/static-assets/test/paren(thesis)in_name.png");
+
+        when(contentRepository.contentExists(SITE_ID, "/static-assets/test")).thenAnswer(i -> {
+            return true;
+        });
+
+        when(contentRepository.contentExists(SITE_ID, "/static-assets/test/paren(thesis)in_name.png")).thenAnswer(i -> {
+            return false;
+        });
+
+        when(contentRepository.contentExists(SITE_ID, "/static-assets/test/paren(thesis)in-name.png")).thenAnswer(i -> {
+            return false;
+        });
+
         List<ValidationResult> results = policyService.validate(SITE_ID, List.of(action));
         checkSingleResult(results, true, "/static-assets/test/paren-thesis-in-name.png");
     }

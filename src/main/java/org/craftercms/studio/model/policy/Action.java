@@ -50,6 +50,11 @@ public class Action {
     protected String target;
 
     /**
+     * Part of the target path to be created
+     */
+    protected String newPath;
+
+    /**
      * Indicates if the action is recursive
      */
     protected boolean recursive = false;
@@ -78,6 +83,14 @@ public class Action {
 
     public void setTarget(String target) {
         this.target = target;
+    }
+
+    public String getNewPath() {
+        return newPath;
+    }
+
+    public void setNewPath(String newPath) {
+        this.newPath = newPath;
     }
 
     public boolean isRecursive() {

@@ -36,7 +36,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.io.FilenameUtils.getName;
 import static org.craftercms.studio.model.policy.Action.METADATA_FILE_SIZE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
  * Default implementation of {@link PolicyServiceInternal}
@@ -93,7 +95,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
             if (action.isRecursive()) {
                 evaluateRecursiveAction(config, siteId, action, results, true);
             } else {
-                evaluateAction(config, action, results, true);
+                evaluateAction(config, siteId, action, results, true);
             }
         });
         return results;
@@ -110,7 +112,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         }
     }
 
-    protected void evaluateAction(final HierarchicalConfiguration<?> config, final Action action, final List<ValidationResult> results,
+    protected void evaluateAction(final HierarchicalConfiguration<?> config, final String siteId, final Action action, final List<ValidationResult> results,
                                   final boolean includeAllowed) {
         ValidationResult systemResult = ValidationResult.allowed(action);
         systemValidator.validate(null, null, action, systemResult);
@@ -134,15 +136,21 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         if (statements.size() == 0) {
             logger.debug("No statement matches found, skip the action '{}'", action);
         }
-        ValidationResult result = validateStatements(action, statements);
+        ValidationResult result = validateStatements(action, statements, siteId);
         if (!result.isAllowed() || result.getModifiedValue() != null || includeAllowed) {
             results.add(result);
         }
     }
 
-    private ValidationResult validateStatements(Action action, List<? extends HierarchicalConfiguration<?>> statements) {
+    private ValidationResult validateStatements(Action action, List<? extends HierarchicalConfiguration<?>> statements, String siteId) {
         ValidationResult result = ValidationResult.allowed(action);
+
         for (HierarchicalConfiguration<?> statement : statements) {
+            if (action.getType() == Type.CREATE) {
+                String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
+                action.setNewPath(getNewPath(siteId, target));
+            }
+
             for (var validator : policyValidators) {
                 logger.debug("Evaluate the action '{}' using the validator '{}'", action, validator.getClass().getSimpleName());
                 validator.validate(getSubConfig(statement, CONFIG_KEY_PERMITTED), getSubConfig(statement, CONFIG_KEY_DENIED), action, result);
@@ -172,7 +180,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     protected void evaluateRecursiveAction(HierarchicalConfiguration<?> config, String siteId, Action action,
                                            List<ValidationResult> results, boolean includeAllowed) {
         // First check if the original action is ok
-        evaluateAction(config, action, results, includeAllowed);
+        evaluateAction(config, siteId, action, results, includeAllowed);
         // If it's ok then start checking the children
         var children = contentRepository.getContentChildren(siteId, action.getSource());
         var sourceName = FilenameUtils.getName(action.getSource());
@@ -191,9 +199,33 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
             } else {
                 childAction.setContentMetadata(
                         Map.of(METADATA_FILE_SIZE, contentRepositoryV2.getContentSize(siteId, childPath.toString())));
-                evaluateAction(config, childAction, results, false);
+                evaluateAction(config, siteId, childAction, results, false);
             }
         }
+    }
+
+    /**
+     * Get the new path by CREATE action
+     * If all the path exists, return the file name
+    */
+    protected String getNewPath(String siteId, String target) {
+        String [] levels = target.split(FILE_SEPARATOR);
+        String parentPath = "";
+        for (String level : levels) {
+            if (!isEmpty(level)) {
+                String currentPath = parentPath + FILE_SEPARATOR + level;
+                if (!contentRepository.contentExists(siteId, currentPath)) {
+                    String newPath = target.replace(parentPath, "");
+                    if (newPath.startsWith(FILE_SEPARATOR)) {
+                        newPath = newPath.substring(1);
+                    }
+                    return newPath;
+                }
+                parentPath = currentPath;
+            }
+        }
+
+        return getName(target);
     }
 
 }
