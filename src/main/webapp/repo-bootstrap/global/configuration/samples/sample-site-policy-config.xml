@@ -34,9 +34,9 @@
 
                 <content-types/> (Comma separated list of content-types)
 
-                <path>
-                    <source-regex/> (Regular expression to validate the full path of the file)
-                    <target-regex caseTransform="lowercase"/> (Expression to transform the full path of the file)
+                <path> (Apply to CREATE action)
+                    <source-regex/> (Regular expression to validate the file name or folder name)
+                    <target-regex caseTransform="lowercase"/> (Expression to transform the file name or folder name)
                 </path>
 
             </permitted>
