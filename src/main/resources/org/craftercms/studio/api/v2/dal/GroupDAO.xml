@@ -90,7 +90,8 @@
         SELECT * FROM `group`
         WHERE org_id = #{orgId}
         <if test="keyword != null" >
-            AND group_name like '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND group_name like #{pattern}
         </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
@@ -100,14 +101,15 @@
         SELECT count(1) FROM `group`
         WHERE org_id = #{orgId}
         <if test="keyword != null" >
-            AND group_name like '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND group_name like #{pattern}
         </if>
     </select>
 
     <select id="selectOrganizationById" resultMap="OrganizationMap">
             SELECT * FROM organization where id = #{id}
     </select>
-    
+
     <insert id="createGroup" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
         INSERT INTO `group` (record_last_updated, org_id, group_name, group_description)
         VALUES (CURRENT_TIMESTAMP, #{orgId}, #{groupName}, #{groupDescription}) ;
@@ -127,7 +129,7 @@
     <delete id="deleteGroup" parameterType="java.util.Map">
         DELETE FROM `group` WHERE id = #{id}
     </delete>
-    
+
     <select id="getGroup" parameterType="java.util.Map" resultMap="GroupMap">
         SELECT * FROM `group` WHERE id = #{groupId}
     </select>

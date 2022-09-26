@@ -74,7 +74,8 @@
             #{groupName}
         </foreach>
         <if test="keyword != null" >
-        AND u.username like '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND u.username like #{pattern}
         </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
@@ -85,12 +86,13 @@
         FROM `user` u
         WHERE u.deleted = 0
         <if test="keyword != null" >
-            AND u.username like '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND u.username like #{pattern}
         </if>
         ORDER BY #{sort}
         LIMIT #{offset}, #{limit}
     </select>
-    
+
     <insert id="createUser" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
         INSERT INTO `user` (record_last_updated, username, password, first_name, last_name,
                            externally_managed, timezone, locale, email, enabled, deleted)
@@ -168,7 +170,8 @@
             #{groupName}
         </foreach>
         <if test="keyword != null" >
-            AND u.username like '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND u.username like #{pattern}
         </if>
     </select>
 
@@ -176,7 +179,8 @@
             SELECT COUNT(DISTINCT username)
             FROM `user` WHERE deleted = 0
         <if test="keyword != null" >
-            AND username like '%${keyword}%'
+            <bind name="pattern" value="'%' + keyword + '%'" />
+            AND username like #{pattern}
         </if>
     </select>
 

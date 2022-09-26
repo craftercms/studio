@@ -122,7 +122,6 @@ import org.xml.sax.SAXException;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
 import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
@@ -477,9 +476,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
         // Check if the target path already exists and prevent any operation
-        if (contentExists(site, FilenameUtils.getFullPathNoEndSeparator(targetPath))) {
+        boolean isIndexFile = targetPath.endsWith(FILE_SEPARATOR + INDEX_FILE);
+        String checkPath = isIndexFile ? FilenameUtils.getFullPathNoEndSeparator(targetPath) : targetPath;
+        if (contentExists(site, checkPath)) {
             throw new ServiceLayerException("Content " + path + " can't be renamed because target path " +
-                    FilenameUtils.getFullPathNoEndSeparator(targetPath) + " already exists");
+                    checkPath + " already exists");
         }
         try {
             //TODO: This should be made transactional, write will commit even if move fails

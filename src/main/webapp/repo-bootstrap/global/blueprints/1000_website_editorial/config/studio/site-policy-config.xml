@@ -19,7 +19,7 @@
         <target-path-pattern>/static-assets/.*</target-path-pattern>
         <permitted>
             <path>
-                <source-regex>[\(\)]</source-regex>
+                <source-regex>[\(\)\s]</source-regex>
                 <target-regex>-</target-regex>
             </path>
         </permitted>
