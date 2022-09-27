@@ -63,14 +63,6 @@ public class BootstrapManager implements SystemStatusProvider {
     @EventListener(value = CleanupRepositoriesEvent.class)
     public Object onCleanUpRepositories() {
         logger.info("Successfully cleaned up repositories");
-        logger.info("Start upgrade ...");
-        return new StartUpgradeEvent(this);
-    }
-
-    @Order
-    @EventListener(StartUpgradeEvent.class)
-    public Object onStartUpgrade() {
-        logger.info("Upgrade complete");
         logger.info("Start cluster setup ...");
         return new StartClusterSetupEvent(this);
     }
@@ -79,6 +71,14 @@ public class BootstrapManager implements SystemStatusProvider {
     @EventListener(StartClusterSetupEvent.class)
     public Object onStartClusterSetup() {
         logger.info("Cluster setup complete");
+        logger.info("Start upgrade ...");
+        return new StartUpgradeEvent(this);
+    }
+
+    @Order
+    @EventListener(StartUpgradeEvent.class)
+    public Object onStartUpgrade() {
+        logger.info("Upgrade complete");
         return new BootstrapFinishedEvent(this);
     }
 
