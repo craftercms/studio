@@ -1840,6 +1840,7 @@ public class GitContentRepository implements ContentRepository {
             }
             // Create live branch
             createEnvironmentBranch(siteId, siteFeed.getSandboxBranch(), servicesConfig.getLiveEnvironment(siteId));
+            siteService.setPublishedRepoCreated(siteId);
         }
 
         logger.info("Completed the initial publish of the site '{}'", siteId);
