@@ -795,6 +795,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.3.xslt
               commitDetails: Remove unused tools
+        - currentVersion: 4.0.3
+          nextVersion: 4.0.4
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt
+              commitDetails: Change child-content to dropTargets
 
   contextual-nav:
     module: studio
