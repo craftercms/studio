@@ -177,4 +177,13 @@ public interface ContentService {
     public boolean renameContent( String site, String path, String name)
          throws ServiceLayerException, UserNotFoundException;
 
+    /**
+     * Returns content wrapped as a {@link Resource} instance
+     * @param site the site id
+     * @param path the path of the content
+     * @return the resource object
+     * @throws ContentNotFoundException if there is no content at the given path
+     */
+    Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
+
 }

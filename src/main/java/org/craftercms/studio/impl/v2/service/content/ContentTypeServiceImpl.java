@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.service.content;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -22,6 +23,7 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
+import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
 
@@ -51,6 +53,19 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     @Override
     public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
         return contentTypeServiceInternal.getContentTypeUsage(siteId, contentType);
+    }
+
+    /**
+     * Finds the preview image for a given content-type
+     *
+     * @param siteId the id of the site
+     * @param contentTypeId the id of the content-type
+     * @return the preview image file as a pair of path and resource
+     * @throws ServiceLayerException if there is any error finding the items
+     */
+    @Override
+    public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId, String contentTypeId) throws ServiceLayerException {
+        return contentTypeServiceInternal.getContentTypePreviewImage(siteId, contentTypeId);
     }
 
     /**

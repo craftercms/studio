@@ -297,6 +297,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @ValidateParams
+    public Resource getContentAsResource(@ValidateStringParam(name = "site") String site,
+                                         @ValidateSecurePathParam(name = "path") String path)
+        throws ContentNotFoundException {
+        return contentServiceV1.getContentAsResource(site, path);
+    }
+
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
