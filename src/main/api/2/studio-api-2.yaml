@@ -3440,6 +3440,7 @@ paths:
       tags:
         - configuration
       summary: Get all usage of a given content-type
+      description: 'Required permission "content_read"'
       operationId: getContentTypeUsage
       parameters:
         - name: siteId
@@ -3493,7 +3494,7 @@ paths:
       tags:
         - configuration
       summary: Get preview image of a given content type
-      description: 'Required permission "read_configuration"'
+      description: 'Required permission "content_read"'
       operationId: getContentTypePreviewImage
       parameters:
         - name: siteId
@@ -3540,6 +3541,7 @@ paths:
       tags:
         - configuration
       summary: Delete files related to a given content-type
+      description: 'Required permission "write_configuration"'
       operationId: deleteContentType
       requestBody:
         content:
