@@ -3440,6 +3440,7 @@ paths:
       tags:
         - configuration
       summary: Get all usage of a given content-type
+      description: 'Required permission "content_read"'
       operationId: getContentTypeUsage
       parameters:
         - name: siteId
@@ -3488,11 +3489,59 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
 
+  /configuration/content-type/preview_image:
+    get:
+      tags:
+        - configuration
+      summary: Get preview image of a given content type
+      description: 'Required permission "content_read"'
+      operationId: getContentTypePreviewImage
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: contentTypeId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: binary
+                description: The content of the preview image file
+          headers:
+            Content-Type:
+              description: The MIME type of the preview image file
+              schema:
+                type: string
+            Content-Length:
+              description: The size in bytes of the preview image file
+              schema:
+                type: integer
+                format: int64
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /configuration/content-type/delete:
     post:
       tags:
         - configuration
       summary: Delete files related to a given content-type
+      description: 'Required permission "write_configuration"'
       operationId: deleteContentType
       requestBody:
         content:

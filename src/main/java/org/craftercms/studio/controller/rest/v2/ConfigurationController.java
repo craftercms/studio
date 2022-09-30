@@ -22,6 +22,7 @@ import java.io.InputStream;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -31,12 +32,17 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.WriteConfigurationRequest;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,13 +67,15 @@ public class ConfigurationController {
     private final ConfigurationService configurationService;
     private final StudioConfiguration studioConfiguration;
     private final ContentTypeService contentTypeService;
+    protected final CacheControl cacheControl;
 
-    @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService"})
+    @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService", "cacheControl"})
     public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration,
-                                   ContentTypeService contentTypeService) {
+                                   ContentTypeService contentTypeService, CacheControl cacheControl) {
         this.configurationService = configurationService;
         this.studioConfiguration = studioConfiguration;
         this.contentTypeService = contentTypeService;
+        this.cacheControl = cacheControl;
     }
 
     @GetMapping("clear_cache")
@@ -158,6 +166,20 @@ public class ConfigurationController {
         body.setResult(result);
 
         return body;
+    }
+
+    @GetMapping("content-type/preview_image")
+    public ResponseEntity<Resource> getContentTypePreviewImage(@RequestParam String siteId, @RequestParam String contentTypeId)
+            throws ServiceLayerException {
+
+        ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
+        String mimeType = StudioUtils.getMimeType(resource.getKey());
+
+        return ResponseEntity
+                .ok()
+                .cacheControl(cacheControl)
+                .header(HttpHeaders.CONTENT_TYPE, mimeType)
+                .body(resource.getValue());
     }
 
     @PostMapping("content-type/delete")
