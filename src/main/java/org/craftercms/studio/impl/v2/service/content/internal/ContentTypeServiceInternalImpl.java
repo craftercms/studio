@@ -17,6 +17,9 @@
 package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.craftercms.commons.lang.UrlUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -36,12 +39,14 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
+import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.normalize;
@@ -49,6 +54,7 @@ import static org.apache.commons.lang3.RegExUtils.replaceAll;
 import static org.apache.commons.lang3.StringUtils.equalsAnyIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
@@ -68,15 +74,18 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final String templateXPath;
     protected final String controllerPattern;
     protected final String controllerFormat;
+    protected final String contentTypeConfigFilename;
+    protected final String previewImageXPath;
 
     @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
             "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename",
-            "templateXPath", "controllerPattern", "controllerFormat"})
+            "templateXPath", "controllerPattern", "controllerFormat", "contentTypeConfigFilename", "previewImageXPath"})
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
                                           SiteService siteService, String contentTypeBasePathPattern,
                                           String contentTypeDefinitionFilename, String templateXPath,
-                                          String controllerPattern, String controllerFormat) {
+                                          String controllerPattern, String controllerFormat,
+                                          String contentTypeConfigFilename, String previewImageXPath) {
         this.contentTypeService = contentTypeService;
         this.securityService = securityService;
         this.configurationService = configurationService;
@@ -87,6 +96,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         this.templateXPath = templateXPath;
         this.controllerPattern = controllerPattern;
         this.controllerFormat = controllerFormat;
+        this.contentTypeConfigFilename = contentTypeConfigFilename;
+        this.previewImageXPath = previewImageXPath;
     }
 
     public void setContentService(ContentService contentService) {
@@ -137,6 +148,20 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
                 .collect(toList()));
 
         return usages;
+    }
+
+    @Override
+    public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
+                                                                      @ValidateSecurePathParam(name = "contentTypeId") String contentTypeId) throws ServiceLayerException {
+        String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
+        if (isEmpty(filename)) {
+            throw new IllegalStateException(
+                    format("Site '%s' does not have a preview image for content type '%s'", siteId, contentTypeId));
+        }
+
+        String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
+
+        return (new ImmutablePair(filename, contentService.getContentAsResource(siteId, previewImagePath)));
     }
 
     @Override
@@ -194,6 +219,25 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     protected String getContentTypePath(String contentType) {
         return normalize(contentTypeBasePathPattern.replaceFirst("\\{content-type}", contentType));
+    }
+
+    protected String getContentTypePreviewImageFilename(String siteId, String contentTypeId) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+
+        String configPath = getContentTypePath(contentTypeId) + File.separator + contentTypeConfigFilename;
+        Document definition = configurationService.getConfigurationAsDocument(siteId, null, configPath, null);
+
+        if (definition == null) {
+            throw new ContentNotFoundException(configPath, siteId, "Content-Type not found");
+        }
+
+        Node previewImageNode = definition.selectSingleNode(previewImageXPath);
+
+        if (previewImageNode != null && isNotEmpty(previewImageNode.getText())) {
+            return previewImageNode.getText();
+        }
+
+        return null;
     }
 
 }

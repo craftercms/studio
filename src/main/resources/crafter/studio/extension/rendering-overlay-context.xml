@@ -62,7 +62,7 @@
         <constructor-arg name="userService" ref="userService" />
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
     </bean>
-    
+
     <bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
         <property name="uiService" ref="uiService"/>
     </bean>
@@ -112,6 +112,7 @@
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="contentTypeService" ref="contentTypeService"/>
+        <constructor-arg name="cacheControl" ref="cacheControl"/>
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
@@ -222,7 +223,7 @@
                     <property name="userAgentTemplateDetector" ref="crafter.userAgentTemplateDetector" />
                     <property name="accessManager" ref="crafter.pageAccessManager"/>
                     <property name="scriptResolver" ref="crafter.pageScriptResolver"/>
-                    
+
                 </bean>
             </list>
         </property>

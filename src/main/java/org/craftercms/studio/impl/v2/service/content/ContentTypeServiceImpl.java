@@ -15,6 +15,10 @@
  */
 package org.craftercms.studio.impl.v2.service.content;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -22,8 +26,13 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
+import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
+
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
 
 /**
  * Default implementation for {@link ContentTypeService}
@@ -49,8 +58,23 @@ public class ContentTypeServiceImpl implements ContentTypeService {
      * @throws ServiceLayerException if there is any error finding the items
      */
     @Override
-    public ContentTypeUsage getContentTypeUsage(String siteId, String contentType) throws ServiceLayerException {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public ContentTypeUsage getContentTypeUsage(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String contentType) throws ServiceLayerException {
         return contentTypeServiceInternal.getContentTypeUsage(siteId, contentType);
+    }
+
+    /**
+     * Finds the preview image for a given content-type
+     *
+     * @param siteId the id of the site
+     * @param contentTypeId the id of the content-type
+     * @return the preview image file as a pair of path and resource
+     * @throws ServiceLayerException if there is any error finding the items
+     */
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public ImmutablePair<String, Resource> getContentTypePreviewImage(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String contentTypeId) throws ServiceLayerException {
+        return contentTypeServiceInternal.getContentTypePreviewImage(siteId, contentTypeId);
     }
 
     /**
@@ -64,7 +88,8 @@ public class ContentTypeServiceImpl implements ContentTypeService {
      * @throws DeploymentException if there is any error publishing the changes
      */
     @Override
-    public void deleteContentType(String siteId, String contentType, boolean deleteDependencies)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+    public void deleteContentType(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
     }
