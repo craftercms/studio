@@ -133,6 +133,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DATE_PATTERN_WORKFLOW_WITH_TZ;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.ebus.EBusConstants.EVENT_PREVIEW_SYNC;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REVERT;
 import static org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.SAVE;
@@ -485,9 +486,11 @@ public class ContentServiceImpl implements ContentService {
                 + "fileName '{}' content type '{}'", site, path, targetPath, fileName, contentType);
 
         // Check if the target path already exists and prevent any operation
-        if (contentExists(site, FilenameUtils.getFullPathNoEndSeparator(targetPath))) {
+        boolean isIndexFile = targetPath.endsWith(FILE_SEPARATOR + INDEX_FILE);
+        String checkPath = isIndexFile ? FilenameUtils.getFullPathNoEndSeparator(targetPath) : targetPath;
+        if (contentExists(site, checkPath)) {
             throw new ServiceLayerException("Content " + path + " can't be renamed because target path " +
-                    FilenameUtils.getFullPathNoEndSeparator(targetPath) + " already exists");
+                    checkPath + " already exists");
         }
         try {
             //TODO: This should be made transactional, write will commit even if move fails
@@ -834,7 +837,7 @@ public class ContentServiceImpl implements ContentService {
                                 } else if (!copyDepPath.endsWith(DmConstants.XML_PATTERN)) {
                                     copyDepPath = ContentUtils.getParentUrl(copyDepPath);
                                 }
-                                
+
                                 logger.debug("Translated dependency path from {0} to {1}",
                                         dependencyPath, copyDepPath);
 
@@ -2637,7 +2640,7 @@ public class ContentServiceImpl implements ContentService {
         auditLog.setPrimaryTargetType(TARGET_TYPE_REMOTE_REPOSITORY);
         auditLog.setPrimaryTargetValue(remoteName + "/" + remoteBranch);
         auditServiceInternal.insertAuditLog(auditLog);
-        
+
         return toRet;
     }
 
