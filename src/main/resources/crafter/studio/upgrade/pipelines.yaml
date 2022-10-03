@@ -534,6 +534,13 @@ pipelines:
             path: /config/studio/site-policy-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.6/site/site-policy-config.xslt
             commitDetails: Update site-policy-config.xml to prevent asset file names from including parenthesis
+      - currentVersion: 4.0.0.6
+        nextVersion: 4.0.0.7
+        operations:
+          - type: batchXsltUpgrader
+            regex: config/studio/content-types/.+/form-definition\.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.0.7/site/update-content-type-datasources.xslt
+            commitDetails: Update datasources components and simpleTaxonomy
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
