@@ -526,7 +526,7 @@
 						</property>
 						<property>
 							<name>itemManager</name>
-							<value>featuresDropTarget</value>
+							<value>featuresComponents</value>
 							<type>datasource:item</type>
 						</property>
 						<property>
@@ -655,8 +655,8 @@
 				</datasource>
 				<datasource>
 					<type>components</type>
-					<id>featuresDropTarget</id>
-					<title>Features Drop Target</title>
+					<id>featuresComponents</id>
+					<title>Features Components</title>
 					<interface>item</interface>
 					<properties>
 						<property>
