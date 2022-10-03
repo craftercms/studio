@@ -815,7 +815,7 @@ configurations:
           operations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt
-              commitDetails: Change child-content to dropTargets
+              commitDetails: Update datasources components and simpleTaxonomy
 
   contextual-nav:
     module: studio
