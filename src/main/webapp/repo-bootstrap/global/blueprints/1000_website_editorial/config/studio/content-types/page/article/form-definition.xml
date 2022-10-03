@@ -799,7 +799,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>site-component</type>
+					<type>simpleTaxonomy</type>
 					<id>categories</id>
 					<title>Categories</title>
 					<interface>item</interface>
@@ -817,7 +817,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>site-component</type>
+					<type>simpleTaxonomy</type>
 					<id>segments</id>
 					<title>Segments</title>
 					<interface>item</interface>

@@ -281,7 +281,7 @@
 	</sections>
 	<datasources>
 		<datasource>
-			<type>site-component</type>
+			<type>simpleTaxonomy</type>
 			<id>feature_icons</id>
 			<title>Feature Icons</title>
 			<interface>item</interface>

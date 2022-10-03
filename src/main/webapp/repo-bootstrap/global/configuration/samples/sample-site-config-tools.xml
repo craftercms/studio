@@ -362,7 +362,7 @@
                 <datasource>
                     <name>simpleTaxonomy</name>
                     <icon>
-                        <class>fa-tags/class>
+                        <class>fa-tags</class>
                     </icon>
                 </datasource>
             </datasources>
