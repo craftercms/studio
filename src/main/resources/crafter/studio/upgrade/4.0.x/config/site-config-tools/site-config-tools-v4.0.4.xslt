@@ -36,15 +36,43 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- Rename dropTargets datasource -->
+    <!-- Rename child-content => components datasource -->
     <xsl:template match="/config/tools/tool/datasources/datasource[name/text() = 'child-content']">
         <xsl:element name="datasource">
             <xsl:element name="name">
-                <xsl:text>dropTargets</xsl:text>
+                <xsl:text>components</xsl:text>
             </xsl:element>
             <xsl:element name="icon">
                 <xsl:element name="class">
-                    <xsl:text>fa-object-group</xsl:text>
+                    <xsl:text>fa-puzzle-piece</xsl:text>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+
+    <!-- Rename dropTargets => components datasource -->
+    <xsl:template match="/config/tools/tool/datasources/datasource[name/text() = 'dropTargets']">
+        <xsl:element name="datasource">
+            <xsl:element name="name">
+                <xsl:text>components</xsl:text>
+            </xsl:element>
+            <xsl:element name="icon">
+                <xsl:element name="class">
+                    <xsl:text>fa-puzzle-piece</xsl:text>
+                </xsl:element>
+            </xsl:element>
+        </xsl:element>
+    </xsl:template>
+
+    <!-- Rename site-component => simpleTaxonomy datasource -->
+    <xsl:template match="/config/tools/tool/datasources/datasource[name/text() = 'site-component']">
+        <xsl:element name="datasource">
+            <xsl:element name="name">
+                <xsl:text>simpleTaxonomy</xsl:text>
+            </xsl:element>
+            <xsl:element name="icon">
+                <xsl:element name="class">
+                    <xsl:text>fa-tags</xsl:text>
                 </xsl:element>
             </xsl:element>
         </xsl:element>

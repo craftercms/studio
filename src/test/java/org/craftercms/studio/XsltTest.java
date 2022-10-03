@@ -181,8 +181,14 @@ public class XsltTest {
             },
             new Object[] {
                 new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/site-config-tools.xml"),
-                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/site-config-tools-expected.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-child-content/site-config-tools.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-child-content/site-config-tools-expected.xml"),
+                emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-dropTargets/site-config-tools.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-dropTargets/site-config-tools-expected.xml"),
                 emptyMap()
             }
         };

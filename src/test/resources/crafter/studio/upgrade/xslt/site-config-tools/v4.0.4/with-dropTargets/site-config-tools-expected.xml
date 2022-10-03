@@ -19,9 +19,15 @@
         <tool>
             <datasources>
                 <datasource>
-                    <name>dropTargets</name>
+                    <name>components</name>
                     <icon>
-                        <class>fa-object-group</class>
+                        <class>fa-puzzle-piece</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>simpleTaxonomy</name>
+                    <icon>
+                        <class>fa-tags</class>
                     </icon>
                 </datasource>
             </datasources>
