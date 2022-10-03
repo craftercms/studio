@@ -418,6 +418,14 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.1.8/system/global-permission-mappings-config.xslt
             commitDetails: Added view_log_levels and configure_log_levels permissions for system_admin
+      - currentVersion: 4.0.1.8
+        nextVersion: 4.0.1.9
+        operations:
+          - type: globalRepoUpgrader
+            files:
+                - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
+                  dest: /configuration/samples/sample-site-config-tools.xml
+            commitDetails: Update sample datasources for site config tools
 
   # Pipeline to upgrade site repositories
   site:

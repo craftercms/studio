@@ -654,7 +654,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>dropTargets</type>
+					<type>components</type>
 					<id>featuresDropTarget</id>
 					<title>Features Drop Target</title>
 					<interface>item</interface>
