@@ -79,13 +79,16 @@ public class PathPolicyValidator implements PolicyValidator {
                 }
 
                 // special case when creating the folder used in the configuration
-                if (target.equals(modifiedItem)) {
+                if (item.equals(modifiedItem)) {
                     return;
                 }
             }
+
             result.setAllowed(modifiedItem != null);
-            String modifiedValue = removeEnd(target, item) + modifiedItem;
-            result.setModifiedValue(modifiedValue);
+            if (isNotEmpty(modifiedItem)) {
+                String modifiedValue = removeEnd(target, item) + modifiedItem;
+                result.setModifiedValue(modifiedValue);
+            }
             if (!result.isAllowed()) {
                 logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
             }
