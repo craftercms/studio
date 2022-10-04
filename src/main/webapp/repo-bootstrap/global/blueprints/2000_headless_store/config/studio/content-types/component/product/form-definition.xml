@@ -456,7 +456,7 @@
             </properties>
         </datasource>
         <datasource>
-            <type>site-component</type>
+            <type>simpleTaxonomy</type>
             <id>categories_o</id>
             <title>Categories</title>
             <interface>item</interface>
@@ -474,7 +474,7 @@
             </properties>
         </datasource>
         <datasource>
-            <type>site-component</type>
+            <type>simpleTaxonomy</type>
             <id>tags</id>
             <title>Tags</title>
             <interface>item</interface>

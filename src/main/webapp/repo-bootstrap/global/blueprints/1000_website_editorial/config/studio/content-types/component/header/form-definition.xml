@@ -363,7 +363,7 @@
       </properties>
     </datasource>
     <datasource>
-      <type>dropTargets</type>
+      <type>components</type>
       <id>socialMedia</id>
       <title>Social Media</title>
       <interface>item</interface>
