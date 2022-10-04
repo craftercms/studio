@@ -29,6 +29,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -69,8 +70,10 @@ public class PreviewDeployer extends AbstractDeployer {
     }
 
     protected void doPreviewSync(String siteId, boolean waitTillDone) {
-        doDeployment(siteId, ENV_AUTHORING, false);
-        doDeployment(siteId, ENV_PREVIEW, waitTillDone);
+        if (isNotEmpty(siteId)) {
+            doDeployment(siteId, ENV_AUTHORING, false);
+            doDeployment(siteId, ENV_PREVIEW, waitTillDone);
+        }
     }
 
     @Override
