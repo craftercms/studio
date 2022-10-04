@@ -20,6 +20,7 @@ import co.elastic.clients.elasticsearch._types.SortOrder
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
 import co.elastic.clients.elasticsearch._types.query_dsl.Query
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
+import co.elastic.clients.elasticsearch._types.analysis.Analyzer
 import co.elastic.clients.elasticsearch.core.SearchRequest
 import co.elastic.clients.elasticsearch.core.search.Highlight
 import org.apache.commons.lang3.StringUtils
@@ -36,6 +37,7 @@ class SearchHelper {
   static final String[] HIGHLIGHT_FIELDS = ["subject_t", "sections_o.item.section_html"]
   static final int DEFAULT_START = 0
   static final int DEFAULT_ROWS = 10
+  static final String MULTIPLE_VALUES_SEARCH_ANALYZER = Analyzer.Kind.Whitespace.jsonValue()
 
   ElasticsearchClientWrapper elasticsearchClient
   UrlTransformationService urlTransformationService
@@ -256,6 +258,7 @@ class SearchHelper {
         .query(v -> v
           .stringValue(values)
         )
+        .analyzer(MULTIPLE_VALUES_SEARCH_ANALYZER)
       )
     );
   }
