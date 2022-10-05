@@ -36,32 +36,14 @@
         </xsl:if>
     </xsl:template>
 
-    <!-- Rename child-content => components datasource -->
+    <!-- Remove child-content datasource -->
     <xsl:template match="/config/tools/tool/datasources/datasource[name/text() = 'child-content']">
-        <xsl:element name="datasource">
-            <xsl:element name="name">
-                <xsl:text>components</xsl:text>
-            </xsl:element>
-            <xsl:element name="icon">
-                <xsl:element name="class">
-                    <xsl:text>fa-puzzle-piece</xsl:text>
-                </xsl:element>
-            </xsl:element>
-        </xsl:element>
+        <!-- Empty to remove the whole element -->
     </xsl:template>
 
-    <!-- Rename dropTargets => components datasource -->
+    <!-- Remove dropTargets datasource -->
     <xsl:template match="/config/tools/tool/datasources/datasource[name/text() = 'dropTargets']">
-        <xsl:element name="datasource">
-            <xsl:element name="name">
-                <xsl:text>components</xsl:text>
-            </xsl:element>
-            <xsl:element name="icon">
-                <xsl:element name="class">
-                    <xsl:text>fa-puzzle-piece</xsl:text>
-                </xsl:element>
-            </xsl:element>
-        </xsl:element>
+        <!-- Empty to remove the whole element -->
     </xsl:template>
 
     <!-- Rename site-component => simpleTaxonomy datasource -->
@@ -78,4 +60,24 @@
         </xsl:element>
     </xsl:template>
 
+    <!-- Add components datasource -->
+    <xsl:template match="/config/tools/tool/datasources">
+        <xsl:copy>
+            <xsl:if test="not(datasource/name/text() = 'components')">
+                <xsl:element name="datasource">
+                    <xsl:element name="name">
+                        <xsl:text>components</xsl:text>
+                    </xsl:element>
+                    <xsl:element name="icon">
+                        <xsl:element name="class">
+                            <xsl:text>fa-puzzle-piece</xsl:text>
+                        </xsl:element>
+                    </xsl:element>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates/>
+        </xsl:copy>
+    </xsl:template>
 </xsl:stylesheet>

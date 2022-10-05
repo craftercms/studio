@@ -202,6 +202,18 @@ public class XsltTest {
                 new ClassPathResource("crafter/studio/upgrade/xslt/update-content-type-datasources/with-dropTargets/form-definition.xml"),
                 new ClassPathResource("crafter/studio/upgrade/xslt/update-content-type-datasources/with-dropTargets/form-definition-expected.xml"),
                 emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-both/site-config-tools.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-both/site-config-tools-expected.xml"),
+                emptyMap()
+            },
+            new Object[] {
+                new ClassPathResource("crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-components/site-config-tools.xml"),
+                new ClassPathResource("crafter/studio/upgrade/xslt/site-config-tools/v4.0.4/with-components/site-config-tools-expected.xml"),
+                emptyMap()
             }
         };
     }
