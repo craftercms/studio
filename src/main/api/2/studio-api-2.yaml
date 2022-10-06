@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.1.0'
+  version: '4.0.2.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1694,7 +1694,7 @@ paths:
             type: string
         - name: type
           in: query
-          description: The type of items to list, defaults to all (possible values are 'image' and 'video')
+          description: The MIME-type of items to list, defaults to all
           required: false
           schema:
             type: string
