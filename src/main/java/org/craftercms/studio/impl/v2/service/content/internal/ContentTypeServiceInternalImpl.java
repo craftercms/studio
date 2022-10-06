@@ -22,7 +22,6 @@ import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
@@ -39,6 +38,7 @@ import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceI
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
@@ -46,7 +46,6 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.normalize;
@@ -54,7 +53,6 @@ import static org.apache.commons.lang3.RegExUtils.replaceAll;
 import static org.apache.commons.lang3.StringUtils.equalsAnyIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
@@ -74,18 +72,18 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final String templateXPath;
     protected final String controllerPattern;
     protected final String controllerFormat;
-    protected final String contentTypeConfigFilename;
     protected final String previewImageXPath;
+    protected final String defaultPreviewImagePath;
 
     @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
             "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename",
-            "templateXPath", "controllerPattern", "controllerFormat", "contentTypeConfigFilename", "previewImageXPath"})
+            "templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath"})
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
                                           SiteService siteService, String contentTypeBasePathPattern,
                                           String contentTypeDefinitionFilename, String templateXPath,
                                           String controllerPattern, String controllerFormat,
-                                          String contentTypeConfigFilename, String previewImageXPath) {
+                                          String previewImageXPath, String defaultPreviewImagePath) {
         this.contentTypeService = contentTypeService;
         this.securityService = securityService;
         this.configurationService = configurationService;
@@ -96,8 +94,8 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         this.templateXPath = templateXPath;
         this.controllerPattern = controllerPattern;
         this.controllerFormat = controllerFormat;
-        this.contentTypeConfigFilename = contentTypeConfigFilename;
         this.previewImageXPath = previewImageXPath;
+        this.defaultPreviewImagePath = defaultPreviewImagePath;
     }
 
     public void setContentService(ContentService contentService) {
@@ -153,15 +151,15 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     @Override
     public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
                                                                       @ValidateSecurePathParam(name = "contentTypeId") String contentTypeId) throws ServiceLayerException {
+
         String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
-        if (isEmpty(filename)) {
-            throw new IllegalStateException(
-                    format("Site '%s' does not have a preview image for content type '%s'", siteId, contentTypeId));
+        boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
+        if (hasPreviewImage) {
+            String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
+            return (new ImmutablePair(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
         }
 
-        String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
-
-        return (new ImmutablePair(filename, contentService.getContentAsResource(siteId, previewImagePath)));
+        return (new ImmutablePair(defaultPreviewImagePath, new ClassPathResource(defaultPreviewImagePath)));
     }
 
     @Override
@@ -197,16 +195,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException("Site " + siteId + " does not exist");
-        }
-
-        String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
-        Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
-
-        if (definition == null) {
-            throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
-        }
+        Document definition = getFormDefinitionDocument(siteId, contentTypeId);
 
         Node templateNode = definition.selectSingleNode(templateXPath);
 
@@ -221,15 +210,15 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         return normalize(contentTypeBasePathPattern.replaceFirst("\\{content-type}", contentType));
     }
 
+    /**
+     * Get preview image filename extract from form-definition.xml
+     * @param siteId
+     * @param contentTypeId
+     * @return preview image filename
+     * @throws ServiceLayerException
+     */
     protected String getContentTypePreviewImageFilename(String siteId, String contentTypeId) throws ServiceLayerException {
-        siteService.checkSiteExists(siteId);
-
-        String configPath = getContentTypePath(contentTypeId) + File.separator + contentTypeConfigFilename;
-        Document definition = configurationService.getConfigurationAsDocument(siteId, null, configPath, null);
-
-        if (definition == null) {
-            throw new ContentNotFoundException(configPath, siteId, "Content-Type not found");
-        }
+        Document definition = getFormDefinitionDocument(siteId, contentTypeId);
 
         Node previewImageNode = definition.selectSingleNode(previewImageXPath);
 
@@ -238,6 +227,26 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         }
 
         return null;
+    }
+
+    /**
+     * Get form-definition.xml as Document of a content type
+     * @param siteId
+     * @param contentTypeId
+     * @return Document of form-definition.xml
+     * @throws ServiceLayerException
+     */
+    protected Document getFormDefinitionDocument(String siteId, String contentTypeId) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+
+        String definitionPath = getContentTypePath(contentTypeId) + File.separator + contentTypeDefinitionFilename;
+        Document definition = configurationService.getConfigurationAsDocument(siteId, null, definitionPath, null);
+
+        if (definition == null) {
+            throw new ContentNotFoundException(definitionPath, siteId, "Content-Type not found");
+        }
+
+        return definition;
     }
 
 }
