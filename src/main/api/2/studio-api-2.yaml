@@ -14,7 +14,7 @@ info:
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
   description: CrafterCMS - Studio
-  url: 'https://docs.craftercms.org/en/3.1/developers/projects/studio/index.html'
+  url: 'https://docs.craftercms.org/current/developers/projects/studio/index.html'
 tags:
   - name: groups
     description: Group management operations
