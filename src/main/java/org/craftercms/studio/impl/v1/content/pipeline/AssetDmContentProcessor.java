@@ -130,6 +130,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
         }
 
         String contentPath = path + FILE_SEPARATOR + assetName;
+        contentPath = contentPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
 
         try {
             // look up the path content first
