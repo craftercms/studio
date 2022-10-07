@@ -504,7 +504,7 @@
       </properties>
     </datasource>
     <datasource>
-      <type>site-component</type>
+      <type>simpleTaxonomy</type>
       <id>networks</id>
       <title>Networks</title>
       <interface>item</interface>

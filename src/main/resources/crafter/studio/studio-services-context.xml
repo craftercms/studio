@@ -567,10 +567,10 @@
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.pattern')}"/>
         <constructor-arg name="controllerFormat"
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.format')}"/>
-        <constructor-arg name="contentTypeConfigFilename"
-                         value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configFileName')}" />
         <constructor-arg name="previewImageXPath"
-                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.config.imageThumbnail.xpath')}" />
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.previewImage.xpath')}" />
+        <constructor-arg name="defaultPreviewImagePath"
+                         value="#{studioConfiguration.getProperty('studio.configuration.contentType.defaultPreviewImagePath')}" />
 
         <!-- TODO: Break circular dependency with this bean -->
         <property name="contentService" ref="contentService"/>

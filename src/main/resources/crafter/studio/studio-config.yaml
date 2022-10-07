@@ -236,7 +236,9 @@ studio.configuration.cache.site.patterns: /?config/.+
 # XPath selector for the display template
 studio.configuration.contentType.template.xpath: "/form/properties/property[name='display-template']/value/text()"
 # XPath selector content type preview image
-studio.configuration.contentType.config.imageThumbnail.xpath: "/content-type/image-thumbnail/text()"
+studio.configuration.contentType.previewImage.xpath: "/form/imageThumbnail/text()"
+# Path for default content type preview image
+studio.configuration.contentType.defaultPreviewImagePath: "crafter/studio/content-type/default-contentType.jpg"
 # Regular expression to extract content-type type and name
 studio.configuration.contentType.controller.pattern: '/([^/]+)/(.+)'
 # Format string for the controller script of a content-type

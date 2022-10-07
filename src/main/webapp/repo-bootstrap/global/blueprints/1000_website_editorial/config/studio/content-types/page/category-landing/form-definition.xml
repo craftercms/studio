@@ -450,7 +450,7 @@
 					</properties>
 				</datasource>
 				<datasource>
-					<type>site-component</type>
+					<type>simpleTaxonomy</type>
 					<id>categories</id>
 					<title>Categories</title>
 					<interface>item</interface>
