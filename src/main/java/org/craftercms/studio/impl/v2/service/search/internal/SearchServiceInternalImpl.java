@@ -87,6 +87,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     public static final String DEFAULT_MIME_TYPE = "application/xml";
 
     public static final Pattern EXACT_MATCH_PATTERN = Pattern.compile(".*(\"([^\"]+)\").*");
+    public static final Pattern PATH_MATCH_PATTERN = Pattern.compile("^[a-zA-Z0-9._/-]*$");
 
     /**
      * Corresponds to 'index.max_result_window' default value
@@ -537,14 +538,18 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                                     .query(keyword)
                                     .fields(List.copyOf(boostedFields.values()))
                                 )
-                            )
-                            // Search in the path, regex is required because the path is indexed as string
-                            .should(q -> q
-                                .regexp(r -> r
-                                    .field(pathFieldName)
-                                    .value(format(".*%s.*", keyword))
-                                )
                             );
+
+                        if (PATH_MATCH_PATTERN.matcher(keyword).matches()) {
+                            // Search in the path, regex is required because the path is indexed as string
+                            queryBuilder
+                                .should(q -> q
+                                    .regexp(r -> r
+                                        .field(pathFieldName)
+                                        .value(format(".*%s.*", keyword))
+                                    )
+                            );
+                        }
                     }
                 }
             }
