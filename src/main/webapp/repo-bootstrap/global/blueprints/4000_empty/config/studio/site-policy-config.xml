@@ -20,7 +20,7 @@
         <permitted>
             <path>
                 <source-regex>[\(\)\s]</source-regex>
-                <target-regex>-</target-regex>
+                <target-regex caseTransform="lowercase">-</target-regex>
             </path>
         </permitted>
     </statement>

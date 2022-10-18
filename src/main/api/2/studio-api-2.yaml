@@ -1770,7 +1770,7 @@ paths:
       tags:
         - cluster
       summary: Get all the members of the cluster
-      description: 'Required Permission: "READ_CLUSTER"'
+      description: 'Required Permission: "read_cluster"'
       operationId: getClusterMembers
       responses:
         '200':
@@ -1786,41 +1786,6 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ClusterMember'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-    delete:
-      tags:
-        - cluster
-      summary: Remove member(s) from the cluster
-      description: 'Required Permission: "DELETE_CLUSTER"'
-      operationId: removeClusterMembers
-      parameters:
-        - name: id
-          in: query
-          description: The cluster member ID(s). Can be repeated for multiple deletes (id=1&id=2&id=3)
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Deleted
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
-                    type: object
-                    properties:
-                      response:
-                        $ref: '#/components/schemas/ApiResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7657,49 +7622,30 @@ components:
     ClusterMember:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-          description: 'Cluster Member ID, unique and immutable'
+        primary:
+          type: boolean
+          description: 'True for primary node, false for replicas'
         localAddress:
           type: string
           description: 'Cluster Member local IP address, immutable'
         state:
           type: string
           description: 'Cluster Member state'
-        heartbeat:
-          type: string
-          format: date-time
-          description: 'Timestamp of last heartbeat update of cluster member'
+          enum:
+            - ACTIVE
+            - INACTIVE
         gitUrl:
           type: string
           description: 'Git URL, unique'
         gitRemoteName:
           type: string
           description: 'Git Remote Name, unique'
-        gitAuthType:
-          type: string
-          description: 'Git Auth Type'
-        gitUsername:
-          type: string
-          description: 'Git Username'
-        gitPassword:
-          type: string
-          description: 'Git Password (not returned to caller)'
-        gitToken:
-          type: string
-          description: 'Git Token (not returned to caller)'
-        gitPrivateKey:
-          type: string
-          description: 'Git Private Key (not returned to caller)'
       required:
-        - id
         - localAddress
         - state
-        - heartbeat
         - gitUrl
         - gitRemoteName
-        - gitAuthType
+        - primary
 
     Version:
       type: object
