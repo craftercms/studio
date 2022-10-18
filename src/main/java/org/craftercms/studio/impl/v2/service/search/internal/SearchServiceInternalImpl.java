@@ -336,8 +336,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         SearchResultItem item = new SearchResultItem();
         item.setPath((String) source.get(pathFieldName));
         item.setName((String) source.get(internalNameFieldName));
-        item.setLastModified(Instant.parse((String) source.get(lastEditFieldName)));
-        item.setLastModifier(source.get(lastEditorFieldName).toString());
+        if (source.get(lastEditFieldName) != null) {
+            item.setLastModified(Instant.parse((String) source.get(lastEditFieldName)));
+        }
+        if (source.get(lastEditorFieldName) != null) {
+            item.setLastModifier(source.get(lastEditorFieldName).toString());
+        }
         if (source.get(sizeFieldName) != null) {
             item.setSize(Long.parseLong(source.get(sizeFieldName).toString()));
         }
