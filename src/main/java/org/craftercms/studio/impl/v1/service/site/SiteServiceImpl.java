@@ -124,8 +124,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_DEFAULT
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_DISABLED;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_INTERNAL_TITLE;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_DELETED;
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_ADD_REMOTE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
@@ -359,10 +358,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         if (success) {
             logger.info("Sync created site content to preview for site '{}'", siteName);
+            setSiteState(siteId, STATE_READY);
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
+                setSiteState(siteId, STATE_INITIALIZING);
                 logger.warn("Failed to sync site content to preview for site '{}' ID '{}'. While site creation was " +
                             "successful, the site won't be preview-able until the Preview Deployer is reachable " +
                             "and has successfully synced.",
@@ -372,7 +373,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 "the Preview Deployer is reachable and has successfully synced.",
                                 siteName, siteId), e);
             }
-            setSiteState(siteId, STATE_READY);
         } else {
             throw new SiteCreationException(format("Site creation failed site '%s' ID '%s' based on " +
                     "blueprint '%s'", siteName, siteId, blueprintId));
@@ -808,9 +808,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (success) {
             // Now that everything is created, we can sync the preview deployer with the new content
             logger.info("Sync site '{}' to preview", siteId);
+            setSiteState(siteId, STATE_READY);
             try {
                 applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
+                setSiteState(siteId, STATE_INITIALIZING);
                 // TODO: SJ: This seems to leave the site in a bad state, review
                 logger.error("Failed to sync site '{}' to preview. The site will become previewable once " +
                         "the preview deployer is reachable.", siteId, e);
@@ -818,7 +820,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 throw new SiteCreationException(format("Failed to sync site '%s' to preview. The site will become " +
                         "previewable once the preview deployer is reachable.", siteId), e);
             }
-            setSiteState(siteId, STATE_READY);
         } else {
             throw new SiteCreationException(format("Failed to create site '%s'", siteId));
         }
