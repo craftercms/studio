@@ -59,6 +59,26 @@
             <patterns>
                 <pattern>/static-assets/.*</pattern>
             </patterns>
+            <headersToServer>
+                <header>
+                    <name>authorization</name>
+                    <value>Bearer eyJhbGciOiJQQkVTMi1IUzUxMit...</value>
+                </header>
+            </headersToServer>
+            <headersToClient>
+                <header>
+                    <name>Cache-Control</name>
+                    <value>no-cache\, no-store\, max-age=0\, must-revalidate</value>
+                </header>
+                <header>
+                    <name>Access-Control-Allow-Origin</name>
+                    <value>http://my-crafter-engine-server</value>
+                </header>
+                <header>
+                    <name>Access-Control-Allow-Methods</name>
+                    <value>GET\, PUT</value>
+                </header>
+            </headersToClient>
         </server>
 
         <!-- Proxy any other request to this server (can be any web or application server) -->
