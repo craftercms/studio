@@ -426,6 +426,14 @@ pipelines:
                 - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
                   dest: /configuration/samples/sample-site-config-tools.xml
             commitDetails: Update sample datasources for site config tools
+      - currentVersion: 4.0.1.9
+        nextVersion: 4.0.1.10
+        operations:
+          - type: globalRepoUpgrader
+            files:
+                - src: repo-bootstrap/global/configuration/samples/sample-proxy-config.xml
+                  dest: /configuration/samples/sample-proxy-config.xml
+            commitDetails: Update sample proxy config to include additional request and response headers
 
   # Pipeline to upgrade site repositories
   site:
