@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 /**
@@ -38,6 +39,7 @@ public class EventBroadcaster {
     @Autowired
     protected SimpMessagingTemplate messagingTemplate;
 
+    @Order
     @EventListener
     public void publishEvent(BroadcastEvent event) {
         logger.debug("Broadcast event '{}'", event);
