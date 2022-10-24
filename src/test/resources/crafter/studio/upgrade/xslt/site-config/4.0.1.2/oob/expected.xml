@@ -21,7 +21,7 @@
 
 -->
 <site-config>
-    <version>4.0.1.2</version>
+    <version>4.0.1</version>
     <wem-project>{siteName}</wem-project>
     <display-name>{siteName}</display-name>
 
@@ -71,7 +71,7 @@
         <pattern>(_html|_t|_s|_smv|mvs)$</pattern>
         <pattern>internal-name</pattern>
     </cdata-escaped-field-patterns>
-    
+
     <published-repository>
         <enable-staging-environment>false</enable-staging-environment>
     </published-repository>
@@ -85,7 +85,6 @@
             <!-- <bulk-publish-required/> -->
             <!-- <publish-by-commit-required/> -->
             <!-- <publish-required/> -->
-            <!-- <publish-everything-required/> -->
         </comments>
     </publishing>
 
@@ -136,10 +135,8 @@
         -->
         <folders>
             <folder name="Pages" path="/website" read-direct-children="false" attach-root-prefix="true"/>
-            <folder name="Components" path="/components" read-direct-children="false" attach-root-prefix="true"/>
             <folder name="Taxonomy" path="/taxonomy" read-direct-children="false" attach-root-prefix="true"/>
             <folder name="Assets" path="/static-assets" read-direct-children="false" attach-root-prefix="false"/>
-            <folder name="Templates" path="/templates" read-direct-children="false" attach-root-prefix="false"/>
             <folder name="Scripts" path="/scripts" read-direct-children="false" attach-root-prefix="false"/>
         </folders>
 
