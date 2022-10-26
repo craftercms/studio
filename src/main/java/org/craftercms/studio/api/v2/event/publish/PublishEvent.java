@@ -17,6 +17,7 @@ package org.craftercms.studio.api.v2.event.publish;
 
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.springframework.security.core.Authentication;
 
 /**
  * Event triggered when items are published
@@ -30,6 +31,10 @@ public class PublishEvent extends SiteAwareEvent implements BroadcastEvent {
 
     public PublishEvent(String siteId) {
         super(siteId);
+    }
+
+    public PublishEvent(Authentication authentication, String siteId) {
+        super(authentication, siteId);
     }
 
     @Override
