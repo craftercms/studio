@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.2.0'
+  version: '4.0.3.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -1981,12 +1981,6 @@ paths:
           required: false
           schema:
             type: string
-        - name: siteName
-          in: query
-          description: Site name - optional for super admin user, otherwise required
-          required: false
-          schema:
-            type: string
         - name: offset
           in: query
           description: Offset of first record in the response
@@ -2112,6 +2106,12 @@ paths:
           schema:
             type: integer
             format: int64
+        - name: siteId
+          in: query
+          description: Site ID (site identifier) - optional for super admin user, otherwise required
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: OK

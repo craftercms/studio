@@ -110,6 +110,9 @@
         SELECT a.*, ap.*, s.site_id as site_name
         FROM (audit a INNER JOIN site s on a.site_id = s.id) LEFT OUTER JOIN audit_parameters ap ON a.id = ap.audit_id
         WHERE a.id = #{id} AND s.deleted = 0
+        <if test="siteId != null">
+            and s.site_id = #{siteId}
+        </if>
     </select>
 
     <select id="getAuditLog" parameterType="java.util.Map" resultMap="AuditLogMap">

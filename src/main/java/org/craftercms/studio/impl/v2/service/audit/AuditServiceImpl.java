@@ -16,13 +16,12 @@
 
 package org.craftercms.studio.impl.v2.service.audit;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
@@ -37,6 +36,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.rometools.utils.Strings.isNotEmpty;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_AUDIT_LOG;
 
@@ -47,50 +47,38 @@ public class AuditServiceImpl implements AuditService {
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
     private ContentService contentService;
-    private DeploymentService deploymentService;
     private SecurityService securityService;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public List<AuditLog> getAuditLogForSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, int offset, int limit,
-                                             String user, List<String> actions) throws SiteNotFoundException {
-        if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
-            throw new SiteNotFoundException("Site " + site + " not found.");
-        }
-        return auditServiceInternal.getAuditLogForSite(site, offset, limit, user, actions);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public int getAuditLogForSiteTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site, String user, List<String> actions)
-            throws SiteNotFoundException {
-        if (StringUtils.isNotEmpty(site) && !siteService.exists(site)) {
-            throw new SiteNotFoundException();
-        }
-        return auditServiceInternal.getAuditLogForSiteTotal(site, user, actions);
-    }
-
-    @Override
-    public List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+    public List<AuditLog> getAuditLog(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset, int limit, String user,
                                       List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
                                       ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
-                                      String sort, String order) {
-        return auditServiceInternal.getAuditLog(siteId, siteName, offset, limit, user, operations, includeParameters,
+                                      String sort, String order) throws SiteNotFoundException {
+        if (isNotEmpty(siteId)) {
+            siteService.checkSiteExists(siteId);
+        }
+
+        return auditServiceInternal.getAuditLog(siteId, offset, limit, user, operations, includeParameters,
                 dateFrom, dateTo, target, origin, clusterNodeId, sort, order);
     }
 
     @Override
-    public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+    public int getAuditLogTotal(String siteId, String user, List<String> operations,
                                            boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                           String target, String origin, String clusterNodeId) {
-        return auditServiceInternal.getAuditLogTotal(siteId, siteName, user, operations, includeParameters, dateFrom,
+                                           String target, String origin, String clusterNodeId) throws SiteNotFoundException {
+        if (isNotEmpty(siteId)) {
+            siteService.checkSiteExists(siteId);
+        }
+
+        return auditServiceInternal.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
                 dateTo, target, origin, clusterNodeId);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public AuditLog getAuditLogEntry(long auditLogId) {
-        return auditServiceInternal.getAuditLogEntry(auditLogId);
+    public AuditLog getAuditLogEntry(final long auditLogId, @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId) {
+        return auditServiceInternal.getAuditLogEntry(auditLogId, siteId);
     }
 
     @Override
@@ -126,7 +114,7 @@ public class AuditServiceImpl implements AuditService {
         // If the number of items returned is less than the size, then it means that the table has no more records
 
         // TODO: SJ: Simplify the code below
-        if (activityFeeds != null && activityFeeds.size() > 0) {
+        if (CollectionUtils.isNotEmpty(activityFeeds)) {
             for (int index = 0; index < activityFeeds.size() && remainingItem!=0; index++) {
                 AuditLog auditLog = activityFeeds.get(index);
                 String id = auditLog.getPrimaryTargetValue();
@@ -158,7 +146,7 @@ public class AuditServiceImpl implements AuditService {
             if (editedDate != null) {
                 item.eventDate = editedDate.withZoneSameInstant(ZoneOffset.UTC);
             } else {
-                item.eventDate = editedDate;
+                item.eventDate = null;
             }
 
             return item;
@@ -168,36 +156,16 @@ public class AuditServiceImpl implements AuditService {
         }
     }
 
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
-    }
-
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
     }
 
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public ContentService getContentService() {
-        return contentService;
-    }
-
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
-    }
-
-    public void setDeploymentService(DeploymentService deploymentService) {
-        this.deploymentService = deploymentService;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
     }
 
     public void setSecurityService(SecurityService securityService) {

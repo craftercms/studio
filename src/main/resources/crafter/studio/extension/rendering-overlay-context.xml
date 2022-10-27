@@ -89,7 +89,6 @@
 
     <bean id="auditController" class="org.craftercms.studio.controller.rest.v2.AuditController">
         <property name="auditService" ref="auditService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="monitoringController" class="org.craftercms.studio.controller.rest.v2.MonitoringController">

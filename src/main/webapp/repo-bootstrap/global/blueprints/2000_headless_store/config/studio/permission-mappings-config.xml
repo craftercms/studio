@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>4.0.8</version>
+    <version>4.0.9</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -273,6 +273,7 @@
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
+                <permission>audit_log</permission>
             </allowed-permissions>
         </rule>
     </role>
