@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
+import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.slf4j.Logger;
@@ -487,6 +488,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleException(HttpServletRequest request, ContentExistException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_ALREADY_EXISTS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ContentMoveInvalidLocation.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseBody handleException(HttpServletRequest request, ContentMoveInvalidLocation e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_MOVE_INVALID_LOCATION);
         return handleExceptionInternal(request, e, response);
     }
 
