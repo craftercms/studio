@@ -76,7 +76,7 @@ public interface AuditServiceInternal {
      * Get the audit log entry count given the provided filter parameters
      *
      * @param siteId            site ID
-     * @param user filter by user
+     * @param user            filter by user
      * @param operations        filter by list of operations
      * @param includeParameters include audit log parameters in result set
      * @param dateFrom          filter results by lower border for date
