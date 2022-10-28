@@ -53,7 +53,6 @@ public interface AuditServiceInternal {
      * Get audit log filtered by parameters
      *
      * @param siteId  site identifier
-     * @param siteName site name
      * @param offset offset of first record in result set
      * @param limit number of records to return as result set
      * @param user filter by user
@@ -68,12 +67,26 @@ public interface AuditServiceInternal {
      * @param order order strategy
      * @return List of audit log entries
      */
-    List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+    List<AuditLog> getAuditLog(String siteId, int offset, int limit, String user,
                                List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
                                ZonedDateTime dateTo, String target, String origin, String clusterNodeId, String sort,
                                String order);
 
-    int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+    /**
+     * Get the audit log entry count given the provided filter parameters
+     *
+     * @param siteId            site ID
+     * @param user            filter by user
+     * @param operations        filter by list of operations
+     * @param includeParameters include audit log parameters in result set
+     * @param dateFrom          filter results by lower border for date
+     * @param dateTo            filter results by upper border for date
+     * @param target            filter results by target
+     * @param origin            filter results by origin
+     * @param clusterNodeId     filter results by cluster node
+     * @return total number of records matching the filter
+     */
+    int getAuditLogTotal(String siteId, String user, List<String> operations,
                                     boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                     String target, String origin, String clusterNodeId);
 
@@ -114,9 +127,11 @@ public interface AuditServiceInternal {
      * Get audit log entry by id
      *
      * @param auditLogId id of audit log entry to get
+     * @param siteId the site ID. When null or empty, it will retrieve
+     *               entries for all sites and include admin activities.
      * @return Audit log entry
      */
-    AuditLog getAuditLogEntry(long auditLogId);
+    AuditLog getAuditLogEntry(String siteId, long auditLogId);
 
     /**
      * Insert log audit entry
