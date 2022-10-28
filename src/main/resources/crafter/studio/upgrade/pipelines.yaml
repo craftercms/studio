@@ -740,6 +740,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.8.xslt
               commitDetails: Add start_stop_publisher permission for site 'admin' role
+        - currentVersion: 4.0.8
+          nextVersion: 4.0.9
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.9.xslt
+              commitDetails: Add audit_log permission for site 'developer' role
 
   role-mappings-config:
     module: studio

@@ -21,15 +21,14 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ItemState;
-import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -38,28 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_API;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.ORIGIN_GIT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIONS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_NODE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_FROM;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DATE_TO;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.INCLUDE_PARAMETERS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OPERATIONS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORDER;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORIGIN;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TARGET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
@@ -73,7 +52,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     @Override
     public List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
             throws SiteNotFoundException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(SITE_ID, site);
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
@@ -88,7 +67,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     @Override
     public int getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(SITE_ID, site);
         if (StringUtils.isNotEmpty(user)) {
             params.put(USERNAME, user);
@@ -101,18 +80,15 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
 
     @Override
-    public List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+    public List<AuditLog> getAuditLog(String siteId, int offset, int limit, String user,
                                       List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
                                       ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
                                       String sort, String order) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
-        }
-        if (StringUtils.isNotEmpty(siteName)) {
-            params.put(SITE_NAME, siteName);
         }
         if (StringUtils.isNotEmpty(user)) {
             params.put(USERNAME, user);
@@ -154,15 +130,12 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+    public int getAuditLogTotal(String siteId, String user, List<String> operations,
                                 boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo, String target,
                                 String origin, String clusterNodeId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
-        }
-        if (StringUtils.isNotEmpty(siteName)) {
-            params.put(SITE_NAME, siteName);
         }
         if (StringUtils.isNotEmpty(user)) {
             params.put(USERNAME, user);
@@ -196,7 +169,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     @Override
     public int getAuditDashboardTotal(String siteId, String user, List<String> operations, ZonedDateTime dateFrom,
                                       ZonedDateTime dateTo, String target) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         if (StringUtils.isNotEmpty(siteId)) {
             params.put(SITE_ID, siteId);
         }
@@ -222,7 +195,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     public List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
                                             ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
                                             String order) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put(OFFSET, offset);
         params.put(LIMIT, limit);
         if (StringUtils.isNotEmpty(siteId)) {
@@ -279,9 +252,10 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public AuditLog getAuditLogEntry(long auditLogId) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put(QueryParameterNames.ID, auditLogId);
+    public AuditLog getAuditLogEntry(final String siteId, final long auditLogId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put(ID, auditLogId);
+        params.put(SITE_ID, siteId);
         return auditDao.getAuditLogEntry(params);
     }
 
@@ -290,7 +264,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     public boolean insertAuditLog(AuditLog auditLog) {
         int result = retryingDatabaseOperationFacade.retry(() -> auditDao.insertAuditLog(auditLog));
         if (CollectionUtils.isNotEmpty(auditLog.getParameters())) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("auditId", auditLog.getId());
             params.put("parameters", auditLog.getParameters());
             retryingDatabaseOperationFacade.retry(() -> auditDao.insertAuditLogParams(params));
@@ -315,7 +289,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     public List<AuditLog> selectUserFeedEntries(String user, String siteId, int offset, int limit, String contentType,
                                                 boolean hideLiveItems) {
-        HashMap<String, Object> params = new HashMap<String, Object>();
+        HashMap<String, Object> params = new HashMap<>();
         params.put("userId", user);
         params.put("siteId", siteId);
         params.put("offset", offset);
@@ -338,24 +312,12 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
         retryingDatabaseOperationFacade.retry(() -> auditDao.deleteAuditLogForSite(siteId));
     }
 
-    public AuditDAO getAuditDao() {
-        return auditDao;
-    }
-
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

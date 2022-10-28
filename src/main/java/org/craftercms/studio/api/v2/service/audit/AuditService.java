@@ -30,35 +30,10 @@ import java.util.List;
 public interface AuditService {
 
     /**
-     * Get audit log for site
-     *
-     * @param site site
-     * @param offset offset of the first record
-     * @param limit number of records to return
-     * @param user filter logs by user
-     * @param actions filter logs by actions
-     * @return audit list
-     * @throws SiteNotFoundException thrown if site does not exist
-     */
-    List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
-            throws SiteNotFoundException;
-
-    /**
-     * Get total number of audit log entries for site
-     *
-     * @param site site
-     * @param user filter logs by user
-     * @param actions filter logs by actions
-     * @return number of audit log entries
-     * @throws SiteNotFoundException thrown if site does not exist
-     */
-    int getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
-
-    /**
      * Get audit log
      *
-     * @param siteId filter logs by given site Id
-     * @param siteName filter logs by given site name
+     * @param siteId filter logs by given site ID. It can be null or empty when user
+     *                     is system admin, it will then retrieve entries for all sites and include admin activities.
      * @param offset offset of the first record
      * @param limit number of records to return
      * @param user filter logs by given user
@@ -73,16 +48,17 @@ public interface AuditService {
      * @param order order logs
      * @return audit log result set
      */
-    List<AuditLog> getAuditLog(String siteId, String siteName, int offset, int limit, String user,
+    List<AuditLog> getAuditLog(String siteId, int offset, int limit, String user,
                                List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
                                ZonedDateTime dateTo, String target, String origin, String clusterNodeId, String sort,
-                               String order);
+                               String order) throws SiteNotFoundException;
 
     /**
      * Get total number of audit log entries for given filters
      *
-     * @param siteId filter logs by given site Id
-     * @param siteName filter logs by given site name
+     * @param siteId filter logs by given site ID. It can be null or empty when user
+     *               is system admin, it will then retrieve entries for all sites and include admin activities.
+     *
      * @param user filter logs by given user
      * @param operations filter logs by given operations
      * @param includeParameters include audit log parameters into result set
@@ -93,17 +69,18 @@ public interface AuditService {
      * @param clusterNodeId filter logs by given cluster node id
      * @return number of audit log entries
      */
-    int getAuditLogTotal(String siteId, String siteName, String user, List<String> operations,
+    int getAuditLogTotal(String siteId, String user, List<String> operations,
                                     boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                    String target, String origin, String clusterNodeId);
+                                    String target, String origin, String clusterNodeId) throws SiteNotFoundException;
 
     /**
      * Get audit log entry by id
      *
+     * @param siteId     site ID. It can be null or empty when user is system admin
      * @param auditLogId audit log id
      * @return audit log entry
      */
-    AuditLog getAuditLogEntry(long auditLogId);
+    AuditLog getAuditLogEntry(String siteId, long auditLogId);
 
     /**
      * Get user activities
