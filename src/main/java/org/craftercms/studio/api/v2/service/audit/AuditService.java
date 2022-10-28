@@ -32,7 +32,8 @@ public interface AuditService {
     /**
      * Get audit log
      *
-     * @param siteId filter logs by given site Id
+     * @param siteId filter logs by given site ID. It can be null or empty when user
+     *                     is system admin, it will then retrieve entries for all sites and include admin activities.
      * @param offset offset of the first record
      * @param limit number of records to return
      * @param user filter logs by given user
@@ -55,7 +56,9 @@ public interface AuditService {
     /**
      * Get total number of audit log entries for given filters
      *
-     * @param siteId filter logs by given site Id
+     * @param siteId filter logs by given site ID. It can be null or empty when user
+     *               is system admin, it will then retrieve entries for all sites and include admin activities.
+     *
      * @param user filter logs by given user
      * @param operations filter logs by given operations
      * @param includeParameters include audit log parameters into result set
@@ -73,11 +76,11 @@ public interface AuditService {
     /**
      * Get audit log entry by id
      *
+     * @param siteId     site ID. It can be null or empty when user is system admin
      * @param auditLogId audit log id
-     * @param siteId site ID
      * @return audit log entry
      */
-    AuditLog getAuditLogEntry(long auditLogId, String siteId);
+    AuditLog getAuditLogEntry(String siteId, long auditLogId);
 
     /**
      * Get user activities

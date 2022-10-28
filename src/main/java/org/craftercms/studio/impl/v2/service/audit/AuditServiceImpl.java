@@ -77,8 +77,8 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public AuditLog getAuditLogEntry(final long auditLogId, @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId) {
-        return auditServiceInternal.getAuditLogEntry(auditLogId, siteId);
+    public AuditLog getAuditLogEntry(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId, final long auditLogId) {
+        return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
     }
 
     @Override

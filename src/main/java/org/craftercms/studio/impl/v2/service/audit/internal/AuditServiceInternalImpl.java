@@ -252,7 +252,7 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public AuditLog getAuditLogEntry(final long auditLogId, final String siteId) {
+    public AuditLog getAuditLogEntry(final String siteId, final long auditLogId) {
         Map<String, Object> params = new HashMap<>();
         params.put(ID, auditLogId);
         params.put(SITE_ID, siteId);

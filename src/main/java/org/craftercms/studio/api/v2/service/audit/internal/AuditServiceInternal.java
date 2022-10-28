@@ -126,10 +126,11 @@ public interface AuditServiceInternal {
      * Get audit log entry by id
      *
      * @param auditLogId id of audit log entry to get
-     * @param siteId the site ID
+     * @param siteId the site ID. When null or empty, it will retrieve
+     *               entries for all sites and include admin activities.
      * @return Audit log entry
      */
-    AuditLog getAuditLogEntry(long auditLogId, String siteId);
+    AuditLog getAuditLogEntry(String siteId, long auditLogId);
 
     /**
      * Insert log audit entry

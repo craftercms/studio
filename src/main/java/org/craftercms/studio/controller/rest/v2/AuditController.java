@@ -81,7 +81,7 @@ public class AuditController {
 
     @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
     public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId, @RequestParam(value = REQUEST_PARAM_SITEID, required = false) String siteId) {
-        AuditLog auditLogEntry = auditService.getAuditLogEntry(auditLogId, siteId);
+        AuditLog auditLogEntry = auditService.getAuditLogEntry(siteId, auditLogId);
 
         ResponseBody responseBody = new ResponseBody();
         ResultOne<AuditLog> result = new ResultOne<>();
