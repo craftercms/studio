@@ -90,8 +90,8 @@ public class ApiResponse {
     public static final ApiResponse CONTENT_ALREADY_UNLOCKED = new ApiResponse(7003, "Content already unlocked",
             "The item is already unlocked", StringUtils.EMPTY);
     public static final ApiResponse CONTENT_MOVE_INVALID_LOCATION = new ApiResponse(7004,
-            "Content move destination is invalid",
-            "Check API and make sure you're sending the correct parameters", StringUtils.EMPTY);
+            "Paste destination folder is invalid (did you paste the item onto itself?)",
+            "Try pasting the content to a different folder", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
