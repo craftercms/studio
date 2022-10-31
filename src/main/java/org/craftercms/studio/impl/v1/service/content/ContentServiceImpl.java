@@ -15,25 +15,9 @@
  */
 package org.craftercms.studio.impl.v1.service.content;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.craftercms.commons.crypto.CryptoException;
@@ -54,43 +38,24 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentItemIdGenerator;
-import org.craftercms.studio.api.v1.service.content.ContentService;
-import org.craftercms.studio.api.v1.service.content.ContentTypeService;
-import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
-import org.craftercms.studio.api.v1.service.content.DmPageNavigationOrderService;
+import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.ContentAssetInfoTO;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
-import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
-import org.craftercms.studio.api.v1.to.DmOrderTO;
-import org.craftercms.studio.api.v1.to.GoLiveDeleteCandidates;
-import org.craftercms.studio.api.v1.to.RenderingTemplateTO;
-import org.craftercms.studio.api.v1.to.ResultTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.annotation.SiteId;
-import org.craftercms.studio.api.v2.annotation.policy.ActionContentType;
-import org.craftercms.studio.api.v2.annotation.policy.ActionSourcePath;
-import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
-import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
-import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
+import org.craftercms.studio.api.v2.annotation.policy.*;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
-import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
+import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
@@ -103,49 +68,38 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentItemOrderComparator;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.DocumentException;
-
-import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_GROUP_ID;
-import static org.craftercms.studio.api.v1.constant.DmConstants.KEY_PAGE_ID;
+import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_MOVE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PULL_FROM_REMOTE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUSH_TO_REMOTE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REVERT;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_REMOTE_REPOSITORY;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_CLOSE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.SAVE_AND_NOT_CLOSE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
-import static org.craftercms.studio.api.v2.dal.ItemState.isLive;
-import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
-import static org.craftercms.studio.api.v2.dal.ItemState.isScheduled;
-import static org.craftercms.studio.api.v2.dal.ItemState.isStaged;
-import static org.craftercms.studio.api.v2.dal.ItemState.isSystemProcessing;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
 
@@ -412,7 +366,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             // default chain is asset type
             String chainID = DmConstants.CONTENT_CHAIN_ASSET;
 
-            if (path.startsWith("/site")) {
+            if (path.startsWith(SLASH_SITE)) {
                 // anything inside site is a form based XML
                 // example /site/website
                 //         /site/components
@@ -1133,8 +1087,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             // (parent move operation has already happened)
             String childToPath = childTO.getUri();
 
-            String oldParentFolderPath = fromPath.replace("/index.xml", "");
-            String parentFolderPath = movePath.replace("/index.xml", "");
+            String oldParentFolderPath = fromPath.replace(SLASH_INDEX_FILE, "");
+            String parentFolderPath = movePath.replace(SLASH_INDEX_FILE, "");
 
             String childFromPath = childToPath.replace(parentFolderPath, oldParentFolderPath);
 
@@ -1583,8 +1537,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
              contentPath.replace(FILE_SEPARATOR + "site" + FILE_SEPARATOR + "website", "")
                             .replace(FILE_SEPARATOR + DmConstants.INDEX_FILE, ""); */
             item.browserUri =
-                    contentPath.replace("/site/website", "")
-                            .replace("/index.xml", "");
+                    contentPath.replace(SLASH_SITE_WEBSITE, "")
+                            .replace(SLASH_INDEX_FILE, "");
         }
 
         Document contentDoc = this.getContentAsDocument(site, contentPath);
@@ -1703,7 +1657,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 List<ContentItemTO> children = new ArrayList<>();
                 logger.debug("Check if '{}' has an index.xml", contentPath);
                 for (RepositoryItem childRepoItem : childRepoItems) {
-                    if ("index.xml".equals(childRepoItem.name)) {
+                    if (INDEX_FILE.equals(childRepoItem.name)) {
                         if (!item.uri.contains(FILE_SEPARATOR + DmConstants.INDEX_FILE)) {
                             item.path = item.uri;
                             item.uri = item.uri + DmConstants.SLASH_INDEX_FILE;
@@ -2144,7 +2098,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String folderPath = (name.equals(DmConstants.INDEX_FILE)) ?
                 relativePath.replace(FILE_SEPARATOR + name, "") : relativePath;
         item.path = folderPath;
-        /**
+        /*
          * Internal name should be just folder name
          */
         String internalName = folderPath;

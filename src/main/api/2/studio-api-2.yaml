@@ -7398,6 +7398,7 @@ components:
           * `CODE:` 7001, `MESSAGE:` Content already exists, `REMEDIAL ACTION:` Edit the existing item or delete it before creating it again
           * `CODE:` 7002, `MESSAGE:` Content already locked, `REMEDIAL ACTION:` The user that locked the item or the administrator must unlock the item first
           * `CODE:` 7003, `MESSAGE:` Content already unlocked, `REMEDIAL ACTION:` The item is already unlocked
+          * `CODE:` 7004, `MESSAGE:` Paste destination folder is invalid (did you paste the item onto itself?), `REMEDIAL ACTION:` Try pasting the content to a different folder
           * `CODE:` 8000, `MESSAGE:` Publishing is disabled, `REMEDIAL ACTION:` Advise the user to enable publishing
           * `CODE:` 9000, `MESSAGE:` Search is unreachable, `REMEDIAL ACTION:` Advise the user that the search engine is not reachable
           * `CODE:` 10000, `MESSAGE:` LoV not found, `REMEDIAL ACTION:` Check if you sent in the right LoV Id
