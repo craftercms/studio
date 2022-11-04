@@ -15,10 +15,10 @@
  */
 package org.craftercms.studio.impl.v2.service.clipboard.internal;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -41,6 +41,7 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.io.FilenameUtils.getFullPathNoEndSeparator;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
+import static org.craftercms.studio.model.clipboard.Operation.CUT;
 
 /**
  * Default implementation of {@link ClipboardServiceInternal}
@@ -58,8 +59,8 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     protected WorkflowService workflowService;
     protected ApplicationContext applicationContext;
 
-    protected void validatePasteItemsAction(final String siteId, final String sourcePath, final String targetPath)
-            throws InvalidParametersException, ContentNotFoundException {
+    protected void validatePasteItemsAction(final String siteId, Operation operation, final String sourcePath, final String targetPath)
+            throws ServiceLayerException {
         ContentItemTO targetContentItem = contentService.getContentItem(siteId, targetPath);
         if (targetContentItem.isDeleted()) {
             throw new ContentNotFoundException(targetPath, siteId, format("Target path '%s' does not exist. " +
@@ -82,11 +83,20 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
                             "Pasting across top level folders is not supported.",
                     sourcePath, sourceTopLevel, targetPath, targetTopLevel, siteId));
         }
+
+        if (CUT == operation) {
+            String sourceDirectory = getParentUrl(sourcePath);
+            String targetDirectory = removeEnd(targetPath, SLASH_INDEX_FILE);
+            if (sourceDirectory.equals(targetDirectory)) {
+                throw new ContentMoveInvalidLocation(format("Cannot perform cut-paste operation from '%s' to the same location '%s' for site '%s'",
+                        sourcePath, targetPath, siteId));
+            }
+        }
     }
 
     public List<String> pasteItems(String siteId, Operation operation, String targetPath, PasteItem item)
             throws ServiceLayerException, UserNotFoundException {
-        validatePasteItemsAction(siteId, item.getPath(), targetPath);
+        validatePasteItemsAction(siteId, operation, item.getPath(), targetPath);
         var pastedItems = new LinkedList<String>();
         pasteItemsInternal(siteId, operation, targetPath, List.of(item), pastedItems);
         logger.trace("'{}' items pasted in site '{}' from '{}' to '{}'",
