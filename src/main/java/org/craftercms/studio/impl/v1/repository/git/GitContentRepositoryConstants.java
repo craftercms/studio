@@ -42,8 +42,6 @@ public final class  GitContentRepositoryConstants {
 
     public static final String PREVIOUS_COMMIT_SUFFIX = "~1";
 
-    public static final String CLUSTER_NODE_REMOTE_NAME_PREFIX = "cluster_node_";
-
     public static final String GIT_REPO_USER_USERNAME = "git_repo_user";
     public static final String LOCK_FILE = "index.lock";
 

@@ -120,7 +120,6 @@
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="configurationPatterns"
                   value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
@@ -442,23 +441,6 @@
         <property name="metaDAO" ref="metaDAO" />
     </bean>
 
-    <bean id="clusterManagementService"
-          class="org.craftercms.studio.impl.v2.service.cluster.ClusterManagementServiceImpl">
-        <property name="clusterManagementServiceInternal" ref="clusterManagementServiceInternal" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
-    </bean>
-
-    <bean id="clusterManagementServiceInternal"
-          class="org.craftercms.studio.impl.v2.service.cluster.internal.ClusterManagementServiceInternalImpl">
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-    </bean>
-
     <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
         <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
@@ -513,7 +495,6 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="contentRepository" ref="contentRepository" />
         <property name="encryptor" ref="internalTextEncryptor"/>
-        <property name="clusterDao" ref="clusterDao"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
@@ -787,8 +768,6 @@
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
         <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="offset"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentRepository" ref="contentRepository" />
@@ -798,8 +777,6 @@
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
         <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="offset"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <property name="maxRetryCounter"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT)}" />
         <property name="studioConfiguration" ref="studioConfiguration" />
@@ -809,7 +786,6 @@
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="notificationService" ref="cstudioNotificationService" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
@@ -818,8 +794,6 @@
     <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask">
         <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="offset"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_CLUSTER_RANDOM_OFFSET)}" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
@@ -917,12 +891,10 @@
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
-        <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-        <property name="studioClusterUtils" ref="studio.clusterUtils" />
     </bean>
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
@@ -933,7 +905,6 @@
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
-        <property name="clusterDao" ref="clusterDao" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="helper" ref="studio.gitRepositoryHelper" />
@@ -1402,15 +1373,6 @@
           init-method="init">
         <constructor-arg name="configurationCache" ref="configurationCache"/>
         <constructor-arg name="configLocation" value="crafter/studio/studio-config.yaml"/>
-    </bean>
-
-    <bean id="studio.clusterUtils" class="org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils">
-        <property name="clusterDao" ref="clusterDao" />
-        <property name="encryptor" ref="internalTextEncryptor"/>
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
-        <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="helper" ref="studio.gitRepositoryHelper"/>
     </bean>
 
     <bean id="configurationCache" class="org.craftercms.commons.cache.GuavaCacheFactoryBean">

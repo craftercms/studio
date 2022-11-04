@@ -36,10 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class AuditServiceInternalImpl implements AuditServiceInternal {
 
@@ -276,11 +274,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     public AuditLog createAuditLogEntry() {
         AuditLog auditLog = new AuditLog();
         String clusterNodeId = StringUtils.EMPTY;
-        HierarchicalConfiguration<ImmutableNode> clusterNodeData =
-                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
-        if (clusterNodeData != null && !clusterNodeData.isEmpty()) {
-            clusterNodeId = clusterNodeData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-        }
         auditLog.setOrganizationId(1);
         auditLog.setOrigin(ORIGIN_API);
         auditLog.setClusterNodeId(clusterNodeId);

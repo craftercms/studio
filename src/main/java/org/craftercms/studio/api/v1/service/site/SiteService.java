@@ -343,29 +343,6 @@ public interface SiteService {
     List<SiteFeed> getDeletedSites();
 
 	/**
-	 * Lock publishing for site
-	 * @param siteId site identifier
-	 * @param lockOwnerId lock owner identifier
-	 * @param ttl TTL for lock
-	 * @return true if locking was successful
-	 */
-	boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl);
-
-    /**
-	 * Unlock publishing for site
-	 * @param siteId site identifier
-	 * @param lockOwnerId lock owner identifier
-	 * @return true if unlocking was successful
-	 */
-    boolean unlockPublishingForSite(String siteId, String lockOwnerId);
-
-    /**
-	 * update publishing lock heartbeat for site
-	 * @param siteId site identifier
-	 */
-	void updatePublishingLockHeartbeatForSite(String siteId);
-
-	/**
 	 * get last commit id for site
 	 * @param siteId site identifier
 	 * @return last commit id for local studio node
