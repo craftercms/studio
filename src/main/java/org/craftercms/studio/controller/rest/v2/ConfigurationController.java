@@ -67,15 +67,13 @@ public class ConfigurationController {
     private final ConfigurationService configurationService;
     private final StudioConfiguration studioConfiguration;
     private final ContentTypeService contentTypeService;
-    protected final CacheControl cacheControl;
 
-    @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService", "cacheControl"})
+    @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService"})
     public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration,
-                                   ContentTypeService contentTypeService, CacheControl cacheControl) {
+                                   ContentTypeService contentTypeService) {
         this.configurationService = configurationService;
         this.studioConfiguration = studioConfiguration;
         this.contentTypeService = contentTypeService;
-        this.cacheControl = cacheControl;
     }
 
     @GetMapping("clear_cache")
@@ -177,7 +175,6 @@ public class ConfigurationController {
 
         return ResponseEntity
                 .ok()
-                .cacheControl(cacheControl)
                 .header(HttpHeaders.CONTENT_TYPE, mimeType)
                 .body(resource.getValue());
     }
