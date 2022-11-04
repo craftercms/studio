@@ -32,6 +32,17 @@
         <constructor-arg name="maxAge" value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge')}"/>
     </bean>
 
+    <mvc:interceptors>
+        <!-- By adding this interceptor we can keep the list of urls to include etag header and
+         have different cacheControl settings per path/pattern-->
+        <bean class="org.craftercms.studio.impl.v2.utils.spring.WebContentInterceptorFactory">
+            <constructor-arg name="cacheControl" ref="cacheControl"/>
+            <constructor-arg name="cachedPaths"
+                             value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge.includeUrls')}"/>
+            <constructor-arg name="alwaysRevalidatePaths" value="${crafter.engine.header.etag.include.urls}"/>
+        </bean>
+    </mvc:interceptors>
+
     <bean id="crafter.staticAssetsRequestHandler" class="org.craftercms.engine.controller.StaticAssetsRequestHandler"
           init-method="init">
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
@@ -111,7 +122,6 @@
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="contentTypeService" ref="contentTypeService"/>
-        <constructor-arg name="cacheControl" ref="cacheControl"/>
     </bean>
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
