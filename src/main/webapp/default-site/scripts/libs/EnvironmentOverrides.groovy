@@ -63,7 +63,7 @@ class EnvironmentOverrides {
         result.authenticationType = ""
       }
 
-      result.passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
+      result.passwordRequirementsMinimumComplexity = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY)
       result.useBaseDomain = studioConfigurationSB.getProperty(STUDIO_COOKIE_USE_BASE_DOMAIN)
 
       def language = Cookies.getCookieValue("crafterStudioLanguage", request)
