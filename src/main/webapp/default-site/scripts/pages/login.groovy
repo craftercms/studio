@@ -15,13 +15,13 @@
  */
 
 import scripts.api.SecurityServices
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY
 
 def context = SecurityServices.createContext(applicationContext, request)
 
 def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
 
-def passwordRequirementsRegex = studioConfigurationSB
-        .getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
+def passwordRequirementsMinComplexity = studioConfigurationSB
+        .getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY).toInteger()
 
-model.passwordRequirementsRegex = passwordRequirementsRegex;
+model.passwordRequirementsMinComplexity = passwordRequirementsMinComplexity
