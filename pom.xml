@@ -553,6 +553,11 @@
             <artifactId>jose4j</artifactId>
             <version>${jose4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.nulab-inc</groupId>
+            <artifactId>zxcvbn</artifactId>
+            <version>${zxcvbn.version}</version>
+        </dependency>
 
     </dependencies>
 
