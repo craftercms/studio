@@ -103,7 +103,6 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
-import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -184,7 +183,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
     protected ItemServiceInternal itemServiceInternal;
-    protected StudioClusterUtils studioClusterUtils;
     protected WorkflowServiceInternal workflowServiceInternal;
     protected ApplicationContext applicationContext;
 
@@ -959,7 +957,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             throw new SiteNotFoundException();
         } else {
             String lastDbCommitId =
-                    siteFeedMapper.getLastCommitId(site, studioClusterUtils.getClusterNodeLocalAddress());
+                    siteFeedMapper.getLastCommitId(site);
             if (lastDbCommitId != null) {
                 syncDatabaseWithRepository.execute(site, lastDbCommitId);
             } else {
@@ -1569,38 +1567,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    public boolean tryLockPublishingForSite(String siteId, String lockOwnerId, int ttl) {
-        logger.debug("Attempt to lock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
-        int result = siteFeedMapper.tryLockPublishingForSite(siteId, lockOwnerId, ttl);
-        if (result == 1) {
-            logger.debug("Locked publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
-        } else {
-            logger.debug("Failed to lock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
-        }
-        return result == 1;
-    }
-
-    @Override
-    public boolean unlockPublishingForSite(String siteId, String lockOwnerId) {
-        logger.debug("Unlock publishing in site '{}' with lock owner '{}'", siteId, lockOwnerId);
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.unlockPublishingForSite(siteId, lockOwnerId));
-        return true;
-    }
-
-    @Override
-    public void updatePublishingLockHeartbeatForSite(String siteId) {
-        logger.debug("Update publishing lock heartbeat in site '{}'", siteId);
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updatePublishingLockHeartbeatForSite(siteId));
-    }
-
-    @Override
     public String getLastCommitId(String siteId) {
-        return siteFeedMapper.getLastCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+        return siteFeedMapper.getLastCommitId(siteId);
     }
 
     @Override
     public String getLastVerifiedGitlogCommitId(String siteId) {
-        return siteFeedMapper.getLastVerifiedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+        return siteFeedMapper.getLastVerifiedGitlogCommitId(siteId);
     }
 
     @Override
@@ -1615,12 +1588,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public String getSiteState(String siteId) {
-        return siteFeedMapper.getSiteState(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+        return siteFeedMapper.getSiteState(siteId);
     }
 
     @Override
     public boolean isPublishedRepoCreated(String siteId) {
-        return siteFeedMapper.getPublishedRepoCreated(siteId, studioClusterUtils.getClusterNodeLocalAddress()) > 0;
+        return siteFeedMapper.getPublishedRepoCreated(siteId) > 0;
     }
 
     @Override
@@ -1630,7 +1603,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     public String getLastSyncedGitlogCommitId(String siteId) {
-        return siteFeedMapper.getLastSyncedGitlogCommitId(siteId, studioClusterUtils.getClusterNodeLocalAddress());
+        return siteFeedMapper.getLastSyncedGitlogCommitId(siteId);
     }
 
     public List<String> getDefaultGroups() {
@@ -1723,10 +1696,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
-        this.studioClusterUtils = studioClusterUtils;
     }
 
     public void setConfigurationPatterns(String[] configurationPatterns) {

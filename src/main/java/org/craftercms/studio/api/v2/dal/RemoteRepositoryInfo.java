@@ -16,12 +16,8 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.Serializable;
 import java.util.List;
-
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 
 public class RemoteRepositoryInfo implements Serializable {
 
@@ -34,7 +30,6 @@ public class RemoteRepositoryInfo implements Serializable {
     private List<String> branches;
     private boolean reachable = true;
     private String unreachableReason;
-    private boolean removable = true;
 
     public String getName() {
         return name;
@@ -42,7 +37,6 @@ public class RemoteRepositoryInfo implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-        this.removable = !StringUtils.startsWith(name, CLUSTER_NODE_REMOTE_NAME_PREFIX);
     }
 
     public String getUrl() {
@@ -91,13 +85,5 @@ public class RemoteRepositoryInfo implements Serializable {
 
     public void setUnreachableReason(String unreachableReason) {
         this.unreachableReason = unreachableReason;
-    }
-
-    public boolean isRemovable() {
-        return removable;
-    }
-
-    public void setRemovable(boolean removable) {
-        // not used
     }
 }

@@ -617,26 +617,6 @@ studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-d
 # Publishing lock TTL in minutes
 studio.publishing.siteLock.ttl: 180
 
-##################################################
-##                 Clustering                   ##
-##################################################
-# Cluster Git URL format for synching members.
-# - Typical SSH URL format: ssh://{username}@{localAddress}{absolutePath}
-# - Typical HTTPS URL format: https://{localAddress}/repos/sites
-studio.clustering.sync.urlFormat: ssh://{username}@{localAddress}{absolutePath}
-
-################################################################
-##                   Clustering Thread Pool                   ##
-################################################################
-# Heartbeat Job interval in milliseconds which is how often to update cluster member's heartbeat in DB
-studio.clustering.heartbeatJob.interval: 10000
-# Inactivity Check Job interval in milliseconds which is how often to check for inactive cluster members
-studio.clustering.inactivityCheckJob.interval: 30000
-# Cluster member after heartbeat stale for amount of minutes will be declared inactive
-studio.clustering.heartbeatStale.timeLimit: 5
-# Cluster member after being inactive for amount of minutes will be removed from cluster
-studio.clustering.inactivity.timeLimit: 5
-
 ################################################################
 ##                             CORS                           ##
 ################################################################
@@ -971,20 +951,12 @@ studio.forwarded.headers.enabled: false
 ##################################################
 # Studio Clock job ticking frequency
 studio.clockJob.frequency: 5000
-# Random offset to time shift cluster members in milliseconds
-studio.clockJob.task.cluster.randomOffset: 1000
 # Studio Clock Job thread pool core size
 studio.clockJob.taskExecutor.corePoolSize: 50
 # Studio Clock Job thread pool maximum size
 studio.clockJob.taskExecutor.maxPoolSize: 500
 # Studio Clock Job thread pool queue capacity
 studio.clockJob.taskExecutor.queueCapacity: 2000
-# Cluster Global Repo sync execute every N cycles
-studio.clockJob.task.cluster.globalRepoSync.executeEveryNCycles: 12
-# Cluster Site Sandbox sync execute every N cycles
-studio.clockJob.task.cluster.siteSandboxRepoSync.executeEveryNCycles: 2
-# Cluster Site Published sync execute every N cycles
-studio.clockJob.task.cluster.sitePublishedRepoSync.executeEveryNCycles: 12
 # Sync repository execute every N cycles
 studio.clockJob.task.syncRepository.executeEveryNCycles: 1
 # Publisher execute every N cycles
