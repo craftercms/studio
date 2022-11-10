@@ -78,14 +78,14 @@
     <select id="memberExists" resultType="int" parameterType="String">
         SELECT COUNT(*) FROM cluster WHERE git_url = #{memberUrl} AND available = 1
     </select>
-    
+
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         INSERT INTO cluster (local_address, state, git_url, git_remote_name, git_auth_type, git_username,
         git_password, git_token, git_private_key, available)
         VALUES (#{localAddress}, #{state}, #{gitUrl}, #{gitRemoteName}, #{gitAuthType}, #{gitUsername},
         #{gitPassword}, #{gitToken}, #{gitPrivateKey}, 1)
     </insert>
-    
+
     <update id="updateMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         UPDATE cluster SET
         state = #{state},
@@ -129,7 +129,8 @@
     <update id="updateHeartbeat" parameterType="java.util.Map">
         UPDATE cluster SET
         heartbeat = CURRENT_TIMESTAMP,
-        state = #{state}
+        state = #{state},
+        available = #{available}
         WHERE local_address = #{localAddress}
     </update>
 

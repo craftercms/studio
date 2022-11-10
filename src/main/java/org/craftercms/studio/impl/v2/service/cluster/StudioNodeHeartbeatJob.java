@@ -32,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_STATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_AVAILABLE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 
 public class StudioNodeHeartbeatJob implements Runnable {
@@ -63,9 +64,10 @@ public class StudioNodeHeartbeatJob implements Runnable {
         HierarchicalConfiguration<ImmutableNode> registrationData = getConfiguration();
         if (registrationData != null && !registrationData.isEmpty()) {
             String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-            Map<String, String> params = new HashMap<String, String>();
+            Map<String, Object> params = new HashMap<String, Object>();
             params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
             params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
+            params.put(CLUSTER_AVAILABLE, 1);
             logger.debug("Update heartbeat for cluster member with local address: " + localAddress);
             clusterDAO.updateHeartbeat(params);
         }
