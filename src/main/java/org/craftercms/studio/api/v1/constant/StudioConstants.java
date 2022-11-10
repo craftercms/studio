@@ -217,16 +217,6 @@ public final class StudioConstants {
 
     public static final String REMOVE_SYSTEM_ADMIN_MEMBER_LOCK = "remove_system_admin_member_lock";
 
-    /**
-     * Cluster registration properties
-     */
-    public static final String CLUSTER_MEMBER_LOCAL_ADDRESS = "localAddress";
-    public static final String CLUSTER_MEMBER_AUTHENTICATION_TYPE = "authenticationType";
-    public static final String CLUSTER_MEMBER_USERNAME = "username";
-    public static final String CLUSTER_MEMBER_PASSWORD = "password";
-    public static final String CLUSTER_MEMBER_TOKEN = "token";
-    public static final String CLUSTER_MEMBER_PRIVATE_KEY = "privateKey";
-
     /* Map keys */
     public static final String KEY_CONTENT_TYPE = "contentType";
 

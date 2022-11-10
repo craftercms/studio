@@ -45,7 +45,6 @@ public abstract class AuditLogConstants {
     public static final String OPERATION_DISABLE = "DISABLE";
     public static final String OPERATION_START_PUBLISHER = "START_PUBLISHER";
     public static final String OPERATION_STOP_PUBLISHER = "STOP_PUBLISHER";
-    public static final String OPERATION_REMOVE_CLUSTER_NODE = "REMOVE_CLUSTER_NODE";
     public static final String OPERATION_CANCEL_PUBLISHING_PACKAGE = "CANCEL_PUBLISHING_PACKAGE";
     public static final String OPERATION_PUBLISH = "PUBLISH";
     public static final String OPERATION_INITIAL_PUBLISH = "INITIAL_PUBLISH";
@@ -64,7 +63,6 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_FOLDER = "Folder";
     public static final String TARGET_TYPE_CONTENT_ITEM = "Content Item";
     public static final String TARGET_TYPE_REMOTE_REPOSITORY = "Remote Repository";
-    public static final String TARGET_TYPE_CLUSTER_NODE = "Cluster Node";
     public static final String TARGET_TYPE_ACCESS_TOKEN = "Access Token";
     public static final String TARGET_TYPE_REFRESH_TOKEN = "Refresh Token";
     public static final String TARGET_TYPE_BLUEPRINT = "Blueprint";

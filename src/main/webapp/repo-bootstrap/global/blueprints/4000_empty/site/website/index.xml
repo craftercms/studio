@@ -23,17 +23,17 @@
 	<file-name>index.xml</file-name>
 	<internal-name>Home</internal-name>
 	<orderDefault_f>-1</orderDefault_f>
-	<body_html>&lt;h1&gt;Welcome to Your CrafterCMS Site.&lt;/h1&gt;
-		&lt;p&gt;This site blueprint is the equivalent of a Hello World. It's a blank slate on which you can build your own digital experience.&lt;/p&gt;
+	<body_html>&lt;h1&gt;Welcome to Your CrafterCMS Project.&lt;/h1&gt;
+		&lt;p&gt;This project blueprint is the equivalent of a Hello World. It's a blank slate on which you can build your own digital experience.&lt;/p&gt;
 		&lt;ul&gt;
-		&lt;li&gt;To create new content types use the Site Tools &amp;gt; Content Types menu on the left Sidebar&lt;/li&gt;
-		&lt;li&gt;To update markup, edit this template by clicking the item menu on the top toolbar and select "Edit Template"&lt;/li&gt;
-		&lt;li&gt;To modify the this text, hover/click on it or use the item menu and select "Edit" on the top toolbar&lt;/li&gt;
+		&lt;li&gt;To create new content types use the Project Tools &amp;gt; Content Types menu on the left Sidebar&lt;/li&gt;
+		&lt;li&gt;To update markup, edit this template by clicking on the Options menu on the top toolbar and select "Edit Template"&lt;/li&gt;
+		&lt;li&gt;To modify this text, hover/click on it or use the options menu and select "Edit" on the top toolbar&lt;/li&gt;
 		&lt;li&gt;Crafter documentation can be found &lt;a href="https://docs.craftercms.org" target="_blank" rel="noopener"&gt;here&lt;/a&gt;&lt;/li&gt;
 		&lt;li&gt;CrafterCMS authoring and developer training is available. Please contact &lt;a href="mailto:info@craftercms.com"&gt;info@craftercms.com&lt;/a&gt;&lt;/li&gt;
 		&lt;/ul&gt;
 		&lt;div&gt;
-		&lt;p&gt;This content is managed by the form. &amp;nbsp;Click edit to change OR in the upper right hand corner, click the pencil to turn on in-context editing.&lt;/p&gt;
+		&lt;p&gt;This content is managed by the form. &amp;nbsp;Click edit to change OR in the upper right hand corner, click the pencil to turn on edit mode.&lt;/p&gt;
 		&lt;/div&gt;
 	</body_html>
 	<objectGroupId>8d7f</objectGroupId>

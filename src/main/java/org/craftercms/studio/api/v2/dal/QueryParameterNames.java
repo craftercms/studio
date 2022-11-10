@@ -112,24 +112,6 @@ public final class  QueryParameterNames {
     public static final String KEYS = "keys";
     public static final String PROPERTIES = "properties";
 
-    /* Cluster */
-    // Local address
-    public static final String CLUSTER_LOCAL_ADDRESS = "localAddress";
-    // State
-    public static final String CLUSTER_STATE = "state";
-    // Member ids list
-    public static final String CLUSTER_MEMBER_IDS = "memberIds";
-    // Inactivity limit
-    public static final String CLUSTER_INACTIVITY_LIMIT = "inactivityLimit";
-    // Inactive state
-    public static final String CLUSTER_INACTIVE_STATE = "inactiveState";
-    // Stale heartbeat limit
-    public static final String CLUSTER_HEARTBEAT_STALE_LIMIT = "heartbeatStaleLimit";
-    // cluster id
-    public static final String CLUSTER_ID = "clusterId";
-    // remote repository id
-    public static final String REMOTE_REPOSITORY_ID = "remoteRepositoryId";
-
     /* Publish request */
     // Environment
     public static final String ENVIRONMENT = "environment";
