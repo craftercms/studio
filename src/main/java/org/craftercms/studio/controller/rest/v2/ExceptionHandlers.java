@@ -245,22 +245,6 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(ClusterMemberNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleClusterMemberNotFoundException(HttpServletRequest request,
-                                                      ClusterMemberNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
-    }
-
-    @ExceptionHandler(ClusterMemberAlreadyExistsException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ResponseBody handleClusterMemberAlreadyExistsException(HttpServletRequest request,
-                                                                  ClusterMemberAlreadyExistsException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CLUSTER_MEMBER_ALREADY_EXISTS);
-        return handleExceptionInternal(request, e, response);
-    }
-
     @ExceptionHandler(SiteAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseBody handleSiteAlreadyExistsException(HttpServletRequest request, SiteAlreadyExistsException e) {

@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 import javax.servlet.ServletContext;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,8 +48,6 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.GitLogDAO;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -75,7 +71,6 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.service.cluster.StudioClusterUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.eclipse.jgit.api.AddCommand;
 import org.eclipse.jgit.api.CheckoutCommand;
@@ -134,7 +129,6 @@ import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_GLOBAL_PATH;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.BOOTSTRAP_REPO_PATH;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CLUSTER_MEMBER_LOCAL_ADDRESS;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.GLOBAL_REPOSITORY_GIT_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -146,7 +140,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REPO_COMMIT_MESSAGE_USERNAME_VAR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BLUE_PRINTS_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.BOOTSTRAP_REPO;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CLUSTERING_NODE_REGISTRATION;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COPY_CONTENT_COMMIT_MESSAGE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE_FOLDER_COMMIT_MESSAGE;
@@ -187,12 +180,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
     protected ContextManager contextManager;
-    protected ClusterDAO clusterDao;
     protected GeneralLockService generalLockService;
     protected GitRepositoryHelper helper;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    protected StudioClusterUtils studioClusterUtils;
 
     @Override
     public boolean contentExists(String site, String path) {
@@ -833,33 +824,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         boolean bootstrapRepo = Boolean.parseBoolean(studioConfiguration.getProperty(BOOTSTRAP_REPO));
         boolean isCreated = false;
 
-        // TODO: SJ: Check that this still happens in the clustering
-        HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
-        if (bootstrapRepo && registrationData != null && !registrationData.isEmpty()) {
-            String firstCommitId = getRepoFirstCommitId(StringUtils.EMPTY);
-            String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
-            List<ClusterMember> clusterNodes = studioClusterUtils.getClusterNodes(localAddress);
-            if (StringUtils.isEmpty(firstCommitId)) {
-                logger.debug("Creating the Global repository as a clone from the Primary cluster node");
-                isCreated = studioClusterUtils.cloneGlobalRepository(clusterNodes);
-            } else {
-                logger.debug("The Global repository exists, sync with the Primary cluster node");
-                isCreated = true;
-                Repository repo = helper.getRepository(EMPTY, GLOBAL);
-                try (Git git = new Git(repo)) {
-                    for (ClusterMember remoteNode : clusterNodes) {
-                        try {
-                            syncFromRemote(git, remoteNode);
-                        } catch (Exception e) {
-                            // TODO: SJ: We don't have siblings, review this code and kill it if not valid
-                            logger.error("Error syncing the Global repository from the Primary node '{}'",
-                                    remoteNode.getGitRemoteName());
-                        }
-                    }
-                }
-            }
-        }
-
         if (bootstrapRepo && !isCreated && helper.createGlobalRepo()) {
             // Copy the global config defaults to the global site
             // Build a path to the bootstrap repo (the repo that ships with Studio)
@@ -906,27 +870,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // Create global repository object
         if (!helper.buildGlobalRepo()) {
             logger.error("Failed to create the global repository");
-        }
-    }
-
-    private void syncFromRemote(Git git, ClusterMember remoteNode) throws CryptoException, GitAPIException,
-            IOException, ServiceLayerException {
-        if (generalLockService.tryLock(GLOBAL_REPOSITORY_GIT_LOCK)) {
-            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
-            try {
-                PullCommand pullCommand = git.pull();
-                pullCommand.setRemote(remoteNode.getGitRemoteName());
-                helper.setAuthenticationForCommand(pullCommand, remoteNode.getGitAuthType(),
-                        remoteNode.getGitUsername(), remoteNode.getGitPassword(), remoteNode.getGitToken(),
-                        remoteNode.getGitPrivateKey(), tempKey, true);
-                pullCommand.call();
-
-            } finally {
-                Files.deleteIfExists(tempKey);
-                generalLockService.unlock(GLOBAL_REPOSITORY_GIT_LOCK);
-            }
-        } else {
-            logger.debug("Failed to get the lock '{}'", GLOBAL_REPOSITORY_GIT_LOCK);
         }
     }
 
@@ -1303,22 +1246,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         Map<String,String> getRemoteRepoParams = new HashMap<>();
         getRemoteRepoParams.put("siteId", siteId);
         getRemoteRepoParams.put("remoteName", remoteName);
-        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(getRemoteRepoParams);
-        if (remoteRepository != null) {
-            insertClusterRemoteRepository(remoteRepository);
-        }
-    }
-
-    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
-        HierarchicalConfiguration<ImmutableNode> registrationData =
-                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
-        if (registrationData != null && !registrationData.isEmpty()) {
-            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-            ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
-            if (member != null) {
-                retryingDatabaseOperationFacade.retry(() -> clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId()));
-            }
-        }
     }
 
     @Override
@@ -1695,14 +1622,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         this.contextManager = contextManager;
     }
 
-    public ClusterDAO getClusterDao() {
-        return clusterDao;
-    }
-
-    public void setClusterDao(ClusterDAO clusterDao) {
-        this.clusterDao = clusterDao;
-    }
-
     public GeneralLockService getGeneralLockService() {
         return generalLockService;
     }
@@ -1733,13 +1652,5 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-    }
-
-    public StudioClusterUtils getStudioClusterUtils() {
-        return studioClusterUtils;
-    }
-
-    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
-        this.studioClusterUtils = studioClusterUtils;
     }
 }

@@ -17,10 +17,11 @@ package org.craftercms.studio.impl.v2.utils.spring;
 
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 import org.springframework.http.CacheControl;
+import org.springframework.lang.NonNull;
 
 import java.beans.ConstructorProperties;
 
-import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Utility class to configure a {@link CacheControl} instance
@@ -36,7 +37,7 @@ public class CacheControlFactory extends AbstractFactoryBean<CacheControl> {
     boolean enabled;
 
     /**
-     * The max age in minutes that the browser should cache responses
+     * The max age in seconds that the browser should cache responses
      */
     long maxAge;
 
@@ -52,9 +53,10 @@ public class CacheControlFactory extends AbstractFactoryBean<CacheControl> {
     }
 
     @Override
+    @NonNull
     protected CacheControl createInstance() throws Exception {
         if (enabled) {
-            return CacheControl.maxAge(maxAge, MINUTES).mustRevalidate();
+            return CacheControl.maxAge(maxAge, SECONDS).mustRevalidate();
         } else {
             return CacheControl.noStore();
         }
