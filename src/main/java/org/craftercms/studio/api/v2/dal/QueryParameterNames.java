@@ -121,6 +121,8 @@ public abstract class QueryParameterNames {
     // cluster id
     public static final String NODE_LAST_VERIFIED_GITLOG_COMMIT_ID = "nodeLastVerifiedGitlogCommitId";
     public static final String NODE_LAST_SYNCED_GITLOG_COMMIT_ID = "nodeLastSyncedGitlogCommitId";
+    // available
+    public static final String CLUSTER_AVAILABLE = "available";
 
     /* Publish request */
     // Environment
