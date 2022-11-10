@@ -83,11 +83,6 @@
     <bean id="studioMediaConvertController"
           class="org.craftercms.studio.controller.rest.v2.aws.AwsMediaConvertController"/>
 
-    <bean id="studioClusterManangementController"
-          class="org.craftercms.studio.controller.rest.v2.ClusterManagementController" >
-        <property name="clusterManagementService" ref="clusterManagementService" />
-    </bean>
-
     <bean id="studioSitesController" class="org.craftercms.studio.controller.rest.v2.SitesController">
         <constructor-arg name="sitesService" ref="sitesService" />
         <constructor-arg name="marketplaceService" ref="marketplaceService"/>

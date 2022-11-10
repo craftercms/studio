@@ -18,8 +18,6 @@ package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.iterators.ReverseListIterator;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
@@ -124,7 +122,6 @@ public class GitContentRepository implements ContentRepository {
     private TextEncryptor encryptor;
     private ContextManager contextManager;
     private ContentStoreService contentStoreService;
-    private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
     private SiteService siteService;
     private PublishRequestDAO publishRequestDao;
@@ -1309,22 +1306,6 @@ public class GitContentRepository implements ContentRepository {
         params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
-        RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
-        if (remoteRepository != null) {
-            insertClusterRemoteRepository(remoteRepository);
-        }
-    }
-
-    public void insertClusterRemoteRepository(RemoteRepository remoteRepository) {
-        HierarchicalConfiguration<ImmutableNode> registrationData =
-                studioConfiguration.getSubConfig(CLUSTERING_NODE_REGISTRATION);
-        if (registrationData != null && !registrationData.isEmpty()) {
-            String localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
-            ClusterMember member = clusterDao.getMemberByLocalAddress(localAddress);
-            if (member != null) {
-                retryingDatabaseOperationFacade.retry(() -> clusterDao.addClusterRemoteRepository(member.getId(), remoteRepository.getId()));
-            }
-        }
     }
 
     @Override
@@ -2082,10 +2063,6 @@ public class GitContentRepository implements ContentRepository {
 
     public void setContentStoreService(ContentStoreService contentStoreService) {
         this.contentStoreService = contentStoreService;
-    }
-
-    public void setClusterDao(ClusterDAO clusterDao) {
-        this.clusterDao = clusterDao;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {

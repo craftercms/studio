@@ -21,7 +21,6 @@ import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
@@ -52,11 +51,6 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
     protected final String REMOTE_REPOSITORIES_UPDATE = "update remote_repository set remote_password = " +
             ":remotePassword, remote_token = :remoteToken, remote_private_key = :remotePrivateKey where id = :id";
 
-    protected final String CLUSTER_MEMBERS_QUERY = "select id, git_password, git_token, git_private_key, " +
-            "git_auth_type from cluster where git_auth_type != '" + AuthenticationType.NONE + "'";
-    protected final String CLUSTER_MEMBERS_UPDATE = "update cluster set git_password = :gitPassword, git_token = " +
-            ":gitToken, git_private_key = :gitPrivateKey where id = :id";
-
     protected TextEncryptor textEncryptor;
 
     @ConstructorProperties({"studioConfiguration", "textEncryptor"})
@@ -71,7 +65,6 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         try {
             NamedParameterJdbcTemplate jdbcTemplate = new NamedParameterJdbcTemplate(context.getDataSource());
             upgradeRemoteRepositories(jdbcTemplate);
-            upgradeClusterMembers(jdbcTemplate);
         } catch (Exception e) {
             throw new UpgradeException("Error trying to upgrade database", e);
         }
@@ -110,39 +103,6 @@ public class DbEncryptionUpgradeOperation extends AbstractUpgradeOperation {
         }
 
         jdbcTemplate.batchUpdate(REMOTE_REPOSITORIES_UPDATE, remotes.stream()
-                .map(BeanPropertySqlParameterSource::new)
-                .toArray(BeanPropertySqlParameterSource[]::new));
-    }
-
-    protected void upgradeClusterMembers(NamedParameterJdbcTemplate jdbcTemplate) throws CryptoException {
-        logger.debug("Look for cluster members to upgrade");
-        List<ClusterMember> members =
-                jdbcTemplate.query(CLUSTER_MEMBERS_QUERY, new BeanPropertyRowMapper<>(ClusterMember.class));
-        logger.debug("Found '{}' cluster members", members.size());
-
-        if (isEmpty(members)) {
-            return;
-        }
-
-        for (ClusterMember member : members) {
-            logger.debug("Upgrade the cluster member with ID '{}'", member.getId());
-            switch (member.getGitAuthType()) {
-                case AuthenticationType.BASIC:
-                    member.setGitPassword(upgradeValue(member.getGitPassword()));
-                    break;
-                case AuthenticationType.TOKEN:
-                    member.setGitToken(upgradeValue(member.getGitToken()));
-                    break;
-                case AuthenticationType.PRIVATE_KEY:
-                    member.setGitPrivateKey(upgradeValue(member.getGitPrivateKey()));
-                    break;
-                default:
-                    logger.warn("Unknown authentication type '{}' for the cluster member with ID '{}'",
-                            member.getGitAuthType(), member.getId());
-            }
-        }
-
-        jdbcTemplate.batchUpdate(CLUSTER_MEMBERS_UPDATE, members.stream()
                 .map(BeanPropertySqlParameterSource::new)
                 .toArray(BeanPropertySqlParameterSource[]::new));
     }

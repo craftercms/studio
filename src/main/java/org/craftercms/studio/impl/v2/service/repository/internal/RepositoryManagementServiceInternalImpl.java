@@ -37,8 +37,6 @@ import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.ClusterDAO;
-import org.craftercms.studio.api.v2.dal.ClusterMember;
 import org.craftercms.studio.api.v2.dal.DiffConflictedFile;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.RemoteRepository;
@@ -129,7 +127,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_COMMIT_MESSAGE_PROLOGUE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PULL_FROM_REMOTE_CONFLICT_NOTIFICATION_ENABLED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CLUSTER_NODE_REMOTE_NAME_PREFIX;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 
 public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal {
@@ -146,7 +143,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private UserServiceInternal userServiceInternal;
     private org.craftercms.studio.api.v1.repository.ContentRepository contentRepository;
     private TextEncryptor encryptor;
-    private ClusterDAO clusterDao;
     private GeneralLockService generalLockService;
     private SiteService siteService;
     private GitRepositoryHelper gitRepositoryHelper;
@@ -684,19 +680,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     }
 
     private boolean isRemovableRemote(String siteId, String remoteName) {
-        boolean toRet = true;
-        if (StringUtils.startsWith(remoteName, CLUSTER_NODE_REMOTE_NAME_PREFIX)) {
-            RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
-            List<ClusterMember> clusterMembers = getClusterMembersByRemoteName(remoteName);
-            toRet = !(Objects.isNull(remoteRepository) && isNotEmpty(clusterMembers));
-        }
-        return toRet;
-    }
-
-    private List<ClusterMember> getClusterMembersByRemoteName(String remoteName) {
-        Map<String, String> params = new HashMap<>();
-        params.put("remoteName", remoteName);
-        return clusterDao.getMemberByRemoteName(params);
+        return true;
     }
 
     @Override
@@ -975,11 +959,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
-    }
-
-
-    public void setClusterDao(ClusterDAO clusterDao) {
-        this.clusterDao = clusterDao;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {
