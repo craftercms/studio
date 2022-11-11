@@ -72,6 +72,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -170,11 +171,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             itemServiceInternal.updateStateBitsBulk(site, paths, 0, DESTINATION.value);
         }
 
-        List<String> newPaths = new ArrayList<String>();
-        List<String> updatedPaths = new ArrayList<String>();
-        List<String> movedPaths = new ArrayList<String>();
+        List<String> newPaths = new ArrayList<>();
+        List<String> updatedPaths = new ArrayList<>();
+        List<String> movedPaths = new ArrayList<>();
 
-        Map<String, List<String>> groupedPaths = new HashMap<String, List<String>>();
+        Map<String, List<String>> groupedPaths = new HashMap<>();
 
         for (String p : paths) {
             Item item = itemServiceInternal.getItem(site, p);
@@ -239,7 +240,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     private List<String> getPathRelativeToSite(final List<PublishRequest> itemList) {
-        List<String> paths = new ArrayList<String>(itemList.size());
+        List<String> paths = new ArrayList<>(itemList.size());
         for (PublishRequest copyToEnvironment : itemList) {
             paths.add(copyToEnvironment.getPath());
         }
@@ -249,7 +250,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
                                              ZonedDateTime scheduledDate, String approver, String submissionComment)
             throws ServiceLayerException, UserNotFoundException {
-        List<PublishRequest> newItems = new ArrayList<PublishRequest>();
+        List<PublishRequest> newItems = new ArrayList<>();
 
         String packageId = UUID.randomUUID().toString();
 
@@ -259,7 +260,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                 PublishRequest item = new PublishRequest();
                 Item it = itemServiceInternal.getItem(site, path);
                 if (it != null) {
-                    params = new HashMap<String, Object>();
+                    params = new HashMap<>();
                     params.put("site_id", site);
                     params.put("environment", environment);
                     params.put("state", PublishRequest.State.READY_FOR_LIVE);
@@ -363,7 +364,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                                                    String approver, ZonedDateTime scheduledDate,
                                                    String submissionComment)
             throws ServiceLayerException, UserNotFoundException {
-        List<PublishRequest> newItems = new ArrayList<PublishRequest>(paths.size());
+        List<PublishRequest> newItems = new ArrayList<>(paths.size());
         String packageId = UUID.randomUUID().toString();
         for (String path : paths) {
             if (contentService.contentExists(site, path)) {
@@ -420,7 +421,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     }
                 } else {
                     RepositoryItem[] children = contentRepository.getContentChildren(site, path);
-                    List<String> childPaths = new ArrayList<String>();
+                    List<String> childPaths = new ArrayList<>();
                     for (RepositoryItem child : children) {
                         childPaths.add(child.path + FILE_SEPARATOR + child.name);
                     }
@@ -459,7 +460,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     @Override
     @ValidateParams
     public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("site", site);
         retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.deleteDeploymentDataForSite(params));
     }
@@ -487,7 +488,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     @ValidateParams
     public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
                                @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
@@ -499,7 +500,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     @Override
     @ValidateParams
     public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("paths", paths);
         params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
@@ -537,7 +538,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         List<org.craftercms.studio.api.v2.dal.PublishRequest> deploying = getScheduledItems(site, filterType);
         for (org.craftercms.studio.api.v2.dal.PublishRequest deploymentItem : deploying) {
             Set<String> permissions = securityService.getUserPermissions(site, deploymentItem.getPath(),
-                    securityService.getCurrentUser(), Collections.<String>emptyList());
+                    securityService.getCurrentUser(), Collections.emptyList());
             if (permissions.contains(StudioConstants.PERMISSION_VALUE_PUBLISH)) {
                 addScheduledItem(site, deploymentItem.getEnvironment(), deploymentItem.getScheduledDate(),
                         deploymentItem.getPath(), deploymentItem.getPackageId(), results, comparator, subComparator,
@@ -640,7 +641,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     protected Set<String> getAllPublishedEnvironments(String site) {
-        Set<String> publishedEnvironments = new LinkedHashSet<String>();
+        Set<String> publishedEnvironments = new LinkedHashSet<>();
         publishedEnvironments.add(servicesConfig.getLiveEnvironment(site));
         if (servicesConfig.isStagingEnvironmentEnabled(site)) {
             publishedEnvironments.add(servicesConfig.getStagingEnvironment(site));
@@ -739,7 +740,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
     private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds,
                                                    ZonedDateTime scheduledDate, String approver, String comment) {
-        List<PublishRequest> newItems = new ArrayList<PublishRequest>(commitIds.size());
+        List<PublishRequest> newItems = new ArrayList<>(commitIds.size());
         String packageId = UUID.randomUUID().toString();
         logger.debug("Create a publish requests for a set of commit IDs in site '{}' target '{}'",
                 site, environment);
@@ -822,7 +823,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         }
         // get all publishing dependencies
         Set<String> dependencies = dependencyService.calculateDependenciesPaths(site, paths);
-        Set<String> allPaths = new HashSet<String>();
+        Set<String> allPaths = new HashSet<>();
         allPaths.addAll(paths);
         allPaths.addAll(dependencies);
 
@@ -849,7 +850,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
@@ -869,24 +870,12 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         this.dmFilterWrapper = dmFilterWrapper;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
-    }
-
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
-    }
-
-    public DmPublishService getDmPublishService() {
-        return dmPublishService;
     }
 
     public void setDmPublishService(DmPublishService dmPublishService) {
@@ -901,85 +890,44 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         this.securityService = securityService;
     }
 
-
     public void setNotificationService(final NotificationService notificationService) {
         this.notificationService = notificationService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public PublishRequestMapper getPublishRequestMapper() {
-        return publishRequestMapper;
-    }
-
     public void setPublishRequestMapper(PublishRequestMapper publishRequestMapper) {
         this.publishRequestMapper = publishRequestMapper;
-    }
-
-    public AuditServiceInternal getAuditServiceInternal() {
-        return auditServiceInternal;
     }
 
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
 
-    public org.craftercms.studio.api.v2.repository.ContentRepository getContentRepositoryV2() {
-        return contentRepositoryV2;
-    }
-
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
-    }
-
-    public ItemServiceInternal getItemServiceInternal() {
-        return itemServiceInternal;
     }
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
     }
 
-    public WorkflowServiceInternal getWorkflowServiceInternal() {
-        return workflowServiceInternal;
-    }
-
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {
         this.workflowServiceInternal = workflowServiceInternal;
-    }
-
-    public UserServiceInternal getUserServiceInternal() {
-        return userServiceInternal;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
 
-    public PublishingManager getPublishingManager() {
-        return publishingManager;
-    }
-
     public void setPublishingManager(PublishingManager publishingManager) {
         this.publishingManager = publishingManager;
     }
 
-    public PublishRequestDAO getPublishRequestDAO() {
-        return publishRequestDAO;
-    }
-
     public void setPublishRequestDAO(PublishRequestDAO publishRequestDAO) {
         this.publishRequestDAO = publishRequestDAO;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
