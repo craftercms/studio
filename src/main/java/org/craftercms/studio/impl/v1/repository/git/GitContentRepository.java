@@ -408,7 +408,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
-        Map<String, String> toRet = new TreeMap<String, String>();
+        Map<String, String> toRet = new TreeMap<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         generalLockService.lock(gitLockKey);
         try {
@@ -533,7 +533,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
         // TODO: SJ: Rethink this API call for 3.1+
-        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        final List<RepositoryItem> retItems = new ArrayList<>();
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -609,7 +609,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        List<VersionTO> versionHistory = new ArrayList<VersionTO>();
+        List<VersionTO> versionHistory = new ArrayList<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         generalLockService.lock(gitLockKey);
         try {
@@ -840,10 +840,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             EnumSet<FileVisitOption> opts = EnumSet.of(FOLLOW_LINKS);
             Files.walkFileTree(source, opts, MAX_VALUE, tc);
 
-            String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+            Path studioManifestLocation = Paths.get(this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION));
             // TODO: SJ: Clean up string literals
-            if (Files.exists(Paths.get(studioManifestLocation))) {
-                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+            if (Files.exists(studioManifestLocation)) {
+                FileUtils.copyFile(studioManifestLocation.toFile(),
                         Paths.get(globalConfigPath.toAbsolutePath().toString(),
                                 studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
             }
@@ -1027,7 +1027,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
-        List<String> commitIds = new ArrayList<String>();
+        List<String> commitIds = new ArrayList<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site);
         generalLockService.lock(gitLockKey);
         try {
@@ -1419,7 +1419,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Failed to push from site '{}' to remote '{}' branch '{}'",
                     siteId, remoteName, remoteBranch, e);
             throw new ServiceLayerException(format("Failed to push from site '%s' to remote '%s' branch '%s'",
-                    siteId, remoteName, remoteBranch, e));
+                    siteId, remoteName, remoteBranch), e);
         }
     }
 
