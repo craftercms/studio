@@ -47,17 +47,6 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
  */
 public interface SiteService {
 
-	/**
-	 * given a site ID return the configuration as a document
-	 * This method allows extensions to add additional properties to the configuration that
-	 * are not made available through the site configuration object
-	 * @param site the name of the site
-	 * @return a Document containing the entire site configuration
-	 *
-	 * @throws SiteConfigNotFoundException site configuration not found
-	 */
-	Document getSiteConfiguration(String site) throws SiteConfigNotFoundException;
-
     Set<String> getAllAvailableSites();
 
     int countSites();

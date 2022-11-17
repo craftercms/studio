@@ -95,12 +95,6 @@
     </bean>
 
     <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
-        <property name="siteServiceDAL">
-          <bean id="cstudioRepositorySiteServiceDAL"
-                class="org.craftercms.studio.impl.v1.service.site.dal.RepositorySiteServiceDAL">
-              <property name="contentService" ref="cstudioContentService" />
-          </bean>
-        </property>
         <property name="contentService" ref="cstudioContentService"/>
         <property name="contentRepository" ref="contentRepository"/>
         <property name="dependencyService" ref="studioDependencyService"/>
@@ -761,23 +755,22 @@
         <ref bean="studio.clockAuditLogProcessingTask" />
     </util:list>
 
-    <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask">
-        <property name="executeEveryNCycles"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="deploymentService" ref="cstudioDeploymentService" />
+    <bean id="studio.clockTaskBase" abstract="true" class="org.craftercms.studio.impl.v2.job.StudioClockTask">
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple"/>
+        <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
-    <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" >
+    <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask" parent="studio.clockTaskBase">
+        <property name="executeEveryNCycles"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
+    </bean>
+
+    <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" parent="studio.clockTaskBase">
         <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES)}" />
         <property name="maxRetryCounter"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT)}" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="contentRepository" ref="contentRepository" />
         <property name="publishingManager" ref="cstudioPublishingManager" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="notificationService" ref="cstudioNotificationService" />
@@ -787,13 +780,10 @@
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
     </bean>
 
-    <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask">
+    <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask" parent="studio.clockTaskBase">
         <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="contentRepository" ref="contentRepository" />
         <property name="batchSizeGitLog"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <property name="batchSizeAudited"
