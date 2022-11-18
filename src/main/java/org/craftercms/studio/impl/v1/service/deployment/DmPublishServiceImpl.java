@@ -129,19 +129,17 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
         }
 
         logger.debug("Get a change-set from site '{}' root path '{}'", site, queryPath);
-        List<String> childrenPaths = new ArrayList<String>();
-
-        childrenPaths = itemServiceInternal.getChangeSetForSubtree(site, queryPath);
+        List<String> childrenPaths = itemServiceInternal.getChangeSetForSubtree(site, queryPath);
 
         logger.debug("Collected '{}' items from site '{}' root path '{}'", childrenPaths.size(), site, queryPath);
-        Set<String> processedPaths = new HashSet<String>();
+        Set<String> processedPaths = new HashSet<>();
         ZonedDateTime launchDate = DateUtils.getCurrentTime();
         for (String childPath : childrenPaths) {
             String childHash = DigestUtils.md2Hex(childPath);
             logger.debug("Process bulk publish dependencies in site '{}' path '{}'", site, childPath);
             if (processedPaths.add(childHash)) {
-                List<String> pathsToPublish = new ArrayList<String>();
-                List<String> candidatesToPublish = new ArrayList<String>();
+                List<String> pathsToPublish = new ArrayList<>();
+                List<String> candidatesToPublish = new ArrayList<>();
                 pathsToPublish.add(childPath);
                 candidatesToPublish.addAll(itemServiceInternal.getSameCommitItems(site, childPath));
                 candidatesToPublish.addAll(dependencyService.getPublishingDependencies(site, childPath));

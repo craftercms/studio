@@ -1300,12 +1300,7 @@ public class GitContentRepository implements ContentRepository {
         }
 
         // Insert site remote record into database
-        Map insertRepoParams = params;
-        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(insertRepoParams));
-
-        params = new HashMap<>();
-        params.put("siteId", siteId);
-        params.put("remoteName", remoteName);
+        retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
     }
 
     @Override

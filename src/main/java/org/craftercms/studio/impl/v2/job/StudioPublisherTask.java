@@ -23,61 +23,41 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.UncategorizedSQLException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_PUBLISHED;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_PUBLISHING_PACKAGE;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.ERROR;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.PROCESSING;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.PUBLISHING;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 
-public class StudioPublisherTask extends StudioClockTask implements ApplicationContextAware {
+public class StudioPublisherTask extends StudioClockTask {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioPublisherTask.class);
 
     protected static final Map<String, Integer> retryCounter = new HashMap<>();
 
     protected static final Set<String> dbErrorNotifiedSites = new HashSet<>();
-
-    private StudioConfiguration studioConfiguration;
-    private SiteService siteService;
-    private ContentRepository contentRepository;
     private PublishingManager publishingManager;
     private ServicesConfig servicesConfig;
     private NotificationService notificationService;
@@ -86,7 +66,6 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
     private UserServiceInternal userServiceInternal;
     private ActivityStreamServiceInternal activityStreamServiceInternal;
-    private ApplicationContext applicationContext;
 
     @Override
     protected void executeInternal(String siteId) {
@@ -350,23 +329,6 @@ public class StudioPublisherTask extends StudioClockTask implements ApplicationC
             environments.add(servicesConfig.getStagingEnvironment(site));
         }
         return environments;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
     }
 
     public void setPublishingManager(PublishingManager publishingManager) {
