@@ -24,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
 
 import java.util.List;
 import java.util.Objects;

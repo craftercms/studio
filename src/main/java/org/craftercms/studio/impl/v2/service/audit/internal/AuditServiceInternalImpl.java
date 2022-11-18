@@ -17,8 +17,6 @@
 package org.craftercms.studio.impl.v2.service.audit.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditDAO;

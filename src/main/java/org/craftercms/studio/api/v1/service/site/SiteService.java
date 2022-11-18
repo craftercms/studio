@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoun
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
-import org.dom4j.Document;
 
 import java.util.List;
 import java.util.Map;

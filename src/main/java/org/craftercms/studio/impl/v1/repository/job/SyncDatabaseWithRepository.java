@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v1.repository.job;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
