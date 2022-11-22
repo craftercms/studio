@@ -94,6 +94,7 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
                                       String remoteBranch, String mergeStrategy)
             throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
+        siteService.checkSiteExists(siteId);
         MergeResult toRet = repositoryManagementServiceInternal.pullFromRemote(siteId, remoteName, remoteBranch,
                 mergeStrategy);
         insertAddRemoteAuditLog(siteId, OPERATION_PULL_FROM_REMOTE, remoteName + "/" + remoteBranch,

@@ -121,9 +121,6 @@ public class RepositoryManagementController {
     public ResponseBody pullFromRemote(@Valid @RequestBody PullFromRemoteRequest pullFromRemoteRequest)
             throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException {
-        if (!siteService.exists(pullFromRemoteRequest.getSiteId())) {
-            throw new SiteNotFoundException(pullFromRemoteRequest.getSiteId());
-        }
         MergeResult mergeResult = repositoryManagementService.pullFromRemote(pullFromRemoteRequest.getSiteId(),
                 pullFromRemoteRequest.getRemoteName(), pullFromRemoteRequest.getRemoteBranch(),
                 pullFromRemoteRequest.getMergeStrategy());

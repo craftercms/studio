@@ -82,25 +82,6 @@ public abstract class StudioClockTask implements SiteJob, ApplicationContextAwar
         }
     }
 
-    /**
-     * Checks if the currently existent site with the given ID also has the same siteUuid.
-     *
-     * @param siteId   ID of the site to test
-     * @param siteUuid site UUID
-     * @return true if the site UUID file exists and contains the same siteUUID value, false otherwise
-     */
-    protected boolean checkSiteUuid(final String siteId, final String siteUuid) {
-        try {
-            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
-            return Files.readAllLines(path).stream()
-                    .anyMatch(siteUuid::equals);
-        } catch (IOException e) {
-            logger.info("Invalid site UUID in site '{}'", siteId);
-            return false;
-        }
-    }
-
     public void setExecuteEveryNCycles(int executeEveryNCycles) {
         this.executeEveryNCycles = executeEveryNCycles;
     }

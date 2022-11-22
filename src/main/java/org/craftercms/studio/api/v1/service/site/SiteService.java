@@ -133,7 +133,7 @@ public interface SiteService {
 	 *
 	 * @throws SiteNotFoundException site not found
 	 */
-	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws ServiceLayerException, UserNotFoundException;
+	boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws ServiceLayerException;
 
     /**
      * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
@@ -364,4 +364,13 @@ public interface SiteService {
 	 * @return last audited git log commit id for local studio node
 	 */
 	String getLastSyncedGitlogCommitId(String siteId);
+
+	/**
+	 * Checks if the currently existent site with the given ID also has the same siteUuid.
+	 *
+	 * @param siteId   ID of the site to test
+	 * @param siteUuid site UUID
+	 * @return true if the site UUID file exists and contains the same siteUUID value, false otherwise
+	 */
+	boolean checkSiteUuid(String siteId, String siteUuid);
 }

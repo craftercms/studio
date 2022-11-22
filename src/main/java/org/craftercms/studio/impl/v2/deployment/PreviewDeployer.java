@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v2.event.site.SiteEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.web.client.RestClientException;
@@ -59,6 +60,7 @@ public class PreviewDeployer extends AbstractDeployer {
         doPreviewSync(event.getSiteId(), true);
     }
 
+    @Order(20)
     @EventListener
     public void onRepositorySyncComplete(RepositoryEvent event) {
         doPreviewSync(event.getSiteId(), false);

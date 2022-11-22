@@ -50,6 +50,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -79,7 +80,6 @@ import org.craftercms.studio.api.v2.service.marketplace.registry.ConfigRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.FileRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRegistry;
-import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -206,7 +206,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
 
     protected final SiteService siteService;
 
-    protected final SitesServiceInternal sitesServiceInternal;
+    protected final SitesService sitesServiceInternal;
 
     protected final ContentService contentService;
 
@@ -322,7 +322,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             "pluginDescriptorFilename", "templateCode", "templateComment", "retryingRepositoryOperationFacade",
             "deploymentService", "dependencyService", "contentTypeService", "configurationService"})
     public MarketplaceServiceInternalImpl(InstanceService instanceService, SiteService siteService,
-                                          SitesServiceInternal sitesServiceInternal, ContentService contentService,
+                                          SitesService sitesServiceInternal, ContentService contentService,
                                           StudioConfiguration studioConfiguration,
                                           PluginDescriptorReader pluginDescriptorReader,
                                           GitRepositoryHelper gitRepositoryHelper, String pluginDescriptorFilename,

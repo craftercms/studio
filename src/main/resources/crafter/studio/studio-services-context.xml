@@ -497,6 +497,7 @@
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <property name="taskExecutor" ref="studio.clockTaskExecutor" />
     </bean>
 
     <bean id="contentService" class="org.craftercms.studio.impl.v2.service.content.ContentServiceImpl">
@@ -1340,7 +1341,6 @@
 
     <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">
         <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="securityService" ref="cstudioSecurityService" />
         <property name="taskExecutor" ref="studioTaskExecutor" />
     </bean>
 
