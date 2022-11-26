@@ -26,16 +26,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
 public abstract class StudioClockTask implements SiteJob, ApplicationContextAware {
 

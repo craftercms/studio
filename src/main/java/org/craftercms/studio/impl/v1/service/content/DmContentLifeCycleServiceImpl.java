@@ -30,11 +30,13 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.DmContentLifeCycleService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 import org.xml.sax.SAXException;
 
 import java.io.InputStream;
@@ -45,7 +47,7 @@ import java.util.Map;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION;
 
-public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService {
+public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService implements DmContentLifeCycleService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(DmContentLifeCycleServiceImpl.class);
 
@@ -53,6 +55,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     protected SecurityService securityService;
     protected ScriptExecutor scriptExecutor;
     protected StudioConfiguration studioConfiguration;
+    protected ApplicationContext applicationContext;
 
     public String getScriptLocation() {
         return studioConfiguration.getProperty(CONTENT_PROCESSOR_CONTENT_LIFE_CYCLE_SCRIPT_LOCATION);
@@ -148,7 +151,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         model.put(DmConstants.KEY_CONTENT_TYPE, contentType);
         model.put(DmConstants.CONTENT_LIFECYCLE_OPERATION, operation);
         model.put(DmConstants.KEY_CONTENT_LOADER, new XmlContentLoader());
-        model.put(DmConstants.KEY_APPLICATION_CONTEXT, ApplicationContextProvider.getApplicationContext());
+        model.put(DmConstants.KEY_APPLICATION_CONTEXT, applicationContext);
         if (params != null) {
             for (String key : params.keySet()) {
                 model.put(key, params.get(key));
@@ -170,12 +173,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         /**
          * default constructor
          */
-        public XmlContentLoader() {};
-
-        /**
-         *
-         * @param servicesManager
-         */
+        public XmlContentLoader() {
+        }
 
         /**
          * return XML document
@@ -197,15 +196,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
                     logger.error("Unable to turn off external entity loading in site '{}' path '{}', " +
                             "this could be a security risk", site, path, e);
                 }
-                Document content = saxReader.read(is);
-                return content;
-            } catch (DocumentException e) {
-                logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
-                if (is != null) {
-                    ContentUtils.release(is);
-                }
-                return null;
-            } catch (ContentNotFoundException e) {
+                return saxReader.read(is);
+            } catch (DocumentException | ContentNotFoundException e) {
                 logger.error("Failed to read content from site '{}' path '{}'", site, path, e);
                 if (is != null) {
                     ContentUtils.release(is);
@@ -247,5 +239,8 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
         this.studioConfiguration = studioConfiguration;
     }
 
-
+    @Override
+    public void setApplicationContext(final @NonNull ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 }

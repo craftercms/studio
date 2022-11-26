@@ -24,7 +24,6 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +41,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     private static final Logger logger = LoggerFactory.getLogger(AuditServiceInternalImpl.class);
 
     private AuditDAO auditDao;
-    private StudioConfiguration studioConfiguration;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
@@ -305,10 +303,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

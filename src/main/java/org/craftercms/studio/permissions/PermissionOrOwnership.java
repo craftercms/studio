@@ -18,6 +18,8 @@ package org.craftercms.studio.permissions;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 
+import java.util.Objects;
+
 public class PermissionOrOwnership extends DefaultPermission {
 
     protected boolean owner;
@@ -46,7 +48,7 @@ public class PermissionOrOwnership extends DefaultPermission {
 
         PermissionOrOwnership that = (PermissionOrOwnership) o;
 
-        if (allowedActions != null? !allowedActions.equals(that.allowedActions): that.allowedActions != null) {
+        if (!Objects.equals(allowedActions, that.allowedActions)) {
             return false;
         }
 
@@ -55,6 +57,6 @@ public class PermissionOrOwnership extends DefaultPermission {
 
     @Override
     public int hashCode() {
-        return Boolean.hashCode(owner) + (allowedActions != null? allowedActions.hashCode() : 0);
+        return Boolean.hashCode(owner) + (allowedActions != null ? allowedActions.hashCode() : 0);
     }
 }

@@ -366,7 +366,6 @@
     </bean>
 
     <bean id="groupService" class="org.craftercms.studio.impl.v2.service.security.GroupServiceImpl">
-        <property name="configurationService" ref="configurationService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="groupServiceInternal" ref="groupServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
@@ -462,7 +461,6 @@
     <bean id="auditServiceInternal"
           class="org.craftercms.studio.impl.v2.service.audit.internal.AuditServiceInternalImpl">
         <property name="auditDao" ref="auditDao" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
@@ -1323,9 +1321,6 @@
     </bean>
 
     <!-- Utilities -->
-    <bean id="studioApplicationContextProvider"
-          class="org.craftercms.studio.impl.v1.util.spring.context.ApplicationContextProvider"/>
-
     <bean id="studioRebuildRepositoryMetadata" class="org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata">
         <property name="contentService" ref="cstudioContentService"/>
         <property name="dependencyService" ref="studioDependencyService"/>
