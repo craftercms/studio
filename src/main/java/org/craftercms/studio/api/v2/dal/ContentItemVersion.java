@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import java.time.ZonedDateTime;
-
 public class ContentItemVersion {
 
     private String versionNumber;

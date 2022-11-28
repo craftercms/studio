@@ -17,7 +17,6 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
 import org.craftercms.studio.model.rest.ApiResponse;

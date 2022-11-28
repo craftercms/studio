@@ -58,7 +58,6 @@ import org.springframework.context.ApplicationContextAware;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;

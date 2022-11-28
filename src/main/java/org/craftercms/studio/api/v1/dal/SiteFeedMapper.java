@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DESC;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCK_OWNER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_STATUS;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;

@@ -16,7 +16,6 @@
 package org.craftercms.studio.api.v1.to;
 
 import java.io.Serializable;
-import java.util.*;
 
 public class SiteBlueprintTO implements Serializable {
 
