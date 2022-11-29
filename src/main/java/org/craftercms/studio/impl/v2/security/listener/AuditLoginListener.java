@@ -45,6 +45,7 @@ public class AuditLoginListener extends AbstractAuditListener {
 
     @EventListener
     public void recordAuthenticationSuccess(AuthenticationSuccessEvent event) {
+        // TODO: JM: Review and cleanup
         if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
 //            Disabled because every request to the API triggers this event
 //            recordAuthenticationEvent(OPERATION_PRE_AUTH, event, null);

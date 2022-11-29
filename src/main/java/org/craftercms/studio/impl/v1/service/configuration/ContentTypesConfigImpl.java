@@ -157,7 +157,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                     String removeEmptyFolder = removeFolderNode.getText();
                     boolean isRemoveEmptyFolder=false;
                     if(removeEmptyFolder!=null){
-                        isRemoveEmptyFolder = Boolean.valueOf(removeEmptyFolder);
+                        isRemoveEmptyFolder = Boolean.parseBoolean(removeEmptyFolder);
                     }
                     if(StringUtils.isNotEmpty(pattern)){
                         DeleteDependencyConfigTO deleteConfigTO =

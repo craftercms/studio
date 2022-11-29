@@ -85,10 +85,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     private Map<String, String> calculateSoftDependencies(String site, List<String> paths) {
         Set<String> toRet = new HashSet<>();
-        Set<String> pathsParams = new HashSet<>();
 
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
-        pathsParams.addAll(paths);
+        Set<String> pathsParams = new HashSet<>(paths);
         boolean exitCondition = false;
         Map<String, String> softDeps = new HashMap<>();
         for (String p : paths) {
@@ -100,7 +99,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!softDeps.keySet().contains(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
+                if (!softDeps.containsKey(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
                     softDeps.put(targetPath, softDeps.get(srcPath));
                 }
                 targetPaths.add(targetPath);
@@ -185,7 +184,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!ancestors.keySet().contains(targetPath) &&
+                if (!ancestors.containsKey(targetPath) &&
                         !StringUtils.equals(targetPath, ancestors.get(srcPath))) {
                     ancestors.put(targetPath, ancestors.get(srcPath));
                 }

@@ -95,8 +95,7 @@ public class GroupsController {
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
-        int total = 0;
-        total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID, keyword);
+        int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID, keyword);
         List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, keyword, offset, limit, sort);
 
         ResponseBody responseBody = new ResponseBody();

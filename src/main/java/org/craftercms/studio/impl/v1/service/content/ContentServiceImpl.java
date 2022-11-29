@@ -1614,18 +1614,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
      */
     protected List<DmOrderTO> getItemOrders(List<Node> nodes) {
         // TODO: SJ: Rewrite this and the whole order/sort system; 3.1+
-        if (nodes != null) {
-            List<DmOrderTO> orders = new ArrayList<>(nodes.size());
-            for (Node node : nodes) {
-
-                String orderName = DmConstants.JSON_KEY_ORDER_DEFAULT;
-                String orderStr = node.getText();
-                addOrderValue(orders, orderName, orderStr);
-            }
-            return orders;
-        } else {
+        if (nodes == null) {
             return null;
         }
+        List<DmOrderTO> orders = new ArrayList<>(nodes.size());
+        for (Node node : nodes) {
+
+            String orderName = DmConstants.JSON_KEY_ORDER_DEFAULT;
+            String orderStr = node.getText();
+            addOrderValue(orders, orderName, orderStr);
+        }
+        return orders;
     }
 
     protected ContentItemTO populateItemChildren(ContentItemTO item, int depth) {

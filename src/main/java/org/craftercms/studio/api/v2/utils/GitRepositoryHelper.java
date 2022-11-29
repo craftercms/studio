@@ -435,6 +435,7 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     public RevTree getTreeForLastCommit(Repository repository) throws IOException {
+        // TODO: JM: Make this method call getTreeForCommit(Repository repository, String commitId)
         ObjectId lastCommitId = repository.resolve(HEAD);
 
         // a RevWalk allows to walk over commits based on some filtering
@@ -501,7 +502,6 @@ public class GitRepositoryHelper implements DisposableBean {
      */
     public boolean createSandboxRepository(String site, String sandboxBranch) {
         boolean toReturn;
-        Repository sandboxRepo = null;
 
         // Build a path for the site/sandbox
         Path siteSandboxPath = buildRepoPath(GitRepositories.SANDBOX, site);
@@ -510,7 +510,7 @@ public class GitRepositoryHelper implements DisposableBean {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
-            sandboxRepo = createGitRepository(siteSandboxPath);
+            Repository sandboxRepo = createGitRepository(siteSandboxPath);
 
             toReturn = (sandboxRepo != null);
 
@@ -733,11 +733,10 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     protected boolean replaceSiteNameVariable(String site, Path path) {
-        boolean toReturn = false;
+        boolean toReturn;
         Charset charset = StandardCharsets.UTF_8;
-        String content = null;
         try {
-            content = Files.readString(path, charset);
+            String content = Files.readString(path, charset);
             content = content.replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, site);
             Files.write(path, content.getBytes(charset));
             toReturn = true;

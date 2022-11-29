@@ -21,12 +21,14 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.springframework.lang.NonNull;
 
 import java.util.List;
 import java.util.Map;
 
 public interface UserServiceInternal {
 
+    @NonNull
     User getUserByIdOrUsername(long userId, String username) throws UserNotFoundException, ServiceLayerException;
 
     List<User> getUsersByIdOrUsername(List<Long> userIds,

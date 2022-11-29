@@ -72,7 +72,7 @@ public class SitesController {
 
     @GetMapping("/available_blueprints")
     public ResponseBody getAvailableBlueprints() throws ServiceLayerException {
-        List<PluginDescriptor> blueprintDescriptors = null;
+        List<PluginDescriptor> blueprintDescriptors;
         try {
             blueprintDescriptors = sitesService.getAvailableBlueprints();
         } catch (Exception e) {

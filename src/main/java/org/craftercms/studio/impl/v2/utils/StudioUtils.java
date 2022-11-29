@@ -42,7 +42,7 @@ public class StudioUtils {
     }
 
     public ContentItemTO getContentItemForDashboard(String site, String path) {
-        ContentItemTO item = null;
+        final ContentItemTO item;
         if (!contentService.contentExists(site, path)) {
             item = contentService.createDummyDmContentItemForDeletedNode(site, path);
             item.setLockOwner("");

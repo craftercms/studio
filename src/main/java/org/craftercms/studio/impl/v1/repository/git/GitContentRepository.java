@@ -1170,9 +1170,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         // Insert site remote record into database
         retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
-        Map<String,String> getRemoteRepoParams = new HashMap<>();
-        getRemoteRepoParams.put("siteId", siteId);
-        getRemoteRepoParams.put("remoteName", remoteName);
     }
 
     @Override

@@ -91,7 +91,7 @@ public class ConfigurationController {
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
                                          @RequestParam(name = "environment", required = false) String environment) {
-        String content = StringUtils.EMPTY;
+        final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
         } else {
