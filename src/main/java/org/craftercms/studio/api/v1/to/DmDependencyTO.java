@@ -234,7 +234,7 @@ public class DmDependencyTO implements Serializable {
     }
 
     public List<DmDependencyTO> flattenChildren(){
-        List<DmDependencyTO> dmDependencyTOList = new ArrayList<DmDependencyTO>();
+        List<DmDependencyTO> dmDependencyTOList = new ArrayList<>();
         _flatten(dmDependencyTOList, this);
         return dmDependencyTOList;
     }
@@ -345,7 +345,7 @@ public class DmDependencyTO implements Serializable {
      */
     
 	public List<DmDependencyTO> getDirectDependencies() {
-		List<DmDependencyTO> dependencyTO = new ArrayList<DmDependencyTO>();
+		List<DmDependencyTO> dependencyTO = new ArrayList<>();
     	if(_components!=null)
             dependencyTO.addAll(_components);
     	if(_documents!=null)

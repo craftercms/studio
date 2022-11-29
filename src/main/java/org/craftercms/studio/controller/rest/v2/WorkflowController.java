@@ -87,7 +87,7 @@ public class WorkflowController {
             throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
         }
         int total = workflowService.getItemStatesTotal(siteId, path, states);
-        List<SandboxItem> items = new ArrayList<SandboxItem>();
+        List<SandboxItem> items = new ArrayList<>();
 
         if (total > 0) {
             items = workflowService.getItemStates(siteId, path, states, offset, limit);

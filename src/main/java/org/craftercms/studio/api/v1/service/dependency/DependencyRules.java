@@ -36,7 +36,7 @@ public class DependencyRules {
     }
 
     public Set<DmDependencyTO> applySubmitRule(DmDependencyTO submittedItem){
-        Set<DmDependencyTO> dependencies = new HashSet<DmDependencyTO>();
+        Set<DmDependencyTO> dependencies = new HashSet<>();
         if (submittedItem.getDocuments() != null) {
             for (DmDependencyTO document : submittedItem.getDocuments()) {
                 if (itemServiceInternal.isUpdatedOrNew(site, document.getUri())) {
@@ -130,7 +130,7 @@ public class DependencyRules {
     }
 
     public Set<DmDependencyTO> applyRejectRule(DmDependencyTO submittedItem){
-        Set<DmDependencyTO> dependencies = new HashSet<DmDependencyTO>();
+        Set<DmDependencyTO> dependencies = new HashSet<>();
         if(submittedItem.isSubmittedForDeletion()) {
             return applyDeleteDependencyRule(submittedItem);
         }

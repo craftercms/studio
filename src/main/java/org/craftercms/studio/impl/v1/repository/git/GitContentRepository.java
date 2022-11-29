@@ -1025,7 +1025,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             generalLockService.unlock(gitLockKey);
         }
 
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("gitLogs", gitLogs);
         params.put("processed", 1);
@@ -1035,7 +1035,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void deleteGitLogForSite(String siteId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
         retryingDatabaseOperationFacade.retry(() -> gitLogDao.deleteGitLogForSite(params));
     }
@@ -1077,7 +1077,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .setListMode(REMOTE);
                         List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
-                        List<String> branchesToDelete = new ArrayList<String>();
+                        List<String> branchesToDelete = new ArrayList<>();
                         for (Ref remoteBranchRef : resultRemoteBranches) {
                             if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
                                 branchesToDelete.add(remoteBranchRef.getName());
@@ -1139,7 +1139,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // TODO: SJ: Refactor to shorten and reduce duplication
         // TODO: SJ: Clean up string literals
         logger.debug("Adding remote '{}' to the database for site '{}'", remoteName, siteId);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         params.put("remoteUrl", remoteUrl);
@@ -1174,7 +1174,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void removeRemoteRepositoriesForSite(String siteId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         // TODO: SJ: Clean up string literals
         params.put("siteId", siteId);
         retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.deleteRemoteRepositoriesForSite(params));
@@ -1183,7 +1183,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
             throws ServiceLayerException {
-        List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
+        List<RemoteRepositoryInfoTO> res = new ArrayList<>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
             try (Git git = new Git(repo)) {
@@ -1217,7 +1217,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                     ListBranchCommand listBranchCommand = git.branchList().setListMode(REMOTE);
                     List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
-                    Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
+                    Map<String, List<String>> remoteBranches = new HashMap<>();
                     for (Ref remoteBranchRef : resultRemoteBranches) {
                         String branchFullName = remoteBranchRef.getName().replace(R_REMOTES, "");
                         String remotePart = EMPTY;
@@ -1231,7 +1231,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
 
                         if (!remoteBranches.containsKey(remotePart)) {
-                            remoteBranches.put(remotePart, new ArrayList<String>());
+                            remoteBranches.put(remotePart, new ArrayList<>());
                         }
                         remoteBranches.get(remotePart).add(branchNamePart);
                     }
@@ -1244,7 +1244,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         rri.setName(conf.getName());
                         List<String> branches = remoteBranches.get(rri.getName());
                         if (CollectionUtils.isEmpty(branches)) {
-                            branches = new ArrayList<String>();
+                            branches = new ArrayList<>();
                             branches.add(sandboxBranchName);
                         }
                         rri.setBranches(branches);
@@ -1297,7 +1297,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
         logger.debug("Push from site '{}' to remote '{}' branch '{}'", siteId, remoteName, remoteBranch);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
@@ -1351,7 +1351,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
         logger.debug("Pull from remote '{}' branch '{}' in site '{}'", remoteName, remoteBranch, siteId);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);

@@ -27,7 +27,7 @@ public class ListUtils {
         if (size <= 0) {
             throw new IllegalArgumentException("Size must be greater than 0");
         }
-        return new Partition<T>(list, size);
+        return new Partition<>(list, size);
     }
 
     private static class Partition<T> extends AbstractList<List<T>> {

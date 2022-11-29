@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v1.service.workflow.context;
 
 public class RequestContextBuilder {
 
-    protected static final ThreadLocal<RequestContext> threadLocal = new InheritableThreadLocal<RequestContext>();
+    protected static final ThreadLocal<RequestContext> threadLocal = new InheritableThreadLocal<>();
 
     public static RequestContext buildSubmitContext(String site, String currentUser) {
         RequestContext requestContext = new RequestContext(site, currentUser);

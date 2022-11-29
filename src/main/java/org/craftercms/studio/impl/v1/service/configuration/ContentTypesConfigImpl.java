@@ -200,7 +200,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
         List<String> paths = null;
         List<Node> nodes = root.selectNodes(path);
         if (nodes != null && nodes.size() > 0) {
-            paths = new ArrayList<String>(nodes.size());
+            paths = new ArrayList<>(nodes.size());
             for (Node node : nodes) {
                 String role = node.getText();
                 if (!StringUtils.isEmpty(role)) {
@@ -208,7 +208,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                 }
             }
         } else {
-            paths = new ArrayList<String>();
+            paths = new ArrayList<>();
         }
         return paths;
     }
@@ -221,7 +221,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
     protected void loadRoles(ContentTypeConfigTO config, List<Node> nodes) {
         Set<String> roles = null;
         if (nodes != null && nodes.size() > 0) {
-            roles = new HashSet<String>(nodes.size());
+            roles = new HashSet<>(nodes.size());
             for (Node node : nodes) {
                 String role = node.getText();
                 if (!StringUtils.isEmpty(role)) {
@@ -229,7 +229,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
                 }
             }
         } else {
-            roles = new HashSet<String>();
+            roles = new HashSet<>();
         }
         config.setAllowedRoles(roles);
     }
@@ -240,7 +240,7 @@ public class ContentTypesConfigImpl implements ContentTypesConfig {
      * @param copyDependencyNodes
      */
     protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
-        List<CopyDependencyConfigTO> copyConfig = new ArrayList<CopyDependencyConfigTO>();
+        List<CopyDependencyConfigTO> copyConfig = new ArrayList<>();
         if (copyDependencyNodes != null) {
             for (Node copyDependency : copyDependencyNodes) {
                 Node patternNode = copyDependency.selectSingleNode("pattern");

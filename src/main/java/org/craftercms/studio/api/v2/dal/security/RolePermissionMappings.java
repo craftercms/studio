@@ -22,7 +22,7 @@ import java.util.Map;
 public class RolePermissionMappings {
 
     private String role;
-    private Map<String, Long> ruleContentItemPermissions = new HashMap<String, Long>();
+    private Map<String, Long> ruleContentItemPermissions = new HashMap<>();
 
     public void addRuleContentItemPermissionsMapping(String rule, Long contentItemAvailableActions) {
         ruleContentItemPermissions.put(rule, contentItemAvailableActions);

@@ -56,9 +56,9 @@ public class DependencyController {
                 softDeps.stream().filter(sd -> !hardDeps.contains(sd)).collect(Collectors.toList());
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<Map<String, List<String>>> result = new ResultOne<Map<String, List<String>>>();
+        ResultOne<Map<String, List<String>>> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
-        Map<String, List<String>> items = new HashMap<String, List<String>>();
+        Map<String, List<String>> items = new HashMap<>();
         items.put(RESULT_KEY_HARD_DEPENDENCIES, hardDeps);
         items.put(RESULT_KEY_SOFT_DEPENDENCIES, filteredSoftDeps);
         result.setEntity(RESULT_KEY_ITEMS, items);

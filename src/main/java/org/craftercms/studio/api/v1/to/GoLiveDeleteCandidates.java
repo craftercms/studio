@@ -38,13 +38,13 @@ public class GoLiveDeleteCandidates implements Serializable {
 
     private static final long serialVersionUID = -8844670158916016139L;
     // hold the page paths
-    protected Set<String> paths = new HashSet<String>();
+    protected Set<String> paths = new HashSet<>();
 
     //holds all the dependencies of the page and the child pages
-    protected Set<String> dependencies = new HashSet<String>();
+    protected Set<String> dependencies = new HashSet<>();
 
     //holds just the live dependenicies of page and the child pages
-    protected Set<String> liveDependencyItems = new HashSet<String>(); //live items that hass been removed
+    protected Set<String> liveDependencyItems = new HashSet<>(); //live items that hass been removed
 
     protected ContentService contentService;
 
@@ -64,7 +64,7 @@ public class GoLiveDeleteCandidates implements Serializable {
      * @return return all paths and dependencies
      */
     public Set<String> getAllItems(){
-        Set<String> all = new HashSet<String>();
+        Set<String> all = new HashSet<>();
         if(!paths.isEmpty()){
             all.addAll(paths);
         }

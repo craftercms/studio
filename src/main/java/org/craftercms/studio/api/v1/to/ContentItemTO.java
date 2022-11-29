@@ -109,7 +109,7 @@ public class ContentItemTO implements Serializable {
 	public ZonedDateTime lastEditDate;
 	public String form;
 	public String formPagePath;
-	public List<RenderingTemplateTO> renderingTemplates = new ArrayList<RenderingTemplateTO>();
+	public List<RenderingTemplateTO> renderingTemplates = new ArrayList<>();
 
 	public boolean folder;
     protected String submissionComment;
@@ -122,7 +122,7 @@ public class ContentItemTO implements Serializable {
     protected String parentPath = null;
 	protected List<DmOrderTO> orders;
 
-    public List<ContentItemTO> children = new ArrayList<ContentItemTO>();
+    public List<ContentItemTO> children = new ArrayList<>();
 
     public double size;
     public String sizeUnit;
@@ -242,7 +242,7 @@ public class ContentItemTO implements Serializable {
 
 		if (cloneChildren) {
 			if (item.children != null) {
-				this.children = new ArrayList<ContentItemTO>(item.children.size());
+				this.children = new ArrayList<>(item.children.size());
 				for (ContentItemTO child : item.children) {
 					this.children.add(new ContentItemTO(child));
 				}
@@ -776,7 +776,7 @@ public class ContentItemTO implements Serializable {
 		}
 
 		if (children == null) {
-			children = new ArrayList<ContentItemTO>();
+			children = new ArrayList<>();
 		}
 		children.add(itemToAdd);
 		numOfChildren++;
@@ -809,7 +809,7 @@ public class ContentItemTO implements Serializable {
 			// position to add the item
 			int pos = 0;
 			// list to hold any child items found to be add to the itemToAdd
-			List<Integer> childPositions = new ArrayList<Integer>(children.size());
+			List<Integer> childPositions = new ArrayList<>(children.size());
 			for (int index = 0; index < children.size(); index++) {
 				ContentItemTO child = children.get(index);
 				String childUri = StringUtils.isEmpty(child.browserUri) ? child.uri : child.browserUri;
@@ -884,7 +884,7 @@ public class ContentItemTO implements Serializable {
 				}
 			}
 		} else {
-			children = new ArrayList<ContentItemTO>();
+			children = new ArrayList<>();
 			children.add(itemToAdd);
 		}
 		// increase the number of children by 1
@@ -912,7 +912,7 @@ public class ContentItemTO implements Serializable {
 			// position to add the item
 			int pos = 0;
 			// list to hold any child items found to be add to the itemToAdd
-			List<Integer> childPositions = new ArrayList<Integer>(children.size());
+			List<Integer> childPositions = new ArrayList<>(children.size());
 			for (int index = 0; index < children.size(); index++) {
 				ContentItemTO child = children.get(index);
 				String childUri = child.getBrowserUri();
@@ -995,7 +995,7 @@ public class ContentItemTO implements Serializable {
 				}
 			}
 		} else {
-			children = new ArrayList<ContentItemTO>();
+			children = new ArrayList<>();
 			if (childFilter.accept(itemToAdd)) {
 				children.add(itemToAdd);
 			}

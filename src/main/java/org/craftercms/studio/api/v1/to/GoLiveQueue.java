@@ -22,7 +22,7 @@ public class GoLiveQueue implements Serializable {
 
     private static final long serialVersionUID = 2209675182536998467L;
 
-    protected Map<String, ContentItemTO> map = new HashMap<String, ContentItemTO>();
+    protected Map<String, ContentItemTO> map = new HashMap<>();
 
     GoLiveQueue(Set<ContentItemTO> queue) {
         for (ContentItemTO itemTO : queue) {
@@ -33,7 +33,7 @@ public class GoLiveQueue implements Serializable {
     public GoLiveQueue() { }
 
     public Set<ContentItemTO> getQueue() {
-        Set<ContentItemTO> set = new HashSet<ContentItemTO>();
+        Set<ContentItemTO> set = new HashSet<>();
         Collection<ContentItemTO> itemTOCollection = map.values();
         for (ContentItemTO to : itemTOCollection) {
             ContentItemTO to1 = new ContentItemTO(to, false);
