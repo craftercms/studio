@@ -14,22 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.impl.v1.util.spring.context;
+-- Drop unused table
+DROP TABLE IF EXISTS `cluster_remote_repository` ;
 
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+-- Drop unused procedure
+DROP PROCEDURE IF EXISTS tryLockPublishingForSite ;
 
-public class ApplicationContextProvider implements ApplicationContextAware {
-
-    private static ApplicationContext applicationContext;
-
-    public static ApplicationContext getApplicationContext() {
-        return applicationContext;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
-}
+UPDATE `_meta` SET `version` = '4.0.1.12' ;

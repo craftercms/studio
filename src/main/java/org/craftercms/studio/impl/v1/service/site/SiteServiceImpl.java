@@ -59,6 +59,7 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeleteEvent;
 import org.craftercms.studio.api.v2.event.site.SiteEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
@@ -69,7 +70,7 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
-import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -99,6 +100,9 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.nonNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
@@ -137,7 +141,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected UserServiceInternal userServiceInternal;
     protected StudioUpgradeManager upgradeManager;
     protected StudioConfiguration studioConfiguration;
-    protected SitesServiceInternal sitesServiceInternal;
+    protected SitesService sitesServiceInternal;
     protected AuditServiceInternal auditServiceInternal;
     protected ConfigurationService configurationService;
     protected ItemServiceInternal itemServiceInternal;
@@ -387,7 +391,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         if (contentDoc != null) {
                             Element rootElement = contentDoc.getRootElement();
                             String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                            if (StringUtils.isNotEmpty(internalName)) {
+                            if (isNotEmpty(internalName)) {
                                 label = internalName;
                             }
                             contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
@@ -441,13 +445,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                   Path createFileScriptPath) throws IOException {
         Path p = Paths.get(path);
         List<Path> parts = new LinkedList<>();
-        if (Objects.nonNull(p.getParent())) {
+        if (nonNull(p.getParent())) {
             p.getParent().iterator().forEachRemaining(parts::add);
         }
         String currentPath = StringUtils.EMPTY;
-        if (CollectionUtils.isNotEmpty(parts)) {
+        if (isNotEmpty(parts)) {
             for (Path ancestor : parts) {
-                if (StringUtils.isNotEmpty(ancestor.toString())) {
+                if (isNotEmpty(ancestor.toString())) {
                     currentPath = currentPath + FILE_SEPARATOR + ancestor;
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                             , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
@@ -462,7 +466,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
         String parentPath = FilenameUtils.getPrefix(path) +
                 FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, "/index.xml", ""));
-        if (StringUtils.isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
+        if (isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
             addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
             if (StringUtils.endsWith(path, "/index.xml")) {
                 addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
@@ -490,7 +494,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     StandardOpenOption.APPEND);
             Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
         }
-        if (Objects.nonNull(dependencies) && !dependencies.isEmpty()) {
+        if (nonNull(dependencies) && !dependencies.isEmpty()) {
             for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
                 for (String targetPath : entry.getValue()) {
                     Files.write(file, insertDependencyRow(siteId, path, targetPath, entry.getKey())
@@ -640,11 +644,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
 
         PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
-        if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getPlugin())) {
+        if (nonNull(descriptor) && nonNull(descriptor.getPlugin())) {
             searchEngine = descriptor.getPlugin().getSearchEngine();
             logger.info("Using search engine '{}' based on the configuration of the plugin descriptor while " +
                     "creating site '{}'", searchEngine, siteId);
-        } else if (Objects.nonNull(descriptor) && Objects.nonNull(descriptor.getBlueprint())) {
+        } else if (nonNull(descriptor) && nonNull(descriptor.getBlueprint())) {
             searchEngine = descriptor.getBlueprint().getSearchEngine();
             logger.info("Using search engine '{}' based on the configuration of the blueprint while " +
                     "creating site '{}'", searchEngine, siteId);
@@ -897,16 +901,12 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     @Override
     @ValidateParams
     public void syncRepository(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
-        if (!exists(site)) {
-            throw new SiteNotFoundException();
+        checkSiteExists(site);
+        String lastDbCommitId = siteFeedMapper.getLastCommitId(site);
+        if (lastDbCommitId != null) {
+            syncDatabaseWithRepository.execute(site, lastDbCommitId);
         } else {
-            String lastDbCommitId =
-                    siteFeedMapper.getLastCommitId(site);
-            if (lastDbCommitId != null) {
-                syncDatabaseWithRepository.execute(site, lastDbCommitId);
-            } else {
-                rebuildDatabase(site);
-            }
+            rebuildDatabase(site);
         }
     }
 
@@ -915,7 +915,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     public void rebuildDatabase(@ValidateStringParam(name = "site") String site) {
         rebuildRepositoryMetadata.execute(site);
     }
-
 
     @Override
     @ValidateParams
@@ -1033,6 +1032,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         if (logger.isDebugEnabled()) {
             logger.debug("Sync database from repo finished in '{}' milliseconds", (System.currentTimeMillis() - startSyncRepoMark));
         }
+
+        // Sync all preview deployers
+        try {
+            logger.debug("Sync preview for site '{}'", site);
+            applicationContext.publishEvent(new RepositoryEvent(site));
+        } catch (Exception e) {
+            logger.error("Failed to sync preview for site '{}'", site, e);
+        }
         return toReturn;
     }
 
@@ -1090,7 +1097,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             if (contentDoc != null) {
                                 Element rootElement = contentDoc.getRootElement();
                                 String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
+                                if (isNotEmpty(internalName)) {
                                     label = internalName;
                                 }
                                 contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
@@ -1160,7 +1167,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                                 if (contentDoc != null) {
                                     Element rootElement = contentDoc.getRootElement();
                                     String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                    if (StringUtils.isNotEmpty(internalName)) {
+                                    if (isNotEmpty(internalName)) {
                                         label = internalName;
                                     }
                                     contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
@@ -1237,7 +1244,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             if (contentDoc != null) {
                                 Element rootElement = contentDoc.getRootElement();
                                 String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (StringUtils.isNotEmpty(internalName)) {
+                                if (isNotEmpty(internalName)) {
                                     label = internalName;
                                 }
                                 contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
@@ -1555,6 +1562,19 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
+    public boolean checkSiteUuid(final String siteId, final String siteUuid) {
+        try {
+            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
+            return Files.readAllLines(path).stream()
+                    .anyMatch(siteUuid::equals);
+        } catch (IOException e) {
+            logger.info("Invalid site UUID in site '{}'", siteId);
+            return false;
+        }
+    }
+
+    @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
@@ -1615,7 +1635,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         this.upgradeManager = upgradeManager;
     }
 
-    public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
+    public void setSitesServiceInternal(SitesService sitesServiceInternal) {
         this.sitesServiceInternal = sitesServiceInternal;
     }
 

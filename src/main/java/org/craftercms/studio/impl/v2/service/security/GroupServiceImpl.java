@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
@@ -60,7 +59,6 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class GroupServiceImpl implements GroupService {
 
-    private ConfigurationService configurationService;
     private GroupServiceInternal groupServiceInternal;
     private OrganizationServiceInternal organizationServiceInternal;
     private UserServiceInternal userServiceInternal;
@@ -277,10 +275,6 @@ public class GroupServiceImpl implements GroupService {
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
     }
 
     public void setGeneralLockService(GeneralLockService generalLockService) {

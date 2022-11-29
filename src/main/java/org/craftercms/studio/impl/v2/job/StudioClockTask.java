@@ -26,16 +26,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS_PATH;
 
 public abstract class StudioClockTask implements SiteJob, ApplicationContextAware {
 
@@ -79,25 +71,6 @@ public abstract class StudioClockTask implements SiteJob, ApplicationContextAwar
             }
             executeInternal(site);
             setCycleCounter(site, executeEveryNCycles);
-        }
-    }
-
-    /**
-     * Checks if the currently existent site with the given ID also has the same siteUuid.
-     *
-     * @param siteId   ID of the site to test
-     * @param siteUuid site UUID
-     * @return true if the site UUID file exists and contains the same siteUUID value, false otherwise
-     */
-    protected boolean checkSiteUuid(final String siteId, final String siteUuid) {
-        try {
-            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
-            return Files.readAllLines(path).stream()
-                    .anyMatch(siteUuid::equals);
-        } catch (IOException e) {
-            logger.info("Invalid site UUID in site '{}'", siteId);
-            return false;
         }
     }
 

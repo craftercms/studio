@@ -62,7 +62,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
     private void processAuditLog(String site) throws SiteNotFoundException {
         logger.trace("Get the last verified commit for site '{}'", site);
         SiteFeed siteFeed = siteService.getSite(site);
-        if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
+        if (siteService.checkSiteUuid(site, siteFeed.getSiteUuid())) {
             String lastSyncedCommit = siteService.getLastSyncedGitlogCommitId(site);
             if (StringUtils.isNotEmpty(lastSyncedCommit)) {
                 logger.debug("Update the GitLog table for site '{}' starting from the last synced commit ID '{}'",

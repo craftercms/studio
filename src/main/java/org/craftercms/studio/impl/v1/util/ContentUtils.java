@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.util;
 
-import com.mchange.v1.util.ClosableResource;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.slf4j.Logger;

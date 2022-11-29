@@ -24,7 +24,6 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import org.craftercms.commons.plugin.model.Version;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Holds the information needed to create a site from a Marketplace Blueprint

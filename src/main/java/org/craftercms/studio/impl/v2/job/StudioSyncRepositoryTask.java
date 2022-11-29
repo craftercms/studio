@@ -19,16 +19,14 @@ package org.craftercms.studio.impl.v2.job;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.dal.GitLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.dal.GitLog;
-import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
-import org.craftercms.studio.api.v2.repository.ContentRepository;
 
 import java.util.List;
-import java.util.Objects;
 
+import static java.util.Objects.nonNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 
 public class StudioSyncRepositoryTask extends StudioClockTask {
@@ -54,49 +52,45 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         }
     }
 
-    private void syncRepository(String site) throws ServiceLayerException, UserNotFoundException {
+    private void syncRepository(String site) throws ServiceLayerException {
         logger.debug("Get the last verified commit ID for site '{}'", site);
         SiteFeed siteFeed = siteService.getSite(site);
-        if (checkSiteUuid(site, siteFeed.getSiteUuid())) {
-            String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
-            if (StringUtils.isNotEmpty(lastProcessedCommit)) {
-                GitLog gl = contentRepository.getGitLog(site, lastProcessedCommit);
-                if (Objects.nonNull(gl)) {
-                    String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                    if (StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
-                        if (gl.getProcessed() == 0) {
-                            contentRepository.markGitLogVerifiedProcessed(site, gl.getCommitId());
-                        }
-                        if (contentRepository.countUnprocessedCommits(site, gl.getId()) > 0) {
-                            contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
-                        }
-                    } else {
-                        logger.debug("Sync the database with the repository in site '{}' from the " +
-                                        "last processed commit '{}'", site, lastProcessedCommit);
-                        List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
-                        if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
-                            siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
-                            unprocessedCommitIds.forEach(x -> {
-                                contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
-                            });
+        if (!siteService.checkSiteUuid(site, siteFeed.getSiteUuid())) {
+            return;
+        }
+        String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(site);
+        if (!isNotEmpty(lastProcessedCommit)) {
+            return;
+        }
+        GitLog gl = contentRepository.getGitLog(site, lastProcessedCommit);
+        if (!nonNull(gl)) {
+            return;
+        }
+        String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
+        if (StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+            if (gl.getProcessed() == 0) {
+                contentRepository.markGitLogVerifiedProcessed(site, gl.getCommitId());
+            }
+            if (contentRepository.countUnprocessedCommits(site, gl.getId()) > 0) {
+                contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
+            }
+        } else {
+            logger.debug("Sync the database with the repository in site '{}' from the " +
+                            "last processed commit '{}'", site, lastProcessedCommit);
+            List<GitLog> unprocessedCommitIds = contentRepository.getUnprocessedCommits(site, gl.getId());
+            if (unprocessedCommitIds != null && unprocessedCommitIds.size() > 0) {
+                siteService.syncDatabaseWithRepo(site, lastProcessedCommit);
+                unprocessedCommitIds.forEach(x -> {
+                    contentRepository.markGitLogVerifiedProcessed(site, x.getCommitId());
+                });
 
-                            // Sync all preview deployers
-                            try {
-                                logger.debug("Sync preview for site '{}'", site);
-                                applicationContext.publishEvent(new RepositoryEvent(site));
-                            } catch (Exception e) {
-                                logger.error("Failed to sync preview for site '{}'", site, e);
-                            }
-                        } else {
-                            GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
-                            if (Objects.nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
-                                siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
-                                contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
-                            } else {
-                                contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
-                            }
-                        }
-                    }
+            } else {
+                GitLog gl2 = contentRepository.getGitLog(site, lastRepoCommitId);
+                if (nonNull(gl2) && !StringUtils.equals(lastRepoCommitId, lastProcessedCommit)) {
+                    siteService.updateLastVerifiedGitlogCommitId(site, lastRepoCommitId);
+                    contentRepository.markGitLogProcessedBeforeMarker(site, gl2.getId(), 1);
+                } else {
+                    contentRepository.markGitLogProcessedBeforeMarker(site, gl.getId(), 1);
                 }
             }
         }
