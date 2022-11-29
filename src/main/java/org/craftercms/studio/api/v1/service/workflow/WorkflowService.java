@@ -54,7 +54,6 @@ public interface WorkflowService {
      *
      * @param site site identifier
      * @param request request body
-	 * @param user  user
      * @return call result
      */
     ResultTO goDelete(String site, String request);

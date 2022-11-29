@@ -36,8 +36,9 @@ public interface SecurityService {
 
     /**
      * Get user permissions for given site
+     * @param siteId crafter site Id
      * @param username user
-     * @param groups groups that user belongs to
+     * @param roles roles the user is assigned to
      * @return list of user permissions
      */
     List<String> getUserPermission(String siteId, String username, List<String> roles) throws ExecutionException;

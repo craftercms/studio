@@ -33,7 +33,7 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     private static final String PATTERN_SITE = "\\{site\\}";
     private static final String PATTERN_PATH = "\\{path\\}";
 
-    protected Map<String, ReentrantLock> nodeLocks = new HashMap<String, ReentrantLock>();
+    protected Map<String, ReentrantLock> nodeLocks = new HashMap<>();
 
     @Override
     @ValidateParams

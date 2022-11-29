@@ -197,7 +197,7 @@ public final class ContentItemAvailableActionsConstants {
     }
 
     public static long mapPermissionToContentItemAvailableActions(String permission) {
-        long result = 0L;
+        final long result;
         switch (permission.toLowerCase()) {
             case PERMISSION_CONTENT_READ:
                 result = BITMAP_CONTENT_READ;

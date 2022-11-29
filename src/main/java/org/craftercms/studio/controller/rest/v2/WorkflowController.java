@@ -81,15 +81,13 @@ public class WorkflowController {
                                                   int offset,
                                       @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
                                                   int limit) throws SiteNotFoundException, InvalidParametersException {
-        String path = rpPath.isPresent() ? rpPath.get() : null;
-        Long states = rpStates.isPresent() ? rpStates.get() : null;
-        int total = 0;
-        if (isPathRegexValid(path)) {
-            total = workflowService.getItemStatesTotal(siteId, path, states);
-        } else {
+        String path = rpPath.orElse(null);
+        Long states = rpStates.orElse(null);
+        if (!isPathRegexValid(path)) {
             throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
         }
-        List<SandboxItem> items = new ArrayList<SandboxItem>();
+        int total = workflowService.getItemStatesTotal(siteId, path, states);
+        List<SandboxItem> items = new ArrayList<>();
 
         if (total > 0) {
             items = workflowService.getItemStates(siteId, path, states, offset, limit);

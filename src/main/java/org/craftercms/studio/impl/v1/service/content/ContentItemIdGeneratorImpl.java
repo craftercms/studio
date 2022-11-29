@@ -39,7 +39,7 @@ public class ContentItemIdGeneratorImpl extends AbstractRegistrableService imple
 
     @Override
     public Map<String, String> getIds() throws ServiceLayerException {
-        Map<String,String> params = new HashMap<String,String>();
+        Map<String,String> params = new HashMap<>();
         String pageId = UUID.randomUUID().toString();
         String groupId;
         StringTokenizer tokenizer = new StringTokenizer(pageId, "-");

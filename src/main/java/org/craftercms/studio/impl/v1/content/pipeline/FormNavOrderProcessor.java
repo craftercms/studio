@@ -48,7 +48,7 @@ public class FormNavOrderProcessor extends BaseContentProcessor {
     }
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
-        boolean copiedContent = Boolean.valueOf(content.getProperty(DmConstants.KEY_COPIED_CONTENT));
+        boolean copiedContent = Boolean.parseBoolean(content.getProperty(DmConstants.KEY_COPIED_CONTENT));
         String site = String.valueOf(content.getProperty(DmConstants.KEY_SITE));
         String path = String.valueOf(content.getProperty(DmConstants.KEY_PATH));
         if(copiedContent){

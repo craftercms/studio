@@ -204,7 +204,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             try {
                 return StudioBlobStoreResolverImpl.this.contentRepository.getContent(site, path);
             } catch (Exception e) {
-                throw new IOException(format("Failed to read the file '{}'", path), e);
+                throw new IOException(format("Failed to read the file '%s'", path), e);
             }
         }
 

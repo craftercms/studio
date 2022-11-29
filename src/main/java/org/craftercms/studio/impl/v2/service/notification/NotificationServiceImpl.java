@@ -167,6 +167,7 @@ public class NotificationServiceImpl implements NotificationService {
             notify(site, singletonList(submitterUser.get(KEY_EMAIL).toString()), NOTIFICATION_KEY_CONTENT_APPROVED,
                     templateModel);
         } catch (Throwable e) {
+            // TODO: JM: Missing placeholder for e.getMessage()? Review
             logger.warn("Failed to send content approval notification for site '{}'", site, e.getMessage());
         }
     }
@@ -249,6 +250,7 @@ public class NotificationServiceImpl implements NotificationService {
                 notify(site, usersToNotify, NOTIFICATION_KEY_SUBMITTED_FOR_REVIEW, templateModel);
             }
         } catch (Throwable e) {
+            // TODO: JM: Missing placeholder for e.getMessage()? Review
             logger.warn("Failed to send content submission notification for site '{}'", site, e.getMessage());
         }
     }

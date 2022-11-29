@@ -102,8 +102,7 @@ public class WorkflowProcessor {
     }
     
 	private void rollbackOnError(String site, Set<String> allPaths) {
-        List<String> paths = new ArrayList<>();
-        paths.addAll(allPaths);
+        List<String> paths = new ArrayList<>(allPaths);
         itemServiceInternal.setSystemProcessingBulk(site, paths, false);
 	}
 

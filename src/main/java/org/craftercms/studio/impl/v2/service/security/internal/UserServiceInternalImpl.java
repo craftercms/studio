@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -112,6 +113,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         invalidateCache(users.stream().map(User::getUsername).collect(Collectors.toList()));
     }
 
+    @NotNull
     @Override
     public User getUserByIdOrUsername(long userId, String username)
             throws ServiceLayerException, UserNotFoundException {

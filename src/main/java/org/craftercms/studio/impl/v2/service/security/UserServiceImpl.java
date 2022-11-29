@@ -394,37 +394,29 @@ public class UserServiceImpl implements UserService {
             UserExternallyManagedException {
         logger.debug("Get the user profile for username '{}'", username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        boolean success;
-        if (user == null) {
-            logger.info("User profile not found for username '{}' while performing forgot password", username);
-            throw new UserNotFoundException();
-        } else {
-            if (user.isExternallyManaged()) {
-                throw new UserExternallyManagedException();
-            } else {
-                if (user.getEmail() != null) {
-                    String email = user.getEmail();
-
-                    logger.debug("Create a forgot password security token for username '{}'", username);
-                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
-                            Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
-                    String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-                    String studioId = instanceService.getInstanceId();
-                    // TODO: SJ: Avoid string literals
-                    String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
-                    String hashedToken = encryptToken(token);
-                    logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
-                    sendForgotPasswordEmail(email, hashedToken);
-                    success = true;
-                } else {
-                    logger.info("Failed to send forgot password email to username '{}' because that user " +
-                            "does not have an email address in the system", username);
-                    throw new ServiceLayerException(format("Failed to send forgot password email to username " +
-                            "'%s' because that user does not have an email address in the system", username));
-                }
-            }
+        if (user.isExternallyManaged()) {
+            throw new UserExternallyManagedException();
         }
-        return success;
+        if (user.getEmail() == null) {
+            logger.info("Failed to send forgot password email to username '{}' because that user " +
+                    "does not have an email address in the system", username);
+            throw new ServiceLayerException(format("Failed to send forgot password email to username " +
+                    "'%s' because that user does not have an email address in the system", username));
+        }
+
+        String email = user.getEmail();
+
+        logger.debug("Create a forgot password security token for username '{}'", username);
+        long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
+                Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+        String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+        String studioId = instanceService.getInstanceId();
+        // TODO: SJ: Avoid string literals
+        String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
+        String hashedToken = encryptToken(token);
+        logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
+        sendForgotPasswordEmail(email, hashedToken);
+        return true;
     }
 
     private String encryptToken(String token) {

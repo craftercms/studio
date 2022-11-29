@@ -25,7 +25,7 @@ public class ServicesManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ServicesManager.class);
 
-    protected Map<Class, Object> _servicesMap = new HashMap<Class, Object>();
+    protected Map<Class, Object> _servicesMap = new HashMap<>();
     public Map<Class, Object> getServicesMap() {
         return _servicesMap;
     }
@@ -35,7 +35,7 @@ public class ServicesManager {
 
     public void registerService(Class clazz, Object service) {
         if (_servicesMap == null) {
-            _servicesMap = new HashMap<Class, Object>();
+            _servicesMap = new HashMap<>();
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Registering service: " + clazz.getName());

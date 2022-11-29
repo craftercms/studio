@@ -91,14 +91,14 @@ public class ConfigurationController {
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
                                          @RequestParam(name = "environment", required = false) String environment) {
-        String content = StringUtils.EMPTY;
+        final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
         } else {
             content = configurationService.getConfigurationAsString(siteId, module, path, environment);
         }
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<String> result = new ResultOne<String>();
+        ResultOne<String> result = new ResultOne<>();
         result.setEntity("content", content);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -132,7 +132,7 @@ public class ConfigurationController {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<ConfigurationHistory> result = new ResultOne<ConfigurationHistory>();
+        ResultOne<ConfigurationHistory> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_HISTORY, history);
         result.setResponse(OK);
         responseBody.setResult(result);

@@ -139,7 +139,7 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
      */
     protected Map<String, Object> buildModel(String site, String user, String path, String contentType,
                                              String operation, Map<String, String> params) {
-        Map<String, Object> model = new HashMap<String,Object>();
+        Map<String, Object> model = new HashMap<>();
         for (String scriptObjectName : _scriptObjects.keySet()) {
             model.put(scriptObjectName, _scriptObjects.get(scriptObjectName));
         }

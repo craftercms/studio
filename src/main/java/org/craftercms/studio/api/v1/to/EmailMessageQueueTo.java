@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class EmailMessageQueueTo implements Serializable {
 
     private static final long serialVersionUID = -8731745205175488556L;
-    protected Queue<EmailMessageTO> pendingEmailMessages= new LinkedList<EmailMessageTO>();
+    protected Queue<EmailMessageTO> pendingEmailMessages= new LinkedList<>();
 	
 	public synchronized EmailMessageTO getNext()
 	{
@@ -33,7 +33,7 @@ public class EmailMessageQueueTo implements Serializable {
 	
 	public synchronized List<EmailMessageTO> getAll()
 	{
-		ArrayList<EmailMessageTO> list = new ArrayList<EmailMessageTO>();
+		ArrayList<EmailMessageTO> list = new ArrayList<>();
 		int size = pendingEmailMessages.size();
 		for(int i=0;i<size;i++)
 		{

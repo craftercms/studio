@@ -85,10 +85,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     private Map<String, String> calculateSoftDependencies(String site, List<String> paths) {
         Set<String> toRet = new HashSet<>();
-        Set<String> pathsParams = new HashSet<>();
 
         logger.trace("Get all soft dependencies for site '{}' paths '{}'", site, paths);
-        pathsParams.addAll(paths);
+        Set<String> pathsParams = new HashSet<>(paths);
         boolean exitCondition = false;
         Map<String, String> softDeps = new HashMap<>();
         for (String p : paths) {
@@ -100,7 +99,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!softDeps.keySet().contains(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
+                if (!softDeps.containsKey(targetPath) && !StringUtils.equals(targetPath, softDeps.get(srcPath))) {
                     softDeps.put(targetPath, softDeps.get(srcPath));
                 }
                 targetPaths.add(targetPath);
@@ -151,10 +150,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     private Map<String, String> calculateHardDependencies(String site, List<String> paths) {
         Set<String> toRet = new HashSet<>();
-        Set<String> pathsParams = new HashSet<>();
 
         logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);
-        pathsParams.addAll(paths);
+        Set<String> pathsParams = new HashSet<>(paths);
         List<String> mandatoryParents = itemServiceInternal.getMandatoryParentsForPublishing(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<>();
@@ -185,7 +183,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
             for (Map<String, String> d : deps) {
                 String srcPath = d.get(SOURCE_PATH_COLUMN_NAME);
                 String targetPath = d.get(TARGET_PATH_COLUMN_NAME);
-                if (!ancestors.keySet().contains(targetPath) &&
+                if (!ancestors.containsKey(targetPath) &&
                         !StringUtils.equals(targetPath, ancestors.get(srcPath))) {
                     ancestors.put(targetPath, ancestors.get(srcPath));
                 }
@@ -200,8 +198,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private Set<String> getExistingRenamedChildrenOfMandatoryParents(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<>();
-        toRet.addAll(itemServiceInternal.getExistingRenamedChildrenOfMandatoryParentsForPublishing(site, paths));
+        Set<String> toRet = new HashSet<>(itemServiceInternal.getExistingRenamedChildrenOfMandatoryParentsForPublishing(site, paths));
         return toRet;
     }
 

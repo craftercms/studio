@@ -83,7 +83,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             writeContent(content, result);
         } catch (ServiceLayerException e) {
             logger.error("Failed to write content '{}'", content.getId(), e);
-            throw new ContentProcessException(format("Failed to write content '%s'", content.getId(), e));
+            throw new ContentProcessException(format("Failed to write content '%s'", content.getId()), e);
         } finally {
             content.closeContentStream();
         }

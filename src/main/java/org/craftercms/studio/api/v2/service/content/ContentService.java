@@ -174,7 +174,7 @@ public interface ContentService {
     * @throws ServiceLayerException general service error
     * @throws UserNotFoundException user not found error
     */
-    public boolean renameContent( String site, String path, String name)
+    boolean renameContent( String site, String path, String name)
          throws ServiceLayerException, UserNotFoundException;
 
     /**

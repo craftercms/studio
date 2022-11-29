@@ -180,7 +180,7 @@ public class EmailMessageTO implements Serializable {
 		this.subject=subject;
 		this.content=content;
 		this.to=to;
-		this.keyValueMap= new TreeMap<String,String>();
+		this.keyValueMap= new TreeMap<>();
 	}
 	
 	public String getSubject() {

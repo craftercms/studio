@@ -87,6 +87,7 @@ public class StudioAuditLogProcessingTask extends StudioClockTask {
                                 ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
                             continue;
                         }
+                        // TODO: JM: Is activityInfo used at all? Should it? Review and remove
                         Map<String, String> activityInfo = new HashMap<>();
                         String contentClass;
                         AuditLog auditLog;
