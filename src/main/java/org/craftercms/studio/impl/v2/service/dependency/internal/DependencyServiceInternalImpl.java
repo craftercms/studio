@@ -150,10 +150,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
 
     private Map<String, String> calculateHardDependencies(String site, List<String> paths) {
         Set<String> toRet = new HashSet<>();
-        Set<String> pathsParams = new HashSet<>();
 
         logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);
-        pathsParams.addAll(paths);
+        Set<String> pathsParams = new HashSet<>(paths);
         List<String> mandatoryParents = itemServiceInternal.getMandatoryParentsForPublishing(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<>();
@@ -199,8 +198,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     private Set<String> getExistingRenamedChildrenOfMandatoryParents(String site, List<String> paths) {
-        Set<String> toRet = new HashSet<>();
-        toRet.addAll(itemServiceInternal.getExistingRenamedChildrenOfMandatoryParentsForPublishing(site, paths));
+        Set<String> toRet = new HashSet<>(itemServiceInternal.getExistingRenamedChildrenOfMandatoryParentsForPublishing(site, paths));
         return toRet;
     }
 

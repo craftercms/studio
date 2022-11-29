@@ -230,8 +230,7 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
             throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
         }
 
-        List<String> groups = new ArrayList<>();
-        groups.addAll(groupRoleMapping.keySet());
+        List<String> groups = new ArrayList<>(groupRoleMapping.keySet());
 
         return groups;
     }
