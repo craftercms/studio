@@ -77,15 +77,15 @@ public interface UserService {
 
     User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
 
-    void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+    void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
 
     void deleteUsers(List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException;
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException;
 
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
     List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException;
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
 
     List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 

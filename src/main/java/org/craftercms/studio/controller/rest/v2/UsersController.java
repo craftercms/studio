@@ -190,7 +190,7 @@ public class UsersController {
      */
     @PatchMapping(value = "", consumes = APPLICATION_JSON_VALUE)
     public ResponseBody updateUser(@RequestBody User user)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         userService.updateUser(user);
 
         ResponseBody responseBody = new ResponseBody();
@@ -212,7 +212,7 @@ public class UsersController {
     public ResponseBody deleteUser(
             @RequestParam(value = REQUEST_PARAM_ID, required = false) List<Long> userIds,
             @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<String> usernames)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException {
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
         userService.deleteUsers(userIds != null? userIds : Collections.emptyList(),
@@ -259,7 +259,7 @@ public class UsersController {
      */
     @PatchMapping(value = ENABLE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
@@ -280,7 +280,7 @@ public class UsersController {
      */
     @PatchMapping(value = DISABLE, consumes = APPLICATION_JSON_VALUE)
     public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers)
-            throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+            throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);
