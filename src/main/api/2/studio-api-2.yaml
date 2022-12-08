@@ -1534,7 +1534,7 @@ paths:
     post:
       tags:
         - cluster
-      summary: Set cluster primary publisher node
+      summary: Set the cluster primary publisher node to be the node receiving this call
       description: 'Required Permission: "update_cluster"'
       operationId: setClusterPrimary
       responses:
