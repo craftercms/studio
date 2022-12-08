@@ -147,7 +147,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
-    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
+        checkExternallyManagedUsers(Arrays.asList(user.getId()), Arrays.asList(user.getUsername()));
+
         userServiceInternal.updateUser(user);
         User updatedUser = userServiceInternal.getUserByIdOrUsername(user.getId(), StringUtils.EMPTY);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
@@ -164,8 +166,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_USERS)
     public void deleteUsers(List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException {
         User currentUser = getCurrentUser();
+
+        checkExternallyManagedUsers(userIds, usernames);
 
         if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
                 CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
@@ -259,7 +263,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
-                                  boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+                                  boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
+        checkExternallyManagedUsers(userIds, usernames);
+
         List<User> users = userServiceInternal.enableUsers(userIds, usernames, enabled);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -659,6 +665,21 @@ public class UserServiceImpl implements UserService {
             return new ArrayList<>(userRoles);
         } else {
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Check if updating users list contains any externally managed users.
+     * If matched, the operation must not be permitted.
+     * @param userIds
+     * @param usernames
+     * @throws UserNotFoundException
+     * @throws ServiceLayerException
+     */
+    private void checkExternallyManagedUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
+        if (users.stream().anyMatch(user -> user.isExternallyManaged())) {
+            throw new UserExternallyManagedException("Cannot update externally managed users.");
         }
     }
 
