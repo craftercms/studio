@@ -23,10 +23,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -57,6 +54,16 @@ public class ClusterManagementController {
         ResponseBody responseBody = new ResponseBody();
         ResultOne result = new ResultOne();
         result.setResponse(ApiResponse.DELETED);
+        return responseBody;
+    }
+
+    @PostMapping("/api/2/cluster/setPrimary")
+    public ResponseBody setClusterPrimary() {
+        boolean success = clusterManagementService.setClusterPrimary();
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne result = new ResultOne();
+        result.setResponse(ApiResponse.OK);
+        responseBody.setResult(result);
         return responseBody;
     }
 

@@ -85,6 +85,9 @@ public class StudioClusterUtils {
     private StudioConfiguration studioConfiguration;
     private GeneralLockService generalLockService;
 
+    // A RAM Flag indicates if publishing is enabled globally or not. Disabled by default.
+    private int globalPublishingEnabled = 0;
+
     public StudioClusterUtils(ClusterDAO clusterDao, StudioConfiguration studioConfiguration, TextEncryptor encryptor
             , GeneralLockService generalLockService) {
         this.clusterDao = clusterDao;
@@ -104,6 +107,19 @@ public class StudioClusterUtils {
             localAddress = registrationData.getString(CLUSTER_MEMBER_LOCAL_ADDRESS);
         }
         return localAddress;
+    }
+
+    /**
+    * Check if local node is the primary publisher or not
+    * @return true if member is primary publisher, false otherwise
+    */
+    public boolean memberPrimaryPublisher() {
+        String localAddress = getClusterNodeLocalAddress();
+        Map<String, String> params = new HashMap<String, String>();
+        params.put(CLUSTER_LOCAL_ADDRESS, localAddress);
+        params.put(CLUSTER_STATE, ClusterMember.State.ACTIVE.toString());
+        int result = clusterDao.memberPrimaryPublisher(params);
+        return result > 0;
     }
 
     public List<ClusterMember> getClusterNodes(String localAddress) {
@@ -332,5 +348,20 @@ public class StudioClusterUtils {
             logger.debug("Failed to get lock " + gitLockKey);
         }
         return cloned;
+    }
+
+    /**
+    * Set the `globalPublishingEnabled` variable to 1
+    */
+    public void enableGlobalPublishing() {
+        this.globalPublishingEnabled = 1;
+    }
+
+    /**
+    * Check if global publishing is enabled
+    * @return: true if enabled, false otherwise
+    */
+    public boolean isGlobalPublishingEnabled() {
+        return globalPublishingEnabled == 1;
     }
 }

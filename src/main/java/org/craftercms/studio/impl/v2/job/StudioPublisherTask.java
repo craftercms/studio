@@ -17,6 +17,8 @@
 package org.craftercms.studio.impl.v2.job;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
@@ -43,13 +45,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -121,6 +117,19 @@ public class StudioPublisherTask extends StudioClockTask {
             // Check publishing lock status
             logger.debug("Try to lock site " + siteId + " for publishing by lock owner " + lockOwnerId);
             if (siteService.tryLockPublishingForSite(siteId, lockOwnerId, lockTTL)) {
+
+                // Check cluster member is primary publisher
+                HierarchicalConfiguration<ImmutableNode> registrationData = studioClusterUtils.getClusterConfiguration();
+                if (registrationData != null && !registrationData.isEmpty()) {
+                    if (!studioClusterUtils.isGlobalPublishingEnabled()) {
+                        logger.debug("Global publishing is not enabled. Skip publishing.");
+                        return;
+                    }
+                    if (!studioClusterUtils.memberPrimaryPublisher()) {
+                        logger.debug("Member is not the primary publisher node. Skip publishing.");
+                        return;
+                    }
+                }
 
                 if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
                     if (!publishingManager.isPublishingBlocked(siteId)) {

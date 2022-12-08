@@ -124,7 +124,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('3.1.24.1', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('3.1.28', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -465,6 +465,18 @@ CREATE TABLE IF NOT EXISTS cluster
   PRIMARY KEY (`id`),
   UNIQUE `uq_cl_git_url` (`git_url`),
   UNIQUE `uq_cl_git_remote_name` (`git_remote_name`)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8
+  ROW_FORMAT = DYNAMIC ;
+
+CREATE TABLE IF NOT EXISTS cluster_status
+(
+  `id`                           enum('1')      NOT NULL DEFAULT '1',
+  `primary_publisher_id`         BIGINT(20)     NOT NULL,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY cluster_status_ix_cluster_id(`primary_publisher_id`) REFERENCES `cluster` (`id`)
+    ON DELETE CASCADE
 )
   ENGINE = InnoDB
   DEFAULT CHARSET = utf8

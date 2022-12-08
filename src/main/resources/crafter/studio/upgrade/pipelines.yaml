@@ -499,7 +499,7 @@ pipelines:
       nextVersion: 3.1.4.5
       operations:
         - type: globalRepoUpgrader
-          files:            
+          files:
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-cmis-config.xml
               dest: /configuration/samples/sample-cmis-config.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-config-list.xml
@@ -507,11 +507,11 @@ pipelines:
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-environment-config.xml
               dest: /configuration/samples/sample-environment-config.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-form-control-rte-setup-tinymce5.xml
-              dest: /configuration/samples/sample-form-control-rte-setup-tinymce5.xml        
+              dest: /configuration/samples/sample-form-control-rte-setup-tinymce5.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-form-control-rte-setup.xml
               dest: /configuration/samples/sample-form-control-rte-setup.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-notification-config.xml
-              dest: /configuration/samples/sample-notification-config.xml                    
+              dest: /configuration/samples/sample-notification-config.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-permission-mappings-config.xml
               dest: /configuration/samples/sample-permission-mappings-config.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-preview-components-config.xml
@@ -525,9 +525,9 @@ pipelines:
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-site-config.xml
               dest: /configuration/samples/sample-site-config.xml
             - src: classpath:crafter/studio/upgrade/3.1.x/3.1.4.5/system/sample-targeting-config.xml
-              dest: /configuration/samples/sample-targeting-config.xml                                                                                      
+              dest: /configuration/samples/sample-targeting-config.xml
           commitDetails: Update sample files
-        - type: dbVersionUpgrader    
+        - type: dbVersionUpgrader
     - currentVersion: 3.1.4.5
       nextVersion: 3.1.4.6
       operations:
@@ -996,6 +996,11 @@ pipelines:
       operations:
         - type: dbScriptUpgrader
           filename: upgrade-3.1.24-to-3.1.24.1.sql
+    - currentVersion: 3.1.24.1
+      nextVersion: 3.1.28
+      operations:
+        - type: dbScriptUpgrader
+          filename: upgrade-3.1.24.1-to-3.1.28.sql
 
   # Pipeline to upgrade site repositories
   site:

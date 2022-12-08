@@ -79,6 +79,11 @@
         SELECT COUNT(*) FROM cluster WHERE git_url = #{memberUrl} AND available = 1
     </select>
 
+    <select id="memberPrimaryPublisher" resultType="int" parameterType="Map">
+        SELECT COUNT(*) FROM cluster c INNER JOIN cluster_status cs ON c.id = cs.primary_publisher_id
+        WHERE c.local_address = #{localAddress} AND c.available = 1 AND c.state = #{state}
+    </select>
+
     <insert id="addMember" parameterType="org.craftercms.studio.api.v2.dal.ClusterMember">
         INSERT INTO cluster (local_address, state, git_url, git_remote_name, git_auth_type, git_username,
         git_password, git_token, git_private_key, available)
@@ -253,4 +258,10 @@
             ON s.id = cssr.site_id AND cssr.cluster_node_id = c.id
         WHERE s.id = #{siteId} AND cluster_node_id = #{clusterNodeId} AND c.available = 1
     </select>
+
+    <insert id="upsertClusterPrimary" >
+        INSERT INTO cluster_status (primary_publisher_id) VALUES (#{clusterNodeId})
+        ON DUPLICATE KEY
+        UPDATE primary_publisher_id = #{clusterNodeId}
+    </insert>
 </mapper>

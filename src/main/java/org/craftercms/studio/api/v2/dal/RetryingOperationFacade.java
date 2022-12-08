@@ -136,4 +136,10 @@ public interface RetryingOperationFacade {
      * @param params SQL query parameters
      */
     void markGitLogProcessed(Map params);
+
+    /**
+     * Set cluster primary node
+     * @param memberId cluster node id
+     */
+    void setClusterPrimary(Long memberId);
 }

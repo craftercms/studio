@@ -27,8 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.ClusterMember.State.INACTIVE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_INACTIVE_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CLUSTER_MEMBER_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public class ClusterManagementServiceInternalImpl implements ClusterManagementServiceInternal {
 
@@ -38,6 +37,11 @@ public class ClusterManagementServiceInternalImpl implements ClusterManagementSe
     @Override
     public List<ClusterMember> getAllMembers() {
         return clusterDao.getAllMembers();
+    }
+
+    @Override
+    public ClusterMember getMemberByLocalAddress(String localAddress) {
+        return clusterDao.getMemberByLocalAddress(localAddress);
     }
 
     @Override

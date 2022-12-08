@@ -32,11 +32,11 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.exception.UpgradeException;
+import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.job.StudioClusterSandboxRepoSyncTask;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -77,7 +77,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
     protected SiteService siteService;
     protected TextEncryptor encryptor;
     protected GeneralLockService generalLockService;
-    protected StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask;
+    protected List<SiteJob> siteTasks;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     protected void createTemporaryBranch(String site, Git git) throws GitAPIException {
@@ -117,7 +117,9 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
-            clusterSandboxRepoSyncTask.execute(site);
+            for (SiteJob siteTask : siteTasks) {
+                siteTask.execute(site);
+            }
             GitRepositoryHelper helper = GitRepositoryHelper.getHelper(studioConfiguration, securityService,
                     userServiceInternal, encryptor, generalLockService, retryingRepositoryOperationFacade);
 
@@ -225,19 +227,15 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         this.generalLockService = generalLockService;
     }
 
-    public StudioClusterSandboxRepoSyncTask getClusterSandboxRepoSyncTask() {
-        return clusterSandboxRepoSyncTask;
-    }
-
-    public void setClusterSandboxRepoSyncTask(StudioClusterSandboxRepoSyncTask clusterSandboxRepoSyncTask) {
-        this.clusterSandboxRepoSyncTask = clusterSandboxRepoSyncTask;
-    }
-
     public RetryingRepositoryOperationFacade getRetryingRepositoryOperationFacade() {
         return retryingRepositoryOperationFacade;
     }
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {
         this.retryingRepositoryOperationFacade = retryingRepositoryOperationFacade;
+    }
+
+    public void setSiteTasks(List<SiteJob> siteTasks) {
+        this.siteTasks = siteTasks;
     }
 }

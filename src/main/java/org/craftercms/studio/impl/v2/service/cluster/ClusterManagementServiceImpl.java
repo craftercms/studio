@@ -26,19 +26,23 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
+import org.craftercms.studio.api.v2.dal.RetryingOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.cluster.ClusterManagementService;
 import org.craftercms.studio.api.v2.service.cluster.internal.ClusterManagementServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_REMOVE_CLUSTER_NODE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CLUSTER_NODE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 
 public class ClusterManagementServiceImpl implements ClusterManagementService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ClusterManagementServiceImpl.class);
 
     private ClusterManagementServiceInternal clusterManagementServiceInternal;
     private ContentRepository contentRepository;
@@ -46,11 +50,19 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
     private SecurityService securityService;
+    private StudioClusterUtils studioClusterUtils;
+    private RetryingOperationFacade retryingOperationFacade;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "read_cluster")
     public List<ClusterMember> getAllMemebers() {
         return clusterManagementServiceInternal.getAllMembers();
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "read_cluster")
+    public ClusterMember getMemberByLocalAddress(String localAddress) {
+        return clusterManagementServiceInternal.getMemberByLocalAddress(localAddress);
     }
 
     @Override
@@ -79,6 +91,50 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
             auditServiceInternal.insertAuditLog(auditLog);
         }
         return toRet;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = "update_cluster")
+    public boolean setClusterPrimary() {
+        logger.debug("Enabling global publishing flag.");
+        studioClusterUtils.enableGlobalPublishing();
+        logger.debug("Enabled global publishing flag with result: " + studioClusterUtils.isGlobalPublishingEnabled());
+
+        if (studioClusterUtils.memberPrimaryPublisher()) {
+            logger.debug("Member has already been the primary publisher. No action occurs.");
+            return true;
+        }
+
+        // set member as primary publisher
+        String localAddress = studioClusterUtils.getClusterNodeLocalAddress();
+        ClusterMember localNode = clusterManagementServiceInternal.getMemberByLocalAddress(localAddress);
+        logger.debug("Set this node as primary publisher.");
+        retryingOperationFacade.setClusterPrimary(localNode.getId());
+
+        // add audit log
+        try {
+            SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setSiteId(siteFeed.getId());
+            auditLog.setOperation(OPERATION_SET_CLUSTER_PRIMARY);
+            auditLog.setActorId(securityService.getCurrentUser());
+            auditLog.setPrimaryTargetId(siteFeed.getSiteId());
+            auditLog.setPrimaryTargetType(TARGET_TYPE_CLUSTER_NODE);
+            auditLog.setPrimaryTargetValue(siteFeed.getName());
+            List<AuditLogParameter> parameters = new ArrayList<>();
+            AuditLogParameter parameter = new AuditLogParameter();
+            parameter.setTargetId(Long.toString(localNode.getId()));
+            parameter.setTargetType(TARGET_TYPE_CLUSTER_NODE);
+            parameter.setTargetValue(localNode.getLocalAddress());
+            parameters.add(parameter);
+
+            auditLog.setParameters(parameters);
+            auditServiceInternal.insertAuditLog(auditLog);
+        } catch (SiteNotFoundException e) {
+            logger.error("Error while adding audit log.", e);
+        }
+
+        return true;
     }
 
     public ClusterManagementServiceInternal getClusterManagementServiceInternal() {
@@ -127,5 +183,21 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
+    }
+
+    public StudioClusterUtils getStudioClusterUtils() {
+        return studioClusterUtils;
+    }
+
+    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
+    public RetryingOperationFacade getRetryingOperationFacade() {
+        return retryingOperationFacade;
+    }
+
+    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 }

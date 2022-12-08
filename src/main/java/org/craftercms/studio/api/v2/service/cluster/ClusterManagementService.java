@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v2.service.cluster;
 
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.ClusterMember;
 
@@ -32,10 +34,25 @@ public interface ClusterManagementService {
 
 
     /**
+     * Get member by local address
+     * @param localAddress
+     * @return cluster member
+     */
+    @HasPermission(type = DefaultPermission.class, action = "read_cluster")
+    ClusterMember getMemberByLocalAddress(String localAddress);
+
+    /**
      * Remove member from cluster
      *
      * @param memberIds List of ids of member to remover from cluster
      * @return True if success, otherwise false
      */
     boolean removeMembers(List<Long> memberIds) throws SiteNotFoundException;
+
+    /**
+     * Set current member as primary
+     * @return True if success, otherwise false
+     */
+    @HasPermission(type = DefaultPermission.class, action = "update_cluster")
+    boolean setClusterPrimary();
 }

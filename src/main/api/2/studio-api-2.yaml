@@ -1530,6 +1530,24 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /cluster/setPrimary:
+    post:
+      tags:
+        - cluster
+      summary: Set cluster primary publisher node
+      description: 'Required Permission: "update_cluster"'
+      operationId: setClusterPrimary
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+
   /sites/available_blueprints:
     get:
       tags:
@@ -4630,7 +4648,7 @@ paths:
                   description: path(s) of the item(s)
                   items:
                     type: string
-                  
+
                 locales:
                   type: array
                   description: locale codes
