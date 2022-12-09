@@ -99,6 +99,13 @@ public interface ClusterDAO {
     int memberExists(String memberUrl);
 
     /**
+     * Check if cluster member is primary publisher
+     * @param params Parameters for SQL query
+     * @return 0 if member is not primary publisher, if member is primary publisher returns value greater than 0
+     */
+    int memberPrimaryPublisher(Map params);
+
+    /**
      * Count number of cluster member registrations
      *
      * @param params Parameters for SQL query
@@ -239,4 +246,10 @@ public interface ClusterDAO {
 
     void updateNodeLastSyncedGitlogCommitId(@Param(CLUSTER_NODE_ID) long clusterNodeId, @Param(SITE_ID) long siteId,
                                              @Param(COMMIT_ID) String commitId);
+
+    /**
+     * Upsert cluster primary node
+     * @param clusterNodeId cluster node identifier
+     */
+    void upsertClusterPrimary(@Param(CLUSTER_NODE_ID) long clusterNodeId);
 }

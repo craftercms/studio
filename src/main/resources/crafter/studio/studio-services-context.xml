@@ -377,6 +377,8 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="securityService" ref="cstudioSecurityService" />
+        <property name="studioClusterUtils" ref="studio.clusterUtils" />
+        <property name="retryingOperationFacade" ref="studio.retryingOperationFacade" />
     </bean>
 
     <bean id="clusterManagementServiceInternal"

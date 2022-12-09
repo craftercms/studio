@@ -113,7 +113,7 @@
         <property name="itemStateMapper" ref="itemStateMapper" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
-    
+
     <bean id="dependencyMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
         <property name="mapperInterface" value="org.craftercms.studio.api.v1.dal.DependencyMapper" />
         <property name="sqlSessionFactory" ref="sqlSessionFactory" />

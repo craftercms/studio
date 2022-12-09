@@ -30,7 +30,6 @@ public interface ClusterManagementService {
      */
     List<ClusterMember> getAllMemebers();
 
-
     /**
      * Remove member from cluster
      *
@@ -38,4 +37,10 @@ public interface ClusterManagementService {
      * @return True if success, otherwise false
      */
     boolean removeMembers(List<Long> memberIds) throws SiteNotFoundException;
+
+    /**
+     * Set current member as primary
+     * @return True if success, otherwise false
+     */
+    boolean setClusterPrimary();
 }

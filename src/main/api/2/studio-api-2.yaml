@@ -1530,6 +1530,30 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /cluster/setPrimary:
+    get:
+      tags:
+        - cluster
+      summary: Set the cluster primary publisher node to be the node receiving this call
+      operationId: setClusterPrimary
+      parameters:
+        - name: token
+          in: query
+          description: Management token - required
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+
   /sites/available_blueprints:
     get:
       tags:
@@ -4630,7 +4654,7 @@ paths:
                   description: path(s) of the item(s)
                   items:
                     type: string
-                  
+
                 locales:
                   type: array
                   description: locale codes

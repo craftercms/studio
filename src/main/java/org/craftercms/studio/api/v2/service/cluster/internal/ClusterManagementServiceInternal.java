@@ -30,6 +30,13 @@ public interface ClusterManagementServiceInternal {
     List<ClusterMember> getAllMembers();
 
     /**
+     * Get member by local address
+     * @param localAddress node address
+     * @return cluster member
+     */
+    ClusterMember getMemberByLocalAddress(String localAddress);
+
+    /**
      * Remove members from cluster
      *
      * @param memberIds List of member ids

@@ -123,6 +123,11 @@ public class RetryingOperationFacadeImpl implements RetryingOperationFacade {
         gitLogDao.markGitLogProcessed(params);
     }
 
+    @Override
+    public void setClusterPrimary(Long memberId) {
+        clusterDao.upsertClusterPrimary(memberId);
+    }
+
     public GitLogDAO getGitLogDao() {
         return gitLogDao;
     }
