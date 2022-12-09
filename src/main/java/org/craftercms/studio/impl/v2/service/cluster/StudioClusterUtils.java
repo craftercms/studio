@@ -86,7 +86,7 @@ public class StudioClusterUtils {
     private GeneralLockService generalLockService;
 
     // A RAM Flag indicates if publishing is enabled globally or not. Disabled by default.
-    private int globalPublishingEnabled = 0;
+    private boolean globalPublishingEnabled = false;
 
     public StudioClusterUtils(ClusterDAO clusterDao, StudioConfiguration studioConfiguration, TextEncryptor encryptor
             , GeneralLockService generalLockService) {
@@ -351,10 +351,10 @@ public class StudioClusterUtils {
     }
 
     /**
-    * Set the `globalPublishingEnabled` variable to 1
+    * Set the `globalPublishingEnabled` variable to true
     */
     public void enableGlobalPublishing() {
-        this.globalPublishingEnabled = 1;
+        this.globalPublishingEnabled = true;
     }
 
     /**
@@ -362,6 +362,6 @@ public class StudioClusterUtils {
     * @return: true if enabled, false otherwise
     */
     public boolean isGlobalPublishingEnabled() {
-        return globalPublishingEnabled == 1;
+        return globalPublishingEnabled;
     }
 }

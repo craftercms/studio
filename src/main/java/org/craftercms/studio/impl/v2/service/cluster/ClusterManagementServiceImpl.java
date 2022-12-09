@@ -60,12 +60,6 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "read_cluster")
-    public ClusterMember getMemberByLocalAddress(String localAddress) {
-        return clusterManagementServiceInternal.getMemberByLocalAddress(localAddress);
-    }
-
-    @Override
     @HasPermission(type = DefaultPermission.class, action = "delete_cluster")
     public boolean removeMembers(List<Long> memberIds) throws SiteNotFoundException {
         List<ClusterMember> members = getAllMemebers();
@@ -94,11 +88,10 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "update_cluster")
     public boolean setClusterPrimary() {
         logger.debug("Enabling global publishing flag.");
         studioClusterUtils.enableGlobalPublishing();
-        logger.debug("Enabled global publishing flag with result: " + studioClusterUtils.isGlobalPublishingEnabled());
+        logger.debug("Enabled global publishing flag with result: '{}'", studioClusterUtils.isGlobalPublishingEnabled());
 
         if (studioClusterUtils.memberPrimaryPublisher()) {
             logger.debug("Member has already been the primary publisher. No action occurs.");
@@ -117,7 +110,7 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setOperation(OPERATION_SET_CLUSTER_PRIMARY);
-            auditLog.setActorId(securityService.getCurrentUser());
+            auditLog.setActorId("api_caller");
             auditLog.setPrimaryTargetId(siteFeed.getSiteId());
             auditLog.setPrimaryTargetType(TARGET_TYPE_CLUSTER_NODE);
             auditLog.setPrimaryTargetValue(siteFeed.getName());
@@ -185,16 +178,8 @@ public class ClusterManagementServiceImpl implements ClusterManagementService {
         this.securityService = securityService;
     }
 
-    public StudioClusterUtils getStudioClusterUtils() {
-        return studioClusterUtils;
-    }
-
     public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
         this.studioClusterUtils = studioClusterUtils;
-    }
-
-    public RetryingOperationFacade getRetryingOperationFacade() {
-        return retryingOperationFacade;
     }
 
     public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {

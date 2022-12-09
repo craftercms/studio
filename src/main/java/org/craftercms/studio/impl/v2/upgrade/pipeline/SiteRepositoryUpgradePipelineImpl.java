@@ -117,6 +117,7 @@ public class SiteRepositoryUpgradePipelineImpl extends DefaultUpgradePipelineImp
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
         generalLockService.lock(gitLockKey);
         try {
+            // Run all site tasks as in StudioClockExecutor to make sure tasks run in the correct cycles.
             for (SiteJob siteTask : siteTasks) {
                 siteTask.execute(site);
             }
