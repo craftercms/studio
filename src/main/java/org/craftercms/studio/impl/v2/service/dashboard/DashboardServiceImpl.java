@@ -100,7 +100,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public int getMyActivitiesTotal(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+    public int getMyActivitiesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         var username = securityService.getCurrentUser();
         return activityStreamServiceInternal
                 .getActivitiesForUsersTotal(siteId, List.of(username), actions, dateFrom, dateTo);
@@ -108,7 +108,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     @Override
-    public List<Activity> getMyActivities(String siteId, List<String> actions, ZonedDateTime dateFrom,
+    public List<Activity> getMyActivities(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> actions, ZonedDateTime dateFrom,
                                           ZonedDateTime dateTo, int offset, int limit) {
         var username = securityService.getCurrentUser();
         return activityStreamServiceInternal
