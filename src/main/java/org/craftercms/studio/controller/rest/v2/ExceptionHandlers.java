@@ -36,12 +36,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
 import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
@@ -121,6 +116,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleUserNotFoundException(HttpServletRequest request, UserNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(UserExternallyManagedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseBody handleUserExternallyManagedException(HttpServletRequest request, UserExternallyManagedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.USER_EXTERNALLY_MANAGED);
         return handleExceptionInternal(request, e, response);
     }
 
