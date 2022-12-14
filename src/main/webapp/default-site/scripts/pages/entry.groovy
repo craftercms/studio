@@ -64,6 +64,5 @@ model.userLastName =  profile.last_name
 model.authenticationType =  authenticatedUser?
         authenticatedUser.getAuthenticationType() as String : profile.authentication_type
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
-model.passwordRequirementsRegex = passwordRequirementsRegex;
 model.passwordRequirementsMinComplexity = passwordRequirementsMinComplexity;
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)
