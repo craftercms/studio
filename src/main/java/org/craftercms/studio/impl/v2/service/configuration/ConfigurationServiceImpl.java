@@ -26,6 +26,8 @@ import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -84,6 +86,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -411,12 +415,16 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     @ValidateParams
-    public Resource getPluginFile(String siteId,
+    public Resource getPluginFile(@EsapiValidatedParam(name = "siteId", type = SITE_ID) String siteId,
+                                  @EsapiValidatedParam(name = "pluginId", type = HTTPURI)
                                   @ValidateSecurePathParam(name = "pluginId") String pluginId,
+                                  @EsapiValidatedParam(name = "type", type = HTTPURI)
                                   @ValidateSecurePathParam(name = "type") String type,
+                                  @EsapiValidatedParam(name = "name", type = HTTPURI)
                                   @ValidateSecurePathParam(name = "name") String name,
+                                  @EsapiValidatedParam(name = "filename", type = HTTPURI)
                                   @ValidateSecurePathParam(name = "filename") String filename)
-        throws ContentNotFoundException {
+            throws ContentNotFoundException {
 
         String basePath;
         if (isEmpty(pluginId)) {
