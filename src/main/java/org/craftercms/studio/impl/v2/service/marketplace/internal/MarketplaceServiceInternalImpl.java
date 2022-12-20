@@ -427,13 +427,15 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
             .queryParam(Constants.PARAM_SHOW_INCOMPATIBLE, showIncompatible)
             .queryParam(Constants.PARAM_OFFSET, offset)
             .queryParam(Constants.PARAM_LIMIT, limit);
+        Map<String, String> uriVariables = new HashMap<>();
 
         if (isNotEmpty(type)) {
             builder.queryParam(Constants.PARAM_TYPE, type);
         }
 
         if (isNotEmpty(keywords)) {
-            builder.queryParam(Constants.PARAM_KEYWORDS, keywords);
+            builder.queryParam(Constants.PARAM_KEYWORDS, "{keywords}");
+            uriVariables.put("keywords", keywords);
         }
 
         HttpEntity<Void> request = new HttpEntity<>(null, httpHeaders);
@@ -441,7 +443,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
         try {
             ResponseEntity<Map<String, Object>> response =
                 restTemplate.exchange(builder.build().toString(), HttpMethod.GET, request,
-                    new ParameterizedTypeReference<>() {});
+                    new ParameterizedTypeReference<>() {}, uriVariables);
             return response.getBody();
         } catch (ResourceAccessException e) {
             throw new MarketplaceUnreachableException(url, e);
