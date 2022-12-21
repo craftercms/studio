@@ -44,7 +44,7 @@ public class AuditController {
 
     @GetMapping(API_2 + AUDIT)
     public ResponseBody getAuditLog(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = false) String siteId,
+            @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_USER, required = false, defaultValue = "") String user,
@@ -79,7 +79,8 @@ public class AuditController {
     }
 
     @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
-    public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId, @RequestParam(value = REQUEST_PARAM_SITEID, required = false) String siteId) {
+    public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId,
+                                         @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId) throws SiteNotFoundException {
         AuditLog auditLogEntry = auditService.getAuditLogEntry(siteId, auditLogId);
 
         ResponseBody responseBody = new ResponseBody();

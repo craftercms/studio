@@ -20,6 +20,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateCollectionParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -37,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.rometools.utils.Strings.isNotEmpty;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_AUDIT_LOG;
 
@@ -50,10 +55,17 @@ public class AuditServiceImpl implements AuditService {
     private SecurityService securityService;
 
     @Override
+    @ValidateParams
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public List<AuditLog> getAuditLog(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset, int limit, String user,
-                                      List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
-                                      ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
+    public List<AuditLog> getAuditLog(@EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      int offset, int limit,
+                                      @EsapiValidatedParam(type = USERNAME, notEmpty = false, notBlank = false) String user,
+                                      @ValidateCollectionParam(notNull = false, notEmpty = false) @ValidateNoTagsParam List<String> operations,
+                                      boolean includeParameters, ZonedDateTime dateFrom,
+                                      ZonedDateTime dateTo,
+                                      @ValidateNoTagsParam String target,
+                                      @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) String origin,
+                                      @ValidateNoTagsParam String clusterNodeId,
                                       String sort, String order) throws SiteNotFoundException {
         if (isNotEmpty(siteId)) {
             siteService.checkSiteExists(siteId);
@@ -64,9 +76,14 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public int getAuditLogTotal(String siteId, String user, List<String> operations,
-                                           boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                           String target, String origin, String clusterNodeId) throws SiteNotFoundException {
+    @ValidateParams
+    public int getAuditLogTotal(@EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false) String siteId,
+                                @EsapiValidatedParam(type = USERNAME, notEmpty = false, notBlank = false) String user,
+                                @ValidateCollectionParam(notNull = false, notEmpty = false) @ValidateNoTagsParam List<String> operations,
+                                boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                @ValidateNoTagsParam String target,
+                                @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) String origin,
+                                @ValidateNoTagsParam String clusterNodeId) throws SiteNotFoundException {
         if (isNotEmpty(siteId)) {
             siteService.checkSiteExists(siteId);
         }
@@ -76,8 +93,13 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
+    @ValidateParams
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public AuditLog getAuditLogEntry(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId, final long auditLogId) {
+    public AuditLog getAuditLogEntry(@EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false) @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
+                                     final long auditLogId) throws SiteNotFoundException {
+        if(isNotEmpty(siteId)){
+            siteService.checkSiteExists(siteId);
+        }
         return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
     }
 
