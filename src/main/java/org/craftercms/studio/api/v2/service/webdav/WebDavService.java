@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.webdav;
 import java.io.InputStream;
 import java.util.List;
 
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
 
@@ -38,7 +39,7 @@ public interface WebDavService {
      * @return list of resources found
      * @throws WebDavException if there is an error connecting to the server or listing the resources
      */
-    List<WebDavItem> list(String siteId, String profileId, String path, String type) throws WebDavException;
+    List<WebDavItem> list(String siteId, String profileId, String path, String type) throws WebDavException, SiteNotFoundException;
 
     /**
      * Uploads a file in the specified path.
@@ -51,6 +52,6 @@ public interface WebDavService {
      * @throws WebDavException if there is an error connecting to the server or uploading the file
      */
     WebDavItem upload(String siteId, String profileId, String path, String filename, InputStream content) throws
-        WebDavException;
+        WebDavException, SiteNotFoundException;
 
 }

@@ -33,7 +33,9 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.WebDavException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
@@ -71,6 +73,11 @@ public class WebDavServiceImpl implements WebDavService {
      */
     protected Charset charset = Charset.defaultCharset();
 
+    /**
+     * Instance of {@link SiteService}
+     */
+    protected SiteService siteService;
+
     protected WebDavProfile getProfile(String site, String profileId) throws WebDavException  {
         try {
             return profileLoader.loadProfile(site, profileId);
@@ -89,7 +96,11 @@ public class WebDavServiceImpl implements WebDavService {
                                  @ProtectedResourceId("siteId") final String siteId,
                                  @ValidateStringParam(name = "profileId") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
-                                 @ValidateStringParam(name = "type") final String type) throws WebDavException {
+                                 @ValidateStringParam(name = "type") final String type) throws WebDavException, SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+
         WebDavProfile profile = getProfile(siteId, profileId);
         StringBuilder listPath = new StringBuilder(StringUtils.appendIfMissing(profile.getBaseUrl(), "/"));
         MimeType filterType;
@@ -168,7 +179,11 @@ public class WebDavServiceImpl implements WebDavService {
                              @ValidateStringParam(name = "path") final String path,
                              @ValidateStringParam(name = "filename") final String filename,
                              final InputStream content)
-        throws WebDavException {
+        throws WebDavException, SiteNotFoundException {
+        if (!siteService.exists(siteId)) {
+            throw new SiteNotFoundException(siteId);
+        }
+
         WebDavProfile profile = getProfile(siteId, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
@@ -212,5 +227,9 @@ public class WebDavServiceImpl implements WebDavService {
 
     public void setProfileLoader(SiteAwareConfigProfileLoader<WebDavProfile> profileLoader) {
         this.profileLoader = profileLoader;
+    }
+
+    public void setSiteService(SiteService siteService) {
+        this.siteService = siteService;
     }
 }

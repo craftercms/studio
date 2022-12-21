@@ -1318,6 +1318,7 @@
     <bean id="webDavService" class="org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl">
         <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
         <property name="profileLoader" ref="studioWebDavProfileLoader"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- Utilities -->
