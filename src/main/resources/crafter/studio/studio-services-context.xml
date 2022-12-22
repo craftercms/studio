@@ -468,6 +468,7 @@
         <constructor-arg name="cstudioContentService" ref="cstudioContentService"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="configurationService" ref="configurationService"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="repositoryManagementService"

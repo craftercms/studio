@@ -22,37 +22,23 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
-import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
-import org.craftercms.studio.model.rest.CmisCloneRequest;
-import org.craftercms.studio.model.rest.CmisUploadItem;
-import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.Result;
-import org.craftercms.studio.model.rest.ResultOne;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.craftercms.studio.model.rest.*;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_CMIS_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_CMIS_REPO_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
@@ -68,7 +54,7 @@ public class CmisController {
                              @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
                              @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
                              @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
-            throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException {
+            throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException, SiteNotFoundException {
 
         List<CmisContentItem> cmisContentItems = cmisService.list(siteId, cmisRepoId, path);
         List<CmisContentItem> paginatedItems =
@@ -92,7 +78,7 @@ public class CmisController {
                                @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
                                @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
                                @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
-            throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException {
+            throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException, SiteNotFoundException {
 
         List<CmisContentItem> cmisContentItems = cmisService.search(siteId, cmisRepoId, searchTerm, path);
         List<CmisContentItem> paginatedItems =
@@ -126,7 +112,7 @@ public class CmisController {
     @PostMapping(value = "/api/2/cmis/upload")
     public ResponseBody uploadContent(HttpServletRequest httpServletRequest)
             throws IOException, CmisUnavailableException, CmisPathNotFoundException, CmisTimeoutException,
-            CmisRepositoryNotFoundException, FileUploadException, InvalidParametersException, ConfigurationException {
+            CmisRepositoryNotFoundException, FileUploadException, InvalidParametersException, ConfigurationException, SiteNotFoundException {
 
         ServletFileUpload servletFileUpload = new ServletFileUpload();
         FileItemIterator itemIterator = servletFileUpload.getItemIterator(httpServletRequest);
