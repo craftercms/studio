@@ -21,9 +21,9 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateCollectionParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -60,13 +60,14 @@ public class AuditServiceImpl implements AuditService {
     public List<AuditLog> getAuditLog(@EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                       int offset, int limit,
                                       @EsapiValidatedParam(type = USERNAME, notEmpty = false, notBlank = false) String user,
-                                      @ValidateCollectionParam(notNull = false, notEmpty = false) @ValidateNoTagsParam List<String> operations,
+                                      @ValidateNoTagsParam List<String> operations,
                                       boolean includeParameters, ZonedDateTime dateFrom,
                                       ZonedDateTime dateTo,
                                       @ValidateNoTagsParam String target,
-                                      @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) String origin,
+                                      @ValidateStringParam(whitelistedPatterns = "(?i)(API|GIT)") String origin,
                                       @ValidateNoTagsParam String clusterNodeId,
-                                      String sort, String order) throws SiteNotFoundException {
+                                      @ValidateStringParam(whitelistedPatterns = "(?i)date") String sort,
+                                      @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)") String order) throws SiteNotFoundException {
         if (isNotEmpty(siteId)) {
             siteService.checkSiteExists(siteId);
         }
@@ -79,7 +80,7 @@ public class AuditServiceImpl implements AuditService {
     @ValidateParams
     public int getAuditLogTotal(@EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false) String siteId,
                                 @EsapiValidatedParam(type = USERNAME, notEmpty = false, notBlank = false) String user,
-                                @ValidateCollectionParam(notNull = false, notEmpty = false) @ValidateNoTagsParam List<String> operations,
+                                @ValidateNoTagsParam List<String> operations,
                                 boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                 @ValidateNoTagsParam String target,
                                 @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) String origin,

@@ -59,8 +59,6 @@ public class AuditController {
             @RequestParam(value = REQUEST_PARAM_CLUSTER_NODE_ID, required = false) String clusterNodeId,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false) String sort,
             @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order) throws SiteNotFoundException {
-
-
         int total = auditService.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
                 dateTo, target, origin, clusterNodeId);
 
