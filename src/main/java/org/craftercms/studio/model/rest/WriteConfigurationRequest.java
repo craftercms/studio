@@ -16,11 +16,19 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+
 public class WriteConfigurationRequest {
 
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
+    @EsapiValidatedParam(type = ALPHANUMERIC)
     private String module;
+    @EsapiValidatedParam(type = HTTPURI)
     private String path;
+    @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false)
     private String environment;
     private String content;
 

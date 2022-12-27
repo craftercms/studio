@@ -16,13 +16,13 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import java.beans.ConstructorProperties;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -34,29 +34,21 @@ import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
-import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.Result;
-import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.WriteConfigurationRequest;
+import org.craftercms.studio.model.rest.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import java.beans.ConstructorProperties;
+import java.io.InputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USAGE;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @RestController
@@ -76,7 +68,8 @@ public class ConfigurationController {
     }
 
     @GetMapping("clear_cache")
-    public ResponseBody clearCache(@RequestParam String siteId) {
+    @ValidateParams
+    public ResponseBody clearCache(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId) throws SiteNotFoundException {
         configurationService.invalidateConfiguration(siteId);
 
         var responseBody = new ResponseBody();
@@ -86,11 +79,12 @@ public class ConfigurationController {
         return responseBody;
     }
 
+    @ValidateParams
     @GetMapping("/get_configuration")
-    public ResponseBody getConfiguration(@RequestParam(name = "siteId", required = true) String siteId,
-                                         @RequestParam(name = "module", required = true) String module,
-                                         @RequestParam(name = "path", required = true) String path,
-                                         @RequestParam(name = "environment", required = false) String environment) {
+    public ResponseBody getConfiguration(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
+                                         @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
+                                         @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
+                                         @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) @RequestParam(name = "environment", required = false) String environment) {
         final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
@@ -106,7 +100,8 @@ public class ConfigurationController {
     }
 
     @PostMapping("/write_configuration")
-    public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
+    @ValidateParams
+    public ResponseBody writeConfiguration(@ValidateObjectParam @RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException, UserNotFoundException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();
@@ -123,11 +118,12 @@ public class ConfigurationController {
         return responseBody;
     }
 
+    @ValidateParams
     @GetMapping("/get_configuration_history")
-    public ResponseBody getConfigurationHistory(@RequestParam(name = "siteId", required = true) String siteId,
-                                                @RequestParam(name = "module", required = true) String module,
-                                                @RequestParam(name = "path", required = true) String path,
-                                                @RequestParam(name = "environment", required = false) String environment)
+    public ResponseBody getConfigurationHistory(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
+                                                @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
+                                                @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
+                                                @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) @RequestParam(name = "environment", required = false) String environment)
             throws SiteNotFoundException, ContentNotFoundException {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
@@ -140,7 +136,7 @@ public class ConfigurationController {
     }
 
     @GetMapping("translation")
-    public ResponseBody getConfiguration(@RequestParam String siteId) throws ServiceLayerException {
+    public ResponseBody getTranslationConfiguration(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId) throws ServiceLayerException {
         ResultOne<TranslationConfiguration> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_CONFIG, configurationService.getTranslationConfiguration(siteId));
         result.setResponse(OK);
@@ -151,10 +147,11 @@ public class ConfigurationController {
         return body;
     }
 
+    @ValidateParams
     @GetMapping("content-type/usage")
-    public ResponseBody getContentTypeUsage(@RequestParam String siteId, @RequestParam String contentType)
+    public ResponseBody getContentTypeUsage(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
+                                            @EsapiValidatedParam(type = HTTPURI) @RequestParam String contentType)
             throws Exception {
-
         var result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_USAGE, contentTypeService.getContentTypeUsage(siteId, contentType));
@@ -165,8 +162,10 @@ public class ConfigurationController {
         return body;
     }
 
+    @ValidateParams
     @GetMapping("content-type/preview_image")
-    public ResponseEntity<Resource> getContentTypePreviewImage(@RequestParam String siteId, @RequestParam String contentTypeId)
+    public ResponseEntity<Resource> getContentTypePreviewImage(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
+                                                               @EsapiValidatedParam(type = HTTPURI) @RequestParam String contentTypeId)
             throws ServiceLayerException {
 
         ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
@@ -178,8 +177,9 @@ public class ConfigurationController {
                 .body(resource.getValue());
     }
 
+    @ValidateParams
     @PostMapping("content-type/delete")
-    public ResponseBody deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
+    public ResponseBody deleteContentType(@ValidateObjectParam @RequestBody @Valid DeleteContentTypeRequest request)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
 
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
@@ -193,13 +193,13 @@ public class ConfigurationController {
         return body;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonIgnoreProperties
     protected static class DeleteContentTypeRequest {
 
-        @NotEmpty
+        @EsapiValidatedParam(type = SITE_ID)
         protected String siteId;
 
-        @NotEmpty
+        @EsapiValidatedParam(type = HTTPURI)
         protected String contentType;
 
         protected boolean deleteDependencies;
