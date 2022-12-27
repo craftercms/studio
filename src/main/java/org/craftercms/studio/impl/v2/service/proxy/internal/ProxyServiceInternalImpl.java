@@ -21,10 +21,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -97,7 +94,16 @@ public class ProxyServiceInternalImpl implements ProxyService {
         // Execute proxied request and return response
         HttpEntity<Object> httpEntity = new HttpEntity<>(body, headers);
         try {
-            return restTemplate.exchange(uri, HttpMethod.valueOf(request.getMethod()), httpEntity, Object.class);
+            ResponseEntity res = restTemplate.exchange(uri, HttpMethod.valueOf(request.getMethod()), httpEntity, Object.class);
+            HttpHeaders resHeaders = new HttpHeaders();
+            // https://www.rfc-editor.org/rfc/rfc9112#name-transfer-encoding
+            // A sender MUST NOT apply the chunked transfer coding more than once to a message body
+            res.getHeaders().forEach((key, value) -> {
+                if (!key.equals(HttpHeaders.TRANSFER_ENCODING)) {
+                    resHeaders.addAll(key, value);
+                }
+            });
+            return new ResponseEntity<>(res.getBody(), resHeaders, res.getStatusCode());
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getRawStatusCode())
                     .headers(e.getResponseHeaders())
