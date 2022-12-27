@@ -3232,6 +3232,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3286,6 +3288,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3296,7 +3300,7 @@ paths:
       tags:
         - configuration
       summary: Clear all configuration cache for a given site
-      description: 'Required Permission: "LOGGED_IN"'
+      description: 'Required Permission: "write_configuration"'
       operationId: clearConfigurationCache
       parameters:
         - name: siteId
@@ -3312,6 +3316,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3363,6 +3369,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3373,6 +3381,7 @@ paths:
       tags:
         - configuration
       summary: Get translation configuration for a given site
+      description: 'Required permission "read_configuration"'
       operationId: getTranslationConfig
       parameters:
         - name: siteId
