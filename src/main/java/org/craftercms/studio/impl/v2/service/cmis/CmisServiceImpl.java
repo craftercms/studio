@@ -20,7 +20,6 @@ import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
@@ -67,6 +66,7 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_LOCATION;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class CmisServiceImpl implements CmisService {
 
@@ -107,11 +107,10 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = "list_cmis")
-    public List<CmisContentItem> list(@EsapiValidatedParam (type= SITE_ID) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      @ValidateNoTagsParam String cmisRepo,
-                                      @EsapiValidatedParam(type = HTTPURI) String path)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_LIST_CMIS)
+    public List<CmisContentItem> list(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      String cmisRepo,
+                                      String path)
             throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException,
             ConfigurationException, SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -245,12 +244,11 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = "search_cmis")
-    public List<CmisContentItem> search(@EsapiValidatedParam(type = SITE_ID) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                        @ValidateNoTagsParam String cmisRepo,
-                                        @ValidateNoTagsParam String searchTerm,
-                                        @EsapiValidatedParam(type = HTTPURI) String path)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_SEARCH_CMIS)
+    public List<CmisContentItem> search(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                        String cmisRepo,
+                                        String searchTerm,
+                                        String path)
             throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException,
             ConfigurationException, SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -290,12 +288,11 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = "clone_content_cmis")
-    public void cloneContent(@EsapiValidatedParam(type = SITE_ID) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                             @ValidateNoTagsParam String cmisRepoId,
-                             @EsapiValidatedParam(type = HTTPURI) String cmisPath,
-                             @EsapiValidatedParam(type = HTTPURI) @ProtectedResourceId(PATH_RESOURCE_ID) String studioPath)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CLONE_CONTENT_CMIS)
+    public void cloneContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                             String cmisRepoId,
+                             String cmisPath,
+                             @ProtectedResourceId(PATH_RESOURCE_ID) String studioPath)
             throws CmisRepositoryNotFoundException, CmisUnavailableException,
             CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -334,7 +331,7 @@ public class CmisServiceImpl implements CmisService {
 
     @Override
     @ValidateParams
-    @HasPermission(type = DefaultPermission.class, action = "upload_content_cmis")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPLOAD_CONTENT_CMIS)
     public CmisUploadItem uploadContent(@EsapiValidatedParam(type = SITE_ID) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                         @ValidateNoTagsParam String cmisRepoId,
                                         @EsapiValidatedParam(type = HTTPURI) String cmisPath,
@@ -345,7 +342,6 @@ public class CmisServiceImpl implements CmisService {
         siteService.checkSiteExists(siteId);
         // TODO: SJ: Should CMIS session creation go to a helper method?
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
-        CmisUploadItem cmisUploadItem = new CmisUploadItem();
         logger.debug("Create a CMIS session in site '{}' to CMIS repository '{}'", siteId, cmisRepoId);
         Session session = createCMISSession(repositoryConfig);
         if (session == null) {
@@ -357,6 +353,7 @@ public class CmisServiceImpl implements CmisService {
         if (cmisObject == null) {
             throw new CmisPathNotFoundException();
         }
+        CmisUploadItem cmisUploadItem = new CmisUploadItem();
         if (CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
             CmisObject docObject = null;
             try {

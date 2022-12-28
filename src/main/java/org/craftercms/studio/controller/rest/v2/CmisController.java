@@ -22,6 +22,10 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
@@ -31,6 +35,7 @@ import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -38,6 +43,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -48,14 +55,14 @@ public class CmisController {
 
     protected CmisService cmisService;
 
+    @ValidateParams
     @GetMapping("/api/2/cmis/list")
-    public ResponseBody list(@RequestParam(value = "siteId") String siteId,
-                             @RequestParam(value = "cmisRepoId") String cmisRepoId,
-                             @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
+    public ResponseBody list(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = "siteId") String siteId,
+                             @ValidateNoTagsParam @RequestParam(value = "cmisRepoId") String cmisRepoId,
+                             @EsapiValidatedParam(type = HTTPURI) @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
                              @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
                              @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
             throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException, SiteNotFoundException {
-
         List<CmisContentItem> cmisContentItems = cmisService.list(siteId, cmisRepoId, path);
         List<CmisContentItem> paginatedItems =
                 PaginationUtils.paginate(cmisContentItems, offset, limit, StringUtils.EMPTY);
@@ -71,15 +78,15 @@ public class CmisController {
         return responseBody;
     }
 
+    @ValidateParams
     @GetMapping("/api/2/cmis/search")
-    public ResponseBody search(@RequestParam(value = "siteId") String siteId,
-                               @RequestParam(value = "cmisRepoId") String cmisRepoId,
-                               @RequestParam(value = "searchTerm") String searchTerm,
-                               @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
+    public ResponseBody search(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = "siteId") String siteId,
+                               @ValidateNoTagsParam @RequestParam(value = "cmisRepoId") String cmisRepoId,
+                               @ValidateNoTagsParam @RequestParam(value = "searchTerm") String searchTerm,
+                               @EsapiValidatedParam(type = HTTPURI) @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
                                @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
                                @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
             throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException, SiteNotFoundException {
-
         List<CmisContentItem> cmisContentItems = cmisService.search(siteId, cmisRepoId, searchTerm, path);
         List<CmisContentItem> paginatedItems =
                 PaginationUtils.paginate(cmisContentItems, offset, limit, StringUtils.EMPTY);
@@ -95,8 +102,9 @@ public class CmisController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping("/api/2/cmis/clone")
-    public ResponseBody cloneContent(@RequestBody CmisCloneRequest cmisCloneRequest)
+    public ResponseBody cloneContent(@ValidateObjectParam @RequestBody CmisCloneRequest cmisCloneRequest)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
             ServiceLayerException, CmisPathNotFoundException, UserNotFoundException {
         cmisService.cloneContent(cmisCloneRequest.getSiteId(), cmisCloneRequest.getCmisRepoId(),
@@ -113,7 +121,6 @@ public class CmisController {
     public ResponseBody uploadContent(HttpServletRequest httpServletRequest)
             throws IOException, CmisUnavailableException, CmisPathNotFoundException, CmisTimeoutException,
             CmisRepositoryNotFoundException, FileUploadException, InvalidParametersException, ConfigurationException, SiteNotFoundException {
-
         ServletFileUpload servletFileUpload = new ServletFileUpload();
         FileItemIterator itemIterator = servletFileUpload.getItemIterator(httpServletRequest);
         String filename;

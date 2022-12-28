@@ -399,18 +399,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    @ValidateParams
-    public Resource getPluginFile(@EsapiValidatedParam(name = "siteId", type = SITE_ID) String siteId,
-                                  @EsapiValidatedParam(name = "pluginId", type = HTTPURI)
-                                  @ValidateSecurePathParam(name = "pluginId") String pluginId,
-                                  @EsapiValidatedParam(name = "type", type = HTTPURI)
-                                  @ValidateSecurePathParam(name = "type") String type,
-                                  @EsapiValidatedParam(name = "name", type = HTTPURI)
-                                  @ValidateSecurePathParam(name = "name") String name,
-                                  @EsapiValidatedParam(name = "filename", type = HTTPURI)
-                                  @ValidateSecurePathParam(name = "filename") String filename)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public Resource getPluginFile(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                  String pluginId,
+                                  String type,
+                                  String name,
+                                  String filename)
             throws ContentNotFoundException {
-
         String basePath;
         if (isEmpty(pluginId)) {
             basePath = servicesConfig.getPluginFolderPattern(siteId);
@@ -421,7 +416,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         if (isEmpty(basePath)) {
             throw new IllegalStateException(
                 format("Site '%s' does not have an plugin folder pattern configured", siteId));
-        } else if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
+        }
+        if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
                 !StringUtils.contains(basePath, PLACEHOLDER_NAME)) {
             throw new IllegalStateException(format(
                     "Plugin folder pattern for site '%s' does not contain all required placeholders", basePath));

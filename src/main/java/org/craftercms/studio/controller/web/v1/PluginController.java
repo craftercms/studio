@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.controller.web.v1;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -29,6 +32,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.beans.ConstructorProperties;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Controller that provides the UI with plugin related files
@@ -55,12 +61,14 @@ public class PluginController {
     /**
      * Returns a single file for a given plugin
      */
+    @ValidateParams
     @GetMapping("/file")
-    public ResponseEntity<Resource> getPluginFile(@RequestParam String siteId, @RequestParam String type,
-                                                  @RequestParam String name, @RequestParam String filename,
-                                                  @RequestParam(required = false) String pluginId)
-        throws ContentNotFoundException {
-
+    public ResponseEntity<Resource> getPluginFile(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
+                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String type,
+                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String name,
+                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam(required = false) String filename,
+                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam String pluginId)
+            throws ContentNotFoundException {
         Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
 
         String contentType = StudioUtils.getMimeType(filename);
