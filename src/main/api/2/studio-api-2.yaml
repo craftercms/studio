@@ -3528,7 +3528,7 @@ paths:
                 - contentType
       responses:
         '200':
-          description: OK
+          description: Deleted
           content:
             application/json:
               schema:
