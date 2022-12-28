@@ -93,6 +93,7 @@
     </bean>
 
     <bean id="cstudioSiteServiceSimple" class="org.craftercms.studio.impl.v1.service.site.SiteServiceImpl">
+        <constructor-arg name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="siteServiceDAL">
           <bean id="cstudioRepositorySiteServiceDAL"
                 class="org.craftercms.studio.impl.v1.service.site.dal.RepositorySiteServiceDAL">
@@ -125,7 +126,6 @@
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
-        <property name="studioClusterUtils" ref="studio.clusterUtils" />
         <property name="clusterDao" ref="clusterDao" />
         <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />

@@ -212,6 +212,10 @@ public class SiteServiceImpl implements SiteService {
     protected DependencyServiceInternal dependencyServiceInternal;
     protected RetryingOperationFacade retryingOperationFacade;
 
+    public SiteServiceImpl(StudioClusterUtils studioClusterUtils) {
+        this.studioClusterUtils = studioClusterUtils;
+    }
+
     @Override
     @ValidateParams
     public boolean writeConfiguration(@ValidateStringParam(name = "site") String site,
@@ -1911,14 +1915,6 @@ public class SiteServiceImpl implements SiteService {
 
     public void setContentRepositoryV2(org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
-    }
-
-    public StudioClusterUtils getStudioClusterUtils() {
-        return studioClusterUtils;
-    }
-
-    public void setStudioClusterUtils(StudioClusterUtils studioClusterUtils) {
-        this.studioClusterUtils = studioClusterUtils;
     }
 
     public ClusterDAO getClusterDao() {
