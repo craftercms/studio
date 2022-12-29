@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -156,7 +157,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
                                           @ValidateStringParam final String inputProfileId,
                                           @ValidateStringParam final String outputProfileId,
                                           @ValidateStringParam final String filename,
-                                          final InputStream content) throws AwsException {
+                                          final InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
         MediaConvertProfile profile = getProfile(site, inputProfileId);
         AmazonS3 s3Client = getS3Client(profile);
         AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);

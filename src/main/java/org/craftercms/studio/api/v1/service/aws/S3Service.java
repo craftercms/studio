@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.service.aws;
 
 import java.io.InputStream;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.aws.s3.S3Output;
 import org.craftercms.studio.api.v1.exception.AwsException;
 
@@ -39,7 +40,8 @@ public interface S3Service {
      * @param content    the file itself
      * @return metadata of an AWS S3 upload
      * @throws AwsException if an error occurs
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
-    S3Output uploadFile(String site, String profileId, String filename, InputStream content) throws AwsException;
+    S3Output uploadFile(String site, String profileId, String filename, InputStream content) throws AwsException, ConfigurationProfileNotFoundException;
 
 }

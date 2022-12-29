@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.WebDavException;
@@ -92,7 +93,7 @@ public class WebDavServiceImpl implements WebDavService {
         this.profileLoader = profileLoader;
     }
 
-    protected WebDavProfile getProfile(String site, String profileId) throws WebDavException  {
+    protected WebDavProfile getProfile(String site, String profileId) throws WebDavException, ConfigurationProfileNotFoundException {
         try {
             return profileLoader.loadProfile(site, profileId);
         } catch (ConfigurationException e) {
@@ -107,7 +108,7 @@ public class WebDavServiceImpl implements WebDavService {
     public List<WebDavItem> list(@ValidateStringParam(name = "site_id") final String site,
                                  @ValidateStringParam(name = "profile") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
-                                 @ValidateStringParam(name = "type") final String type) throws WebDavException {
+                                 @ValidateStringParam(name = "type") final String type) throws WebDavException, ConfigurationProfileNotFoundException {
         WebDavProfile profile = getProfile(site, profileId);
         String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
@@ -180,7 +181,7 @@ public class WebDavServiceImpl implements WebDavService {
                          @ValidateStringParam(name = "path") final String path,
                          @ValidateStringParam(name = "filename") final String filename,
                          final InputStream content)
-        throws WebDavException {
+            throws WebDavException, ConfigurationProfileNotFoundException {
         WebDavProfile profile = getProfile(site, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {

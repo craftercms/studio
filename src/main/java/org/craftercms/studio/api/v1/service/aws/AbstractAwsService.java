@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v1.service.aws;
 
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.aws.AbstractAwsProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
@@ -40,7 +41,7 @@ public abstract class AbstractAwsService<T extends AbstractAwsProfile> {
         this.profileLoader = profileLoader;
     }
 
-    protected T getProfile(String site, String profileId) throws AwsException {
+    protected T getProfile(String site, String profileId) throws AwsException, ConfigurationProfileNotFoundException {
         try {
             return profileLoader.loadProfile(site, profileId);
         } catch (ConfigurationException e) {

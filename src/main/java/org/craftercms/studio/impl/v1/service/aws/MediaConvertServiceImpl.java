@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.aws;
 
 import java.io.InputStream;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvert;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertJob;
@@ -54,7 +55,7 @@ public class MediaConvertServiceImpl extends AbstractAwsService<MediaConvertProf
     public MediaConvertJob startJob(final @ValidateStringParam(name = "site") String site,
                                     final @ValidateStringParam(name = "profile") String profileId,
                                     final @ValidateStringParam(name = "filename") String filename,
-                                    final InputStream content) throws AwsException {
+                                    final InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
 
         MediaConvertProfile profile = getProfile(site, profileId);
 

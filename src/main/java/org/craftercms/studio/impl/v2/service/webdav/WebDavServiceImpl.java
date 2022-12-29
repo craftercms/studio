@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -78,7 +79,7 @@ public class WebDavServiceImpl implements WebDavService {
      */
     protected SiteService siteService;
 
-    protected WebDavProfile getProfile(String site, String profileId) throws WebDavException  {
+    protected WebDavProfile getProfile(String site, String profileId) throws WebDavException, ConfigurationProfileNotFoundException {
         try {
             return profileLoader.loadProfile(site, profileId);
         } catch (ConfigurationException e) {
@@ -96,7 +97,7 @@ public class WebDavServiceImpl implements WebDavService {
                                  @ProtectedResourceId("siteId") final String siteId,
                                  @ValidateStringParam(name = "profileId") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
-                                 @ValidateStringParam(name = "type") final String type) throws WebDavException, SiteNotFoundException {
+                                 @ValidateStringParam(name = "type") final String type) throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException {
         siteService.checkSiteExists(siteId);
         WebDavProfile profile = getProfile(siteId, profileId);
         StringBuilder listPath = new StringBuilder(StringUtils.appendIfMissing(profile.getBaseUrl(), "/"));
@@ -176,7 +177,7 @@ public class WebDavServiceImpl implements WebDavService {
                              @ValidateStringParam(name = "path") final String path,
                              @ValidateStringParam(name = "filename") final String filename,
                              final InputStream content)
-        throws WebDavException, SiteNotFoundException {
+            throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException {
         siteService.checkSiteExists(siteId);
         WebDavProfile profile = getProfile(siteId, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");

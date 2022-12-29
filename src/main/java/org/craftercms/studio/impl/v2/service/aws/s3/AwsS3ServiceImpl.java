@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.aws.S3ClientCachingFactory;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -107,7 +108,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
                              @ValidateStringParam(name = "profileId") String profileId,
                              @ValidateStringParam(name ="path") String path,
                              @ValidateStringParam(name = "filename") String filename,
-                             InputStream content) throws AwsException {
+                             InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();
@@ -127,7 +128,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
     public List<S3Item> listItems(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
                                   @ValidateStringParam(name = "profileId") String profileId,
                                   @ValidateStringParam(name = "path") String path,
-                                  @ValidateStringParam(name = "type") String type) throws AwsException {
+                                  @ValidateStringParam(name = "type") String type) throws AwsException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(siteId, profileId);
         AmazonS3 client = getS3Client(profile);
         List<S3Item> items = new LinkedList<>();

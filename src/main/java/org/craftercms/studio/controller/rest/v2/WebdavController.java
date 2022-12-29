@@ -28,6 +28,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
@@ -78,6 +79,7 @@ public class WebdavController {
      * @return the list of items
      * @throws WebDavException if there is any error connecting to the WebDAV server
      * @throws SiteNotFoundException if site does not exist
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     @GetMapping("list")
     public ResultList<WebDavItem> listItems(
@@ -85,7 +87,7 @@ public class WebdavController {
         @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
         @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
         @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type)
-            throws WebDavException, SiteNotFoundException {
+            throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException {
 
         ResultList<WebDavItem> result = new ResultList<>();
         result.setEntities(RESULT_KEY_ITEMS, webDavService.list(siteId, profileId, path, type));
@@ -102,10 +104,11 @@ public class WebdavController {
      * @throws WebDavException if there is any error uploading the file to the WebDAV server
      * @throws InvalidParametersException if there is any error parsing the request
      * @throws SiteNotFoundException if site does not exist
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     @PostMapping("/upload")
     public ResultOne<WebDavItem> uploadItem(HttpServletRequest request) throws IOException, WebDavException,
-        InvalidParametersException, SiteNotFoundException {
+            InvalidParametersException, SiteNotFoundException, ConfigurationProfileNotFoundException {
         if (ServletFileUpload.isMultipartContent(request)) {
             ResultOne<WebDavItem> result = new ResultOne<>();
             try {

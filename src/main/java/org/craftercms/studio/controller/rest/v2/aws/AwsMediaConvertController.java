@@ -27,6 +27,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.aws.mediaconvert.AwsMediaConvertService;
@@ -68,7 +69,7 @@ public class AwsMediaConvertController {
      */
     @PostMapping("/upload")
     public ResultOne<MediaConvertResult> uploadVideo(HttpServletRequest request)
-        throws IOException, AwsException, InvalidParametersException {
+            throws IOException, AwsException, InvalidParametersException, ConfigurationProfileNotFoundException {
         if (ServletFileUpload.isMultipartContent(request)) {
             ResultOne<MediaConvertResult> result = new ResultOne<>();
             try {

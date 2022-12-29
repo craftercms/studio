@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.aws.s3;
 import java.io.InputStream;
 import java.util.List;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.model.aws.s3.S3Item;
 
@@ -38,9 +39,10 @@ public interface AwsS3Service {
      * @param content a stream providing the content of the file
      * @return the uploaded item
      * @throws AwsException if there is any error connection to S3
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     S3Item uploadItem(String siteId, String profileId, String path, String filename, InputStream content)
-        throws AwsException;
+            throws AwsException, ConfigurationProfileNotFoundException;
 
     /**
      * Lists items in an S3 bucket.
@@ -50,7 +52,8 @@ public interface AwsS3Service {
      * @param type the type of items to list
      * @return the list of items
      * @throws AwsException if there is any error connection to S3
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
-    List<S3Item> listItems(String siteId, String profileId, String path, String type) throws AwsException;
+    List<S3Item> listItems(String siteId, String profileId, String path, String type) throws AwsException, ConfigurationProfileNotFoundException;
 
 }
