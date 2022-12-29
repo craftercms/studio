@@ -29,6 +29,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.exception.AwsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
 import org.craftercms.studio.model.aws.s3.S3Item;
@@ -68,6 +69,7 @@ public class AwsS3Controller {
      * @param type the type of file to list
      * @return the list of items
      * @throws AwsException if there is any error connecting to S3
+     * @throws SiteNotFoundException if the site is not found
      * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     @GetMapping("/list")
@@ -76,7 +78,7 @@ public class AwsS3Controller {
         @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
         @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
         @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type)
-            throws AwsException, ConfigurationProfileNotFoundException {
+            throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException {
 
         ResultList<S3Item> result = new ResultList<>();
         result.setEntities(RESULT_KEY_ITEMS, s3Service.listItems(siteId, profileId, path, type));
@@ -92,11 +94,12 @@ public class AwsS3Controller {
      * @throws IOException if there is any error reading the content of the file
      * @throws InvalidParametersException if there is any error parsing the request
      * @throws AwsException if there is any error connecting to S3
+     * @throws SiteNotFoundException if the site is not found
      * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     @PostMapping("/upload")
     public ResultOne<S3Item> uploadItem(HttpServletRequest request) throws IOException, InvalidParametersException,
-            AwsException, ConfigurationProfileNotFoundException {
+            AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException {
         if(ServletFileUpload.isMultipartContent(request)) {
             ResultOne<S3Item> result = new ResultOne<>();
             try {

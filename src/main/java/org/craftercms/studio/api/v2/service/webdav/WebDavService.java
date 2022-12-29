@@ -39,6 +39,7 @@ public interface WebDavService {
      * @param type mime type used for filtering
      * @return list of resources found
      * @throws WebDavException if there is an error connecting to the server or listing the resources
+     * @throws SiteNotFoundException if the site is not found
      * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     List<WebDavItem> list(String siteId, String profileId, String path, String type) throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException;
@@ -52,6 +53,7 @@ public interface WebDavService {
      * @param content stream providing the content of the file
      * @return the uploaded item
      * @throws WebDavException if there is an error connecting to the server or uploading the file
+     * @throws SiteNotFoundException if the site is not found
      * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     WebDavItem upload(String siteId, String profileId, String path, String filename, InputStream content) throws

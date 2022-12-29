@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.exception.AwsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.model.aws.mediaconvert.MediaConvertResult;
 
 /**
@@ -39,9 +40,10 @@ public interface AwsMediaConvertService {
      * @param content content of the file
      * @throws AwsException if the upload or transcoding job creation fails
      * @throws ConfigurationProfileNotFoundException if the profile is not found
+     * @throws SiteNotFoundException if the site is not found
      * @return the result of the transcoding job
      */
     MediaConvertResult uploadVideo(final String site, final String inputProfileId, final String outputProfileId,
-                                   final String filename, final InputStream content) throws AwsException, ConfigurationProfileNotFoundException;
+                                   final String filename, final InputStream content) throws AwsException, ConfigurationProfileNotFoundException, SiteNotFoundException;
 
 }
