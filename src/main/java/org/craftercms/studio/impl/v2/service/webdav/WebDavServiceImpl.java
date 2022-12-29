@@ -97,10 +97,7 @@ public class WebDavServiceImpl implements WebDavService {
                                  @ValidateStringParam(name = "profileId") final String profileId,
                                  @ValidateStringParam(name = "path") final String path,
                                  @ValidateStringParam(name = "type") final String type) throws WebDavException, SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
-
+        siteService.checkSiteExists(siteId);
         WebDavProfile profile = getProfile(siteId, profileId);
         StringBuilder listPath = new StringBuilder(StringUtils.appendIfMissing(profile.getBaseUrl(), "/"));
         MimeType filterType;
@@ -180,10 +177,7 @@ public class WebDavServiceImpl implements WebDavService {
                              @ValidateStringParam(name = "filename") final String filename,
                              final InputStream content)
         throws WebDavException, SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
-
+        siteService.checkSiteExists(siteId);
         WebDavProfile profile = getProfile(siteId, profileId);
         String uploadUrl = StringUtils.appendIfMissing(profile.getBaseUrl(), "/");
         try {
