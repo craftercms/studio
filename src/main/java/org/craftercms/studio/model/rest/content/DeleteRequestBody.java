@@ -16,16 +16,29 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
+import org.craftercms.commons.validation.annotations.param.ValidateCollectionParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
 public class DeleteRequestBody {
 
-    @NotEmpty
+    @EsapiValidatedParam(type= SITE_ID)
     private String siteId;
-    @NotEmpty
-    private List<@Valid @NotEmpty String> items;
+    @ValidateCollectionParam(notEmpty = true)
+    @EsapiValidatedParam(type=HTTPURI)
+    @ValidateSecurePathParam
+    private List<String> items;
+
+    @EsapiValidatedParam(type=HTTPURI)
+    @ValidateSecurePathParam
     private List<String> optionalDependencies;
     private String comment;
 

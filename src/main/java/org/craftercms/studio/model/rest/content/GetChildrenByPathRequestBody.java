@@ -16,9 +16,12 @@
 package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.commons.validation.annotations.param.*;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 
 /**
  * Holds data for the getChildrenByPath request
@@ -26,20 +29,26 @@ import java.util.List;
  * @author joseross
  * @since 4.0
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties
 public class GetChildrenByPathRequestBody {
 
-    @NotEmpty
+    @EsapiValidatedParam(type= SITE_ID)
     private String siteId;
-    @NotEmpty
+    @EsapiValidatedParam(type = HTTPURI)
+    @ValidateSecurePathParam
     private String path;
-    private  String localeCode;
-    private  String keyword;
-
+    @ValidateNoTagsParam
+    private String localeCode;
+    @ValidateNoTagsParam
+    private String keyword;
+    @EsapiValidatedParam(type = ALPHANUMERIC)
     private List<String> systemTypes;
-
+    @EsapiValidatedParam(type = HTTPURI)
+    @ValidateSecurePathParam
     private List<String> excludes;
+    @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst")
     private String sortStrategy;
+    @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
     private String order = "ASC";
     private int offset = 0;
     private int limit = 10;

@@ -18,6 +18,9 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -42,41 +45,19 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CONTENT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DELETE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RENAME;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DUPLICATE_ITEM;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CHILDREN_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_CONTENT_BY_COMMIT_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DELETE_PACKAGE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GET_DESCRIPTOR;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_LOCK_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_UNLOCK_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LIST_QUICK_CREATE_CONTENT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PASTE_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SANDBOX_ITEMS_BY_PATH;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CHILD_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_DEPENDENT_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_XML;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -104,13 +85,10 @@ public class ContentController {
         this.workflowService = workflowService;
     }
 
+    @ValidateParams
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
-    public ResponseBody listQuickCreateContent(@RequestParam(name = "siteId") String siteId)
+    public ResponseBody listQuickCreateContent(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId") String siteId)
             throws SiteNotFoundException {
-
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
         List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
 
         ResponseBody responseBody = new ResponseBody();
@@ -121,8 +99,9 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping(GET_DELETE_PACKAGE)
-    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) {
+    public ResponseBody getDeletePackage(@ValidateObjectParam @RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
         List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
@@ -136,8 +115,9 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
+    public ResponseBody delete(@ValidateObjectParam @RequestBody @Validated DeleteRequestBody deleteRequestBody)
             throws UserNotFoundException, ServiceLayerException, DeploymentException {
         workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
                 deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
@@ -149,8 +129,9 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequestBody request)
+    public ResponseBody getChildrenByPath(@ValidateObjectParam @RequestBody @Valid GetChildrenByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(request.getSiteId())) {
             throw new SiteNotFoundException(request.getSiteId());

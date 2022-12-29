@@ -67,13 +67,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_APPROVE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static java.lang.String.format;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static java.lang.String.format;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
@@ -94,7 +92,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
 
     @Override
-    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) {
+    // TODO: JM: Should we have a "is member of site" validation here?
+    public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         return contentTypeServiceInternal.getQuickCreatableContentTypes(siteId);
     }
 
@@ -113,7 +113,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
+                                      @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
         List<String> childItems = new ArrayList<>();
         childItems.addAll(subtreeItems);
@@ -187,6 +188,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                                String keyword, List<String> systemTypes, List<String> excludes,
                                                String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
                                                         sortStrategy, order, offset, limit);
     }
