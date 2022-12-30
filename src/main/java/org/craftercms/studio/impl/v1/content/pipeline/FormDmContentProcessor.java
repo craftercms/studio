@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +158,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     }
 
     // For backward compatibility ignore the exception
-    protected void unlock(String siteId, String path) throws ContentNotFoundException {
+    protected void unlock(String siteId, String path) throws ContentNotFoundException, SiteNotFoundException {
         try {
             contentServiceV2.unlockContent(siteId, path);
             logger.debug("Unlocked the content at site '{}' path '{}'", siteId, path);

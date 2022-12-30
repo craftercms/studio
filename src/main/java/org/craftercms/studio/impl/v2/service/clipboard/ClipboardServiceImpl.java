@@ -22,11 +22,13 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
@@ -41,34 +43,32 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  */
 public class ClipboardServiceImpl implements ClipboardService {
 
-    protected ClipboardServiceInternal clipboardServiceInternal;
+    protected final ClipboardServiceInternal clipboardServiceInternal;
+    protected final SiteService siteService;
+
+    @ConstructorProperties({"clipboardServiceInternal", "siteService"})
+    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, SiteService siteService) {
+        this.clipboardServiceInternal = clipboardServiceInternal;
+        this.siteService = siteService;
+    }
 
     @Override
-    @ValidateParams
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
     public List<String> pasteItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                    Operation operation,
-                                   @ProtectedResourceId(PATH_RESOURCE_ID)
-                                       @ValidateSecurePathParam(name = "targetPath") String targetPath,
+                                   @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
                                    PasteItem item) throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
         return clipboardServiceInternal.pasteItems(siteId, operation, targetPath, item);
     }
 
     @Override
-    @ValidateParams
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
     public String duplicateItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID)
-                                @ValidateSecurePathParam(name = "path") String path)
+                                String path)
             throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
         return clipboardServiceInternal.duplicateItem(siteId, path);
-    }
-
-    public ClipboardServiceInternal getClipboardServiceInternal() {
-        return clipboardServiceInternal;
-    }
-
-    public void setClipboardServiceInternal(ClipboardServiceInternal clipboardServiceInternal) {
-        this.clipboardServiceInternal = clipboardServiceInternal;
     }
 }

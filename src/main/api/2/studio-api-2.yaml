@@ -4050,7 +4050,7 @@ paths:
       tags:
         - content
       summary: Get item details for given an item path
-      description: 'Required permission "get_detailed_item" and "read_item" and "site member"'
+      description: 'Required permission "get_children"'
       operationId: getDetailedItemByPath
       parameters:
         - name: siteId
@@ -4387,7 +4387,7 @@ paths:
       tags:
         - content
       summary: Get content for commit id
-      description: 'Required permission "site member"'
+      description: 'Required permission "content_read"'
       operationId: getContentByCommitId
       parameters:
         - name: siteId

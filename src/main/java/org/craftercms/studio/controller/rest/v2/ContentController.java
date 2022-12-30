@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -41,6 +42,7 @@ import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
+import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +54,7 @@ import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
@@ -133,9 +135,6 @@ public class ContentController {
     @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getChildrenByPath(@ValidateObjectParam @RequestBody @Valid GetChildrenByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(request.getSiteId())) {
-            throw new SiteNotFoundException(request.getSiteId());
-        }
         GetChildrenResult result = contentService.getChildrenByPath(
                 request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
                 request.getSystemTypes(), request.getExcludes(), request.getSortStrategy(), request.getOrder(),
@@ -146,28 +145,22 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getDescriptor(@RequestParam String siteId, @RequestParam String path,
-                                      @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
+    public ResultOne<String> getDescriptor(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
+                                           @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String path,
+                                           @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
             ContentNotFoundException, SiteNotFoundException {
-        var item = contentService.getItem(siteId, path, flatten);
-        var descriptor = item.getDescriptorDom();
-        if (descriptor == null) {
-            throw new ContentNotFoundException(path, siteId, "No descriptor found for " + path + " in site " + siteId);
-        }
-
+        Document descriptor = contentService.getItemDescriptor(siteId, path, flatten);
         var result = new ResultOne<String>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_XML, descriptor.asXML());
-
-        var response = new ResponseBody();
-        response.setResult(result);
-
-        return response;
+        return result;
     }
 
+    @ValidateParams
     @PostMapping(value = PASTE_ITEMS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody pasteItems(@Valid @RequestBody PasteRequest request) throws Exception {
+    public ResponseBody pasteItems(@ValidateObjectParam @Valid @RequestBody PasteRequest request) throws Exception {
         var result = new ResultList<String>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS,
@@ -180,8 +173,9 @@ public class ContentController {
         return response;
     }
 
+    @ValidateParams
     @PostMapping(value = DUPLICATE_ITEM, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody duplicateItem(@Valid @RequestBody DuplicateRequest request) throws Exception {
+    public ResponseBody duplicateItem(@ValidateObjectParam @Valid @RequestBody DuplicateRequest request) throws Exception {
         var result = new ResultOne<String>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_ITEM,
@@ -193,15 +187,16 @@ public class ContentController {
         return response;
     }
 
+    @ValidateParams
     @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemByPath(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+    public ResponseBody getItemByPath(@EsapiValidatedParam(type = SITE_ID)
+                                      @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                      @EsapiValidatedParam(type = HTTPURI)
+                                      @ValidateSecurePathParam
                                       @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                       @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                               defaultValue = "false") boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
         DetailedItem detailedItem = contentService.getItemByPath(siteId, path, preferContent);
         ResponseBody responseBody = new ResponseBody();
         ResultOne<DetailedItem> result = new ResultOne<>();
@@ -211,13 +206,11 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
+    public ResponseBody getSandboxItemsByPath(@ValidateObjectParam @RequestBody @Valid GetSandboxItemsByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         String siteId = request.getSiteId();
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(request.getSiteId());
-        }
         Collection<String> missing = Collections.emptyList();
         List<String> paths = request.getPaths();
         boolean preferContent = request.isPreferContent();
@@ -241,12 +234,10 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping(ITEM_LOCK_BY_PATH)
-    public ResponseBody itemLockByPath(@RequestBody @Valid LockItemByPathRequest request)
+    public ResponseBody itemLockByPath(@ValidateObjectParam @RequestBody @Valid LockItemByPathRequest request)
             throws UserNotFoundException, ServiceLayerException {
-        if (!siteService.exists(request.getSiteId())) {
-            throw new SiteNotFoundException(request.getSiteId());
-        }
         contentService.lockContent(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
@@ -255,13 +246,10 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @PostMapping(ITEM_UNLOCK_BY_PATH)
-    public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
+    public ResponseBody itemUnlockByPath(@ValidateObjectParam @RequestBody @Valid UnlockItemByPathRequest request)
             throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
-        //TODO: The service should throw this exception, not the controller
-        if (!siteService.exists(request.getSiteId())) {
-            throw new SiteNotFoundException(request.getSiteId());
-        }
         contentService.unlockContent(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
@@ -270,12 +258,12 @@ public class ContentController {
         return responseBody;
     }
 
+    @ValidateParams
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
-    public ResponseEntity<Resource> getContentByCommitId(@RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                             @RequestParam(value = REQUEST_PARAM_PATH) String path,
-                                             @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
+    public ResponseEntity<Resource> getContentByCommitId(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                                         @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam(value = REQUEST_PARAM_PATH) String path,
+                                                         @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
             throws ServiceLayerException, UserNotFoundException {
-
         DetailedItem item = contentService.getItemByPath(siteId, path, true);
         Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
 
@@ -285,10 +273,10 @@ public class ContentController {
                 .body(resource);
     }
 
+    @ValidateParams
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody rename(@RequestBody RenameRequestBody renameRequestBody)
+    public ResponseBody rename(@ValidateObjectParam @RequestBody RenameRequestBody renameRequestBody)
             throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
-
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 
         var responseBody = new ResponseBody();

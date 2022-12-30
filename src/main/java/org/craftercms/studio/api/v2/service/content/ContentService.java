@@ -16,6 +16,9 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -28,10 +31,15 @@ import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedExce
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public interface ContentService {
 
@@ -119,6 +127,8 @@ public interface ContentService {
 
     Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
+    Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
+
     /**
      * Get detailed item for given path
      *
@@ -152,7 +162,7 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path item path
      */
-    void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException;
+    void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException;
 
     /**
      * Get content for commit id

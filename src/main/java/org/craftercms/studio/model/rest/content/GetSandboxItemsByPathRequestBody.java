@@ -16,10 +16,16 @@
 package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds data for the getSandboxItemsByPath request
@@ -27,12 +33,15 @@ import java.util.List;
  * @author joseross
  * @since 4.0
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties
 public class GetSandboxItemsByPathRequestBody {
 
     @NotEmpty
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
+    @ValidateSecurePathParam
+    @EsapiValidatedParam(type = HTTPURI)
     private List<@Valid @NotEmpty String> paths;
     private boolean preferContent;
 
