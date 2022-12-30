@@ -104,6 +104,9 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
         SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        if (Objects.isNull(siteFeed)) {
+            return null;
+        }
         DetailedItem item;
         String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
         String liveEnv = servicesConfig.getLiveEnvironment(siteId);
