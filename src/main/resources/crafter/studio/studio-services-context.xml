@@ -271,7 +271,8 @@
     </bean>
 
     <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
-        <property name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
+        <constructor-arg name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="defaultCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.DefaultCacheInvalidator"/>
@@ -555,7 +556,8 @@
     </bean>
 
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
-        <property name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+        <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
@@ -593,14 +595,14 @@
     </bean>
 
     <bean id="dashboardService" class="org.craftercms.studio.impl.v2.service.dashboard.DashboardServiceImpl">
-        <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
-        <property name="publishServiceInternal" ref="publishServiceInternal" />
-        <property name="contentServiceInternal" ref="contentServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
-        <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
-        <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="searchService" ref="searchService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
+        <constructor-arg name="publishServiceInternal" ref="publishServiceInternal" />
+        <constructor-arg name="contentServiceInternal" ref="contentServiceInternal" />
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
+        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
+        <constructor-arg name="searchService" ref="searchService" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="itemService" class="org.craftercms.studio.impl.v2.service.item.ItemServiceImpl">

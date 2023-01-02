@@ -5651,7 +5651,7 @@ paths:
       tags:
         - dashboard
       summary: Get unpublished items for site
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardContentUnpublished
       parameters:
         - name: siteId
@@ -5714,7 +5714,7 @@ paths:
       tags:
         - dashboard
       summary: Get scheduled publishing packages
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingScheduled
       parameters:
         - name: siteId
@@ -5726,12 +5726,6 @@ paths:
         - name: publishingTarget
           in: query
           description: publishing target to filter results
-          required: false
-          schema:
-            type: string
-        - name: approver
-          in: query
-          description: approver user to filter results
           required: false
           schema:
             type: string
@@ -5803,7 +5797,7 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that is scheduled
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingScheduledDetail
       parameters:
         - name: siteId
@@ -5848,7 +5842,7 @@ paths:
       tags:
         - dashboard
       summary: Get history of published packages
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingHistory
       parameters:
         - name: siteId
@@ -5937,7 +5931,7 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that was published
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingHistoryDetail
       parameters:
         - name: siteId
@@ -5982,7 +5976,7 @@ paths:
       tags:
         - dashboard
       summary: Get publishing stats
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingStats
       parameters:
         - name: siteId
