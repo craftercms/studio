@@ -50,7 +50,6 @@ import org.craftercms.studio.model.search.SearchResult;
 
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
-import java.util.Collections;
 import java.util.List;
 
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;

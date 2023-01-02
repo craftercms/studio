@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.content.SandboxItem;

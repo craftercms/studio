@@ -18,7 +18,6 @@ package org.craftercms.studio.model.rest.content;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.*;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;

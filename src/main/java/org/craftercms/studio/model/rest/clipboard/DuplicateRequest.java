@@ -16,7 +16,6 @@
 package org.craftercms.studio.model.rest.clipboard;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.constraints.NotEmpty;

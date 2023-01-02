@@ -16,9 +16,6 @@
 
 package org.craftercms.studio.api.v2.service.content;
 
-import org.craftercms.commons.security.permissions.DefaultPermission;
-import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -36,10 +33,6 @@ import org.springframework.core.io.Resource;
 
 import java.util.List;
 import java.util.Optional;
-
-import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 public interface ContentService {
 
