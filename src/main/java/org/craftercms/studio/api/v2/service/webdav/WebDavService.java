@@ -19,6 +19,8 @@ package org.craftercms.studio.api.v2.service.webdav;
 import java.io.InputStream;
 import java.util.List;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
 
@@ -37,8 +39,10 @@ public interface WebDavService {
      * @param type mime type used for filtering
      * @return list of resources found
      * @throws WebDavException if there is an error connecting to the server or listing the resources
+     * @throws SiteNotFoundException if the site is not found
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
-    List<WebDavItem> list(String siteId, String profileId, String path, String type) throws WebDavException;
+    List<WebDavItem> list(String siteId, String profileId, String path, String type) throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException;
 
     /**
      * Uploads a file in the specified path.
@@ -49,8 +53,10 @@ public interface WebDavService {
      * @param content stream providing the content of the file
      * @return the uploaded item
      * @throws WebDavException if there is an error connecting to the server or uploading the file
+     * @throws SiteNotFoundException if the site is not found
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     WebDavItem upload(String siteId, String profileId, String path, String filename, InputStream content) throws
-        WebDavException;
+            WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException;
 
 }

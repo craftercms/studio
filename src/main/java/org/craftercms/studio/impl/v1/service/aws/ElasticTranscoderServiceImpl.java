@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.aws;
 
 import java.io.InputStream;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.ElasticTranscoder;
@@ -47,7 +48,7 @@ public class ElasticTranscoderServiceImpl extends AbstractAwsService<TranscoderP
     public TranscoderJob transcodeFile(@ValidateStringParam(name = "site") String site,
                                        @ValidateStringParam(name = "profileId") String profileId,
                                        @ValidateStringParam(name = "filename") String filename,
-                                       InputStream content) throws AwsException {
+                                       InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
         TranscoderProfile profile = getProfile(site, profileId);
         TranscoderJob job = transcoder.startJob(filename, content, profile);
 

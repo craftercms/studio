@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v1.service.box;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.exception.BoxException;
 
 /**
@@ -29,8 +30,9 @@ public interface BoxService {
      * @param profileId the name of the profile to search
      * @return the value of the access token
      * @throws BoxException box error
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
-    String getAccessToken(String site, String profileId) throws BoxException;
+    String getAccessToken(String site, String profileId) throws BoxException, ConfigurationProfileNotFoundException;
 
     /**
      * Builds a local URL for the given asset
@@ -40,7 +42,8 @@ public interface BoxService {
      * @param filename the name of the file
      * @return the local URL for the file
      * @throws BoxException box error
+     * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
-    String getUrl(String site, String profileId, String fileId, String filename) throws BoxException;
+    String getUrl(String site, String profileId, String fileId, String filename) throws BoxException, ConfigurationProfileNotFoundException;
 
 }

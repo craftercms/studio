@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v1.service.aws;
 
 import java.io.InputStream;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.aws.elastictranscoder.TranscoderJob;
 import org.craftercms.studio.api.v1.exception.AwsException;
 
@@ -42,6 +43,6 @@ public interface ElasticTranscoderService {
      * @throws AwsException if an error occurs
      */
     TranscoderJob transcodeFile(String site, String profileId, String filename, InputStream content) throws
-        AwsException;
+            AwsException, ConfigurationProfileNotFoundException;
 
 }

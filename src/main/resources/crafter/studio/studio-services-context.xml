@@ -1251,6 +1251,7 @@
         <property name="clientFactory" ref="crafter.s3ClientFactory"/>
         <property name="delimiter" value="#{studioConfiguration.getProperty('studio.aws.s3.delimiter')}"/>
         <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.aws.s3.url.pattern')}"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="studioMediaConvert" class="org.craftercms.studio.impl.v1.aws.mediaconvert.MediaConvertImpl"/>
@@ -1272,6 +1273,7 @@
                   value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.dash')}"/>
         <property name="smoothExtension"
                   value="#{studioConfiguration.getProperty('studio.aws.mediaconvert.extension.smooth')}"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- ////////////////////////////////////// -->
@@ -1318,6 +1320,7 @@
     <bean id="webDavService" class="org.craftercms.studio.impl.v2.service.webdav.WebDavServiceImpl">
         <property name="urlPattern" value="#{studioConfiguration.getProperty('studio.webdav.url.pattern')}"/>
         <property name="profileLoader" ref="studioWebDavProfileLoader"/>
+        <property name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <!-- Utilities -->
