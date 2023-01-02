@@ -412,8 +412,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             throw new IllegalStateException(
                 format("Site '%s' does not have an plugin folder pattern configured", siteId));
         }
-        if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
-                !StringUtils.contains(basePath, PLACEHOLDER_NAME)) {
+        if (!contains(basePath, PLACEHOLDER_TYPE) ||
+                !contains(basePath, PLACEHOLDER_NAME)) {
             throw new IllegalStateException(format(
                     "Plugin folder pattern for site '%s' does not contain all required placeholders", basePath));
         }
