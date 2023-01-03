@@ -81,7 +81,6 @@ import static java.lang.String.format;
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-<<<<<<< HEAD
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
