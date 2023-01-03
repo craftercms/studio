@@ -20,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
+// TODO: JM: Review and delete if not used
 public class ContentType {
 
     protected String name = null;

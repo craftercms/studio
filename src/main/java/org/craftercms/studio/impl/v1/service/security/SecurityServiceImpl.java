@@ -135,7 +135,7 @@ public class SecurityServiceImpl implements SecurityService {
     @ValidateParams
     public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user)
             throws ServiceLayerException, UserNotFoundException {
-        Map<String, Object> toRet = new HashMap<String, Object>();
+        Map<String, Object> toRet = new HashMap<>();
         User u = userServiceInternal.getUserByIdOrUsername(-1, user);
         if (u != null) {
             toRet.put(KEY_USERNAME, user);
@@ -151,7 +151,7 @@ public class SecurityServiceImpl implements SecurityService {
     public Map<String, Object> getUserProfileByGitName(
             @ValidateStringParam(name = "firstNameLastName") String gitName)
             throws ServiceLayerException, UserNotFoundException {
-        Map<String, Object> toRet = new HashMap<String, Object>();
+        Map<String, Object> toRet = new HashMap<>();
         User u = userServiceInternal.getUserByGitName(gitName);
         if (u != null) {
             toRet.put(KEY_USERNAME, u.getUsername());
@@ -178,11 +178,11 @@ public class SecurityServiceImpl implements SecurityService {
     public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
                                           @ValidateSecurePathParam(name = "path") String path,
                                           @ValidateStringParam(name = "user") String user, List<String> groups) {
-        Set<String> permissions = new HashSet<String>();
+        Set<String> permissions = new HashSet<>();
         if (StringUtils.isNotEmpty(site)) {
             PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
             PermissionsConfigTO permissionsConfig = loadConfiguration(site, getPermissionsFileName());
-            Set<String> roles = new HashSet<String>();
+            Set<String> roles = new HashSet<>();
             addUserRoles(roles, site, user);
             addGroupRoles(roles, site, groups, rolesConfig);
             // resolve the permission
@@ -212,7 +212,7 @@ public class SecurityServiceImpl implements SecurityService {
 
         PermissionsConfigTO globalRolesConfig = loadGlobalRolesConfiguration();
         PermissionsConfigTO globalPermissionsConfig = loadGlobalPermissionsConfiguration();
-        Set<String> roles = new HashSet<String>();
+        Set<String> roles = new HashSet<>();
         addGlobalUserRoles(user, roles, globalRolesConfig);
         addGlobalGroupRoles(roles, groups, globalRolesConfig);
         permissions.addAll(populateUserGlobalPermissions(path, roles, globalPermissionsConfig));
@@ -253,7 +253,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected Set<String> populateUserGlobalPermissions(String path, Set<String> roles,
                                                   PermissionsConfigTO permissionsConfig) {
-        Set<String> permissions = new HashSet<String>();
+        Set<String> permissions = new HashSet<>();
         if (roles != null && !roles.isEmpty()) {
             for (String role : roles) {
                 // TODO: SJ: Avoid string literals
@@ -353,7 +353,7 @@ public class SecurityServiceImpl implements SecurityService {
                 logger.debug("Get groups for user '{}' in site '{}' groups '{}'", user, site, groups);
 
                 PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
-                Set<String> userRoles = new HashSet<String>();
+                Set<String> userRoles = new HashSet<>();
                 if (rolesConfig != null) {
                     Map<String, List<String>> rolesMap = rolesConfig.getRoles();
                     for (Group group : groups) {
@@ -496,7 +496,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void loadRoles(Element root, PermissionsConfigTO config) {
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS)) {
-            Map<String, List<String>> rolesMap = new HashMap<String, List<String>>();
+            Map<String, List<String>> rolesMap = new HashMap<>();
 
             List<Node> userNodes = root.selectNodes(StudioXmlConstants.DOCUMENT_ELM_USER_NODE);
             rolesMap = getRoles(userNodes, rolesMap);
@@ -513,7 +513,7 @@ public class SecurityServiceImpl implements SecurityService {
             String name = node.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
             if (!StringUtils.isEmpty(name)) {
                 List<Node> roleNodes = node.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-                List<String> roles = new ArrayList<String>();
+                List<String> roles = new ArrayList<>();
                 for (Node roleNode : roleNodes) {
                     roles.add(roleNode.getText());
                 }
@@ -525,7 +525,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     protected void loadPermissions(String siteId, Element root, PermissionsConfigTO config) {
         if (root.getName().equals(StudioXmlConstants.DOCUMENT_PERMISSIONS)) {
-            Map<String, Map<String, List<Node>>> permissionsMap = new HashMap<String, Map<String, List<Node>>>();
+            Map<String, Map<String, List<Node>>> permissionsMap = new HashMap<>();
 
             //backwards compatibility for nested <site>
             Element permissionsRoot = root;
@@ -535,7 +535,7 @@ public class SecurityServiceImpl implements SecurityService {
             }
 
             List<Node> roleNodes = permissionsRoot.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE);
-            Map<String, List<Node>> rules = new HashMap<String, List<Node>>();
+            Map<String, List<Node>> rules = new HashMap<>();
             for (Node roleNode : roleNodes) {
                 String roleName = roleNode.valueOf(StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME);
                 List<Node> ruleNodes = roleNode.selectNodes(StudioXmlConstants.DOCUMENT_ELM_PERMISSION_RULE);

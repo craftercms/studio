@@ -48,7 +48,7 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
     private final static String REJECT = "/api/1/services/api/1/workflow/reject.json";
     private final static String GO_DELETE = "/api/1/services/api/1/workflow/go-delete.json";
 
-    private final static Set<String> URIS_TO_VOTE = new HashSet<String>() {{
+    private final static Set<String> URIS_TO_VOTE = new HashSet<>() {{
         add(GO_LIVE);
         add(REJECT);
         add(GO_DELETE);
@@ -59,11 +59,11 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
     private final static String DELETE_CONTENT_PERMISSION = "delete_content";
     private final static String CANCEL_PUBLISH_PERMISSION = "cancel_publish";
 
-    private final static Set<String> DELETE_PERMISSIONS = new HashSet<String>() {{
+    private final static Set<String> DELETE_PERMISSIONS = new HashSet<>() {{
         add(DELETE_PERMISSION);
         add(DELETE_CONTENT_PERMISSION);
     }};
-    private final static Set<String> REJECT_PERMISSIONS = new HashSet<String>() {{
+    private final static Set<String> REJECT_PERMISSIONS = new HashSet<>() {{
         add(PUBLISH_PERMISSION);
         add(CANCEL_PUBLISH_PERMISSION);
     }};
@@ -85,7 +85,7 @@ public class StudioWorkflowAPIAccessDecisionVoter extends StudioAbstractAccessDe
             if (URIS_TO_VOTE.contains(requestUri)) {
                 String userParam = request.getParameter("username");
                 String siteParam = request.getParameter("site_id");
-                List<String> paths = new ArrayList<String>();
+                List<String> paths = new ArrayList<>();
                 if (StringUtils.isEmpty(siteParam)) {
                     siteParam = request.getParameter("site");
                 }

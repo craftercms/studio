@@ -14,24 +14,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.exception.security;
+-- Drop unused table
+DROP TABLE IF EXISTS `cluster_remote_repository` ;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+-- Drop unused procedure
+DROP PROCEDURE IF EXISTS tryLockPublishingForSite ;
 
-public class ActionNotAllowedException extends ServiceLayerException {
-
-    public ActionNotAllowedException() {
-    }
-
-    public ActionNotAllowedException(Throwable e) {
-        super(e);
-    }
-
-    public ActionNotAllowedException(String message) {
-        super(message);
-    }
-
-    public ActionNotAllowedException(String message, Exception e) {
-        super(message, e);
-    }
-}
+UPDATE `_meta` SET `version` = '4.0.1.12' ;

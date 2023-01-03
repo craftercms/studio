@@ -16,6 +16,54 @@
 
 package org.craftercms.studio.impl.v1.repository.git;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.repository.ContentRepository;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
+import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.core.ContextManager;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.InvalidRemoteException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.internal.storage.file.LockFile;
+import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevTree;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.treewalk.TreeWalk;
+import org.eclipse.jgit.treewalk.filter.PathFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.context.ServletContextAware;
+
+import javax.servlet.ServletContext;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,105 +73,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-import javax.servlet.ServletContext;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.crypto.CryptoException;
-import org.craftercms.commons.crypto.TextEncryptor;
-import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.GitLog;
-import org.craftercms.studio.api.v2.dal.GitLogDAO;
-import org.craftercms.studio.api.v2.dal.RemoteRepository;
-import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.repository.ContentRepository;
-import org.craftercms.studio.api.v1.repository.RepositoryItem;
-import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
-import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.eclipse.jgit.api.AddCommand;
-import org.eclipse.jgit.api.CheckoutCommand;
-import org.eclipse.jgit.api.CommitCommand;
-import org.eclipse.jgit.api.CreateBranchCommand;
-import org.eclipse.jgit.api.DeleteBranchCommand;
-import org.eclipse.jgit.api.FetchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.LogCommand;
-import org.eclipse.jgit.api.LsRemoteCommand;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.PushCommand;
-import org.eclipse.jgit.api.RemoteAddCommand;
-import org.eclipse.jgit.api.RemoteListCommand;
-import org.eclipse.jgit.api.RemoteRemoveCommand;
-import org.eclipse.jgit.api.RmCommand;
-import org.eclipse.jgit.api.Status;
-import org.eclipse.jgit.api.StatusCommand;
-import org.eclipse.jgit.api.TagCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.internal.storage.file.LockFile;
-import org.eclipse.jgit.lib.Config;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectLoader;
-import org.eclipse.jgit.lib.PersonIdent;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.transport.PushResult;
-import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.RemoteConfig;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
-import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathFilter;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.context.ServletContextAware;
 
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.String.format;
 import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+<<<<<<< HEAD
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -152,18 +110,16 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SITES_REPOS
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.EMPTY_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_COMMIT_ALL_ITEMS;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ListBranchCommand.ListMode.REMOTE;
-import static org.eclipse.jgit.lib.Constants.DEFAULT_REMOTE_NAME;
-import static org.eclipse.jgit.lib.Constants.HEAD;
-import static org.eclipse.jgit.lib.Constants.OBJ_TREE;
-import static org.eclipse.jgit.lib.Constants.R_REMOTES;
+import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
-import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NODELETE;
-import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_NONFASTFORWARD;
-import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_OTHER_REASON;
-import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.REJECTED_REMOTE_CHANGED;
+import static org.eclipse.jgit.transport.RemoteRefUpdate.Status.*;
 
 public class GitContentRepository implements ContentRepository, ServletContextAware {
 
@@ -408,7 +364,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
-        Map<String, String> toRet = new TreeMap<String, String>();
+        Map<String, String> toRet = new TreeMap<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         generalLockService.lock(gitLockKey);
         try {
@@ -533,7 +489,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
         // TODO: SJ: Rethink this API call for 3.1+
-        final List<RepositoryItem> retItems = new ArrayList<RepositoryItem>();
+        final List<RepositoryItem> retItems = new ArrayList<>();
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -609,7 +565,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public VersionTO[] getContentVersionHistory(String site, String path) {
-        List<VersionTO> versionHistory = new ArrayList<VersionTO>();
+        List<VersionTO> versionHistory = new ArrayList<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         generalLockService.lock(gitLockKey);
         try {
@@ -840,10 +796,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             EnumSet<FileVisitOption> opts = EnumSet.of(FOLLOW_LINKS);
             Files.walkFileTree(source, opts, MAX_VALUE, tc);
 
-            String studioManifestLocation = this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION);
+            Path studioManifestLocation = Paths.get(this.ctx.getRealPath(STUDIO_MANIFEST_LOCATION));
             // TODO: SJ: Clean up string literals
-            if (Files.exists(Paths.get(studioManifestLocation))) {
-                FileUtils.copyFile(Paths.get(studioManifestLocation).toFile(),
+            if (Files.exists(studioManifestLocation)) {
+                FileUtils.copyFile(studioManifestLocation.toFile(),
                         Paths.get(globalConfigPath.toAbsolutePath().toString(),
                                 studioConfiguration.getProperty(BLUE_PRINTS_PATH), "BLUEPRINTS.MF").toFile());
             }
@@ -1027,7 +983,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
-        List<String> commitIds = new ArrayList<String>();
+        List<String> commitIds = new ArrayList<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site);
         generalLockService.lock(gitLockKey);
         try {
@@ -1098,7 +1054,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             generalLockService.unlock(gitLockKey);
         }
 
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("gitLogs", gitLogs);
         params.put("processed", 1);
@@ -1108,7 +1064,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     @Override
     public void deleteGitLogForSite(String siteId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
         retryingDatabaseOperationFacade.retry(() -> gitLogDao.deleteGitLogForSite(params));
     }
@@ -1150,7 +1106,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                                 .setListMode(REMOTE);
                         List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
 
-                        List<String> branchesToDelete = new ArrayList<String>();
+                        List<String> branchesToDelete = new ArrayList<>();
                         for (Ref remoteBranchRef : resultRemoteBranches) {
                             if (remoteBranchRef.getName().startsWith(Constants.R_REMOTES + remoteName)) {
                                 branchesToDelete.add(remoteBranchRef.getName());
@@ -1212,7 +1168,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         // TODO: SJ: Refactor to shorten and reduce duplication
         // TODO: SJ: Clean up string literals
         logger.debug("Adding remote '{}' to the database for site '{}'", remoteName, siteId);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         params.put("remoteUrl", remoteUrl);
@@ -1243,14 +1199,11 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
         // Insert site remote record into database
         retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
-        Map<String,String> getRemoteRepoParams = new HashMap<>();
-        getRemoteRepoParams.put("siteId", siteId);
-        getRemoteRepoParams.put("remoteName", remoteName);
     }
 
     @Override
     public void removeRemoteRepositoriesForSite(String siteId) {
-        Map<String, Object> params = new HashMap<String, Object>();
+        Map<String, Object> params = new HashMap<>();
         // TODO: SJ: Clean up string literals
         params.put("siteId", siteId);
         retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.deleteRemoteRepositoriesForSite(params));
@@ -1259,7 +1212,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     @Override
     public List<RemoteRepositoryInfoTO> listRemote(String siteId, String sandboxBranch)
             throws ServiceLayerException {
-        List<RemoteRepositoryInfoTO> res = new ArrayList<RemoteRepositoryInfoTO>();
+        List<RemoteRepositoryInfoTO> res = new ArrayList<>();
         try (Repository repo = helper.getRepository(siteId, SANDBOX)) {
 
             try (Git git = new Git(repo)) {
@@ -1293,7 +1246,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                     }
                     ListBranchCommand listBranchCommand = git.branchList().setListMode(REMOTE);
                     List<Ref> resultRemoteBranches = retryingRepositoryOperationFacade.call(listBranchCommand);
-                    Map<String, List<String>> remoteBranches = new HashMap<String, List<String>>();
+                    Map<String, List<String>> remoteBranches = new HashMap<>();
                     for (Ref remoteBranchRef : resultRemoteBranches) {
                         String branchFullName = remoteBranchRef.getName().replace(R_REMOTES, "");
                         String remotePart = EMPTY;
@@ -1307,7 +1260,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         }
 
                         if (!remoteBranches.containsKey(remotePart)) {
-                            remoteBranches.put(remotePart, new ArrayList<String>());
+                            remoteBranches.put(remotePart, new ArrayList<>());
                         }
                         remoteBranches.get(remotePart).add(branchNamePart);
                     }
@@ -1320,7 +1273,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         rri.setName(conf.getName());
                         List<String> branches = remoteBranches.get(rri.getName());
                         if (CollectionUtils.isEmpty(branches)) {
-                            branches = new ArrayList<String>();
+                            branches = new ArrayList<>();
                             branches.add(sandboxBranchName);
                         }
                         rri.setBranches(branches);
@@ -1373,7 +1326,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean pushToRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
         logger.debug("Push from site '{}' to remote '{}' branch '{}'", siteId, remoteName, remoteBranch);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
@@ -1419,7 +1372,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             logger.error("Failed to push from site '{}' to remote '{}' branch '{}'",
                     siteId, remoteName, remoteBranch, e);
             throw new ServiceLayerException(format("Failed to push from site '%s' to remote '%s' branch '%s'",
-                    siteId, remoteName, remoteBranch, e));
+                    siteId, remoteName, remoteBranch), e);
         }
     }
 
@@ -1427,7 +1380,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     public boolean pullFromRemote(String siteId, String remoteName, String remoteBranch) throws ServiceLayerException,
             InvalidRemoteUrlException {
         logger.debug("Pull from remote '{}' branch '{}' in site '{}'", remoteName, remoteBranch, siteId);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("siteId", siteId);
         params.put("remoteName", remoteName);
         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);

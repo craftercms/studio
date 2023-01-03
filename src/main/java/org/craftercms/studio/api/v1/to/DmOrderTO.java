@@ -94,13 +94,7 @@ public class DmOrderTO implements Comparable<DmOrderTO>, Serializable {
 
 	@Override
 	public int compareTo(DmOrderTO o) {
-		if (this.getOrder() > o.getOrder()) {
-			return 1;
-		} else if (this.getOrder() == o.getOrder()) {
-			return 0;
-		} else {
-			return -1;
-		}
+		return Double.compare(this.getOrder(), o.getOrder());
 	}
 
 	@Override
@@ -112,9 +106,7 @@ public class DmOrderTO implements Comparable<DmOrderTO>, Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		DmOrderTO other = (DmOrderTO) obj;
-		if (!_id.equals(other._id))
-			return false;
-		return true;
+		return _id.equals(other._id);
 	}
 
 }

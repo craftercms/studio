@@ -57,7 +57,7 @@ public class UiController {
 
     @GetMapping("/system/active_environment")
     public ResponseBody getActiveEnvironment() throws AuthenticationException {
-        ResultOne<String> result = new ResultOne<String>();
+        ResultOne<String> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         result.setEntity(RESULT_KEY_ENVIRONMENT, uiService.getActiveEnvironment());
         ResponseBody responseBody = new ResponseBody();

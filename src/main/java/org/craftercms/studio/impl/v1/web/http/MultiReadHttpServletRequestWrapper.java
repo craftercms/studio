@@ -103,7 +103,7 @@ public class MultiReadHttpServletRequestWrapper extends HttpServletRequestWrappe
     @Override
     public Map<String, String[]> getParameterMap() {
         if (parameterMap == null) {
-            Map<String, String[]> result = new LinkedHashMap<String, String[]>();
+            Map<String, String[]> result = new LinkedHashMap<>();
             decode(getQueryString(), result);
             String encoding = getRequest().getCharacterEncoding();
             if (StringUtils.isEmpty(encoding)) {

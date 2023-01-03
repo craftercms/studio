@@ -152,7 +152,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
         List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
 
         if (CollectionUtils.isNotEmpty(allContentTypes)) {
-            List<ContentTypeConfigTO> contentTypes = new ArrayList<ContentTypeConfigTO>();
+            List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
             for (ContentTypeConfigTO contentTypeConfig : allContentTypes) {
                 // check if the path matches one of includes paths
                 if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())){

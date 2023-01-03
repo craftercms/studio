@@ -71,11 +71,7 @@ public class ContentFormatUtils {
 	 * @return boolean value
 	 */
 	public static boolean getBooleanValue(String str) {
-		if (!StringUtils.isEmpty(str) && str.equalsIgnoreCase("true")) {
-			return true;
-		} else {
-			return false;
-		}
+		return Boolean.parseBoolean(str);
 	}
 
 	/**

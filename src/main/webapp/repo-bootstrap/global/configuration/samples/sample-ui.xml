@@ -91,7 +91,7 @@
                         <role>developer</role>
                     </permittedRoles>
                     <configuration>
-                        <title id="siteTools.title" defaultMessage="Site Tools"/>
+                        <title id="siteTools.title" defaultMessage="Project Tools"/>
                         <icon id="@mui/icons-material/ConstructionRounded"/>
                         <widgets>
                             <widget id="craftercms.components.SiteToolsPanel"/>
@@ -275,7 +275,7 @@
                                     <role>developer</role>
                                 </permittedRoles>
                                 <configuration>
-                                    <title id="siteTools.title" defaultMessage="Site Tools"/>
+                                    <title id="siteTools.title" defaultMessage="Project Tools"/>
                                     <systemLinkId>siteToolsDialog</systemLinkId>
                                     <icon id="@mui/icons-material/ConstructionRounded"/>
                                 </configuration>

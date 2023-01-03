@@ -16,6 +16,7 @@
 package org.craftercms.studio.api.v1.asset;
 
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Represents an asset that can be processed (image, pdf, Word document, etc.)
@@ -55,14 +56,14 @@ public class Asset {
             return false;
         }
 
-        Asset asset = (Asset)o;
+        Asset asset = (Asset) o;
 
-        return repoPath != null? repoPath.equals(asset.repoPath): asset.repoPath == null;
+        return Objects.equals(repoPath, asset.repoPath);
     }
 
     @Override
     public int hashCode() {
-        return repoPath != null? repoPath.hashCode(): 0;
+        return repoPath != null ? repoPath.hashCode() : 0;
     }
 
     @Override

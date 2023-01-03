@@ -58,7 +58,6 @@ import org.springframework.context.ApplicationContextAware;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -614,9 +613,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                        List<String> optionalDependencies, String comment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(format("Site '%s' not found", siteId));
-        }
+        siteService.checkSiteExists(siteId);
 
         // create submission package (aad folders and children if pages)
         List<String> pathsToDelete = calculateDeleteSubmissionPackage(siteId, paths, optionalDependencies);

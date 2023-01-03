@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.craftercms.studio.api.v2.service.site.internal.SitesServiceInternal;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +37,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class SitesServiceImpl implements SitesService {
 
-    private SitesServiceInternal sitesServiceInternal;
+    private SitesService sitesServiceInternal;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
     private ContentRepository contentRepository;
 
@@ -91,16 +90,12 @@ public class SitesServiceImpl implements SitesService {
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 
-    public void setSitesServiceInternal(SitesServiceInternal sitesServiceInternal) {
+    public void setSitesServiceInternal(SitesService sitesServiceInternal) {
         this.sitesServiceInternal = sitesServiceInternal;
     }
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
-    }
-
-    public ContentRepository getContentRepository() {
-        return contentRepository;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {

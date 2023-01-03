@@ -318,7 +318,7 @@
         OR
             user_id in
             <foreach item="userId" index="index" collection="inactiveUsers" open="(" separator="," close=")">
-                #{inactiveUsers}
+                #{userId}
             </foreach>
         </if>
     </delete>

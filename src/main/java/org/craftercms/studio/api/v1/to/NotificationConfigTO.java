@@ -178,7 +178,7 @@ public class NotificationConfigTO implements TimeStamped, Serializable {
 	 */
 	public Map<String, Boolean> getSendNoticeMapping() {
 		if (this._sendNoticeMapping == null) {
-			this._sendNoticeMapping = new HashMap<String, Boolean>();
+			this._sendNoticeMapping = new HashMap<>();
 		}
 		return _sendNoticeMapping;
 	}

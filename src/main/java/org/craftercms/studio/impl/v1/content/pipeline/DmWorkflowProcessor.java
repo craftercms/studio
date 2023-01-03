@@ -52,6 +52,7 @@ public class DmWorkflowProcessor extends BaseContentProcessor {
     }
 
     public void process(PipelineContent content, ResultTO result) throws ContentProcessException {
+        // TODO: JM: This does nothing? Remove entire class?
         String type = (String) content.getProperty(DmConstants.KEY_ACTIVITY_TYPE);
         boolean edit = (OPERATION_CREATE.equals(type)) ? false : true;
     }

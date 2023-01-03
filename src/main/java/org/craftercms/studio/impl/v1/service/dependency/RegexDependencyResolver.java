@@ -59,7 +59,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     @Override
     public Map<String, Set<String>> resolve(String site, String path) {
-        Map<String, Set<String>> toRet = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toRet = new HashMap<>();
         try {
             logger.debug("Get the dependency resolver configuration for site '{}'", site);
             DependencyResolverConfigTO config = getConfiguration(site);
@@ -119,14 +119,14 @@ public class RegexDependencyResolver implements DependencyResolver {
             if (itemTypesEl != null) {
                 logger.trace("Load the dependency configuration according to the XML structure");
                 Map<String, DependencyResolverConfigTO.ItemType> itemTypes =
-                        new HashMap<String, DependencyResolverConfigTO.ItemType>();
+                        new HashMap<>();
                 Iterator<Element> iterItemTypes = itemTypesEl.elementIterator(XML_CONFIGURATION_ITEM_TYPE);
                 logger.trace("Populate the item types");
                 while (iterItemTypes.hasNext()) {
                     DependencyResolverConfigTO.ItemType itemType = new DependencyResolverConfigTO.ItemType();
-                    List<String> itemTypeIncludes = new ArrayList<String>();
+                    List<String> itemTypeIncludes = new ArrayList<>();
                     Map<String, DependencyResolverConfigTO.DependencyType> dependencyTypes =
-                            new HashMap<String, DependencyResolverConfigTO.DependencyType>();
+                            new HashMap<>();
                     Element itemTypeEl = iterItemTypes.next();
                     String typeName = itemTypeEl.valueOf(XML_CONFIGURATION_NAME);
                     Element includesIT = itemTypeEl.element(XML_CONFIGURATION_INCLUDES);
@@ -140,7 +140,7 @@ public class RegexDependencyResolver implements DependencyResolver {
 
                     itemType.setIncludes(itemTypeIncludes);
 
-                    List<String> itemTypeExcludes = new ArrayList<String>();
+                    List<String> itemTypeExcludes = new ArrayList<>();
                     Element excludesIT = itemTypeEl.element(XML_CONFIGURATION_EXCLUDES);
                     if (excludesIT != null) {
                         iterPathPatterns = excludesIT.elementIterator(XML_CONFIGURATION_PATH_PATTERN);
@@ -160,7 +160,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                         DependencyResolverConfigTO.DependencyType dependencyType =
                                 new DependencyResolverConfigTO.DependencyType();
                         List<DependencyResolverConfigTO.DependencyExtractionPattern> patterns =
-                                new ArrayList<DependencyResolverConfigTO.DependencyExtractionPattern>();
+                                new ArrayList<>();
                         String dependencyTypeName = dependencyTypeEl.valueOf(XML_CONFIGURATION_NAME);
                         dependencyType.setName(dependencyTypeName);
                         Element dependencyTypeIncludesEl = dependencyTypeEl.element(XML_CONFIGURATION_INCLUDES);
@@ -170,7 +170,7 @@ public class RegexDependencyResolver implements DependencyResolver {
                             DependencyResolverConfigTO.DependencyExtractionPattern pattern =
                                     new DependencyResolverConfigTO.DependencyExtractionPattern();
                             List<DependencyResolverConfigTO.DependencyExtractionTransform> transforms =
-                                    new ArrayList<DependencyResolverConfigTO.DependencyExtractionTransform>();
+                                    new ArrayList<>();
                             Element patternEl = iterDependencyTypeIncludes.next();
                             Element findRegexEl = patternEl.element(XML_CONFIGURATION_FIND_REGEX);
                             pattern.setFindRegex(findRegexEl.getStringValue());
@@ -234,11 +234,11 @@ public class RegexDependencyResolver implements DependencyResolver {
 
     private Map<String, Set<String>> getDependencies(String site, String path, String content, Map<String,
             DependencyResolverConfigTO.DependencyType> dependencyTypes) {
-        Map<String, Set<String>> toRet = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> toRet = new HashMap<>();
         logger.debug("Get the dependencies for site '{}' path '{}'", site, path);
         for (Map.Entry<String, DependencyResolverConfigTO.DependencyType> dependencyTypeEntry :
                 dependencyTypes.entrySet()) {
-            Set<String> extractedPaths = new HashSet<String>();
+            Set<String> extractedPaths = new HashSet<>();
             DependencyResolverConfigTO.DependencyType dependencyType = dependencyTypeEntry.getValue();
             List<DependencyResolverConfigTO.DependencyExtractionPattern> extractionPatterns =
                     dependencyType.getIncludes();

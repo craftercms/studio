@@ -16,19 +16,20 @@
 
 package org.craftercms.studio.impl.v2.job;
 
+import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.job.SiteJob;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.lib.Repository;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class StudioClockTask implements SiteJob {
+public abstract class StudioClockTask implements SiteJob, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioClockTask.class);
 
@@ -37,6 +38,8 @@ public abstract class StudioClockTask implements SiteJob {
     protected int offset;
     protected StudioConfiguration studioConfiguration;
     protected SiteService siteService;
+    protected ContentRepository contentRepository;
+    protected ApplicationContext applicationContext;
 
     protected synchronized boolean checkCycleCounter(String site) {
         if (!counters.containsKey(site)) {
@@ -71,45 +74,28 @@ public abstract class StudioClockTask implements SiteJob {
         }
     }
 
-    protected boolean validateRepository(Repository repository) throws IOException {
-        for (Ref ref : repository.getRefDatabase().getRefs()) {
-            if (ref.getObjectId() == null)
-                continue;
-            return true;
-        }
-
-        return false;
-    }
-
-    public int getExecuteEveryNCycles() {
-        return executeEveryNCycles;
-    }
-
     public void setExecuteEveryNCycles(int executeEveryNCycles) {
         this.executeEveryNCycles = executeEveryNCycles;
-    }
-
-    public int getOffset() {
-        return offset;
     }
 
     public void setOffset(int offset) {
         this.offset = offset;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
     public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
+    }
+
+    public void setContentRepository(final ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
+
+    @Override
+    public void setApplicationContext(final @NonNull ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
     }
 }

@@ -147,7 +147,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
-    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+    public void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
+        checkExternallyManagedUsers(Arrays.asList(user.getId()), Arrays.asList(user.getUsername()));
+
         userServiceInternal.updateUser(user);
         User updatedUser = userServiceInternal.getUserByIdOrUsername(user.getId(), StringUtils.EMPTY);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
@@ -164,8 +166,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_USERS)
     public void deleteUsers(List<Long> userIds, List<String> usernames)
-            throws ServiceLayerException, AuthenticationException, UserNotFoundException {
+            throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException {
         User currentUser = getCurrentUser();
+
+        checkExternallyManagedUsers(userIds, usernames);
 
         if (CollectionUtils.containsAny(userIds, List.of(currentUser.getId())) ||
                 CollectionUtils.containsAny(usernames, List.of(currentUser.getUsername()))) {
@@ -259,7 +263,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
     public List<User> enableUsers(List<Long> userIds, List<String> usernames,
-                                  boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException {
+                                  boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
+        checkExternallyManagedUsers(userIds, usernames);
+
         List<User> users = userServiceInternal.enableUsers(userIds, usernames, enabled);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -394,37 +400,29 @@ public class UserServiceImpl implements UserService {
             UserExternallyManagedException {
         logger.debug("Get the user profile for username '{}'", username);
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        boolean success;
-        if (user == null) {
-            logger.info("User profile not found for username '{}' while performing forgot password", username);
-            throw new UserNotFoundException();
-        } else {
-            if (user.isExternallyManaged()) {
-                throw new UserExternallyManagedException();
-            } else {
-                if (user.getEmail() != null) {
-                    String email = user.getEmail();
-
-                    logger.debug("Create a forgot password security token for username '{}'", username);
-                    long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
-                            Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
-                    String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
-                    String studioId = instanceService.getInstanceId();
-                    // TODO: SJ: Avoid string literals
-                    String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
-                    String hashedToken = encryptToken(token);
-                    logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
-                    sendForgotPasswordEmail(email, hashedToken);
-                    success = true;
-                } else {
-                    logger.info("Failed to send forgot password email to username '{}' because that user " +
-                            "does not have an email address in the system", username);
-                    throw new ServiceLayerException(format("Failed to send forgot password email to username " +
-                            "'%s' because that user does not have an email address in the system", username));
-                }
-            }
+        if (user.isExternallyManaged()) {
+            throw new UserExternallyManagedException();
         }
-        return success;
+        if (user.getEmail() == null) {
+            logger.info("Failed to send forgot password email to username '{}' because that user " +
+                    "does not have an email address in the system", username);
+            throw new ServiceLayerException(format("Failed to send forgot password email to username " +
+                    "'%s' because that user does not have an email address in the system", username));
+        }
+
+        String email = user.getEmail();
+
+        logger.debug("Create a forgot password security token for username '{}'", username);
+        long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
+                Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+        String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
+        String studioId = instanceService.getInstanceId();
+        // TODO: SJ: Avoid string literals
+        String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
+        String hashedToken = encryptToken(token);
+        logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
+        sendForgotPasswordEmail(email, hashedToken);
+        return true;
     }
 
     private String encryptToken(String token) {
@@ -667,6 +665,21 @@ public class UserServiceImpl implements UserService {
             return new ArrayList<>(userRoles);
         } else {
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * Check if updating users list contains any externally managed users.
+     * If matched, the operation must not be permitted.
+     * @param userIds
+     * @param usernames
+     * @throws UserNotFoundException
+     * @throws ServiceLayerException
+     */
+    private void checkExternallyManagedUsers(List<Long> userIds, List<String> usernames) throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
+        List<User> users = userServiceInternal.getUsersByIdOrUsername(userIds, usernames);
+        if (users.stream().anyMatch(user -> user.isExternallyManaged())) {
+            throw new UserExternallyManagedException("Cannot update externally managed users.");
         }
     }
 

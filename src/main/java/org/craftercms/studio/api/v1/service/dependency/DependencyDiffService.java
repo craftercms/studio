@@ -39,9 +39,9 @@ public interface DependencyDiffService {
      */
     class DiffResponse{
 
-        protected List<String> addedDependencies = new ArrayList<String>();
+        protected List<String> addedDependencies = new ArrayList<>();
 
-        protected List<String> removedDependencies = new ArrayList<String>();
+        protected List<String> removedDependencies = new ArrayList<>();
 
 
         public List<String> getAddedDependencies() {

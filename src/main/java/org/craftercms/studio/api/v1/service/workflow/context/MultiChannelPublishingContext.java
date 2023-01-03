@@ -15,8 +15,6 @@
  */
 package org.craftercms.studio.api.v1.service.workflow.context;
 
-import java.util.List;
-
 /**
  * @author Dejan Brkic
  */

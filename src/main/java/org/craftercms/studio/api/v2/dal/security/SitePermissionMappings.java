@@ -30,11 +30,11 @@ import java.util.regex.Pattern;
 public class SitePermissionMappings {
 
     private String siteId;
-    private Map<String, RolePermissionMappings> rolePermissions = new HashMap<String, RolePermissionMappings>();
-    private Map<String, List<String>> groupToRolesMapping = new HashMap<String, List<String>>();
+    private Map<String, RolePermissionMappings> rolePermissions = new HashMap<>();
+    private Map<String, List<String>> groupToRolesMapping = new HashMap<>();
 
     public long getAvailableActions(String username, List<Group> groups, String path) {
-        List<String> rolesList = new ArrayList<String>();
+        List<String> rolesList = new ArrayList<>();
         List<String> userRoles = groupToRolesMapping.get(username);
         if (CollectionUtils.isNotEmpty(userRoles)) {
             CollectionUtils.addAll(rolesList, userRoles);
@@ -68,7 +68,7 @@ public class SitePermissionMappings {
     public void addRoleToGroupMapping(String group, String role) {
         List<String> roles = groupToRolesMapping.get(group);
         if (Objects.isNull(roles)) {
-            roles = new ArrayList<String>();
+            roles = new ArrayList<>();
             groupToRolesMapping.put(group, roles);
         }
         roles.add(role);

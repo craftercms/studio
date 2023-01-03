@@ -503,12 +503,12 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected List<String> getStringList(List<Node> nodes) {
 		List<String> items = null;
 		if (nodes != null && nodes.size() > 0) {
-			items = new ArrayList<String>(nodes.size());
+			items = new ArrayList<>(nodes.size());
 			for (Node node : nodes) {
 				items.add(node.getText());
 			}
 		} else {
-			items = new ArrayList<String>(0);
+			items = new ArrayList<>(0);
 		}
 		return items;
 	}
@@ -527,7 +527,7 @@ public class ServicesConfigImpl implements ServicesConfig {
                 if (!StringUtils.isEmpty(patternKey)) {
                     List<Node> patternNodes = node.selectNodes(ELM_PATTERN);
                     if (patternNodes != null) {
-                        List<String> patterns = new ArrayList<String>(patternNodes.size());
+                        List<String> patterns = new ArrayList<>(patternNodes.size());
                         for (Node patternNode : patternNodes) {
                             String pattern = patternNode.getText();
                             if (!StringUtils.isEmpty(pattern)) {
@@ -572,7 +572,7 @@ public class ServicesConfigImpl implements ServicesConfig {
      */
     protected void loadFolderConfiguration(SiteConfigTO site, RepositoryConfigTO repo, List<Node> folderNodes) {
         if (folderNodes != null) {
-            List<DmFolderConfigTO> folders = new ArrayList<DmFolderConfigTO>(folderNodes.size());
+            List<DmFolderConfigTO> folders = new ArrayList<>(folderNodes.size());
             for (Node folderNode : folderNodes) {
                 DmFolderConfigTO folderConfig = new DmFolderConfigTO();
                 folderConfig.setName(folderNode.valueOf(ATTR_NAME));

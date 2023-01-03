@@ -37,7 +37,7 @@ public class StudioDBScriptRunnerImpl implements StudioDBScriptRunner {
 
     protected String delimiter;
     protected DataSource dataSource;
-    protected int scriptLinesBufferSize = 10000;
+    protected int scriptLinesBufferSize;
     protected Connection connection = null;
 	protected boolean autoCommit;
 

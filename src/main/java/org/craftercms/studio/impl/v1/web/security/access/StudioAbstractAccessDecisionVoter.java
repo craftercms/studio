@@ -71,8 +71,8 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             int total2 = siteService.getSitesPerUserTotal(currentUser.getUsername());
             List<SiteFeed> sitesFeed2 = siteService.getSitesPerUser(currentUser.getUsername(), 0, total2);
 
-            Set<String> sites1 = new HashSet<String>();
-            Set<String> sites2 = new HashSet<String>();
+            Set<String> sites1 = new HashSet<>();
+            Set<String> sites2 = new HashSet<>();
             for (SiteFeed site : sitesFeed1) {
                 sites1.add(site.getSiteId());
             }
@@ -96,7 +96,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
             List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
 
-            Set<String> sites = new HashSet<String>();
+            Set<String> sites = new HashSet<>();
             for (SiteFeed site : sitesFeed) {
                 sites.add(site.getSiteId());
             }
@@ -116,7 +116,7 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             int total = siteService.getSitesPerUserTotal(currentUser.getUsername());
             List<SiteFeed> sitesFeed = siteService.getSitesPerUser(currentUser.getUsername(), 0, total);
 
-            Map<String, Long> sites = new HashMap<String, Long>();
+            Map<String, Long> sites = new HashMap<>();
             for (SiteFeed site : sitesFeed) {
                 sites.put(site.getSiteId(), site.getId());
             }

@@ -42,7 +42,6 @@ import org.craftercms.studio.model.rest.WriteConfigurationRequest;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -58,6 +57,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CONFIG;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HISTORY;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USAGE;
+import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @RestController
@@ -92,14 +92,14 @@ public class ConfigurationController {
                                          @RequestParam(name = "module", required = true) String module,
                                          @RequestParam(name = "path", required = true) String path,
                                          @RequestParam(name = "environment", required = false) String environment) {
-        String content = StringUtils.EMPTY;
+        final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
         } else {
             content = configurationService.getConfigurationAsString(siteId, module, path, environment);
         }
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<String> result = new ResultOne<String>();
+        ResultOne<String> result = new ResultOne<>();
         result.setEntity("content", content);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -133,7 +133,7 @@ public class ConfigurationController {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
         ResponseBody responseBody = new ResponseBody();
-        ResultOne<ConfigurationHistory> result = new ResultOne<ConfigurationHistory>();
+        ResultOne<ConfigurationHistory> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_HISTORY, history);
         result.setResponse(OK);
         responseBody.setResult(result);
@@ -186,7 +186,7 @@ public class ConfigurationController {
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
                 request.isDeleteDependencies());
         var result = new Result();
-        result.setResponse(OK);
+        result.setResponse(DELETED);
 
         var body = new ResponseBody();
         body.setResult(result);

@@ -53,9 +53,9 @@ public class DependencyDiffServiceImpl implements DependencyDiffService {
             destPath = sourcePath;
         }
 
-        List<String> sourceDependencies = new ArrayList<String>();
+        List<String> sourceDependencies = new ArrayList<>();
         sourceDependencies = findDependencies(site,diffRequest.getSourceSandbox(),sourcePath, recursive, sourceDependencies);
-        List<String> destDependencies =  new ArrayList<String>();
+        List<String> destDependencies = new ArrayList<>();
         destDependencies = findDependencies(site,diffRequest.getDestSandbox(),destPath, recursive, destDependencies);
 
         //Removed dependenices

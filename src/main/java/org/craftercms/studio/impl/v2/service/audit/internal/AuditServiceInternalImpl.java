@@ -17,8 +17,6 @@
 package org.craftercms.studio.impl.v2.service.audit.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditDAO;
@@ -26,7 +24,6 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
-import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +41,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     private static final Logger logger = LoggerFactory.getLogger(AuditServiceInternalImpl.class);
 
     private AuditDAO auditDao;
-    private StudioConfiguration studioConfiguration;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
@@ -307,10 +303,6 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
 
     public void setAuditDao(AuditDAO auditDao) {
         this.auditDao = auditDao;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

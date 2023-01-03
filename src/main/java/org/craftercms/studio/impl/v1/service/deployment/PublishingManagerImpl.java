@@ -430,7 +430,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", PublishRequest.State.BLOCKED);
-        Integer result = publishRequestMapper.isPublishingBlocked(params);
+        int result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
     }
 
@@ -441,7 +441,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", READY_FOR_LIVE);
-        Integer result = publishRequestMapper.isPublishingBlocked(params);
+        int result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
     }
 
@@ -469,7 +469,7 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", READY_FOR_LIVE);
-        Integer result = publishRequestMapper.isPublishingQueueEmpty(params);
+        int result = publishRequestMapper.isPublishingQueueEmpty(params);
         return result < 1;
     }
 

@@ -21,6 +21,7 @@ import javax.transaction.UserTransaction;
  * Provide different types of transactions to the site 
  * @author russdanner
  */
+// TODO: JM: Is this used at all? Review and remove
 public interface TransactionService {
 
 	/**

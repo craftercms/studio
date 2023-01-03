@@ -25,8 +25,6 @@ import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -487,7 +485,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, path)
-                .withPreviewUrl(contentType == CONTENT_TYPE_FOLDER ? null : getBrowserUrl(siteId, path))
+                .withPreviewUrl(CONTENT_TYPE_FOLDER.equals(contentType) ? null : getBrowserUrl(siteId, path))
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(name)
