@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory
 import scripts.api.SecurityServices
 import scripts.libs.EnvironmentOverrides
 
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY
 
 def logger = LoggerFactory.getLogger(this.class)
 
@@ -34,7 +34,7 @@ def lastname = ""
 def authenticationType = ""
 def profile = null
 def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-def passwordRequirementsRegex = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX)
+def passwordRequirementsMinComplexity = studioConfigurationSB.getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY).toInteger()
 def userServiceSB = context.applicationContext.get("userService")
 
 def authenticatedUser = null;
@@ -64,5 +64,5 @@ model.userLastName =  profile.last_name
 model.authenticationType =  authenticatedUser?
         authenticatedUser.getAuthenticationType() as String : profile.authentication_type
 model.cookieDomain = StringEscapeUtils.escapeXml10(request.getServerName())
-model.passwordRequirementsRegex = passwordRequirementsRegex;
+model.passwordRequirementsMinComplexity = passwordRequirementsMinComplexity;
 model.envConfig = EnvironmentOverrides.getMinimalValuesForSite(applicationContext, request)

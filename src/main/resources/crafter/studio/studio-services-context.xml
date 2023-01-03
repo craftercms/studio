@@ -412,6 +412,9 @@
         <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="userCache" ref="userDetailsCache"/>
+        <constructor-arg name="zxcvbn">
+            <bean class="com.nulabinc.zxcvbn.Zxcvbn"/>
+        </constructor-arg>
     </bean>
 
     <bean id="organizationServiceInternal"
