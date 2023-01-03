@@ -76,7 +76,6 @@
 
 -->
 <permissions>
-    <version>4.0.9</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -131,7 +130,6 @@
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
-                <permission>read_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -197,7 +195,6 @@
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
-                <permission>read_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -276,8 +273,6 @@
                 <permission>get_children</permission>
                 <permission>content_search</permission>
                 <permission>audit_log</permission>
-                <permission>read_configuration</permission>
-                <permission>write_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -367,8 +362,6 @@
                 <permission>item_unlock</permission>
                 <permission>content_search</permission>
                 <permission>start_stop_publisher</permission>
-                <permission>read_configuration</permission>
-                <permission>write_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -400,7 +393,6 @@
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
                 <permission>content_search</permission>
-                <permission>read_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -425,3 +417,4 @@
         </rule>
     </role>
 </permissions>
+
