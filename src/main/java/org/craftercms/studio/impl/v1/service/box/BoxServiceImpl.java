@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v1.service.box;
 import com.box.sdk.*;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.box.BoxProfile;
 import org.craftercms.studio.api.v1.exception.BoxException;
 import org.craftercms.studio.api.v1.service.box.BoxService;
@@ -41,7 +42,7 @@ public class BoxServiceImpl implements BoxService {
         this.profileLoader = profileLoader;
     }
 
-    protected BoxProfile getProfile(String site, String profileId) throws BoxException  {
+    protected BoxProfile getProfile(String site, String profileId) throws BoxException, ConfigurationProfileNotFoundException {
         try {
             return profileLoader.loadProfile(site, profileId);
         } catch (ConfigurationException e) {
@@ -65,7 +66,7 @@ public class BoxServiceImpl implements BoxService {
      * {@inheritDoc}
      */
     @Override
-    public String getAccessToken(final String site, final String profileId) throws BoxException {
+    public String getAccessToken(final String site, final String profileId) throws BoxException, ConfigurationProfileNotFoundException {
         BoxProfile profile = getProfile(site, profileId);
         BoxAPIConnection api = getConnection(profile);
         return api.getAccessToken();
@@ -76,7 +77,7 @@ public class BoxServiceImpl implements BoxService {
      */
     @Override
     public String getUrl(final String site, final String profileId, final String fileId,
-                         final String filename) throws BoxException {
+                         final String filename) throws BoxException, ConfigurationProfileNotFoundException {
         getProfile(site, profileId); // validate that the profileId exists in the site
         return format(URL_FORMAT, profileId, fileId, FilenameUtils.getExtension(filename));
     }

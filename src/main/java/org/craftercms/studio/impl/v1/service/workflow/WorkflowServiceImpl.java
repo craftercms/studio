@@ -78,6 +78,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
@@ -325,18 +326,38 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         DmContentItemComparator comparator = new DmContentItemComparator(sort, ascending, false, false);
         List<ContentItemTO> items = getGoLiveItems(site, comparator);
 
-        int total = 0;
-        if (items != null) {
-            for (ContentItemTO item : items) {
-                total += item.getNumOfChildren();
-            }
-        }
+        int total = getGoLiveItemsTotalCount(items, 0);
         Map<String, Object> result = new HashMap<>();
         result.put(StudioConstants.PROPERTY_TOTAL, total);
         result.put(StudioConstants.PROPERTY_SORTED_BY, sort);
         result.put(StudioConstants.PROPERTY_SORT_ASCENDING, String.valueOf(ascending));
         result.put(StudioConstants.PROPERTY_DOCUMENTS, items);
         return result;
+    }
+
+    /**
+     * Get total number of go live items by counting all children.
+     * Only count items with content types other than `folder`
+     * @param items to get total
+     * @param count current total for recursive browsing
+     * @return number of items
+     */
+    private int getGoLiveItemsTotalCount(List<ContentItemTO> items, int count) {
+        int total = count;
+
+        if (items == null) {
+            return total;
+        }
+
+        for (ContentItemTO item: items) {
+            if (StringUtils.isEmpty(item.getContentType()) || item.getContentType() == CONTENT_TYPE_FOLDER) {
+                total = getGoLiveItemsTotalCount(item.children, total);
+            } else {
+                total += 1;
+            }
+        }
+
+        return total;
     }
 
     protected List<ContentItemTO> getGoLiveItems(final String site, final DmContentItemComparator comparator)
@@ -460,12 +481,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         comparator.setSecondLevelCompareRequired(true);
         comparator.setSecondLevelSortBy(DmContentItemComparator.SORT_PATH);
         List<ContentItemTO> items = getInProgressItems(site, comparator, inProgressOnly);
-        int total = 0;
-        if (items != null) {
-            for (ContentItemTO item : items) {
-                total += item.getNumOfChildren();
-            }
-        }
+        int total = getGoLiveItemsTotalCount(items, 0);
         Map<String, Object> result = new HashMap<>();
         result.put(StudioConstants.PROPERTY_TOTAL, total);
         result.put(StudioConstants.PROPERTY_SORTED_BY, sort);

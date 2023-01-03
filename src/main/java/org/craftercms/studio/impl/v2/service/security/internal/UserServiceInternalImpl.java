@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.security.internal;
 
 import com.google.common.cache.Cache;
+import com.nulabinc.zxcvbn.*;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -48,10 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
@@ -68,7 +68,7 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 
 public class UserServiceInternalImpl implements UserServiceInternal {
@@ -83,14 +83,15 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private final SecurityService securityService;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final Cache<String, User> userCache;
+    private final Zxcvbn zxcvbn;
 
     @ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
-            "accessTokenService", "retryingDatabaseOperationFacade", "userCache"})
+            "accessTokenService", "retryingDatabaseOperationFacade", "userCache", "zxcvbn"})
     public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
                                    StudioConfiguration studioConfiguration, SiteService siteService,
                                    SecurityService securityService, AccessTokenServiceInternal accessTokenService,
                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-                                   Cache<String, User> userCache) {
+                                   Cache<String, User> userCache, Zxcvbn zxcvbn) {
         this.userDao = userDao;
         this.groupServiceInternal = groupServiceInternal;
         this.studioConfiguration = studioConfiguration;
@@ -99,6 +100,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         this.accessTokenService= accessTokenService;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.userCache = userCache;
+        this.zxcvbn = zxcvbn;
     }
 
     protected void invalidateCache(String username) {
@@ -194,7 +196,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     @Override
     public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException {
         if (userExists(-1, user.getUsername())) {
-            throw new UserAlreadyExistsException("User '" + user.getUsername() + "' already exists");
+            throw new UserAlreadyExistsException(format("User '%s' already exists", user.getUsername()));
         }
         if (user.isExternallyManaged() || verifyPasswordRequirements(user.getPassword())) {
             Map<String, Object> params = new HashMap<>();
@@ -400,13 +402,13 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     private boolean verifyPasswordRequirements(String password) {
-        Pattern pattern = Pattern.compile(getPasswordRequirementValidationRegex());
-        Matcher matcher = pattern.matcher(password);
-        return matcher.matches();
+        Strength strength = zxcvbn.measure(password);
+
+        return strength.getScore() >= getPasswordRequirementMinimumComplexity();
     }
 
-    private String getPasswordRequirementValidationRegex() {
-        return studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_VALIDATION_REGEX);
+    private int getPasswordRequirementMinimumComplexity() {
+        return Integer.parseInt(studioConfiguration.getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY));
     }
 
     @Override

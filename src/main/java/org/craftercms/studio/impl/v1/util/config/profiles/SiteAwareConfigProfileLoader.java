@@ -20,11 +20,14 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationMapper;
 import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.config.profiles.ConfigurationProfile;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import static java.lang.String.format;
 
 /**
  * Reads a configuration profiles file for a specific site and loads a specific {@link ConfigurationProfile}.
@@ -58,13 +61,16 @@ public class SiteAwareConfigProfileLoader<T extends ConfigurationProfile> {
         this.contentService = contentService;
     }
 
-    public T loadProfile(String site, String profileId) throws ConfigurationException {
+    public T loadProfile(String site, String profileId) throws ConfigurationException, ConfigurationProfileNotFoundException {
         try (InputStream is = contentService.getContent(site, profilesPath)) {
             return profileMapper.readConfig(new ConfigurationProviderImpl(site), profilesModule,
                     profilesPath, null, profileId);
+        } catch (ConfigurationProfileNotFoundException e) {
+            throw new ConfigurationProfileNotFoundException(format("Profile '%s' not found from configuration at '%s'",
+                    profileId, profilesPath), e);
         } catch (Exception e) {
-            throw new ConfigurationException("Error while loading profile " + profileId + " from configuration at " +
-                                             profilesPath, e);
+            throw new ConfigurationException(format("Error while loading profile '%s' from configuration at '%s'",
+                    profileId, profilesPath), e);
         }
     }
 
