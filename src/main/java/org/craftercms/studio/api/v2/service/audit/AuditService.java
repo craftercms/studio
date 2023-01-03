@@ -80,7 +80,7 @@ public interface AuditService {
      * @param auditLogId audit log id
      * @return audit log entry
      */
-    AuditLog getAuditLogEntry(String siteId, long auditLogId);
+    AuditLog getAuditLogEntry(String siteId, long auditLogId) throws SiteNotFoundException;
 
     /**
      * Get user activities

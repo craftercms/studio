@@ -70,6 +70,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_WEBDAV_WRITE = "webdav_write";
     public static final String PERMISSION_CONTENT_WRITE = "content_write";
     public static final String PERMISSION_WRITE_CONFIGURATION = "write_configuration";
+    public static final String PERMISSION_READ_CONFIGURATION = "read_configuration";
     public static final String PERMISSION_WRITE_GLOBAL_CONFIGURATION = "write_global_configuration";
     public static final String PERMISSION_SEARCH_PLUGINS = "search_plugins";
     public static final String PERMISSION_LIST_PLUGINS = "list_plugins";

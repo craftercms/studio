@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -143,7 +144,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public DetailedItem getItemByPath(String siteId, String path, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         if (!contentRepository.contentExists(siteId, path)) {
-            throw new ContentNotFoundException(path, siteId, "Content not found at path " + path + " site " + siteId);
+            throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
         }
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, siteId);
@@ -158,7 +159,10 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
             item = itemDao.getItemByPath(siteFeed.getId(), path, CONTENT_TYPE_FOLDER, COMPLETED, stagingEnv,
                     liveEnv);
         }
-        DetailedItem detailedItem = Objects.nonNull(item) ? DetailedItem.getInstance(item) : null;
+        if (item == null) {
+            throw new ContentNotFoundException(path, siteId, format("Content not found at path '%s' site '%s'", path, siteId));
+        }
+        DetailedItem detailedItem = DetailedItem.getInstance(item);
         populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
         return detailedItem;
     }

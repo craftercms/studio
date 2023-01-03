@@ -20,10 +20,13 @@ import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.permissions.CompositePermission;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
@@ -34,7 +37,14 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 
 public class DependencyServiceImpl implements DependencyService {
 
-    private DependencyServiceInternal dependencyServiceInternal;
+    private final DependencyServiceInternal dependencyServiceInternal;
+    private final SiteService siteService;
+
+    @ConstructorProperties({"dependencyServiceInternal", "siteService"})
+    public DependencyServiceImpl(final DependencyServiceInternal dependencyServiceInternal, final SiteService siteService) {
+        this.dependencyServiceInternal = dependencyServiceInternal;
+        this.siteService = siteService;
+    }
 
     @Override
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
@@ -77,15 +87,8 @@ public class DependencyServiceImpl implements DependencyService {
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
     public List<String> getDependentItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                          @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) {
+                                          @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         return dependencyServiceInternal.getDependentItems(siteId, paths);
-    }
-
-    public DependencyServiceInternal getDependencyServiceInternal() {
-        return dependencyServiceInternal;
-    }
-
-    public void setDependencyServiceInternal(DependencyServiceInternal dependencyServiceInternal) {
-        this.dependencyServiceInternal = dependencyServiceInternal;
     }
 }

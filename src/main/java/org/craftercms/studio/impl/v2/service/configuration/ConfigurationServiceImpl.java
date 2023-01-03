@@ -26,15 +26,12 @@ import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.core.exception.XmlFileParseException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
@@ -54,12 +51,10 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.Node;
+import org.dom4j.*;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
@@ -80,33 +75,15 @@ import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.io.FilenameUtils.normalize;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIGURATION;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_MODULE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ATTR_PERMISSIONS_NAME;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_GROUPS_NODE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_PERMISSION_ROLE;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ROLE_MAPPINGS;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_CONTENT_ITEM;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PLUGIN_BASE_PATTERN;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 
 public class ConfigurationServiceImpl implements ConfigurationService, ApplicationContextAware {
@@ -218,8 +195,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                    String path, String environment) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                           String module,
+                                           @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+                                           String environment) {
         return getEnvironmentConfiguration(siteId, module, path, environment);
     }
 
@@ -350,10 +330,14 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "write_configuration")
-    public void writeConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String module,
-                                   String path, String environment, InputStream content)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+    public void writeConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                   String module,
+                                   @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+                                   String environment,
+                                   InputStream content)
             throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
         writeEnvironmentConfiguration(siteId, module, path, environment, content);
         invalidateConfiguration(siteId, module, path, environment);
         applicationContext.publishEvent(
@@ -410,14 +394,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    @ValidateParams
-    public Resource getPluginFile(String siteId,
-                                  @ValidateSecurePathParam(name = "pluginId") String pluginId,
-                                  @ValidateSecurePathParam(name = "type") String type,
-                                  @ValidateSecurePathParam(name = "name") String name,
-                                  @ValidateSecurePathParam(name = "filename") String filename)
-        throws ContentNotFoundException {
-
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public Resource getPluginFile(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                  String pluginId,
+                                  String type,
+                                  String name,
+                                  String filename)
+            throws ContentNotFoundException {
         String basePath;
         if (isEmpty(pluginId)) {
             basePath = servicesConfig.getPluginFolderPattern(siteId);
@@ -428,8 +411,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         if (isEmpty(basePath)) {
             throw new IllegalStateException(
                 format("Site '%s' does not have an plugin folder pattern configured", siteId));
-        } else if (!StringUtils.contains(basePath, PLACEHOLDER_TYPE) ||
-                !StringUtils.contains(basePath, PLACEHOLDER_NAME)) {
+        }
+        if (!contains(basePath, PLACEHOLDER_TYPE) ||
+                !contains(basePath, PLACEHOLDER_NAME)) {
             throw new IllegalStateException(format(
                     "Plugin folder pattern for site '%s' does not contain all required placeholders", basePath));
         }
@@ -452,8 +436,12 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
-        itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                contentRepository.getRepoLastCommitId(siteId), true);
+        try {
+            itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
+                    contentRepository.getRepoLastCommitId(siteId), true);
+        } catch (XmlFileParseException e) {
+            logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
+        }
         generateAuditLog(siteId, configPath, currentUser);
         dependencyService.upsertDependencies(siteId, configPath);
     }
@@ -561,12 +549,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
     public ConfigurationHistory getConfigurationHistory(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                        String module, String path, String environment)
+                                                        String module,
+                                                        @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+                                                        String environment)
             throws SiteNotFoundException, ContentNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException("Site " + siteId + " not found");
-        }
+        siteService.checkSiteExists(siteId);
         String configPath;
         if (!isEmpty(environment)) {
             String configBasePath =
@@ -605,7 +594,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_GLOBAL_CONFIGURATION)
     public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
             throws ServiceLayerException {
         contentService.writeContent(EMPTY, path, validate(content, path));
@@ -616,7 +605,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     @SuppressWarnings("rawtypes")
-    public TranslationConfiguration getTranslationConfiguration(String siteId) throws ServiceLayerException {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public TranslationConfiguration getTranslationConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
         TranslationConfiguration translationConfiguration = new TranslationConfiguration();
         if (contentService.contentExists(siteId, translationConfig)) {
             try (InputStream is = contentService.getContent(siteId, translationConfig)) {
@@ -628,7 +619,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                             config.getList(String.class, CONFIG_KEY_TRANSLATION_LOCALES));
                 }
             } catch (Exception e) {
-                throw new ServiceLayerException("Error getting translation config for site " + siteId, e);
+                throw new ServiceLayerException(format("Error getting translation config for site '%'" + siteId), e);
             }
         }
         return translationConfiguration;
@@ -646,7 +637,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    public void invalidateConfiguration(String siteId) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+    public void invalidateConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
         logger.debug("Invalidate configuration cache in site '{}'", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
