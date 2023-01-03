@@ -20,16 +20,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.rest.EnableUsers;
 import org.springframework.util.CollectionUtils;
+
+import static java.lang.String.format;
 
 /**
  * Utility class to perform parameter validations.
  * @author joseross
  */
 public abstract class ValidationUtils {
+
+    public static final String EMAIL_PATTERN = "([\\w\\d._\\-#])+@([\\w\\d._\\-#]+[.][\\w\\d._\\-#]+)+";
 
     /**
      * Validates that at least one of the lists is not null and is not empty.
@@ -64,6 +69,17 @@ public abstract class ValidationUtils {
         if(CollectionUtils.isEmpty(enableUsers.getIds()) &&
             CollectionUtils.isEmpty(enableUsers.getUsernames())) {
             throw new InvalidParametersException("Both 'userIds' and 'usernames' are empty");
+        }
+    }
+
+    /**
+     * Validate email is valid.
+     * @param email the email string to validate
+     * @throws InvalidParametersException if the string is invalid email
+     */
+    public static void validateEmail(String email) throws InvalidParametersException {
+        if (StringUtils.isEmpty(email) || !email.matches(EMAIL_PATTERN)) {
+            throw new InvalidParametersException(format("Parameters 'email' has invalid value '%s'", email));
         }
     }
 

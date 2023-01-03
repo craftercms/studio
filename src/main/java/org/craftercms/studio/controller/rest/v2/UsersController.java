@@ -172,6 +172,8 @@ public class UsersController {
     @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE)
     public ResponseBody createUser(@RequestBody User user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
+        ValidationUtils.validateEmail(user.getEmail());
+
         User newUser = userService.createUser(user);
 
         ResponseBody responseBody = new ResponseBody();
