@@ -14,14 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import scripts.api.SecurityServices
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY
+-- Drop unused table
+DROP TABLE IF EXISTS `cluster_status` ;
 
-def context = SecurityServices.createContext(applicationContext, request)
-
-def studioConfigurationSB = context.applicationContext.get("studioConfiguration")
-
-def passwordRequirementsMinComplexity = studioConfigurationSB
-        .getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY).toInteger()
-
-model.passwordRequirementsMinComplexity = passwordRequirementsMinComplexity
+UPDATE `_meta` SET `version` = '4.0.1.13' ;

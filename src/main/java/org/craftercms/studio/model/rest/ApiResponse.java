@@ -178,6 +178,8 @@ public class ApiResponse {
     public static final ApiResponse LOGGER_NOT_FOUND = new ApiResponse(53000, "The logger was not found",
             "Check if you sent in the right logger name or " +
                     "add 'createIfAbsent=true' parameter to create the logger if it does not exist", StringUtils.EMPTY);
+    public static final ApiResponse CONFIGURATION_PROFILE_NOT_FOUND = new ApiResponse(54000, "The profile was not found",
+        "Check if you sent in the right profileId name", StringUtils.EMPTY);
 
     private int code;
     private String message;

@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || >=4.0.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || >=4.0.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -45,6 +45,13 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             # There are no db changes, so we can still use the same script
+            filename: upgrade-3.1.15-to-4.0.0.32.sql
+      # 3.1.28
+      - currentVersion: 3.1.28
+        nextVersion: 4.0-t
+        operations:
+          - type: dbScriptUpgrader
+            # There are no conflicting db changes, so we can still use the same script
             filename: upgrade-3.1.15-to-4.0.0.32.sql
 
       # Common operations for all 3.1.x versions:
@@ -446,6 +453,11 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.1.11-to-4.0.1.12.sql
+      - currentVersion: 4.0.1.12
+        nextVersion: 4.0.1.13
+        operations:
+          - type: dbScriptUpgrader
+            filename: upgrade-4.0.1.12-to-4.0.1.13.sql
   # Pipeline to upgrade site repositories
   site:
     requires: '3.1.9 || 3.1.18 || >=4.0.0'

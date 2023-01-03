@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
@@ -137,6 +138,13 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleLoggerNotFoundException(HttpServletRequest request, LoggerNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.LOGGER_NOT_FOUND);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(ConfigurationProfileNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleConfigurationProfileNotFoundException(HttpServletRequest request, ConfigurationProfileNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.CONFIGURATION_PROFILE_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
 

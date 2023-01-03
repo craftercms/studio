@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v1.service.aws;
 
 import java.io.InputStream;
 
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
 import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
@@ -54,7 +55,7 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
     public S3Output uploadFile(@ValidateStringParam(name = "site") String site,
                                @ValidateStringParam(name = "profileId") String profileId,
                                @ValidateStringParam(name = "filename") String filename,
-                               InputStream content) throws AwsException {
+                               InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(site, profileId);
         AmazonS3 s3Client = getS3Client(profile);
         String inputBucket = profile.getBucketName();

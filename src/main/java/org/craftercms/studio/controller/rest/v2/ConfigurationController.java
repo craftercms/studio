@@ -49,6 +49,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @RestController
@@ -185,7 +186,7 @@ public class ConfigurationController {
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
                 request.isDeleteDependencies());
         var result = new Result();
-        result.setResponse(OK);
+        result.setResponse(DELETED);
 
         var body = new ResponseBody();
         body.setResult(result);
