@@ -52,8 +52,8 @@
 #  2 # somewhat guessable: protection from unthrottled online attacks. (guesses < 10^8)
 #  3 # safely unguessable: moderate protection from offline slow-hash scenario. (guesses < 10^10)
 #  4 # very unguessable: strong protection from offline slow-hash scenario. (guesses >= 10^10)
-# The default value is 4
-studio.security.passwordRequirements.minimumComplexity: 4
+# The default value is 3
+studio.security.passwordRequirements.minimumComplexity: 3
 
 
 ################################################################
