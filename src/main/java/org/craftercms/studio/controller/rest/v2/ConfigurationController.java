@@ -45,6 +45,7 @@ import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.InputStream;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
@@ -85,12 +86,18 @@ public class ConfigurationController {
     public ResponseBody getConfiguration(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
                                          @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
-                                         @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) @RequestParam(name = "environment", required = false) String environment) {
+                                         @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) @RequestParam(name = "environment", required = false) String environment)
+            throws ContentNotFoundException {
         final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
         } else {
             content = configurationService.getConfigurationAsString(siteId, module, path, environment);
+        }
+
+        if (content == null) {
+            throw new ContentNotFoundException(path, siteId,
+                    format("Configuration not found for site '%s', module '%s', path '%s', environment '%s'", siteId, module, path, environment));
         }
         ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<>();
