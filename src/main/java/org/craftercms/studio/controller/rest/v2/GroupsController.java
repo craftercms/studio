@@ -18,6 +18,8 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
@@ -70,6 +72,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SQL_ORDER_BY;
 
 @RequestMapping(API_2 + GROUPS)
 @RestController
@@ -88,13 +91,16 @@ public class GroupsController {
      * @param sort sort parameter
      * @return Response containing list of groups
      */
+    @ValidateParams
     @GetMapping()
     public ResponseBody getAllGroups(
             @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
+            @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
+                    defaultValue = "group_name asc") String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
+
         int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID, keyword);
         List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, keyword, offset, limit, sort);
 
