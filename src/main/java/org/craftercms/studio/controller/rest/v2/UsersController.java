@@ -17,6 +17,8 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
@@ -168,10 +170,12 @@ public class UsersController {
      * @param user User to create
      * @return Response object
      */
+    @ValidateParams
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody createUser(@RequestBody User user)
+    public ResponseBody createUser(@ValidateObjectParam @RequestBody User user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
+
         User newUser = userService.createUser(user);
 
         ResponseBody responseBody = new ResponseBody();
