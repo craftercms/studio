@@ -15,7 +15,13 @@
  */
 package org.craftercms.studio.model.rest.clipboard;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+
 import javax.validation.constraints.NotEmpty;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds all the data needed to duplicate an item
@@ -29,12 +35,15 @@ public class DuplicateRequest {
      * The id of the site
      */
     @NotEmpty
+    @EsapiValidatedParam(type = SITE_ID)
     protected String siteId;
 
     /**
      * The path of the item
      */
     @NotEmpty
+    @EsapiValidatedParam(type = HTTPURI)
+    @ValidateSecurePathParam
     protected String path;
 
     public String getSiteId() {

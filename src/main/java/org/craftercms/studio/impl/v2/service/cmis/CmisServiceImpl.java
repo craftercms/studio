@@ -20,7 +20,6 @@ import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisUnauthorizedException;
@@ -28,9 +27,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.dal.DataSourceRepository;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
@@ -58,9 +61,12 @@ import static org.apache.chemistry.opencmis.commons.SessionParameter.*;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_DOCUMENT;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_FOLDER;
 import static org.apache.chemistry.opencmis.commons.enums.BindingType.ATOMPUB;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_DATA_SOURCES_CONFIG_LOCATION;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class CmisServiceImpl implements CmisService {
 
@@ -89,53 +95,59 @@ public class CmisServiceImpl implements CmisService {
     protected final StudioConfiguration studioConfiguration;
     protected final ContentService contentService;
     protected final ConfigurationService configurationService;
+    protected final SiteService siteService;
 
-    @ConstructorProperties({"studioConfiguration", "contentService", "configurationService"})
+    @ConstructorProperties({"studioConfiguration", "contentService", "configurationService", "siteService"})
     public CmisServiceImpl(StudioConfiguration studioConfiguration, ContentService contentService,
-                           ConfigurationService configurationService) {
+                           ConfigurationService configurationService, SiteService siteService) {
         this.studioConfiguration = studioConfiguration;
         this.contentService = contentService;
         this.configurationService = configurationService;
+        this.siteService = siteService;
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "list_cmis")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_LIST_CMIS)
     public List<CmisContentItem> list(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                      String cmisRepo, String path)
+                                      String cmisRepo,
+                                      String path)
             throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException,
-                    ConfigurationException {
+            ConfigurationException, SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         List<CmisContentItem> items = new ArrayList<>();
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepo);
         Session session = createCMISSession(repositoryConfig);
-        if (session != null) {
-            String contentPath = Paths.get(repositoryConfig.getBasePath(), path).toString();
-            CmisObject cmisObject = session.getObjectByPath(contentPath);
-            if (cmisObject != null && CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
-                Folder folder = (Folder)cmisObject;
-                Iterable<CmisObject> iterable = folder.getChildren();
-                for (CmisObject cmisItem : iterable) {
-                    CmisContentItem item = new CmisContentItem();
-                    item.setItemName(cmisItem.getName());
-                    if (CMIS_DOCUMENT.equals(cmisItem.getBaseTypeId())) {
-                        Document cmisDoc = (Document) cmisItem;
-                        item.setItemPath(cmisDoc.getPaths().get(0));
-                        item.setMimeType(cmisDoc.getContentStreamMimeType());
-                        String contentId = cmisDoc.getId();
-                        StringTokenizer st = new StringTokenizer(contentId, ";");
-                        if (st.hasMoreTokens()) {
-                            item.setItemId(st.nextToken());
-                        }
-                        item.setSize(cmisDoc.getContentStreamLength());
-                        items.add(item);
-                    } else if (CMIS_FOLDER.equals(cmisItem.getBaseTypeId())) {
-                        Folder cmisFolder = (Folder) cmisItem;
-                        item.setItemId(cmisFolder.getId());
-                        item.setItemPath(cmisFolder.getPath());
-                        item.setMimeType(MIME_TYPE_FOLDER);
-                        item.setSize(-1);
-                        items.add(item);
-                    }
+        if (session == null) {
+            return items;
+        }
+        String contentPath = Paths.get(repositoryConfig.getBasePath(), path).toString();
+        CmisObject cmisObject = session.getObjectByPath(contentPath);
+        if (cmisObject == null || !CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
+            return items;
+        }
+        Folder folder = (Folder)cmisObject;
+        Iterable<CmisObject> iterable = folder.getChildren();
+        for (CmisObject cmisItem : iterable) {
+            CmisContentItem item = new CmisContentItem();
+            item.setItemName(cmisItem.getName());
+            if (CMIS_DOCUMENT.equals(cmisItem.getBaseTypeId())) {
+                Document cmisDoc = (Document) cmisItem;
+                item.setItemPath(cmisDoc.getPaths().get(0));
+                item.setMimeType(cmisDoc.getContentStreamMimeType());
+                String contentId = cmisDoc.getId();
+                StringTokenizer st = new StringTokenizer(contentId, ";");
+                if (st.hasMoreTokens()) {
+                    item.setItemId(st.nextToken());
                 }
+                item.setSize(cmisDoc.getContentStreamLength());
+                items.add(item);
+            } else if (CMIS_FOLDER.equals(cmisItem.getBaseTypeId())) {
+                Folder cmisFolder = (Folder) cmisItem;
+                item.setItemId(cmisFolder.getId());
+                item.setItemPath(cmisFolder.getPath());
+                item.setMimeType(MIME_TYPE_FOLDER);
+                item.setSize(-1);
+                items.add(item);
             }
         }
         return items;
@@ -232,49 +244,58 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "search_cmis")
-    public List<CmisContentItem> search(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String cmisRepo,
-                                        String searchTerm, String path)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_SEARCH_CMIS)
+    public List<CmisContentItem> search(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                        String cmisRepo,
+                                        String searchTerm,
+                                        String path)
             throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException,
-                    ConfigurationException {
+            ConfigurationException, SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         List<CmisContentItem> toRet = new ArrayList<>();
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepo);
         Session session = createCMISSession(repositoryConfig);
-        if (session != null) {
-            String contentPath = Paths.get(repositoryConfig.getBasePath(), path).toString();
-            CmisObject cmisObject = session.getObjectByPath(contentPath);
-            if (cmisObject != null) {
-                if (CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
-                    String queryString = CMIS_SEARCH_QUERY.replace(CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE,
-                            cmisObject.getId()).replace(CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE, searchTerm);
-                    ItemIterable<QueryResult> result = session.query(queryString, false);
-                    for (QueryResult qr : result) {
-                        CmisContentItem item = new CmisContentItem();
-                        String contentId = qr.getPropertyById(OBJECT_ID).getFirstValue().toString();
-                        StringTokenizer st = new StringTokenizer(contentId, ";");
-                        if (st.hasMoreTokens()) {
-                            item.setItemId(st.nextToken());
-                        }
-                        CmisObject qrObject = session.getObject(item.getItemId());
-                        Document cmisDoc = (Document) qrObject;
-                        item.setItemName(cmisDoc.getName());
-                        item.setItemPath(cmisDoc.getPaths().get(0));
-                        item.setMimeType(cmisDoc.getContentStreamMimeType());
-                        item.setSize(cmisDoc.getContentStreamLength());
-                        toRet.add(item);
-                    }
-                }
+        if (session == null) {
+            return toRet;
+        }
+        String contentPath = Paths.get(repositoryConfig.getBasePath(), path).toString();
+        CmisObject cmisObject = session.getObjectByPath(contentPath);
+        if (cmisObject == null) {
+            return toRet;
+        }
+        if (!CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
+            return toRet;
+        }
+        String queryString = CMIS_SEARCH_QUERY.replace(CMIS_SEARCH_QUERY_FOLDER_ID_VARIABLE,
+                cmisObject.getId()).replace(CMIS_SEARCH_QUERY_SEARCH_TERM_VARIABLE, searchTerm);
+        ItemIterable<QueryResult> result = session.query(queryString, false);
+        for (QueryResult qr : result) {
+            CmisContentItem item = new CmisContentItem();
+            String contentId = qr.getPropertyById(OBJECT_ID).getFirstValue().toString();
+            StringTokenizer st = new StringTokenizer(contentId, ";");
+            if (st.hasMoreTokens()) {
+                item.setItemId(st.nextToken());
             }
+            CmisObject qrObject = session.getObject(item.getItemId());
+            Document cmisDoc = (Document) qrObject;
+            item.setItemName(cmisDoc.getName());
+            item.setItemPath(cmisDoc.getPaths().get(0));
+            item.setMimeType(cmisDoc.getContentStreamMimeType());
+            item.setSize(cmisDoc.getContentStreamLength());
+            toRet.add(item);
         }
         return toRet;
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "clone_content_cmis")
-    public void cloneContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String cmisRepoId,
-                             String cmisPath, @ProtectedResourceId(PATH_RESOURCE_ID) String studioPath)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CLONE_CONTENT_CMIS)
+    public void cloneContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                             String cmisRepoId,
+                             String cmisPath,
+                             @ProtectedResourceId(PATH_RESOURCE_ID) String studioPath)
             throws CmisRepositoryNotFoundException, CmisUnavailableException,
             CmisTimeoutException, CmisPathNotFoundException, ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
         if (!contentService.contentExists(siteId, studioPath)) {
             // Create the missing folders in the path
             contentService.createFolder(siteId, FilenameUtils.getFullPathNoEndSeparator(studioPath),
@@ -309,71 +330,73 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "upload_content_cmis")
-    public CmisUploadItem uploadContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String cmisRepoId,
-                             String cmisPath,
-                              String filename, InputStream content)
+    @ValidateParams
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPLOAD_CONTENT_CMIS)
+    public CmisUploadItem uploadContent(@EsapiValidatedParam(type = SITE_ID) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                        @ValidateNoTagsParam String cmisRepoId,
+                                        @EsapiValidatedParam(type = HTTPURI) String cmisPath,
+                                        @EsapiValidatedParam(type = HTTPURI) String filename,
+                                        InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
-            CmisPathNotFoundException, ConfigurationException {
+            CmisPathNotFoundException, ConfigurationException, SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         // TODO: SJ: Should CMIS session creation go to a helper method?
         DataSourceRepository repositoryConfig = getConfiguration(siteId, cmisRepoId);
-        CmisUploadItem cmisUploadItem = new CmisUploadItem();
         logger.debug("Create a CMIS session in site '{}' to CMIS repository '{}'", siteId, cmisRepoId);
         Session session = createCMISSession(repositoryConfig);
-        if (session != null) {
-            String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
-            logger.debug("Find the object at CMIS path '{}' for site '{}'", contentPath, siteId);
-            CmisObject cmisObject = session.getObjectByPath(contentPath);
-            if (cmisObject != null) {
-                if (BaseTypeId.CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
-                    CmisObject docObject = null;
-                    try {
-                        docObject = session.getObjectByPath(Paths.get(contentPath, filename).toString());
-                    } catch (CmisBaseException e) {
-                        // Content does not exist - no error
-                        logger.debug("CMIS file '{}' doesn't exist at path '{}' for site '{}'",
-                                filename, contentPath, siteId);
-                    }
-                    String mimeType = StudioUtils.getMimeType(filename);
-                    ContentStream contentStream =
-                            session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
-                    Folder folder  = (Folder)cmisObject;
-                    cmisUploadItem.setName(filename);
-                    cmisUploadItem.setFolder(false);
-                    cmisUploadItem.setFileExtension(FilenameUtils.getExtension(filename));
-                    if (docObject != null) {
-                        Document doc = (Document) docObject;
-                        doc.setContentStream(contentStream, true);
-
-                        String contentId = doc.getId();
-                        StringTokenizer st = new StringTokenizer(contentId, ";");
-                        if (st.hasMoreTokens()) {
-                            cmisUploadItem.setUrl(repositoryConfig.getDownloadUrlRegex().replace(ITEM_ID,
-                                    st.nextToken()));
-                        }
-                        session.removeObjectFromCache(doc.getId());
-                    } else {
-                        Map<String, Object> properties = new HashMap<>();
-                        properties.put(OBJECT_TYPE_ID, CMIS_DOCUMENT.value());
-                        properties.put(NAME, filename);
-                        Document newDoc = folder.createDocument(properties, contentStream, null);
-                        session.removeObjectFromCache(newDoc.getId());
-                        String contentId = newDoc.getId();
-                        StringTokenizer st = new StringTokenizer(contentId, ";");
-                        if (st.hasMoreTokens()) {
-                            cmisUploadItem.setUrl(repositoryConfig.getDownloadUrlRegex().replace(ITEM_ID,
-                                    st.nextToken()));
-                        }
-                    }
-                    session.clear();
-                } else if (CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
-                    throw new CmisPathNotFoundException();
-                }
-            } else {
-                throw new CmisPathNotFoundException();
-            }
-        } else {
+        if (session == null) {
             throw new CmisUnauthorizedException();
+        }
+        String contentPath = Paths.get(repositoryConfig.getBasePath(), cmisPath).toString();
+        logger.debug("Find the object at CMIS path '{}' for site '{}'", contentPath, siteId);
+        CmisObject cmisObject = session.getObjectByPath(contentPath);
+        if (cmisObject == null) {
+            throw new CmisPathNotFoundException();
+        }
+        CmisUploadItem cmisUploadItem = new CmisUploadItem();
+        if (CMIS_FOLDER.equals(cmisObject.getBaseTypeId())) {
+            CmisObject docObject = null;
+            try {
+                docObject = session.getObjectByPath(Paths.get(contentPath, filename).toString());
+            } catch (CmisBaseException e) {
+                // Content does not exist - no error
+                logger.debug("CMIS file '{}' doesn't exist at path '{}' for site '{}'",
+                        filename, contentPath, siteId);
+            }
+            String mimeType = StudioUtils.getMimeType(filename);
+            ContentStream contentStream =
+                    session.getObjectFactory().createContentStream(filename, -1, mimeType, content);
+            Folder folder  = (Folder)cmisObject;
+            cmisUploadItem.setName(filename);
+            cmisUploadItem.setFolder(false);
+            cmisUploadItem.setFileExtension(FilenameUtils.getExtension(filename));
+            if (docObject != null) {
+                Document doc = (Document) docObject;
+                doc.setContentStream(contentStream, true);
+
+                String contentId = doc.getId();
+                StringTokenizer st = new StringTokenizer(contentId, ";");
+                if (st.hasMoreTokens()) {
+                    cmisUploadItem.setUrl(repositoryConfig.getDownloadUrlRegex().replace(ITEM_ID,
+                            st.nextToken()));
+                }
+                session.removeObjectFromCache(doc.getId());
+            } else {
+                Map<String, Object> properties = new HashMap<>();
+                properties.put(OBJECT_TYPE_ID, CMIS_DOCUMENT.value());
+                properties.put(NAME, filename);
+                Document newDoc = folder.createDocument(properties, contentStream, null);
+                session.removeObjectFromCache(newDoc.getId());
+                String contentId = newDoc.getId();
+                StringTokenizer st = new StringTokenizer(contentId, ";");
+                if (st.hasMoreTokens()) {
+                    cmisUploadItem.setUrl(repositoryConfig.getDownloadUrlRegex().replace(ITEM_ID,
+                            st.nextToken()));
+                }
+            }
+            session.clear();
+        } else if (CMIS_DOCUMENT.equals(cmisObject.getBaseTypeId())) {
+            throw new CmisPathNotFoundException();
         }
         return cmisUploadItem;
     }

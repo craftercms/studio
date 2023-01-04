@@ -163,11 +163,11 @@
             AND a.cluster_node_id = #{clusterNodeId}
         </if>
         <choose>
-          <when test="sort != null and sort !=  '' and order != null and order != '' ">
-            ORDER BY #{sortBy} #{order}
+          <when test="sort != null and sort != '' and order != null and order != '' ">
+            ORDER BY ${sortBy} ${order}
           </when>
-          <when test="sort != null and sort !=  '' and order == null and order == '' ">
-            ORDER BY #{sortBy}
+          <when test="sort != null and sort != '' and (order == null or order == '') ">
+            ORDER BY ${sortBy}
           </when>
           <otherwise>
             ORDER BY a.operation_timestamp DESC

@@ -16,6 +16,10 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.service.audit.AuditService;
@@ -33,6 +37,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_AUDIT_LOG;
@@ -42,25 +48,32 @@ public class AuditController {
 
     private AuditService auditService;
 
+    @ValidateParams
     @GetMapping(API_2 + AUDIT)
     public ResponseBody getAuditLog(
-            @RequestParam(value = REQUEST_PARAM_SITEID, required = false) String siteId,
+            @EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false)
+            @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
+            @EsapiValidatedParam(type = USERNAME, notEmpty = false, notBlank = false)
             @RequestParam(value = REQUEST_PARAM_USER, required = false, defaultValue = "") String user,
+            @ValidateNoTagsParam
             @RequestParam(value = REQUEST_PARAM_OPERATIONS, required = false) List<String> operations,
             @RequestParam(value = REQUEST_PARAM_INCLUDE_PARAMETERS, required = false) boolean includeParameters,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false) @DateTimeFormat(iso =
-                    DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false) @DateTimeFormat(iso =
-                    DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
+            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
+            @ValidateNoTagsParam
             @RequestParam(value = REQUEST_PARAM_TARGET, required = false) String target,
+            @ValidateStringParam(whitelistedPatterns = "(?i)(API|GIT)")
             @RequestParam(value = REQUEST_PARAM_ORIGIN, required = false) String origin,
+            @ValidateNoTagsParam
             @RequestParam(value = REQUEST_PARAM_CLUSTER_NODE_ID, required = false) String clusterNodeId,
+            @ValidateStringParam(whitelistedPatterns = "(?i)date")
             @RequestParam(value = REQUEST_PARAM_SORT, required = false) String sort,
+            @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")
             @RequestParam(value = REQUEST_PARAM_ORDER, required = false) String order) throws SiteNotFoundException {
-
-
         int total = auditService.getAuditLogTotal(siteId, user, operations, includeParameters, dateFrom,
                 dateTo, target, origin, clusterNodeId);
 
@@ -78,8 +91,11 @@ public class AuditController {
         return responseBody;
     }
 
+    @ValidateParams
     @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
-    public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId, @RequestParam(value = REQUEST_PARAM_SITEID, required = false) String siteId) {
+    public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId,
+                                         @EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false)
+                                         @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId) throws SiteNotFoundException {
         AuditLog auditLogEntry = auditService.getAuditLogEntry(siteId, auditLogId);
 
         ResponseBody responseBody = new ResponseBody();

@@ -16,11 +16,20 @@
 
 package org.craftercms.studio.model.rest;
 
-public class CmisCloneRequest {
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
+public class CmisCloneRequest {
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
+    @ValidateNoTagsParam
     private String cmisRepoId;
+    @EsapiValidatedParam(type = HTTPURI)
     private String cmisPath;
+    @EsapiValidatedParam(type = HTTPURI)
     private String studioPath;
 
     public String getSiteId() {

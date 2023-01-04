@@ -16,11 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.cmis;
 
-import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
-import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
@@ -32,10 +28,10 @@ import java.util.List;
 public interface CmisService {
 
     List<CmisContentItem> list(String siteId, String cmisRepo, String path)
-            throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException, ConfigurationException;
+            throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException, ConfigurationException, SiteNotFoundException;
 
     List<CmisContentItem> search(String siteId, String cmisRepo, String searchTerm, String path)
-            throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException, ConfigurationException;
+            throws CmisRepositoryNotFoundException, CmisUnavailableException, CmisTimeoutException, ConfigurationException, SiteNotFoundException;
 
     void cloneContent(String siteId, String cmisRepoId, String cmisPath, String studioPath)
             throws CmisRepositoryNotFoundException, CmisUnavailableException,
@@ -43,5 +39,5 @@ public interface CmisService {
 
     CmisUploadItem uploadContent(String siteId, String cmisRepoId, String cmisPath, String filename, InputStream content)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
-            CmisPathNotFoundException, ConfigurationException;
+            CmisPathNotFoundException, ConfigurationException, SiteNotFoundException;
 }

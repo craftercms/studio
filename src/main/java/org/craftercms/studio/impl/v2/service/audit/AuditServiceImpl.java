@@ -51,10 +51,17 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public List<AuditLog> getAuditLog(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset, int limit, String user,
-                                      List<String> operations, boolean includeParameters, ZonedDateTime dateFrom,
-                                      ZonedDateTime dateTo, String target, String origin, String clusterNodeId,
-                                      String sort, String order) throws SiteNotFoundException {
+    public List<AuditLog> getAuditLog(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                      int offset, int limit,
+                                      String user,
+                                      List<String> operations,
+                                      boolean includeParameters, ZonedDateTime dateFrom,
+                                      ZonedDateTime dateTo,
+                                      String target,
+                                      String origin,
+                                      String clusterNodeId,
+                                      String sort,
+                                      String order) throws SiteNotFoundException {
         if (isNotEmpty(siteId)) {
             siteService.checkSiteExists(siteId);
         }
@@ -64,9 +71,9 @@ public class AuditServiceImpl implements AuditService {
     }
 
     @Override
-    public int getAuditLogTotal(String siteId, String user, List<String> operations,
-                                           boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                           String target, String origin, String clusterNodeId) throws SiteNotFoundException {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
+    public int getAuditLogTotal(String siteId, String user, List<String> operations, boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                String target, String origin, String clusterNodeId) throws SiteNotFoundException {
         if (isNotEmpty(siteId)) {
             siteService.checkSiteExists(siteId);
         }
@@ -77,7 +84,10 @@ public class AuditServiceImpl implements AuditService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_AUDIT_LOG)
-    public AuditLog getAuditLogEntry(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId, final long auditLogId) {
+    public AuditLog getAuditLogEntry(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId, final long auditLogId) throws SiteNotFoundException {
+        if (isNotEmpty(siteId)) {
+            siteService.checkSiteExists(siteId);
+        }
         return auditServiceInternal.getAuditLogEntry(siteId, auditLogId);
     }
 

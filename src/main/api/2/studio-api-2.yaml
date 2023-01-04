@@ -3242,6 +3242,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3296,6 +3298,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3306,7 +3310,7 @@ paths:
       tags:
         - configuration
       summary: Clear all configuration cache for a given site
-      description: 'Required Permission: "LOGGED_IN"'
+      description: 'Required Permission: "write_configuration"'
       operationId: clearConfigurationCache
       parameters:
         - name: siteId
@@ -3322,6 +3326,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -3373,6 +3379,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -3383,6 +3391,7 @@ paths:
       tags:
         - configuration
       summary: Get translation configuration for a given site
+      description: 'Required permission "read_configuration"'
       operationId: getTranslationConfig
       parameters:
         - name: siteId
@@ -4051,7 +4060,7 @@ paths:
       tags:
         - content
       summary: Get item details for given an item path
-      description: 'Required permission "get_detailed_item" and "read_item" and "site member"'
+      description: 'Required permission "get_children"'
       operationId: getDetailedItemByPath
       parameters:
         - name: siteId
@@ -4388,7 +4397,7 @@ paths:
       tags:
         - content
       summary: Get content for commit id
-      description: 'Required permission "site member"'
+      description: 'Required permission "content_read"'
       operationId: getContentByCommitId
       parameters:
         - name: siteId
@@ -5652,7 +5661,7 @@ paths:
       tags:
         - dashboard
       summary: Get unpublished items for site
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardContentUnpublished
       parameters:
         - name: siteId
@@ -5715,7 +5724,7 @@ paths:
       tags:
         - dashboard
       summary: Get scheduled publishing packages
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingScheduled
       parameters:
         - name: siteId
@@ -5727,12 +5736,6 @@ paths:
         - name: publishingTarget
           in: query
           description: publishing target to filter results
-          required: false
-          schema:
-            type: string
-        - name: approver
-          in: query
-          description: approver user to filter results
           required: false
           schema:
             type: string
@@ -5804,7 +5807,7 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that is scheduled
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingScheduledDetail
       parameters:
         - name: siteId
@@ -5849,7 +5852,7 @@ paths:
       tags:
         - dashboard
       summary: Get history of published packages
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingHistory
       parameters:
         - name: siteId
@@ -5938,7 +5941,7 @@ paths:
       tags:
         - dashboard
       summary: Get content items of the package that was published
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingHistoryDetail
       parameters:
         - name: siteId
@@ -5983,7 +5986,7 @@ paths:
       tags:
         - dashboard
       summary: Get publishing stats
-      description: 'Required permission "site_member"'
+      description: 'Required permission "content_read"'
       operationId: getDashboardPublishingStats
       parameters:
         - name: siteId

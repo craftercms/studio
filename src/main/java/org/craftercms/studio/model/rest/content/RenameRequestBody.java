@@ -16,15 +16,26 @@
 
 package org.craftercms.studio.model.rest.content;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+
 import javax.validation.constraints.NotEmpty;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 public class RenameRequestBody {
 
     @NotEmpty
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
+    @ValidateSecurePathParam
+    @EsapiValidatedParam(type = HTTPURI)
     private String path;
     @NotEmpty
+    @ValidateSecurePathParam
+    @EsapiValidatedParam(type = HTTPURI)
     private String name;
 
     public String getSiteId() {

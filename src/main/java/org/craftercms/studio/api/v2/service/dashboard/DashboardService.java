@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.dashboard;
 
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -45,7 +46,7 @@ public interface DashboardService {
      * @return number of results
      */
     int getActivitiesForUsersTotal(String siteId, List<String> usernames, List<String> actions, ZonedDateTime dateFrom,
-                                   ZonedDateTime dateTo);
+                                   ZonedDateTime dateTo) throws SiteNotFoundException;
 
     /**
      * Get activities for users
@@ -60,7 +61,7 @@ public interface DashboardService {
      * @return the list of activities
      */
     List<Activity> getActivitiesForUsers(String siteId, List<String> usernames, List<String> actions,
-                                         ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit);
+                                         ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException;
 
     /**
      * Get total number of result for my activities
@@ -71,7 +72,7 @@ public interface DashboardService {
      * @param dateTo upper boundary to filter by date-time range
      * @return number of results
      */
-    int getMyActivitiesTotal(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo);
+    int getMyActivitiesTotal(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException;
 
     /**
      * Get my activities
@@ -85,14 +86,14 @@ public interface DashboardService {
      * @return the list of activities
      */
     List<Activity> getMyActivities(String siteId, List<String> actions, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                   int offset, int limit);
+                                   int offset, int limit) throws SiteNotFoundException;
 
     /**
      * Get total number of content packages pending approval
      * @param siteId site identifier
      * @return number of results to return
      */
-    int getContentPendingApprovalTotal(String siteId);
+    int getContentPendingApprovalTotal(String siteId) throws SiteNotFoundException;
 
     /**
      * Get content packages 
@@ -101,7 +102,7 @@ public interface DashboardService {
      * @param limit
      * @return
      */
-    List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit);
+    List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit) throws SiteNotFoundException;
 
     /**
      * Get content pending approval package details
@@ -118,7 +119,7 @@ public interface DashboardService {
      * @param siteId site identifier
      * @return number of results to return
      */
-    int getContentUnpublishedTotal(String siteId);
+    int getContentUnpublishedTotal(String siteId) throws SiteNotFoundException;
 
     /**
      * Get unpublished content items
@@ -162,7 +163,7 @@ public interface DashboardService {
      * @return number of results
      */
     int getPublishingScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
-                                    ZonedDateTime dateTo);
+                                    ZonedDateTime dateTo) throws SiteNotFoundException;
 
     /**
      * Get publishing scheduled
@@ -177,7 +178,7 @@ public interface DashboardService {
      */
     List<DashboardPublishingPackage> getPublishingScheduled(String siteId, String publishingTarget,
                                                             ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                                            int limit);
+                                                            int limit) throws SiteNotFoundException;
 
     /**
      * Get publishing package details
@@ -200,7 +201,7 @@ public interface DashboardService {
      * @return number of results
      */
     int getPublishingHistoryTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
-                                  ZonedDateTime dateTo);
+                                  ZonedDateTime dateTo) throws SiteNotFoundException;
 
     /**
      * Get publishing history
@@ -216,7 +217,7 @@ public interface DashboardService {
      */
     List<DashboardPublishingPackage> getPublishingHistory(String siteId, String publishingTarget, String approver,
                                                           ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                                          int limit);
+                                                          int limit) throws SiteNotFoundException;
 
     /**
      * Get publishing package details
@@ -234,5 +235,5 @@ public interface DashboardService {
      * @param days number of days
      * @return publishing stats
      */
-    PublishingStats getPublishingStats(String siteId, int days);
+    PublishingStats getPublishingStats(String siteId, int days) throws SiteNotFoundException;
 }

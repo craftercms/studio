@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedExce
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
+import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public interface ContentService {
      * @param siteId site id to use
      * @return list of content types
      */
-    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
 
     /**
      * Get child items for given path. Child item is
@@ -63,7 +64,7 @@ public interface ContentService {
      * @param paths list of paths to get child items for
      * @return list of paths of child items
      */
-    List<String> getChildItems(String siteId, List<String> paths);
+    List<String> getChildItems(String siteId, List<String> paths) throws SiteNotFoundException;
 
     /**
      * Delete content for given path. Following content will be deleted:
@@ -119,6 +120,8 @@ public interface ContentService {
 
     Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 
+    Document getItemDescriptor(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
+
     /**
      * Get detailed item for given path
      *
@@ -152,7 +155,7 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path item path
      */
-    void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException;
+    void unlockContent(String siteId, String path) throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException;
 
     /**
      * Get content for commit id

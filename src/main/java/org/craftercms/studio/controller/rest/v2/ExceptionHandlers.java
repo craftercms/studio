@@ -83,7 +83,7 @@ import static org.slf4j.event.Level.*;
  * @author avasquez
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice("org.craftercms.studio.controller.rest.v2")
+@RestControllerAdvice({"org.craftercms.studio.controller.rest.v2","org.craftercms.studio.controller.web.v1"})
 public class ExceptionHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlers.class);
@@ -218,7 +218,7 @@ public class ExceptionHandlers {
     public ResponseBody handlePublishedRepositoryNotFoundException(HttpServletRequest request,
                                                                    PublishedRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -236,7 +236,7 @@ public class ExceptionHandlers {
     public ResponseBody handleOrganizationNotFoundException(HttpServletRequest request,
                                                             OrganizationNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.ORG_NOT_FOUND);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -428,7 +428,7 @@ public class ExceptionHandlers {
     public ResponseBody handleInvalidConfigurationException(HttpServletRequest request,
                                                             InvalidConfigurationException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -437,6 +437,7 @@ public class ExceptionHandlers {
     public ResponseBody handleValidationRuntimeException(HttpServletRequest request,
                                                          ValidationRuntimeException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -445,7 +446,7 @@ public class ExceptionHandlers {
     public ResponseBody handleInvalidRemoteRepositoryCredentialsException(HttpServletRequest request,
             InvalidRemoteRepositoryCredentialsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_AUTHENTICATION_FAILED);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -454,7 +455,7 @@ public class ExceptionHandlers {
     public ResponseBody handleRemoteRepositoryNotFoundException(HttpServletRequest request,
             RemoteRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_FOUND);
-        response.setMessage(response.getMessage() + ": " + e.getMessage());
+        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
