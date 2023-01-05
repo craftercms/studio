@@ -23,39 +23,24 @@ import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.validation.ValidationRuntimeException;
 import org.craftercms.core.exception.PathNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisPathNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisRepositoryNotFoundException;
-import org.craftercms.studio.api.v1.exception.CmisTimeoutException;
-import org.craftercms.studio.api.v1.exception.CmisUnavailableException;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.exception.StudioPathNotFoundException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
-import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteNotRemovableException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
-import org.craftercms.studio.api.v2.exception.content.ContentExistException;
-import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
-import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
-import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.exception.*;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
+import org.craftercms.studio.api.v2.exception.content.ContentMoveInvalidLocation;
+import org.craftercms.studio.api.v2.exception.logger.LoggerNotFoundException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceNotInitializedException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceUnreachableException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalledException;
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
-import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.Result;
-import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
+import org.craftercms.studio.model.rest.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -70,12 +55,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
-import static org.slf4j.event.Level.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VALIDATION_ERRORS;
+import static org.slf4j.event.Level.DEBUG;
+import static org.slf4j.event.Level.ERROR;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -372,10 +359,18 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseBody handleMissingServletRequestParameterException(HttpServletRequest request,
-                                                                      MethodArgumentNotValidException e) {
+    public ResultList<ValidationFieldError> handleMissingServletRequestParameterException(HttpServletRequest request,
+                                                                                          MethodArgumentNotValidException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
-        return handleExceptionInternal(request, e, response);
+        handleExceptionInternal(request, e, response);
+        ResultList<ValidationFieldError> result = new ResultList<>();
+        result.setResponse(response);
+        result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
+                e.getBindingResult()
+                        .getFieldErrors().stream()
+                        .map(error -> new ValidationFieldError(error.getField(), error.getDefaultMessage()))
+                        .collect(Collectors.toList()));
+        return result;
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -434,11 +429,18 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(ValidationRuntimeException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseBody handleValidationRuntimeException(HttpServletRequest request,
-                                                         ValidationRuntimeException e) {
+    public ResultList<ValidationFieldError> handleValidationRuntimeException(HttpServletRequest request,
+                                                                             ValidationRuntimeException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
-        response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
-        return handleExceptionInternal(request, e, response);
+        handleExceptionInternal(request, e, response);
+
+        ResultList<ValidationFieldError> result = new ResultList<>();
+        result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
+                e.getResult().getErrors().entrySet().stream().map(entry ->
+                                new ValidationFieldError(entry.getKey(), entry.getValue()))
+                        .collect(Collectors.toList()));
+        result.setResponse(response);
+        return result;
     }
 
     @ExceptionHandler(InvalidRemoteRepositoryCredentialsException.class)

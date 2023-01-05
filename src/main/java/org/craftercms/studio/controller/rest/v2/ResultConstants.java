@@ -101,5 +101,7 @@ public final class ResultConstants {
     /** Exception Handler */
     public static final String RESULT_KEY_PERSON = "person";
 
+    public static final String RESULT_KEY_VALIDATION_ERRORS = "validationErrors";
+
     private ResultConstants() { }
 }
