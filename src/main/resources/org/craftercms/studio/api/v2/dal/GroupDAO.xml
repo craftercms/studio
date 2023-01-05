@@ -93,7 +93,7 @@
             <bind name="pattern" value="'%' + keyword + '%'" />
             AND group_name like #{pattern}
         </if>
-        <if test="sort != null and sort !=  '' ">
+        <if test="sort != null and sort != '' ">
             ORDER BY ${sort}
         </if>
         LIMIT #{offset}, #{limit}
@@ -154,7 +154,7 @@
         SELECT u.* FROM `user` u INNER JOIN `group_user` gu ON u.id = gu.user_id
         WHERE gu.group_id = #{groupId}
         AND u.deleted = 0
-        <if test="sort != null and sort !=  '' ">
+        <if test="sort != null and sort != '' ">
             ORDER BY ${sort}
         </if>
         LIMIT #{offset}, #{limit}
