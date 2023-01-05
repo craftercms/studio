@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  * @author Dejan Brkic
  * @author avasquez
  */
+// TODO: JM: Consider removing this entirely.
+// There is not difference in the output since Result is annotated with @JsonUnwrapped
 public class ResponseBody {
 
     @JsonUnwrapped

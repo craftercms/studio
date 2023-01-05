@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.model.rest.logging;
 
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 
@@ -27,6 +29,9 @@ import javax.validation.constraints.Pattern;
  */
 public class LoggerConfig {
     @NotEmpty
+    // TODO: JM: Revisit this when validation annotations are java validation API
+    // This will not be validated when the actual parameter is a sub-class
+    @ValidateNoTagsParam
     private String name;
     @NotEmpty
     @Pattern(regexp = "off|error|warn|info|debug|trace|all", flags = Pattern.Flag.CASE_INSENSITIVE)

@@ -18,12 +18,17 @@ package org.craftercms.studio.api.v2.dal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
 import org.springframework.security.core.GrantedAuthority;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.GROUP_NAME;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 
 public class Group implements Serializable, GrantedAuthority {
 
@@ -34,6 +39,7 @@ public class Group implements Serializable, GrantedAuthority {
     private Organization organization;
     @NotNull
     @Size(max=512)
+    @EsapiValidatedParam(type = GROUP_NAME)
     private String groupName;
     @Size(max=1024)
     private String groupDescription;

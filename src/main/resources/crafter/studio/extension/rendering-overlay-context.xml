@@ -66,7 +66,7 @@
     <bean id="studioRestExceptionHandlers" class="org.craftercms.studio.controller.rest.v2.ExceptionHandlers"/>
 
     <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.v2.GroupsController">
-        <property name="groupService" ref="groupService" />
+        <constructor-arg name="groupService" ref="groupService" />
     </bean>
 
     <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.v2.UsersController">
