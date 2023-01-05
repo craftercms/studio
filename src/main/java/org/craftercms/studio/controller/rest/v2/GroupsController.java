@@ -200,12 +200,14 @@ public class GroupsController {
      * @param sort Sort order
      * @return Response containing list od users
      */
+    @ValidateParams
     @GetMapping(PATH_PARAM_ID + MEMBERS)
     public ResponseBody getGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
+            @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
+                    defaultValue = "id asc") String sort)
             throws ServiceLayerException, GroupNotFoundException {
 
         int total = groupService.getGroupMembersTotal(groupId);

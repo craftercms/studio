@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -66,6 +67,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SQL_ORDER_BY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
@@ -135,13 +137,15 @@ public class UsersController {
      * @param sort Sort order
      * @return Response containing list of users
      */
+    @ValidateParams
     @GetMapping()
     public ResponseBody getAllUsers(
             @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
             @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = StringUtils.EMPTY) String sort)
+            @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
+                    defaultValue = "id asc") String sort)
             throws ServiceLayerException {
         List<User> users = null;
         int total = 0;

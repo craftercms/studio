@@ -98,8 +98,8 @@ paths:
         - name: sort
           in: query
           description: |-
-            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
-            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)?`
+            The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive. Multiple fields are separated by
+            commas. Example: `column1 ASC, column2 DESC`.
           required: false
           schema:
             type: string
@@ -301,8 +301,8 @@ paths:
         - name: sort
           in: query
           description: |-
-            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
-            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+            The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive. Multiple fields are separated by
+            commas. Example: `column1 ASC, column2 DESC`.
           required: false
           schema:
             type: string
@@ -479,8 +479,8 @@ paths:
         - name: sort
           in: query
           description: |-
-            The fields to use for sorting, plus the `asc` or `desc` keyword. Multiple fields are separated by
-            commas. Finally, the value should match the following regex: `([a-zA-Z_][a-zA-Z_0-9]*,?)+ (asc|desc)`?
+            The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive. Multiple fields are separated by
+            commas. Example: `column1 ASC, column2 DESC`.
           required: false
           schema:
             type: string
