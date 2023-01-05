@@ -159,7 +159,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
                                          String sort)
             throws ServiceLayerException {
         try {
-            return userDao.getAllUsersForSite(groupNames, keyword, offset, limit, StringUtils.EMPTY);
+            return userDao.getAllUsersForSite(groupNames, keyword, offset, limit, sort);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
