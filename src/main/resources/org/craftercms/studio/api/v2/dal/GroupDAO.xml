@@ -93,7 +93,7 @@
             <bind name="pattern" value="'%' + keyword + '%'" />
             AND group_name like #{pattern}
         </if>
-        ORDER BY #{sort}
+        ORDER BY ${sort}
         LIMIT #{offset}, #{limit}
     </select>
 

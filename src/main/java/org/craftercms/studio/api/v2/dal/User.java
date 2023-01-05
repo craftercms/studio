@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -26,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.EMAIL;
 
 public class User implements UserDetails {
 
@@ -40,6 +43,7 @@ public class User implements UserDetails {
     private boolean externallyManaged;
     private String timezone;
     private String locale;
+    @EsapiValidatedParam(type = EMAIL)
     private String email;
     private boolean enabled;
     private boolean deleted;
