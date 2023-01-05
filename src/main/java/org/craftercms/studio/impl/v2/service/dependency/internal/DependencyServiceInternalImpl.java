@@ -62,24 +62,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     private ServicesConfig servicesConfig;
 
     @Override
-    public List<String> getSoftDependencies(String site, String path) throws ServiceLayerException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(site);
-        }
-        logger.trace("Get soft dependencies for site '{}' path '{}'", site, path);
-        List<String> paths = new ArrayList<>();
-        paths.add(path);
-        return getSoftDependencies(site, paths);
-    }
-
-    @Override
     public List<String> getSoftDependencies(String site, List<String> paths)
             throws ServiceLayerException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(site);
-        }
         Map<String, String> toRet = calculateSoftDependencies(site, paths);
-
         return new ArrayList<>(toRet.keySet());
     }
 
@@ -141,9 +126,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     @Override
     public List<String> getHardDependencies(String site, List<String> paths)
             throws ServiceLayerException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(site);
-        }
+        siteService.checkSiteExists(site);
         Map<String, String> dependencies = calculateHardDependencies(site, paths);
         return new ArrayList<>(dependencies.keySet());
     }
@@ -202,35 +185,9 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         return toRet;
     }
 
-    private Set<String> calculatePossibleParents(List<String> paths) {
-        Set<String> possibleParents = new HashSet<>();
-        for (String path : paths) {
-            StringTokenizer stPath =
-                    new StringTokenizer(path.replace(FILE_SEPARATOR + INDEX_FILE, ""), FILE_SEPARATOR);
-            StringBuilder candidate = new StringBuilder(FILE_SEPARATOR);
-            if (stPath.countTokens() > 0) {
-                do {
-                    String token = stPath.nextToken();
-                    if (stPath.hasMoreTokens()) {
-                        candidate.append(token).append(FILE_SEPARATOR);
-                        possibleParents.add(candidate.toString() + INDEX_FILE);
-                    }
-                } while (stPath.hasMoreTokens());
-            }
-        }
-        return possibleParents;
-    }
-
     private List<Map<String, String>> calculateHardDependenciesForListFromDB(String site, Set<String> paths) {
         return dependencyDao.getHardDependenciesForList(site, paths, getItemSpecificDependenciesPatterns(),
                 MODIFIED_MASK, NEW_MASK);
-    }
-
-    @Override
-    public List<String> getDependentItems(String siteId, String path) {
-        List<String> paths = new ArrayList<>(1);
-        paths.add(path);
-        return getDependentItems(siteId, paths);
     }
 
     @Override
@@ -259,7 +216,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public Map<String, Set<String>> resolveDependnecies(String siteId, String path) {
+    public Map<String, Set<String>> resolveDependencies(String siteId, String path) {
         Map<String, Set<String>> dependencies = null;
         boolean isXml = path.endsWith(DmConstants.XML_PATTERN);
         boolean isCss = path.endsWith(DmConstants.CSS_PATTERN);

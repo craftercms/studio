@@ -480,7 +480,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file) throws IOException {
         long startDependencyResolver = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependnecies(siteId, path);
+        Map<String, Set<String>> dependencies = dependencyServiceInternal.resolveDependencies(siteId, path);
         if (logger.isDebugEnabled()) {
             logger.debug("Dependency resolver for site '{}' path '{}' finished in '{}' milliseconds",
                     siteId, path, (System.currentTimeMillis() - startDependencyResolver));

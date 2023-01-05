@@ -47,41 +47,22 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path)
-            throws ServiceLayerException {
-        List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, path);
-        toRet.remove(path);
-        return dependencyServiceInternal.getSoftDependencies(siteId, path);
-    }
-
-    @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
             throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
         List<String> toRet = dependencyServiceInternal.getSoftDependencies(siteId, paths);
         toRet.removeAll(paths);
         return toRet;
     }
 
     @Override
-    public List<String> getHardDependencies(String site, String path) throws ServiceLayerException {
-        return dependencyServiceInternal.getHardDependencies(site, path);
-    }
-
-    @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<String> getHardDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
+        siteService.checkSiteExists(site);
         return dependencyServiceInternal.getHardDependencies(site, paths);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public List<String> getDependentItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                          @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
-        return dependencyServiceInternal.getDependentItems(siteId, path);
     }
 
     @Override

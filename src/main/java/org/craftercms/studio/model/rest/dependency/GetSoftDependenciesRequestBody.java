@@ -16,15 +16,24 @@
 
 package org.craftercms.studio.model.rest.dependency;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
 public class GetSoftDependenciesRequestBody {
 
     @NotEmpty
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
+    @ValidateSecurePathParam
+    @EsapiValidatedParam(type = HTTPURI)
     private List<@Valid @NotEmpty String> paths;
 
     public String getSiteId() {
