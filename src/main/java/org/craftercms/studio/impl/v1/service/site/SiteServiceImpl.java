@@ -980,8 +980,18 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId));
         logger.debug("The operations to sync for site '{}' are", site);
         for (RepoOperation repoOperation : repoOperationsDelta) {
-            logger.debug("\tSite '{}' Operation '{}' path '{}'",
-                    site, repoOperation.getAction().toString(), repoOperation.getPath());
+            RepoOperation.Action action = repoOperation.getAction();
+            if (action == RepoOperation.Action.DELETE) {
+                logger.warn("\tSite '{}' Operation '{}' path '{}'",
+                        site, action, repoOperation.getPath());
+            } else if (action == RepoOperation.Action.CREATE) {
+                logger.info("\tSite '{}' Operation '{}' path '{}'",
+                        site, action, repoOperation.getPath());
+            } else {
+                logger.debug("\tSite '{}' Operation '{}' path '{}'",
+                        site, action, repoOperation.getPath());
+            }
+
         }
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
