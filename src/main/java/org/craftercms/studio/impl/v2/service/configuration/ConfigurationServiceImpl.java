@@ -199,8 +199,15 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                            String module,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path,
-                                           String environment) {
-        return getEnvironmentConfiguration(siteId, module, path, environment);
+                                           String environment) throws ContentNotFoundException {
+        String content = getEnvironmentConfiguration(siteId, module, path, environment);
+        if (content == null) {
+            throw new ContentNotFoundException(path, siteId,
+                    format("Configuration not found for site '%s', module '%s', path '%s', environment '%s'",
+                            siteId, module, path, environment));
+        }
+
+        return content;
     }
 
     @Override
@@ -298,8 +305,14 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = "write_global_configuration")
-    public String getGlobalConfigurationAsString(@ProtectedResourceId(PATH_RESOURCE_ID) String path) {
-        return contentService.getContentAsString(EMPTY, path);
+    public String getGlobalConfigurationAsString(@ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ContentNotFoundException {
+        String content = contentService.getContentAsString(EMPTY, path);
+        if (content == null) {
+            throw new ContentNotFoundException(path, CONFIGURATION_GLOBAL_SYSTEM_SITE,
+                    format("Configuration not found for global site '%s', path '%s'", CONFIGURATION_GLOBAL_SYSTEM_SITE, path));
+        }
+
+        return content;
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {

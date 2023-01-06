@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.beans.ConstructorProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +47,16 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping(API_2 + DEPENDENCY)
 public class DependencyController {
 
-    private DependencyService dependencyService;
+    private final DependencyService dependencyService;
 
+    @ConstructorProperties({"dependencyService"})
+    public DependencyController(final DependencyService dependencyService) {
+        this.dependencyService = dependencyService;
+    }
+
+    @ValidateParams
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
+    public ResponseBody getSoftDependencies(@ValidateObjectParam @RequestBody @Valid GetSoftDependenciesRequestBody request)
             throws ServiceLayerException {
         List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());
@@ -64,13 +73,5 @@ public class DependencyController {
         result.setEntity(RESULT_KEY_ITEMS, items);
         responseBody.setResult(result);
         return responseBody;
-    }
-
-    public DependencyService getDependencyService() {
-        return dependencyService;
-    }
-
-    public void setDependencyService(DependencyService dependencyService) {
-        this.dependencyService = dependencyService;
     }
 }

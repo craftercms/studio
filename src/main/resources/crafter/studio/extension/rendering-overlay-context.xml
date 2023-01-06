@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -66,7 +66,7 @@
     <bean id="studioRestExceptionHandlers" class="org.craftercms.studio.controller.rest.v2.ExceptionHandlers"/>
 
     <bean id="studioGroupsController" class="org.craftercms.studio.controller.rest.v2.GroupsController">
-        <property name="groupService" ref="groupService" />
+        <constructor-arg name="groupService" ref="groupService" />
     </bean>
 
     <bean id="studioUsersController" class="org.craftercms.studio.controller.rest.v2.UsersController">
@@ -121,7 +121,6 @@
 
     <bean id="contentController" class="org.craftercms.studio.controller.rest.v2.ContentController">
         <constructor-arg name="contentService" ref="contentService"/>
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="dependencyService" ref="dependencyService"/>
         <constructor-arg name="clipboardService" ref="clipboardService"/>
         <constructor-arg name="workflowService" ref="studio.workflowService" />
@@ -134,7 +133,7 @@
     </bean>
 
     <bean id="dependencyController" class="org.craftercms.studio.controller.rest.v2.DependencyController" >
-        <property name="dependencyService" ref="dependencyService" />
+        <constructor-arg name="dependencyService" ref="dependencyService" />
     </bean>
 
     <bean id="marketplaceController" class="org.craftercms.studio.controller.rest.v2.MarketplaceController">

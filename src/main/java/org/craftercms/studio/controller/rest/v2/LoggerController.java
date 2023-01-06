@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -45,8 +47,7 @@ public class LoggerController {
     public final static String ROOT_URL = "/loggers";
     public final static String LOGGER_LEVEL = "/logger_level";
 
-
-    private LoggerService loggerService;
+    private final LoggerService loggerService;
 
     @ConstructorProperties({"logService"})
     public LoggerController(final LoggerService logService) {
@@ -61,8 +62,9 @@ public class LoggerController {
         return result;
     }
 
+    @ValidateParams
     @PostMapping(value = LOGGER_LEVEL)
-    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
+    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @ValidateObjectParam @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
         ResultOne<LoggerConfig> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         loggerService.setLoggerLevel(loggerConfig.getName(), loggerConfig.getLevel(), loggerConfig.isCreateIfAbsent());
