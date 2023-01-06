@@ -43,6 +43,7 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SQL_ORDER_BY;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -199,9 +200,10 @@ public class GroupsController {
      * @param addGroupMembers Add members request body (json representation)
      * @return Response object
      */
+    @ValidateParams
     @PostMapping(value = PATH_PARAM_ID + MEMBERS, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResultList<User> addGroupMembers(@PathVariable(REQUEST_PARAM_ID) int groupId,
-                                        @RequestBody AddGroupMembers addGroupMembers)
+                                            @ValidateObjectParam @RequestBody AddGroupMembers addGroupMembers)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
@@ -223,11 +225,12 @@ public class GroupsController {
      * @param usernames List of usernames
      * @return Response object
      */
+    @ValidateParams
     @DeleteMapping(PATH_PARAM_ID + MEMBERS)
     public Result removeGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @RequestParam(value = REQUEST_PARAM_USER_ID, required = false) List<Long> userIds,
-            @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<String> usernames)
+            @EsapiValidatedParam(type = USERNAME) @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);

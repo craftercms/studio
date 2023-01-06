@@ -16,11 +16,16 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
 import java.util.Collections;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
+
 public class AddGroupMembers {
 
+    @EsapiValidatedParam(type = USERNAME)
     private List<String> usernames = Collections.emptyList();
     private List<Long> ids = Collections.emptyList();
 

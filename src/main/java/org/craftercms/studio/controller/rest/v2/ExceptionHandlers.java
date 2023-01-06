@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v2.exception.marketplace.PluginAlreadyInstalled
 import org.craftercms.studio.api.v2.exception.marketplace.PluginInstallationException;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.model.rest.*;
+import org.owasp.esapi.ESAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
@@ -383,10 +385,15 @@ public class ExceptionHandlers {
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResponseBody handleMethodArgumentTypeMismatchException(HttpServletRequest request,
-                                                                  MethodArgumentTypeMismatchException e) {
+    public ResultList<ValidationFieldError> handleMethodArgumentTypeMismatchException(HttpServletRequest request,
+                                                                                      MethodArgumentTypeMismatchException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
-        return handleExceptionInternal(request, e, response);
+        handleExceptionInternal(request, e, response);
+        ResultList<ValidationFieldError> result = new ResultList<>();
+        result.setResponse(response);
+        result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
+                List.of(new ValidationFieldError(e.getName(), ESAPI.encoder().encodeForJSON(e.getMessage()))));
+        return result;
     }
 
     @ExceptionHandler(InvalidManagementTokenException.class)
