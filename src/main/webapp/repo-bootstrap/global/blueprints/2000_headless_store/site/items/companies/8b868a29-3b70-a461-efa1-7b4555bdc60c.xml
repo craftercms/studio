@@ -28,8 +28,8 @@
 	<phone_s>+1-123-123-123</phone_s>
 	<logo_s>/static-assets/images/companies/company1.jpeg</logo_s>
 	<description_html>&lt;p&gt;Makes board games.&lt;/p&gt;</description_html>
-	<createdDate>2017-5-11T17:32:31.000Z</createdDate>
-	<createdDate_dt>2017-5-11T17:32:31.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-23T23:11:5.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-23T23:11:5.000Z</lastModifiedDate_dt>
+	<createdDate>2017-05-11T17:32:31.000Z</createdDate>
+	<createdDate_dt>2017-05-11T17:32:31.000Z</createdDate_dt>
+	<lastModifiedDate>2017-05-23T23:11:5.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-05-23T23:11:5.000Z</lastModifiedDate_dt>
 </component>
