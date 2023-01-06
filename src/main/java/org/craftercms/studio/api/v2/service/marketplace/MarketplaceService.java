@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.marketplace;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.plugin.model.Version;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -125,8 +126,9 @@ public interface MarketplaceService {
      * @param siteId the id of the site
      * @param pluginId the id of the plugin
      * @return the configuration string
+     * @throws ContentNotFoundException if there is any issue reading the file from the repository
      */
-    String getPluginConfigurationAsString(String siteId, String pluginId);
+    String getPluginConfigurationAsString(String siteId, String pluginId) throws ContentNotFoundException;
 
     /**
      * Writes the configuration for a given plugin

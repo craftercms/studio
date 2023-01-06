@@ -20,6 +20,7 @@ import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.plugin.model.Plugin;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -80,7 +81,7 @@ public class MarketplaceServiceInternalImplTest {
     private static final ObjectMapper MAPPER = new ObjectMapper().findAndRegisterModules();
 
     @BeforeTest
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, ContentNotFoundException {
         initMocks(this);
         marketplaceService.widgetMapping = widgetMapping;
 
