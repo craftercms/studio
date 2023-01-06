@@ -16,32 +16,23 @@
 
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+/**
+ * Holds the result of a field validation error.
+ */
+public class ValidationFieldError {
+    private final String field;
+    private final String message;
 
-import java.util.Collections;
-import java.util.List;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
-
-public class AddGroupMembers {
-
-    @EsapiValidatedParam(type = USERNAME)
-    private List<String> usernames = Collections.emptyList();
-    private List<Long> ids = Collections.emptyList();
-
-    public List<String> getUsernames() {
-        return usernames;
+    public ValidationFieldError(final String field, final String message) {
+        this.field = field;
+        this.message = message;
     }
 
-    public void setUsernames(List<String> usernames) {
-        this.usernames = usernames;
+    public String getField() {
+        return field;
     }
 
-    public List<Long> getIds() {
-        return ids;
-    }
-
-    public void setIds(List<Long> ids) {
-        this.ids = ids;
+    public String getMessage() {
+        return message;
     }
 }

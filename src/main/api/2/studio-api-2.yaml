@@ -4447,7 +4447,7 @@ paths:
       tags:
         - dependency
       summary: Get list of dependencies for given content paths
-      description: 'Required permission "site member"'
+      description: 'Required permission "content_read"'
       operationId: getDependencies
       requestBody:
         required: true

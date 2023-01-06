@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,22 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 public interface DependencyServiceInternal {
-
-    /**
-     * Get a soft dependencies of a item. A soft
-     * dependency is:
-     * * an edited, shared (not item specific) dependency
-     *
-     * @param site Site to operate on
-     * @param path Paths to item to retrieve deps for
-     *
-     * @return list of soft dependencies
-     *
-     * @throws SiteNotFoundException Site doesn't exist
-     * @throws ServiceLayerException Internal error, see exception details
-     */
-    List<String> getSoftDependencies(String site, String path)
-            throws SiteNotFoundException, ServiceLayerException;
 
     /**
      * Get a soft dependencies of a list of items. A soft
@@ -93,17 +77,7 @@ public interface DependencyServiceInternal {
             throws SiteNotFoundException, ServiceLayerException;
 
     /**
-     * Get list of paths of content items that are dependant on given path
-     *
-     * @param siteId site identifier
-     * @param path path to get dependent items for
-     *
-     * @return list of paths dependent on given
-     */
-    List<String> getDependentItems(String siteId, String path);
-
-    /**
-     * Get list of paths of content items that are dependant on given paths
+     * Get list of paths of content items that are dependent on given paths
      *
      * @param siteId site identifier
      * @param paths list of paths to get dependent items for
@@ -136,7 +110,7 @@ public interface DependencyServiceInternal {
      * @param path
      * @return set of paths of files that content is dependant on
      */
-    Map<String, Set<String>> resolveDependnecies(String site, String path);
+    Map<String, Set<String>> resolveDependencies(String site, String path);
 
     /**
      * Get dependencies for content path by type
