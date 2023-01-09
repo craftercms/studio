@@ -70,7 +70,7 @@ public class MarketplaceController {
     @ValidateParams
     @GetMapping("/search")
     public ResponseBody searchPlugins(@RequestParam(required = false) String type,
-                                      @EsapiValidatedParam(type = SEARCH_KEYWORDS, notBlank = false, notEmpty = false)
+                                      @EsapiValidatedParam(type = SEARCH_KEYWORDS, notBlank = false, notEmpty = false, notNull = false)
                                       @RequestParam(required = false) String keywords,
                                       @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
                                       @RequestParam(required = false, defaultValue = "0") long offset,
