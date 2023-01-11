@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -73,7 +74,7 @@ public class PluginController extends ManagementTokenAware {
     }
 
     @GetMapping("/get_configuration")
-    public ResponseBody getPluginConfiguration(String siteId, String pluginId) {
+    public ResponseBody getPluginConfiguration(String siteId, String pluginId) throws ContentNotFoundException {
         String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
 
         ResponseBody responseBody = new ResponseBody();

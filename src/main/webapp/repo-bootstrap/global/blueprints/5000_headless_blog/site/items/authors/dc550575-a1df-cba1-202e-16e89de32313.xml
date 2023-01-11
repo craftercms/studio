@@ -22,10 +22,10 @@
 	<objectId>dc550575-a1df-cba1-202e-16e89de32313</objectId>
 	<file-name>dc550575-a1df-cba1-202e-16e89de32313.xml</file-name>
 	<internal-name>John Doe (Owner)</internal-name>
-	<createdDate>2017-5-9T21:42:38.000Z</createdDate>
-	<createdDate_dt>2017-5-9T21:42:38.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-10T21:36:46.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-10T21:36:46.000Z</lastModifiedDate_dt>
+	<createdDate>2017-05-9T21:42:38.000Z</createdDate>
+	<createdDate_dt>2017-05-9T21:42:38.000Z</createdDate_dt>
+	<lastModifiedDate>2017-05-10T21:36:46.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-05-10T21:36:46.000Z</lastModifiedDate_dt>
 	<disabled>false</disabled>
 	<name_s>John Doe</name_s>
 	<website_s>https://www.example.com/</website_s>

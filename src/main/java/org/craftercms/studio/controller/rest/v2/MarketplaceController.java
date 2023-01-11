@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
@@ -43,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SEARCH_KEYWORDS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PLUGINS;
 
@@ -64,8 +67,10 @@ public class MarketplaceController {
     }
 
     @SuppressWarnings("unchecked")
+    @ValidateParams
     @GetMapping("/search")
     public ResponseBody searchPlugins(@RequestParam(required = false) String type,
+                                      @EsapiValidatedParam(type = SEARCH_KEYWORDS, notBlank = false, notEmpty = false, notNull = false)
                                       @RequestParam(required = false) String keywords,
                                       @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
                                       @RequestParam(required = false, defaultValue = "0") long offset,

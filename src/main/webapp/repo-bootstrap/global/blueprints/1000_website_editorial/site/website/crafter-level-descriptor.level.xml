@@ -31,10 +31,10 @@
       <disableFlattening>false</disableFlattening>
     </item>
   </header_o>
-  <createdDate>2017-3-13T20:26:50.000Z</createdDate>
-  <createdDate_dt>2017-3-13T20:26:50.000Z</createdDate_dt>
-  <lastModifiedDate>2017-5-18T15:38:58.000Z</lastModifiedDate>
-  <lastModifiedDate_dt>2017-5-18T15:38:58.000Z</lastModifiedDate_dt>
+  <createdDate>2017-03-13T20:26:50.000Z</createdDate>
+  <createdDate_dt>2017-03-13T20:26:50.000Z</createdDate_dt>
+  <lastModifiedDate>2017-05-18T15:38:58.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-05-18T15:38:58.000Z</lastModifiedDate_dt>
   <left_rail_o>
     <item>
       <key>/site/components/left-rails/left-rail-with-no-articles.xml</key>
