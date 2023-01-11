@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.model.rest.logging;
 
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 
@@ -27,6 +29,9 @@ import javax.validation.constraints.Pattern;
  */
 public class LoggerConfig {
     @NotEmpty
+    // TODO: JM: Revisit this when validation annotations are java validation API
+    // This will not be validated when the actual parameter is a sub-class
+    @ValidateNoTagsParam
     private String name;
     @NotEmpty
     @Pattern(regexp = "off|error|warn|info|debug|trace|all", flags = Pattern.Flag.CASE_INSENSITIVE)

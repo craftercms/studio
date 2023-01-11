@@ -24,10 +24,10 @@
   <file-name>left-rail-with-related-articles.xml</file-name>
   <folder-name/>
   <internal-name>Left Rail with Related Articles</internal-name>
-  <createdDate>2017-3-17T18:23:52.000Z</createdDate>
-  <createdDate_dt>2017-3-17T18:23:52.000Z</createdDate_dt>
-  <lastModifiedDate>2017-5-18T15:53:17.000Z</lastModifiedDate>
-  <lastModifiedDate_dt>2017-5-18T15:53:17.000Z</lastModifiedDate_dt>
+  <createdDate>2017-03-17T18:23:52.000Z</createdDate>
+  <createdDate_dt>2017-03-17T18:23:52.000Z</createdDate_dt>
+  <lastModifiedDate>2017-05-18T15:53:17.000Z</lastModifiedDate>
+  <lastModifiedDate_dt>2017-05-18T15:53:17.000Z</lastModifiedDate_dt>
   <widgets_o item-list="true">
     <item>
       <key>/site/components/articles-widget/related-articles-widget.xml</key>

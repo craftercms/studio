@@ -890,7 +890,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
     }
 
     @Override
-    public String getPluginConfigurationAsString(String siteId, String pluginId) {
+    public String getPluginConfigurationAsString(String siteId, String pluginId) throws ContentNotFoundException {
         return configurationService.getConfigurationAsString(siteId, pluginConfigModule,
                 getPluginPath(pluginId) + File.separator + pluginConfigFilename, null);
     }

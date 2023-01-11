@@ -22,10 +22,10 @@
 	<objectId>6da4e193-6109-0b9f-91b6-d439fc64c5dc</objectId>
 	<file-name>6da4e193-6109-0b9f-91b6-d439fc64c5dc.xml</file-name>
 	<internal-name>Jane Doe (Intern)</internal-name>
-	<createdDate>2017-5-9T23:13:7.000Z</createdDate>
-	<createdDate_dt>2017-5-9T23:13:7.000Z</createdDate_dt>
-	<lastModifiedDate>2017-5-10T21:32:18.000Z</lastModifiedDate>
-	<lastModifiedDate_dt>2017-5-10T21:32:18.000Z</lastModifiedDate_dt>
+	<createdDate>2017-05-9T23:13:7.000Z</createdDate>
+	<createdDate_dt>2017-05-9T23:13:7.000Z</createdDate_dt>
+	<lastModifiedDate>2017-05-10T21:32:18.000Z</lastModifiedDate>
+	<lastModifiedDate_dt>2017-05-10T21:32:18.000Z</lastModifiedDate_dt>
 	<disabled>false</disabled>
 	<name_s>Jane Doe</name_s>
 	<website_s>https://www.example.com/</website_s>

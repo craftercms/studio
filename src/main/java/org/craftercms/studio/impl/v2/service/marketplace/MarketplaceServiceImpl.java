@@ -28,6 +28,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -132,7 +133,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public String getPluginConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                 String pluginId) {
+                                                 String pluginId) throws ContentNotFoundException {
         return marketplaceServiceInternal.getPluginConfigurationAsString(siteId, pluginId);
     }
 

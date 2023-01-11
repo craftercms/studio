@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -68,20 +68,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class ContentController {
 
     private final ContentService contentService;
-    private final SiteService siteService;
     private final DependencyService dependencyService;
     private final WorkflowService workflowService;
 
     //TODO: Migrate logic to new content service
     private final ClipboardService clipboardService;
 
-    @ConstructorProperties({"contentService", "siteService", "dependencyService", "clipboardService",
-            "workflowService"})
-    public ContentController(ContentService contentService, SiteService siteService,
-                             DependencyService dependencyService, ClipboardService clipboardService,
+    @ConstructorProperties({"contentService", "dependencyService", "clipboardService", "workflowService"})
+    public ContentController(ContentService contentService, DependencyService dependencyService, ClipboardService clipboardService,
                              WorkflowService workflowService) {
         this.contentService = contentService;
-        this.siteService = siteService;
         this.dependencyService = dependencyService;
         this.clipboardService = clipboardService;
         this.workflowService = workflowService;
