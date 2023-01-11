@@ -27,16 +27,18 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Node;
-import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
+import org.springframework.util.ResourceUtils;
 
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import java.beans.ConstructorProperties;
-import java.io.InputStream;
-import java.io.Writer;
+import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
-
 
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.VersionProvider} for XML files.
@@ -45,13 +47,16 @@ import java.util.List;
  */
 public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 
+    private final String XML_TRANSFORMER_FACTORY_CLASS = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+    private final String XML_FORMATTER_RESOURCE_PATH = "classpath:crafter/studio/upgrade/formatter.xslt";
+
     /**
      * Path of the file containing the version.
      */
     protected String path;
 
     /**
-     * XPath expression to extract the version.
+     * XPath's expression to extract the version.
      */
     protected String xpath;
 
@@ -128,7 +133,7 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
         var file = studioContext.getFile(actualPath);
 
         Document document;
-        try(InputStream is = Files.newInputStream(file)) {
+        try (InputStream is = Files.newInputStream(file)) {
             SAXReader reader = new SAXReader();
             document = reader.read(is);
         }
@@ -140,10 +145,13 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
             }
             versionNode.setText(newVersion);
 
-            try(Writer writer = Files.newBufferedWriter(file)) {
-                XMLWriter xmlWriter = new XMLWriter(writer, OutputFormat.createPrettyPrint());
-                xmlWriter.write(document);
-            }
+            Source xmlInput = new StreamSource(new StringReader(document.asXML()));
+            StreamResult xmlOutput = new StreamResult(Files.newBufferedWriter(file));
+            TransformerFactory transformerFactory = TransformerFactory
+                    .newInstance(XML_TRANSFORMER_FACTORY_CLASS, null);
+            Transformer transformer = transformerFactory.newTransformer(new StreamSource(
+                    ResourceUtils.getFile(XML_FORMATTER_RESOURCE_PATH)));
+            transformer.transform(xmlInput, xmlOutput);
 
             studioContext.commitChanges("[Upgrade Manager] Update version", List.of(actualPath), null);
         }
