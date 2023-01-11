@@ -196,8 +196,9 @@ public class UsersController {
      * @param user User to update
      * @return Response object
      */
+    @ValidateParams
     @PatchMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody updateUser(@RequestBody User user)
+    public ResponseBody updateUser(@ValidateObjectParam @RequestBody User user)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         userService.updateUser(user);
 
