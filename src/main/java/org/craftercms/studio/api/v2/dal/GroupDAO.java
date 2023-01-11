@@ -20,16 +20,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_DESCRIPTION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_IDS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.KEYWORD;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ORG_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SORT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface GroupDAO {
 
@@ -62,10 +53,11 @@ public interface GroupDAO {
      * @param orgId organization id
      * @param groupName group name
      * @param groupDescription  group description
+     * @param externallyManaged 1 if group is externally managed, 0 otherwise
      * @return Number of affected rows in DB
      */
     Integer createGroup(@Param(ORG_ID) long orgId, @Param(GROUP_NAME) String groupName,
-                        @Param(GROUP_DESCRIPTION) String groupDescription);
+                        @Param(GROUP_DESCRIPTION) String groupDescription, @Param(EXTERNALLY_MANAGED) int externallyManaged);
 
     /**
      * Update group

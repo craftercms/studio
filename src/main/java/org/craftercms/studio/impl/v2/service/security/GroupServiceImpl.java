@@ -24,10 +24,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -44,6 +41,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
@@ -111,9 +109,10 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_GROUPS)
     @ValidateParams
-    public Group createGroup(long orgId, @ValidateStringParam(maxLength = 512, notEmpty = true) String groupName, String groupDescription)
+    public Group createGroup(long orgId, @ValidateStringParam(maxLength = 512, notEmpty = true) String groupName,
+                             String groupDescription, boolean externallyManaged)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
-        Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription);
+        Group toRet = groupServiceInternal.createGroup(orgId, groupName, groupDescription, externallyManaged);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_CREATE);
@@ -130,7 +129,9 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_GROUPS)
     public Group updateGroup(long orgId, Group group)
-            throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
+        checkExternallyManagedGroup(Arrays.asList(group.getId()));
+
         Group toRet = groupServiceInternal.updateGroup(orgId, group);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
@@ -147,7 +148,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_GROUPS)
     public void deleteGroup(List<Long> groupIds)
-            throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
         Group sysAdminGroup;
         try {
             sysAdminGroup = groupServiceInternal.getGroupByName(SYSTEM_ADMIN_GROUP);
@@ -160,6 +161,9 @@ public class GroupServiceImpl implements GroupService {
                 throw new ServiceLayerException("Deleting the System Admin group is not allowed.");
             }
         }
+
+        checkExternallyManagedGroup(groupIds);
+
         List<Group> groups = groupServiceInternal.getGroups(groupIds);
         groupServiceInternal.deleteGroup(groupIds);
         SiteFeed siteFeed = siteService.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
@@ -280,6 +284,21 @@ public class GroupServiceImpl implements GroupService {
             auditServiceInternal.insertAuditLog(auditLog);
         } finally {
             generalLockService.unlock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
+        }
+    }
+
+    /**
+     * Check if groups contain external managed group member
+     * If matched, the operation must not be permitted.
+     * @param groupIds list of group IDs
+     * @throws ServiceLayerException
+     * @throws GroupNotFoundException
+     * @throws GroupExternallyManagedException
+     */
+    private void checkExternallyManagedGroup(List<Long> groupIds) throws ServiceLayerException, GroupNotFoundException, GroupExternallyManagedException {
+        List<Group> groups = groupServiceInternal.getGroups(groupIds);
+        if (groups.stream().anyMatch(group -> group.isExternallyManaged())) {
+            throw new GroupExternallyManagedException("Cannot update externally managed groups.");
         }
     }
 }

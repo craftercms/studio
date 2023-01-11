@@ -116,6 +116,13 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
+    @ExceptionHandler(GroupExternallyManagedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseBody handleGroupExternallyManagedException(HttpServletRequest request, GroupExternallyManagedException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.GROUP_EXTERNALLY_MANAGED);
+        return handleExceptionInternal(request, e, response);
+    }
+
     @ExceptionHandler(NoSuchElementException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleNoSuchElementException(HttpServletRequest request, NoSuchElementException e) {

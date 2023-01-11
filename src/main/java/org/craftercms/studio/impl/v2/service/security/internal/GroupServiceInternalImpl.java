@@ -120,13 +120,13 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
     }
 
     @Override
-    public Group createGroup(long orgId, String groupName, String groupDescription)
+    public Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
             throws GroupAlreadyExistsException, ServiceLayerException {
         if (groupExists(-1, groupName)) {
             throw new GroupAlreadyExistsException("Group '" + groupName + "' already exists");
         }
         try {
-            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription));
+            retryingDatabaseOperationFacade.retry(() -> groupDao.createGroup(orgId, groupName, groupDescription, externallyManaged ? 1 : 0));
             return groupDao.getGroupByName(groupName);
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
