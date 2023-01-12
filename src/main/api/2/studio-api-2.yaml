@@ -5596,10 +5596,10 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-                  publishingPackages:
+                  publishingItems:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DashboardPublishingPackage'
+                      $ref: '#/components/schemas/DetailedItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
