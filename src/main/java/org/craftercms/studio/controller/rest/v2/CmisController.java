@@ -24,8 +24,6 @@ import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.CmisContentItem;
@@ -35,9 +33,11 @@ import org.craftercms.studio.api.v2.service.cmis.CmisService;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -49,12 +49,13 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
+@Validated
 @RestController
 public class CmisController {
 
     protected CmisService cmisService;
 
-    @ValidateParams
+    @Valid
     @GetMapping("/api/2/cmis/list")
     public ResponseBody list(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = "siteId") String siteId,
                              @ValidateNoTagsParam @RequestParam(value = "cmisRepoId") String cmisRepoId,
@@ -77,7 +78,7 @@ public class CmisController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping("/api/2/cmis/search")
     public ResponseBody search(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = "siteId") String siteId,
                                @ValidateNoTagsParam @RequestParam(value = "cmisRepoId") String cmisRepoId,
@@ -101,9 +102,9 @@ public class CmisController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping("/api/2/cmis/clone")
-    public ResponseBody cloneContent(@ValidateObjectParam @RequestBody CmisCloneRequest cmisCloneRequest)
+    public ResponseBody cloneContent(@RequestBody CmisCloneRequest cmisCloneRequest)
             throws CmisUnavailableException, CmisTimeoutException, CmisRepositoryNotFoundException,
             ServiceLayerException, CmisPathNotFoundException, UserNotFoundException {
         cmisService.cloneContent(cmisCloneRequest.getSiteId(), cmisCloneRequest.getCmisRepoId(),

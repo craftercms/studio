@@ -16,7 +16,6 @@
 package org.craftercms.studio.model.rest.clipboard;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
@@ -61,7 +60,6 @@ public class PasteRequest {
      */
     @Valid
     @NotNull
-    @ValidateObjectParam
     protected PasteItem item;
 
     public String getSiteId() {

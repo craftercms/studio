@@ -28,7 +28,7 @@ public class WriteConfigurationRequest {
     private String module;
     @EsapiValidatedParam(type = HTTPURI)
     private String path;
-    @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false)
+    @EsapiValidatedParam(type = ALPHANUMERIC)
     private String environment;
     private String content;
 

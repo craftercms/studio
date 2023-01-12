@@ -20,6 +20,7 @@ import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
@@ -27,9 +28,11 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 public class UnlockItemByPathRequest {
 
     @NotEmpty
+    @Size(max = 4)
     @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
+    @Size(min = 2)
     @ValidateSecurePathParam
     @EsapiValidatedParam(type = HTTPURI)
     private String path;

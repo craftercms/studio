@@ -15,12 +15,12 @@
  */
 package org.craftercms.studio.impl.v1.service;
 
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -36,8 +36,8 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     protected Map<String, ReentrantLock> nodeLocks = new HashMap<>();
 
     @Override
-    @ValidateParams
-    public void lock(@ValidateStringParam(name = "objectId") String objectId) {
+    @Valid
+    public void lock(@ValidateStringParam String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("Thread '{}' will attempt to lock object '{}'", Thread.currentThread().getName(), objectId);
@@ -62,8 +62,8 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     }
 
     @Override
-    @ValidateParams
-    public boolean tryLock(@ValidateStringParam(name = "objectId") String objectId) {
+    @Valid
+    public boolean tryLock(@ValidateStringParam String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("Thread '{}' will attempt to tryLock object '{}'", Thread.currentThread().getName(), objectId);
@@ -89,8 +89,8 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     }
 
     @Override
-    @ValidateParams
-    public void unlock(@ValidateStringParam(name = "objectId") String objectId) {
+    @Valid
+    public void unlock(@ValidateStringParam String objectId) {
         ReentrantLock nodeLock;
         if (logger.isDebugEnabled()) {
             logger.debug("Thread '{}' will attempt to unlock object '{}'", Thread.currentThread().getName(), objectId);

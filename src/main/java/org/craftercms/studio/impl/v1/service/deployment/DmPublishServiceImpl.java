@@ -15,22 +15,13 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -43,6 +34,15 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.service.workflow.context.MultiChannelPublishingContext;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.Valid;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -65,8 +65,8 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    @ValidateParams
-    public void publish(@ValidateStringParam(name = "site") final String site, List<String> paths,
+    @Valid
+    public void publish(@ValidateStringParam final String site, List<String> paths,
                         ZonedDateTime launchDate, final MultiChannelPublishingContext mcpContext) {
         boolean scheduledDateIsNow = false;
         if (launchDate == null) {
@@ -85,15 +85,15 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    @ValidateParams
-    public void unpublish(@ValidateStringParam (name = "site") String site, List<String> paths, String approver) {
+    @Valid
+    public void unpublish(@ValidateStringParam String site, List<String> paths, String approver) {
         unpublish(site, paths, approver, null);
     }
 
     @Override
-    @ValidateParams
-    public void unpublish(@ValidateStringParam(name = "site") String site, List<String> paths,
-                          @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduleDate) {
+    @Valid
+    public void unpublish(@ValidateStringParam String site, List<String> paths,
+                          @ValidateStringParam String approver, ZonedDateTime scheduleDate) {
         if (scheduleDate == null) {
             scheduleDate = DateUtils.getCurrentTime();
         }
@@ -105,9 +105,9 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    @ValidateParams
-    public void cancelScheduledItem(@ValidateStringParam(name = "site") String site,
-                                    @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public void cancelScheduledItem(@ValidateStringParam String site,
+                                    @ValidateSecurePathParam String path) {
         try {
             deploymentService.cancelWorkflow(site, path);
         } catch (DeploymentException e) {
@@ -116,10 +116,10 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
     }
 
     @Override
-    @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site,
+    @Valid
+    public void bulkGoLive(@ValidateStringParam String site,
                            @ValidateStringParam String environment,
-                           @ValidateSecurePathParam(name = "path") String path,
+                           @ValidateSecurePathParam String path,
                            String comment) throws ServiceLayerException {
         logger.info("Start Bulk Publish in site '{}' path '{}' to target '{}'", site, path, environment);
 

@@ -27,11 +27,13 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Positive;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Map;
@@ -51,6 +53,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  * Rest controller to provide monitoring information
  * @author joseross
  */
+@Validated
 @RestController
 @RequestMapping("/api/2")
 public class MonitoringController extends ManagementTokenAware {
@@ -94,7 +97,7 @@ public class MonitoringController extends ManagementTokenAware {
     }
 
     @GetMapping(value = ROOT_URL + LOG_URL, produces = APPLICATION_JSON_VALUE)
-    public ResultList<Map<String,Object>> getLogEvents(@RequestParam long since,
+    public ResultList<Map<String,Object>> getLogEvents(@Positive @RequestParam long since,
                                                        @RequestParam(name = "token", required = false) String token)
         throws InvalidManagementTokenException, InvalidParametersException {
         validateToken(token);

@@ -30,7 +30,7 @@ model.mode = (request.getParameter("mode")) ? request.getParameter("mode") : "se
 model.context = (request.getParameter("context")) ? request.getParameter("context") : "default"
 
 try {
-    ValidationUtils.validateInput(model.keywordTerm, new NoTagsValidator("keywordTerm"))
+    ValidationUtils.validateInput(model.keywordTerm, new NoTagsValidator())
 } catch (e) {
     throw new HttpStatusCodeException(HttpStatus.BAD_REQUEST, "Invalid keywordTerm input", e)
 }

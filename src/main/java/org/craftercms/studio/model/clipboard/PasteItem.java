@@ -17,9 +17,9 @@ package org.craftercms.studio.model.clipboard;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -45,7 +45,7 @@ public class PasteItem {
     /**
      * The list of child items to include
      */
-    @ValidateObjectParam
+    @Valid
     protected List<PasteItem> children;
 
     public String getPath() {

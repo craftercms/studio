@@ -16,15 +16,11 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateDoubleParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequence;
 import org.craftercms.studio.api.v1.dal.NavigationOrderSequenceMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -35,7 +31,10 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -59,17 +58,17 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    @ValidateParams
-    public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
-                                 @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public double getNewNavOrder(@ValidateStringParam String site,
+                                 @ValidateSecurePathParam String path) {
         return getNewNavOrder(site, path, -1);
     }
 
     @Override
-    @ValidateParams
-    public double getNewNavOrder(@ValidateStringParam(name = "site") String site,
-                                 @ValidateSecurePathParam(name = "path") String path,
-                                 @ValidateDoubleParam(name = "currentMaxNavOrder") double currentMaxNavOrder) {
+    @Valid
+    public double getNewNavOrder(@ValidateStringParam String site,
+                                 @ValidateSecurePathParam String path,
+                                 double currentMaxNavOrder) {
         double lastNavOrder = 1000D;
         try {
             Map<String, String> params = new HashMap<>();
@@ -120,9 +119,9 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    @ValidateParams
-    public boolean addNavOrder(@ValidateStringParam(name = "site") String site,
-                               @ValidateSecurePathParam(name = "path") String path, Document document) {
+    @Valid
+    public boolean addNavOrder(@ValidateStringParam String site,
+                               @ValidateSecurePathParam String path, Document document) {
         boolean docUpdated =false;
         Element root = document.getRootElement();
         Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_DEFAULT);
@@ -137,9 +136,9 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    @ValidateParams
-    public boolean updateNavOrder(@ValidateStringParam(name = "site") String site,
-                                  @ValidateSecurePathParam(name = "path") String path, Document document) {
+    @Valid
+    public boolean updateNavOrder(@ValidateStringParam String site,
+                                  @ValidateSecurePathParam String path, Document document) {
         boolean docUpdated =false;
         Element root = document.getRootElement();
         Node navOrderNode = root.selectSingleNode("//" + DmXmlConstants.ELM_ORDER_DEFAULT);
@@ -162,8 +161,8 @@ public class DmPageNavigationOrderServiceImpl extends AbstractRegistrableService
     }
 
     @Override
-    @ValidateParams
-    public void deleteSequencesForSite(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public void deleteSequencesForSite(@ValidateStringParam String site) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         retryingDatabaseOperationFacade.retry(() -> navigationOrderSequenceMapper.deleteSequencesForSite(params));

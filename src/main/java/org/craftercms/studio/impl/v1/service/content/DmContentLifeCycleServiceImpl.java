@@ -16,14 +16,11 @@
 package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.script.ScriptExecutor;
 import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -34,11 +31,14 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.xml.sax.SAXException;
 
+import javax.validation.Valid;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -78,11 +78,11 @@ public class DmContentLifeCycleServiceImpl extends AbstractRegistrableService im
     }
 
     @Override
-    @ValidateParams
-    public void process(@ValidateStringParam(name = "site") String site,
+    @Valid
+    public void process(@ValidateStringParam String site,
                         @ValidateStringParam String user,
                         @ValidateSecurePathParam String path,
-                        @ValidateStringParam(name = "contentType") String contentType,
+                        @ValidateStringParam String contentType,
                         ContentLifeCycleOperation operation,
                         Map<String, String> params) {
         if (operation == null) {

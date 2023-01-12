@@ -18,13 +18,14 @@ package org.craftercms.studio.impl.v2.service.log;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
 import org.craftercms.studio.model.rest.logging.LoggerConfig;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
@@ -53,17 +54,18 @@ public class LoggerServiceImpl implements LoggerService {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @HasAnyPermissions(actions = {PERMISSION_VIEW_LOG_LEVELS, PERMISSION_CONFIGURE_LOG_LEVELS}, type = DefaultPermission.class)
-    public LoggerConfig getLoggerConfig(@ValidateStringParam(notEmpty = true) final String name, boolean createIfAbsent) throws ServiceLayerException {
+    public LoggerConfig getLoggerConfig(@ValidateStringParam final String name, boolean createIfAbsent) throws ServiceLayerException {
         return loggerServiceInternal.getLoggerConfig(name, createIfAbsent);
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @HasPermission(action = PERMISSION_CONFIGURE_LOG_LEVELS, type = DefaultPermission.class)
-    public void setLoggerLevel(@ValidateStringParam(notEmpty = true) final String name,
-                               @ValidateStringParam(notEmpty = true,
+    public void setLoggerLevel(@ValidateStringParam final String name,
+                               @NotEmpty
+                               @ValidateStringParam(
                                        whitelistedPatterns = {VALID_LEVEL_PATTERN}) final String level,
                                boolean createIfAbsent) throws ServiceLayerException {
         loggerServiceInternal.setLoggerLevel(name, level, createIfAbsent);

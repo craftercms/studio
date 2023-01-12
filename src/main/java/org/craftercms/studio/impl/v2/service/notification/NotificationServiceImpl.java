@@ -16,22 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.notification;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.stream.Collectors;
-
 import com.google.common.cache.Cache;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapperBuilder;
@@ -42,22 +26,14 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.craftercms.commons.mail.EmailUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v1.to.EmailMessageQueueTo;
-import org.craftercms.studio.api.v1.to.EmailMessageTO;
-import org.craftercms.studio.api.v1.to.EmailMessageTemplateTO;
-import org.craftercms.studio.api.v1.to.MessageTO;
-import org.craftercms.studio.api.v1.to.NotificationConfigTO;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.notification.NotificationMessageType;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -65,22 +41,24 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.Valid;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_NAME;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_APPROVER_EMAILS;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_CANNED_MESSAGES;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_COMPLETE_MESSAGES;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_DEPLOYMENT_FAILURE_NOTIFICATION;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_EMAIL_TEMPLATES;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_GENERAL_MESSAGES;
-import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELEMENT_REPOSITORY_MERGE_CONFLICT_NOTIFICATION;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_CONFIGURATION_FILE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.NOTIFICATION_TIMEZONE;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class NotificationServiceImpl implements NotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
@@ -127,8 +105,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @ValidateParams
-    public void notifyDeploymentError(@ValidateStringParam(name = "site") final String site, final Throwable throwable,
+    @Valid
+    public void notifyDeploymentError(@ValidateStringParam final String site, final Throwable throwable,
                                       final List<PublishRequest> filesUnableToPublish) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);
@@ -144,17 +122,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @SuppressWarnings("unchecked")
-    @ValidateParams
-    public void notifyDeploymentError(@ValidateStringParam(name = "name") final String name, final Throwable throwable) {
+    @Valid
+    public void notifyDeploymentError(@ValidateStringParam final String name, final Throwable throwable) {
         notifyDeploymentError(name, throwable, Collections.EMPTY_LIST);
     }
 
     @Override
-    @ValidateParams
-    public void notifyContentApproval(@ValidateStringParam(name = "site") final String site,
-                                      @ValidateStringParam(name = "submitter") final String submitter,
+    @Valid
+    public void notifyContentApproval(@ValidateStringParam final String site,
+                                      @ValidateStringParam final String submitter,
                                       final List<String> itemsSubmitted,
-                                      @ValidateStringParam(name = "approver") final String approver,
+                                      @ValidateStringParam final String approver,
                                       final ZonedDateTime scheduleDate) {
         try {
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
@@ -174,10 +152,10 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @SuppressWarnings("unchecked")
-    @ValidateParams
-    public String getNotificationMessage(@ValidateStringParam(name = "site") final String site,
+    @Valid
+    public String getNotificationMessage(@ValidateStringParam final String site,
                                          final NotificationMessageType type,
-                                         @ValidateStringParam(name = "key") final String key,
+                                         @ValidateStringParam final String key,
                                          final Pair<String, Object>... params) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);
@@ -227,13 +205,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @ValidateParams
-    public void notifyApprovesContentSubmission(@ValidateStringParam(name = "name") final String site,
+    @Valid
+    public void notifyApprovesContentSubmission(@ValidateStringParam final String site,
                                                 final List<String> usersToNotify, final List<String> itemsSubmitted,
-                                                @ValidateStringParam(name = "submitter") final String submitter,
+                                                @ValidateStringParam final String submitter,
                                                 final ZonedDateTime scheduleDate, final boolean isADelete,
-                                                final @ValidateStringParam(name = "submissionComments")
-                                                            String submissionComments) {
+                                                final @ValidateStringParam String submissionComments) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);
             final Map<String, Object> submitterUser = securityService.getUserProfile(submitter);
@@ -257,9 +234,9 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @SuppressWarnings("unchecked")
-    @ValidateParams
-    public void notify(@ValidateStringParam(name = "site") final String site, final List<String> toUsers,
-                       @ValidateStringParam(name = "key") final String key,
+    @Valid
+    public void notify(@ValidateStringParam final String site, final List<String> toUsers,
+                       @ValidateStringParam final String key,
                        final Pair<String, Object>... params) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);
@@ -298,12 +275,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @ValidateParams
-    public void notifyContentRejection(@ValidateStringParam(name = "site") final String site,
+    @Valid
+    public void notifyContentRejection(@ValidateStringParam final String site,
                                        final List<String> submittedByList,
                                        final List<String> rejectedItems,
-                                       @ValidateStringParam(name = "rejectionReason") final String rejectionReason,
-                                       @ValidateStringParam(name = "userThatRejects") final String userThatRejects) {
+                                       @ValidateStringParam final String rejectionReason,
+                                       @ValidateStringParam final String userThatRejects) {
         try {
             var submitterUsers = new ArrayList<Map<String, Object>>();
             submittedByList.forEach(submittedBy -> {
@@ -503,8 +480,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @ValidateParams
-    public void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") final String site,
+    @Valid
+    public void notifyRepositoryMergeConflict(@ValidateStringParam final String site,
                                               final List<String> filesUnableToMerge) {
         try {
             final NotificationConfigTO notificationConfig = getNotificationConfig(site);

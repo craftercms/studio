@@ -24,8 +24,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -83,6 +81,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 
+import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -152,24 +151,24 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public final static String INTERNAL_NAME_MODIFIER_FORMAT = "%s (Copy %s)";
 
     @Override
-    @ValidateParams
-    public boolean contentExists(@ValidateStringParam(name = "site") String site,
-                                 @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public boolean contentExists(@ValidateStringParam String site,
+                                 @ValidateSecurePathParam String path) {
         // TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.contentExists(site, path);
     }
 
     @Override
-    @ValidateParams
-    public boolean shallowContentExists(@ValidateStringParam(name = "site") String site,
-                                        @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public boolean shallowContentExists(@ValidateStringParam String site,
+                                        @ValidateSecurePathParam String path) {
         return this._contentRepository.shallowContentExists(site, path);
     }
 
     @Override
-    @ValidateParams
-    public InputStream getContent(@ValidateStringParam(name = "site") String site,
-                                  @ValidateSecurePathParam(name = "path") String path)
+    @Valid
+    public InputStream getContent(@ValidateStringParam String site,
+                                  @ValidateSecurePathParam String path)
             throws ContentNotFoundException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         if (StringUtils.equals(site, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
@@ -180,24 +179,24 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public long getContentSize(@ValidateStringParam(name = "site") String site,
-                               @ValidateStringParam(name = "path") String path) {
+    @Valid
+    public long getContentSize(@ValidateStringParam String site,
+                               @ValidateStringParam String path) {
         return contentRepository.getContentSize(site, path);
     }
 
     @Override
-    @ValidateParams
-    public String getContentAsString(@ValidateStringParam(name = "site") String site,
-                                     @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public String getContentAsString(@ValidateStringParam String site,
+                                     @ValidateSecurePathParam String path) {
         return getContentAsString(site, path, null);
     }
 
     @Override
-    @ValidateParams
-    public String getContentAsString(@ValidateStringParam(name = "site") String site,
-                                     @ValidateSecurePathParam(name = "path") String path,
-                                     @ValidateStringParam(name = "encoding") String encoding)  {
+    @Valid
+    public String getContentAsString(@ValidateStringParam String site,
+                                     @ValidateSecurePathParam String path,
+                                     @ValidateStringParam String encoding)  {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
@@ -218,9 +217,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public Document getContentAsDocument(@ValidateStringParam(name = "site") String site,
-                                         @ValidateSecurePathParam(name = "path") String path)
+    @Valid
+    public Document getContentAsDocument(@ValidateStringParam String site,
+                                         @ValidateSecurePathParam String path)
             throws DocumentException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         Document retDocument = null;
@@ -259,9 +258,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public Resource getContentAsResource(@ValidateStringParam(name = "site") String site,
-                                         @ValidateSecurePathParam(name = "path") String path)
+    @Valid
+    public Resource getContentAsResource(@ValidateStringParam String site,
+                                         @ValidateSecurePathParam String path)
         throws ContentNotFoundException {
         if (contentExists(site, path)) {
             return new ContentResource(this, site, path);
@@ -272,31 +271,31 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContent(@ValidateStringParam(name = "site") @SiteId String site,
-                             @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
-                             @ValidateStringParam(name = "fileName") @ActionTargetFilename String fileName,
-                             @ValidateStringParam(name = "contentType") @ActionContentType String contentType,
+    public void writeContent(@ValidateStringParam @SiteId String site,
+                             @ValidateSecurePathParam @ActionTargetPath String path,
+                             @ValidateStringParam @ActionTargetFilename String fileName,
+                             @ValidateStringParam @ActionContentType String contentType,
                              InputStream input,
-                             @ValidateStringParam(name = "createFolders") String createFolders,
-                             @ValidateStringParam(name = "edit") String edit,
-                             @ValidateStringParam(name = "unlock") String unlock)
+                             @ValidateStringParam String createFolders,
+                             @ValidateStringParam String edit,
+                             @ValidateStringParam String unlock)
             throws ServiceLayerException, UserNotFoundException {
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContent(@ValidateStringParam(name = "site") @SiteId String site,
-                             @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
-                             @ValidateStringParam(name = "fileName") @ActionTargetFilename String fileName,
-                             @ValidateStringParam(name = "contentType") @ActionContentType String contentType,
+    public void writeContent(@ValidateStringParam @SiteId String site,
+                             @ValidateSecurePathParam @ActionTargetPath String path,
+                             @ValidateStringParam @ActionTargetFilename String fileName,
+                             @ValidateStringParam @ActionContentType String contentType,
                              InputStream input,
-                             @ValidateStringParam(name = "createFolders") String createFolders,
-                             @ValidateStringParam(name = "edit") String edit,
-                             @ValidateStringParam(name = "unlock") String unlock,
+                             @ValidateStringParam String createFolders,
+                             @ValidateStringParam String edit,
+                             @ValidateStringParam String unlock,
                              boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
         path = path.replaceAll("//", "/");
         try {
@@ -411,17 +410,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContentAndRename(@ValidateStringParam(name = "site") @SiteId final String site,
-                                      @ValidateSecurePathParam(name = "path") final String path,
-                                      @ValidateSecurePathParam(name = "targetPath") @ActionTargetPath final String targetPath,
-                                      @ValidateStringParam(name = "fileName") @ActionTargetFilename final String fileName,
-                                      @ValidateStringParam(name = "contentType") @ActionContentType final String contentType,
+    public void writeContentAndRename(@ValidateStringParam @SiteId final String site,
+                                      @ValidateSecurePathParam final String path,
+                                      @ValidateSecurePathParam @ActionTargetPath final String targetPath,
+                                      @ValidateStringParam @ActionTargetFilename final String fileName,
+                                      @ValidateStringParam @ActionContentType final String contentType,
                                       final InputStream input,
-                                      @ValidateStringParam(name = "createFolders") final String createFolders,
-                                      @ValidateStringParam(name = "edit") final  String edit,
-                                      @ValidateStringParam(name = "unlock") final String unlock,
+                                      @ValidateStringParam final String createFolders,
+                                      @ValidateStringParam final  String edit,
+                                      @ValidateStringParam final String unlock,
                                       final boolean createFolder) throws ServiceLayerException {
         // TODO: SJ: The parameters need to be properly typed. Can't have Strings that actually mean boolean. Fix in
         // TODO: SJ: 2.7.x
@@ -465,11 +464,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
      * @throws ServiceLayerException
      */
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.CREATE)
-    public Map<String, Object> writeContentAsset(@ValidateStringParam(name = "site") @SiteId String site,
-                                                 @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
-                                                 @ValidateStringParam(name = "assetName") @ActionTargetFilename String assetName,
+    public Map<String, Object> writeContentAsset(@ValidateStringParam @SiteId String site,
+                                                 @ValidateSecurePathParam @ActionTargetPath String path,
+                                                 @ValidateStringParam @ActionTargetFilename String assetName,
                                                  InputStream in, String isImage, String allowedWidth,
                                                  String allowedHeight, String allowLessSize, String draft,
                                                  String unlock, String systemAsset) throws ServiceLayerException {
@@ -556,9 +555,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     // This method is used for writing configuration files, this needs to be refactored in 3.1+
     @Override
-    @ValidateParams
-    public boolean writeContent(@ValidateStringParam(name = "site") String site,
-                                @ValidateSecurePathParam(name = "path") String path, InputStream content)
+    @Valid
+    public boolean writeContent(@ValidateStringParam String site,
+                                @ValidateSecurePathParam String path, InputStream content)
             throws ServiceLayerException {
         boolean result;
 
@@ -577,11 +576,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.CREATE)
-    public boolean createFolder(@ValidateStringParam(name = "site") @SiteId String site,
-                                @ValidateSecurePathParam(name = "path") @ActionTargetPath String path,
-                                @ValidateStringParam(name = "name") @ActionTargetFilename String name)
+    public boolean createFolder(@ValidateStringParam @SiteId String site,
+                                @ValidateSecurePathParam @ActionTargetPath String path,
+                                @ValidateStringParam @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
 
         String folderPath = path + FILE_SEPARATOR + name;
@@ -631,19 +630,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public boolean deleteContent(@ValidateStringParam(name = "site") String site,
-                                 @ValidateSecurePathParam(name = "path") String path,
-                                 @ValidateStringParam(name = "approver") String approver)
+    @Valid
+    public boolean deleteContent(@ValidateStringParam String site,
+                                 @ValidateSecurePathParam String path,
+                                 @ValidateStringParam String approver)
             throws ServiceLayerException, UserNotFoundException {
         return deleteContent(site, path, true, approver);
     }
 
     @Override
-    @ValidateParams
-    public boolean deleteContent(@ValidateStringParam(name = "site") String site,
-                                 @ValidateSecurePathParam(name = "path") String path, boolean generateActivity,
-                                 @ValidateStringParam(name = "approver") String approver)
+    @Valid
+    public boolean deleteContent(@ValidateStringParam String site,
+                                 @ValidateSecurePathParam String path, boolean generateActivity,
+                                 @ValidateStringParam String approver)
             throws ServiceLayerException, UserNotFoundException {
         String commitId;
         boolean toReturn = false;
@@ -714,11 +713,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.COPY)
-    public String copyContent(@ValidateStringParam(name = "site") @SiteId String site,
-                              @ValidateSecurePathParam(name = "fromPath") @ActionSourcePath String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") @ActionTargetPath String toPath)
+    public String copyContent(@ValidateStringParam @SiteId String site,
+                              @ValidateSecurePathParam @ActionSourcePath String fromPath,
+                              @ValidateSecurePathParam @ActionTargetPath String toPath)
             throws ServiceLayerException, UserNotFoundException {
         return copyContent(site, fromPath, toPath, new HashSet<>());
     }
@@ -880,13 +879,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return document;
     }
 
-    private Map<String, String> getCopyDependencies(@ValidateStringParam(name = "site") String site,
-                                                    @ValidateSecurePathParam(name = "sourceContentPath")
-                                                            String sourceContentPath,
-                                                    @ValidateSecurePathParam(name = "dependencyPath")
-                                                            String dependencyPath)
+    private Map<String, String> getCopyDependencies(@ValidateStringParam String site,
+                                                    @ValidateSecurePathParam String sourceContentPath,
+                                                    @ValidateSecurePathParam String dependencyPath)
             throws ServiceLayerException {
-        Map<String,String> copyDependency = new HashMap<>();
+        Map<String, String> copyDependency = new HashMap<>();
         if(sourceContentPath.endsWith(DmConstants.XML_PATTERN) && dependencyPath.endsWith(DmConstants.XML_PATTERN)){
             ContentItemTO dependencyItem = getContentItem(site, sourceContentPath);
             if (dependencyItem != null) {
@@ -919,11 +916,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @ValidateAction(type = Type.MOVE)
-    public String moveContent(@ValidateStringParam(name = "site") @SiteId String site,
-                              @ValidateSecurePathParam(name = "fromPath") @ActionSourcePath String fromPath,
-                              @ValidateSecurePathParam(name = "toPath") @ActionTargetPath String toPath) {
+    public String moveContent(@ValidateStringParam @SiteId String site,
+                              @ValidateSecurePathParam @ActionSourcePath String fromPath,
+                              @ValidateSecurePathParam @ActionTargetPath String toPath) {
         String movePath = null;
 
         try {
@@ -1724,17 +1721,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public ContentItemTO getContentItem(@ValidateStringParam(name = "site") String site,
-                                        @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public ContentItemTO getContentItem(@ValidateStringParam String site,
+                                        @ValidateSecurePathParam String path) {
         return getContentItem(site, path, 2);
     }
 
     @Override
-    @ValidateParams
-    public ContentItemTO getContentItem(@ValidateStringParam(name = "site") String site,
-                                        @ValidateSecurePathParam(name = "path") String path,
-                                        @ValidateIntegerParam(name = "depth") int depth) {
+    @Valid
+    public ContentItemTO getContentItem(@ValidateStringParam String site,
+                                        @ValidateSecurePathParam String path,
+                                        int depth) {
         ContentItemTO item = null;
         logger.debug("Get content item at site '{}' path '{}' depth '{}'", site, path, depth);
 
@@ -1953,10 +1950,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public ContentItemTO getContentItemTree(@ValidateStringParam(name = "site") String site,
-                                            @ValidateSecurePathParam(name = "path") String path,
-                                            @ValidateIntegerParam(name = "depth") int depth) {
+    @Valid
+    public ContentItemTO getContentItemTree(@ValidateStringParam String site,
+                                            @ValidateSecurePathParam String path,
+                                            int depth) {
         logger.debug("Get the content item tree for item at site '{}' path '{}' with depth '{}'", site, path, depth);
 
         long startTime = 0;
@@ -1992,19 +1989,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public VersionTO[] getContentItemVersionHistory(@ValidateStringParam(name = "site") String site,
-                                                    @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public VersionTO[] getContentItemVersionHistory(@ValidateStringParam String site,
+                                                    @ValidateSecurePathParam String path) {
         // TODO: SJ: Switch this to return a collection and rely on Groovy to change it up for the UI
         return _contentRepository.getContentVersionHistory(site, path);
     }
 
     @Override
-    @ValidateParams
-    public boolean revertContentItem(@ValidateStringParam(name = "site") String site,
-                                     @ValidateSecurePathParam(name = "path") String path,
-                                     @ValidateStringParam(name = "version") String version, boolean major,
-                                     @ValidateStringParam(name = "comment") String comment)
+    @Valid
+    public boolean revertContentItem(@ValidateStringParam String site,
+                                     @ValidateSecurePathParam String path,
+                                     @ValidateStringParam() String version, boolean major,
+                                     @ValidateStringParam() String comment)
             throws ServiceLayerException, UserNotFoundException {
         contentServiceV2.lockContent(site, path);
         try {
@@ -2057,19 +2054,19 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public Optional<Resource> getContentVersion(@ValidateStringParam(name = "site") String site,
-                                                @ValidateSecurePathParam(name = "path") String path,
-                                                @ValidateStringParam(name = "commitId") String commitId)
+    @Valid
+    public Optional<Resource> getContentVersion(@ValidateStringParam String site,
+                                                @ValidateSecurePathParam String path,
+                                                @ValidateStringParam() String commitId)
             throws ContentNotFoundException {
         return contentRepository.getContentByCommitId(site, path, commitId);
     }
 
     @Override
-    @ValidateParams
-    public String getContentVersionAsString(@ValidateStringParam(name = "site") String site,
-                                            @ValidateSecurePathParam(name = "path") String path,
-                                            @ValidateStringParam(name = "version") String version) {
+    @Valid
+    public String getContentVersionAsString(@ValidateStringParam String site,
+                                            @ValidateSecurePathParam String path,
+                                            @ValidateStringParam() String version) {
         try {
             Optional<Resource> resource = getContentVersion(site, path, version);
             if (resource.isPresent()) {
@@ -2085,9 +2082,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam(name = "site") String site,
-                                                                @ValidateSecurePathParam(name = "relativePath")
+    @Valid
+    public ContentItemTO createDummyDmContentItemForDeletedNode(@ValidateStringParam String site,
+                                                                @ValidateSecurePathParam()
                                                                         String relativePath) {
         // TODO: SJ: Think of another way to do this in 3.1+
         ContentItemTO item = new ContentItemTO();
@@ -2165,8 +2162,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public String getContentTypeClass(@ValidateStringParam(name = "site") String site, String uri) {
+    @Valid
+    public String getContentTypeClass(@ValidateStringParam String site, String uri) {
         // TODO: SJ: This reads: if can't guess what it is, it's a page. This is to be replaced in 3.1+
         if (uri.endsWith(FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return CONTENT_TYPE_LEVEL_DESCRIPTOR;
@@ -2203,10 +2200,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public ResultTO processContent(@ValidateStringParam(name = "id") String id, InputStream input, boolean isXml,
+    @Valid
+    public ResultTO processContent(@ValidateStringParam() String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
-                                   @ValidateStringParam(name = "contentChainForm") String contentChainForm)
+                                   @ValidateStringParam() String contentChainForm)
             throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
@@ -2229,9 +2226,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public String getNextAvailableName(@ValidateStringParam(name = "site") String site,
-                                       @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public String getNextAvailableName(@ValidateStringParam String site,
+                                       @ValidateSecurePathParam String path) {
         // TODO: SJ: Refactor to be faster, and make it work regardless (seems to fail above 10) in 3.1+
         String[] levels = path.split(FILE_SEPARATOR);
         int length = levels.length;
@@ -2285,9 +2282,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam(name = "site") String site,
-                                                      @ValidateSecurePathParam(name = "relativePath")
+    @Valid
+    public GoLiveDeleteCandidates getDeleteCandidates(@ValidateStringParam String site,
+                                                      @ValidateSecurePathParam()
                                                               String relativePath) throws ServiceLayerException {
         ContentItemTO contentItem = getContentItem(site, relativePath);
         GoLiveDeleteCandidates deletedItems = new GoLiveDeleteCandidates(site, this, itemServiceInternal);
@@ -2384,9 +2381,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public void lockContent(@ValidateStringParam(name = "site") String site,
-                            @ValidateSecurePathParam(name = "path") String path)
+    @Valid
+    public void lockContent(@ValidateStringParam String site,
+                            @ValidateSecurePathParam String path)
             throws UserNotFoundException, ServiceLayerException {
         // TODO: SJ: Where is the object state update to indicate item is now locked?
         // TODO: SJ: Dejan to look into this
@@ -2396,9 +2393,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public List<DmOrderTO> getItemOrders(@ValidateStringParam(name = "site") String site,
-                                         @ValidateSecurePathParam(name = "path") String path) {
+    @Valid
+    public List<DmOrderTO> getItemOrders(@ValidateStringParam String site,
+                                         @ValidateSecurePathParam String path) {
         List<DmOrderTO> dmOrderTOs = getOrders(site, path, "default", false);
         for (DmOrderTO dmOrderTO : dmOrderTOs) {
             dmOrderTO.setName(StringEscapeUtils.escapeJava(dmOrderTO.getName()));
@@ -2463,12 +2460,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public double reorderItems(@ValidateStringParam(name = "site") String site,
-                               @ValidateSecurePathParam(name = "relativePath") String relativePath,
-                               @ValidateSecurePathParam(name = "before") String before,
-                               @ValidateSecurePathParam(name = "after") String after,
-                               @ValidateStringParam(name = "orderName") String orderName) {
+    @Valid
+    public double reorderItems(@ValidateStringParam String site,
+                               @ValidateSecurePathParam() String relativePath,
+                               @ValidateSecurePathParam() String before,
+                               @ValidateSecurePathParam() String after,
+                               @ValidateStringParam() String orderName) {
         Double beforeOrder = null;
         Double afterOrder = null;
         DmOrderTO beforeOrderTO = null;
@@ -2534,10 +2531,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @ValidateParams
-    public boolean renameContent(@ValidateStringParam(name = "site") String site,
-                                @ValidateSecurePathParam(name = "path") String path,
-                                @ValidateStringParam(name = "name") String name)
+    @Valid
+    public boolean renameContent(@ValidateStringParam String site,
+                                @ValidateSecurePathParam String path,
+                                @ValidateStringParam String name)
             throws ServiceLayerException, UserNotFoundException {
         boolean toRet = false;
 

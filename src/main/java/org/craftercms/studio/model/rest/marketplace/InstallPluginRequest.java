@@ -16,14 +16,17 @@
 
 package org.craftercms.studio.model.rest.marketplace;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.commons.plugin.model.Version;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-
-import org.craftercms.commons.plugin.model.Version;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.Collections;
 import java.util.Map;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds the information needed to install a plugin from the Marketplace
@@ -35,11 +38,13 @@ import java.util.Map;
 public class InstallPluginRequest {
 
     @NotBlank
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
 
     @NotBlank
     private String pluginId;
 
+    @Valid
     @NotNull
     private Version pluginVersion;
 

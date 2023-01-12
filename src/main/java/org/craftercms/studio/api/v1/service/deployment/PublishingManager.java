@@ -15,13 +15,13 @@
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
@@ -52,8 +52,8 @@ public interface PublishingManager {
 
     boolean isPublishingBlocked(String site);
 
-    @ValidateParams
-    boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site);
+    @Valid
+    boolean hasPublishingQueuePackagesReady(@ValidateStringParam String site);
 
     String getPublishingStatus(String site);
 

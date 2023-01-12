@@ -18,9 +18,9 @@ package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateCollectionParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
@@ -31,10 +31,9 @@ public class GetDeletePackageRequestBody {
 
     @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
-    @ValidateCollectionParam(notEmpty = true)
-    @EsapiValidatedParam(type = HTTPURI)
-    @ValidateSecurePathParam
-    private List<String> paths;
+
+    @NotEmpty
+    private List<@NotEmpty @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam String> paths;
 
     public String getSiteId() {
         return siteId;

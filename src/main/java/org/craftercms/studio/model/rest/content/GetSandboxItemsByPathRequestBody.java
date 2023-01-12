@@ -39,9 +39,7 @@ public class GetSandboxItemsByPathRequestBody {
     @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = HTTPURI)
-    private List<@Valid @NotEmpty String> paths;
+    private List<@ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @NotEmpty String> paths;
     private boolean preferContent;
 
     public String getSiteId() {

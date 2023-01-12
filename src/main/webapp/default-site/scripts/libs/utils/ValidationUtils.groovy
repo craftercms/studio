@@ -15,19 +15,29 @@
  */
 package scripts.libs.utils
 
-import org.craftercms.commons.validation.ValidationException
-import org.craftercms.commons.validation.ValidationResult
-import org.craftercms.commons.validation.validators.Validator
+import org.craftercms.core.exception.StoreException
+import org.springframework.validation.Errors
+
+import static java.lang.String.format
+
+//import org.craftercms.commons.validation.ValidationException
+//import org.craftercms.commons.validation.ValidationResult
+//import org.craftercms.commons.validation.validators.Validator
 
 class ValidationUtils {
 
     static void validateInput(String input, Validator<String> validator) {
-        def validationResult = new ValidationResult()
-        def valid = validator.validate(input, validationResult)
-
-        if (!valid) {
-            throw new ValidationException(validationResult)
+        Errors errors = org.craftercms.commons.validation.ValidationUtils.validateValue(validator, input);
+        if (errors.hasErrors()) {
+//            throw new StoreException("Validation of path " + path + " failed. Errors: " + errors);
+//            throw new ValidationException(format("Validation of path '%s' failed. Errors: %s", input, errors));
         }
+//        def validationResult = new ValidationResult()
+//        def valid = validator.validate(input, validationResult)
+//
+//        if (!valid) {
+//            throw new ValidationException(validationResult)
+//        }
     }
 
 }

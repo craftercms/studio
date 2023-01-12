@@ -23,11 +23,10 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -37,30 +36,18 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.PublishRequestDAO;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
+import org.craftercms.studio.api.v1.service.deployment.*;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.util.DmContentItemComparator;
 import org.craftercms.studio.api.v1.util.filter.DmFilterWrapper;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -70,41 +57,22 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
+import javax.validation.Valid;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_START_PUBLISHER;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_STOP_PUBLISHER;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
-import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.DELETE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.DESTINATION;
-import static org.craftercms.studio.api.v2.dal.ItemState.IN_WORKFLOW;
-import static org.craftercms.studio.api.v2.dal.ItemState.SCHEDULED;
-import static org.craftercms.studio.api.v2.dal.ItemState.isNew;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.QUEUED;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
-import static org.craftercms.studio.api.v2.dal.PublishStatus.STOPPED;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
 import static org.craftercms.studio.api.v2.dal.Workflow.STATE_APPROVED;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
@@ -142,11 +110,11 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     protected ApplicationContext applicationContext;
 
     @Override
-    @ValidateParams
-    public void deploy(@ValidateStringParam(name = "site") String site,
-                       @ValidateStringParam(name = "environment") String environment, List<String> paths,
-                       ZonedDateTime scheduledDate, @ValidateStringParam(name = "approver") String approver,
-                       @ValidateStringParam(name = "submissionComment") String submissionComment,
+    @Valid
+    public void deploy(@ValidateStringParam String site,
+                       @ValidateStringParam String environment, List<String> paths,
+                       ZonedDateTime scheduledDate, @ValidateStringParam String approver,
+                       @ValidateStringParam String submissionComment,
                        final boolean scheduleDateNow)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
 
@@ -336,9 +304,9 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public void delete(@ValidateStringParam(name = "site") String site, List<String> paths,
-                       @ValidateStringParam(name = "approver") String approver, ZonedDateTime scheduledDate,
+    @Valid
+    public void delete(@ValidateStringParam String site, List<String> paths,
+                       @ValidateStringParam String approver, ZonedDateTime scheduledDate,
                        String submissionComment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {
         if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
@@ -458,17 +426,17 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public void deleteDeploymentDataForSite(@ValidateStringParam(name = "site") final String site) {
+    @Valid
+    public void deleteDeploymentDataForSite(@ValidateStringParam final String site) {
         Map<String, String> params = new HashMap<>();
         params.put("site", site);
         retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.deleteDeploymentDataForSite(params));
     }
 
     @Override
-    @ValidateParams
+    @Valid
     public List<org.craftercms.studio.api.v2.dal.PublishRequest> getScheduledItems(
-            @ValidateStringParam(name = "site") String site, String filterType) {
+            @ValidateStringParam String site, String filterType) {
         String contentTypeClass = null;
         switch (filterType) {
             case CONTENT_TYPE_PAGE:
@@ -485,9 +453,9 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
-                               @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
+    @Valid
+    public void cancelWorkflow(@ValidateStringParam String site,
+                               @ValidateSecurePathParam String path) throws DeploymentException {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("path", path);
@@ -498,8 +466,8 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
+    @Valid
+    public void cancelWorkflowBulk(@ValidateStringParam String site, Set<String> paths) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("paths", paths);
@@ -510,13 +478,13 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public List<ContentItemTO> getScheduledItems(@ValidateStringParam(name = "site") String site,
-                                                 @ValidateStringParam(name = "sort") String sort,
+    @Valid
+    public List<ContentItemTO> getScheduledItems(@ValidateStringParam String site,
+                                                 @ValidateStringParam String sort,
                                                  boolean ascending,
-                                                 @ValidateStringParam(name = "subSort") String subSort,
+                                                 @ValidateStringParam String subSort,
                                                  boolean subAscending,
-                                                 @ValidateStringParam(name = "filterType") String filterType)
+                                                 @ValidateStringParam String filterType)
             throws ServiceLayerException {
         if (StringUtils.isEmpty(sort)) {
             sort = DmContentItemComparator.SORT_EVENT_DATE;
@@ -650,18 +618,18 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public void bulkGoLive(@ValidateStringParam(name = "site") String site,
-                           @ValidateStringParam(name = "environment") String environment,
-                           @ValidateSecurePathParam(name = "path") String path,
+    @Valid
+    public void bulkGoLive(@ValidateStringParam String site,
+                           @ValidateStringParam String environment,
+                           @ValidateSecurePathParam String path,
                            String comment) throws ServiceLayerException {
         dmPublishService.bulkGoLive(site, environment, path, comment);
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @HasPermission(type= DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
-    public boolean enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam(name = "site") String site, boolean enabled)
+    public boolean enablePublishing(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam String site, boolean enabled)
             throws SiteNotFoundException, AuthenticationException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
@@ -703,10 +671,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     @Override
-    @ValidateParams
-    public void publishCommits(@ValidateStringParam(name = "site") String site,
-                               @ValidateStringParam(name = "environment") String environment,
-                               List<String> commitIds, @ValidateStringParam(name = "comment") String comment)
+    @Valid
+    public void publishCommits(@ValidateStringParam String site,
+                               @ValidateStringParam String environment,
+                               List<String> commitIds, @ValidateStringParam String comment)
             throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();

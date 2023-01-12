@@ -52,9 +52,9 @@ public class MediaConvertServiceImpl extends AbstractAwsService<MediaConvertProf
      * {@inheritDoc}
      */
     @Override
-    public MediaConvertJob startJob(final @ValidateStringParam(name = "site") String site,
-                                    final @ValidateStringParam(name = "profile") String profileId,
-                                    final @ValidateStringParam(name = "filename") String filename,
+    public MediaConvertJob startJob(final @ValidateStringParam String site,
+                                    final @ValidateStringParam String profileId,
+                                    final @ValidateStringParam String filename,
                                     final InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
 
         MediaConvertProfile profile = getProfile(site, profileId);

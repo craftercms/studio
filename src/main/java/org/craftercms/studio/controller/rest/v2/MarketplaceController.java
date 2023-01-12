@@ -16,36 +16,30 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import java.beans.ConstructorProperties;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
-import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.Result;
-import org.craftercms.studio.model.rest.ResultList;
+import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.marketplace.InstallPluginRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+import javax.validation.constraints.Size;
+import java.beans.ConstructorProperties;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SEARCH_KEYWORDS;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PLUGINS;
 
@@ -55,6 +49,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
  * @author joseross
  * @since 3.1.2
  */
+@Validated
 @RestController
 @RequestMapping("/api/2/marketplace")
 public class MarketplaceController {
@@ -67,14 +62,13 @@ public class MarketplaceController {
     }
 
     @SuppressWarnings("unchecked")
-    @ValidateParams
     @GetMapping("/search")
     public ResponseBody searchPlugins(@RequestParam(required = false) String type,
-                                      @EsapiValidatedParam(type = SEARCH_KEYWORDS, notBlank = false, notEmpty = false, notNull = false)
+                                      @EsapiValidatedParam(type = SEARCH_KEYWORDS)
                                       @RequestParam(required = false) String keywords,
                                       @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
-                                      @RequestParam(required = false, defaultValue = "0") long offset,
-                                      @RequestParam(required = false, defaultValue = "10") long limit)
+                                      @PositiveOrZero @RequestParam(required = false, defaultValue = "0") long offset,
+                                      @Positive @RequestParam(required = false, defaultValue = "10") long limit)
         throws MarketplaceException {
         Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, showIncompatible, offset, limit);
 
@@ -92,7 +86,7 @@ public class MarketplaceController {
     }
 
     @GetMapping("/installed")
-    public ResponseBody getInstalledPlugins(@RequestParam String siteId) throws MarketplaceException {
+    public ResponseBody getInstalledPlugins(@RequestParam @EsapiValidatedParam(type = SITE_ID) String siteId) throws MarketplaceException {
         ResultList<PluginRecord> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(RESULT_KEY_PLUGINS, marketplaceService.getInstalledPlugins(siteId));
@@ -118,7 +112,7 @@ public class MarketplaceController {
     }
 
     @GetMapping("/usage")
-    public ResponseBody getDependantItems(@RequestParam String siteId, @RequestParam String pluginId)
+    public ResponseBody getDependantItems(@RequestParam @EsapiValidatedParam(type = SITE_ID) String siteId, @RequestParam String pluginId)
             throws ServiceLayerException {
         ResultList<String> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
@@ -147,6 +141,7 @@ public class MarketplaceController {
     protected static class RemovePluginRequest {
 
         @NotEmpty
+        @EsapiValidatedParam(type = SITE_ID)
         protected String siteId;
 
         @NotEmpty
@@ -197,9 +192,11 @@ public class MarketplaceController {
     protected static class CopyPluginRequest {
 
         @NotEmpty
+        @EsapiValidatedParam(type=SITE_ID)
         protected String siteId;
 
         @NotEmpty
+        @EsapiValidatedParam(type = HTTPURI)
         protected String path;
 
         protected Map<String, String> parameters = new HashMap<>();

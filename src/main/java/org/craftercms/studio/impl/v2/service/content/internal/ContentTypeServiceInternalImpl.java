@@ -150,7 +150,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
-                                                                      @ValidateSecurePathParam(name = "contentTypeId") String contentTypeId) throws ServiceLayerException {
+                                                                      @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
 
         String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
         boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail

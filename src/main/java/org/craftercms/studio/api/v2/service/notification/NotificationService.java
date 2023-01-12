@@ -16,13 +16,13 @@
 
 package org.craftercms.studio.api.v2.service.notification;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-
 import org.apache.commons.lang3.tuple.Pair;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
+
+import javax.validation.Valid;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 /**
  * New Interface for Workflow Notification Service.
@@ -120,7 +120,7 @@ public interface NotificationService {
      * @param site site with merge conflict
      * @param filesUnableToMerge files unable to merge
      */
-    @ValidateParams
-    void notifyRepositoryMergeConflict(@ValidateStringParam(name = "site") String site,
+    @Valid
+    void notifyRepositoryMergeConflict(@ValidateStringParam String site,
                                        List<String> filesUnableToMerge);
 }

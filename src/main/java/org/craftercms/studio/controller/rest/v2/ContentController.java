@@ -19,8 +19,6 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -28,7 +26,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
@@ -50,6 +47,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,6 +61,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@Validated
 @RestController
 @RequestMapping(API_2 + CONTENT)
 public class ContentController {
@@ -83,7 +82,7 @@ public class ContentController {
         this.workflowService = workflowService;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
     public ResponseBody listQuickCreateContent(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId") String siteId)
             throws SiteNotFoundException {
@@ -97,9 +96,9 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(GET_DELETE_PACKAGE)
-    public ResponseBody getDeletePackage(@ValidateObjectParam @RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
+    public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
         List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
@@ -113,9 +112,9 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(value = DELETE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody delete(@ValidateObjectParam @RequestBody @Validated DeleteRequestBody deleteRequestBody)
+    public ResponseBody delete(@RequestBody @Validated DeleteRequestBody deleteRequestBody)
             throws UserNotFoundException, ServiceLayerException, DeploymentException {
         workflowService.delete(deleteRequestBody.getSiteId(), deleteRequestBody.getItems(),
                 deleteRequestBody.getOptionalDependencies(), deleteRequestBody.getComment());
@@ -127,9 +126,9 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenByPath(@ValidateObjectParam @RequestBody @Valid GetChildrenByPathRequestBody request)
+    public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         GetChildrenResult result = contentService.getChildrenByPath(
                 request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
@@ -141,9 +140,8 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
-    public ResultOne<String> getDescriptor(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
+    public ResultOne<String> getDescriptor(@NotEmpty @EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
                                            @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String path,
                                            @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
             ContentNotFoundException, SiteNotFoundException {
@@ -154,9 +152,9 @@ public class ContentController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(value = PASTE_ITEMS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody pasteItems(@ValidateObjectParam @Valid @RequestBody PasteRequest request) throws Exception {
+    public ResponseBody pasteItems(@Valid @RequestBody PasteRequest request) throws Exception {
         var result = new ResultList<String>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS,
@@ -169,9 +167,9 @@ public class ContentController {
         return response;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(value = DUPLICATE_ITEM, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody duplicateItem(@ValidateObjectParam @Valid @RequestBody DuplicateRequest request) throws Exception {
+    public ResponseBody duplicateItem(@Valid @RequestBody DuplicateRequest request) throws Exception {
         var result = new ResultOne<String>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_ITEM,
@@ -183,7 +181,7 @@ public class ContentController {
         return response;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getItemByPath(@EsapiValidatedParam(type = SITE_ID)
                                       @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -202,9 +200,8 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
     @PostMapping(value = SANDBOX_ITEMS_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getSandboxItemsByPath(@ValidateObjectParam @RequestBody @Valid GetSandboxItemsByPathRequestBody request)
+    public ResponseBody getSandboxItemsByPath(@RequestBody @Valid GetSandboxItemsByPathRequestBody request)
             throws ServiceLayerException, UserNotFoundException {
         String siteId = request.getSiteId();
         Collection<String> missing = Collections.emptyList();
@@ -230,9 +227,9 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(ITEM_LOCK_BY_PATH)
-    public ResponseBody itemLockByPath(@ValidateObjectParam @RequestBody @Valid LockItemByPathRequest request)
+    public ResponseBody itemLockByPath(@RequestBody @Valid LockItemByPathRequest request)
             throws UserNotFoundException, ServiceLayerException {
         contentService.lockContent(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
@@ -242,9 +239,9 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(ITEM_UNLOCK_BY_PATH)
-    public ResponseBody itemUnlockByPath(@ValidateObjectParam @RequestBody @Valid UnlockItemByPathRequest request)
+    public ResponseBody itemUnlockByPath(@RequestBody @Valid UnlockItemByPathRequest request)
             throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
         contentService.unlockContent(request.getSiteId(), request.getPath());
         ResponseBody responseBody = new ResponseBody();
@@ -254,7 +251,7 @@ public class ContentController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
     public ResponseEntity<Resource> getContentByCommitId(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                                          @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam(value = REQUEST_PARAM_PATH) String path,
@@ -269,9 +266,9 @@ public class ContentController {
                 .body(resource);
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody rename(@ValidateObjectParam @RequestBody RenameRequestBody renameRequestBody)
+    public ResponseBody rename(@RequestBody RenameRequestBody renameRequestBody)
             throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 

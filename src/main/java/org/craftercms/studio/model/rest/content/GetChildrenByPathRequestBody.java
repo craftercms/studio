@@ -40,11 +40,8 @@ public class GetChildrenByPathRequestBody {
     private String localeCode;
     @ValidateNoTagsParam
     private String keyword;
-    @EsapiValidatedParam(type = ALPHANUMERIC)
-    private List<String> systemTypes;
-    @EsapiValidatedParam(type = HTTPURI)
-    @ValidateSecurePathParam
-    private List<String> excludes;
+    private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
+    private List<@ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) String> excludes;
     @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst")
     private String sortStrategy;
     @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")

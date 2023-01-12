@@ -18,7 +18,6 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditLog;
@@ -29,11 +28,13 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -43,22 +44,21 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_AUDIT_LOG;
 
+@Validated
 @RestController
 public class AuditController {
 
     private AuditService auditService;
 
-    @ValidateParams
     @GetMapping(API_2 + AUDIT)
     public ResponseBody getAuditLog(
-            @EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false)
+            @EsapiValidatedParam(type = SITE_ID)
             @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @EsapiValidatedParam(type = USERNAME, notEmpty = false, notBlank = false)
+            @EsapiValidatedParam(type = USERNAME)
             @RequestParam(value = REQUEST_PARAM_USER, required = false, defaultValue = "") String user,
-            @ValidateNoTagsParam
-            @RequestParam(value = REQUEST_PARAM_OPERATIONS, required = false) List<String> operations,
+            @RequestParam(value = REQUEST_PARAM_OPERATIONS, required = false) List<@ValidateNoTagsParam String> operations,
             @RequestParam(value = REQUEST_PARAM_INCLUDE_PARAMETERS, required = false) boolean includeParameters,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
@@ -91,10 +91,10 @@ public class AuditController {
         return responseBody;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
     public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId,
-                                         @EsapiValidatedParam(type = SITE_ID, notEmpty = false, notBlank = false)
+                                         @EsapiValidatedParam(type = SITE_ID)
                                          @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId) throws SiteNotFoundException {
         AuditLog auditLogEntry = auditService.getAuditLogEntry(siteId, auditLogId);
 

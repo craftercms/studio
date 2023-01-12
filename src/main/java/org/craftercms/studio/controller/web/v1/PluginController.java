@@ -17,7 +17,6 @@
 package org.craftercms.studio.controller.web.v1;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -31,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
@@ -61,7 +61,7 @@ public class PluginController {
     /**
      * Returns a single file for a given plugin
      */
-    @ValidateParams
+    @Valid
     @GetMapping("/file")
     public ResponseEntity<Resource> getPluginFile(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
                                                   @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String type,

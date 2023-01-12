@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.proxy;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -28,6 +27,8 @@ import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.springframework.http.ResponseEntity;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
@@ -58,8 +59,8 @@ public class ProxyServiceImpl implements ProxyService {
     }
 
     @Override
-    @ValidateParams
-    public ResponseEntity<Object> proxyEngine(final String body, @ValidateStringParam(name = "siteId", notEmpty = true) final String siteId,
+    @Valid
+    public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @ValidateStringParam final String siteId,
                                               final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         if (!siteService.exists(siteId)) {
             throw new SiteNotFoundException(format("Site '%s' not found", siteId));

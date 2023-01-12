@@ -16,16 +16,11 @@
 
 package org.craftercms.studio.impl.v2.service.marketplace;
 
-import java.beans.ConstructorProperties;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -42,14 +37,13 @@ import org.craftercms.studio.api.v2.service.marketplace.internal.MarketplaceServ
 import org.craftercms.studio.api.v2.service.marketplace.registry.PluginRecord;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 
+import javax.validation.Valid;
+import java.beans.ConstructorProperties;
+import java.util.List;
+import java.util.Map;
+
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_SITE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_INSTALL_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_LIST_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_REMOVE_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_SEARCH_PLUGINS;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Default implementation of {@link MarketplaceService} that proxies all request to the configured Marketplace
@@ -67,10 +61,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_SEARCH_PLUGINS)
-    public Map<String, Object> searchPlugins(@ValidateStringParam(name = "type") String type,
-                                             @ValidateStringParam(name = "keywords") String keywords,
+    public Map<String, Object> searchPlugins(@ValidateStringParam String type,
+                                             @ValidateStringParam String keywords,
                                              boolean showIncompatible, long offset, long limit)
         throws MarketplaceException {
         return marketplaceServiceInternal.searchPlugins(type, keywords, showIncompatible, offset, limit);
@@ -100,10 +94,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
     public void copyPlugin(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                           @ValidateSecurePathParam(name = "path") String path,
+                           @ValidateSecurePathParam String path,
                            Map<String, String> parameters) throws MarketplaceException {
         marketplaceServiceInternal.copyPlugin(siteId, path, parameters);
     }
