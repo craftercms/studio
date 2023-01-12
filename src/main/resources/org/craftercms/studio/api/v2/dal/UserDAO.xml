@@ -48,6 +48,7 @@
         <result property="recordLastUpdated" column="record_last_updated"/>
         <result property="groupName" column="group_name"/>
         <result property="groupDescription" column="group_description"/>
+        <result property="externallyManagedAsInt" column="externally_managed"/>
     </resultMap>
 
     <resultMap id="UserProperty" type="org.craftercms.studio.api.v2.dal.UserProperty">

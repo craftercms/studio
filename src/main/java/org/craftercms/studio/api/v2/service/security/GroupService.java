@@ -17,10 +17,7 @@
 package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
@@ -63,13 +60,14 @@ public interface GroupService {
      * @param orgId Organization identifier
      * @param groupName Group name
      * @param groupDescription Group description
+     * @param externallyManaged true if group is externally managed, false otherwise
      * @return the created group
      *
      * @throws GroupAlreadyExistsException group already exist error
      * @throws ServiceLayerException general service error
      * @throws AuthenticationException authentication error
      */
-    Group createGroup(long orgId, String groupName, String groupDescription)
+    Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException;
 
     /**
@@ -82,9 +80,10 @@ public interface GroupService {
      * @throws ServiceLayerException general service error
      * @throws GroupNotFoundException group not found error
      * @throws AuthenticationException authentication error
+     * @throws GroupExternallyManagedException if group is externally managed
      */
     Group updateGroup(long orgId, Group group)
-            throws ServiceLayerException, GroupNotFoundException, AuthenticationException;
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException;
 
     /**
      * Delete group(s)
@@ -94,9 +93,10 @@ public interface GroupService {
      * @throws ServiceLayerException general service error
      * @throws GroupNotFoundException group not found
      * @throws AuthenticationException authentication error
+     * @throws GroupExternallyManagedException if group is externally managed
      */
     void deleteGroup(List<Long> groupIds)
-            throws ServiceLayerException, GroupNotFoundException, AuthenticationException;
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException;
 
     /**
      * Get group

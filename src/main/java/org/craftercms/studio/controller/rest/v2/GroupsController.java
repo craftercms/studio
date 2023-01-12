@@ -21,10 +21,7 @@ import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
 import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.GroupAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.GroupNotFoundException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
@@ -106,7 +103,7 @@ public class GroupsController {
     public ResultOne<Group> createGroup(@ValidateObjectParam @Valid @RequestBody Group group)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group newGroup =
-                groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription());
+                groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription(), false);
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(CREATED);
         result.setEntity(RESULT_KEY_GROUP, newGroup);
@@ -122,7 +119,7 @@ public class GroupsController {
     @ValidateParams
     @PatchMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResultOne<Group> updateGroup(@ValidateObjectParam @Valid @RequestBody Group group)
-            throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
         Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
         ResultOne<Group> result = new ResultOne<>();
@@ -139,7 +136,7 @@ public class GroupsController {
      */
     @DeleteMapping
     public Result deleteGroups(@RequestParam(REQUEST_PARAM_ID) List<Long> groupIds)
-            throws ServiceLayerException, GroupNotFoundException, AuthenticationException {
+            throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
         groupService.deleteGroup(groupIds);
         Result result = new Result();
         result.setResponse(DELETED);

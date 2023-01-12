@@ -37,7 +37,7 @@ public interface GroupServiceInternal {
 
     int getAllGroupsTotal(long orgId, String keyword) throws ServiceLayerException;
 
-    Group createGroup(long orgId, String groupName, String groupDescription)
+    Group createGroup(long orgId, String groupName, String groupDescription, boolean externallyManaged)
             throws GroupAlreadyExistsException, ServiceLayerException;
 
     Group updateGroup(long orgId, Group group) throws GroupNotFoundException, ServiceLayerException;
