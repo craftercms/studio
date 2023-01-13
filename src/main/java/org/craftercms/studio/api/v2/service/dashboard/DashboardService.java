@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
@@ -96,13 +97,14 @@ public interface DashboardService {
     int getContentPendingApprovalTotal(String siteId) throws SiteNotFoundException;
 
     /**
-     * Get content packages 
+     * Get pending content for approval
+     *
      * @param siteId
      * @param offset
      * @param limit
-     * @return
+     * @return list of DetailedItem waiting for approval
      */
-    List<DashboardPublishingPackage> getContentPendingApproval(String siteId, int offset, int limit) throws SiteNotFoundException;
+    List<DetailedItem> getContentPendingApproval(String siteId, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get content pending approval package details
