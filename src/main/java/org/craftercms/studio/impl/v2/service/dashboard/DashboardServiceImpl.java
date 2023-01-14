@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.dashboard;
 
-
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -39,6 +38,7 @@ import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
@@ -50,6 +50,7 @@ import org.craftercms.studio.model.search.SearchResult;
 
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
@@ -62,6 +63,7 @@ import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY;
@@ -146,15 +148,28 @@ public class DashboardServiceImpl implements DashboardService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getContentPendingApprovalTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return workflowServiceInternal.getContentPendingApprovalTotal(siteId);
+        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DashboardPublishingPackage> getContentPendingApproval(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset, int limit) throws SiteNotFoundException {
+    public List<DetailedItem> getContentPendingApproval(
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
-        return workflowServiceInternal.getContentPendingApproval(siteId, offset, limit);
+        var items =
+                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, offset, limit);
+        if (items.isEmpty()) {
+            return emptyList();
+        }
+
+        var paths = items.stream().map(Item::getPath).collect(toList());
+        List<DetailedItem> result = new ArrayList<>();
+        for (String path : paths) {
+            var item = contentServiceInternal.getItemByPath(siteId, path, false);
+            result.add(item);
+        }
+
+        return result;
     }
 
     @Override
@@ -193,7 +208,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         var ids = items.stream().map(Item::getId)
                 .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, true);
     }
 
     protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {

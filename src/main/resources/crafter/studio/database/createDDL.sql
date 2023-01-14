@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.1.13', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.0.1.14', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -343,6 +343,7 @@ CREATE TABLE IF NOT EXISTS `group`
   `org_id`              BIGINT(20)  NOT NULL,
   `group_name`          VARCHAR(512) NOT NULL,
   `group_description`   TEXT,
+  `externally_managed`  INT          NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   INDEX `group_ix_record_last_updated` (`record_last_updated` DESC),
   FOREIGN KEY group_ix_org_id(org_id) REFERENCES `organization` (`id`) ON DELETE CASCADE,
@@ -352,23 +353,23 @@ CREATE TABLE IF NOT EXISTS `group`
   DEFAULT CHARSET = utf8
   ROW_FORMAT = DYNAMIC ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (1, CURRENT_TIMESTAMP, 1, 'system_admin', 'System Administrator group') ;
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
+VALUES (1, CURRENT_TIMESTAMP, 1, 'system_admin', 'System Administrator group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (2, CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group') ;
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
+VALUES (2, CURRENT_TIMESTAMP, 1, 'site_admin', 'Site Administrator group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (3, CURRENT_TIMESTAMP, 1, 'site_author', 'Site Author group') ;
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
+VALUES (3, CURRENT_TIMESTAMP, 1, 'site_author', 'Site Author group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (4, CURRENT_TIMESTAMP, 1, 'site_publisher', 'Site Publisher group') ;
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
+VALUES (4, CURRENT_TIMESTAMP, 1, 'site_publisher', 'Site Publisher group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (5, CURRENT_TIMESTAMP, 1, 'site_developer', 'Site Developer group') ;
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
+VALUES (5, CURRENT_TIMESTAMP, 1, 'site_developer', 'Site Developer group', 0) ;
 
-INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description)
-VALUES (6, CURRENT_TIMESTAMP, 1, 'site_reviewer', 'Site Reviewer group') ;
+INSERT IGNORE INTO `group` (id, record_last_updated, org_id, group_name, group_description, externally_managed)
+VALUES (6, CURRENT_TIMESTAMP, 1, 'site_reviewer', 'Site Reviewer group', 0) ;
 
 CREATE TABLE IF NOT EXISTS group_user
 (

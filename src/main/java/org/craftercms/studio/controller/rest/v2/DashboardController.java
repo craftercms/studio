@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v2.service.dashboard.DashboardService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
+import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.model.rest.dashboard.Activity;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
@@ -111,19 +112,19 @@ public class DashboardController {
 
     @Valid
     @GetMapping(value = CONTENT + PENDING_APPROVAL, produces = APPLICATION_JSON_VALUE)
-    public PaginatedResultList<DashboardPublishingPackage> getContentPendingApproval(
+    public PaginatedResultList<DetailedItem> getContentPendingApproval(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
+            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws ServiceLayerException, UserNotFoundException {
 
         var total = dashboardService.getContentPendingApprovalTotal(siteId);
-        var packages = dashboardService.getContentPendingApproval(siteId, offset, limit);
+        var publishingContent = dashboardService.getContentPendingApproval(siteId, offset, limit);
 
-        var result = new PaginatedResultList<DashboardPublishingPackage>();
+        var result = new PaginatedResultList<DetailedItem>();
         result.setTotal(total);
         result.setOffset(offset);
-        result.setLimit(CollectionUtils.isNotEmpty(packages) ? packages.size() : 0);
-        result.setEntities(RESULT_KEY_PUBLISHING_PACKAGES, packages);
+        result.setLimit(CollectionUtils.isNotEmpty(publishingContent) ? publishingContent.size() : 0);
+        result.setEntities(RESULT_KEY_PUBLISHING_ITEMS, publishingContent);
         result.setResponse(OK);
         return result;
     }

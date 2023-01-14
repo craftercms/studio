@@ -116,10 +116,9 @@ public class UsersController {
      * @param user User to create
      * @return Response object
      */
-    @Valid
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody createUser(@RequestBody User user)
+    public ResponseBody createUser(@Valid @RequestBody User user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
 
         User newUser = userService.createUser(user);
@@ -139,7 +138,7 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody updateUser(@RequestBody User user)
+    public ResponseBody updateUser(@Valid @RequestBody User user)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         userService.updateUser(user);
 

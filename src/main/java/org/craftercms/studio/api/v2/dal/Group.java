@@ -35,6 +35,7 @@ public class Group implements Serializable, GrantedAuthority {
     private long id = -1;
     private ZonedDateTime recordLastUpdated;
     private Organization organization;
+    private boolean externallyManaged;
     @NotNull
     @Size(max=512)
     @EsapiValidatedParam(type = GROUP_NAME)
@@ -96,6 +97,26 @@ public class Group implements Serializable, GrantedAuthority {
     @JsonProperty("desc")
     public void setGroupDescription(String groupDescription) {
         this.groupDescription = groupDescription;
+    }
+
+    @JsonProperty("externallyManaged")
+    public boolean isExternallyManaged() {
+        return externallyManaged;
+    }
+
+    @JsonProperty("externallyManaged")
+    public void setExternallyManaged(boolean externallyManaged) {
+        this.externallyManaged = externallyManaged;
+    }
+
+    @JsonIgnore
+    public int getExternallyManagedAsInt() {
+        return externallyManaged ? 1 : 0;
+    }
+
+    @JsonIgnore
+    public void setExternallyManagedAsInt(int externallyManaged) {
+        this.externallyManaged = externallyManaged > 0;
     }
 
 }
