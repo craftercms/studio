@@ -538,7 +538,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             try {
                 if (!groupServiceInternal.groupExists(-1, group)) {
                     try {
-                        groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description);
+                        groupServiceInternal.createGroup(DEFAULT_ORGANIZATION_ID, group, description, false);
                     } catch (GroupAlreadyExistsException e) {
                         throw new IllegalStateException(e);
                     }

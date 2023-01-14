@@ -59,6 +59,8 @@ public class ApiResponse {
             "Check if you sent in the right Group Id", StringUtils.EMPTY);
     public static final ApiResponse GROUP_ALREADY_EXISTS = new ApiResponse(4001, "Group already exists",
             "Try a different group name", StringUtils.EMPTY);
+    public static final ApiResponse GROUP_EXTERNALLY_MANAGED = new ApiResponse(4002, "Group is externally managed",
+            "Update the group in the main identity system (e.g. LDAP)", StringUtils.EMPTY);
 
     // 5000 - 6000
     public static final ApiResponse SITE_NOT_FOUND = new ApiResponse(5000, "Site not found",
