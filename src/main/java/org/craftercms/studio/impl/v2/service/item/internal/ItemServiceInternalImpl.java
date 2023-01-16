@@ -60,10 +60,10 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 public class ItemServiceInternalImpl implements ItemServiceInternal {
     // TODO: SJ: Add logging to this class
 
-    public final static String INTERNAL_NAME = "//internal-name";
-    public final static String CONTENT_TYPE = "//content-type";
-    public final static String DISABLED = "//disabled";
-    public final static String LOCALE_CODE = "//locale-code";
+    public final static String INTERNAL_NAME = "/*[1]/internal-name";
+    public final static String CONTENT_TYPE = "/*[1]/content-type";
+    public final static String DISABLED = "/*[1]/disabled";
+    public final static String LOCALE_CODE = "/*[1]/locale-code";
 
     private UserServiceInternal userServiceInternal;
     private SiteFeedMapper siteFeedMapper;
