@@ -16,8 +16,13 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
 public class ClearPublishingLockRequest {
 
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
 
     public String getSiteId() {

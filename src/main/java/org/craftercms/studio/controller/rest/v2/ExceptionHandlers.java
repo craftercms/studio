@@ -16,7 +16,10 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
@@ -24,6 +27,7 @@ import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.validation.ValidationRuntimeException;
 import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.core.exception.PathNotFoundException;
+import org.craftercms.core.util.ExceptionUtils;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
@@ -63,8 +67,7 @@ import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VALIDATION_ERRORS;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
@@ -405,8 +408,36 @@ public class ExceptionHandlers {
     @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleHttpMessageNotReadableException(HttpServletRequest request,
                                                               HttpMessageNotReadableException e) {
+        MismatchedInputException mismatchedInputException = ExceptionUtils.getThrowableOfType(e, MismatchedInputException.class);
+        if (mismatchedInputException != null) {
+            return handleMismatchInputException(request, mismatchedInputException);
+        }
+        ResponseBody responseBody = new ResponseBody();
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
-        return handleExceptionInternal(request, e, response);
+        handleExceptionInternal(request, e, response);
+        ResultOne<String> result = new ResultOne<>();
+        result.setResponse(response);
+
+        result.setEntity(RESULT_KEY_MESSAGE, e.getMessage());
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
+    @ExceptionHandler(MismatchedInputException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ResponseBody handleMismatchInputException(HttpServletRequest request,
+                                                     MismatchedInputException e) {
+        ResponseBody responseBody = new ResponseBody();
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
+        handleExceptionInternal(request, e, response);
+        ResultList<ValidationFieldError> result = new ResultList<>();
+        result.setResponse(response);
+        String fieldName = e.getPath().get(0).getFieldName();
+
+        result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
+                List.of(new ValidationFieldError(fieldName, ESAPI.encoder().encodeForJSON(e.getMessage()))));
+        responseBody.setResult(result);
+        return responseBody;
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

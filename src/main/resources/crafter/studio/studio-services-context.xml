@@ -439,9 +439,10 @@
     </bean>
 
     <bean id="sitesService" class="org.craftercms.studio.impl.v2.service.site.SitesServiceImpl">
-        <property name="sitesServiceInternal" ref="sitesServiceInternal"/>
-        <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
-        <property name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="sitesServiceInternal" ref="sitesServiceInternal"/>
+        <constructor-arg name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="pluginDescriptorReader" class="org.craftercms.commons.plugin.impl.PluginDescriptorReaderImpl"/>

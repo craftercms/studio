@@ -71,11 +71,11 @@ public interface SitesService {
      * @param siteId site identifier
      * @return publishing status
      */
-    PublishStatus getPublishingStatus(String siteId);
+    PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
 
     /**
      * Clear publishing lock for site
      * @param siteId site identifier
      */
-    void clearPublishingLock(String siteId);
+    void clearPublishingLock(String siteId) throws SiteNotFoundException;
 }
