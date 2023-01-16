@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,25 @@
 
 package org.craftercms.studio.impl.v1.service.webdav;
 
+import com.github.sardine.DavResource;
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
+import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.studio.api.v1.exception.WebDavException;
+import org.craftercms.studio.api.v1.service.webdav.WebDavService;
+import org.craftercms.studio.api.v1.webdav.WebDavItem;
+import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.util.MimeType;
+import org.springframework.web.util.UriUtils;
+
+import javax.xml.namespace.QName;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -24,26 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
-import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.exception.WebDavException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.service.webdav.WebDavService;
-import org.craftercms.studio.api.v1.webdav.WebDavItem;
-import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.util.MimeType;
-import org.springframework.web.util.UriUtils;
-import com.github.sardine.DavResource;
-import com.github.sardine.Sardine;
-import com.github.sardine.SardineFactory;
 
 import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_PREFIX;
 import static com.github.sardine.util.SardineUtil.DEFAULT_NAMESPACE_URI;
@@ -105,10 +104,10 @@ public class WebDavServiceImpl implements WebDavService {
      * {@inheritDoc}
      */
     @Override
-    public List<WebDavItem> list(@ValidateStringParam(name = "site_id") final String site,
-                                 @ValidateStringParam(name = "profile") final String profileId,
-                                 @ValidateStringParam(name = "path") final String path,
-                                 @ValidateStringParam(name = "type") final String type) throws WebDavException, ConfigurationProfileNotFoundException {
+    public List<WebDavItem> list(@ValidateStringParam final String site,
+                                 @ValidateStringParam final String profileId,
+                                 @ValidateStringParam final String path,
+                                 @ValidateStringParam final String type) throws WebDavException, ConfigurationProfileNotFoundException {
         WebDavProfile profile = getProfile(site, profileId);
         String listPath = StringUtils.appendIfMissing(profile.getBaseUrl(),"/");
         MimeType filterType;
@@ -176,10 +175,10 @@ public class WebDavServiceImpl implements WebDavService {
      * {@inheritDoc}
      */
     @Override
-    public String upload(@ValidateStringParam(name = "site_id") final String site,
-                         @ValidateStringParam(name = "profile") final String profileId,
-                         @ValidateStringParam(name = "path") final String path,
-                         @ValidateStringParam(name = "filename") final String filename,
+    public String upload(@ValidateStringParam final String site,
+                         @ValidateStringParam final String profileId,
+                         @ValidateStringParam final String path,
+                         @ValidateStringParam final String filename,
                          final InputStream content)
             throws WebDavException, ConfigurationProfileNotFoundException {
         WebDavProfile profile = getProfile(site, profileId);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,16 +18,13 @@ package org.craftercms.studio.impl.v1.service.content;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.DmConstants;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
@@ -40,7 +37,10 @@ import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -65,9 +65,9 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     protected StudioConfiguration studioConfiguration;
 
     @Override
-    @ValidateParams
-    public ContentTypeConfigTO getContentTypeForContent(@ValidateStringParam(name = "site") String site,
-                                                        @ValidateSecurePathParam(name = "path") String path)
+    @Valid
+    public ContentTypeConfigTO getContentTypeForContent(@ValidateStringParam String site,
+                                                        @ValidateSecurePathParam String path)
             throws ServiceLayerException {
         ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
         if (itemTO != null) {
@@ -111,9 +111,9 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    @ValidateParams
-    public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam(name = "site") String site,
-                                                            @ValidateSecurePathParam(name = "relativePath")
+    @Valid
+    public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam String site,
+                                                            @ValidateSecurePathParam
                                                                     String relativePath) throws ServiceLayerException {
         ContentItemTO item = contentService.getContentItem(site, relativePath, 0);
         if (item != null) {
@@ -129,23 +129,23 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    @ValidateParams
-    public ContentTypeConfigTO getContentType(@ValidateStringParam(name = "site") String site,
-                                              @ValidateStringParam(name = "type") String type) {
+    @Valid
+    public ContentTypeConfigTO getContentType(@ValidateStringParam String site,
+                                              @ValidateStringParam String type) {
         return servicesConfig.getContentTypeConfig(site, type);
     }
 
     @Override
-    @ValidateParams
-    public List<ContentTypeConfigTO> getAllContentTypes(@ValidateStringParam(name = "site") String site,
+    @Valid
+    public List<ContentTypeConfigTO> getAllContentTypes(@ValidateStringParam String site,
                                                         boolean searchable) {
         return getAllContentTypes(site);
     }
 
     @Override
-    @ValidateParams
-    public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam(name = "site") String site,
-                                                                   @ValidateSecurePathParam(name = "relativePath")
+    @Valid
+    public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam String site,
+                                                                   @ValidateSecurePathParam
                                                                            String relativePath) {
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
@@ -196,10 +196,10 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     }
 
     @Override
-    @ValidateParams
-    public boolean changeContentType(@ValidateStringParam(name = "site") String site,
-                                     @ValidateSecurePathParam(name = "path") String path,
-                                     @ValidateStringParam(name = "contentType") String contentType)
+    @Valid
+    public boolean changeContentType(@ValidateStringParam String site,
+                                     @ValidateSecurePathParam String path,
+                                     @ValidateStringParam String contentType)
             throws ServiceLayerException, UserNotFoundException {
         ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
         if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)){

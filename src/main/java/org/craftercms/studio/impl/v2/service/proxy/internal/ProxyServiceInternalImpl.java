@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,16 +17,19 @@
 package org.craftercms.studio.impl.v2.service.proxy.internal;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -63,7 +66,7 @@ public class ProxyServiceInternalImpl implements ProxyService {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     public ResponseEntity<Object> proxyEngine(final String body, final String siteId,
                                               final HttpServletRequest request) throws URISyntaxException {
         String requestUrl = request.getRequestURI();

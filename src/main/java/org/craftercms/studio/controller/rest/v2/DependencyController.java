@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -36,12 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DEPENDENCIES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DEPENDENCY;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_HARD_DEPENDENCIES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SOFT_DEPENDENCIES;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 
 @RestController
 @RequestMapping(API_2 + DEPENDENCY)
@@ -54,9 +48,9 @@ public class DependencyController {
         this.dependencyService = dependencyService;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(DEPENDENCIES)
-    public ResponseBody getSoftDependencies(@ValidateObjectParam @RequestBody @Valid GetSoftDependenciesRequestBody request)
+    public ResponseBody getSoftDependencies(@RequestBody @Valid GetSoftDependenciesRequestBody request)
             throws ServiceLayerException {
         List<String> softDeps = dependencyService.getSoftDependencies(request.getSiteId(), request.getPaths());
         List<String> hardDeps = dependencyService.getHardDependencies(request.getSiteId(), request.getPaths());

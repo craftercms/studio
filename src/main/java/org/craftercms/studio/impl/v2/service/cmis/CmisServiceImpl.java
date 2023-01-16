@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,7 +29,6 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
@@ -46,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
+import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
@@ -330,7 +330,7 @@ public class CmisServiceImpl implements CmisService {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPLOAD_CONTENT_CMIS)
     public CmisUploadItem uploadContent(@EsapiValidatedParam(type = SITE_ID) @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                         @ValidateNoTagsParam String cmisRepoId,

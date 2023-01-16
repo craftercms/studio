@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,45 +18,23 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.rest.ChangePasswordRequest;
-import org.craftercms.studio.model.rest.EnableUsers;
-import org.craftercms.studio.model.rest.PaginatedResultList;
-import org.craftercms.studio.model.rest.ResetPasswordRequest;
 import org.craftercms.studio.model.rest.ResponseBody;
-import org.craftercms.studio.model.rest.Result;
-import org.craftercms.studio.model.rest.ResultList;
-import org.craftercms.studio.model.rest.ResultOne;
-import org.craftercms.studio.model.rest.SetPasswordRequest;
+import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.users.HasPermissionsRequest;
 import org.craftercms.studio.model.users.UpdateUserPropertiesRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -70,46 +48,10 @@ import java.util.concurrent.TimeUnit;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SQL_ORDER_BY;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_KEYWORD;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SORT;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_TOKEN;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_USERNAME;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CHANGE_PASSWORD;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.DISABLE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ENABLE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.FORGOT_PASSWORD;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.GLOBAL;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HAS_PERMISSIONS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.LOGOUT_SSO_URL;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ME;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_ID;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PATH_PARAM_SITE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PERMISSIONS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PROPERTIES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.RESET_PASSWORD;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ROLES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SET_PASSWORD;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.SITES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.USERS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.VALIDATE_TOKEN;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_CURRENT_USER;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MESSAGE;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERMISSIONS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ROLES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_SITES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USER;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_USERS;
-import static org.craftercms.studio.model.rest.ApiResponse.CREATED;
-import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
-import static org.craftercms.studio.model.rest.ApiResponse.DEPRECATED;
-import static org.craftercms.studio.model.rest.ApiResponse.OK;
-import static org.craftercms.studio.model.rest.ApiResponse.UNAUTHORIZED;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.model.rest.ApiResponse.*;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -137,7 +79,7 @@ public class UsersController {
      * @param sort Sort order
      * @return Response containing list of users
      */
-    @ValidateParams
+    @Valid
     @GetMapping()
     public ResponseBody getAllUsers(
             @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
@@ -174,10 +116,9 @@ public class UsersController {
      * @param user User to create
      * @return Response object
      */
-    @ValidateParams
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody createUser(@ValidateObjectParam @RequestBody User user)
+    public ResponseBody createUser(@Valid @RequestBody User user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
 
         User newUser = userService.createUser(user);
@@ -196,9 +137,8 @@ public class UsersController {
      * @param user User to update
      * @return Response object
      */
-    @ValidateParams
     @PatchMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody updateUser(@ValidateObjectParam @RequestBody User user)
+    public ResponseBody updateUser(@Valid @RequestBody User user)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         userService.updateUser(user);
 

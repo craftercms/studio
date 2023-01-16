@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.log.LoggerService;
 import org.craftercms.studio.model.rest.ApiResponse;
@@ -62,9 +60,9 @@ public class LoggerController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @PostMapping(value = LOGGER_LEVEL)
-    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @ValidateObjectParam @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
+    public ResultOne<LoggerConfig> setLoggerLevel(@Valid @RequestBody LoggerConfigRequest loggerConfig) throws ServiceLayerException {
         ResultOne<LoggerConfig> result = new ResultOne<>();
         result.setResponse(ApiResponse.OK);
         loggerService.setLoggerLevel(loggerConfig.getName(), loggerConfig.getLevel(), loggerConfig.isCreateIfAbsent());

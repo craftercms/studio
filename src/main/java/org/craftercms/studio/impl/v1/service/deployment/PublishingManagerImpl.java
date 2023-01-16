@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,62 +15,48 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
+import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
+import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
-import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
-import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.Valid;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_AND_LIVE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_OFF_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.PUBLISH_TO_STAGE_ON_MASK;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PROCESSING_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 
@@ -93,9 +79,9 @@ public class PublishingManagerImpl implements PublishingManager {
     protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
 
     @Override
-    @ValidateParams
-    public List<PublishRequest> getItemsReadyForDeployment(@ValidateStringParam(name = "site") String site,
-                                           @ValidateStringParam(name = "environment") String environment) {
+    @Valid
+    public List<PublishRequest> getItemsReadyForDeployment(@ValidateStringParam String site,
+                                           @ValidateStringParam String environment) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("state", READY_FOR_LIVE);
@@ -270,9 +256,9 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public void markItemsCompleted(@ValidateStringParam(name = "site") String site,
-                                   @ValidateStringParam(name = "environment") String environment,
+    @Valid
+    public void markItemsCompleted(@ValidateStringParam String site,
+                                   @ValidateStringParam String environment,
                                    List<PublishRequest> processedItems) throws DeploymentException {
         ZonedDateTime publishedOn = DateUtils.getCurrentTime();
         for (PublishRequest item : processedItems) {
@@ -283,9 +269,9 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public void markItemsProcessing(@ValidateStringParam(name = "site") String site,
-                                    @ValidateStringParam(name = "environment") String environment,
+    @Valid
+    public void markItemsProcessing(@ValidateStringParam String site,
+                                    @ValidateStringParam String environment,
                                     List<PublishRequest> itemsToDeploy) throws DeploymentException {
         for (PublishRequest item : itemsToDeploy) {
             item.setState(PublishRequest.State.PROCESSING);
@@ -294,9 +280,9 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public void markItemsReady(@ValidateStringParam(name = "site") String site,
-                               @ValidateStringParam(name = "environment") String environment,
+    @Valid
+    public void markItemsReady(@ValidateStringParam String site,
+                               @ValidateStringParam String environment,
                                List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(READY_FOR_LIVE);
@@ -305,9 +291,9 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public void markItemsBlocked(@ValidateStringParam(name = "site") String site,
-                                 @ValidateStringParam(name = "environment") String environment,
+    @Valid
+    public void markItemsBlocked(@ValidateStringParam String site,
+                                 @ValidateStringParam String environment,
                                  List<PublishRequest> copyToEnvironmentItems) throws DeploymentException {
         for (PublishRequest item : copyToEnvironmentItems) {
             item.setState(PublishRequest.State.BLOCKED);
@@ -424,8 +410,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public boolean isPublishingBlocked(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public boolean isPublishingBlocked(@ValidateStringParam String site) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
@@ -435,8 +421,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public boolean hasPublishingQueuePackagesReady(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public boolean hasPublishingQueuePackagesReady(@ValidateStringParam String site) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
@@ -446,8 +432,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public String getPublishingStatus(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public String getPublishingStatus(@ValidateStringParam String site) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
@@ -463,8 +449,8 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public boolean isPublishingQueueEmpty(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public boolean isPublishingQueueEmpty(@ValidateStringParam String site) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
@@ -474,9 +460,9 @@ public class PublishingManagerImpl implements PublishingManager {
     }
 
     @Override
-    @ValidateParams
-    public void resetProcessingQueue(@ValidateStringParam(name = "site") String site,
-                                        @ValidateStringParam(name = "environment") String environment) {
+    @Valid
+    public void resetProcessingQueue(@ValidateStringParam String site,
+                                        @ValidateStringParam String environment) {
         Map<String, String> params = new HashMap<>();
         params.put(SITE_ID, site);
         params.put(ENVIRONMENT, environment);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,7 +19,6 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -37,6 +36,7 @@ import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -60,7 +60,7 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = ACTIVITY, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<Activity> getActivitiesForUsers(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -85,7 +85,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = ACTIVITY + ME, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<Activity> getMyActivities(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -110,7 +110,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = CONTENT + PENDING_APPROVAL, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DetailedItem> getContentPendingApproval(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -129,7 +129,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = CONTENT + PENDING_APPROVAL + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getContentPendingApprovalDetail(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -141,7 +141,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value =  CONTENT + UNPUBLISHED, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<SandboxItem> getContentUnpublished(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -160,7 +160,7 @@ public class DashboardController {
     }
 
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = CONTENT + EXPIRING, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<ExpiringContentItem> getContentExpiring(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -183,7 +183,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = CONTENT + EXPIRED, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<ExpiringContentItem> getContentExpired(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -201,11 +201,11 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = PUBLISHING + SCHEDULED, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DashboardPublishingPackage> getPublishingScheduled(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false)
+            @EsapiValidatedParam(type = ALPHANUMERIC)
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
@@ -226,7 +226,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = PUBLISHING + SCHEDULED + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getPublishingScheduledDetail(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -239,13 +239,13 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = PUBLISHING + HISTORY, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DashboardPublishingPackage> getPublishingHistory(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false)
+            @EsapiValidatedParam(type = ALPHANUMERIC)
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
-            @EsapiValidatedParam(type = USERNAME, notNull = false, notEmpty = false, notBlank = false)
+            @EsapiValidatedParam(type = USERNAME)
             @RequestParam(value = REQUEST_PARAM_APPROVER, required = false) String approver,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
@@ -267,7 +267,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = PUBLISHING + HISTORY + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
     public ResultList<SandboxItem> getPublishingHistoryDetail(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
@@ -279,7 +279,7 @@ public class DashboardController {
         return result;
     }
 
-    @ValidateParams
+    @Valid
     @GetMapping(value = PUBLISHING + STATS, produces = APPLICATION_JSON_VALUE)
     public ResultOne<PublishingStats> getPublishingStats(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,

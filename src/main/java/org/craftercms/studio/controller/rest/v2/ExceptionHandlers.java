@@ -22,6 +22,7 @@ import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
 import org.craftercms.commons.validation.ValidationRuntimeException;
+import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.*;
@@ -56,6 +57,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -63,8 +65,10 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PERSON;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_VALIDATION_ERRORS;
+import static org.craftercms.studio.model.rest.ApiResponse.INVALID_PARAMS;
 import static org.slf4j.event.Level.DEBUG;
 import static org.slf4j.event.Level.ERROR;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
  * Controller advice that handles exceptions thrown by API 2 REST controllers.
@@ -152,9 +156,9 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(InvalidParametersException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleInvalidParametersException(HttpServletRequest request, InvalidParametersException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(response.getMessage() + " : " + e.getMessage());
         return handleExceptionInternal(request, e, response);
     }
@@ -190,7 +194,7 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(MissingPluginParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleMissingPluginParameterException(HttpServletRequest request,
                                                               MissingPluginParameterException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
@@ -245,9 +249,9 @@ public class ExceptionHandlers {
 
 
     @ExceptionHandler(JsonProcessingException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleUnrecognizedPropertyException(HttpServletRequest request, JsonProcessingException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
@@ -273,9 +277,9 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(InvalidRemoteUrlException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleInvalidRemoteUrlException(HttpServletRequest request, InvalidRemoteUrlException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
@@ -316,7 +320,7 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(PasswordRequirementsFailedException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
                                                                   PasswordRequirementsFailedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
@@ -357,20 +361,20 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleMissingServletRequestParameterException(HttpServletRequest request,
                                                                       MissingServletRequestParameterException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setRemedialAction(
             format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ResultList<ValidationFieldError> handleMissingServletRequestParameterException(HttpServletRequest request,
+    @ResponseStatus(BAD_REQUEST)
+    public ResultList<ValidationFieldError> handleMethodArgumentNotValidException(HttpServletRequest request,
                                                                                           MethodArgumentNotValidException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         handleExceptionInternal(request, e, response);
         ResultList<ValidationFieldError> result = new ResultList<>();
         result.setResponse(response);
@@ -382,19 +386,34 @@ public class ExceptionHandlers {
         return result;
     }
 
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResultList<ValidationFieldError> handleConstraintValidationException(HttpServletRequest request,
+                                                                                ConstraintViolationException e) {
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
+        handleExceptionInternal(request, e, response);
+        ResultList<ValidationFieldError> result = new ResultList<>();
+        result.setEntities(RESULT_KEY_VALIDATION_ERRORS, e.getConstraintViolations().stream()
+                .map(c -> new ValidationFieldError(c.getPropertyPath().toString(), c.getMessage()))
+                .collect(Collectors.toList()));
+        result.setResponse(response);
+
+        return result;
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleHttpMessageNotReadableException(HttpServletRequest request,
                                                               HttpMessageNotReadableException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResultList<ValidationFieldError> handleMethodArgumentTypeMismatchException(HttpServletRequest request,
                                                                                       MethodArgumentTypeMismatchException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         handleExceptionInternal(request, e, response);
         ResultList<ValidationFieldError> result = new ResultList<>();
         result.setResponse(response);
@@ -412,14 +431,14 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(BindException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleBeanPropertyBindingResult(HttpServletRequest request, BindException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(RemoteNotRemovableException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleRemoteNotRemovableException(HttpServletRequest request, RemoteNotRemovableException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_REMOVABLE);
         return handleExceptionInternal(request, e, response);
@@ -433,19 +452,19 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(InvalidConfigurationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleInvalidConfigurationException(HttpServletRequest request,
                                                             InvalidConfigurationException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(ValidationRuntimeException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResultList<ValidationFieldError> handleValidationRuntimeException(HttpServletRequest request,
                                                                              ValidationRuntimeException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.INVALID_PARAMS);
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
         handleExceptionInternal(request, e, response);
 
         ResultList<ValidationFieldError> result = new ResultList<>();
@@ -458,7 +477,7 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(InvalidRemoteRepositoryCredentialsException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleInvalidRemoteRepositoryCredentialsException(HttpServletRequest request,
             InvalidRemoteRepositoryCredentialsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_AUTHENTICATION_FAILED);
@@ -467,7 +486,7 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(RemoteRepositoryNotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleRemoteRepositoryNotFoundException(HttpServletRequest request,
             RemoteRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_FOUND);
@@ -503,7 +522,7 @@ public class ExceptionHandlers {
     }
 
     @ExceptionHandler(ContentMoveInvalidLocation.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleException(HttpServletRequest request, ContentMoveInvalidLocation e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_MOVE_INVALID_LOCATION);
         return handleExceptionInternal(request, e, response);

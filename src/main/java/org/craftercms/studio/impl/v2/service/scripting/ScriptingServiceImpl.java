@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,6 @@ package org.craftercms.studio.impl.v2.service.scripting;
 
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
@@ -25,6 +24,7 @@ import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceI
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 
 /**
@@ -43,8 +43,8 @@ public class ScriptingServiceImpl implements ScriptingService {
     }
 
     @Override
-    @ValidateParams
-    public Object executeRestScript(String siteId, @ValidateSecurePathParam(name = "path") String path,
+    @Valid
+    public Object executeRestScript(String siteId, @ValidateSecurePathParam String path,
                                     HttpServletRequest request, HttpServletResponse response)
             throws ResourceException, ScriptException, ConfigurationException {
         return scriptingServiceInternal.executeRestScript(siteId, path, request, response);
