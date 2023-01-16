@@ -14,24 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-import groovy.json.JsonException
-import groovy.json.JsonSlurper
-import scripts.api.SiteServices
-
 def result = [:]
-try {
-    def requestBody = request.reader.text
 
-    def slurper = new JsonSlurper()
-    def parsedReq = slurper.parseText(requestBody)
+result.message = "API deprecated."
+response.setStatus(410)
 
-    def siteId = parsedReq.site_id
-
-    def context = SiteServices.createContext(applicationContext, request);
-    result = SiteServices.rebuildDatabase(context, siteId);
-} catch (JsonException e) {
-    response.setStatus(400)
-    result.message = "Bad Request"
-}
-return result;
+return result
