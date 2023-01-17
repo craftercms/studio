@@ -84,6 +84,7 @@ public final class ResultConstants {
     public static final String RESULT_KEY_PACKAGE = "package";
     public static final String RESULT_KEY_PUBLISH_STATUS = "publishingStatus";
     public static final String RESULT_KEY_PUBLISH_HISTORY = "documents";
+    public static final String RESULT_KEY_HAS_INITIAL_PUBLISH = "hasInitialPublish";
 
     /* Translation controller */
     public static final String RESULT_KEY_CONFIG = "config";

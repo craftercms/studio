@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -34,6 +35,7 @@ import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,6 +48,7 @@ import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_DAYS;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_ENVIRONMENT;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_FILTER_TYPE;
@@ -56,22 +59,12 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AVAILABLE_TARGETS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CANCEL;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.CLEAR_LOCK;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.HISTORY;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PACKAGES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.STATUS;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGE;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PACKAGES;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_HISTORY;
-import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_PUBLISH_STATUS;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
+import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
+@Validated
 @RestController
 @RequestMapping(API_2 + PUBLISH)
 public class PublishController {
@@ -200,9 +193,6 @@ public class PublishController {
     @GetMapping(value = AVAILABLE_TARGETS, produces = APPLICATION_JSON_VALUE)
     public ResponseBody getAvailablePublishingTargets(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
         var availableTargets = publishService.getAvailablePublishingTargets(siteId);
         var published = publishService.isSitePublished(siteId);
         AvailablePublishingTargets availablePublishingTargets = new AvailablePublishingTargets();
@@ -212,6 +202,19 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         availablePublishingTargets.setResponse(OK);
         responseBody.setResult(availablePublishingTargets);
+        return responseBody;
+    }
+
+    @Valid
+    @GetMapping(value = HAS_INITIAL_PUBLISH, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody hasInitialPublish(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+        throws SiteNotFoundException {
+        var published = publishService.isSitePublished(siteId);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<Boolean> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_HAS_INITIAL_PUBLISH, published);
+        responseBody.setResult(result);
         return responseBody;
     }
 

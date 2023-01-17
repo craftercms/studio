@@ -5193,6 +5193,42 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /publish/has_initial_publish:
+    get:
+      tags:
+        - publishing
+      summary: Check if site has initial publish
+      description: 'Required permission "content_read"'
+      operationId: hasInitialPublish
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  hasInitialPublish:
+                    type: boolean
+                    description: true if site has been published at least once (initial publish; published repository exist), otherwise false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /security/encrypt:
     post:
       tags:
