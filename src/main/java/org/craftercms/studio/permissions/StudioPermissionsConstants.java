@@ -87,6 +87,8 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_UNLOCK_REPO = "unlock_repository";
     public static final String PERMISSION_REPAIR_REPOSITORY = "repair_repository";
 
+    public static final String PERMISSION_MANAGE_ACCESS_TOKEN = "manage_access_token";
+
 
     private StudioPermissionsConstants() {
     }

@@ -30,6 +30,8 @@ import java.beans.ConstructorProperties;
 import java.time.Instant;
 import java.util.List;
 
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_MANAGE_ACCESS_TOKEN;
+
 /**
  * Default implementation of {@link AccessTokenService}
  *
@@ -72,28 +74,28 @@ public class AccessTokenServiceImpl implements AccessTokenService {
         accessTokenServiceInternal.deleteExpiredRefreshTokens();
     }
 
-    // Persisten tokens
+    // Persistent tokens
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "manage_access_token")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
     public PersistentAccessToken createAccessToken(String label, Instant expiresAt) throws ServiceLayerException {
         return accessTokenServiceInternal.createAccessToken(label, expiresAt);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "manage_access_token")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
     public List<PersistentAccessToken> getAccessTokens() {
         return accessTokenServiceInternal.getAccessTokens();
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "manage_access_token")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
     public PersistentAccessToken updateAccessToken(long id, boolean enabled) {
         return accessTokenServiceInternal.updateAccessToken(id, enabled);
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "manage_access_token")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_MANAGE_ACCESS_TOKEN)
     public void deleteAccessToken(long id) {
         accessTokenServiceInternal.deleteAccessToken(id);
     }

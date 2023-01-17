@@ -36,7 +36,7 @@ public class EncryptionServiceImpl implements EncryptionService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_ENCRYPTION_TOOL)
-    public String encrypt(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam String siteId,
+    public String encrypt(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                           @ValidateStringParam String text) throws ServiceLayerException {
         return encryptionServiceInternal.encrypt(text);
     }
