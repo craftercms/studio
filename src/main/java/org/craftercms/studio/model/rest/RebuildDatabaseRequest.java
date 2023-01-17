@@ -16,8 +16,18 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
 public class RebuildDatabaseRequest {
 
+    @NotEmpty
+    @Size(max = 50)
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
 
     public String getSiteId() {

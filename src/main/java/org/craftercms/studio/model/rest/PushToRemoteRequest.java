@@ -16,10 +16,23 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
 public class PushToRemoteRequest {
 
+    @NotEmpty
+    @Size(max = 50)
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
+    @NotEmpty
+    @Size(max = 50)
     private String remoteName;
+    @NotEmpty
     private String remoteBranch;
     private boolean force;
 

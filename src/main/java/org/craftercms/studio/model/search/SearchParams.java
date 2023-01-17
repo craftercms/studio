@@ -17,11 +17,13 @@
 package org.craftercms.studio.model.search;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SEARCH_KEYWORDS;
 
 /**
  * Holds the data needed to perform a search operation
@@ -33,6 +35,7 @@ public class SearchParams {
     /**
      * Keywords to search in the files.
      */
+    @EsapiValidatedParam(type= SEARCH_KEYWORDS)
     protected String keywords;
 
     /**
