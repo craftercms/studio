@@ -98,7 +98,7 @@
     </bean>
 
     <bean id="searchController" class="org.craftercms.studio.controller.rest.v2.SearchController">
-        <property name="searchService" ref="searchService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
     </bean>
 
     <bean id="auditController" class="org.craftercms.studio.controller.rest.v2.AuditController">

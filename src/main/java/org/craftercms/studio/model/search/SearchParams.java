@@ -19,6 +19,7 @@ package org.craftercms.studio.model.search;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 import java.util.Map;
 
@@ -51,11 +52,13 @@ public class SearchParams {
     /**
      * The offset to paginate the results
      */
+    @PositiveOrZero
     protected int offset = 0;
 
     /**
      * The limit to paginate the results
      */
+    @PositiveOrZero
     protected int limit = 20;
 
     /**

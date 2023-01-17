@@ -53,8 +53,9 @@
     </bean>
 
     <bean id="searchService" class="org.craftercms.studio.impl.v2.service.search.SearchServiceImpl">
-        <property name="securityService" ref="cstudioSecurityService"/>
-        <property name="searchServiceInternal" ref="searchServiceInternal"/>
+        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="searchServiceInternal" ref="searchServiceInternal"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
 </beans>
