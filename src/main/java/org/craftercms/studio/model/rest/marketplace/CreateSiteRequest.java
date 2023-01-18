@@ -20,10 +20,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.craftercms.commons.plugin.model.Version;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds the information needed to create a site from a Marketplace Blueprint
@@ -37,14 +43,18 @@ public class CreateSiteRequest {
     private String blueprintId;
 
     @NotNull
+    @Valid
     private Version blueprintVersion;
 
     @NotBlank
+    @Size(max = 50)
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
 
     private String description;
 
     @NotBlank
+    @Size(max=255)
     private String name;
 
     private Map<String, String> siteParams = new HashMap<>();

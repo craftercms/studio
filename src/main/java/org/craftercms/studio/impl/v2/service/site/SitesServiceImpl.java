@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
@@ -33,9 +34,10 @@ import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Objects;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_CLEAR_LOCK;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH_STATUS;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
 
@@ -74,9 +76,13 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "edit_site")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
     public void updateSite(@ProtectedResourceId("siteId") String siteId, String name, String description)
-            throws SiteNotFoundException, SiteAlreadyExistsException {
+            throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
+        if (isBlank(name) && isBlank(description)) {
+            throw new InvalidParametersException("The request needs to include a name or a description");
+        }
+        siteService.checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
     }
 
