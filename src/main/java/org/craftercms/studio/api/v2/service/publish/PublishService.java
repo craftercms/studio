@@ -140,6 +140,7 @@ public interface PublishService {
      * Get available publishing targets for given site
      * @param siteId site identifier
      * @return list of available publishing targets
+     * @throws SiteNotFoundException Site doesn't exist
      */
     List<PublishingTarget> getAvailablePublishingTargets(String siteId) throws SiteNotFoundException;
 
@@ -148,8 +149,9 @@ public interface PublishService {
      *
      * @param siteId site identifier
      * @return true if site has been published at least once, otherwise false
+     * @throws SiteNotFoundException Site doesn't exist
      */
-    boolean isSitePublished(String siteId);
+    boolean isSitePublished(String siteId) throws SiteNotFoundException;
 
     /**
      * Publishes all changes for the given site & target

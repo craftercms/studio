@@ -272,7 +272,8 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         return publishServiceInternal.isSitePublished(siteId);
     }
 

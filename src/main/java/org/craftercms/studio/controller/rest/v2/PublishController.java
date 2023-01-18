@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+
+import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
@@ -32,7 +34,6 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.publish.AvailablePublishingTargets;
-import org.springframework.util.CollectionUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -175,6 +176,19 @@ public class PublishController {
         ResponseBody responseBody = new ResponseBody();
         availablePublishingTargets.setResponse(OK);
         responseBody.setResult(availablePublishingTargets);
+        return responseBody;
+    }
+
+    @Valid
+    @GetMapping(value = HAS_INITIAL_PUBLISH, produces = APPLICATION_JSON_VALUE)
+    public ResponseBody hasInitialPublish(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+            throws SiteNotFoundException {
+        var published = publishService.isSitePublished(siteId);
+        ResponseBody responseBody = new ResponseBody();
+        ResultOne<Boolean> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_HAS_INITIAL_PUBLISH, published);
+        responseBody.setResult(result);
         return responseBody;
     }
 
