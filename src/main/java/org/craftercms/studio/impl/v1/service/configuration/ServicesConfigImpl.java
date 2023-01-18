@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,23 +18,15 @@ package org.craftercms.studio.impl.v1.service.configuration;
 import com.google.common.cache.Cache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.core.util.XmlUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ContentTypesConfig;
-import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
-import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
-import org.craftercms.studio.api.v1.to.CopyDependencyConfigTO;
-import org.craftercms.studio.api.v1.to.DeleteDependencyConfigTO;
-import org.craftercms.studio.api.v1.to.DmFolderConfigTO;
-import org.craftercms.studio.api.v1.to.FacetRangeTO;
-import org.craftercms.studio.api.v1.to.FacetTO;
-import org.craftercms.studio.api.v1.to.RepositoryConfigTO;
-import org.craftercms.studio.api.v1.to.SiteConfigTO;
+import org.craftercms.studio.api.v1.service.content.ContentService;
+import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
@@ -45,42 +37,13 @@ import org.dom4j.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TimeZone;
-import java.util.TreeMap;
+import javax.validation.Valid;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_CONFIG_URL;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_ADMIN_EMAIL_ADDRESS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_AUTHORING_URL;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_LIVE_URL;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_PLUGIN_FOLDER_PATTERN;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SITE_URLS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_STAGING_URL;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_DATE_TIME_FORMAT_OPTIONS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_ENABLE_STAGING_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LIVE_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_LOCALE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PROTECTED_FOLDER_PATTERNS;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHED_REPOSITORY;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_PUBLISHER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_REQUIRE_PEER_REVIEW;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_STAGING_ENVIRONMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_ELEMENT_SANDBOX_BRANCH;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_TIME_ZONE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_CONFIG_XML_ELEMENT_WORKFLOW;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_TIME_ZONE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_GENERAL_CONFIG_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_LIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_PUBLISHED_STAGING;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
  * Implementation of ServicesConfigImpl. This class requires a configuration
@@ -133,8 +96,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-	public String getWemProject(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public String getWemProject(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getWemProject() != null) {
 			return config.getWemProject();
@@ -143,8 +106,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
     @Override
-    @ValidateParams
-    public List<DmFolderConfigTO> getFolders(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public List<DmFolderConfigTO> getFolders(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getFolders();
@@ -153,8 +116,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-	public String getRootPrefix(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public String getRootPrefix(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getRootPrefix();
@@ -163,15 +126,15 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam(name = "site") String site,
-                                                    @ValidateStringParam(name = "name") String name) {
+    @Valid
+	public ContentTypeConfigTO getContentTypeConfig(@ValidateStringParam String site,
+                                                    @ValidateStringParam String name) {
 		return contentTypesConfig.getContentTypeConfig(site, name);
 	}
 
 	@Override
-    @ValidateParams
-	public List<String> getAssetPatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public List<String> getAssetPatterns(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getAssetPatterns();
@@ -180,9 +143,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
     @Override
-    @ValidateParams
-	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam(name = "site") String site,
-                                                                      @ValidateStringParam(name = "contentType") String contentType) {
+    @Valid
+	public List<DeleteDependencyConfigTO> getDeleteDependencyPatterns(@ValidateStringParam String site,
+                                                                      @ValidateStringParam String contentType) {
         if (contentType == null ) {
              return Collections.emptyList();
         }
@@ -194,9 +157,9 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
     @Override
-    @ValidateParams
-	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam(name = "site") String site,
-                                                                  @ValidateStringParam(name = "contentType") String contentType) {
+    @Valid
+	public List<CopyDependencyConfigTO> getCopyDependencyPatterns(@ValidateStringParam String site,
+                                                                  @ValidateStringParam String contentType) {
         if (contentType == null ) {
              return Collections.emptyList();
         }
@@ -208,8 +171,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-	public List<String> getComponentPatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public List<String> getComponentPatterns(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getComponentPatterns();
@@ -218,8 +181,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-	public List<String> getPagePatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public List<String> getPagePatterns(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getPagePatterns();
@@ -228,8 +191,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-    public List<String> getRenderingTemplatePatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public List<String> getRenderingTemplatePatterns(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getRenderingTemplatePatterns();
@@ -238,8 +201,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-    public List<String> getScriptsPatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public List<String> getScriptsPatterns(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getScriptsPatterns();
@@ -248,8 +211,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-    public List<String> getLevelDescriptorPatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public List<String> getLevelDescriptorPatterns(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getLevelDescriptorPatterns();
@@ -258,8 +221,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-	public List<String> getDocumentPatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public List<String> getDocumentPatterns(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDocumentPatterns();
@@ -268,8 +231,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-	public String getLevelDescriptorName(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public String getLevelDescriptorName(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getLevelDescriptorName();
@@ -278,8 +241,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-	public List<String> getDisplayInWidgetPathPatterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public List<String> getDisplayInWidgetPathPatterns(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
 		if (config != null && config.getRepositoryConfig() != null) {
 			return config.getRepositoryConfig().getDisplayPatterns();
@@ -288,8 +251,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
 	@Override
-    @ValidateParams
-	public String getDefaultTimezone(@ValidateStringParam(name = "site") String site) {
+    @Valid
+	public String getDefaultTimezone(@ValidateStringParam String site) {
 		SiteConfigTO config = getSiteConfig(site);
         String timeZone = null;
 		if (config != null) {
@@ -306,8 +269,8 @@ public class ServicesConfigImpl implements ServicesConfig {
 	}
 
     @Override
-    @ValidateParams
-    public String getPluginFolderPattern(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public String getPluginFolderPattern(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null) {
             return config.getPluginFolderPattern();
@@ -590,8 +553,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-    public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public List<String> getPreviewableMimetypesPaterns(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getPreviewableMimetypesPaterns();
@@ -604,8 +567,8 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
-    @ValidateParams
-    public String getSandboxBranchName(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public String getSandboxBranchName(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null) {
             return config.getSandboxBranch();

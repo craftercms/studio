@@ -14,42 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import org.apache.commons.lang3.StringUtils
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException
-import scripts.api.SiteServices
-
 def result = [:]
-def siteId = params.site_id
 
-/** Validate Parameters */
-def invalidParams = false;
-
-// site_id
-try {
-    if (StringUtils.isEmpty(siteId)) {
-        invalidParams = true
-    }
-} catch (Exception e) {
-    invalidParams = true
-}
-
-if (invalidParams) {
-    response.setStatus(400)
-    result.message = "Invalid parameter: site_id"
-} else {
-    def context = SiteServices.createContext(applicationContext, request)
-
-    try {
-        result.remotes = SiteServices.listRemote(context, siteId)
-        response.setStatus(200)
-        result.message = "OK"
-    } catch (SiteNotFoundException e) {
-        response.setStatus(404)
-        result.message = "Site not found"
-    } catch (Exception e) {
-        response.setStatus(500)
-        result.message = "Internal server error: \n" + e
-    }
-}
+result.message = "API deprecated."
+response.setStatus(410)
 
 return result

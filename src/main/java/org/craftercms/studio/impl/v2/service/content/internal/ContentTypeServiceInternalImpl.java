@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -150,7 +150,7 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
-                                                                      @ValidateSecurePathParam(name = "contentTypeId") String contentTypeId) throws ServiceLayerException {
+                                                                      @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
 
         String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
         boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail

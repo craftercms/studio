@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,8 +16,7 @@
 
 package org.craftercms.studio.impl.v1.service.aws;
 
-import java.io.InputStream;
-
+import com.amazonaws.services.s3.AmazonS3;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.config.profiles.aws.S3Profile;
 import org.craftercms.commons.file.stores.S3Utils;
@@ -26,7 +25,8 @@ import org.craftercms.studio.api.v1.aws.s3.S3Output;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.aws.S3Service;
-import com.amazonaws.services.s3.AmazonS3;
+
+import java.io.InputStream;
 
 /**
  * Default implementation of {@link S3Service}.
@@ -52,9 +52,9 @@ public class S3ServiceImpl extends AbstractAwsService<S3Profile> implements S3Se
     }
 
     @Override
-    public S3Output uploadFile(@ValidateStringParam(name = "site") String site,
-                               @ValidateStringParam(name = "profileId") String profileId,
-                               @ValidateStringParam(name = "filename") String filename,
+    public S3Output uploadFile(@ValidateStringParam String site,
+                               @ValidateStringParam String profileId,
+                               @ValidateStringParam String filename,
                                InputStream content) throws AwsException, ConfigurationProfileNotFoundException {
         S3Profile profile = getProfile(site, profileId);
         AmazonS3 s3Client = getS3Client(profile);

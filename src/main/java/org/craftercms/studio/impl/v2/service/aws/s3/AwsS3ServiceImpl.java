@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -111,10 +111,10 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      */
     @Override
     @HasPermission(type = DefaultPermission.class, action = "s3 write")
-    public S3Item uploadItem(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
-                             @ValidateStringParam(name = "profileId") String profileId,
-                             @ValidateStringParam(name ="path") String path,
-                             @ValidateStringParam(name = "filename") String filename,
+    public S3Item uploadItem(@ValidateStringParam @ProtectedResourceId("siteId") String siteId,
+                             @ValidateStringParam String profileId,
+                             @ValidateStringParam String path,
+                             @ValidateStringParam String filename,
                              InputStream content) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -134,10 +134,10 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      */
     @Override
     @HasPermission(type = DefaultPermission.class, action = "s3 read")
-    public List<S3Item> listItems(@ValidateStringParam(name = "siteId") @ProtectedResourceId("siteId") String siteId,
-                                  @ValidateStringParam(name = "profileId") String profileId,
-                                  @ValidateStringParam(name = "path") String path,
-                                  @ValidateStringParam(name = "type") String type) throws AwsException,
+    public List<S3Item> listItems(@ValidateStringParam @ProtectedResourceId("siteId") String siteId,
+                                  @ValidateStringParam String profileId,
+                                  @ValidateStringParam String path,
+                                  @ValidateStringParam String type) throws AwsException,
             SiteNotFoundException, ConfigurationProfileNotFoundException {
         siteService.checkSiteExists(siteId);
         S3Profile profile = getProfile(siteId, profileId);

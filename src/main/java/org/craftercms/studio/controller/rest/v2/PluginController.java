@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -32,23 +33,20 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultOne;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.HandlerMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-
+import javax.validation.constraints.Size;
 import java.beans.ConstructorProperties;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.apache.commons.lang3.StringUtils.removeStart;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -57,6 +55,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.OK;
  * @author joseross
  * @since 3.1.1
  */
+@Validated
 @RestController
 @RequestMapping("/api/2/plugin")
 public class PluginController extends ManagementTokenAware {
@@ -74,7 +73,7 @@ public class PluginController extends ManagementTokenAware {
     }
 
     @GetMapping("/get_configuration")
-    public ResponseBody getPluginConfiguration(String siteId, String pluginId) throws ContentNotFoundException {
+    public ResponseBody getPluginConfiguration(@EsapiValidatedParam(type = SITE_ID) String siteId, String pluginId) throws ContentNotFoundException {
         String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
 
         ResponseBody responseBody = new ResponseBody();
@@ -101,7 +100,7 @@ public class PluginController extends ManagementTokenAware {
      * Reloads the groovy classes for the given site
      */
     @GetMapping("/script/reload")
-    public ResponseBody reloadClasses(@RequestParam String siteId, @RequestParam String token)
+    public ResponseBody reloadClasses(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId, @RequestParam String token)
             throws InvalidParametersException, InvalidManagementTokenException {
         validateToken(token);
 
@@ -119,9 +118,8 @@ public class PluginController extends ManagementTokenAware {
      *  Executes a rest script for the given site
      */
     @RequestMapping("/script/**")
-    public ResponseBody runScript(@RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
+    public ResponseBody runScript(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
             throws ResourceException, ScriptException, ConfigurationException {
-
         // No better way to do this for now, later can be replaced by "/script/{*scriptUrl}"
         var scriptUrl = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
         scriptUrl = removeStart(removeExtension(scriptUrl), "/api/2/plugin/script");
@@ -150,6 +148,8 @@ public class PluginController extends ManagementTokenAware {
     public static class WriteConfigurationRequest {
 
         @NotEmpty
+        @Size(max = 50)
+        @EsapiValidatedParam(type = SITE_ID)
         private String siteId;
 
         @NotEmpty

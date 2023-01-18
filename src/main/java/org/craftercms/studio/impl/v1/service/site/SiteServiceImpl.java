@@ -34,9 +34,7 @@ import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.plugin.model.SearchEngines;
-import org.craftercms.commons.validation.annotations.param.ValidateIntegerParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -88,6 +86,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -177,13 +177,13 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     public void createSiteFromBlueprint(
-            @ValidateStringParam(name = "blueprintId") String blueprintId,
-            @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
-            @ValidateNoTagsParam(name = "siteName") String siteName,
-            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-            @ValidateNoTagsParam(name = "desc") String desc,
+            @ValidateStringParam String blueprintId,
+            @Size(max = 50) @ValidateStringParam(whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
+            @ValidateNoTagsParam String siteName,
+            @ValidateStringParam String sandboxBranch,
+            @ValidateNoTagsParam String desc,
             Map<String, String> params, boolean createAsOrphan)
             throws SiteAlreadyExistsException, SiteCreationException, DeployerTargetException,
             BlueprintNotFoundException, MissingPluginParameterException {
@@ -552,19 +552,19 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
+    @Valid
     public void createSiteWithRemoteOption(
-            @ValidateStringParam(name = "siteId", maxLength = 50, whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
-            @ValidateStringParam(name = "siteName") String siteName,
-            @ValidateStringParam(name = "sandboxBranch") String sandboxBranch,
-            @ValidateNoTagsParam(name = "description") String description,
+            @Size(max = 50) @ValidateStringParam(whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
+            @ValidateStringParam String siteName,
+            @ValidateStringParam String sandboxBranch,
+            @ValidateNoTagsParam String description,
             String blueprintName,
-            @ValidateStringParam(name = "remoteName") String remoteName,
-            @ValidateStringParam(name = "remoteUrl") String remoteUrl,
+            @ValidateStringParam String remoteName,
+            @ValidateStringParam String remoteUrl,
             String remoteBranch, boolean singleBranch, String authenticationType,
             String remoteUsername, String remotePassword, String remoteToken,
             String remotePrivateKey,
-            @ValidateStringParam(name = "createOption") String createOption,
+            @ValidateStringParam String createOption,
             Map<String, String> params, boolean createAsOrphan)
             throws ServiceLayerException, InvalidRemoteRepositoryException, InvalidRemoteRepositoryCredentialsException,
             RemoteRepositoryNotFoundException, InvalidRemoteUrlException {
@@ -772,8 +772,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public boolean deleteSite(@ValidateStringParam(name = "siteId") String siteId) {
+    @Valid
+    public boolean deleteSite(@ValidateStringParam String siteId) {
         boolean success = true;
         logger.info("Delete site '{}'", siteId);
         try {
@@ -899,8 +899,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public void syncRepository(@ValidateStringParam(name = "site") String site) throws SiteNotFoundException {
+    @Valid
+    public void syncRepository(@ValidateStringParam String site) throws SiteNotFoundException {
         checkSiteExists(site);
         String lastDbCommitId = siteFeedMapper.getLastCommitId(site);
         if (lastDbCommitId != null) {
@@ -911,15 +911,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public void rebuildDatabase(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public void rebuildDatabase(@ValidateStringParam String site) {
         rebuildRepositoryMetadata.execute(site);
     }
 
     @Override
-    @ValidateParams
-    public void updateLastCommitId(@ValidateStringParam(name = "site") String site,
-                                   @ValidateStringParam(name = "commitId") String commitId) {
+    @Valid
+    public void updateLastCommitId(@ValidateStringParam String site,
+                                   @ValidateStringParam String commitId) {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", site);
         params.put("lastCommitId", commitId);
@@ -943,16 +943,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
-                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId) {
+    @Valid
+    public boolean syncDatabaseWithRepo(@ValidateStringParam String site,
+                                        @ValidateStringParam String fromCommitId) {
         return syncDatabaseWithRepo(site, fromCommitId, true);
     }
 
     @Override
-    @ValidateParams
-    public boolean syncDatabaseWithRepo(@ValidateStringParam(name = "site") String site,
-                                        @ValidateStringParam(name = "fromCommitId") String fromCommitId,
+    @Valid
+    public boolean syncDatabaseWithRepo(@ValidateStringParam String site,
+                                        @ValidateStringParam String fromCommitId,
                                         boolean generateAuditLog) {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
@@ -1325,41 +1325,41 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public boolean exists(@ValidateStringParam(name = "site") String site) {
+    @Valid
+    public boolean exists(@ValidateStringParam String site) {
         return siteFeedMapper.exists(site) > 0;
     }
 
     @Override
-    @ValidateParams
-    public void checkSiteExists(@ValidateStringParam(name = "site") final String site) throws SiteNotFoundException {
+    @Valid
+    public void checkSiteExists(@ValidateStringParam final String site) throws SiteNotFoundException {
         if (!exists(site)) {
             throw new SiteNotFoundException(format("Site '%s' not found.", site));
         }
     }
 
     @Override
-    @ValidateParams
-    public boolean existsById(@ValidateStringParam(name = "siteId") String siteId) {
+    @Valid
+    public boolean existsById(@ValidateStringParam String siteId) {
         return siteFeedMapper.existsById(siteId) > 0;
     }
 
     @Override
-    @ValidateParams
-    public boolean existsByName(@ValidateStringParam(name = "siteName") String siteName) {
+    @Valid
+    public boolean existsByName(@ValidateStringParam String siteName) {
         return siteFeedMapper.existsByName(siteName) > 0;
     }
 
     @Override
-    @ValidateParams
+    @Valid
     public int getSitesPerUserTotal()
             throws UserNotFoundException, ServiceLayerException {
         return getSitesPerUserTotal(securityService.getCurrentUser());
     }
 
     @Override
-    @ValidateParams
-    public int getSitesPerUserTotal(@ValidateStringParam(name = "username") String username)
+    @Valid
+    public int getSitesPerUserTotal(@ValidateStringParam String username)
             throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<>();
@@ -1371,18 +1371,18 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public List<SiteFeed> getSitesPerUser(@ValidateIntegerParam(name = "start") int start,
-                                          @ValidateIntegerParam(name = "number") int number)
+    @Valid
+    public List<SiteFeed> getSitesPerUser(int start,
+                                          int number)
             throws UserNotFoundException, ServiceLayerException {
         return getSitesPerUser(securityService.getCurrentUser(), start, number);
     }
 
     @Override
-    @ValidateParams
-    public List<SiteFeed> getSitesPerUser(@ValidateStringParam(name = "username") String username,
-                                          @ValidateIntegerParam(name = "start") int start,
-                                          @ValidateIntegerParam(name = "number") int number)
+    @Valid
+    public List<SiteFeed> getSitesPerUser(@ValidateStringParam String username,
+                                          int start,
+                                          int number)
             throws UserNotFoundException, ServiceLayerException {
         if (securityService.userExists(username)) {
             Map<String, Object> params = new HashMap<>();
@@ -1403,8 +1403,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public SiteFeed getSite(@ValidateStringParam(name = "siteId") String siteId) throws SiteNotFoundException {
+    @Valid
+    public SiteFeed getSite(@ValidateStringParam String siteId) throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<>();
             params.put("siteId", siteId);
@@ -1415,8 +1415,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public boolean isPublishingEnabled(@ValidateStringParam(name = "siteId") String siteId) {
+    @Valid
+    public boolean isPublishingEnabled(@ValidateStringParam String siteId) {
         try {
             SiteFeed siteFeed = getSite(siteId);
             return siteFeed.getPublishingEnabled() > 0;
@@ -1428,8 +1428,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public boolean enablePublishing(@ValidateStringParam(name = "siteId") String siteId, boolean enabled)
+    @Valid
+    public boolean enablePublishing(@ValidateStringParam String siteId, boolean enabled)
             throws SiteNotFoundException {
         if (exists(siteId)) {
             Map<String, Object> params = new HashMap<>();
@@ -1443,9 +1443,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    @ValidateParams
-    public boolean updatePublishingStatus(@ValidateStringParam(name = "siteId") String siteId,
-                                          @ValidateStringParam(name = "status") String status)
+    @Valid
+    public boolean updatePublishingStatus(@ValidateStringParam String siteId,
+                                          @ValidateStringParam String status)
             throws SiteNotFoundException {
         if (exists(siteId)) {
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updatePublishingStatus(siteId, status));

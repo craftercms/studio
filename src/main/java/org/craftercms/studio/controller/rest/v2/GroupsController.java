@@ -18,8 +18,6 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -70,7 +68,6 @@ public class GroupsController {
      * @return Response containing list of groups
      */
     @GetMapping
-    @ValidateParams
     public PaginatedResultList<Group> getAllGroups(
             @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
@@ -97,10 +94,9 @@ public class GroupsController {
      * @param group Group to create
      * @return Response object
      */
-    @ValidateParams
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResultOne<Group> createGroup(@ValidateObjectParam @Valid @RequestBody Group group)
+    public ResultOne<Group> createGroup(@Valid @RequestBody Group group)
             throws GroupAlreadyExistsException, ServiceLayerException, AuthenticationException {
         Group newGroup =
                 groupService.createGroup(DEFAULT_ORGANIZATION_ID, group.getGroupName(), group.getGroupDescription(), false);
@@ -116,9 +112,8 @@ public class GroupsController {
      * @param group Group to update
      * @return Response object
      */
-    @ValidateParams
     @PatchMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResultOne<Group> updateGroup(@ValidateObjectParam @Valid @RequestBody Group group)
+    public ResultOne<Group> updateGroup(@Valid @RequestBody Group group)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
         Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
@@ -168,7 +163,6 @@ public class GroupsController {
      * @param sort Sort order
      * @return Response containing list od users
      */
-    @ValidateParams
     @GetMapping(PATH_PARAM_ID + MEMBERS)
     public PaginatedResultList<User> getGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
@@ -197,10 +191,9 @@ public class GroupsController {
      * @param addGroupMembers Add members request body (json representation)
      * @return Response object
      */
-    @ValidateParams
     @PostMapping(value = PATH_PARAM_ID + MEMBERS, consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResultList<User> addGroupMembers(@PathVariable(REQUEST_PARAM_ID) int groupId,
-                                            @ValidateObjectParam @RequestBody AddGroupMembers addGroupMembers)
+                                            @RequestBody AddGroupMembers addGroupMembers)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
@@ -222,7 +215,6 @@ public class GroupsController {
      * @param usernames List of usernames
      * @return Response object
      */
-    @ValidateParams
     @DeleteMapping(PATH_PARAM_ID + MEMBERS)
     public Result removeGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,

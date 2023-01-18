@@ -56,9 +56,17 @@
         <entry key="/*" value-ref="crafter.pageRenderController"/>
     </util:map>
 
-    <mvc:annotation-driven>
+    <mvc:annotation-driven validator="commonValidator">
         <mvc:path-matching registered-suffixes-only="true" />
     </mvc:annotation-driven>
+
+    <!--
+    This allows to validate params for "in-line annotated methods"
+    e.g.: public ResponseBody clearCache(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId)
+     -->
+    <bean id="methodValidationPostProcessor" class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">
+        <property name="validator" ref="commonValidator"/>
+    </bean>
 
     <!-- ////////////////////////////////////// -->
     <!--      Controllers                       -->

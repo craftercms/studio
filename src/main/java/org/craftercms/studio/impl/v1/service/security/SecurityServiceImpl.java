@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,7 +20,6 @@ import com.google.common.cache.Cache;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -30,8 +29,6 @@ import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchExcep
 import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ContentTypeService;
@@ -50,6 +47,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -57,34 +56,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.validation.Valid;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EMAIL;
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_EXTERNALLY_MANAGED;
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_FIRSTNAME;
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_LASTNAME;
-import static org.craftercms.studio.api.v1.constant.SecurityConstants.KEY_USERNAME;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.ADMIN_ROLE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_ROLE_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_FROM_DEFAULT;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.MAIL_SMTP_AUTH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SESSION_TIMEOUT;
+import static org.craftercms.studio.api.v1.constant.SecurityConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 /**
@@ -132,8 +110,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    @ValidateParams
-    public Map<String,Object> getUserProfile(@ValidateStringParam(name = "user") String user)
+    @Valid
+    public Map<String,Object> getUserProfile(@ValidateStringParam String user)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<>();
         User u = userServiceInternal.getUserByIdOrUsername(-1, user);
@@ -149,7 +127,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     public Map<String, Object> getUserProfileByGitName(
-            @ValidateStringParam(name = "firstNameLastName") String gitName)
+            @ValidateStringParam String gitName)
             throws ServiceLayerException, UserNotFoundException {
         Map<String, Object> toRet = new HashMap<>();
         User u = userServiceInternal.getUserByGitName(gitName);
@@ -166,18 +144,18 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    @ValidateParams
-    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
-                                          @ValidateSecurePathParam(name = "path") String path,
+    @Valid
+    public Set<String> getUserPermissions(@ValidateStringParam final String site,
+                                          @ValidateSecurePathParam String path,
                                           List<String> groups) {
         return this.getUserPermissions(site, path, getCurrentUser(), groups);
     }
 
     @Override
-    @ValidateParams
-    public Set<String> getUserPermissions(@ValidateStringParam(name = "site") final String site,
-                                          @ValidateSecurePathParam(name = "path") String path,
-                                          @ValidateStringParam(name = "user") String user, List<String> groups) {
+    @Valid
+    public Set<String> getUserPermissions(@ValidateStringParam final String site,
+                                          @ValidateSecurePathParam String path,
+                                          @ValidateStringParam String user, List<String> groups) {
         Set<String> permissions = new HashSet<>();
         if (StringUtils.isNotEmpty(site)) {
             PermissionsConfigTO rolesConfig = loadConfiguration(site, getRoleMappingsFileName());
@@ -327,23 +305,23 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    @ValidateParams
-    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site) {
+    @Valid
+    public Set<String> getUserRoles(@ValidateStringParam final String site) {
         return getUserRoles(site, getCurrentUser());
     }
 
     @Override
-    @ValidateParams
-    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
-                                    @ValidateStringParam(name = "user") String user) {
+    @Valid
+    public Set<String> getUserRoles(@ValidateStringParam final String site,
+                                    @ValidateStringParam String user) {
         return getUserRoles(site, user, false);
     }
 
 
     @Override
-    @ValidateParams
-    public Set<String> getUserRoles(@ValidateStringParam(name = "site") final String site,
-                                    @ValidateStringParam(name = "user") String user, boolean includeGlobal) {
+    @Valid
+    public Set<String> getUserRoles(@ValidateStringParam final String site,
+                                    @ValidateStringParam String user, boolean includeGlobal) {
         try {
             // TODO: We should replace this with userService.getUserSiteRoles, but that one is protected by permissions.
             // TODO: When the UserService is refactored to use UserServiceInternal, we could use that method and
@@ -612,18 +590,18 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    @ValidateParams
-    public boolean changePassword(@ValidateStringParam(name = "username") String username,
-                                  @ValidateStringParam(name = "current") String current,
-                                  @ValidateStringParam(name = "newPassword") String newPassword)
+    @Valid
+    public boolean changePassword(@ValidateStringParam String username,
+                                  @ValidateStringParam String current,
+                                  @ValidateStringParam String newPassword)
         throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         return userServiceInternal.changePassword(username, current, newPassword);
     }
 
     @Override
-    @ValidateParams
-    public boolean resetPassword(@ValidateStringParam(name = "username") String username,
-                                 @ValidateStringParam(name = "newPassword") String newPassword)
+    @Valid
+    public boolean resetPassword(@ValidateStringParam String username,
+                                 @ValidateStringParam String newPassword)
         throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         String currentUser = getCurrentUser();
         if (isAdmin(currentUser)) {
@@ -648,8 +626,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    @ValidateParams
-    public boolean isSiteAdmin(@ValidateStringParam(name = "username") String username, String site) {
+    @Valid
+    public boolean isSiteAdmin(@ValidateStringParam String username, String site) {
 
         boolean toRet = false;
         try {
@@ -680,8 +658,8 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    @ValidateParams
-    public boolean userExists(@ValidateStringParam(name = "username") String username) throws ServiceLayerException {
+    @Valid
+    public boolean userExists(@ValidateStringParam String username) throws ServiceLayerException {
         return userServiceInternal.userExists(-1, username);
     }
 

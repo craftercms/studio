@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,8 +21,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateObjectParam;
-import org.craftercms.commons.validation.annotations.param.ValidateParams;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -39,6 +37,7 @@ import org.craftercms.studio.model.rest.*;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -52,6 +51,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
+@Validated
 @RestController
 @RequestMapping("/api/2/configuration")
 public class ConfigurationController {
@@ -69,23 +69,18 @@ public class ConfigurationController {
     }
 
     @GetMapping("clear_cache")
-    @ValidateParams
-    public ResponseBody clearCache(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId) throws SiteNotFoundException {
+    public Result clearCache(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId) throws SiteNotFoundException {
         configurationService.invalidateConfiguration(siteId);
-
-        var responseBody = new ResponseBody();
         var result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
-    @ValidateParams
     @GetMapping("/get_configuration")
     public ResponseBody getConfiguration(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
                                          @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
-                                         @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) @RequestParam(name = "environment", required = false) String environment)
+                                         @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws ContentNotFoundException {
         final String content;
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
@@ -103,8 +98,7 @@ public class ConfigurationController {
     }
 
     @PostMapping("/write_configuration")
-    @ValidateParams
-    public ResponseBody writeConfiguration(@ValidateObjectParam @RequestBody WriteConfigurationRequest wcRequest)
+    public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException, UserNotFoundException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();
@@ -121,12 +115,11 @@ public class ConfigurationController {
         return responseBody;
     }
 
-    @ValidateParams
     @GetMapping("/get_configuration_history")
     public ResponseBody getConfigurationHistory(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
                                                 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
                                                 @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
-                                                @EsapiValidatedParam(type = ALPHANUMERIC, notNull = false, notEmpty = false, notBlank = false) @RequestParam(name = "environment", required = false) String environment)
+                                                @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws SiteNotFoundException, ContentNotFoundException {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
@@ -150,7 +143,6 @@ public class ConfigurationController {
         return body;
     }
 
-    @ValidateParams
     @GetMapping("content-type/usage")
     public ResponseBody getContentTypeUsage(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
                                             @EsapiValidatedParam(type = HTTPURI) @RequestParam String contentType)
@@ -165,12 +157,10 @@ public class ConfigurationController {
         return body;
     }
 
-    @ValidateParams
     @GetMapping("content-type/preview_image")
     public ResponseEntity<Resource> getContentTypePreviewImage(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
                                                                @EsapiValidatedParam(type = HTTPURI) @RequestParam String contentTypeId)
             throws ServiceLayerException {
-
         ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
         String mimeType = StudioUtils.getMimeType(resource.getKey());
 
@@ -180,11 +170,9 @@ public class ConfigurationController {
                 .body(resource.getValue());
     }
 
-    @ValidateParams
     @PostMapping("content-type/delete")
-    public ResponseBody deleteContentType(@ValidateObjectParam @RequestBody @Valid DeleteContentTypeRequest request)
+    public ResponseBody deleteContentType(@RequestBody @Valid DeleteContentTypeRequest request)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
-
         contentTypeService.deleteContentType(request.getSiteId(), request.getContentType(),
                 request.isDeleteDependencies());
         var result = new Result();

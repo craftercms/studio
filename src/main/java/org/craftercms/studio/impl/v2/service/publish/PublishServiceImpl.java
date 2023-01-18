@@ -270,7 +270,8 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         var availablePublishingTargets = new ArrayList<PublishingTarget>();
         var liveTarget = new PublishingTarget();
         liveTarget.setName(servicesConfig.getLiveEnvironment(siteId));
@@ -285,7 +286,8 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         return publishServiceInternal.isSitePublished(siteId);
     }
 
