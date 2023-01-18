@@ -83,7 +83,7 @@
     </bean>
 
     <bean id="studioUiController" class="org.craftercms.studio.controller.rest.v2.UiController">
-        <property name="uiService" ref="uiService"/>
+        <constructor-arg name="uiService" ref="uiService"/>
     </bean>
 
     <bean id="studioS3Controller" class="org.craftercms.studio.controller.rest.v2.aws.AwsS3Controller"/>
