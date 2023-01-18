@@ -369,6 +369,9 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 remoteName, siteId);
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         RemoteRepository remoteRepository = getRemoteRepository(siteId, remoteName);
+        if (remoteRepository == null) {
+            throw new RemoteRepositoryNotFoundException(format("Remote repository '%s' does not exist in site '%s'", remoteName, siteId));
+        }
         logger.trace("Prepare the JGit pull command in site '{}'", siteId);
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         generalLockService.lock(gitLockKey);
@@ -735,6 +738,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         Repository repo = gitRepositoryHelper.getRepository(siteId, SANDBOX);
         try (Git git = new Git(repo)) {
             List<ObjectId> mergeHeads = repo.readMergeHeads();
+            if (mergeHeads == null) {
+                // No merge head
+                return diffResult;
+            }
             ObjectId mergeCommitId = mergeHeads.get(0);
             logger.debug("Get the local content of the conflicting file from site '{}' path '{}'", siteId, path);
             InputStream studioVersionIs = contentRepositoryV2.getContentByCommitId(siteId, path, Constants.HEAD)

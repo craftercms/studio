@@ -1,5 +1,5 @@
  /*
-  * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License version 3 as published by
@@ -15,8 +15,13 @@
   */
  package org.craftercms.studio.model.rest.security;
 
- import org.hibernate.validator.constraints.NotBlank;
  import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+ import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+ import javax.validation.constraints.NotBlank;
+ import javax.validation.constraints.Size;
+
+ import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
  /**
   * Holds the data for encryption
@@ -24,7 +29,7 @@
   * @author joseross
   * @since 3.1.5
   */
- @JsonIgnoreProperties(ignoreUnknown = true)
+ @JsonIgnoreProperties
  public class EncryptRequest {
 
      /**
@@ -32,6 +37,8 @@
       */
      @NotBlank
      private String text;
+     @Size(max = 50)
+     @EsapiValidatedParam(type = SITE_ID)
      private String siteId;
 
      public String getText() {

@@ -16,20 +16,24 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 
 /**
  * Controller to proxy request to preview & add the management token if needed
  */
+@Validated
 @RestController
 @RequestMapping(PROXY_ENGINE)
 public class ProxyController {
@@ -46,7 +50,7 @@ public class ProxyController {
      */
     @GetMapping(LOG_MONITOR_ENGINE_PROXY)
     public ResponseEntity<Object> getSiteLogEvents(@RequestBody(required = false) final String body,
-                                                   @RequestParam("crafterSite") final String siteId,
+                                                   @EsapiValidatedParam(type = SITE_ID) @RequestParam("crafterSite") final String siteId,
                                                    final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         return proxyService.getSiteLogEvents(body, siteId, request);
     }
@@ -54,7 +58,7 @@ public class ProxyController {
 
     @RequestMapping(ALL_SUB_URLS)
     public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) final String body,
-                                              @RequestParam("crafterSite") final String siteId,
+                                              @EsapiValidatedParam(type = SITE_ID) @RequestParam("crafterSite") final String siteId,
                                               final HttpServletRequest request)
             throws URISyntaxException, SiteNotFoundException {
         return proxyService.proxyEngine(body, siteId, request);

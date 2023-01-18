@@ -27,14 +27,8 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
-import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.api.v2.dal.PublishingPackage;
-import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
-import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -49,12 +43,7 @@ import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 import org.craftercms.studio.permissions.CompositePermission;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -64,10 +53,8 @@ import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKA
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CANCEL_PUBLISH;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_GET_PUBLISHING_QUEUE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class PublishServiceImpl implements PublishService {
 
@@ -86,9 +73,7 @@ public class PublishServiceImpl implements PublishService {
     public int getPublishingPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
                                           String path, List<String> states)
             throws SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
+        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingPackagesTotal(siteId, environment, path, states);
     }
 
@@ -97,29 +82,28 @@ public class PublishServiceImpl implements PublishService {
     public List<PublishingPackage> getPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                          String environment, String path, List<String> states,
                                                          int offset, int limit) throws SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
+        siteService.checkSiteExists(siteId);
         return publishServiceInternal.getPublishingPackages(siteId, environment, path, states, offset, limit);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
     public PublishingPackageDetails getPublishingPackageDetails(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                                String packageId) throws SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
+                                                                String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException {
+        siteService.checkSiteExists(siteId);
+        PublishingPackageDetails publishingPackageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
+        if (isEmpty(publishingPackageDetails.getItems())) {
+            throw new PublishingPackageNotFoundException(siteId, packageId);
         }
-        return publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
+
+        return publishingPackageDetails;
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
     public void cancelPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                          List<String> packageIds) throws ServiceLayerException, UserNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(siteId);
-        }
+        siteService.checkSiteExists(siteId);
         SiteFeed siteFeed = siteService.getSite(siteId);
         String username = securityService.getCurrentUser();
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
@@ -183,7 +167,8 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
-                                                             String filterType) {
+                                                             String filterType) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         ZonedDateTime toDate = DateUtils.getCurrentTime();
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
         List<String> environments = studioUtils.getEnvironmentNames(siteId);
@@ -191,38 +176,39 @@ public class PublishServiceImpl implements PublishService {
                 environments, fromDate, toDate, filterType, numberOfItems);
         List<DeploymentHistoryGroup> groups = new ArrayList<>();
 
-        if (deploymentHistoryItems != null) {
-            int count = 0;
-            Map<String, Set<String>> processedItems = new HashMap<>();
-            for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
-                DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
-                String env = entry.getEnvironment();
-                if (!processedItems.containsKey(env)) {
-                    processedItems.put(env, new HashSet<>());
-                }
-                if (!processedItems.get(env).contains(entry.getPath())) {
-                    ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
-                    if (deployedItem != null) {
-                        deployedItem.eventDate = entry.getDeploymentDate();
-                        deployedItem.endpoint = entry.getTarget();
-                        deployedItem.setUser(entry.getUser());
-                        deployedItem.setEndpoint(entry.getEnvironment());
-                        String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
-                        if (groups.size() > 0) {
-                            DeploymentHistoryGroup group = groups.get(groups.size() - 1);
-                            String lastDeployedLabel = group.getInternalName();
-                            if (lastDeployedLabel.equals(deployedLabel)) {
-                                // add to the last task if it is deployed on the same day
-                                group.setNumOfChildren(group.getNumOfChildren() + 1);
-                                group.getChildren().add(deployedItem);
-                            } else {
-                                groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
-                            }
+        if (deploymentHistoryItems == null) {
+            return groups;
+        }
+        int count = 0;
+        Map<String, Set<String>> processedItems = new HashMap<>();
+        for (int index = 0; index < deploymentHistoryItems.size() && count < numberOfItems; index++) {
+            DeploymentHistoryItem entry = deploymentHistoryItems.get(index);
+            String env = entry.getEnvironment();
+            if (!processedItems.containsKey(env)) {
+                processedItems.put(env, new HashSet<>());
+            }
+            if (!processedItems.get(env).contains(entry.getPath())) {
+                ContentItemTO deployedItem = studioUtils.getContentItemForDashboard(entry.getSite(), entry.getPath());
+                if (deployedItem != null) {
+                    deployedItem.eventDate = entry.getDeploymentDate();
+                    deployedItem.endpoint = entry.getTarget();
+                    deployedItem.setUser(entry.getUser());
+                    deployedItem.setEndpoint(entry.getEnvironment());
+                    String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
+                    if (groups.size() > 0) {
+                        DeploymentHistoryGroup group = groups.get(groups.size() - 1);
+                        String lastDeployedLabel = group.getInternalName();
+                        if (lastDeployedLabel.equals(deployedLabel)) {
+                            // add to the last task if it is deployed on the same day
+                            group.setNumOfChildren(group.getNumOfChildren() + 1);
+                            group.getChildren().add(deployedItem);
                         } else {
                             groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
                         }
-                        processedItems.get(env).add(entry.getPath());
+                    } else {
+                        groups.add(createDeploymentHistoryGroup(deployedLabel, deployedItem));
                     }
+                    processedItems.get(env).add(entry.getPath());
                 }
             }
         }

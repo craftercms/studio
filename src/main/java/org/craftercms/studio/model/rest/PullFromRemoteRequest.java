@@ -17,8 +17,13 @@
 package org.craftercms.studio.model.rest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 public class PullFromRemoteRequest {
 
@@ -29,9 +34,11 @@ public class PullFromRemoteRequest {
     }
 
     @NotEmpty
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
 
     @NotEmpty
+    @Size(max = 50)
     private String remoteName;
 
     @NotEmpty

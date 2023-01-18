@@ -16,9 +16,20 @@
 
 package org.craftercms.studio.model.rest;
 
-public class RemoveRemoteRequest {
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
+public class RemoveRemoteRequest {
+    @NotEmpty
+    @Size(max = 50)
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
+    @NotEmpty
+    @Size(max = 50)
     private String remoteName;
 
     public String getSiteId() {

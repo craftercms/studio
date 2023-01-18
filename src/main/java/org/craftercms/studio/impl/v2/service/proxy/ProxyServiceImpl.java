@@ -62,9 +62,7 @@ public class ProxyServiceImpl implements ProxyService {
     @Valid
     public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @ValidateStringParam final String siteId,
                                               final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
-        if (!siteService.exists(siteId)) {
-            throw new SiteNotFoundException(format("Site '%s' not found", siteId));
-        }
+        siteService.checkSiteExists(siteId);
 
         return proxyServiceInternal.proxyEngine(body, siteId, request);
     }
