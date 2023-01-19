@@ -56,12 +56,12 @@ tags:
     description: Security operations
   - name: dashboard
     description: Dashboard operations
-  - name: translation
-    description: Translation operations
+#  - name: translation
+#    description: Translation operations
   - name: workflow
     description: Workflow operations
-  - name: tasks
-    description: tasks operations
+#  - name: tasks
+#    description: tasks operations
   - name: loggers
     description: Logger configuration operations
 
@@ -6199,347 +6199,347 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /translation/list:
-    get:
-      tags:
-        - translation
-      summary: Get items for translation
-      description: 'Required permission "get_items_for_translation"'
-      operationId: getItemsForTranslation
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: path
-          in: query
-          description: filter results by path regexes
-          schema:
-            type: array
-            items:
-              type: string
-        - name: locale
-          in: query
-          description: filter results by locales
-          schema:
-            type: array
-            items:
-              type: string
-        - name: markedForTranslation
-          in: query
-          description: Include only items marked for translation and exclude everything else (default true)
-          schema:
-            type: boolean
-        - name: notTranslated
-          in: query
-          description: Include only items that have not been translated yet (default true)
-          schema:
-            type: boolean
-        - name: translationOutOfDate
-          in: query
-          description: Include items with translation out of date, otherwise exclude them (default true)
-          schema:
-            type: boolean
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LocalizationItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /translation/item_by_id:
-    post:
-      tags:
-        - translation
-      summary: Get translation item(s) detail
-      description: 'Required permission "get_translation_item_detail"'
-      operationId: getTranslationItemById
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  description: site ID
-                  type: string
-                id:
-                  description: Id(s) of item(s) to retrieve
-                  type: array
-                  items:
-                    type: string
-              required:
-                - siteId
-                - id
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LocalizationItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /translation/item_by_path:
-    post:
-      tags:
-        - translation
-      summary: Get translation item(s) detail
-      description: 'Required permission "get_translation_item_detail"'
-      operationId: getTranslationItemByPath
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  description: site ID
-                  type: string
-                path:
-                  description: Path(s) to item(s) to retrieve
-                  type: array
-                  items:
-                    type: string
-              required:
-                - siteId
-                - path
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LocalizationItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /translation/list_target_locales:
-    get:
-      tags:
-        - translation
-      summary: Get list of target translation locales
-      description: 'Required permission "get_translation_target_locales"'
-      operationId: getTranslationTargetLocales
-      parameters:
-        - name: siteId
-          in: query
-          description: site ID
-          required: true
-          schema:
-            type: string
-        - name: path
-          in: query
-          description: item path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LocalizationItem'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /translation/mark_for_translation_by_id:
-    post:
-      tags:
-        - translation
-      summary: Mark item to be translated to specific locales
-      description: 'Required permission "mark_for_translation"'
-      operationId: markForTranslationById
-      requestBody:
-        description: Item and list of locales to translate to
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: site ID
-                id:
-                  type: array
-                  description: id(s) of the item(s)
-                  items:
-                    type: string
-                locales:
-                  type: array
-                  description: locale codes
-                  items:
-                    type: string
-              required:
-                - siteId
-                - path
-                - locales
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-
-  /translation/mark_for_translation_by_path:
-    post:
-      tags:
-        - translation
-      summary: Mark item to be translated to specific locales
-      description: 'Required permission "mark_for_translation"'
-      operationId: markForTranslationByPath
-      requestBody:
-        description: Item and list of locales to translate to
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: site ID
-                path:
-                  type: array
-                  description: path(s) of the item(s)
-                  items:
-                    type: string
-
-                locales:
-                  type: array
-                  description: locale codes
-                  items:
-                    type: string
-              required:
-                - siteId
-                - path
-                - locales
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
+#  /translation/list:
+#    get:
+#      tags:
+#        - translation
+#      summary: Get items for translation
+#      description: 'Required permission "get_items_for_translation"'
+#      operationId: getItemsForTranslation
+#      parameters:
+#        - name: siteId
+#          in: query
+#          description: site ID
+#          required: true
+#          schema:
+#            type: string
+#        - name: path
+#          in: query
+#          description: filter results by path regexes
+#          schema:
+#            type: array
+#            items:
+#              type: string
+#        - name: locale
+#          in: query
+#          description: filter results by locales
+#          schema:
+#            type: array
+#            items:
+#              type: string
+#        - name: markedForTranslation
+#          in: query
+#          description: Include only items marked for translation and exclude everything else (default true)
+#          schema:
+#            type: boolean
+#        - name: notTranslated
+#          in: query
+#          description: Include only items that have not been translated yet (default true)
+#          schema:
+#            type: boolean
+#        - name: translationOutOfDate
+#          in: query
+#          description: Include items with translation out of date, otherwise exclude them (default true)
+#          schema:
+#            type: boolean
+#        - name: offset
+#          in: query
+#          description: offset of the first result item, default 0
+#          schema:
+#            type: integer
+#        - name: limit
+#          in: query
+#          description: number of results to return, default 10
+#          schema:
+#            type: integer
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#                  total:
+#                    type: integer
+#                    format: int32
+#                    description: Total records in the system
+#                  offset:
+#                    type: integer
+#                    format: int32
+#                    description: Offset of first record in this response
+#                  limit:
+#                    type: integer
+#                    format: int32
+#                    description: Number of records returned in this response
+#                  items:
+#                    type: array
+#                    items:
+#                      $ref: '#/components/schemas/LocalizationItem'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
+#
+#  /translation/item_by_id:
+#    post:
+#      tags:
+#        - translation
+#      summary: Get translation item(s) detail
+#      description: 'Required permission "get_translation_item_detail"'
+#      operationId: getTranslationItemById
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                siteId:
+#                  description: site ID
+#                  type: string
+#                id:
+#                  description: Id(s) of item(s) to retrieve
+#                  type: array
+#                  items:
+#                    type: string
+#              required:
+#                - siteId
+#                - id
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#                  items:
+#                    type: array
+#                    items:
+#                      $ref: '#/components/schemas/LocalizationItem'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
+#
+#  /translation/item_by_path:
+#    post:
+#      tags:
+#        - translation
+#      summary: Get translation item(s) detail
+#      description: 'Required permission "get_translation_item_detail"'
+#      operationId: getTranslationItemByPath
+#      requestBody:
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                siteId:
+#                  description: site ID
+#                  type: string
+#                path:
+#                  description: Path(s) to item(s) to retrieve
+#                  type: array
+#                  items:
+#                    type: string
+#              required:
+#                - siteId
+#                - path
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#                  items:
+#                    type: array
+#                    items:
+#                      $ref: '#/components/schemas/LocalizationItem'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
+#
+#  /translation/list_target_locales:
+#    get:
+#      tags:
+#        - translation
+#      summary: Get list of target translation locales
+#      description: 'Required permission "get_translation_target_locales"'
+#      operationId: getTranslationTargetLocales
+#      parameters:
+#        - name: siteId
+#          in: query
+#          description: site ID
+#          required: true
+#          schema:
+#            type: string
+#        - name: path
+#          in: query
+#          description: item path
+#          required: true
+#          schema:
+#            type: string
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#                  items:
+#                    type: array
+#                    items:
+#                      $ref: '#/components/schemas/LocalizationItem'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
+#
+#  /translation/mark_for_translation_by_id:
+#    post:
+#      tags:
+#        - translation
+#      summary: Mark item to be translated to specific locales
+#      description: 'Required permission "mark_for_translation"'
+#      operationId: markForTranslationById
+#      requestBody:
+#        description: Item and list of locales to translate to
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                siteId:
+#                  type: string
+#                  description: site ID
+#                id:
+#                  type: array
+#                  description: id(s) of the item(s)
+#                  items:
+#                    type: string
+#                locales:
+#                  type: array
+#                  description: locale codes
+#                  items:
+#                    type: string
+#              required:
+#                - siteId
+#                - path
+#                - locales
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
+#
+#  /translation/mark_for_translation_by_path:
+#    post:
+#      tags:
+#        - translation
+#      summary: Mark item to be translated to specific locales
+#      description: 'Required permission "mark_for_translation"'
+#      operationId: markForTranslationByPath
+#      requestBody:
+#        description: Item and list of locales to translate to
+#        required: true
+#        content:
+#          application/json:
+#            schema:
+#              type: object
+#              properties:
+#                siteId:
+#                  type: string
+#                  description: site ID
+#                path:
+#                  type: array
+#                  description: path(s) of the item(s)
+#                  items:
+#                    type: string
+#
+#                locales:
+#                  type: array
+#                  description: locale codes
+#                  items:
+#                    type: string
+#              required:
+#                - siteId
+#                - path
+#                - locales
+#      responses:
+#        '200':
+#          description: OK
+#          content:
+#            application/json:
+#              schema:
+#                type: object
+#                properties:
+#                  response:
+#                    $ref: '#/components/schemas/ApiResponse'
+#        '400':
+#          $ref: '#/components/responses/BadRequest'
+#        '401':
+#          $ref: '#/components/responses/Unauthorized'
+#        '403':
+#          $ref: '#/components/responses/Forbidden'
+#        '404':
+#          $ref: '#/components/responses/NotFound'
+#        '500':
+#          $ref: '#/components/responses/InternalServerError'
 
   /workflow/item_states:
     get:
@@ -8987,17 +8987,17 @@ components:
         - lockOwner
         - localeCode
 
-    TranslationConfig:
-      type: object
-      properties:
-        localeCodes:
-          type: array
-          description: List of codes for the supported locales
-          items:
-            type: string
-        defaultLocaleCode:
-          type: string
-          description: The code of the default locale for all new content
+#    TranslationConfig:
+#      type: object
+#      properties:
+#        localeCodes:
+#          type: array
+#          description: List of codes for the supported locales
+#          items:
+#            type: string
+#        defaultLocaleCode:
+#          type: string
+#          description: The code of the default locale for all new content
 
     ContentValidationRequest:
       type: object
