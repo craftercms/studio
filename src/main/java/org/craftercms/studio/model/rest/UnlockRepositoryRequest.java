@@ -16,10 +16,21 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+
 public class UnlockRepositoryRequest {
 
+    @NotEmpty
+    @Size(max = 50)
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
-    private String repositoryType;
+    private GitRepositories repositoryType;
 
     public String getSiteId() {
         return siteId;
@@ -29,11 +40,11 @@ public class UnlockRepositoryRequest {
         this.siteId = siteId;
     }
 
-    public String getRepositoryType() {
+    public GitRepositories getRepositoryType() {
         return repositoryType;
     }
 
-    public void setRepositoryType(String repositoryType) {
+    public void setRepositoryType(GitRepositories repositoryType) {
         this.repositoryType = repositoryType;
     }
 }

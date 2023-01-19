@@ -3000,7 +3000,7 @@ paths:
                 siteId:
                   type: string
                   description: site ID
-                commit_message:
+                commitMessage:
                   type: string
                   description: Commit message
               required:

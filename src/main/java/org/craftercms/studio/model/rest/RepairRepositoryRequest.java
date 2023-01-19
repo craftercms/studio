@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,33 +17,39 @@
 package org.craftercms.studio.model.rest;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.studio.api.v1.constant.GitRepositories;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
-public class CommitResolutionRequest {
-
+/**
+ * Repository Repair Request
+ */
+public class RepairRepositoryRequest {
     @NotEmpty
     @Size(max = 50)
     @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-    private String commitMessage;
+    protected String siteId;
+
+    @NotNull
+    protected GitRepositories repositoryType;
 
     public String getSiteId() {
         return siteId;
     }
 
-    public void setSiteId(String siteId) {
+    public void setSiteId(final String siteId) {
         this.siteId = siteId;
     }
 
-    public String getCommitMessage() {
-        return commitMessage;
+    public GitRepositories getRepositoryType() {
+        return repositoryType;
     }
 
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
+    public void setRepositoryType(final GitRepositories repositoryType) {
+        this.repositoryType = repositoryType;
     }
 }

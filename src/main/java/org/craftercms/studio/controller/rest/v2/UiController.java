@@ -20,14 +20,14 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.service.ui.UiService;
 import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.ui.MenuItem;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.beans.ConstructorProperties;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ENVIRONMENT;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_MENU_ITEMS;
@@ -41,34 +41,26 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KE
 @RequestMapping("/api/2/ui")
 public class UiController {
 
-    private UiService uiService;
+    private final UiService uiService;
 
-    @GetMapping("/views/global_menu")
-    public ResponseBody getGlobalMenu() throws AuthenticationException, ServiceLayerException {
-        ResultList<MenuItem> result = new ResultList<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntities(RESULT_KEY_MENU_ITEMS, uiService.getGlobalMenu());
-
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
-    }
-
-    @GetMapping("/system/active_environment")
-    public ResponseBody getActiveEnvironment() throws AuthenticationException {
-        ResultOne<String> result = new ResultOne<>();
-        result.setResponse(ApiResponse.OK);
-        result.setEntity(RESULT_KEY_ENVIRONMENT, uiService.getActiveEnvironment());
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
-    }
-
-    @Required
-    public void setUiService(UiService uiService) {
+    @ConstructorProperties("uiService")
+    public UiController(final UiService uiService) {
         this.uiService = uiService;
     }
 
+    @GetMapping("/views/global_menu")
+    public ResultList<MenuItem> getGlobalMenu() throws AuthenticationException, ServiceLayerException {
+        ResultList<MenuItem> result = new ResultList<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntities(RESULT_KEY_MENU_ITEMS, uiService.getGlobalMenu());
+        return result;
+    }
+
+    @GetMapping("/system/active_environment")
+    public ResultOne<String> getActiveEnvironment() throws AuthenticationException {
+        ResultOne<String> result = new ResultOne<>();
+        result.setResponse(ApiResponse.OK);
+        result.setEntity(RESULT_KEY_ENVIRONMENT, uiService.getActiveEnvironment());
+        return result;
+    }
 }

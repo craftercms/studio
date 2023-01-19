@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,20 +16,29 @@
 
 package org.craftercms.studio.model.rest;
 
+
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
-public class CommitResolutionRequest {
-
+/**
+ * Request to publish all content in a site
+ */
+public class PublishAllRequest {
     @NotEmpty
     @Size(max = 50)
     @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-    private String commitMessage;
+    protected String siteId;
+    @NotEmpty
+    @Size(max = 20)
+    @EsapiValidatedParam(type = ALPHANUMERIC)
+    protected String publishingTarget;
+
+    protected String submissionComment;
 
     public String getSiteId() {
         return siteId;
@@ -39,11 +48,19 @@ public class CommitResolutionRequest {
         this.siteId = siteId;
     }
 
-    public String getCommitMessage() {
-        return commitMessage;
+    public String getPublishingTarget() {
+        return publishingTarget;
     }
 
-    public void setCommitMessage(String commitMessage) {
-        this.commitMessage = commitMessage;
+    public void setPublishingTarget(String publishingTarget) {
+        this.publishingTarget = publishingTarget;
+    }
+
+    public String getSubmissionComment() {
+        return submissionComment;
+    }
+
+    public void setSubmissionComment(String submissionComment) {
+        this.submissionComment = submissionComment;
     }
 }

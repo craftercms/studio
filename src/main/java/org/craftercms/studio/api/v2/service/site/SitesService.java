@@ -20,6 +20,7 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 
 import java.util.List;
 
@@ -64,18 +65,18 @@ public interface SitesService {
      * @throws SiteNotFoundException if the site doesn't exist
      */
     void updateSite(String siteId, String name, String description)
-            throws SiteNotFoundException, SiteAlreadyExistsException;
+            throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
     /**
      * Get publishing status for site
      * @param siteId site identifier
      * @return publishing status
      */
-    PublishStatus getPublishingStatus(String siteId);
+    PublishStatus getPublishingStatus(String siteId) throws SiteNotFoundException;
 
     /**
      * Clear publishing lock for site
      * @param siteId site identifier
      */
-    void clearPublishingLock(String siteId);
+    void clearPublishingLock(String siteId) throws SiteNotFoundException;
 }

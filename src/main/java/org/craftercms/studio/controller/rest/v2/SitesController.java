@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
@@ -24,7 +25,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
-import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotBareException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
@@ -40,100 +40,86 @@ import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 
-import javax.validation.Valid;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_BLUEPRINTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULTS;
 
+@Validated
 @RestController
 @RequestMapping("/api/2/sites")
 public class SitesController {
 
-    private SitesService sitesService;
+    private final SitesService sitesService;
 
-    private MarketplaceService marketplaceService;
+    private final MarketplaceService marketplaceService;
 
-    private PolicyService policyService;
+    private final PolicyService policyService;
 
     @ConstructorProperties({"sitesService", "marketplaceService", "policyService"})
-    public SitesController(SitesService sitesService, MarketplaceService marketplaceService,
-                           PolicyService policyService) {
+    public SitesController(final SitesService sitesService, final MarketplaceService marketplaceService,
+                           final PolicyService policyService) {
         this.sitesService = sitesService;
         this.marketplaceService = marketplaceService;
         this.policyService = policyService;
     }
 
     @GetMapping("/available_blueprints")
-    public ResponseBody getAvailableBlueprints() throws ServiceLayerException {
+    public ResultList<PluginDescriptor> getAvailableBlueprints() throws ServiceLayerException {
         List<PluginDescriptor> blueprintDescriptors;
         try {
             blueprintDescriptors = sitesService.getAvailableBlueprints();
         } catch (Exception e) {
+            // TODO: JM: What kind of exceptions are expected here?
             throw new ServiceLayerException(e);
         }
-        ResponseBody responseBody = new ResponseBody();
         ResultList<PluginDescriptor> result = new ResultList<>();
         result.setEntities(RESULT_KEY_BLUEPRINTS, blueprintDescriptors);
         result.setResponse(ApiResponse.OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping("/create_site_from_marketplace")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public ResponseBody createSite(@Valid @RequestBody CreateSiteRequest request)
-        throws RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException, ServiceLayerException,
-        InvalidRemoteRepositoryCredentialsException, InvalidRemoteUrlException, RemoteRepositoryNotBareException {
+    public Result createSite(@Valid @RequestBody CreateSiteRequest request)
+            throws RemoteRepositoryNotFoundException, InvalidRemoteRepositoryException, ServiceLayerException,
+            InvalidRemoteRepositoryCredentialsException, InvalidRemoteUrlException {
 
         marketplaceService.createSite(request);
 
         Result result = new Result();
         result.setResponse(ApiResponse.CREATED);
-
-        ResponseBody response = new ResponseBody();
-        response.setResult(result);
-
-        return response;
+        return result;
     }
 
     @PostMapping("/{siteId}")
-    public ResponseBody updateSite(@PathVariable String siteId, @Valid @RequestBody UpdateSiteRequest request)
+    public Result updateSite(@EsapiValidatedParam(type = SITE_ID) @PathVariable String siteId,
+                             @Valid @RequestBody UpdateSiteRequest request)
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
-        if (isEmpty(request.getName()) && isEmpty(request.getDescription())) {
-            throw new InvalidParametersException("The request needs to include a name or a description");
-        }
-
         sitesService.updateSite(siteId, request.getName(), request.getDescription());
 
         var result = new Result();
         result.setResponse(ApiResponse.OK);
 
-        var response = new ResponseBody();
-        response.setResult(result);
-
-        return response;
+        return result;
     }
 
     @PostMapping("/{siteId}/policy/validate")
-    public ResponseBody validatePolicy(@PathVariable String siteId, @Valid @RequestBody ValidatePolicyRequest request)
+    public ResultList<ValidationResult> validatePolicy(@EsapiValidatedParam(type = SITE_ID) @PathVariable String siteId,
+                                       @Valid @RequestBody ValidatePolicyRequest request)
             throws ConfigurationException, IOException, ContentNotFoundException {
         List<ValidationResult> results = policyService.validate(siteId, request.getActions());
 
         var result = new ResultList<ValidationResult>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(RESULT_KEY_RESULTS, results);
-
-        var response = new ResponseBody();
-        response.setResult(result);
-
-        return response;
+        return result;
     }
-    
 }

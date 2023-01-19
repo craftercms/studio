@@ -16,25 +16,16 @@
 
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+public class UpdateAccessTokenRequest {
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+    protected boolean enabled;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
-
-public class RebuildDatabaseRequest {
-
-    @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-
-    public String getSiteId() {
-        return siteId;
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
+
 }

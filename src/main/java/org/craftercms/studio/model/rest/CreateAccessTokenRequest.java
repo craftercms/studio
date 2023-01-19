@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,25 +16,35 @@
 
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import javax.validation.constraints.Future;
+import javax.validation.constraints.NotBlank;
+import java.time.Instant;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+/**
+ * Request to create an access token
+ */
+public class CreateAccessTokenRequest {
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+    @NotBlank
+    protected String label;
 
-public class RebuildDatabaseRequest {
+    @Future
+    protected Instant expiresAt;
 
-    @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteId;
-
-    public String getSiteId() {
-        return siteId;
+    public String getLabel() {
+        return label;
     }
 
-    public void setSiteId(String siteId) {
-        this.siteId = siteId;
+    public void setLabel(String label) {
+        this.label = label;
     }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
 }

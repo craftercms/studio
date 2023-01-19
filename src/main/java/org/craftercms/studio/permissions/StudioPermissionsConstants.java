@@ -84,6 +84,10 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_VIEW_LOG_LEVELS = "view_log_levels";
     public static final String PERMISSION_CONFIGURE_LOG_LEVELS = "configure_log_levels";
     public static final String PERMISSION_START_STOP_PUBLISHER = "start_stop_publisher";
+    public static final String PERMISSION_UNLOCK_REPO = "unlock_repository";
+    public static final String PERMISSION_REPAIR_REPOSITORY = "repair_repository";
+
+    public static final String PERMISSION_MANAGE_ACCESS_TOKEN = "manage_access_token";
 
 
     private StudioPermissionsConstants() {

@@ -45,7 +45,7 @@ public interface RepositoryManagementService {
             throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
-    void rebuildDatabase(String siteId);
+    void rebuildDatabase(String siteId) throws SiteNotFoundException;
 
     boolean removeRemote(String siteId, String remoteName)
             throws SiteNotFoundException, RemoteNotRemovableException;
@@ -70,7 +70,7 @@ public interface RepositoryManagementService {
      * @param repositoryType repository type (GLOBAL, SANDBOX, PUBLISHED)
      * @return true if successful
      */
-    boolean unlockRepository(String siteId, GitRepositories repositoryType);
+    boolean unlockRepository(String siteId, GitRepositories repositoryType) throws SiteNotFoundException;
 
     /**
      * Checks if a given Git repository is corrupted
