@@ -22,6 +22,8 @@ import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundExcept
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.commons.security.exception.ActionDeniedException;
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.commons.validation.ValidationResultAware;
 import org.craftercms.commons.validation.ValidationRuntimeException;
 import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.core.exception.PathNotFoundException;
@@ -77,7 +79,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
  * @author avasquez
  */
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@RestControllerAdvice({"org.craftercms.studio.controller.rest.v2","org.craftercms.studio.controller.web.v1"})
+@RestControllerAdvice({"org.craftercms.studio.controller.rest.v2", "org.craftercms.studio.controller.web.v1"})
 public class ExceptionHandlers {
 
     private static final Logger logger = LoggerFactory.getLogger(ExceptionHandlers.class);
@@ -169,7 +171,7 @@ public class ExceptionHandlers {
     public ResponseBody handleMarketplaceNotInitializedException(HttpServletRequest request,
                                                                  MarketplaceNotInitializedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_NOT_INITIALIZED);
-        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
 
         return handleExceptionInternal(request, e, response);
     }
@@ -179,7 +181,7 @@ public class ExceptionHandlers {
     public ResponseBody handleMarketplaceUnreachableException(HttpServletRequest request,
                                                               MarketplaceUnreachableException e) {
         ApiResponse response = new ApiResponse(ApiResponse.MARKETPLACE_UNREACHABLE);
-        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
 
         return handleExceptionInternal(request, e, response);
     }
@@ -189,7 +191,7 @@ public class ExceptionHandlers {
     public ResponseBody handlePluginAlreadyInstalledException(HttpServletRequest request,
                                                               PluginAlreadyInstalledException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_ALREADY_INSTALLED);
-        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
 
         return handleExceptionInternal(request, e, response);
     }
@@ -199,7 +201,7 @@ public class ExceptionHandlers {
     public ResponseBody handleMissingPluginParameterException(HttpServletRequest request,
                                                               MissingPluginParameterException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
-        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
 
         return handleExceptionInternal(request, e, response);
     }
@@ -207,9 +209,9 @@ public class ExceptionHandlers {
     @ExceptionHandler(PluginInstallationException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseBody handlePluginInstallationException(HttpServletRequest request,
-                                                              PluginInstallationException e) {
+                                                          PluginInstallationException e) {
         ApiResponse response = new ApiResponse(ApiResponse.PLUGIN_INSTALLATION_ERROR);
-        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
 
         return handleExceptionInternal(request, e, response);
     }
@@ -227,7 +229,7 @@ public class ExceptionHandlers {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseBody handleServiceException(HttpServletRequest request, ServiceLayerException e) {
         ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
-        response.setMessage(response.getMessage() + ": "+ e.getMessage());
+        response.setMessage(response.getMessage() + ": " + e.getMessage());
 
         return handleExceptionInternal(request, e, response);
     }
@@ -349,14 +351,14 @@ public class ExceptionHandlers {
     public ResponseBody handleContentNotFoundException(HttpServletRequest request, ContentNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
-            format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+                format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(PublishingPackageNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handlePublishingPackageNotFoundException(HttpServletRequest request,
-                                                       PublishingPackageNotFoundException e) {
+                                                                 PublishingPackageNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         return handleExceptionInternal(request, e, response);
     }
@@ -367,14 +369,14 @@ public class ExceptionHandlers {
                                                                       MissingServletRequestParameterException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         response.setRemedialAction(
-            format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
+                format("Add missing parameter '%s' of type '%s'", e.getParameterName(), e.getParameterType()));
         return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(BAD_REQUEST)
     public ResultList<ValidationFieldError> handleMethodArgumentNotValidException(HttpServletRequest request,
-                                                                                          MethodArgumentNotValidException e) {
+                                                                                  MethodArgumentNotValidException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
         handleExceptionInternal(request, e, response);
         ResultList<ValidationFieldError> result = new ResultList<>();
@@ -489,12 +491,12 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(ValidationRuntimeException.class)
+    @ExceptionHandler({ValidationRuntimeException.class, ValidationException.class})
     @ResponseStatus(BAD_REQUEST)
     public ResultList<ValidationFieldError> handleValidationRuntimeException(HttpServletRequest request,
-                                                                             ValidationRuntimeException e) {
+                                                                             ValidationResultAware e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
-        handleExceptionInternal(request, e, response);
+        handleExceptionInternal(request, (Exception) e, response);
 
         ResultList<ValidationFieldError> result = new ResultList<>();
         result.setEntities(RESULT_KEY_VALIDATION_ERRORS,
@@ -508,7 +510,7 @@ public class ExceptionHandlers {
     @ExceptionHandler(InvalidRemoteRepositoryCredentialsException.class)
     @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleInvalidRemoteRepositoryCredentialsException(HttpServletRequest request,
-            InvalidRemoteRepositoryCredentialsException e) {
+                                                                          InvalidRemoteRepositoryCredentialsException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_AUTHENTICATION_FAILED);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);
@@ -517,7 +519,7 @@ public class ExceptionHandlers {
     @ExceptionHandler(RemoteRepositoryNotFoundException.class)
     @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleRemoteRepositoryNotFoundException(HttpServletRequest request,
-            RemoteRepositoryNotFoundException e) {
+                                                                RemoteRepositoryNotFoundException e) {
         ApiResponse response = new ApiResponse(ApiResponse.REMOTE_REPOSITORY_NOT_FOUND);
         response.setMessage(format("%s:%s", response.getMessage(), e.getMessage()));
         return handleExceptionInternal(request, e, response);

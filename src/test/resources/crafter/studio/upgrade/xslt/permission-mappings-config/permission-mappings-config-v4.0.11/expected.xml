@@ -76,7 +76,6 @@
 
 -->
 <permissions>
-    <version>4.0.11</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -131,6 +130,7 @@
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
+                <permission>read_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -181,8 +181,8 @@
                 <permission>content_read</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
-                <permission>cancel_publish</permission>
                 <permission>publish_status</permission>
+                <permission>cancel_publish</permission>
             </allowed-permissions>
         </rule>
         <rule regex=".*">
@@ -196,6 +196,7 @@
                 <permission>get_children</permission>
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
+                <permission>read_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -272,9 +273,10 @@
                 <permission>install_plugins</permission>
                 <permission>remove_plugins</permission>
                 <permission>get_children</permission>
-                <permission>publish_status</permission>
                 <permission>content_search</permission>
                 <permission>audit_log</permission>
+                <permission>read_configuration</permission>
+                <permission>write_configuration</permission>
                 <permission>set_item_states</permission>
             </allowed-permissions>
         </rule>
@@ -361,9 +363,12 @@
                 <permission>install_plugins</permission>
                 <permission>remove_plugins</permission>
                 <permission>get_children</permission>
+                <permission>publish_status</permission>
                 <permission>item_unlock</permission>
                 <permission>content_search</permission>
                 <permission>start_stop_publisher</permission>
+                <permission>read_configuration</permission>
+                <permission>write_configuration</permission>
                 <permission>set_item_states</permission>
             </allowed-permissions>
         </rule>
@@ -395,8 +400,8 @@
                 <permission>webdav_read</permission>
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
-                <permission>publish_status</permission>
                 <permission>content_search</permission>
+                <permission>read_configuration</permission>
             </allowed-permissions>
         </rule>
     </role>
