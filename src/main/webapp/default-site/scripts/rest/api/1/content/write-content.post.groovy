@@ -83,12 +83,18 @@ if(ServletFileUpload.isMultipartContent(request)) {
             }
             contentType = item.getContentType()
             try {
-                result = ContentServices.writeContentAsset(context, site, path, fileName, stream,
+                def writeAssetRes = ContentServices.writeContentAsset(context, site, path, fileName, stream,
                         isImage, allowedWidth, allowedHeight, allowLessSize, draft, unlock, systemAsset)
-                if (result.message.isDeleted()) {
+                if (!writeAssetRes.success) {
+                    response.setStatus(500)
+                    result.success = false
+                    result.message = writeAssetRes.message ?: "Failed to write asset"
+                } else if (writeAssetRes.success && writeAssetRes.message.isDeleted()) {
                     response.setStatus(500)
                     result.success = false
                     result.message = "Failed to write asset"
+                } else {
+                    result = writeAssetRes
                 }
             } catch (ServiceLayerException e) {
                 response.setStatus(500)
