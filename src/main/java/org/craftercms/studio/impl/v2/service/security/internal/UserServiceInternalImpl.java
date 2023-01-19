@@ -17,56 +17,36 @@
 package org.craftercms.studio.impl.v2.service.security.internal;
 
 import com.google.common.cache.Cache;
-import com.nulabinc.zxcvbn.*;
+import com.nulabinc.zxcvbn.Strength;
+import com.nulabinc.zxcvbn.Zxcvbn;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.Group;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.UserDAO;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.UserProperty;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
 import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.beans.ConstructorProperties;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EMAIL;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENABLED;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.EXTERNALLY_MANAGED;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FIRST_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.GROUP_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LAST_NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LOCALE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PASSWORD;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TIMEZONE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USERNAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.USER_IDS;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
@@ -115,7 +95,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         invalidateCache(users.stream().map(User::getUsername).collect(Collectors.toList()));
     }
 
-    @NotNull
+    @NonNull
     @Override
     public User getUserByIdOrUsername(long userId, String username)
             throws ServiceLayerException, UserNotFoundException {
@@ -144,10 +124,12 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         for(long userId : userIds) {
             users.add(getUserByIdOrUsername(userId, StringUtils.EMPTY));
         }
-        for(String username : usernames) {
-            Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
-            if(user.isEmpty()) {
-                users.add(getUserByIdOrUsername(-1, username));
+        for (String username : usernames) {
+            if (username != null) {
+                Optional<User> user = users.stream().filter(u -> u.getUsername().equals(username)).findFirst();
+                if (user.isEmpty()) {
+                    users.add(getUserByIdOrUsername(-1, username));
+                }
             }
         }
 
@@ -347,23 +329,20 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             User user = userDao.getUserByIdOrUsername(params);
             if (user.isExternallyManaged()) {
                 throw new UserExternallyManagedException();
-            } else {
-                if (CryptoUtils.matchPassword(user.getPassword(), current)) {
-                    if (verifyPasswordRequirements(newPassword)) {
-                        String hashedPassword = CryptoUtils.hashPassword(newPassword);
-                        HashMap<String, Object> setPasswordParams = new HashMap<>();
-                        setPasswordParams.put(USERNAME, username);
-                        setPasswordParams.put(PASSWORD, hashedPassword);
-                        retryingDatabaseOperationFacade.retry(() -> userDao.setUserPassword(setPasswordParams));
-                        invalidateCache(username);
-                        return true;
-                    } else {
-                        throw new PasswordRequirementsFailedException();
-                    }
-                } else {
-                    throw new PasswordDoesNotMatchException();
-                }
             }
+            if (!CryptoUtils.matchPassword(user.getPassword(), current)) {
+                throw new PasswordDoesNotMatchException();
+            }
+            if (!verifyPasswordRequirements(newPassword)) {
+                throw new PasswordRequirementsFailedException();
+            }
+            String hashedPassword = CryptoUtils.hashPassword(newPassword);
+            HashMap<String, Object> setPasswordParams = new HashMap<>();
+            setPasswordParams.put(USERNAME, username);
+            setPasswordParams.put(PASSWORD, hashedPassword);
+            retryingDatabaseOperationFacade.retry(() -> userDao.setUserPassword(setPasswordParams));
+            invalidateCache(username);
+            return true;
         } catch (RuntimeException e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -374,30 +353,28 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             ServiceLayerException {
         if (!userExists(-1, username)) {
             throw new UserNotFoundException();
-        } else {
-            if (verifyPasswordRequirements(newPassword)) {
-                Map<String, Object> params = new HashMap<>();
-                params.put(USER_ID, -1);
-                params.put(USERNAME, username);
-                try {
-                    User user = userDao.getUserByIdOrUsername(params);
-                    if (user.isExternallyManaged()) {
-                        throw new UserExternallyManagedException();
-                    } else {
-                        String hashedPassword = CryptoUtils.hashPassword(newPassword);
-                        HashMap<String, Object> setPasswordParams = new HashMap<>();
-                        setPasswordParams.put(USERNAME, username);
-                        setPasswordParams.put(PASSWORD, hashedPassword);
-                        retryingDatabaseOperationFacade.retry(() -> userDao.setUserPassword(setPasswordParams));
-                        invalidateCache(username);
-                        return true;
-                    }
-                } catch (Exception e) {
-                    throw new ServiceLayerException("Unknown database error", e);
-                }
+        }
+        if (!verifyPasswordRequirements(newPassword)) {
+            throw new PasswordRequirementsFailedException("User password does not fulfill requirements");
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put(USER_ID, -1);
+        params.put(USERNAME, username);
+        try {
+            User user = userDao.getUserByIdOrUsername(params);
+            if (user.isExternallyManaged()) {
+                throw new UserExternallyManagedException();
             } else {
-                throw new PasswordRequirementsFailedException("User password does not fulfill requirements");
+                String hashedPassword = CryptoUtils.hashPassword(newPassword);
+                HashMap<String, Object> setPasswordParams = new HashMap<>();
+                setPasswordParams.put(USERNAME, username);
+                setPasswordParams.put(PASSWORD, hashedPassword);
+                retryingDatabaseOperationFacade.retry(() -> userDao.setUserPassword(setPasswordParams));
+                invalidateCache(username);
+                return true;
             }
+        } catch (Exception e) {
+            throw new ServiceLayerException("Unknown database error", e);
         }
     }
 
