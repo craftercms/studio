@@ -27,7 +27,6 @@ import javax.validation.constraints.Size;
 
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 

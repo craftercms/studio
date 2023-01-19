@@ -17,7 +17,9 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
@@ -26,7 +28,6 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.users.HasPermissionsRequest;
 import org.craftercms.studio.model.users.UpdateUserPropertiesRequest;
@@ -34,18 +35,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SQL_ORDER_BY;
+import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNullElse;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNumeric;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
@@ -55,6 +64,7 @@ import static org.craftercms.studio.model.rest.ApiResponse.*;
 import static org.springframework.http.MediaType.ALL_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+@Validated
 @RestController
 @RequestMapping(API_2 + USERS)
 public class UsersController {
@@ -75,23 +85,22 @@ public class UsersController {
      *
      * @param siteId Site identifier
      * @param offset Result set offset
-     * @param limit Result set limit
-     * @param sort Sort order
+     * @param limit  Result set limit
+     * @param sort   Sort order
      * @return Response containing list of users
      */
-    @Valid
-    @GetMapping()
-    public ResponseBody getAllUsers(
-            @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
-            @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
+    @GetMapping
+    public PaginatedResultList<User> getAllUsers(
+            @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
+            @EsapiValidatedParam(type = SEARCH_KEYWORDS) @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "id asc") String sort)
             throws ServiceLayerException {
-        List<User> users = null;
-        int total = 0;
-        if (StringUtils.isEmpty(siteId)) {
+        List<User> users;
+        int total;
+        if (isEmpty(siteId)) {
             total = userService.getAllUsersTotal(keyword);
             users = userService.getAllUsers(keyword, offset, limit, sort);
         } else {
@@ -99,15 +108,13 @@ public class UsersController {
             users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, keyword, offset, limit, sort);
         }
 
-        ResponseBody responseBody = new ResponseBody();
         PaginatedResultList<User> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(users) ? 0 : users.size());
         result.setResponse(OK);
-        responseBody.setResult(result);
         result.setEntities(RESULT_KEY_USERS, users);
-        return responseBody;
+        return result;
     }
 
     /**
@@ -117,18 +124,38 @@ public class UsersController {
      * @return Response object
      */
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody createUser(@Valid @RequestBody User user)
+    @PostMapping(consumes = APPLICATION_JSON_VALUE)
+    public ResultOne<User> createUser(@Valid @RequestBody CreateUserRequest user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
-
-        User newUser = userService.createUser(user);
-
-        ResponseBody responseBody = new ResponseBody();
+        User newUser = userService.createUser(buildUser(user));
         ResultOne<User> result = new ResultOne<>();
         result.setResponse(CREATED);
         result.setEntity(RESULT_KEY_USER, newUser);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
+    }
+
+    private User buildUser(final CreateUserRequest userRequest) {
+        User user = new User();
+        user.setUsername(userRequest.getUsername());
+        user.setPassword(userRequest.getPassword());
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setExternallyManaged(userRequest.isExternallyManaged());
+        user.setEmail(userRequest.getEmail());
+        user.setEnabled(userRequest.isEnabled());
+
+        return user;
+    }
+
+    private User buildUser(final UpdateUserRequest userRequest) {
+        User user = new User();
+        user.setId(userRequest.getId());
+        user.setFirstName(userRequest.getFirstName());
+        user.setLastName(userRequest.getLastName());
+        user.setEmail(userRequest.getEmail());
+        user.setEnabled(userRequest.isEnabled());
+
+        return user;
     }
 
     /**
@@ -137,41 +164,39 @@ public class UsersController {
      * @param user User to update
      * @return Response object
      */
-    @PatchMapping(value = "", consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody updateUser(@Valid @RequestBody User user)
+    @PatchMapping(consumes = APPLICATION_JSON_VALUE)
+    public ResultOne<User> updateUser(@Valid @RequestBody UpdateUserRequest user)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
-        userService.updateUser(user);
+        User userRequest = buildUser(user);
+        userService.updateUser(userRequest);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<User> result = new ResultOne<>();
         result.setResponse(OK);
-        result.setEntity(RESULT_KEY_USER, user);
-        responseBody.setResult(result);
-        return responseBody;
+        result.setEntity(RESULT_KEY_USER, userRequest);
+        return result;
     }
 
     /**
      * Delete users API
      *
-     * @param userIds List of user identifiers
+     * @param userIds   List of user identifiers
      * @param usernames List of usernames
      * @return Response object
      */
-    @DeleteMapping()
-    public ResponseBody deleteUser(
-            @RequestParam(value = REQUEST_PARAM_ID, required = false) List<Long> userIds,
-            @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<String> usernames)
+    @DeleteMapping
+    public Result deleteUsers(
+            @RequestParam(value = REQUEST_PARAM_ID, required = false) List<@NotNull Long> userIds,
+            @RequestParam(value = REQUEST_PARAM_USERNAME, required = false)
+            List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames)
             throws ServiceLayerException, AuthenticationException, UserNotFoundException, UserExternallyManagedException {
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
 
-        userService.deleteUsers(userIds != null? userIds : Collections.emptyList(),
-                usernames != null? usernames : Collections.emptyList());
+        userService.deleteUsers(requireNonNullElse(userIds, emptyList()),
+                requireNonNullElse(usernames, emptyList()));
 
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(DELETED);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     /**
@@ -181,23 +206,22 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping(value = PATH_PARAM_ID, consumes = ALL_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getUser(@PathVariable(REQUEST_PARAM_ID) String userId)
-            throws ServiceLayerException, UserNotFoundException {
+    public ResultOne<User> getUser(@PathVariable(REQUEST_PARAM_ID) String userId)
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
         int uId = -1;
         String username = StringUtils.EMPTY;
-        if (StringUtils.isNumeric(userId)) {
+        if (isNumeric(userId)) {
             uId = Integer.parseInt(userId);
         } else {
+            ValidationUtils.validateValue(new EsapiValidator(USERNAME), userId, REQUEST_PARAM_ID);
             username = userId;
         }
         User user = userService.getUserByIdOrUsername(uId, username);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<User> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_USER, user);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     /**
@@ -207,18 +231,16 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = ENABLE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody enableUsers(@RequestBody EnableUsers enableUsers)
+    public ResultList<User> enableUsers(@Valid @RequestBody EnableUsers enableUsers)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultList<User> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_USERS, users);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     /**
@@ -228,18 +250,16 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = DISABLE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody disableUsers(@RequestBody EnableUsers enableUsers)
+    public ResultList<User> disableUsers(@Valid @RequestBody EnableUsers enableUsers)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
         List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultList<User> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_USERS, users);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     /**
@@ -249,20 +269,19 @@ public class UsersController {
      * @return Response containing list of sites
      */
     @GetMapping(PATH_PARAM_ID + SITES)
-    public ResponseBody getUserSites(
-            @PathVariable(REQUEST_PARAM_ID) String userId,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
-            throws ServiceLayerException, UserNotFoundException {
+    public PaginatedResultList<Site> getUserSites(
+            @NotNull @PathVariable(REQUEST_PARAM_ID) String userId,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
         int uId = -1;
-        String username = StringUtils.EMPTY ;
-        if (StringUtils.isNumeric(userId)) {
+        String username = StringUtils.EMPTY;
+        if (isNumeric(userId)) {
             uId = Integer.parseInt(userId);
         } else {
+            ValidationUtils.validateValue(new EsapiValidator(USERNAME), userId, REQUEST_PARAM_ID);
             username = userId;
         }
-
-
         List<Site> allSites = userService.getUserSites(uId, username);
         List<Site> paginatedSites = PaginationUtils.paginate(allSites, offset, limit, "siteId");
 
@@ -273,41 +292,35 @@ public class UsersController {
         result.setLimit(limit);
         result.setEntities(RESULT_KEY_SITES, paginatedSites);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
      * Get user roles for a site API
      *
      * @param userId User identifier
-     * @param site The site ID
+     * @param site   The site ID
      * @return Response containing list of roles
      */
     @GetMapping(PATH_PARAM_ID + SITES + PATH_PARAM_SITE + ROLES)
-    public ResponseBody getUserSiteRoles(@PathVariable(REQUEST_PARAM_ID) String userId,
-                                         @PathVariable(REQUEST_PARAM_SITE) String site)
-            throws ServiceLayerException, UserNotFoundException {
+    public ResultList<String> getUserSiteRoles(@NotNull @PathVariable(REQUEST_PARAM_ID) String userId,
+                                               @NotNull @EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site)
+            throws ServiceLayerException, UserNotFoundException, ValidationException {
         int uId = -1;
-        String username = StringUtils.EMPTY ;
-        if (StringUtils.isNumeric(userId)) {
+        String username = StringUtils.EMPTY;
+        if (isNumeric(userId)) {
             uId = Integer.parseInt(userId);
         } else {
+            ValidationUtils.validateValue(new EsapiValidator(USERNAME), userId, REQUEST_PARAM_ID);
             username = userId;
         }
 
         List<String> roles = userService.getUserSiteRoles(uId, username, site);
-
         ResultList<String> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ROLES, roles);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -316,17 +329,14 @@ public class UsersController {
      * @return Response containing current authenticated user
      */
     @GetMapping(ME)
-    public ResponseBody getCurrentUser() throws AuthenticationException, ServiceLayerException {
+    public ResultOne<AuthenticatedUser> getCurrentUser() throws AuthenticationException, ServiceLayerException {
         AuthenticatedUser user = userService.getCurrentUser();
 
         ResultOne<AuthenticatedUser> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_CURRENT_USER, user);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -335,9 +345,9 @@ public class UsersController {
      * @return Response containing current authenticated user sites
      */
     @GetMapping(ME + SITES)
-    public ResponseBody getCurrentUserSites(
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+    public PaginatedResultList<Site> getCurrentUserSites(
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
             throws AuthenticationException, ServiceLayerException {
         List<Site> allSites = userService.getCurrentUserSites();
         List<Site> paginatedSites = PaginationUtils.paginate(allSites, offset, limit, "siteId");
@@ -349,10 +359,7 @@ public class UsersController {
         result.setLimit(limit);
         result.setEntities(RESULT_KEY_SITES, paginatedSites);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -360,8 +367,8 @@ public class UsersController {
      *
      * @return Response containing current authenticated user roles
      */
-    @GetMapping(ME + SITES + PATH_PARAM_SITE + ROLES )
-    public ResponseBody getCurrentUserSiteRoles(@PathVariable(REQUEST_PARAM_SITE) String site)
+    @GetMapping(ME + SITES + PATH_PARAM_SITE + ROLES)
+    public ResultList<String> getCurrentUserSiteRoles(@NotBlank @EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site)
             throws AuthenticationException, ServiceLayerException {
         List<String> roles = userService.getCurrentUserSiteRoles(site);
 
@@ -369,10 +376,7 @@ public class UsersController {
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ROLES, roles);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -385,49 +389,42 @@ public class UsersController {
      */
     @GetMapping(ME + LOGOUT_SSO_URL)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ResponseBody getCurrentUserSsoLogoutUrl() {
+    public Result getCurrentUserSsoLogoutUrl() {
         Result result = new Result();
         result.setResponse(DEPRECATED);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     @GetMapping(FORGOT_PASSWORD)
-    public ResponseBody forgotPassword(@RequestParam(value = REQUEST_PARAM_USERNAME, required = true) String username)
+    public ResultOne<String> forgotPassword(@NotBlank @EsapiValidatedParam(type = USERNAME) @RequestParam(value = REQUEST_PARAM_USERNAME) String username)
             throws ServiceLayerException {
         try {
             userService.forgotPassword(username);
         } catch (UserExternallyManagedException | UserNotFoundException e) {
             logger.error("Failed to process forgot password for user '{}'", username, e);
         }
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(ME + CHANGE_PASSWORD)
-    public ResponseBody changePassword(@RequestBody ChangePasswordRequest changePasswordRequest)
+    public ResultOne<User> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest)
             throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
             AuthenticationException, UserNotFoundException {
-        User result = userService.changePassword(changePasswordRequest.getUsername(),
+        User user = userService.changePassword(changePasswordRequest.getUsername(),
                 changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
 
-        ResponseBody responseBody = new ResponseBody();
-        ResultOne<User> resultOne = new ResultOne<>();
-        resultOne.setEntity(RESULT_KEY_USER, result);
-        resultOne.setResponse(OK);
-        responseBody.setResult(resultOne);
-        return responseBody;
+        ResultOne<User> result = new ResultOne<>();
+        result.setEntity(RESULT_KEY_USER, user);
+        result.setResponse(OK);
+        return result;
     }
 
     @PostMapping(SET_PASSWORD)
-    public ResponseBody setPassword(@RequestBody SetPasswordRequest setPasswordRequest)
+    public ResultOne<User> setPassword(@Valid @RequestBody SetPasswordRequest setPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
         try {
@@ -437,30 +434,26 @@ public class UsersController {
         }
         User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<User> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_USER, user);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(PATH_PARAM_ID + RESET_PASSWORD)
-    public ResponseBody resetPassword(@PathVariable(REQUEST_PARAM_ID) String userId,
-                                      @RequestBody ResetPasswordRequest resetPasswordRequest)
+    public Result resetPassword(@NotBlank @EsapiValidatedParam(type = USERNAME) @PathVariable(REQUEST_PARAM_ID) String userId,
+                                @Valid @RequestBody ResetPasswordRequest resetPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         userService.resetPassword(resetPasswordRequest.getUsername(), resetPasswordRequest.getNewPassword());
 
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(value = VALIDATE_TOKEN, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody validateToken(HttpServletResponse response,
-                                      @RequestParam(value = REQUEST_PARAM_TOKEN, required = true) String token)
+    public Result validateToken(HttpServletResponse response,
+                                @NotBlank @RequestParam(value = REQUEST_PARAM_TOKEN) String token)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
         try {
@@ -468,9 +461,8 @@ public class UsersController {
         } catch (InterruptedException e) {
             logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
         }
-        
+
         boolean valid = userService.validateToken(token);
-        ResponseBody responseBody = new ResponseBody();
         Result result = new Result();
         if (valid) {
             result.setResponse(OK);
@@ -478,46 +470,37 @@ public class UsersController {
             result.setResponse(UNAUTHORIZED);
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
         }
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getUserProperties(
-            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId)
+    public ResultOne<Map<String, Map<String, String>>> getUserProperties(
+            @EsapiValidatedParam(type = SITE_ID) @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId)
             throws ServiceLayerException {
-        var result = new ResultOne<Map<String, Map<String, String>>>();
+        ResultOne<Map<String, Map<String, String>>> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity("properties", userService.getUserProperties(siteId)); //TODO: Extract key
-
-        var response = new ResponseBody();
-        response.setResult(result);
-        return response;
+        return result;
     }
 
     @PostMapping(value = ME + PROPERTIES, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody updateUserProperties(@Valid @RequestBody UpdateUserPropertiesRequest request)
+    public ResultOne<Map<String, String>> updateUserProperties(@Valid @RequestBody UpdateUserPropertiesRequest request)
             throws ServiceLayerException {
-        var result = new ResultOne<Map<String, String>>();
+        ResultOne<Map<String, String>> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity("properties", userService.updateUserProperties(request.getSiteId(), request.getProperties())); //TODO: Extract key
 
-        var response = new ResponseBody();
-        response.setResult(result);
-        return response;
+        return result;
     }
 
     @DeleteMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody deleteUserProperties(
-            @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId,
-            @RequestParam List<String> properties) throws ServiceLayerException {
-        var result = new ResultOne<Map<String, String>>();
+    public ResultOne<Map<String, String>> deleteUserProperties(
+            @EsapiValidatedParam(type = SITE_ID) @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId,
+            @Valid @NotEmpty @RequestParam List<@NotBlank String> properties) throws ServiceLayerException {
+        ResultOne<Map<String, String>> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity("properties", userService.deleteUserProperties(siteId, properties)); //TODO: Extract key
-
-        var response = new ResponseBody();
-        response.setResult(result);
-        return response;
+        return result;
     }
 
     /**
@@ -526,18 +509,13 @@ public class UsersController {
      * @return Response containing current authenticated user permissions
      */
     @GetMapping(value = ME + SITES + PATH_PARAM_SITE + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getCurrentUserSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site)
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
+    public ResultList<String> getCurrentUserSitePermissions(@EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site)
+            throws ServiceLayerException, UserNotFoundException, ExecutionException {
         List<String> permissions = userService.getCurrentUserSitePermissions(site);
-
         ResultList<String> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
-
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -547,20 +525,16 @@ public class UsersController {
      */
     @PostMapping(value = ME + SITES + PATH_PARAM_SITE + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
             produces = APPLICATION_JSON_VALUE)
-    public ResponseBody checkCurrentUserHasSitePermissions(@PathVariable(REQUEST_PARAM_SITE) String site,
-                                                           @RequestBody HasPermissionsRequest permissionsRequest)
+    public ResultOne<Map<String, Boolean>> checkCurrentUserHasSitePermissions(@EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site,
+                                                                              @Valid @RequestBody HasPermissionsRequest permissionsRequest)
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserSitePermissions(site, permissionsRequest.getPermissions());
 
-        ResultOne<Map> result = new ResultOne<>();
+        ResultOne<Map<String, Boolean>> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PERMISSIONS, hasPermissions);
-
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -569,18 +543,15 @@ public class UsersController {
      * @return Response containing current authenticated user global permissions
      */
     @GetMapping(value = ME + GLOBAL + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getCurrentUserGlobalPermissions()
-            throws AuthenticationException, ServiceLayerException, UserNotFoundException, ExecutionException {
+    public ResultList<String> getCurrentUserGlobalPermissions()
+            throws ServiceLayerException, UserNotFoundException, ExecutionException {
         List<String> permissions = userService.getCurrentUserGlobalPermissions();
 
         ResultList<String> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_PERMISSIONS, permissions);
 
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 
     /**
@@ -590,18 +561,14 @@ public class UsersController {
      */
     @PostMapping(value = ME + GLOBAL + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
             produces = APPLICATION_JSON_VALUE)
-    public ResponseBody checkCurrentUserHasGlobalPermissions(@RequestBody HasPermissionsRequest permissionsRequest)
+    public ResultOne<Map<String, Boolean>> checkCurrentUserHasGlobalPermissions(@Valid @RequestBody HasPermissionsRequest permissionsRequest)
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> hasPermissions =
                 userService.hasCurrentUserGlobalPermissions(permissionsRequest.getPermissions());
 
-        ResultOne<Map> result = new ResultOne<>();
+        ResultOne<Map<String, Boolean>> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_PERMISSIONS, hasPermissions);
-
-        ResponseBody responseBody = new ResponseBody();
-        responseBody.setResult(result);
-
-        return responseBody;
+        return result;
     }
 }

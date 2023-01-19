@@ -487,38 +487,33 @@ public class UserServiceImpl implements UserService {
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
             AuthenticationException, UserNotFoundException {
         AuthenticatedUser currentUser = getCurrentUser();
-        if (currentUser != null && StringUtils.equals(username, currentUser.getUsername())) {
-            boolean success = userServiceInternal.changePassword(username, current, newPassword);
-            if (success) {
-                return userServiceInternal.getUserByIdOrUsername(-1, username);
-            } else {
-                throw new ServiceLayerException("Failed to change password");
-            }
-        } else {
-            throw new PermissionException();
+        if (currentUser == null || !StringUtils.equals(username, currentUser.getUsername())) {
+            throw new PermissionException("Cannot change password: current logged in user does not match provided username");
         }
+        boolean success = userServiceInternal.changePassword(username, current, newPassword);
+        if (success) {
+            return userServiceInternal.getUserByIdOrUsername(-1, username);
+        }
+        throw new ServiceLayerException("Failed to change password");
     }
 
     @Override
     public User setPassword(String token, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
-        if (validateToken(token)) {
-            String username = getUsernameFromToken(token);
-            if (StringUtils.isNotEmpty(username)) {
-                User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-                if (user != null ) {
-                    if (user.isEnabled()) {
-                        boolean success = userServiceInternal.setUserPassword(username, newPassword);
-                        if (success) {
-                            return user;
-                        }
-                    }
-                } else {
-                    throw new UserNotFoundException("User not found");
-                }
-            } else {
-                throw new UserNotFoundException("User not found");
-            }
+        if (!validateToken(token)) {
+            return null;
+        }
+        String username = getUsernameFromToken(token);
+        if (!StringUtils.isNotEmpty(username)) {
+            throw new UserNotFoundException("User not found");
+        }
+        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+        if (!user.isEnabled()) {
+            return null;
+        }
+        boolean success = userServiceInternal.setUserPassword(username, newPassword);
+        if (success) {
+            return user;
         }
         return null;
     }

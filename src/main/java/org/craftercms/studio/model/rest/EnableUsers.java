@@ -16,13 +16,19 @@
 
 package org.craftercms.studio.model.rest;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.List;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
+
 public class EnableUsers {
 
-    private List<String> usernames = Collections.emptyList();
-    private List<Long> ids = Collections.emptyList();
+    private List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames = Collections.emptyList();
+    private List<@NotNull Long> ids = Collections.emptyList();
 
     public List<String> getUsernames() {
         return usernames;

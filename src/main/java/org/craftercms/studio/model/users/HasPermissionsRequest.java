@@ -16,11 +16,13 @@
 
 package org.craftercms.studio.model.users;
 
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+
 import java.util.List;
 
 public class HasPermissionsRequest {
 
-    protected List<String> permissions;
+    protected List<@ValidateNoTagsParam String> permissions;
 
     public List<String> getPermissions() {
         return permissions;

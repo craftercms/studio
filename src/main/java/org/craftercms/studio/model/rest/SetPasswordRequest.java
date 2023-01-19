@@ -18,9 +18,13 @@ package org.craftercms.studio.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.NotBlank;
+
 public class SetPasswordRequest {
 
+    @NotBlank
     private String token;
+    @NotBlank
     private String newPassword;
 
     public String getToken() {

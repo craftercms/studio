@@ -170,8 +170,7 @@
     </bean>
 
     <bean id="studio.workflowController" class="org.craftercms.studio.controller.rest.v2.WorkflowController" >
-        <property name="workflowService" ref="studio.workflowService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="workflowService" ref="studio.workflowService" />
     </bean>
 
     <!-- Access Token -->
