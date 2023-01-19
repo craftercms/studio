@@ -34,9 +34,12 @@ import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingStats;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -49,6 +52,7 @@ import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
+@Validated
 @RestController
 @RequestMapping(API_2 + DASHBOARD)
 public class DashboardController {
@@ -64,14 +68,14 @@ public class DashboardController {
     @GetMapping(value = ACTIVITY, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<Activity> getActivitiesForUsers(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @EsapiValidatedParam(type = USERNAME) @RequestParam(value = REQUEST_PARAM_USERNAMES, required = false) List<String> usernames,
+            @RequestParam(value = REQUEST_PARAM_USERNAMES, required = false) List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames,
             @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
-            @ValidateNoTagsParam @RequestParam(required = false) List<String> actions,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
+            @RequestParam(required = false) List<@NotBlank @ValidateNoTagsParam String> actions,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
         var total = dashboardService.getActivitiesForUsersTotal(siteId, usernames, actions, dateFrom, dateTo);
         var activities =
                 dashboardService.getActivitiesForUsers(siteId, usernames, actions, dateFrom, dateTo, offset, limit);
@@ -93,9 +97,9 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
-            @ValidateNoTagsParam @RequestParam(required = false) List<String> actions,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
+            @RequestParam(required = false) List<@NotBlank @ValidateNoTagsParam String> actions,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
 
         var total = dashboardService.getMyActivitiesTotal(siteId, actions, dateFrom, dateTo);
         var activities =
@@ -114,8 +118,8 @@ public class DashboardController {
     @GetMapping(value = CONTENT + PENDING_APPROVAL, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<DetailedItem> getContentPendingApproval(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws ServiceLayerException, UserNotFoundException {
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws ServiceLayerException, UserNotFoundException {
 
         var total = dashboardService.getContentPendingApprovalTotal(siteId);
         var publishingContent = dashboardService.getContentPendingApproval(siteId, offset, limit);
@@ -142,11 +146,11 @@ public class DashboardController {
     }
 
     @Valid
-    @GetMapping(value =  CONTENT + UNPUBLISHED, produces = APPLICATION_JSON_VALUE)
+    @GetMapping(value = CONTENT + UNPUBLISHED, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<SandboxItem> getContentUnpublished(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws UserNotFoundException, ServiceLayerException {
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws UserNotFoundException, ServiceLayerException {
         var total = dashboardService.getContentUnpublishedTotal(siteId);
         var unpublishedContent = dashboardService.getContentUnpublished(siteId, offset, limit);
 
@@ -168,8 +172,8 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
             throws AuthenticationException, ServiceLayerException {
 
         var contentExpiring = dashboardService.getContentExpiring(siteId, dateFrom, dateTo, offset,
@@ -187,8 +191,8 @@ public class DashboardController {
     @GetMapping(value = CONTENT + EXPIRED, produces = APPLICATION_JSON_VALUE)
     public PaginatedResultList<ExpiringContentItem> getContentExpired(
             @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
             throws AuthenticationException, ServiceLayerException {
 
         var contentExpired = dashboardService.getContentExpired(siteId, offset, limit);
@@ -211,8 +215,8 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
         var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget, dateFrom, dateTo);
         var packages = dashboardService.getPublishingScheduled(siteId, publishingTarget,
                 dateFrom, dateTo, offset, limit);
@@ -251,8 +255,8 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
             @RequestParam(value = REQUEST_PARAM_DATE_TO)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
         int total = dashboardService.getPublishingHistoryTotal(siteId, publishingTarget, approver, dateFrom,
                 dateTo);
         var packages = dashboardService.getPublishingHistory(siteId, publishingTarget, approver, dateFrom, dateTo,

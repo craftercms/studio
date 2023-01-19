@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import javax.validation.constraints.PositiveOrZero;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -60,8 +61,8 @@ public class CmisController {
     public ResponseBody list(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = "siteId") String siteId,
                              @ValidateNoTagsParam @RequestParam(value = "cmisRepoId") String cmisRepoId,
                              @EsapiValidatedParam(type = HTTPURI) @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
-                             @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-                             @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
+                             @PositiveOrZero @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                             @PositiveOrZero @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
             throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException, SiteNotFoundException {
         List<CmisContentItem> cmisContentItems = cmisService.list(siteId, cmisRepoId, path);
         List<CmisContentItem> paginatedItems =
@@ -84,8 +85,8 @@ public class CmisController {
                                @ValidateNoTagsParam @RequestParam(value = "cmisRepoId") String cmisRepoId,
                                @ValidateNoTagsParam @RequestParam(value = "searchTerm") String searchTerm,
                                @EsapiValidatedParam(type = HTTPURI) @RequestParam(value = "path", required = false, defaultValue = StringUtils.EMPTY) String path,
-                               @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
-                               @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
+                               @PositiveOrZero @RequestParam(value = "offset", required = false, defaultValue = "0") int offset,
+                               @PositiveOrZero @RequestParam(value = "limit", required = false, defaultValue = "10") int limit)
             throws CmisRepositoryNotFoundException, CmisTimeoutException, CmisUnavailableException, ConfigurationException, SiteNotFoundException {
         List<CmisContentItem> cmisContentItems = cmisService.search(siteId, cmisRepoId, searchTerm, path);
         List<CmisContentItem> paginatedItems =
