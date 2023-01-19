@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -36,7 +36,7 @@ public class Group implements Serializable, GrantedAuthority {
     private ZonedDateTime recordLastUpdated;
     private Organization organization;
     private boolean externallyManaged;
-    @NotNull
+    @NotBlank
     @Size(max=512)
     @EsapiValidatedParam(type = GROUP_NAME)
     private String groupName;
