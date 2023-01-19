@@ -32,7 +32,6 @@ import javax.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
-import static java.lang.String.format;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 /**

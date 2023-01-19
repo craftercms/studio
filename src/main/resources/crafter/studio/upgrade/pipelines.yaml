@@ -780,6 +780,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.10.xslt
               commitDetails: Updating configuration permissions
+        - currentVersion: 4.0.10
+          nextVersion: 4.0.11
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.11.xslt
+              commitDetails: Adding set_item_states permissions
 
   role-mappings-config:
     module: studio

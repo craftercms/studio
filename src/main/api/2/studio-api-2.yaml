@@ -450,7 +450,7 @@ paths:
       description: 'Required Permission: "READ_USERS"'
       operationId: getUsers
       parameters:
-        - name: site
+        - name: site_id
           in: query
           description: The site ID to filter users for a particular site
           required: false
@@ -528,7 +528,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/CreateUserRequest'
       responses:
         '201':
           description: Created
@@ -556,12 +556,12 @@ paths:
       description: 'Required Permission: "UPDATE_USERS"'
       operationId: updateUser
       requestBody:
-        description: User entity to update. The `password`, `externallyManaged` and `username` fields will be ignored if sent.
+        description: User entity to update. Supported update attributes are firstName, lastName, email and enabled.
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UpdateUserRequest'
       responses:
         '200':
           description: OK
@@ -979,6 +979,21 @@ paths:
       summary: Get all the sites the current authenticated user has access to
       description:  'Required Permission: "LOGGED_IN"'
       operationId: getCurrentUserSites
+      parameters:
+        - name: offset
+          in: query
+          description: Offset of first record in the response
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of records to return
+          required: false
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: OK
@@ -6744,7 +6759,7 @@ paths:
       tags:
         - workflow
       summary: Get workflow affected paths
-      description: 'Required permission "site member"'
+      description: 'Required permission "content_read"'
       operationId: getWorkflowAffectedPaths
       parameters:
         - name: siteId
@@ -7486,6 +7501,66 @@ components:
         documentationUrl:
           type: string
           description: A URL to documentation related to the response
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          description: User's email address
+        enabled:
+          type: boolean
+          description: Indicates if the user is enabled
+      required:
+        - id
+        - username
+        - password
+        - firstName
+        - lastName
+        - email
+        - enabled
+        - externallyManaged
+
+    CreateUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Username, unique
+        password:
+          type: string
+          description: User's password (not returned to caller)
+        firstName:
+          type: string
+          description: User's first name
+        lastName:
+          type: string
+          description: User's last name
+        email:
+          type: string
+          description: User's email address
+        enabled:
+          type: boolean
+          description: Indicates if the user is enabled
+        externallyManaged:
+          type: boolean
+          description: Indicates if a user is managed in by an external system (LDAP, SAML, etc.)
+      required:
+        - id
+        - username
+        - password
+        - firstName
+        - lastName
+        - email
+        - enabled
+        - externallyManaged
+
     User:
       type: object
       properties:

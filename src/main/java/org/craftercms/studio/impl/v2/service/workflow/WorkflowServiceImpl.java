@@ -113,7 +113,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     @Override
-    @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_SET_ITEM_STATES)
     public void updateItemStates(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, boolean clearSystemProcessing,
                                  boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
@@ -122,8 +122,11 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     }
 
     @Override
-    public void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-                                        boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_SET_ITEM_STATES)
+    public void updateItemStatesByQuery(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+                                        Long states, boolean clearSystemProcessing,
+                                        boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
         itemServiceInternal.updateItemStatesByQuery(siteId, path, states, clearSystemProcessing, clearUserLocked,
                 live, staged, isNew, modified);
     }
@@ -245,7 +248,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             Workflow workflow = new Workflow();
             workflow.setItemId(it.getId());
             workflow.setSubmitterId(userObj.getId());
-            workflow.setNotifySubmitter(sendEmailNotifications ? 1: 0);
+            workflow.setNotifySubmitter(sendEmailNotifications ? 1 : 0);
             workflow.setSubmitterComment(submissionComment);
             workflow.setTargetEnvironment(publishingTarget);
             if (Objects.nonNull(scheduledDate)) {
@@ -375,7 +378,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         List<String> publishPackage = new LinkedList<>(submissionPackage);
         // Calculate renamed items and add renamed children
         List<Item> items = itemServiceInternal.getItems(siteId, submissionPackage, false);
-        items.forEach(item ->{
+        items.forEach(item -> {
             if (StringUtils.isNotEmpty(item.getPreviousPath())) {
                 publishPackage.addAll(itemServiceInternal.getSubtreeForDelete(siteId, item.getPath()));
             }
@@ -549,7 +552,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     }
                 } catch (UserNotFoundException | ServiceLayerException e) {
                     logger.debug("Failed to send notification because the submitter's username was not found for " +
-                                    "the paths '{}' in site '{}'", paths, siteId, e);
+                            "the paths '{}' in site '{}'", paths, siteId, e);
                 }
             }
 
@@ -658,7 +661,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                     lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))) {
                 return 1;
             } else if (StringUtils.startsWith(lhs.replace(FILE_SEPARATOR + INDEX_FILE, ""),
-                    rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))){
+                    rhs.replace(FILE_SEPARATOR + INDEX_FILE, ""))) {
                 return -1;
             }
             return lhs.compareTo(rhs);

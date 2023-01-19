@@ -85,6 +85,14 @@ public interface ContentService {
      */
     String getContentAsString(String site, String path);
 
+
+    /**
+     * Check if path is a correct location to write asset content
+     * @param path to write asset
+     * @throws ServiceLayerException if path is not permitted
+     */
+    void checkWriteAssetPath(String path) throws ServiceLayerException;
+
     /**
      * get content as string from repository
      *

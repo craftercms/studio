@@ -76,7 +76,7 @@
 
 -->
 <permissions>
-    <version>4.0.9</version>
+    <version>4.0.11</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -275,6 +275,7 @@
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
                 <permission>audit_log</permission>
+                <permission>set_item_states</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -364,6 +365,7 @@
                 <permission>item_unlock</permission>
                 <permission>content_search</permission>
                 <permission>start_stop_publisher</permission>
+                <permission>set_item_states</permission>
             </allowed-permissions>
         </rule>
     </role>

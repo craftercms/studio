@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.model.rest.ApiResponse;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;

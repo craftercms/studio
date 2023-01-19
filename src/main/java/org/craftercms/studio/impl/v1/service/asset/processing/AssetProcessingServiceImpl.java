@@ -87,13 +87,15 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
     @Override
     public Map<String, Object> processAsset(String site, String folder, String assetName, InputStream in, String isImage,
                                             String allowedWidth, String allowedHeight, String allowLessSize, String draft,
-                                            String unlock, String systemAsset){
+                                            String unlock, String systemAsset) {
         String repoPath = UrlUtils.concat(folder, assetName);
         InputStream configIn;
 
         // TODO: SJ: Refactor with guard statements to reduce nesting and enhance readability
 
         try {
+            contentService.checkWriteAssetPath(folder);
+
             try {
                 configIn = contentService.getContent(site, configPath);
             } catch (ContentNotFoundException e) {
@@ -166,7 +168,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
             logger.error("Failed to process asset '{}' in site '{}'", assetName, site, e);
 
             Map<String, Object> result = new HashMap<>();
-            result.put("success", true);
+            result.put("success", false);
             result.put("message", e.getMessage());
             result.put("error", e);
 

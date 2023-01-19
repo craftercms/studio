@@ -17,21 +17,26 @@
 package org.craftercms.studio.model.rest.workflow;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+
+@JsonIgnoreProperties
 public class ApproveRequestBody {
 
     @NotEmpty
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
-    private List<@Valid @NotEmpty String> items;
-    private List<String> optionalDependencies;
+    private List<@ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @NotEmpty String> items;
+    private List<@ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @NotEmpty String> optionalDependencies;
     @NotEmpty
+    @EsapiValidatedParam(type = ALPHANUMERIC)
     private String publishingTarget;
     private ZonedDateTime schedule;
     private String comment;

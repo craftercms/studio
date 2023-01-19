@@ -18,7 +18,6 @@ package org.craftercms.studio.model.rest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.EsapiValidationType;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;

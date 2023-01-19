@@ -17,11 +17,20 @@
 package org.craftercms.studio.model.rest;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+
+import javax.validation.constraints.NotBlank;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 
 public class ChangePasswordRequest {
 
+    @NotBlank
+    @EsapiValidatedParam(type = USERNAME)
     private String username;
+    @NotBlank
     private String current;
+    @NotBlank
     private String newPassword;
 
     public String getUsername() {
