@@ -73,7 +73,7 @@ public interface WorkflowService {
      * @param modified value to set the 'modified' flag to, or null if the flag should not change
      */
     void updateItemStatesByQuery(String siteId, String path, Long states, boolean clearSystemProcessing,
-                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified);
+                                 boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException;
 
     /**
      * Get workflow affected paths if content is edited

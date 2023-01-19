@@ -16,92 +16,76 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
 import org.craftercms.studio.model.rest.PaginatedResultList;
-import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.model.rest.workflow.ApproveRequestBody;
-import org.craftercms.studio.model.rest.workflow.ItemStatesPostRequestBody;
-import org.craftercms.studio.model.rest.workflow.PublishRequestBody;
-import org.craftercms.studio.model.rest.workflow.RejectRequestBody;
-import org.craftercms.studio.model.rest.workflow.RequestPublishRequestBody;
-import org.craftercms.studio.model.rest.workflow.UpdateItemStatesByQueryRequestBody;
-import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.craftercms.studio.model.rest.workflow.*;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PositiveOrZero;
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_LIMIT;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_OFFSET;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
-import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_STATES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.AFFECTED_PATHS;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.API_2;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.APPROVE;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.ITEM_STATES;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.PUBLISH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REJECT;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.REQUEST_PUBLISH;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.UPDATE_ITEM_STATES_BY_QUERY;
-import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.WORKFLOW;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
+import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
+@Validated
 @RestController
 @RequestMapping(API_2 + WORKFLOW)
 public class WorkflowController {
 
-    private WorkflowService workflowService;
-    private SiteService siteService;
+    private final WorkflowService workflowService;
+
+    @ConstructorProperties({"workflowService"})
+    public WorkflowController(final WorkflowService workflowService) {
+        this.workflowService = workflowService;
+    }
 
     @GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemStates(@RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
-                                      @RequestParam(name = REQUEST_PARAM_PATH, required = false) Optional<String> rpPath,
-                                      @RequestParam(name = REQUEST_PARAM_STATES, required = false) Optional<Long> rpStates,
-                                      @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
-                                                  int offset,
-                                      @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
-                                                  int limit) throws SiteNotFoundException, InvalidParametersException {
-        String path = rpPath.orElse(null);
-        Long states = rpStates.orElse(null);
+    public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+                                                          @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
+                                                          @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
+                                                          @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
+                                                          int offset,
+                                                          @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10")
+                                                          int limit) throws SiteNotFoundException, InvalidParametersException {
         if (!isPathRegexValid(path)) {
             throw new InvalidParametersException("Parameter 'path' is not valid regular expression.");
         }
         int total = workflowService.getItemStatesTotal(siteId, path, states);
         List<SandboxItem> items = new ArrayList<>();
 
-        if (total > 0) {
+        if (total > offset) {
             items = workflowService.getItemStates(siteId, path, states, offset, limit);
         }
 
-        var responseBody = new ResponseBody();
-        var result = new PaginatedResultList<SandboxItem>();
+        PaginatedResultList<SandboxItem> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
-        result.setLimit(CollectionUtils.isEmpty(items) ? 0 : items.size());
+        result.setLimit(isEmpty(items) ? 0 : items.size());
         result.setResponse(OK);
-        responseBody.setResult(result);
         result.setEntities(RESULT_KEY_ITEMS, items);
-        return responseBody;
+        return result;
     }
 
     private boolean isPathRegexValid(String pathRegex) {
@@ -115,120 +99,88 @@ public class WorkflowController {
     }
 
     @PostMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody updateItemStates(@RequestBody ItemStatesPostRequestBody requestBody)
+    public Result updateItemStates(@Valid @RequestBody ItemStatesPostRequestBody requestBody)
             throws SiteNotFoundException {
+        ItemStatesUpdate update = requestBody.getUpdate();
         workflowService.updateItemStates(requestBody.getSiteId(), requestBody.getItems(),
-                requestBody.isClearSystemProcessing(), requestBody.isClearUserLocked(), requestBody.getLive(),
-                requestBody.getStaged(), requestBody.getNew(), requestBody.getModified());
+                update.isClearSystemProcessing(), update.isClearUserLocked(), update.getLive(),
+                update.getStaged(), update.getNew(), update.getModified());
 
-        var responseBody = new ResponseBody();
-        var result = new Result();
+        Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = UPDATE_ITEM_STATES_BY_QUERY, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody updateItemStatesByQuery(@RequestBody UpdateItemStatesByQueryRequestBody requestBody)
+    public Result updateItemStatesByQuery(@Valid @RequestBody UpdateItemStatesByQueryRequestBody requestBody)
             throws SiteNotFoundException {
-        if (!siteService.exists(requestBody.getQuery().getSiteId())) {
-            throw new SiteNotFoundException(requestBody.getQuery().getSiteId());
-        }
+        UpdateItemStatesByQueryRequestBody.Query query = requestBody.getQuery();
+        ItemStatesUpdate update = requestBody.getUpdate();
+        workflowService.updateItemStatesByQuery(query.getSiteId(), query.getPath(),
+                query.getStates(), update.isClearSystemProcessing(),
+                update.isClearUserLocked(), update.getLive(),
+                update.getStaged(), update.getNew(), update.getModified());
 
-        workflowService.updateItemStatesByQuery(requestBody.getQuery().getSiteId(), requestBody.getQuery().getPath(),
-                requestBody.getQuery().getStates(), requestBody.getUpdate().isClearSystemProcessing(),
-                requestBody.getUpdate().isClearUserLocked(), requestBody.getUpdate().getLive(),
-                requestBody.getUpdate().getStaged(), requestBody.getUpdate().getNew(), requestBody.getUpdate().getModified());
-
-        var responseBody = new ResponseBody();
-        var result = new Result();
+        Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(value = AFFECTED_PATHS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getWorkflowAffectedPaths(@RequestParam(REQUEST_PARAM_SITEID) String siteId,
-                                                 @RequestParam(REQUEST_PARAM_PATH) String path)
+    public ResultList<SandboxItem> getWorkflowAffectedPaths(@EsapiValidatedParam(type = SITE_ID) @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+                                                            @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @RequestParam(REQUEST_PARAM_PATH) String path)
             throws ServiceLayerException, UserNotFoundException {
         List<SandboxItem> sandboxItems = workflowService.getWorkflowAffectedPaths(siteId, path);
-        var responseBody = new ResponseBody();
-        var result = new ResultList<SandboxItem>();
+        ResultList<SandboxItem> result = new ResultList<>();
         result.setEntities(RESULT_KEY_ITEMS, sandboxItems);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = REQUEST_PUBLISH, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
+    public Result requestPublish(@RequestBody @Valid RequestPublishRequestBody requestPublishRequestBody)
             throws ServiceLayerException, UserNotFoundException, DeploymentException {
         workflowService.requestPublish(requestPublishRequestBody.getSiteId(), requestPublishRequestBody.getItems(),
                 requestPublishRequestBody.getOptionalDependencies(), requestPublishRequestBody.getPublishingTarget(),
                 requestPublishRequestBody.getSchedule(), requestPublishRequestBody.getComment(),
                 requestPublishRequestBody.isSendEmailNotifications());
 
-        var responseBody = new ResponseBody();
-        var result = new Result();
+        Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = PUBLISH, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody publish(@RequestBody PublishRequestBody publishRequestBody)
+    public Result publish(@Valid @RequestBody PublishRequestBody publishRequestBody)
             throws UserNotFoundException, ServiceLayerException, DeploymentException {
         workflowService.publish(publishRequestBody.getSiteId(), publishRequestBody.getItems(),
                 publishRequestBody.getOptionalDependencies(), publishRequestBody.getPublishingTarget(),
                 publishRequestBody.getSchedule(), publishRequestBody.getComment());
 
-        var responseBody = new ResponseBody();
-        var result = new Result();
+        Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = APPROVE, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody approve(@RequestBody ApproveRequestBody approveRequestBody)
+    public Result approve(@Valid @RequestBody ApproveRequestBody approveRequestBody)
             throws UserNotFoundException, ServiceLayerException, DeploymentException {
         workflowService.approve(approveRequestBody.getSiteId(), approveRequestBody.getItems(),
                 approveRequestBody.getOptionalDependencies(), approveRequestBody.getPublishingTarget(),
                 approveRequestBody.getSchedule(), approveRequestBody.getComment());
 
-        var responseBody = new ResponseBody();
-        var result = new Result();
+        Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @PostMapping(value = REJECT, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody reject(@RequestBody RejectRequestBody rejectRequestBody)
+    public Result reject(@Valid @RequestBody RejectRequestBody rejectRequestBody)
             throws ServiceLayerException, DeploymentException, UserNotFoundException {
         workflowService.reject(rejectRequestBody.getSiteId(), rejectRequestBody.getItems(),
                 rejectRequestBody.getComment());
-
-        var responseBody = new ResponseBody();
-        var result = new Result();
+        Result result = new Result();
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
-    }
-
-    public WorkflowService getWorkflowService() {
-        return workflowService;
-    }
-
-    public void setWorkflowService(WorkflowService workflowService) {
-        this.workflowService = workflowService;
-    }
-
-    public SiteService getSiteService() {
-        return siteService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
+        return result;
     }
 }

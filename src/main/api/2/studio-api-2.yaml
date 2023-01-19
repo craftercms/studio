@@ -6759,7 +6759,7 @@ paths:
       tags:
         - workflow
       summary: Get workflow affected paths
-      description: 'Required permission "site member"'
+      description: 'Required permission "content_read"'
       operationId: getWorkflowAffectedPaths
       parameters:
         - name: siteId

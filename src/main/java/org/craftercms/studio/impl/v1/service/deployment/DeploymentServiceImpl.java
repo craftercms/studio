@@ -30,10 +30,7 @@ import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.PublishRequestMapper;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
-import org.craftercms.studio.api.v1.exception.EnvironmentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -147,6 +144,9 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
 
         for (String p : paths) {
             Item item = itemServiceInternal.getItem(site, p);
+            if (item == null) {
+                throw new ContentNotFoundException(p, site, "Failed to retrieve content item");
+            }
             boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
             if (isFolder) {
                 logger.trace("The content item in site '{}' path '{}' is a folder and will not be added " +

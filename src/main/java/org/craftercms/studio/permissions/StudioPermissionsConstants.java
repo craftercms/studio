@@ -89,6 +89,8 @@ public final class StudioPermissionsConstants {
 
     public static final String PERMISSION_MANAGE_ACCESS_TOKEN = "manage_access_token";
 
+    public static final String PERMISSION_SET_ITEM_STATES = "set_item_states";
+
 
     private StudioPermissionsConstants() {
     }
