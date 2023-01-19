@@ -23,7 +23,6 @@ import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.rest.EnableUsers;
 import org.springframework.validation.Validator;
 
-import javax.validation.Validation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
