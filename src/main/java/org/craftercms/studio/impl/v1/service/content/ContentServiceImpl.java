@@ -194,6 +194,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
+    public void checkWriteAssetPath(@ValidateStringParam String path) throws ServiceLayerException {
+        if (path.startsWith(SLASH_SITE)) {
+            throw new ServiceLayerException(format("Unable to write asset content to the path '%s'.", path));
+        }
+    }
+
+    @Override
+    @Valid
     public String getContentAsString(@ValidateStringParam String site,
                                      @ValidateSecurePathParam String path,
                                      @ValidateStringParam String encoding)  {
@@ -542,7 +550,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         } catch (Exception e) {
             logger.error("Failed to process content at site '{}' path '{}'", site, path, e);
             Map<String, Object> toRet = new HashMap<>();
-            toRet.put("success", true);
+            toRet.put("success", false);
             toRet.put("message", e.getMessage());
             toRet.put("error", e);
             return toRet;
