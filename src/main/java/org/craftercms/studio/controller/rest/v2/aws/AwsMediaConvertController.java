@@ -16,10 +16,6 @@
 
 package org.craftercms.studio.controller.rest.v2.aws;
 
-import java.io.IOException;
-import java.io.InputStream;
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
@@ -28,6 +24,9 @@ import org.apache.commons.fileupload.util.Streams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.commons.validation.validators.impl.EsapiValidator;
+import org.craftercms.commons.validation.validators.impl.NoTagsValidator;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
@@ -36,12 +35,21 @@ import org.craftercms.studio.model.aws.mediaconvert.MediaConvertResult;
 import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.ResultOne;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
+import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
+import static org.craftercms.studio.controller.rest.v2.ValidationUtils.validateValue;
 
 /**
  * Rest controller for AWS MediaConvert
@@ -64,64 +72,73 @@ public class AwsMediaConvertController {
      *
      * @param request the request
      * @return the result of triggering the job
-     * @throws IOException if there is any error reading the content of the file
-     * @throws AwsException if there is any error uploading the file or triggering the job
-     * @throws InvalidParametersException if there is any error parsing the request
-     * @throws SiteNotFoundException if the site is not found
+     * @throws IOException                           if there is any error reading the content of the file
+     * @throws AwsException                          if there is any error uploading the file or triggering the job
+     * @throws InvalidParametersException            if there is any error parsing the request
+     * @throws SiteNotFoundException                 if the site is not found
      * @throws ConfigurationProfileNotFoundException if the profile is not found
      */
     @PostMapping("/upload")
     public ResultOne<MediaConvertResult> uploadVideo(HttpServletRequest request)
-            throws IOException, AwsException, InvalidParametersException, ConfigurationProfileNotFoundException, SiteNotFoundException {
-        if (ServletFileUpload.isMultipartContent(request)) {
-            ResultOne<MediaConvertResult> result = new ResultOne<>();
-            try {
-                ServletFileUpload upload = new ServletFileUpload();
-                FileItemIterator iterator = upload.getItemIterator(request);
-                String siteId = null;
-                String inputProfileId = null;
-                String outputProfileId = null;
-                while (iterator.hasNext()) {
-                    FileItemStream item = iterator.next();
-                    String name = item.getFieldName();
-                    try (InputStream stream = item.openStream()) {
-                        if (item.isFormField()) {
-                            switch (name) {
-                                case REQUEST_PARAM_SITEID:
-                                    siteId = Streams.asString(stream);
-                                    break;
-                                case INPUT_PROFILE_PARAM:
-                                    inputProfileId = Streams.asString(stream);
-                                    break;
-                                case OUTPUT_PROFILE_PARAM:
-                                    outputProfileId = Streams.asString(stream);
-                                    break;
-                                default:
-                                    // Unknown parameter, just skip it...
-                            }
-                        } else {
-                            if (StringUtils.isAnyEmpty(siteId, inputProfileId, outputProfileId)) {
-                                throw new InvalidParametersException("Missing one or more required parameters: "
-                                    + "siteId, inputProfileId or outputProfileId");
-                            }
-                            String filename = item.getName();
-                            if (StringUtils.isNotEmpty(filename)) {
-                                filename = FilenameUtils.getName(filename);
-                            }
-                            result.setEntity(RESULT_KEY_ITEM,
-                                mediaConvertService
-                                    .uploadVideo(siteId, inputProfileId, outputProfileId, filename, stream));
-                            result.setResponse(ApiResponse.OK);
-                        }
-                    }
-                }
-                return result;
-            } catch (FileUploadException e) {
-                throw new InvalidParametersException("The request body is invalid");
-            }
-        } else {
+            throws IOException, AwsException, InvalidParametersException, ConfigurationProfileNotFoundException, SiteNotFoundException, ValidationException {
+        if (!ServletFileUpload.isMultipartContent(request)) {
             throw new InvalidParametersException("The request is not multipart");
         }
+        ResultOne<MediaConvertResult> result = new ResultOne<>();
+        try {
+            ServletFileUpload upload = new ServletFileUpload();
+            FileItemIterator iterator = upload.getItemIterator(request);
+            String siteId = null;
+            String inputProfileId = null;
+            String outputProfileId = null;
+            while (iterator.hasNext()) {
+                FileItemStream item = iterator.next();
+                String name = item.getFieldName();
+                try (InputStream stream = item.openStream()) {
+                    if (item.isFormField()) {
+                        switch (name) {
+                            case REQUEST_PARAM_SITEID:
+                                siteId = Streams.asString(stream);
+                                break;
+                            case INPUT_PROFILE_PARAM:
+                                inputProfileId = Streams.asString(stream);
+                                break;
+                            case OUTPUT_PROFILE_PARAM:
+                                outputProfileId = Streams.asString(stream);
+                                break;
+                            default:
+                                // Unknown parameter, just skip it...
+                        }
+                    } else {
+                        if (StringUtils.isAnyEmpty(siteId, inputProfileId, outputProfileId)) {
+                            throw new InvalidParametersException("Missing one or more required parameters: "
+                                    + "siteId, inputProfileId or outputProfileId");
+                        }
+                        String filename = item.getName();
+                        if (StringUtils.isNotEmpty(filename)) {
+                            filename = FilenameUtils.getName(filename);
+                        }
+                        validateUploadParams(siteId, inputProfileId, outputProfileId, filename);
+                        result.setEntity(RESULT_KEY_ITEM,
+                                mediaConvertService
+                                        .uploadVideo(siteId, inputProfileId, outputProfileId, filename, stream));
+                        result.setResponse(ApiResponse.OK);
+                        return result;
+                    }
+                }
+            }
+            throw new InvalidParametersException("No file was sent in the request body");
+        } catch (FileUploadException e) {
+            throw new InvalidParametersException("The request body is invalid");
+        }
+    }
+
+    private void validateUploadParams(String siteId, String inputProfileId, String outputProfileId, String filename) throws ValidationException {
+        Validator pathValidator = new EsapiValidator(HTTPURI);
+        validateValue(new EsapiValidator(SITE_ID), siteId, REQUEST_PARAM_SITE_ID);
+        validateValue(pathValidator, filename, "filename");
+        validateValue(new NoTagsValidator(), inputProfileId, INPUT_PROFILE_PARAM);
+        validateValue(new NoTagsValidator(), outputProfileId, OUTPUT_PROFILE_PARAM);
     }
 
 }

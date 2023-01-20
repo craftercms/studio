@@ -38,7 +38,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -79,7 +78,7 @@ public class PublishController {
                                                                         @RequestParam(name = REQUEST_PARAM_OFFSET, required = false,
                                                                                 defaultValue = "0") @PositiveOrZero int offset,
                                                                         @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
-                                                                                defaultValue = "10") @Positive int limit) throws SiteNotFoundException {
+                                                                                defaultValue = "10") @PositiveOrZero int limit) throws SiteNotFoundException {
         int total = publishService.getPublishingPackagesTotal(siteId, environment, path, states);
         List<PublishingPackage> packages = null;
         if (total > 0) {
@@ -149,7 +148,7 @@ public class PublishController {
     @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
     public ResultList<DeploymentHistoryGroup> getPublishingHistory(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                                    @PositiveOrZero @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,
-                                                                   @Positive @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
+                                                                   @PositiveOrZero @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
                                                                    @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = REQUEST_PARAM_FILTER_TYPE, required = false,
                                                                            defaultValue = "page") String filterType)
             throws SiteNotFoundException {

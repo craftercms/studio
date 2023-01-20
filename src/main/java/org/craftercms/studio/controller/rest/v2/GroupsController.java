@@ -29,9 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
@@ -45,6 +47,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.*;
 
+@Validated
 @RequestMapping(API_2 + GROUPS)
 @RestController
 public class GroupsController {
@@ -62,16 +65,16 @@ public class GroupsController {
      * Get groups API
      *
      * @param keyword keyword parameter
-     * @param offset offset parameter
-     * @param limit limit parameter
-     * @param sort sort parameter
+     * @param offset  offset parameter
+     * @param limit   limit parameter
+     * @param sort    sort parameter
      * @return Response containing list of groups
      */
     @GetMapping
     public PaginatedResultList<Group> getAllGroups(
             @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "group_name asc") String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
@@ -158,16 +161,16 @@ public class GroupsController {
      * Get group members API
      *
      * @param groupId Group identifier
-     * @param offset Result set offset
-     * @param limit Result set limit
-     * @param sort Sort order
+     * @param offset  Result set offset
+     * @param limit   Result set limit
+     * @param sort    Sort order
      * @return Response containing list od users
      */
     @GetMapping(PATH_PARAM_ID + MEMBERS)
     public PaginatedResultList<User> getGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "id asc") String sort)
             throws ServiceLayerException, GroupNotFoundException {
@@ -187,7 +190,7 @@ public class GroupsController {
     /**
      * Add group members API
      *
-     * @param groupId Group identifiers
+     * @param groupId         Group identifiers
      * @param addGroupMembers Add members request body (json representation)
      * @return Response object
      */
@@ -199,7 +202,7 @@ public class GroupsController {
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
         List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getIds(),
-                                                             addGroupMembers.getUsernames());
+                addGroupMembers.getUsernames());
 
         ResultList<User> result = new ResultList<>();
         result.setResponse(OK);
@@ -210,8 +213,8 @@ public class GroupsController {
     /**
      * Remove group members API
      *
-     * @param groupId Group identifier
-     * @param userIds List of user identifiers
+     * @param groupId   Group identifier
+     * @param userIds   List of user identifiers
      * @param usernames List of usernames
      * @return Response object
      */
