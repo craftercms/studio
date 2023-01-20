@@ -31,7 +31,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.HashMap;
@@ -67,8 +66,8 @@ public class MarketplaceController {
                                       @RequestParam(required = false) String keywords,
                                       @RequestParam(required = false, defaultValue = "false") boolean showIncompatible,
                                       @PositiveOrZero @RequestParam(required = false, defaultValue = "0") long offset,
-                                      @Positive @RequestParam(required = false, defaultValue = "10") long limit)
-        throws MarketplaceException {
+                                      @PositiveOrZero @RequestParam(required = false, defaultValue = "10") long limit)
+            throws MarketplaceException {
         Map<String, Object> page = marketplaceService.searchPlugins(type, keywords, showIncompatible, offset, limit);
 
         ResponseBody response = new ResponseBody();
@@ -99,7 +98,7 @@ public class MarketplaceController {
     @PostMapping("/install")
     public ResponseBody installPlugin(@Valid @RequestBody InstallPluginRequest request) throws MarketplaceException {
         marketplaceService.installPlugin(request.getSiteId(), request.getPluginId(), request.getPluginVersion(),
-                                         request.getParameters());
+                request.getParameters());
 
         Result result = new Result();
         result.setResponse(ApiResponse.OK);
@@ -191,7 +190,7 @@ public class MarketplaceController {
     protected static class CopyPluginRequest {
 
         @NotEmpty
-        @EsapiValidatedParam(type=SITE_ID)
+        @EsapiValidatedParam(type = SITE_ID)
         protected String siteId;
 
         @NotEmpty
