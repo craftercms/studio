@@ -56,5 +56,10 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
 
-    private RequestConstants() { }
+    public static final String GROUP_SORT_COLUMNS = "id record_last_updated group_name externally_managed";
+
+    public static final String USER_SORT_COLUMNS = "id username firstName lastName externally_managed email enabled";
+
+    private RequestConstants() {
+    }
 }
