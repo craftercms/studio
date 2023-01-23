@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.SqlSort;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
@@ -39,7 +40,6 @@ import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SQL_ORDER_BY;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
@@ -75,10 +75,9 @@ public class GroupsController {
             @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
+            @SqlSort(columns = GROUP_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "group_name asc") String sort)
             throws ServiceLayerException, OrganizationNotFoundException {
-
         int total = groupService.getAllGroupsTotal(DEFAULT_ORGANIZATION_ID, keyword);
         List<Group> groups = groupService.getAllGroups(DEFAULT_ORGANIZATION_ID, keyword, offset, limit, sort);
 
@@ -171,7 +170,7 @@ public class GroupsController {
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
+            @SqlSort(columns = USER_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "id asc") String sort)
             throws ServiceLayerException, GroupNotFoundException {
 
