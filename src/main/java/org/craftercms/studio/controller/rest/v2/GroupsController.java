@@ -34,6 +34,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
 import java.util.List;
@@ -221,7 +222,7 @@ public class GroupsController {
     public Result removeGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @RequestParam(value = REQUEST_PARAM_USER_ID, required = false) List<Long> userIds,
-            @EsapiValidatedParam(type = USERNAME) @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<String> usernames)
+            @RequestParam(value = REQUEST_PARAM_USERNAME, required = false) List<@NotBlank @EsapiValidatedParam(type = USERNAME) String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
 
         ValidationUtils.validateAnyListNonEmpty(userIds, usernames);
