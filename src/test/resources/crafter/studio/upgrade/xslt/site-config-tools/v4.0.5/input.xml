@@ -40,7 +40,6 @@
     </config>
 -->
 <config>
-    <version>12</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -217,6 +216,46 @@
                     </icon>
                 </datasource>
                 <datasource>
+                    <name>CMIS-repo</name>
+                    <icon>
+                        <class>fa-plug</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>img-cmis-repo</name>
+                    <icon>
+                        <class>fa-square</class>
+                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-cmis-repo</name>
+                    <icon>
+                        <class>fa-square-o fa-video-square</class>
+                        <stackedclass>fa-plug fa-video-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>CMIS-upload</name>
+                    <icon>
+                        <class>fa-plug</class>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>img-CMIS-upload</name>
+                    <icon>
+                        <class>fa-square</class>
+                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
+                    <name>video-CMIS-upload</name>
+                    <icon>
+                        <class>fa-square-o fa-video-square</class>
+                        <stackedclass>fa-plug fa-video-plug</stackedclass>
+                    </icon>
+                </datasource>
+                <datasource>
                     <name>WebDAV-repo</name>
                     <icon>
                         <class>fa-square-o fa-server</class>
@@ -377,57 +416,6 @@
                 </type>
 
             </objectTypes>
-        </tool>
-        <tool>
-            <name>encrypt-tool</name>
-            <label>Encryption Tool</label>
-            <icon>
-                <class>fa-lock</class>
-            </icon>
-        </tool>
-        <tool>
-            <name>admin-configurations</name>
-            <label>Configuration</label>
-        </tool>
-        <tool>
-            <name>audit</name>
-            <label>Audit</label>
-        </tool>
-        <tool>
-            <name>workflow-states</name>
-            <label>Workflow States</label>
-        </tool>
-        <tool>
-            <name>log-view</name>
-            <label>Log Console</label>
-        </tool>
-        <tool>
-            <name>status-view</name>
-            <label>Publishing</label>
-            <icon>
-                <class>fa-cloud-upload</class>
-            </icon>
-        </tool>
-        <tool>
-            <name>repository</name>
-            <label>Remote Repositories</label>
-            <icon>
-                <class>fa-database</class>
-            </icon>
-        </tool>
-    <tool>
-        <name>graphiql</name>
-        <label>GraphiQL</label>
-        <icon>
-            <class>fa-line-chart</class>
-        </icon>
-    </tool>
-        <tool>
-            <name>plugin-management</name>
-            <label>Plugin Management</label>
-            <icon>
-                <class>fa-puzzle-piece</class>
-            </icon>
         </tool>
     </tools>
 </config>

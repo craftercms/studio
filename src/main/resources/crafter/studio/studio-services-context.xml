@@ -469,13 +469,6 @@
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
-    <bean id="cmisService" class="org.craftercms.studio.impl.v2.service.cmis.CmisServiceImpl">
-        <constructor-arg name="cstudioContentService" ref="cstudioContentService"/>
-        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="configurationService" ref="configurationService"/>
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
-    </bean>
-
     <bean id="repositoryManagementService"
           class="org.craftercms.studio.impl.v2.service.repository.RepositoryManagementServiceImpl">
         <constructor-arg name="repositoryManagementServiceInternal" ref="repositoryManagementServiceInternal" />
