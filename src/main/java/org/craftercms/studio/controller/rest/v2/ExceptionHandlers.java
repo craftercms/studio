@@ -28,7 +28,10 @@ import org.craftercms.commons.validation.ValidationRuntimeException;
 import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.core.util.ExceptionUtils;
-import org.craftercms.studio.api.v1.exception.*;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.exception.*;
@@ -52,6 +55,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -286,48 +290,20 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
-    @ExceptionHandler(CmisRepositoryNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleCmisRepositoryNotFoundException(HttpServletRequest request,
-                                                              CmisRepositoryNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CMIS_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
-    }
-
-    @ExceptionHandler(CmisTimeoutException.class)
-    @ResponseStatus(HttpStatus.REQUEST_TIMEOUT)
-    public ResponseBody handleCmisTimeoutException(HttpServletRequest request, CmisTimeoutException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CMIS_TIMEOUT);
-        return handleExceptionInternal(request, e, response);
-    }
-
-    @ExceptionHandler(CmisUnavailableException.class)
-    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public ResponseBody handleCmisUnavailableException(HttpServletRequest request, CmisUnavailableException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CMIS_UNREACHABLE);
-        return handleExceptionInternal(request, e, response);
-    }
-
-    @ExceptionHandler(StudioPathNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleStudioPathNotFoundException(HttpServletRequest request, StudioPathNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CMIS_STUDIO_PATH_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
-    }
-
-    @ExceptionHandler(CmisPathNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseBody handleCmisPathNotFoundException(HttpServletRequest request, CmisPathNotFoundException e) {
-        ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
-        return handleExceptionInternal(request, e, response);
-    }
-
     @ExceptionHandler(PasswordRequirementsFailedException.class)
     @ResponseStatus(BAD_REQUEST)
     public ResponseBody handlePasswordRequirementsFailedException(HttpServletRequest request,
                                                                   PasswordRequirementsFailedException e) {
         ApiResponse response = new ApiResponse(ApiResponse.USER_PASSWORD_REQUIREMENTS_FAILED);
         return handleExceptionInternal(request, e, response, DEBUG);
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(RequestRejectedException.class)
+    public ResponseBody handleRequestRejectedException(HttpServletRequest request, RequestRejectedException e) {
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
+        response.setMessage(e.getMessage());
+        return handleExceptionInternal(request, e, response);
     }
 
     @ExceptionHandler(PasswordDoesNotMatchException.class)

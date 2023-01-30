@@ -112,7 +112,6 @@
     </bean>
 
     <bean id="cmisController" class="org.craftercms.studio.controller.rest.v2.CmisController">
-        <property name="cmisService" ref="cmisService" />
     </bean>
 
     <bean id="repositoryManagementController"

@@ -76,7 +76,6 @@
 
 -->
 <permissions>
-    <version>4.0.11</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -85,6 +84,10 @@
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
         </rule>
@@ -95,6 +98,10 @@
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
         </rule>
@@ -105,6 +112,10 @@
                 <permission>content_write</permission>
                 <permission>content_create</permission>
                 <permission>folder_create</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
         </rule>
@@ -134,6 +145,10 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
         </rule>
@@ -153,6 +168,10 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>content_delete</permission>
                 <permission>get_children</permission>
             </allowed-permissions>
@@ -193,6 +212,10 @@
                 <permission>folder_create</permission>
                 <permission>content_create</permission>
                 <permission>Change Content Type</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>write_configuration</permission>
                 <permission>add_remote</permission>
                 <permission>list_remotes</permission>
@@ -270,6 +293,10 @@
                 <permission>folder_create</permission>
                 <permission>content_create</permission>
                 <permission>Change Content Type</permission>
+                <permission>list_cmis</permission>
+                <permission>search_cmis</permission>
+                <permission>clone_content_cmis</permission>
+                <permission>upload_content_cmis</permission>
                 <permission>add_remote</permission>
                 <permission>list_remotes</permission>
                 <permission>pull_from_remote</permission>
