@@ -158,15 +158,6 @@ public class ApiResponse {
                     "Check the plugin requirements", StringUtils.EMPTY);
 
     // 50000 - 51000
-    public static final ApiResponse CMIS_UNREACHABLE = new ApiResponse(50000, "CMIS server is unreachable",
-            "Advise the user that the CMIS server is not reachable", StringUtils.EMPTY);
-    public static final ApiResponse CMIS_TIMEOUT = new ApiResponse(50001, "Request to CMIS server timed out",
-            "Advise the user that the request to CMIS server timed out", StringUtils.EMPTY);
-    public static final ApiResponse CMIS_NOT_FOUND = new ApiResponse(50002, "CMIS server was not found",
-            "Advise the user that the CMIS server was not found", StringUtils.EMPTY);
-    public static final ApiResponse CMIS_STUDIO_PATH_NOT_FOUND =
-            new ApiResponse(50003, "Target path does not exist in site repository",
-                    "Check if you sent in the right Studio Path", StringUtils.EMPTY);
 
     // 51000 - 52000
     public static final ApiResponse BOX_UNREACHABLE = new ApiResponse(51000, "Box is unreachable",

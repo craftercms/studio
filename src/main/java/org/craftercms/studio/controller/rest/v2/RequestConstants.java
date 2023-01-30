@@ -37,8 +37,6 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_ORIGIN = "origin";
     public static final String REQUEST_PARAM_CLUSTER_NODE_ID = "clusterNodeId";
     public static final String REQUEST_PARAM_ORDER = "order";
-    public static final String REQUEST_PARAM_CMIS_REPO_ID = "cmisRepoId";
-    public static final String REQUEST_PARAM_CMIS_PATH = "cmisPath";
     public static final String REQUEST_PARAM_PATH = "path";
     public static final String REQUEST_PARAM_PROFILE_ID = "profileId";
     public static final String REQUEST_PARAM_TYPE = "type";
