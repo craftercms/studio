@@ -40,7 +40,7 @@
     </config>
 -->
 <config>
-    <version>4.0.4</version>
+    <version>4.0.5</version>
     <tools>
         <tool>
             <name>content-types</name>
@@ -214,46 +214,6 @@
                     <name>file-browse-repo</name>
                     <icon>
                         <class>fa-hand-o-up</class>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>CMIS-repo</name>
-                    <icon>
-                        <class>fa-plug</class>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>img-cmis-repo</name>
-                    <icon>
-                        <class>fa-square</class>
-                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>video-cmis-repo</name>
-                    <icon>
-                        <class>fa-square-o fa-video-square</class>
-                        <stackedclass>fa-plug fa-video-plug</stackedclass>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>CMIS-upload</name>
-                    <icon>
-                        <class>fa-plug</class>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>img-CMIS-upload</name>
-                    <icon>
-                        <class>fa-square</class>
-                        <stackedclass>fa-plug fa-inverse fa-image-plug</stackedclass>
-                    </icon>
-                </datasource>
-                <datasource>
-                    <name>video-CMIS-upload</name>
-                    <icon>
-                        <class>fa-square-o fa-video-square</class>
-                        <stackedclass>fa-plug fa-video-plug</stackedclass>
                     </icon>
                 </datasource>
                 <datasource>

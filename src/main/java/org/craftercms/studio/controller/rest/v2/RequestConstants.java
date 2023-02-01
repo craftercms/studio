@@ -37,8 +37,6 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_ORIGIN = "origin";
     public static final String REQUEST_PARAM_CLUSTER_NODE_ID = "clusterNodeId";
     public static final String REQUEST_PARAM_ORDER = "order";
-    public static final String REQUEST_PARAM_CMIS_REPO_ID = "cmisRepoId";
-    public static final String REQUEST_PARAM_CMIS_PATH = "cmisPath";
     public static final String REQUEST_PARAM_PATH = "path";
     public static final String REQUEST_PARAM_PROFILE_ID = "profileId";
     public static final String REQUEST_PARAM_TYPE = "type";
@@ -56,5 +54,10 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
 
-    private RequestConstants() { }
+    public static final String GROUP_SORT_COLUMNS = "id record_last_updated group_name externally_managed";
+
+    public static final String USER_SORT_COLUMNS = "id username firstName lastName externally_managed email enabled";
+
+    private RequestConstants() {
+    }
 }

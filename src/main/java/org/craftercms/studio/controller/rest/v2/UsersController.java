@@ -19,6 +19,7 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.SqlSort;
 import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
@@ -95,7 +96,7 @@ public class UsersController {
             @EsapiValidatedParam(type = SEARCH_KEYWORDS) @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @EsapiValidatedParam(type = SQL_ORDER_BY) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
+            @SqlSort(columns = USER_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "id asc") String sort)
             throws ServiceLayerException {
         List<User> users;

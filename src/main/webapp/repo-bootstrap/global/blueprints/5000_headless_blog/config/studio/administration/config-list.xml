@@ -69,13 +69,6 @@
         </file>
         <file>
             <module>studio</module>
-            <path>data-sources/cmis-config.xml</path>
-            <title>confTabCMISConfiguration</title>
-            <description>confTabCMISConfigurationDesc</description>
-            <samplePath>sample-cmis-config.xml</samplePath>
-        </file>
-        <file>
-            <module>studio</module>
             <path>administration/site-config-tools.xml</path>
             <title>confTabSiteConf</title>
             <description>confTabSiteConfDesc</description>

@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.PositiveOrZero;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -54,8 +55,8 @@ public class AuditController {
     public ResponseBody getAuditLog(
             @EsapiValidatedParam(type = SITE_ID)
             @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId,
-            @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @EsapiValidatedParam(type = USERNAME)
             @RequestParam(value = REQUEST_PARAM_USER, required = false, defaultValue = "") String user,
             @RequestParam(value = REQUEST_PARAM_OPERATIONS, required = false) List<@ValidateNoTagsParam String> operations,

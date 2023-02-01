@@ -87,18 +87,18 @@
     <security>
         <saml>
             <token/> (The expected value for the secure key request header)
-			<groups>
-			    <group>
-				    <name/> (The name of the group from the request header)
-					<role/> (The value to use for the role in the profile)
-				</group>
-			</groups>
-			<attributes>
-			    <attribute>
-				    <name/> (The name of the request header for the attribute)
-					<field/> (The name of the field to use in the profile)
-				</attribute>
-			</attributes>
+            <groups>
+                <group>
+                    <name/> (The name of the group from the request header)
+                    <role/> (The value to use for the role in the profile)
+                </group>
+            </groups>
+            <attributes>
+                <attribute>
+                    <name/> (The name of the request header for the attribute)
+                    <field/> (The name of the field to use in the profile)
+                </attribute>
+            </attributes>
         </saml/>
         <login>
             <formUrl /> (The URL of the login form page)
@@ -148,6 +148,27 @@
         </warmUp>
     </cache>
 
+    (Header Mappings properties)
+    <headerMappings>
+        <mapping>
+            <urlPattern>/products/**</urlPattern> (Ant path pattern)
+            <headers>
+                <header>
+                    <name>Cache-Control</name>
+                    <value>max-age=60\, s-maxage=300</value>
+                </header>
+            </headers>
+        </mapping>
+        <mapping>
+            <urlPattern>/**/*.pdf</urlPattern> (Ant path pattern)
+            <headers>
+                <header>
+                    <name>X-Crafter-Document</name>
+                    <value>true</value>
+                </header>
+            </headers>
+        </mapping>
+    </headerMappings>
 
     You can learn more about Crafter Engine site configuration in the docs at
     http://docs.craftercms.org
@@ -287,4 +308,26 @@
             <contentFolders>/scripts,/templates</contentFolders>
         </warmUp>
     </cache>
+
+    <!-- Header Mappings properties-->
+    <headerMappings>
+        <mapping>
+            <urlPattern>/products/**</urlPattern>
+            <headers>
+                <header>
+                    <name>Cache-Control</name>
+                    <value>max-age=60\, s-maxage=300</value>
+                </header>
+            </headers>
+        </mapping>
+        <mapping>
+            <urlPattern>/**/*.pdf</urlPattern>
+            <headers>
+                <header>
+                    <name>X-Crafter-Document</name>
+                    <value>true</value>
+                </header>
+            </headers>
+        </mapping>
+    </headerMappings>
 </site>

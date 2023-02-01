@@ -333,7 +333,14 @@
     <widget id="craftercms.components.Dashboard">
         <configuration>
             <widgets>
-                <widget id="craftercms.components.AwaitingApprovalDashlet">
+                <widget id="craftercms.components.LegacyInReviewDashlet">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                        <role>publisher</role>
+                    </permittedRoles>
+                </widget>
+                <widget id="craftercms.components.LegacyUnpublishedDashlet">
                     <permittedRoles>
                         <role>admin</role>
                         <role>developer</role>

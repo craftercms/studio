@@ -82,8 +82,6 @@
                       parent="legacyAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioGroupAPIAccessDecisionVoter"
                       parent="legacyAccessDecisionVoter" />
-                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioCmisDSAPIAccessDecisionVoter"
-                      parent="legacyAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioWorkflowAPIAccessDecisionVoter"
                       parent="legacyAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioContentAPIAccessDecisionVoter"

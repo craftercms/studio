@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || >=4.0.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || >=4.0.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -463,6 +463,36 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade-4.0.1.13-to-4.0.1.14.sql
+      - currentVersion: 4.0.1.14
+        nextVersion: 4.0.1.15
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-config-list.xml
+                dest: /configuration/samples/sample-config-list.xml
+            commitDetails: Remove CMIS configs
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-site-config-tools.xml
+                dest: /configuration/samples/sample-site-config-tools.xml
+            commitDetails: Remove CMIS configs
+          - type: deleteUpgrader
+            paths:
+              - /configuration/samples/sample-cmis-config.xml
+            commitDetails: Remove CMIS sample config
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.0.x/4.0.1.15/system/global-permission-mappings-config.xslt
+            commitDetails: Remove cmis-related permissions
+      - currentVersion: 4.0.1.15
+        nextVersion: 4.0.1.16
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
+                dest: /configuration/samples/sample-engine-site-config.xml
+            commitDetails: Update engine sample header mappings config
+
   # Pipeline to upgrade site repositories
   site:
     requires: '3.1.9 || 3.1.18 || >=4.0.0'
@@ -577,6 +607,14 @@ pipelines:
             regex: config/studio/content-types/.+/form-definition\.xml
             template: crafter/studio/upgrade/4.0.x/4.0.0.7/site/update-content-type-datasources.xslt
             commitDetails: Update datasources components and simpleTaxonomy
+      - currentVersion: 4.0.0.7
+        nextVersion: 4.0.0.8
+        operations:
+          - type: deleteUpgrader
+            paths:
+              - config/studio/data-sources/cmis-config.xml
+            commitDetails: Delete CMIS configurations
+
   # Pipeline to upgrade blueprints
   blueprint:
     - currentVersion: 3.0.0
@@ -786,6 +824,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.11.xslt
               commitDetails: Adding set_item_states permissions
+        - currentVersion: 4.0.11
+          nextVersion: 4.0.12
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.12.xslt
+              commitDetails: Remove cmis-related permissions
 
   role-mappings-config:
     module: studio
@@ -836,6 +880,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.2.xslt
               commitDetails: Remove unused configuration files
+        - currentVersion: 4.0.2
+          nextVersion: 4.0.3
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/config-list/config-list-v4.0.3.xslt
+              commitDetails: Remove CMIS configs
 
   site-config-tools:
     module: studio
@@ -876,6 +926,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.4.xslt
               commitDetails: Update datasources components and simpleTaxonomy
+        - currentVersion: 4.0.4
+          nextVersion: 4.0.5
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.0.x/config/site-config-tools/site-config-tools-v4.0.5.xslt
+              commitDetails: Remove CMIS support
 
   contextual-nav:
     module: studio

@@ -19,7 +19,7 @@ package org.craftercms.studio.model.rest.dependency;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
-import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
@@ -32,9 +32,7 @@ public class GetSoftDependenciesRequestBody {
     @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = HTTPURI)
-    private List<@Valid @NotEmpty String> paths;
+    private List<@ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @NotBlank String> paths;
 
     public String getSiteId() {
         return siteId;

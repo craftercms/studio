@@ -25,7 +25,6 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_CANCEL_FAILED_PULL = "cancel_failed_pull";
     public static final String PERMISSION_CANCEL_PUBLISH = "cancel_publish";
     public static final String PERMISSION_CHANGE_CONTENT_TYPE = "change content type";
-    public static final String PERMISSION_CLONE_CONTENT_CMIS = "clone_content_cmis";
     public static final String PERMISSION_COMMIT_RESOLUTION = "commit_resolution";
     public static final String PERMISSION_CONTENT_CREATE = "content_create";
     public static final String PERMISSION_FOLDER_CREATE = "folder_create";
@@ -41,7 +40,6 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_ENCRYPTION_TOOL = "encryption_tool";
     public static final String PERMISSION_GET_CHILDREN = "get_children";
     public static final String PERMISSION_GET_PUBLISHING_QUEUE = "get_publishing_queue";
-    public static final String PERMISSION_LIST_CMIS = "list_cmis";
     public static final String PERMISSION_LIST_REMOTES = "list_remotes";
     public static final String PERMISSION_PUBLISH = "publish";
     public static final String PERMISSION_PUBLISH_STATUS = "publish_status";
@@ -59,13 +57,11 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_RESOLVE_CONFLICT = "resolve_conflict";
     public static final String PERMISSION_S3_READ = "s3 read";
     public static final String PERMISSION_S3_WRITE = "s3 write";
-    public static final String PERMISSION_SEARCH_CMIS = "search_cmis";
     public static final String PERMISSION_SITE_DIFF_CONFLICTED_FILE = "site_diff_conflicted_file";
     public static final String PERMISSION_SITE_STATUS = "site_status";
     public static final String PERMISSION_UPDATE_CLUSTER = "update_cluster";
     public static final String PERMISSION_UPDATE_GROUPS = "update_groups";
     public static final String PERMISSION_UPDATE_USERS = "update_users";
-    public static final String PERMISSION_UPLOAD_CONTENT_CMIS = "upload_content_cmis";
     public static final String PERMISSION_WEBDAV_READ = "webdav_read";
     public static final String PERMISSION_WEBDAV_WRITE = "webdav_write";
     public static final String PERMISSION_CONTENT_WRITE = "content_write";
