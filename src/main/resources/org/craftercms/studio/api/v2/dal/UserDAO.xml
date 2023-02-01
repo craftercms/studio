@@ -90,7 +90,7 @@
         WHERE u.deleted = 0
         <if test="keyword != null" >
             <bind name="pattern" value="'%' + keyword + '%'" />
-            AND u.username like #{pattern}
+            AND (u.username like #{pattern} OR u.first_name like #{pattern} OR u.last_name like #{pattern} OR u.email like #{pattern})
         </if>
         <if test="sort != null and sort !=  '' ">
             ORDER BY ${sort}
