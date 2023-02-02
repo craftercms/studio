@@ -114,7 +114,7 @@
     </select>
 
     <insert id="createGroup" parameterType="java.util.Map" useGeneratedKeys="true" keyColumn="id">
-        INSERT INTO `group` (record_last_updated, org_id, group_name, group_description, externally_managed)
+        INSERT IGNORE INTO `group` (record_last_updated, org_id, group_name, group_description, externally_managed)
         VALUES (CURRENT_TIMESTAMP, #{orgId}, #{groupName}, #{groupDescription}, #{externallyManaged}) ;
         <selectKey resultType="long" order="AFTER" keyProperty="id">
             select LAST_INSERT_ID() as id

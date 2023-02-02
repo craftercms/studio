@@ -18,6 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.http.HttpUtils;
@@ -255,10 +256,18 @@ public class ExceptionHandlers {
     }
 
 
-    @ExceptionHandler(JsonProcessingException.class)
     @ResponseStatus(BAD_REQUEST)
-    public ResponseBody handleUnrecognizedPropertyException(HttpServletRequest request, JsonProcessingException e) {
+    @ExceptionHandler(JsonProcessingException.class)
+    public ResponseBody handleJsonProcessingException(HttpServletRequest request, JsonProcessingException e) {
         ApiResponse response = new ApiResponse(INVALID_PARAMS);
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(UnrecognizedPropertyException.class)
+    public ResponseBody handleUnrecognizedPropertyException(HttpServletRequest request, UnrecognizedPropertyException e) {
+        ApiResponse response = new ApiResponse(INVALID_PARAMS);
+        response.setMessage(format("Unrecognized '%s' property found in request", e.getPropertyName()));
         return handleExceptionInternal(request, e, response);
     }
 
@@ -384,6 +393,11 @@ public class ExceptionHandlers {
     @ResponseStatus(BAD_REQUEST)
     public ResponseBody handleHttpMessageNotReadableException(HttpServletRequest request,
                                                               HttpMessageNotReadableException e) {
+        UnrecognizedPropertyException unrecognizedPropertyException = ExceptionUtils.getThrowableOfType(e, UnrecognizedPropertyException.class);
+        if (unrecognizedPropertyException != null) {
+            return handleUnrecognizedPropertyException(request, unrecognizedPropertyException);
+        }
+
         MismatchedInputException mismatchedInputException = ExceptionUtils.getThrowableOfType(e, MismatchedInputException.class);
         if (mismatchedInputException != null) {
             return handleMismatchInputException(request, mismatchedInputException);
@@ -399,8 +413,8 @@ public class ExceptionHandlers {
         return responseBody;
     }
 
-    @ExceptionHandler(MismatchedInputException.class)
     @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(MismatchedInputException.class)
     public ResponseBody handleMismatchInputException(HttpServletRequest request,
                                                      MismatchedInputException e) {
         ResponseBody responseBody = new ResponseBody();
