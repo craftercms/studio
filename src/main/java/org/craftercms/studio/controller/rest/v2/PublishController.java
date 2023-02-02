@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.PositiveOrZero;
 import java.beans.ConstructorProperties;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,7 +81,7 @@ public class PublishController {
                                                                         @RequestParam(name = REQUEST_PARAM_LIMIT, required = false,
                                                                                 defaultValue = "10") @PositiveOrZero int limit) throws SiteNotFoundException {
         int total = publishService.getPublishingPackagesTotal(siteId, environment, path, states);
-        List<PublishingPackage> packages = null;
+        List<PublishingPackage> packages = new ArrayList<>();
         if (total > 0) {
             packages = publishService.getPublishingPackages(siteId, environment, path, states, offset, limit);
         }
