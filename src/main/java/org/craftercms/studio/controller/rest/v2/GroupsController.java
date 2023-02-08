@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
 import org.craftercms.studio.model.rest.*;
+import org.craftercms.studio.model.rest.groups.UpdateGroupRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -112,18 +113,26 @@ public class GroupsController {
     /**
      * Update group API
      *
-     * @param group Group to update
+     * @param updateRequest {@link UpdateGroupRequest} to update
      * @return Response object
      */
     @PatchMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResultOne<Group> updateGroup(@Valid @RequestBody Group group)
+    public ResultOne<Group> updateGroup(@Valid @RequestBody UpdateGroupRequest updateRequest)
             throws ServiceLayerException, GroupNotFoundException, AuthenticationException, GroupExternallyManagedException {
+        Group group = buildGroup(updateRequest);
         Group updatedGroup = groupService.updateGroup(DEFAULT_ORGANIZATION_ID, group);
 
         ResultOne<Group> result = new ResultOne<>();
         result.setResponse(OK);
         result.setEntity(RESULT_KEY_GROUP, updatedGroup);
         return result;
+    }
+
+    private Group buildGroup(final UpdateGroupRequest updateRequest) {
+        Group group = new Group();
+        group.setId(updateRequest.getId());
+        group.setGroupDescription(updateRequest.getGroupDescription());
+        return group;
     }
 
     /**

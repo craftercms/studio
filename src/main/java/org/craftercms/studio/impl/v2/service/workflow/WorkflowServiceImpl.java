@@ -58,6 +58,7 @@ import org.springframework.context.ApplicationContextAware;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -242,8 +243,11 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             throws UserNotFoundException, ServiceLayerException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, submittedBy);
         List<Workflow> workflowEntries = new LinkedList<>();
-        paths.forEach(path -> {
+        for (String path : paths) {
             Item it = itemServiceInternal.getItem(siteId, path);
+            if (it == null) {
+                throw new ContentNotFoundException(path, siteId, format("Failed to retrieve item at path '%s' in site '%s'", path, siteId));
+            }
 
             Workflow workflow = new Workflow();
             workflow.setItemId(it.getId());
@@ -257,7 +261,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             workflow.setState(STATE_OPENED);
             workflow.setTargetEnvironment(publishingTarget);
             workflowEntries.add(workflow);
-        });
+        }
         workflowServiceInternal.insertWorkflowEntries(workflowEntries);
 
         // Item
