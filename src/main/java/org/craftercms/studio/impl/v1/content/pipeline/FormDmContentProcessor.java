@@ -202,6 +202,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
                 Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
                 itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
+                contentService.notifyContentEvent(site, itemPath);
             } catch (Exception e) {
                 logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
             } finally {
@@ -258,6 +259,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             // Item
             // TODO: get local code with API 2
             itemServiceInternal.persistItemAfterWrite(site, path, user, commitId, unlock);
+            contentService.notifyContentEvent(site, path);
         }
 
         // unlock the content upon save if the flag is true

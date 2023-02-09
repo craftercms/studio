@@ -136,6 +136,13 @@ public interface ContentService {
     boolean writeContent(String site, String path, InputStream content) throws ServiceLayerException;
 
     /**
+     * Notify when there is a content update
+     * @param site site name
+     * @param path path name
+     */
+    void notifyContentEvent(String site, String path);
+
+    /**
      * create a folder
      *
      * @param site - the project ID
