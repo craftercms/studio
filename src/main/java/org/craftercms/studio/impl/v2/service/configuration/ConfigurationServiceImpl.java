@@ -452,6 +452,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         try {
             itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
                     contentRepository.getRepoLastCommitId(siteId), true);
+            contentService.notifyContentEvent(siteId, configPath);
         } catch (XmlFileParseException e) {
             logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
         }
@@ -538,6 +539,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 String currentUser = securityService.getCurrentUser();
                 itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
                         contentRepository.getRepoLastCommitId(siteId), true);
+                contentService.notifyContentEvent(siteId, configPath);
                 generateAuditLog(siteId, configPath, currentUser);
                 dependencyService.upsertDependencies(siteId, configPath);
             } else {
@@ -611,6 +613,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     public void writeGlobalConfiguration(@ProtectedResourceId(PATH_RESOURCE_ID) String path, InputStream content)
             throws ServiceLayerException {
         contentService.writeContent(EMPTY, path, validate(content, path));
+        contentService.notifyContentEvent(EMPTY, path);
         String currentUser = securityService.getCurrentUser();
         generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
         invalidateCache(path);
