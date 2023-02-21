@@ -122,17 +122,18 @@ studio.content.fullPath.maxSize: 1024
 studio.content.policy.config.path: /config/studio/site-policy-config.xml
 # Item MIME-types that are editable directly in Crafter Studio
 studio.content.item.editableTypes:
-  - text/plain
-  - text/html
-  - text/css
-  - text/x-scss
-  - text/x-sass
-  - text/x-freemarker
-  - text/x-groovy
+  - text/*
   - application/javascript
   - application/json
   - application/xml
   - application/xhtml+xml
+  - application/x-httpd-php
+  - application/rtf
+  - application/ld+json
+  - application/x-groovy
+  - application/x-sh
+  - application/x-yaml
+  - application/x-csh
 ############################################################
 ##                   Site Configuration                   ##
 ############################################################

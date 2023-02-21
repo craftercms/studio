@@ -155,7 +155,7 @@ application/jsonml+json				jsonml
 # application/jwt
 # application/kpml-request+xml
 # application/kpml-response+xml
-# application/ld+json
+application/ld+json				jsonld
 # application/lgr+xml
 # application/link-format
 # application/load-control+xml
@@ -1360,6 +1360,7 @@ application/xv+xml				mxml xhvml xvml xvm
 application/yang				yang
 application/yin+xml				yin
 application/zip					zip
+application/x-httpd-php					php
 # application/zlib
 # audio/1d-interleaved-parityfec
 # audio/32kadpcm
@@ -1766,6 +1767,7 @@ text/x-vcard					vcf
 # text/xml
 # text/xml-external-parsed-entity
 # video/1d-interleaved-parityfec
+text/yaml					yaml yml
 video/3gpp					3gp
 # video/3gpp-tt
 video/3gpp2					3g2

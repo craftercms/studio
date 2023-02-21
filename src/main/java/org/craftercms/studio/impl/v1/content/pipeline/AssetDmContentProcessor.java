@@ -217,6 +217,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
 
             // Item
             itemServiceInternal.persistItemAfterWrite(site, relativePath, user, commitId, unlock);
+            contentService.notifyContentEvent(site, relativePath);
         }
 
         if (unlock) {

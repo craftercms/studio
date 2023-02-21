@@ -38,6 +38,7 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.core.io.Resource;
+import org.springframework.util.MimeType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -218,14 +219,19 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public boolean isEditable(String itemPath, String itemMimeType) {
+    public boolean isEditable(String itemPath, String mimeType) {
         List<String> editableMimeTypes =
                 Arrays.asList(studioConfiguration.getArray(CONTENT_ITEM_EDITABLE_TYPES, String.class));
-        String mimeType = itemMimeType;
+
+        MimeType itemMimeType;
         if (StringUtils.isEmpty(mimeType)) {
-            mimeType = StudioUtils.getMimeType(itemPath);
+            itemMimeType = MimeType.valueOf(StudioUtils.getMimeType(itemPath));
+        } else {
+            itemMimeType = MimeType.valueOf(mimeType);
         }
-        return editableMimeTypes.contains(mimeType);
+
+        return editableMimeTypes.stream()
+                .anyMatch(type -> (MimeType.valueOf(type)).isCompatibleWith(itemMimeType));
     }
 
     @Override
