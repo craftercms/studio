@@ -19,8 +19,9 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -44,7 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
@@ -66,13 +67,12 @@ public class PublishController {
     }
 
     @GetMapping(PACKAGES)
-    public PaginatedResultList<PublishingPackage> getPublishingPackages(@EsapiValidatedParam(type = SITE_ID)
+    public PaginatedResultList<PublishingPackage> getPublishingPackages(@ValidSiteId
                                                                         @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                                         @EsapiValidatedParam(type = ALPHANUMERIC)
                                                                         @RequestParam(name = REQUEST_PARAM_ENVIRONMENT, required = false)
                                                                         String environment,
-                                                                        @ValidateSecurePathParam
-                                                                        @EsapiValidatedParam(type = HTTPURI)
+                                                                        @ValidExistingContentPath
                                                                         @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
                                                                         @RequestParam(name = REQUEST_PARAM_STATES, required = false)
                                                                         List<@ValidateNoTagsParam String> states,
@@ -96,7 +96,7 @@ public class PublishController {
     }
 
     @GetMapping(PACKAGE)
-    public ResponseBody getPublishingPackageDetails(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+    public ResponseBody getPublishingPackageDetails(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                     @RequestParam(name = REQUEST_PARAM_PACKAGE_ID) UUID packageId)
             throws SiteNotFoundException, PublishingPackageNotFoundException {
         PublishingPackageDetails publishingPackageDetails =
@@ -123,7 +123,7 @@ public class PublishController {
     }
 
     @GetMapping(STATUS)
-    public ResponseBody getPublishingStatus(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    public ResponseBody getPublishingStatus(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
         PublishStatus status = sitesService.getPublishingStatus(siteId);
         ResponseBody responseBody = new ResponseBody();
@@ -147,7 +147,7 @@ public class PublishController {
     }
 
     @GetMapping(value = HISTORY, produces = APPLICATION_JSON_VALUE)
-    public ResultList<DeploymentHistoryGroup> getPublishingHistory(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+    public ResultList<DeploymentHistoryGroup> getPublishingHistory(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                                    @PositiveOrZero @RequestParam(name = REQUEST_PARAM_DAYS) int daysFromToday,
                                                                    @PositiveOrZero @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
                                                                    @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = REQUEST_PARAM_FILTER_TYPE, required = false,
@@ -165,7 +165,7 @@ public class PublishController {
     }
 
     @GetMapping(value = AVAILABLE_TARGETS, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getAvailablePublishingTargets(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    public ResponseBody getAvailablePublishingTargets(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
         var availableTargets = publishService.getAvailablePublishingTargets(siteId);
         var published = publishService.isSitePublished(siteId);
@@ -181,7 +181,7 @@ public class PublishController {
 
     @Valid
     @GetMapping(value = HAS_INITIAL_PUBLISH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody hasInitialPublish(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
+    public ResponseBody hasInitialPublish(@ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId)
             throws SiteNotFoundException {
         var published = publishService.isSitePublished(siteId);
         ResponseBody responseBody = new ResponseBody();

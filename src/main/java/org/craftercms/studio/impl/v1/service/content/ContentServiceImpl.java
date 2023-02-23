@@ -281,14 +281,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContent(@ValidateStringParam @SiteId String site,
+    public void writeContent(@SiteId String site,
                              @ValidateSecurePathParam @ActionTargetPath String path,
-                             @ValidateStringParam @ActionTargetFilename String fileName,
-                             @ValidateStringParam @ActionContentType String contentType,
+                             @ActionTargetFilename String fileName,
+                             @ActionContentType String contentType,
                              InputStream input,
-                             @ValidateStringParam String createFolders,
-                             @ValidateStringParam String edit,
-                             @ValidateStringParam String unlock)
+                             String createFolders,
+                             String edit,
+                             String unlock)
             throws ServiceLayerException, UserNotFoundException {
         writeContent(site, path, fileName, contentType, input, createFolders, edit, unlock, false);
     }
@@ -296,14 +296,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContent(@ValidateStringParam @SiteId String site,
-                             @ValidateSecurePathParam @ActionTargetPath String path,
-                             @ValidateStringParam @ActionTargetFilename String fileName,
-                             @ValidateStringParam @ActionContentType String contentType,
+    public void writeContent(@SiteId String site,
+                             @ActionTargetPath String path,
+                             @ActionTargetFilename String fileName,
+                             @ActionContentType String contentType,
                              InputStream input,
-                             @ValidateStringParam String createFolders,
-                             @ValidateStringParam String edit,
-                             @ValidateStringParam String unlock,
+                             String createFolders,
+                             String edit,
+                             String unlock,
                              boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
         path = path.replaceAll("//", "/");
         try {

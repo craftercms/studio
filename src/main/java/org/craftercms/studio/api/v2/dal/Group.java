@@ -37,7 +37,7 @@ public class Group implements Serializable, GrantedAuthority {
     private Organization organization;
     private boolean externallyManaged;
     @NotBlank
-    @Size(max=512)
+    @Size(min = 3, max = 512)
     @EsapiValidatedParam(type = GROUP_NAME)
     private String groupName;
     @Size(max=1024)

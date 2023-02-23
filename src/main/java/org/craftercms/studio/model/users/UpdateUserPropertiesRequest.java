@@ -16,14 +16,12 @@
 package org.craftercms.studio.model.users;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Includes all data required to update or add user properties
@@ -37,7 +35,7 @@ public class UpdateUserPropertiesRequest {
     /**
      * The id of the site
      */
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     protected String siteId;
 
     /**

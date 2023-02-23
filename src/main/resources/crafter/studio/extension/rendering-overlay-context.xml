@@ -62,7 +62,7 @@
 
     <!--
     This allows to validate params for "in-line annotated methods"
-    e.g.: public ResponseBody clearCache(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId)
+    e.g.: public ResponseBody clearCache(@ValidSiteId @RequestParam String siteId)
      -->
     <bean id="methodValidationPostProcessor" class="org.springframework.validation.beanvalidation.MethodValidationPostProcessor">
         <property name="validator" ref="commonValidator"/>
