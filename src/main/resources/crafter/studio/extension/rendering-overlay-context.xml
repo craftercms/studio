@@ -32,6 +32,28 @@
         <constructor-arg name="maxAge" value="#{studioConfiguration.getProperty('studio.cache.assets.maxAge')}"/>
     </bean>
 
+    <!-- ESAPI. Override default security configuration -->
+    <!-- Letting spring to create the instance, so it can access Studio Configuration and
+     other spring beans-->
+    <bean class="org.springframework.beans.factory.config.MethodInvokingBean">
+        <property name="targetClass" value="org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration"/>
+        <property name="targetMethod" value="setInstance"/>
+        <property name="arguments">
+            <bean class="org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration">
+            </bean>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingBean">
+        <property name="targetClass" value="org.owasp.esapi.ESAPI"/>
+        <property name="targetMethod" value="initialize"/>
+        <property name="arguments">
+            <array>
+                <value>org.craftercms.studio.impl.v2.validation.StudioEsapiSecurityConfiguration</value>
+            </array>
+        </property>
+    </bean>
+
     <mvc:interceptors>
         <!-- By adding this interceptor we can keep the list of urls to include etag header and
          have different cacheControl settings per path/pattern-->
