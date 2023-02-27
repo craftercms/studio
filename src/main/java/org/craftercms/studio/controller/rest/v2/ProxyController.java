@@ -16,7 +16,7 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 
 /**
@@ -50,7 +49,7 @@ public class ProxyController {
      */
     @GetMapping(LOG_MONITOR_ENGINE_PROXY)
     public ResponseEntity<Object> getSiteLogEvents(@RequestBody(required = false) final String body,
-                                                   @EsapiValidatedParam(type = SITE_ID) @RequestParam("crafterSite") final String siteId,
+                                                   @ValidSiteId @RequestParam("crafterSite") final String siteId,
                                                    final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         return proxyService.getSiteLogEvents(body, siteId, request);
     }
@@ -58,7 +57,7 @@ public class ProxyController {
 
     @RequestMapping(ALL_SUB_URLS)
     public ResponseEntity<Object> proxyEngine(@RequestBody(required = false) final String body,
-                                              @EsapiValidatedParam(type = SITE_ID) @RequestParam("crafterSite") final String siteId,
+                                              @ValidSiteId @RequestParam("crafterSite") final String siteId,
                                               final HttpServletRequest request)
             throws URISyntaxException, SiteNotFoundException {
         return proxyService.proxyEngine(body, siteId, request);

@@ -17,7 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
@@ -47,7 +47,6 @@ import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.List;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_BLUEPRINTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULTS;
 
@@ -99,7 +98,7 @@ public class SitesController {
     }
 
     @PostMapping("/{siteId}")
-    public Result updateSite(@EsapiValidatedParam(type = SITE_ID) @PathVariable String siteId,
+    public Result updateSite(@ValidSiteId @PathVariable String siteId,
                              @Valid @RequestBody UpdateSiteRequest request)
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
         sitesService.updateSite(siteId, request.getName(), request.getDescription());
@@ -111,7 +110,7 @@ public class SitesController {
     }
 
     @PostMapping("/{siteId}/policy/validate")
-    public ResultList<ValidationResult> validatePolicy(@EsapiValidatedParam(type = SITE_ID) @PathVariable String siteId,
+    public ResultList<ValidationResult> validatePolicy(@ValidSiteId @PathVariable String siteId,
                                        @Valid @RequestBody ValidatePolicyRequest request)
             throws ConfigurationException, IOException, ContentNotFoundException {
         List<ValidationResult> results = policyService.validate(siteId, request.getActions());

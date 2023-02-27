@@ -21,9 +21,9 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.to.ResultTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.to.ResultTO;
 
 /**
  * A base class of content processor

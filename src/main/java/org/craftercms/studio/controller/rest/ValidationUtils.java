@@ -14,19 +14,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.controller.rest.v2;
+package org.craftercms.studio.controller.rest;
 
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
+import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.rest.EnableUsers;
 import org.springframework.validation.Validator;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
@@ -88,6 +88,45 @@ public abstract class ValidationUtils {
         if (validationResult.hasErrors()) {
             throw new ValidationException(validationResult);
         }
+    }
+
+    public static void validateValue(final Validator validator, final Object value, final String key, Map<String, String> errors) {
+        ValidationResult filenameResult = org.craftercms.commons.validation.ValidationUtils.validateValue(validator, value, key);
+        if (filenameResult.hasErrors()) {
+            errors.putAll(filenameResult.getErrors());
+        }
+    }
+
+    private static void throwExceptionIfErrorsFound(Map<String, String> errors) throws ValidationException {
+        if (!errors.isEmpty()) {
+            ValidationResult result = new ValidationResult();
+            errors.forEach(result::addError);
+            throw new ValidationException(result);
+        }
+    }
+
+    public static void validateNewContentParams(final String siteId, final String path) throws ValidationException {
+        Map<String, String> errors = new HashMap<>();
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        Validator siteIdValidator = new EsapiValidator(SITE_ID);
+
+        validateValue(siteIdValidator, siteId, "siteId", errors);
+        validateValue(pathValidator, path, "path", errors);
+
+        throwExceptionIfErrorsFound(errors);
+    }
+
+    public static void validateNewContentParams(final String siteId, final String path, final String filename) throws ValidationException {
+        Map<String, String> errors = new HashMap<>();
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
+        Validator siteIdValidator = new EsapiValidator(SITE_ID);
+        Validator filenameValidator = new EsapiValidator(CONTENT_FILE_NAME_WRITE);
+
+        validateValue(siteIdValidator, siteId, "siteId", errors);
+        validateValue(pathValidator, path, "path", errors);
+        validateValue(filenameValidator, filename, "filename", errors);
+
+        throwExceptionIfErrorsFound(errors);
     }
 
 }

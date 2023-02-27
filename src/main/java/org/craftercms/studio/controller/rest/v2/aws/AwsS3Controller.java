@@ -25,9 +25,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundException;
 import org.craftercms.commons.validation.ValidationException;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.commons.validation.validators.impl.NoTagsValidator;
 import org.craftercms.studio.api.v1.exception.AwsException;
@@ -47,12 +47,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
-import static org.craftercms.studio.controller.rest.v2.ValidationUtils.validateValue;
 
 /**
  * Rest controller for AWS S3 service.
@@ -81,9 +81,9 @@ public class AwsS3Controller {
      */
     @GetMapping("/list")
     public ResultList<S3Item> listItems(
-            @EsapiValidatedParam(type = SITE_ID) @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+            @ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
             @ValidateNoTagsParam @RequestParam(REQUEST_PARAM_PROFILE_ID) String profileId,
-            @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
+            @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH, required = false, defaultValue = StringUtils.EMPTY) String path,
             @ValidateNoTagsParam @RequestParam(value = REQUEST_PARAM_TYPE, required = false, defaultValue = StringUtils.EMPTY) String type)
             throws AwsException, SiteNotFoundException, ConfigurationProfileNotFoundException {
 
@@ -155,7 +155,7 @@ public class AwsS3Controller {
     }
 
     private void validateUploadParams(String siteId, String profileId, String path, String filename) throws ValidationException {
-        Validator pathValidator = new EsapiValidator(HTTPURI);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
         validateValue(new EsapiValidator(SITE_ID), siteId, REQUEST_PARAM_SITE_ID);
         validateValue(pathValidator, filename, "filename");
         validateValue(pathValidator, path, REQUEST_PARAM_PATH);

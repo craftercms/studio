@@ -16,18 +16,14 @@
 
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 public class CommitResolutionRequest {
 
     @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteId;
     private String commitMessage;
 

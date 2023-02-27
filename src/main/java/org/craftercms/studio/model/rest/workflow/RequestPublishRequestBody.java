@@ -18,24 +18,25 @@ package org.craftercms.studio.model.rest.workflow;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 
 @JsonIgnoreProperties
 public class RequestPublishRequestBody {
 
     @NotBlank
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteId;
     @NotEmpty
-    private List<@NotBlank @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) String> items;
-    private List<@NotBlank @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) String> optionalDependencies;
+    private List<@NotBlank @ValidExistingContentPath String> items;
+    private List<@NotBlank @ValidExistingContentPath String> optionalDependencies;
     @NotEmpty
     @EsapiValidatedParam(type = ALPHANUMERIC)
     private String publishingTarget;

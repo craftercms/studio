@@ -19,6 +19,8 @@ package org.craftercms.studio.controller.rest.v2;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -52,7 +54,7 @@ import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
@@ -84,7 +86,7 @@ public class ContentController {
 
     @Valid
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
-    public ResponseBody listQuickCreateContent(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId") String siteId)
+    public ResponseBody listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
             throws SiteNotFoundException {
         List<QuickCreateItem> items = contentService.getQuickCreatableContentTypes(siteId);
 
@@ -141,8 +143,8 @@ public class ContentController {
     }
 
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)
-    public ResultOne<String> getDescriptor(@NotEmpty @EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
-                                           @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String path,
+    public ResultOne<String> getDescriptor(@NotEmpty @ValidSiteId @RequestParam String siteId,
+                                           @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String path,
                                            @RequestParam(required = false, defaultValue = "false") boolean flatten) throws
             ContentNotFoundException, SiteNotFoundException {
         Document descriptor = contentService.getItemDescriptor(siteId, path, flatten);
@@ -183,10 +185,9 @@ public class ContentController {
 
     @Valid
     @GetMapping(value = ITEM_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getItemByPath(@EsapiValidatedParam(type = SITE_ID)
+    public ResponseBody getItemByPath(@ValidSiteId
                                       @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                      @EsapiValidatedParam(type = HTTPURI)
-                                      @ValidateSecurePathParam
+                                      @ValidExistingContentPath
                                       @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                       @RequestParam(value = REQUEST_PARAM_PREFER_CONTENT, required = false,
                                               defaultValue = "false") boolean preferContent)
@@ -253,8 +254,8 @@ public class ContentController {
 
     @Valid
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
-    public ResponseEntity<Resource> getContentByCommitId(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                                         @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam(value = REQUEST_PARAM_PATH) String path,
+    public ResponseEntity<Resource> getContentByCommitId(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                                         @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
             throws ServiceLayerException, UserNotFoundException {
         DetailedItem item = contentService.getItemByPath(siteId, path, true);
@@ -266,9 +267,8 @@ public class ContentController {
                 .body(resource);
     }
 
-    @Valid
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
-    public ResponseBody rename(@RequestBody RenameRequestBody renameRequestBody)
+    public ResponseBody rename(@Valid @RequestBody RenameRequestBody renameRequestBody)
             throws AuthenticationException, UserNotFoundException, ServiceLayerException, DeploymentException {
         contentService.renameContent(renameRequestBody.getSiteId(), renameRequestBody.getPath(), renameRequestBody.getName());
 

@@ -19,8 +19,8 @@ package org.craftercms.studio.controller.rest.v2;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -46,7 +46,6 @@ import java.beans.ConstructorProperties;
 
 import static org.apache.commons.io.FilenameUtils.removeExtension;
 import static org.apache.commons.lang3.StringUtils.removeStart;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULT;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
@@ -73,7 +72,7 @@ public class PluginController extends ManagementTokenAware {
     }
 
     @GetMapping("/get_configuration")
-    public ResponseBody getPluginConfiguration(@EsapiValidatedParam(type = SITE_ID) String siteId, String pluginId) throws ContentNotFoundException {
+    public ResponseBody getPluginConfiguration(@ValidSiteId String siteId, String pluginId) throws ContentNotFoundException {
         String content = marketplaceService.getPluginConfigurationAsString(siteId, pluginId);
 
         ResponseBody responseBody = new ResponseBody();
@@ -100,7 +99,7 @@ public class PluginController extends ManagementTokenAware {
      * Reloads the groovy classes for the given site
      */
     @GetMapping("/script/reload")
-    public ResponseBody reloadClasses(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId, @RequestParam String token)
+    public ResponseBody reloadClasses(@ValidSiteId @RequestParam String siteId, @RequestParam String token)
             throws InvalidParametersException, InvalidManagementTokenException {
         validateToken(token);
 
@@ -118,7 +117,7 @@ public class PluginController extends ManagementTokenAware {
      *  Executes a rest script for the given site
      */
     @RequestMapping("/script/**")
-    public ResponseBody runScript(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
+    public ResponseBody runScript(@ValidSiteId @RequestParam String siteId, HttpServletRequest request, HttpServletResponse response)
             throws ResourceException, ScriptException, ConfigurationException {
         // No better way to do this for now, later can be replaced by "/script/{*scriptUrl}"
         var scriptUrl = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
@@ -149,7 +148,7 @@ public class PluginController extends ManagementTokenAware {
 
         @NotEmpty
         @Size(max = 50)
-        @EsapiValidatedParam(type = SITE_ID)
+        @ValidSiteId
         private String siteId;
 
         @NotEmpty

@@ -15,17 +15,14 @@
  */
 package org.craftercms.studio.model.rest.clipboard;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidNewContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.model.clipboard.Operation;
 import org.craftercms.studio.model.clipboard.PasteItem;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds all data needed for a clipboard operation
@@ -39,7 +36,7 @@ public class PasteRequest {
      * The id of the site
      */
     @NotEmpty
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     protected String siteId;
 
     /**
@@ -51,8 +48,7 @@ public class PasteRequest {
     /**
      * The target path
      */
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = HTTPURI)
+    @ValidNewContentPath
     protected String targetPath;
 
     /**

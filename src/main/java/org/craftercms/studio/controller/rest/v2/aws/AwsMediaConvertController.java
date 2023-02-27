@@ -44,12 +44,11 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEM;
-import static org.craftercms.studio.controller.rest.v2.ValidationUtils.validateValue;
+import static org.craftercms.studio.controller.rest.ValidationUtils.validateValue;
 
 /**
  * Rest controller for AWS MediaConvert
@@ -134,7 +133,7 @@ public class AwsMediaConvertController {
     }
 
     private void validateUploadParams(String siteId, String inputProfileId, String outputProfileId, String filename) throws ValidationException {
-        Validator pathValidator = new EsapiValidator(HTTPURI);
+        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
         validateValue(new EsapiValidator(SITE_ID), siteId, REQUEST_PARAM_SITE_ID);
         validateValue(pathValidator, filename, "filename");
         validateValue(new NoTagsValidator(), inputProfileId, INPUT_PROFILE_PARAM);

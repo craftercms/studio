@@ -16,14 +16,11 @@
 package org.craftercms.studio.model.clipboard;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidNewContentPath;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
 
 /**
  * Holds the data for a single item to be copied/moved
@@ -38,8 +35,7 @@ public class PasteItem {
      * The path of the item
      */
     @NotEmpty
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = HTTPURI)
+    @ValidNewContentPath
     protected String path;
 
     /**

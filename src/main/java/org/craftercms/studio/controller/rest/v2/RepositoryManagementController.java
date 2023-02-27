@@ -16,8 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -41,8 +41,6 @@ import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_PATH;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
@@ -80,7 +78,7 @@ public class RepositoryManagementController {
     }
 
     @GetMapping(value = LIST_REMOTES, produces = APPLICATION_JSON_VALUE)
-    public ResultList<RemoteRepositoryInfo> listRemotes(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId") String siteId)
+    public ResultList<RemoteRepositoryInfo> listRemotes(@ValidSiteId @RequestParam(name = "siteId") String siteId)
             throws ServiceLayerException {
         List<RemoteRepositoryInfo> remotes = repositoryManagementService.listRemotes(siteId);
 
@@ -149,7 +147,7 @@ public class RepositoryManagementController {
     }
 
     @GetMapping(STATUS)
-    public ResultOne<RepositoryStatus> getRepositoryStatus(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
+    public ResultOne<RepositoryStatus> getRepositoryStatus(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId)
             throws ServiceLayerException {
         RepositoryStatus status = repositoryManagementService.getRepositoryStatus(siteId);
         ResultOne<RepositoryStatus> result = new ResultOne<>();
@@ -174,8 +172,8 @@ public class RepositoryManagementController {
     }
 
     @GetMapping(DIFF_CONFLICTED_FILE)
-    public ResultOne<DiffConflictedFile> getDiffForConflictedFile(@EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-                                                                  @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @RequestParam(value = REQUEST_PARAM_PATH) String path)
+    public ResultOne<DiffConflictedFile> getDiffForConflictedFile(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                                                  @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path)
             throws ServiceLayerException {
         String diffPath = path;
         if (!diffPath.startsWith(FILE_SEPARATOR)) {
@@ -223,7 +221,7 @@ public class RepositoryManagementController {
     }
 
     @GetMapping(CORRUPTED)
-    public ResultOne<Boolean> isRepositoryCorrupted(@EsapiValidatedParam(type = SITE_ID) @RequestParam(required = false) String siteId,
+    public ResultOne<Boolean> isRepositoryCorrupted(@ValidSiteId @RequestParam(required = false) String siteId,
                                                     @RequestParam GitRepositories repositoryType)
             throws ServiceLayerException {
         ResultOne<Boolean> result = new ResultOne<>();

@@ -17,21 +17,21 @@
 package org.craftercms.studio.model.rest.content;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.constraints.NotEmpty;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
 
 public class UnlockItemByPathRequest {
 
     @NotEmpty
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteId;
     @NotEmpty
     @ValidateSecurePathParam
-    @EsapiValidatedParam(type = HTTPURI)
+    @EsapiValidatedParam(type = CONTENT_PATH_WRITE)
     private String path;
 
     public String getSiteId() {

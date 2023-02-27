@@ -17,6 +17,7 @@
 package org.craftercms.studio.model.rest;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 
 import javax.validation.constraints.NotEmpty;
@@ -30,8 +31,7 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 public class RepairRepositoryRequest {
     @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     protected String siteId;
 
     @NotNull

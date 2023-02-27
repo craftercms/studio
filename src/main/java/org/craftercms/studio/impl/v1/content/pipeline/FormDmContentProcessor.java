@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.springframework.context.annotation.Lazy;
 
 import java.io.InputStream;
 import java.util.List;
@@ -358,6 +359,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
+    @Lazy
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
     }

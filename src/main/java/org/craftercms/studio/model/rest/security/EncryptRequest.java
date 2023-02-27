@@ -16,12 +16,10 @@
  package org.craftercms.studio.model.rest.security;
 
  import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
- import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+ import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
  import javax.validation.constraints.NotBlank;
  import javax.validation.constraints.Size;
-
- import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
  /**
   * Holds the data for encryption
@@ -38,7 +36,7 @@
      @NotBlank
      private String text;
      @Size(max = 50)
-     @EsapiValidatedParam(type = SITE_ID)
+     @ValidSiteId
      private String siteId;
 
      public String getText() {
