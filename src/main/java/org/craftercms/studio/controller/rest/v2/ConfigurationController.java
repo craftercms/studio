@@ -21,6 +21,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -45,7 +47,7 @@ import java.beans.ConstructorProperties;
 import java.io.InputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.DELETED;
@@ -69,7 +71,7 @@ public class ConfigurationController {
     }
 
     @GetMapping("clear_cache")
-    public Result clearCache(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId) throws SiteNotFoundException {
+    public Result clearCache(@ValidSiteId @RequestParam String siteId) throws SiteNotFoundException {
         configurationService.invalidateConfiguration(siteId);
         var result = new Result();
         result.setResponse(OK);
@@ -77,9 +79,9 @@ public class ConfigurationController {
     }
 
     @GetMapping("/get_configuration")
-    public ResponseBody getConfiguration(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
+    public ResponseBody getConfiguration(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
-                                         @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
+                                         @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws ContentNotFoundException {
         final String content;
@@ -116,9 +118,9 @@ public class ConfigurationController {
     }
 
     @GetMapping("/get_configuration_history")
-    public ResponseBody getConfigurationHistory(@EsapiValidatedParam(type = SITE_ID) @RequestParam(name = "siteId", required = true) String siteId,
+    public ResponseBody getConfigurationHistory(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
                                                 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
-                                                @EsapiValidatedParam(type = HTTPURI) @RequestParam(name = "path", required = true) String path,
+                                                @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
                                                 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws SiteNotFoundException, ContentNotFoundException {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
@@ -132,7 +134,7 @@ public class ConfigurationController {
     }
 
     @GetMapping("translation")
-    public ResponseBody getTranslationConfiguration(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId) throws ServiceLayerException {
+    public ResponseBody getTranslationConfiguration(@ValidSiteId @RequestParam String siteId) throws ServiceLayerException {
         ResultOne<TranslationConfiguration> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_CONFIG, configurationService.getTranslationConfiguration(siteId));
         result.setResponse(OK);
@@ -144,8 +146,8 @@ public class ConfigurationController {
     }
 
     @GetMapping("content-type/usage")
-    public ResponseBody getContentTypeUsage(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
-                                            @EsapiValidatedParam(type = HTTPURI) @RequestParam String contentType)
+    public ResponseBody getContentTypeUsage(@ValidSiteId @RequestParam String siteId,
+                                            @ValidConfigurationPath @RequestParam String contentType)
             throws Exception {
         var result = new ResultOne<>();
         result.setResponse(OK);
@@ -158,8 +160,8 @@ public class ConfigurationController {
     }
 
     @GetMapping("content-type/preview_image")
-    public ResponseEntity<Resource> getContentTypePreviewImage(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
-                                                               @EsapiValidatedParam(type = HTTPURI) @RequestParam String contentTypeId)
+    public ResponseEntity<Resource> getContentTypePreviewImage(@ValidSiteId @RequestParam String siteId,
+                                                               @ValidConfigurationPath @RequestParam String contentTypeId)
             throws ServiceLayerException {
         ImmutablePair<String, Resource> resource = contentTypeService.getContentTypePreviewImage(siteId, contentTypeId);
         String mimeType = StudioUtils.getMimeType(resource.getKey());
@@ -187,10 +189,10 @@ public class ConfigurationController {
     @JsonIgnoreProperties
     protected static class DeleteContentTypeRequest {
 
-        @EsapiValidatedParam(type = SITE_ID)
+        @ValidSiteId
         protected String siteId;
 
-        @EsapiValidatedParam(type = HTTPURI)
+        @ValidConfigurationPath
         protected String contentType;
 
         protected boolean deleteDependencies;

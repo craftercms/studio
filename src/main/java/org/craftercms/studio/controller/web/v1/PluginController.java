@@ -16,7 +16,8 @@
 
 package org.craftercms.studio.controller.web.v1;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -33,11 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
-
 /**
  * Controller that provides the UI with plugin related files
+ *
  * @author joseross
  * @since 4.0
  */
@@ -63,11 +62,11 @@ public class PluginController {
      */
     @Valid
     @GetMapping("/file")
-    public ResponseEntity<Resource> getPluginFile(@EsapiValidatedParam(type = SITE_ID) @RequestParam String siteId,
-                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String type,
-                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam String name,
-                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam @RequestParam(required = false) String filename,
-                                                  @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam String pluginId)
+    public ResponseEntity<Resource> getPluginFile(@ValidSiteId @RequestParam String siteId,
+                                                  @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String type,
+                                                  @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String name,
+                                                  @ValidExistingContentPath @ValidateSecurePathParam @RequestParam(required = false) String filename,
+                                                  @ValidExistingContentPath @ValidateSecurePathParam String pluginId)
             throws ContentNotFoundException {
         Resource resource = configurationService.getPluginFile(siteId, pluginId, type, name, filename);
 

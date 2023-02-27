@@ -33,15 +33,14 @@ public class GetChildrenByPathRequestBody {
 
     @EsapiValidatedParam(type= SITE_ID)
     private String siteId;
-    @EsapiValidatedParam(type = HTTPURI)
-    @ValidateSecurePathParam
+    @ValidExistingContentPath
     private String path;
     @ValidateNoTagsParam
     private String localeCode;
     @ValidateNoTagsParam
     private String keyword;
     private List<@EsapiValidatedParam(type = ALPHANUMERIC) String> systemTypes;
-    private List<@ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) String> excludes;
+    private List<@ValidExistingContentPath String> excludes;
     @ValidateStringParam(whitelistedPatterns = "alphabetical|foldersFirst")
     private String sortStrategy;
     @ValidateStringParam(whitelistedPatterns = "(?i)(ASC|DESC)")

@@ -18,6 +18,8 @@ package org.craftercms.studio.controller.rest.v2;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.Constants;
@@ -84,7 +86,7 @@ public class MarketplaceController {
     }
 
     @GetMapping("/installed")
-    public ResponseBody getInstalledPlugins(@RequestParam @EsapiValidatedParam(type = SITE_ID) String siteId) throws MarketplaceException {
+    public ResponseBody getInstalledPlugins(@RequestParam @ValidSiteId String siteId) throws MarketplaceException {
         ResultList<PluginRecord> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
         result.setEntities(RESULT_KEY_PLUGINS, marketplaceService.getInstalledPlugins(siteId));
@@ -110,7 +112,7 @@ public class MarketplaceController {
     }
 
     @GetMapping("/usage")
-    public ResponseBody getDependantItems(@RequestParam @EsapiValidatedParam(type = SITE_ID) String siteId, @RequestParam String pluginId)
+    public ResponseBody getDependantItems(@RequestParam @ValidSiteId String siteId, @RequestParam String pluginId)
             throws ServiceLayerException {
         ResultList<String> result = new ResultList<>();
         result.setResponse(ApiResponse.OK);
@@ -139,7 +141,7 @@ public class MarketplaceController {
     protected static class RemovePluginRequest {
 
         @NotEmpty
-        @EsapiValidatedParam(type = SITE_ID)
+        @ValidSiteId
         protected String siteId;
 
         @NotEmpty
@@ -190,11 +192,11 @@ public class MarketplaceController {
     protected static class CopyPluginRequest {
 
         @NotEmpty
-        @EsapiValidatedParam(type = SITE_ID)
+        @ValidSiteId
         protected String siteId;
 
         @NotEmpty
-        @EsapiValidatedParam(type = HTTPURI)
+        @ValidExistingContentPath
         protected String path;
 
         protected Map<String, String> parameters = new HashMap<>();

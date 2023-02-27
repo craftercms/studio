@@ -20,12 +20,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.SqlSort;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.controller.rest.ValidationUtils;
 import org.craftercms.studio.impl.v2.utils.PaginationUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
@@ -55,7 +57,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNumeric;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SEARCH_KEYWORDS;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.DEFAULT_ORGANIZATION_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_SET_PASSWORD_DELAY;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
@@ -92,7 +95,7 @@ public class UsersController {
      */
     @GetMapping
     public PaginatedResultList<User> getAllUsers(
-            @EsapiValidatedParam(type = SITE_ID) @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
+            @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
             @EsapiValidatedParam(type = SEARCH_KEYWORDS) @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
@@ -305,7 +308,7 @@ public class UsersController {
      */
     @GetMapping(PATH_PARAM_ID + SITES + PATH_PARAM_SITE + ROLES)
     public ResultList<String> getUserSiteRoles(@NotNull @PathVariable(REQUEST_PARAM_ID) String userId,
-                                               @NotNull @EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site)
+                                               @NotNull @ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site)
             throws ServiceLayerException, UserNotFoundException, ValidationException {
         int uId = -1;
         String username = StringUtils.EMPTY;
@@ -369,7 +372,7 @@ public class UsersController {
      * @return Response containing current authenticated user roles
      */
     @GetMapping(ME + SITES + PATH_PARAM_SITE + ROLES)
-    public ResultList<String> getCurrentUserSiteRoles(@NotBlank @EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site)
+    public ResultList<String> getCurrentUserSiteRoles(@NotBlank @ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site)
             throws AuthenticationException, ServiceLayerException {
         List<String> roles = userService.getCurrentUserSiteRoles(site);
 
@@ -476,7 +479,7 @@ public class UsersController {
 
     @GetMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
     public ResultOne<Map<String, Map<String, String>>> getUserProperties(
-            @EsapiValidatedParam(type = SITE_ID) @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId)
+            @ValidSiteId @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId)
             throws ServiceLayerException {
         ResultOne<Map<String, Map<String, String>>> result = new ResultOne<>();
         result.setResponse(OK);
@@ -496,7 +499,7 @@ public class UsersController {
 
     @DeleteMapping(value = ME + PROPERTIES, produces = APPLICATION_JSON_VALUE)
     public ResultOne<Map<String, String>> deleteUserProperties(
-            @EsapiValidatedParam(type = SITE_ID) @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId,
+            @ValidSiteId @RequestParam(required = false, defaultValue = StringUtils.EMPTY) String siteId,
             @Valid @NotEmpty @RequestParam List<@NotBlank String> properties) throws ServiceLayerException {
         ResultOne<Map<String, String>> result = new ResultOne<>();
         result.setResponse(OK);
@@ -510,7 +513,7 @@ public class UsersController {
      * @return Response containing current authenticated user permissions
      */
     @GetMapping(value = ME + SITES + PATH_PARAM_SITE + PERMISSIONS, produces = APPLICATION_JSON_VALUE)
-    public ResultList<String> getCurrentUserSitePermissions(@EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site)
+    public ResultList<String> getCurrentUserSitePermissions(@ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site)
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         List<String> permissions = userService.getCurrentUserSitePermissions(site);
         ResultList<String> result = new ResultList<>();
@@ -526,7 +529,7 @@ public class UsersController {
      */
     @PostMapping(value = ME + SITES + PATH_PARAM_SITE + HAS_PERMISSIONS, consumes = APPLICATION_JSON_VALUE,
             produces = APPLICATION_JSON_VALUE)
-    public ResultOne<Map<String, Boolean>> checkCurrentUserHasSitePermissions(@EsapiValidatedParam(type = SITE_ID) @PathVariable(REQUEST_PARAM_SITE) String site,
+    public ResultOne<Map<String, Boolean>> checkCurrentUserHasSitePermissions(@ValidSiteId @PathVariable(REQUEST_PARAM_SITE) String site,
                                                                               @Valid @RequestBody HasPermissionsRequest permissionsRequest)
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         Map<String, Boolean> hasPermissions =

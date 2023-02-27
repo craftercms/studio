@@ -17,21 +17,21 @@
 package org.craftercms.studio.model.rest.content;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 public class DeleteRequestBody {
 
-    @EsapiValidatedParam(type= SITE_ID)
+    @EsapiValidatedParam(type = SITE_ID)
     private String siteId;
     @NotEmpty
-    private List<@NotEmpty @EsapiValidatedParam(type = HTTPURI) @ValidateSecurePathParam String> items;
-    private List<@NotEmpty @EsapiValidatedParam(type=HTTPURI) @ValidateSecurePathParam String> optionalDependencies;
+    private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> items;
+    private List<@NotEmpty @ValidExistingContentPath @ValidateSecurePathParam String> optionalDependencies;
     private String comment;
 
     public String getSiteId() {

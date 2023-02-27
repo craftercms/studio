@@ -17,24 +17,21 @@
 package org.craftercms.studio.model.rest.workflow;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
-
 @JsonIgnoreProperties
 public class RejectRequestBody {
 
     @NotEmpty
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteId;
     @NotEmpty
-    private List<@NotBlank @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) String> items;
+    private List<@NotBlank @ValidExistingContentPath String> items;
     private String comment;
 
     public String getSiteId() {

@@ -17,6 +17,7 @@
 package org.craftercms.studio.controller.rest.v2;
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -39,7 +40,6 @@ import javax.validation.constraints.PositiveOrZero;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
@@ -53,7 +53,7 @@ public class AuditController {
 
     @GetMapping(API_2 + AUDIT)
     public ResponseBody getAuditLog(
-            @EsapiValidatedParam(type = SITE_ID)
+            @ValidSiteId
             @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
@@ -95,7 +95,7 @@ public class AuditController {
     @Valid
     @GetMapping(API_2 + AUDIT + PATH_PARAM_ID)
     public ResponseBody getAuditLogEntry(@PathVariable(REQUEST_PARAM_ID) long auditLogId,
-                                         @EsapiValidatedParam(type = SITE_ID)
+                                         @ValidSiteId
                                          @RequestParam(value = REQUEST_PARAM_SITEID, required = false, defaultValue = "") String siteId) throws SiteNotFoundException {
         AuditLog auditLogEntry = auditService.getAuditLogEntry(siteId, auditLogId);
 

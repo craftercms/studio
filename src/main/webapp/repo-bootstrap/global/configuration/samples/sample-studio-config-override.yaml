@@ -128,3 +128,13 @@
 #       cloudfrontCertificateArn:
 #       # The alternate domains names (besides *.cloudfront.net) for the CloudFront CDN (optional when target template is aws-cloudformed-s3)
 #       alternateCloudFrontDomainNames:
+
+##########################################################
+##                  Input Validations                   ##
+##########################################################
+# These properties override default validation regex patterns
+# from crafter common validations.
+# Key should have the form `studio.validation.regex.KEY_NAME`
+# Value should be a valid java regex.
+# studio.validation.regex.GROUP_NAME: "^[a-zA-Z0-9]+$"
+# studio.validation.regex.USERNAME: "^[A-Za-z0-9]$"

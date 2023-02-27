@@ -18,20 +18,19 @@ package org.craftercms.studio.model.rest;
 
 
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Request to publish all content in a site
  */
 public class PublishAllRequest {
     @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     protected String siteId;
     @NotEmpty
     @Size(max = 20)

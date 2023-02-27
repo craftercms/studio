@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
 import org.craftercms.studio.api.v2.service.security.GroupService;
+import org.craftercms.studio.controller.rest.ValidationUtils;
 import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.groups.UpdateGroupRequest;
 import org.slf4j.Logger;

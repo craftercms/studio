@@ -16,8 +16,8 @@
 
 package org.craftercms.studio.controller.rest.v2;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -40,8 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_ITEMS;
@@ -62,7 +60,7 @@ public class WorkflowController {
     }
 
     @GetMapping(value = ITEM_STATES, produces = APPLICATION_JSON_VALUE)
-    public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @EsapiValidatedParam(type = SITE_ID) @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
+    public PaginatedResultList<SandboxItem> getItemStates(@NotBlank @ValidSiteId @RequestParam(name = REQUEST_PARAM_SITEID) String siteId,
                                                           @RequestParam(name = REQUEST_PARAM_PATH, required = false) String path,
                                                           @RequestParam(name = REQUEST_PARAM_STATES, required = false) Long states,
                                                           @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0")
@@ -127,8 +125,8 @@ public class WorkflowController {
     }
 
     @GetMapping(value = AFFECTED_PATHS, produces = APPLICATION_JSON_VALUE)
-    public ResultList<SandboxItem> getWorkflowAffectedPaths(@EsapiValidatedParam(type = SITE_ID) @RequestParam(REQUEST_PARAM_SITEID) String siteId,
-                                                            @ValidateSecurePathParam @EsapiValidatedParam(type = HTTPURI) @RequestParam(REQUEST_PARAM_PATH) String path)
+    public ResultList<SandboxItem> getWorkflowAffectedPaths(@ValidSiteId @RequestParam(REQUEST_PARAM_SITEID) String siteId,
+                                                            @ValidExistingContentPath @RequestParam(REQUEST_PARAM_PATH) String path)
             throws ServiceLayerException, UserNotFoundException {
         List<SandboxItem> sandboxItems = workflowService.getWorkflowAffectedPaths(siteId, path);
         ResultList<SandboxItem> result = new ResultList<>();

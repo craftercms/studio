@@ -16,14 +16,12 @@
 
 package org.craftercms.studio.model.rest.workflow;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.HTTPURI;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 public class UpdateItemStatesByQueryRequestBody {
 
@@ -52,9 +50,9 @@ public class UpdateItemStatesByQueryRequestBody {
 
     public static class Query {
         @NotEmpty
-        @EsapiValidatedParam(type = SITE_ID)
+        @ValidSiteId
         private String siteId;
-        @EsapiValidatedParam(type = HTTPURI)
+        @ValidExistingContentPath
         private String path;
         private Long states;
 

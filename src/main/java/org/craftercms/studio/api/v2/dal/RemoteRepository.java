@@ -16,22 +16,19 @@
 
 package org.craftercms.studio.api.v2.dal;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
-
 public class RemoteRepository implements Serializable {
 
     private static final long serialVersionUID = -5031083831374591061L;
 
     private long id;
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteId;
     @Size(max = 50)
     private String remoteName;
