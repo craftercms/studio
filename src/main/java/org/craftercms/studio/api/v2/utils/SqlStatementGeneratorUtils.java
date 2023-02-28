@@ -46,7 +46,7 @@ public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_UPDATE =
             "UPDATE item SET preview_url = '#{previewUrl}'," +
-                    " state = state | #{onStatesBitMap} & ~#{offStatesBitMap}," +
+                    " state = (state | #{onStatesBitMap}) & ~#{offStatesBitMap}," +
                     " last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', label = '#{label}', content_type_id = '#{contentTypeId}'," +
                     " system_type = '#{systemType}', mime_type = '#{mimeType}', size = #{size}," +
@@ -58,7 +58,7 @@ public final class SqlStatementGeneratorUtils {
 
     public static final String ITEM_MOVE =
             "UPDATE item SET path = REPLACE(path, '#{oldPath}', '#{newPath}')," +
-                    " state = state | #{onStatesBitMap} & ~#{offStatesBitMap}" +
+                    " state = (state | #{onStatesBitMap}) & ~#{offStatesBitMap}" +
                     " WHERE site_id = #{siteId} AND (path = '#{oldPath}' OR path LIKE '#{oldPath}/%') ;";
 
     public static final String ITEM_UPDATE_PARENT_ID =
