@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -45,10 +46,17 @@ public class RepositoryChanges {
      */
     protected final Set<String> deletedPaths;
 
-    public RepositoryChanges(boolean initialPublish, Set<String> updatedPaths, Set<String> deletedPaths) {
+    protected final Set<String> failedPaths;
+
+    public RepositoryChanges(final boolean initialPublish, final Set<String> updatedPaths, final Set<String> deletedPaths, final Set<String> failedPaths) {
         this.initialPublish = initialPublish;
         this.updatedPaths = updatedPaths;
         this.deletedPaths = deletedPaths;
+        this.failedPaths = failedPaths;
+    }
+
+    public RepositoryChanges(boolean initialPublish, Set<String> updatedPaths, Set<String> deletedPaths) {
+        this(initialPublish, updatedPaths, deletedPaths, new HashSet<>());
     }
 
     public RepositoryChanges(Set<String> updatedPaths, Set<String> deletedPaths) {
@@ -69,6 +77,10 @@ public class RepositoryChanges {
 
     public Set<String> getDeletedPaths() {
         return deletedPaths;
+    }
+
+    public Set<String> getFailedPaths() {
+        return failedPaths;
     }
 
     public boolean isEmpty() {

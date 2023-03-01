@@ -17,7 +17,6 @@
 package org.craftercms.studio.controller.rest.v2;
 
 
-import org.apache.commons.collections.CollectionUtils;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
@@ -30,6 +29,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.publish.PublishService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.model.rest.ResponseBody;
@@ -45,10 +45,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.model.rest.ApiResponse.COMPLETED_WITH_ERRORS;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -89,7 +91,7 @@ public class PublishController {
         PaginatedResultList<PublishingPackage> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
-        result.setLimit(CollectionUtils.isEmpty(packages) ? 0 : packages.size());
+        result.setLimit(isEmpty(packages) ? 0 : packages.size());
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_PACKAGES, packages);
         return result;
@@ -195,10 +197,10 @@ public class PublishController {
     @PostMapping("/all")
     public Result publishAll(@Valid @RequestBody PublishAllRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
-
+        RepositoryChanges changes = publishService.publishAll(request.getSiteId(), request.getPublishingTarget(), request.getSubmissionComment());
+        ApiResponse response = changes.getFailedPaths().isEmpty() ? OK : COMPLETED_WITH_ERRORS;
         Result result = new Result();
-        result.setResponse(OK);
+        result.setResponse(response);
         return result;
     }
 

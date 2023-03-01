@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class PublishStatus {
 
     public static final String READY = "ready";
+    public static final String READY_WITH_ERRORS = "readyWithErrors";
     public static final String QUEUED = "queued";
     public static final String PROCESSING = "processing";
     public static final String PUBLISHING = "publishing";

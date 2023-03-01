@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.security.HasAnyPermissions;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -50,6 +51,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
+import static org.craftercms.studio.api.v2.dal.PublishStatus.READY_WITH_ERRORS;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
@@ -217,11 +219,11 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget, String comment)
+    public RepositoryChanges publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
 
-        publishServiceInternal.publishAll(siteId, publishingTarget, comment);
+        RepositoryChanges changes = publishServiceInternal.publishAll(siteId, publishingTarget, comment);
 
         SiteFeed siteFeed = siteService.getSite(siteId);
         String username = securityService.getCurrentUser();
@@ -237,6 +239,10 @@ public class PublishServiceImpl implements PublishService {
 
         activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_PUBLISH_ALL,
                 getCurrentTime(), null, null);
+        if (!changes.getFailedPaths().isEmpty()) {
+            siteService.updatePublishingStatus(siteId, READY_WITH_ERRORS);
+        }
+        return changes;
     }
 
     private DeploymentHistoryGroup createDeploymentHistoryGroup(String deployedLabel, ContentItemTO item) {
