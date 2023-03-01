@@ -178,7 +178,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/UpdateGroupRequest'
       responses:
         '200':
           description: OK
@@ -7355,6 +7355,20 @@ components:
         name:
           type: string
           description: 'Group name, unique'
+        desc:
+          type: string
+          description: Group description
+      required:
+        - id
+        - name
+        -
+    UpdateGroupRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Group ID, unique and immutable'
         desc:
           type: string
           description: Group description

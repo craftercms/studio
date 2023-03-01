@@ -129,9 +129,9 @@ public class GroupServiceImpl implements GroupService {
         auditLog.setOperation(OPERATION_UPDATE);
         auditLog.setSiteId(siteFeed.getId());
         auditLog.setActorId(userServiceInternal.getCurrentUser().getUsername());
-        auditLog.setPrimaryTargetId(group.getGroupName());
+        auditLog.setPrimaryTargetId(toRet.getGroupName());
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
-        auditLog.setPrimaryTargetValue(group.getGroupName());
+        auditLog.setPrimaryTargetValue(toRet.getGroupName());
         auditServiceInternal.insertAuditLog(auditLog);
         return toRet;
     }
