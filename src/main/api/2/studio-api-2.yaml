@@ -7211,6 +7211,10 @@ components:
     UpdateUserRequest:
       type: object
       properties:
+        id:
+          type: integer
+          format: int64
+          description: 'User ID, unique and immutable'
         firstName:
           type: string
           description: User's first name
