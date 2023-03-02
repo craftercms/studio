@@ -7153,6 +7153,7 @@ components:
           * `CODE:` 0, `MESSAGE:` OK
           * `CODE:` 1, `MESSAGE:` Created
           * `CODE:` 2, `MESSAGE:` Deleted
+          * `CODE:` 3, `MESSAGE:` Completed with errors
           * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
           * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
           * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first

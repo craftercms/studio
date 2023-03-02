@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
@@ -229,6 +230,6 @@ public interface PublishServiceInternal {
      * @param publishingTarget the publishing target
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
+    RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
 }

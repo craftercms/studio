@@ -1947,6 +1947,17 @@ public class GitContentRepository implements ContentRepository {
             Repository repo = helper.getRepository(siteId, GitRepositories.PUBLISHED);
             try (Git git = Git.wrap(repo)) {
                 try {
+                    if (!changes.getFailedPaths().isEmpty()) {
+                        // Some items failed publish, let's not commit those changes
+                        ResetCommand resetCommand = git.reset();
+                        changes.getFailedPaths().forEach(resetCommand::addPath);
+                        retryingRepositoryOperationFacade.call(resetCommand);
+
+                        // Clean repo is needed for new files failures
+                        retryingRepositoryOperationFacade.call(git.clean().setCleanDirectories(true).setForce(true));
+                        // Checkout for updates
+                        retryingRepositoryOperationFacade.call(git.checkout().addPaths(List.copyOf(changes.getFailedPaths())));
+                    }
                     // commit all files
                     String commitMessage = StringUtils.isNotEmpty(comment) ? comment : helper.getCommitMessage(REPO_PUBLISH_ALL_COMMIT_MESSAGE);
                     retryingRepositoryOperationFacade.call(git.commit()

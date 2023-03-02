@@ -450,9 +450,15 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
         logger.info("Perform Publish All for site '{}' to target '{}'", siteId, targetMapping);
 
-        for(String updatedPath : changes.getUpdatedPaths()) {
-            copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
-                     getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
+        for (String updatedPath : changes.getUpdatedPaths()) {
+            try {
+                copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
+                        getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
+            } catch (Exception e) {
+                logger.error("Failed to copy '{}' from bucket '{}' to bucket '{}' for site '{}': {}", updatedPath, previewMapping.target,
+                        targetMapping.target, siteId, e.getMessage());
+                changes.getFailedPaths().add(updatedPath);
+            }
         }
 
         DeleteObjectsRequest request = new DeleteObjectsRequest(targetMapping.target);

@@ -31,8 +31,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -49,6 +47,8 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -64,9 +64,7 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
@@ -115,11 +113,11 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     protected String getPointerPath(String siteId, String path) {
-        return isFolder(siteId, path)? path : StringUtils.appendIfMissing(path, "." + fileExtension);
+        return isFolder(siteId, path) ? path : appendIfMissing(path, "." + fileExtension);
     }
 
     protected String getPathFromPointerPath(String siteId, String pointerPath) {
-        return isFolder(siteId, pointerPath)? pointerPath : StringUtils.removeEnd(pointerPath, "." + fileExtension);
+        return isFolder(siteId, pointerPath) ? pointerPath : removeEnd(pointerPath, "." + fileExtension);
     }
 
     protected String normalize(String path) {
@@ -278,7 +276,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             return localRepositoryV1.deleteContent(site, path, approver);
         } catch (BlobStoreConfigurationMissingException e) {
             logger.debug("No blob store configuration found for site '{}', " +
-                            "will delete '{}' in the local repository", site, path);
+                    "will delete '{}' in the local repository", site, path);
             return localRepositoryV1.deleteContent(site, path, approver);
         } catch (Exception e) {
             logger.error("Failed to delete content in site '{}' path '{}'", site, path, e);
@@ -309,7 +307,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
         } catch (BlobStoreConfigurationMissingException e) {
             logger.debug("No blob store configuration found for site '{}', " +
-                            "will move from '{}' to '{}' in the local repository", site, fromPath, toPath);
+                    "will move from '{}' to '{}' in the local repository", site, fromPath, toPath);
             return localRepositoryV1.moveContent(site, fromPath, toPath, newName);
         } catch (Exception e) {
             logger.error("Failed to move content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
@@ -332,7 +330,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             return localRepositoryV1.copyContent(site, fromPath, toPath);
         } catch (BlobStoreConfigurationMissingException e) {
             logger.debug("No blob store configuration found for site '{}', " +
-                            "will copy from '{}' to '{}' in the local repository", site, fromPath, toPath);
+                    "will copy from '{}' to '{}' in the local repository", site, fromPath, toPath);
             return localRepositoryV1.copyContent(site, fromPath, toPath);
         } catch (Exception e) {
             logger.error("Failed to copy content in site '{}' from '{}' to '{}'", site, fromPath, toPath, e);
@@ -431,7 +429,7 @@ public class BlobAwareContentRepository implements ContentRepository,
         pointer.setCommitId(item.getCommitId());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
-        pointer.setOldPath(isEmpty(item.getOldPath())? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
+        pointer.setOldPath(isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
         pointer.setPackageId(item.getPackageId());
         return pointer;
     }
@@ -750,46 +748,67 @@ public class BlobAwareContentRepository implements ContentRepository,
                 }
 
                 // check if any of the changes belongs to the blob store
-                Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
-                Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+                Collection<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
+                Collection<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
 
                 if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
+                    RepositoryChanges blobChanges = new RepositoryChanges(updatedBlobs, deletedBlobs);
                     blobStore.completePublishAll(siteId, publishingTarget,
-                                                 new RepositoryChanges(updatedBlobs, deletedBlobs), comment);
+                            blobChanges, comment);
+                    // Translate paths back to xxxx.blob
+                    blobChanges.getFailedPaths().stream()
+                            .map(this::getRepoPath)
+                            .forEach(gitChanges.getFailedPaths()::add);
                 }
             }
 
             localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges, comment);
 
-            Set<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
-            Set<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
+            Collection<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
+            Collection<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
+            Collection<String> failedFiles = translatePaths(gitChanges.getFailedPaths());
 
             // Return an updated repository changes object with everything changed from git + blob
-            return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles);
+            return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles, failedFiles);
         } catch (Exception e) {
             localRepositoryV2.cancelPublishAll(siteId, publishingTarget);
             if (e instanceof ServiceLayerException) {
                 throw e;
             } else {
                 throw new ServiceLayerException("Error publishing all changes for site " + siteId + " in target " +
-                                                publishingTarget, e);
+                        publishingTarget, e);
             }
         }
     }
 
-    protected Set<String> translatePaths(Set<String> paths) {
+    /**
+     * Gets an asset path and translate it
+     * to the actual file path in git repo.
+     * e.g.:
+     * /static-assets/test/my-image.png
+     * to
+     * static-assets/test/my-image.png.blob
+     *
+     * @param blobPath the asset path
+     * @return the git repo path
+     */
+    protected String getRepoPath(final String blobPath) {
+        return removeStart(appendIfMissing(blobPath, "." + fileExtension), File.separator);
+    }
+
+    protected Collection<String> translatePaths(Collection<String> paths) {
         return paths.stream()
                 .map(this::getOriginalPath)
                 .map(path -> prependIfMissing(path, FILE_SEPARATOR))
-                .collect(toSet());
+                .collect(toList());
     }
 
-    protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
+    protected Collection<String> findCompatiblePaths(BlobStore blobStore, Collection<String> paths) {
         return paths.stream()
-                    .map(path -> prependIfMissing(path, File.separator))
-                    .filter(blobStore::isCompatible)
-                    .map(this::getOriginalPath)
-                    .collect(toSet());
+                .map(path -> prependIfMissing(path, File.separator))
+                .filter(blobStore::isCompatible)
+                .map(this::getOriginalPath)
+                .collect(toList());
     }
 
     @Override
