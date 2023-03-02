@@ -110,7 +110,8 @@
 
     <update id="updateUser" parameterType="java.util.Map">
         UPDATE `user`
-        SET record_last_updated = CURRENT_TIMESTAMP
+        SET record_last_updated = CURRENT_TIMESTAMP,
+            enabled = #{enabled}
         <if test="firstName != null" >
             ,first_name = #{firstName}
         </if>
