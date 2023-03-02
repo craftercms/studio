@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v2.dal.DeploymentHistoryGroup;
 import org.craftercms.studio.api.v2.dal.PublishingPackage;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
+import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.model.publish.PublishingTarget;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
@@ -159,8 +160,9 @@ public interface PublishService {
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
      * @param comment submission comment
+     * @return result of the publishing
      * @throws ServiceLayerException if there is any error during publishing
      */
-    void publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException;
+    RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException, UserNotFoundException;
 
 }

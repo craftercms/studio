@@ -34,6 +34,9 @@ public class ApiResponse {
     public static final ApiResponse DELETED =
             new ApiResponse(2, "Deleted", StringUtils.EMPTY, StringUtils.EMPTY);
 
+    public static final ApiResponse COMPLETED_WITH_ERRORS =
+            new ApiResponse(3, "Completed with errors", StringUtils.EMPTY, StringUtils.EMPTY);
+
     // 1000 - 2000
     public static final ApiResponse INTERNAL_SYSTEM_FAILURE =
             new ApiResponse(1000, "Internal system failure", "Contact support", StringUtils.EMPTY);

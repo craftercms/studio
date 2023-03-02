@@ -178,7 +178,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Group'
+              $ref: '#/components/schemas/UpdateGroupRequest'
       responses:
         '200':
           description: OK
@@ -7153,6 +7153,7 @@ components:
           * `CODE:` 0, `MESSAGE:` OK
           * `CODE:` 1, `MESSAGE:` Created
           * `CODE:` 2, `MESSAGE:` Deleted
+          * `CODE:` 3, `MESSAGE:` Completed with errors
           * `CODE:` 1000, `MESSAGE:` Internal system failure, `REMEDIAL ACTION:` Contact support
           * `CODE:` 1001, `MESSAGE:` Invalid parameter(s), `REMEDIAL ACTION:` Check API and make sure you're sending the correct parameters
           * `CODE:` 2000, `MESSAGE:` Unauthenticated, `REMEDIAL ACTION:` Please login first
@@ -7211,6 +7212,10 @@ components:
     UpdateUserRequest:
       type: object
       properties:
+        id:
+          type: integer
+          format: int64
+          description: 'User ID, unique and immutable'
         firstName:
           type: string
           description: User's first name
@@ -7355,6 +7360,20 @@ components:
         name:
           type: string
           description: 'Group name, unique'
+        desc:
+          type: string
+          description: Group description
+      required:
+        - id
+        - name
+        -
+    UpdateGroupRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 'Group ID, unique and immutable'
         desc:
           type: string
           description: Group description

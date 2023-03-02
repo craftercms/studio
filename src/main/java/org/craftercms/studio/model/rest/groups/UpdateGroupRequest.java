@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.model.rest.groups;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import javax.validation.constraints.Size;
 
 /**
@@ -24,6 +26,7 @@ import javax.validation.constraints.Size;
 public class UpdateGroupRequest {
     private long id = -1;
     @Size(max = 1024)
+    @JsonProperty("desc")
     private String groupDescription;
 
     public long getId() {

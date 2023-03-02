@@ -34,6 +34,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_ASSET;
@@ -215,7 +216,7 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
-    public void publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
+    public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException {
         // do the operations in the repo
         RepositoryChanges changes = contentRepository.publishAll(siteId, publishingTarget, comment);
         // update the state for the changed items
@@ -233,10 +234,13 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
         } else {
             // Deleted items not included since those will be gone from the DB, those might need to be included
             // later if soft-delete is implemented
-            itemServiceInternal.updateStateBitsBulk(siteId, changes.getUpdatedPaths(), onMask, offMask);
+            Collection<String> publishedItems = CollectionUtils.subtract(changes.getUpdatedPaths(), changes.getFailedPaths());
+            itemServiceInternal.updateStateBitsBulk(siteId, publishedItems, onMask, offMask);
         }
         // trigger the event
         applicationContext.publishEvent(new PublishEvent(siteId));
+
+        return changes;
     }
 
     @Override
