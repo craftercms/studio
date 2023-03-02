@@ -19,8 +19,8 @@ package org.craftercms.studio.api.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static java.util.Collections.emptySet;
 
@@ -39,27 +39,27 @@ public class RepositoryChanges {
     /**
      * Set of created or updated paths
      */
-    protected final Set<String> updatedPaths;
+    protected final Collection<String> updatedPaths;
 
     /**
      * Set of deleted paths
      */
-    protected final Set<String> deletedPaths;
+    protected final Collection<String> deletedPaths;
 
-    protected final Set<String> failedPaths;
+    protected final Collection<String> failedPaths;
 
-    public RepositoryChanges(final boolean initialPublish, final Set<String> updatedPaths, final Set<String> deletedPaths, final Set<String> failedPaths) {
+    public RepositoryChanges(final boolean initialPublish, final Collection<String> updatedPaths, final Collection<String> deletedPaths, final Collection<String> failedPaths) {
         this.initialPublish = initialPublish;
         this.updatedPaths = updatedPaths;
         this.deletedPaths = deletedPaths;
         this.failedPaths = failedPaths;
     }
 
-    public RepositoryChanges(boolean initialPublish, Set<String> updatedPaths, Set<String> deletedPaths) {
-        this(initialPublish, updatedPaths, deletedPaths, new HashSet<>());
+    public RepositoryChanges(boolean initialPublish, Collection<String> updatedPaths, Collection<String> deletedPaths) {
+        this(initialPublish, updatedPaths, deletedPaths, new ArrayList<>());
     }
 
-    public RepositoryChanges(Set<String> updatedPaths, Set<String> deletedPaths) {
+    public RepositoryChanges(Collection<String> updatedPaths, Collection<String> deletedPaths) {
         this(false, updatedPaths, deletedPaths);
     }
 
@@ -71,15 +71,15 @@ public class RepositoryChanges {
         return initialPublish;
     }
 
-    public Set<String> getUpdatedPaths() {
+    public Collection<String> getUpdatedPaths() {
         return updatedPaths;
     }
 
-    public Set<String> getDeletedPaths() {
+    public Collection<String> getDeletedPaths() {
         return deletedPaths;
     }
 
-    public Set<String> getFailedPaths() {
+    public Collection<String> getFailedPaths() {
         return failedPaths;
     }
 

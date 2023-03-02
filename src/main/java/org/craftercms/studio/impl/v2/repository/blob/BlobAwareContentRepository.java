@@ -64,9 +64,7 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 
 /**
@@ -115,11 +113,11 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     protected String getPointerPath(String siteId, String path) {
-        return isFolder(siteId, path) ? path : StringUtils.appendIfMissing(path, "." + fileExtension);
+        return isFolder(siteId, path) ? path : appendIfMissing(path, "." + fileExtension);
     }
 
     protected String getPathFromPointerPath(String siteId, String pointerPath) {
-        return isFolder(siteId, pointerPath) ? pointerPath : StringUtils.removeEnd(pointerPath, "." + fileExtension);
+        return isFolder(siteId, pointerPath) ? pointerPath : removeEnd(pointerPath, "." + fileExtension);
     }
 
     protected String normalize(String path) {
@@ -750,23 +748,25 @@ public class BlobAwareContentRepository implements ContentRepository,
                 }
 
                 // check if any of the changes belongs to the blob store
-                Set<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
-                Set<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
+                Collection<String> updatedBlobs = findCompatiblePaths(blobStore, gitChanges.getUpdatedPaths());
+                Collection<String> deletedBlobs = findCompatiblePaths(blobStore, gitChanges.getDeletedPaths());
 
                 if (!(updatedBlobs.isEmpty() && deletedBlobs.isEmpty())) {
                     RepositoryChanges blobChanges = new RepositoryChanges(updatedBlobs, deletedBlobs);
                     blobStore.completePublishAll(siteId, publishingTarget,
                             blobChanges, comment);
                     // Translate paths back to xxxx.blob
-                    gitChanges.getFailedPaths().addAll(getRepoPaths(blobChanges.getFailedPaths()));
+                    blobChanges.getFailedPaths().stream()
+                            .map(this::getRepoPath)
+                            .forEach(gitChanges.getFailedPaths()::add);
                 }
             }
 
             localRepositoryV2.completePublishAll(siteId, publishingTarget, gitChanges, comment);
 
-            Set<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
-            Set<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
-            Set<String> failedFiles = translatePaths(gitChanges.getFailedPaths());
+            Collection<String> updatedFiles = translatePaths(gitChanges.getUpdatedPaths());
+            Collection<String> deletedFiles = translatePaths(gitChanges.getDeletedPaths());
+            Collection<String> failedFiles = translatePaths(gitChanges.getFailedPaths());
 
             // Return an updated repository changes object with everything changed from git + blob
             return new RepositoryChanges(gitChanges.isInitialPublish(), updatedFiles, deletedFiles, failedFiles);
@@ -782,36 +782,33 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     /**
-     * Gets a collection of asset paths and translate it
-     * to the actual file paths in git repo.
+     * Gets an asset path and translate it
+     * to the actual file path in git repo.
      * e.g.:
      * /static-assets/test/my-image.png
      * to
      * static-assets/test/my-image.png.blob
      *
-     * @param blobPaths the collection of asset paths
-     * @return a list of git repo paths
+     * @param blobPath the asset path
+     * @return the git repo path
      */
-    protected Collection<String> getRepoPaths(final Collection<String> blobPaths) {
-        return blobPaths.stream()
-                .map(p -> StringUtils.appendIfMissing(p, "." + fileExtension))
-                .map(p -> StringUtils.removeStart(p, File.separator))
-                .collect(toList());
+    protected String getRepoPath(final String blobPath) {
+        return removeStart(appendIfMissing(blobPath, "." + fileExtension), File.separator);
     }
 
-    protected Set<String> translatePaths(Set<String> paths) {
+    protected Collection<String> translatePaths(Collection<String> paths) {
         return paths.stream()
                 .map(this::getOriginalPath)
                 .map(path -> prependIfMissing(path, FILE_SEPARATOR))
-                .collect(toSet());
+                .collect(toList());
     }
 
-    protected Set<String> findCompatiblePaths(BlobStore blobStore, Set<String> paths) {
+    protected Collection<String> findCompatiblePaths(BlobStore blobStore, Collection<String> paths) {
         return paths.stream()
                 .map(path -> prependIfMissing(path, File.separator))
                 .filter(blobStore::isCompatible)
                 .map(this::getOriginalPath)
-                .collect(toSet());
+                .collect(toList());
     }
 
     @Override
