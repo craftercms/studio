@@ -25,6 +25,8 @@ import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
+import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -163,6 +165,22 @@ public class BlobAwareContentRepository implements ContentRepository,
         } catch (Exception e) {
             logger.error("Failed to check if content exists in site '{}' path '{}'", site, path, e);
             return false;
+        }
+    }
+
+    @Override
+    public void checkContentExists(String site, String path) throws ServiceLayerException {
+        if (!isFolder(site, path) && pointersExist(site, path)) {
+            StudioBlobStore store = getBlobStore(site, path);
+            if (store == null) {
+                logger.error("Pointer exists for path '{}' in site '{}', but blob store could not be found", path, site);
+                throw new BlobNotFoundException(path, site, format("Pointer exists for path '%s' in site '%s', " +
+                        "but blob store could not be found", path, site));
+            }
+
+            store.checkContentExists(site, normalize(path));
+        } else if (!localRepositoryV1.contentExists(site, path)) {
+            throw new ContentNotFoundException(path, site, "Content not found");
         }
     }
 

@@ -159,6 +159,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    public void checkContentExists(String site, String path) throws ServiceLayerException {
+        this.contentRepository.checkContentExists(site, path);
+    }
+
+    @Override
     @Valid
     public boolean shallowContentExists(@ValidateStringParam String site,
                                         @ValidateSecurePathParam String path) {
@@ -2559,10 +2564,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String parentPath = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(path);
         String targetPath = parentPath + FILE_SEPARATOR + name;
 
-        if (!contentExists(site, path)) {
-            throw new ContentNotFoundException(path, site, format("Content '%s' in site '%s', cannot be renamed " +
-                    "to '%s' because it does not exist.", path, site, targetPath));
-        }
+        checkContentExists(site, path);
 
         if (contentExists(site, targetPath)) {
             throw new ContentExistException(format("Content '%s' in site '%s', cannot be renamed " +

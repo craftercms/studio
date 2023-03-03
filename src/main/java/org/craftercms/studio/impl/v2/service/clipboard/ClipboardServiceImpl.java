@@ -20,6 +20,7 @@ import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
@@ -43,11 +44,13 @@ public class ClipboardServiceImpl implements ClipboardService {
 
     protected final ClipboardServiceInternal clipboardServiceInternal;
     protected final SiteService siteService;
+    protected ContentService contentService;
 
-    @ConstructorProperties({"clipboardServiceInternal", "siteService"})
-    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, SiteService siteService) {
+    @ConstructorProperties({"clipboardServiceInternal", "siteService", "contentService"})
+    public ClipboardServiceImpl(ClipboardServiceInternal clipboardServiceInternal, SiteService siteService, ContentService contentService) {
         this.clipboardServiceInternal = clipboardServiceInternal;
         this.siteService = siteService;
+        this.contentService = contentService;
     }
 
     @Override
@@ -67,6 +70,7 @@ public class ClipboardServiceImpl implements ClipboardService {
                                 String path)
             throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
+        contentService.checkContentExists(siteId, path);
         return clipboardServiceInternal.duplicateItem(siteId, path);
     }
 }

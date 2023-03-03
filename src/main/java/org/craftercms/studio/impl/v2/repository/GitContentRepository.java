@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
@@ -1301,6 +1302,13 @@ public class GitContentRepository implements ContentRepository {
 
         // Insert site remote record into database
         retryingDatabaseOperationFacade.retry(() -> remoteRepositoryDAO.insertRemoteRepository(params));
+    }
+
+    @Override
+    public void checkContentExists(String site, String path) throws ServiceLayerException {
+        if (!contentExists(site, path)) {
+            throw new ContentNotFoundException(path, site, format("Content does not exist at '%s' for site '%s'", path, site));
+        }
     }
 
     @Override

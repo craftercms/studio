@@ -21,6 +21,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
+import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
@@ -89,6 +91,13 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                     site, getFullKey(mapping, path), e);
             throw new BlobStoreException(format("Failed to check if content exists at site '%s' path '%s'",
                     site, getFullKey(mapping, path)), e);
+        }
+    }
+
+    @Override
+    public void checkContentExists(String site, String path) throws ServiceLayerException {
+        if (!contentExists(site, path)) {
+            throw new BlobNotFoundException(path, site, format("Content does not exist in S3 Blobstore at '%s' for site '%s'", path, site));
         }
     }
 
