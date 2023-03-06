@@ -33,6 +33,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.lang.String.format;
+
 public class PipelineContentImpl implements PipelineContent {
 
     /** content id **/
@@ -95,10 +97,8 @@ public class PipelineContentImpl implements PipelineContent {
                 try {
                     _contentStream = new ByteArrayInputStream(
                             (XmlUtils.convertDocumentToString(_document)).getBytes(_encoding));
-                } catch (UnsupportedEncodingException e) {
-                    throw new ContentProcessException("Error while converting " + _id + " into docuemnt.", e);
                 } catch (IOException e) {
-                    throw new ContentProcessException("Error while converting " + _id + " into docuemnt.", e);
+                    throw new ContentProcessException(format("Error while converting %s into document.", _id), e);
                 }
             } else {
                 throw new ContentProcessException("Error while converting " + _id

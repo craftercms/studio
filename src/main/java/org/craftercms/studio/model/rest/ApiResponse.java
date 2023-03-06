@@ -97,6 +97,8 @@ public class ApiResponse {
     public static final ApiResponse CONTENT_MOVE_INVALID_LOCATION = new ApiResponse(7004,
             "Paste destination folder is invalid (did you paste the item onto itself?)",
             "Try pasting the content to a different folder", StringUtils.EMPTY);
+    public static final ApiResponse BLOB_NOT_FOUND = new ApiResponse(7005, "Content not found in blob store",
+            "Check your blob store configurations", StringUtils.EMPTY);
 
     // 8000 - 9000
     public static final ApiResponse PUBLISHING_DISABLED = new ApiResponse(8000, "Publishing is disabled",
