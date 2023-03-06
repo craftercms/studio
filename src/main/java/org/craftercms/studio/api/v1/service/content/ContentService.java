@@ -50,6 +50,14 @@ public interface ContentService {
     boolean contentExists(String site, String path);
 
     /**
+     * Checks if a content exists at a given path and throw an exception if it does not.
+     * @param site id of the site
+     * @param path the content path
+     * @throws ServiceLayerException if no content is found at the given path
+     */
+    void checkContentExists(String site, String path) throws ServiceLayerException;
+
+    /**
      * This is a faster, but less accurate, version of contentExists. This prioritizes
      * performance over checking the actual underlying repository if the content is actually in the store
      * or we simply hold a reference to the object in the actual store.

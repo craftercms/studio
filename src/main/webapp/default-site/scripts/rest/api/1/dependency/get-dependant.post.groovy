@@ -13,7 +13,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.studio.api.v1.exception.BlobNotFoundException
+import org.craftercms.studio.api.v1.exception.ContentNotFoundException
 import scripts.api.DependencyServices
 
 def result = [:]
@@ -42,7 +45,12 @@ if (invalidParams) {
     response.setStatus(400)
     result.message = "Invalid parameter(s): " + paramsList
 } else {
-    def context = DependencyServices.createContext(applicationContext, request)
-    result = DependencyServices.getDependantItems(context, site, path)
+    try {
+        def context = DependencyServices.createContext(applicationContext, request)
+        result = DependencyServices.getDependantItems(context, site, path)
+    } catch (BlobNotFoundException | ContentNotFoundException e) {
+        response.setStatus(404)
+        result.message = e.message
+    }
 }
 return result

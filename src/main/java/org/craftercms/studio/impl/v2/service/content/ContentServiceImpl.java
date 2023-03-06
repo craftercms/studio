@@ -235,6 +235,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
+        contentServiceV1.checkContentExists(siteId, path);
         return contentServiceInternal.getItemByPath(siteId, path, preferContent);
     }
 
