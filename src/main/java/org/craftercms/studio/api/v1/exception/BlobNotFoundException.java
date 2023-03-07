@@ -14,34 +14,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.model.rest.groups;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.Size;
+package org.craftercms.studio.api.v1.exception;
 
 /**
- * Holds the parameters for an Update Group request
+ * Exception thrown when a blob pointer exists in the repository
+ * but the actual asset does not exist in the blob store.
  */
-public class UpdateGroupRequest {
-    private long id = -1;
-    @Size(max = 1024)
-    @JsonProperty("desc")
-    private String groupDescription;
+public class BlobNotFoundException extends ServiceLayerException {
 
-    public long getId() {
-        return id;
+    protected String path;
+    protected String site;
+
+    public BlobNotFoundException(final String path, final String site, final String message) {
+        super(message);
+        this.path = path;
+        this.site = site;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public String getPath() {
+        return path;
     }
 
-    public String getGroupDescription() {
-        return groupDescription;
-    }
-
-    public void setGroupDescription(String groupDescription) {
-        this.groupDescription = groupDescription;
+    public String getSite() {
+        return site;
     }
 }

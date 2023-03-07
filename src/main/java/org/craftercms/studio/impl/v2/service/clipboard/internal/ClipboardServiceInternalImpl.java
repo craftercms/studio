@@ -143,6 +143,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     }
 
     public String duplicateItem(String siteId, String path) throws ServiceLayerException, UserNotFoundException {
+        contentService.checkContentExists(siteId, path);
         String parentUrl = getParentUrl(path);
         var item = contentService.getContentItem(siteId, parentUrl, 0);
         return contentService.copyContent(siteId, path, item.uri);

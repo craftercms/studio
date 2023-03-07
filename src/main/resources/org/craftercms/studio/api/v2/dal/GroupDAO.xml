@@ -123,8 +123,7 @@
 
     <update id="updateGroup" parameterType="org.craftercms.studio.api.v2.dal.Group">
         UPDATE `group`
-        SET group_name = #{groupName},
-            group_description = #{groupDescription},
+        SET group_description = #{groupDescription},
             record_last_updated = CURRENT_TIMESTAMP
         WHERE id = #{id}
     </update>

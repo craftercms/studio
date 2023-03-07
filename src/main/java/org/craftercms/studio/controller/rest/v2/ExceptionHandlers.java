@@ -29,10 +29,7 @@ import org.craftercms.commons.validation.ValidationRuntimeException;
 import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.core.exception.PathNotFoundException;
 import org.craftercms.core.util.ExceptionUtils;
-import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.exception.*;
@@ -337,6 +334,15 @@ public class ExceptionHandlers {
         ApiResponse response = new ApiResponse(ApiResponse.CONTENT_NOT_FOUND);
         response.setRemedialAction(
                 format("Check that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
+        return handleExceptionInternal(request, e, response);
+    }
+
+    @ExceptionHandler(BlobNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseBody handleBlobNotFoundException(HttpServletRequest request, BlobNotFoundException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.BLOB_NOT_FOUND);
+        response.setRemedialAction(
+                format("Check your blob store configuration and that path '%s' is correct and it exists in site '%s'", e.getPath(), e.getSite()));
         return handleExceptionInternal(request, e, response);
     }
 

@@ -331,9 +331,7 @@ public class DependencyServiceImpl implements DependencyService {
         }
 
         // Check if content exists
-        if (!contentService.contentExists(site, path)) {
-            throw new ContentNotFoundException();
-        }
+        contentService.checkContentExists(site, path);
 
         logger.debug("Get items depending on item site '{}' path '{}'", site, path);
         Set<String> toRet = new HashSet<>();

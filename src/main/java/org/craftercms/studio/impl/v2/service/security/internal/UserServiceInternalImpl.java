@@ -231,6 +231,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         params.put(FIRST_NAME, user.getFirstName());
         params.put(LAST_NAME, user.getLastName());
         params.put(EMAIL, user.getEmail());
+        params.put(ENABLED, user.isEnabled());
         params.put(TIMEZONE, StringUtils.EMPTY);
         params.put(LOCALE, StringUtils.EMPTY);
 

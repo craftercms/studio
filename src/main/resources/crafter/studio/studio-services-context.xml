@@ -273,6 +273,7 @@
     <bean id="clipboardService" class="org.craftercms.studio.impl.v2.service.clipboard.ClipboardServiceImpl">
         <constructor-arg name="clipboardServiceInternal" ref="clipboardServiceInternal"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentService" ref="cstudioContentService"/>
     </bean>
 
     <bean id="defaultCacheInvalidator" class="org.craftercms.studio.impl.v2.utils.cache.DefaultCacheInvalidator"/>

@@ -446,4 +446,11 @@ public interface ContentRepository {
      */
     void populateGitLog(String siteId) throws GitAPIException, IOException;
 
+    /**
+     * Checks if a content exists at a given path and throw an exception if it does not.
+     * @param site id of the site
+     * @param path the content path
+     * @throws ServiceLayerException if no content is found at the given path
+     */
+    void checkContentExists(String site, String path) throws ServiceLayerException;
 }
