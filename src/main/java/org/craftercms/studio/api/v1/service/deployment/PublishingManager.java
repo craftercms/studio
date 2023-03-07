@@ -66,4 +66,13 @@ public interface PublishingManager {
      *
      */
     void resetProcessingQueue(String site, String environment);
+
+    /**
+     * Updates item states to publish state according to the publishing
+     * environment (stage vs live)
+     * @param siteId the site id
+     * @param environment the environment where the items were published
+     * @param items the published items
+     */
+    void setPublishedState(String siteId, String environment, List<PublishRequest> items);
 }
