@@ -41,7 +41,7 @@ public class PublishRequest implements Serializable {
     private String packageId;
     private ZonedDateTime publishedOn;
 
-    public class State {
+    public static class State {
         public final static String READY_FOR_LIVE = "READY_FOR_LIVE";
         public final static String PROCESSING = "PROCESSING";
         public final static String COMPLETED = "COMPLETED";
@@ -49,7 +49,7 @@ public class PublishRequest implements Serializable {
         public final static String BLOCKED = "BLOCKED";
     }
 
-    public class Action {
+    public static class Action {
         public final static String NEW = "NEW";
         public final static String UPDATE = "UPDATE";
         public final static String DELETE = "DELETE";

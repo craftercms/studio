@@ -75,97 +75,97 @@ public class StudioPublisherTask extends StudioClockTask {
         }
         String env = null;
         try {
-            if (contentRepository.repositoryExists(siteId) && siteService.isPublishingEnabled(siteId)) {
-                if (!publishingManager.isPublishingBlocked(siteId)) {
-                    List<PublishRequest> itemsToDeploy = emptyList();
-                    try {
-                        if (!retryCounter.containsKey(siteId)) {
-                            retryCounter.put(siteId, maxRetryCounter);
-                        }
-                        Set<String> environments = getAllPublishingEnvironments(siteId);
-                        for (String environment : environments) {
-                            env = environment;
-                            logger.trace("Process content item ready for publishing in site '{}'", siteId);
-                            itemsToDeploy = publishingManager.getItemsReadyForDeployment(siteId, environment);
-                            while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
-                                logger.trace("Publish '{}' items in site '{}'", itemsToDeploy.size(), siteId);
-                                publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
-                                List<String> commitIds = itemsToDeploy.stream()
-                                        .map(PublishRequest::getCommitId)
-                                        .distinct().collect(toList());
+            if (!contentRepository.repositoryExists(siteId) || !siteService.isPublishingEnabled(siteId)) {
+                logger.debug("Publishing is currently disabled for site '{}'", siteId);
+                return;
+            }
+            if (publishingManager.isPublishingBlocked(siteId)) {
+                logger.warn("Publishing is currently blocked for site '{}'", siteId);
+                return;
+            }
+            List<PublishRequest> itemsToDeploy = emptyList();
+            try {
+                if (!retryCounter.containsKey(siteId)) {
+                    retryCounter.put(siteId, maxRetryCounter);
+                }
+                Set<String> environments = getAllPublishingEnvironments(siteId);
+                for (String environment : environments) {
+                    env = environment;
+                    logger.trace("Process content item ready for publishing in site '{}'", siteId);
+                    itemsToDeploy = publishingManager.getItemsReadyForDeployment(siteId, environment);
+                    while (CollectionUtils.isNotEmpty(itemsToDeploy)) {
+                        logger.trace("Publish '{}' items in site '{}'", itemsToDeploy.size(), siteId);
+                        publishingManager.markItemsProcessing(siteId, environment, itemsToDeploy);
+                        List<String> commitIds = itemsToDeploy.stream()
+                                .map(PublishRequest::getCommitId)
+                                .distinct().collect(toList());
 
-                                boolean allCommitsPresent = true;
-                                StringBuilder sbMissingCommits = new StringBuilder();
-                                for (String commit : commitIds) {
-                                    if (StringUtils.isNotEmpty(commit)) {
-                                        boolean commitPresent = contentRepository.commitIdExists(siteId,
-                                                commit);
-                                        if (!commitPresent) {
-                                            sbMissingCommits.append(commit).append("; ");
-                                            logger.trace("Commit ID '{}' is not in the git repo for " +
-                                                    "site '{}'. Skip a publishing cycle and try " +
-                                                    "again next cycle.", commit, siteId);
-                                            allCommitsPresent = false;
-                                        }
-                                    }
+                        boolean allCommitsPresent = true;
+                        StringBuilder sbMissingCommits = new StringBuilder();
+                        for (String commit : commitIds) {
+                            if (StringUtils.isNotEmpty(commit)) {
+                                boolean commitPresent = contentRepository.commitIdExists(siteId,
+                                        commit);
+                                if (!commitPresent) {
+                                    sbMissingCommits.append(commit).append("; ");
+                                    logger.trace("Commit ID '{}' is not in the git repo for " +
+                                            "site '{}'. Skip a publishing cycle and try " +
+                                            "again next cycle.", commit, siteId);
+                                    allCommitsPresent = false;
                                 }
-
-                                if (allCommitsPresent) {
-                                    logger.info("Publish started in site '{}' for target '{}' with '{}' items " +
-                                                    "ready to be published",
-                                            siteId, environment, itemsToDeploy.size());
-                                    String packageId = itemsToDeploy.get(0).getPackageId();
-                                    PublishingProgressObserver observer =
-                                            new PublishingProgressObserver(siteId, packageId, environment,
-                                                    itemsToDeploy.size());
-                                    publishingProgressServiceInternal.addObserver(observer);
-                                    doPublishing(siteId, itemsToDeploy, environment);
-                                    applicationContext.publishEvent(new PublishEvent(siteId));
-                                    retryCounter.remove(siteId);
-                                    dbErrorNotifiedSites.remove(siteId);
-                                    itemsToDeploy =
-                                            publishingManager.getItemsReadyForDeployment(siteId, environment);
-                                } else {
-                                    publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
-                                    int retriesLeft = retryCounter.get(siteId) - 1;
-                                    itemsToDeploy = null;
-                                    if (retriesLeft > 0) {
-                                        retryCounter.put(siteId, retriesLeft);
-                                        logger.info("The commit IDs '{}' are not in the git repo for site '{}'. " +
-                                                "Skip a publishing cycle and try again next cycle. " +
-                                                "'{}' retries left.",
-                                                sbMissingCommits, siteId, retriesLeft);
-                                    } else {
-                                        retryCounter.remove(siteId);
-                                        siteService.enablePublishing(siteId, false);
-                                        logger.error("Exhausted publish retries for site '{}' after '{}' attempts " +
-                                                "due to missing commit IDs '{}'",
-                                                siteId, maxRetryCounter, sbMissingCommits);
-                                        throw new DeploymentException("Deployment failed after " + maxRetryCounter
-                                                + " retries. The following commits are not present in local " +
-                                                "repository " + sbMissingCommits);
-                                    }
-                                }
-
                             }
                         }
-                    } catch (UncategorizedSQLException e) {
-                        logger.error("Failed to publish items in site '{}' due to a database error",
-                                siteId, e);
-                        if (!dbErrorNotifiedSites.add(siteId)) {
-                            notificationService.notifyDeploymentError(siteId, e);
+
+                        if (allCommitsPresent) {
+                            logger.info("Publish started in site '{}' for target '{}' with '{}' items " +
+                                            "ready to be published",
+                                    siteId, environment, itemsToDeploy.size());
+                            String packageId = itemsToDeploy.get(0).getPackageId();
+                            PublishingProgressObserver observer =
+                                    new PublishingProgressObserver(siteId, packageId, environment,
+                                            itemsToDeploy.size());
+                            publishingProgressServiceInternal.addObserver(observer);
+                            doPublishing(siteId, itemsToDeploy, environment);
+                            applicationContext.publishEvent(new PublishEvent(siteId));
+                            retryCounter.remove(siteId);
+                            dbErrorNotifiedSites.remove(siteId);
+                            itemsToDeploy =
+                                    publishingManager.getItemsReadyForDeployment(siteId, environment);
+                        } else {
+                            publishingManager.markItemsReady(siteId, environment, itemsToDeploy);
+                            int retriesLeft = retryCounter.get(siteId) - 1;
+                            itemsToDeploy = null;
+                            if (retriesLeft > 0) {
+                                retryCounter.put(siteId, retriesLeft);
+                                logger.info("The commit IDs '{}' are not in the git repo for site '{}'. " +
+                                        "Skip a publishing cycle and try again next cycle. " +
+                                        "'{}' retries left.",
+                                        sbMissingCommits, siteId, retriesLeft);
+                            } else {
+                                retryCounter.remove(siteId);
+                                siteService.enablePublishing(siteId, false);
+                                logger.error("Exhausted publish retries for site '{}' after '{}' attempts " +
+                                        "due to missing commit IDs '{}'",
+                                        siteId, maxRetryCounter, sbMissingCommits);
+                                throw new DeploymentException("Deployment failed after " + maxRetryCounter
+                                        + " retries. The following commits are not present in local " +
+                                        "repository " + sbMissingCommits);
+                            }
                         }
-                        publishingManager.resetProcessingQueue(siteId, env);
-                    } catch (Exception e) {
-                        logger.error("Failed to publish items in site '{}'", siteId, e);
-                        publishingManager.resetProcessingQueue(siteId, env);
-                        notificationService.notifyDeploymentError(siteId, e, itemsToDeploy);
+
                     }
-                } else {
-                    logger.warn("Publishing is currently blocked for site '{}'", siteId);
                 }
-            } else {
-                logger.debug("Publishing is currently disabled for site '{}'", siteId);
+            } catch (UncategorizedSQLException e) {
+                logger.error("Failed to publish items in site '{}' due to a database error",
+                        siteId, e);
+                if (!dbErrorNotifiedSites.add(siteId)) {
+                    notificationService.notifyDeploymentError(siteId, e);
+                }
+                publishingManager.resetProcessingQueue(siteId, env);
+            } catch (Exception e) {
+                logger.error("Failed to publish items in site '{}'", siteId, e);
+                publishingManager.resetProcessingQueue(siteId, env);
+                notificationService.notifyDeploymentError(siteId, e, itemsToDeploy);
             }
         } catch (UncategorizedSQLException e) {
             // TODO: SJ: This is the same catch as above, consolidate
