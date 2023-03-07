@@ -220,6 +220,7 @@ public class StudioPublisherTask extends StudioClockTask {
                     sbComment.toString());
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
             publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+            publishingManager.setPublishedState(siteId, environment, itemsToDeploy);
 
             logger.info("Published '{}' items in site '{}' to target '{}'",
                     itemsToDeploy.size(), siteId, environment);

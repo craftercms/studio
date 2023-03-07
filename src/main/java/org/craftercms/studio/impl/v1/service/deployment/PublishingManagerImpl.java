@@ -41,7 +41,6 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +51,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -157,11 +157,17 @@ public class PublishingManagerImpl implements PublishingManager {
                     }
                 }
             }
-
-            deploymentItem = processUpdateOrNewItem(deploymentItem, site, path, environment, isLive);
+            Workflow workflowEntry =
+                    workflowServiceInternal.getWorkflowEntry(site, path, deploymentItem.getPackageId());
+            if (workflowEntry == null && !contentService.contentExists(site, path)) {
+                logger.warn("Item in site '{}' path '{}' doesn't exist in the database nor the git repository. " +
+                        "Skipping publishing of this item.", site, path);
+                deploymentItem = null;
+            }
             if (isPathBlackListed(item.getPath())) {
                 logger.debug("The file in site '{}' path '{}' matches the publishing blacklist and will not be " +
                                 "published", site, item.getPath());
+                // TODO: JM: Should these be marked as CANCELLED instead of COMPLETED ?
                 markItemsCompleted(site, item.getEnvironment(), List.of(item));
                 deploymentItem = null;
             }
@@ -169,47 +175,41 @@ public class PublishingManagerImpl implements PublishingManager {
         return deploymentItem;
     }
 
-    /**
-     * Processes a update or new {@link PublishRequest}
-     * @return updated {@link DeploymentItemTO}, or null if the item
-     * should not be published
-     */
-    @Nullable
-    private DeploymentItemTO processUpdateOrNewItem(DeploymentItemTO deploymentItem, String site, String path, String environment, boolean isLive) {
-        Workflow workflowEntry =
-                workflowServiceInternal.getWorkflowEntry(site, path, deploymentItem.getPackageId());
-
-        if (workflowEntry == null) {
-            if (contentService.contentExists(site, path)) {
-                Item it = itemServiceInternal.getItem(site, path, true);
-                if (Objects.nonNull(it)) {
-                    if (isLive) {
-                        itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
-                                PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
-                        itemServiceInternal.clearPreviousPath(site, path);
-                    } else {
-                        itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
-                    }
-                } else {
-                    logger.warn("Item in site '{}' path '{}' doesn't exist in the database, but it does exist " +
-                            "in git. This may cause problems in the publishing target '{}'",
-                            site, path, environment);
-                }
-            } else {
+    @Override
+    public void setPublishedState(String site, String environment, List<PublishRequest> items) {
+        boolean isLive = isLiveEnv(site, environment);
+        items.forEach(publishRequest -> {
+            String path = publishRequest.getPath();
+            Workflow workflowEntry =
+                    workflowServiceInternal.getWorkflowEntry(site, path, publishRequest.getPackageId());
+            if (workflowEntry != null) {
+                setPublishedState(path, site, isLive);
+                return;
+            }
+            if (!contentService.contentExists(site, path)) {
                 logger.warn("Item in site '{}' path '{}' doesn't exist in the database nor the git repository. " +
                         "Skipping publishing of this item.", site, path);
-                deploymentItem = null;
+                return;
             }
-        } else {
-            if (isLive) {
-                itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
-                        PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
-                itemServiceInternal.clearPreviousPath(site, path);
+            Item it = itemServiceInternal.getItem(site, path, true);
+            if (isNull(it)) {
+                logger.warn("Item in site '{}' path '{}' doesn't exist in the database, but it does exist " +
+                                "in git. This may cause problems in the publishing target '{}'",
+                        site, path, environment);
             } else {
-                itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
+                setPublishedState(path, site, isLive);
             }
+        });
+    }
+
+    private void setPublishedState(String path, String site, boolean isLive) {
+        if (isLive) {
+            itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_AND_LIVE_ON_MASK,
+                    PUBLISH_TO_STAGE_AND_LIVE_OFF_MASK);
+            itemServiceInternal.clearPreviousPath(site, path);
+        } else {
+            itemServiceInternal.updateStateBits(site, path, PUBLISH_TO_STAGE_ON_MASK, PUBLISH_TO_STAGE_OFF_MASK);
         }
-        return deploymentItem;
     }
 
     /**
