@@ -259,7 +259,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         try {
             var item = itemServiceInternal.getItem(siteId, path);
             if (Objects.isNull(item)) {
-                throw new ContentNotFoundException();
+                throw new ContentNotFoundException(path, siteId, format("Content not found in site '%s' at path '%s'",
+                        siteId, path));
             }
             var username = securityService.getCurrentUser();
             if (StringUtils.isEmpty(item.getLockOwner())) {

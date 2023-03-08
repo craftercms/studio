@@ -25,13 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.lang.String.format;
+
 public class GeneralLockServiceImpl implements GeneralLockService {
 
     private static final Logger logger = LoggerFactory.getLogger(GeneralLockServiceImpl.class);
 
-    private static final String KEY_TEMPLATE_CONTENT_ITEM = "CONTENT_ITEM_{site}_{path}";
-    private static final String PATTERN_SITE = "\\{site\\}";
-    private static final String PATTERN_PATH = "\\{path\\}";
+    private static final String KEY_FORMAT_CONTENT_ITEM = "CONTENT_ITEM_%s_%s";
 
     protected Map<String, ReentrantLock> nodeLocks = new HashMap<>();
 
@@ -132,6 +132,6 @@ public class GeneralLockServiceImpl implements GeneralLockService {
     }
 
     private String generateContentItemKey(String siteId, String path) {
-        return KEY_TEMPLATE_CONTENT_ITEM.replaceAll(PATTERN_SITE, siteId).replaceAll(PATTERN_PATH, path);
+        return format(KEY_FORMAT_CONTENT_ITEM, siteId, path);
     }
 }
