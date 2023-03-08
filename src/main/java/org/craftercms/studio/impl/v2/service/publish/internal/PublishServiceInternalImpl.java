@@ -113,6 +113,15 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
+    public int getPublishingHistoryDetailTotalItems(String siteId, String packageId) {
+        return publishRequestDao.getPublishingHistoryDetailTotalItems(siteId, packageId);
+    }
+
+    public List<PublishRequest> getPublishingHistoryDetail(String siteId, String packageId, int offset, int limit) {
+        return publishRequestDao.getPublishingHistoryDetail(siteId, packageId, offset, limit);
+    }
+
+    @Override
     public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments,
                                                             ZonedDateTime fromDate, ZonedDateTime toDate,
                                                             String filterType, int numberOfItems) {

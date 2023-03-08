@@ -209,25 +209,20 @@ public class DashboardController {
 
     @Valid
     @GetMapping(value = PUBLISHING + SCHEDULED, produces = APPLICATION_JSON_VALUE)
-    public PaginatedResultList<DashboardPublishingPackage> getPublishingScheduled(
+    public PaginatedResultList<DetailedItem> getPublishingScheduled(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @EsapiValidatedParam(type = ALPHANUMERIC)
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
-            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {
-        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget, dateFrom, dateTo);
-        var packages = dashboardService.getPublishingScheduled(siteId, publishingTarget,
-                dateFrom, dateTo, offset, limit);
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws ServiceLayerException, UserNotFoundException {
+        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget);
+        var scheduledItems = dashboardService.getPublishingScheduled(siteId, publishingTarget, offset, limit);
 
-        var result = new PaginatedResultList<DashboardPublishingPackage>();
+        var result = new PaginatedResultList<DetailedItem>();
         result.setTotal(total);
         result.setOffset(offset);
-        result.setLimit(CollectionUtils.isNotEmpty(packages) ? packages.size() : 0);
-        result.setEntities(RESULT_KEY_PUBLISHING_PACKAGES, packages);
+        result.setLimit(CollectionUtils.isNotEmpty(scheduledItems) ? scheduledItems.size() : 0);
+        result.setEntities(RESULT_KEY_PUBLISHING_ITEMS, scheduledItems);
         result.setResponse(OK);
         return result;
     }
@@ -275,11 +270,19 @@ public class DashboardController {
 
     @Valid
     @GetMapping(value = PUBLISHING + HISTORY + PATH_PARAM_ID, produces = APPLICATION_JSON_VALUE)
-    public ResultList<SandboxItem> getPublishingHistoryDetail(
+    public PaginatedResultList<SandboxItem> getPublishingHistoryDetail(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
-            @PathVariable(REQUEST_PARAM_ID) UUID packageId) throws UserNotFoundException, ServiceLayerException {
-        var items = dashboardService.getPublishingHistoryDetail(siteId, packageId.toString());
-        var result = new ResultList<SandboxItem>();
+            @PathVariable(REQUEST_PARAM_ID) UUID packageId,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
+            @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
+        throws UserNotFoundException, ServiceLayerException {
+        int total = dashboardService.getPublishingHistoryDetailTotalItems(siteId, packageId.toString());
+        var items = dashboardService.getPublishingHistoryDetail(siteId, packageId.toString(), offset, limit);
+
+        var result = new PaginatedResultList<SandboxItem>();
+        result.setTotal(total);
+        result.setOffset(offset);
+        result.setLimit(CollectionUtils.isNotEmpty(items) ? items.size() : 0);
         result.setEntities(RESULT_KEY_PUBLISHING_PACKAGE_ITEMS, items);
         result.setResponse(OK);
         return result;
