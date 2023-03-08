@@ -713,6 +713,10 @@ configurations:
         - currentVersion: 16 # For 3.1.23 or later
           nextVersion: 4.0-t
 
+        # Entry point for existing 4.0.x before version schema update
+        - currentVersion: 20
+          nextVersion: 4.0-t9
+
         # Common operations for all 3.1.x versions:
         - currentVersion: 4.0-t
           nextVersion: 4.0-t2
