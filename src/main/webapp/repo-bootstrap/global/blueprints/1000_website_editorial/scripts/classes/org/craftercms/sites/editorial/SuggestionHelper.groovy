@@ -16,15 +16,15 @@
 
 package org.craftercms.sites.editorial
 
-import co.elastic.clients.elasticsearch.core.SearchRequest
-import org.craftercms.search.elasticsearch.client.ElasticsearchClientWrapper
+import org.opensearch.client.opensearch.core.SearchRequest
+import org.craftercms.search.opensearch.client.OpenSearchClientWrapper
 
 class SuggestionHelper {
 	
 	static final String DEFAULT_CONTENT_TYPE_QUERY = "content-type:\"/page/article\""
 	static final String DEFAULT_SEARCH_FIELD = "subject_t"
 
-	ElasticsearchClientWrapper elasticsearchClient
+	OpenSearchClientWrapper elasticsearchClient
 	
 	String contentTypeQuery = DEFAULT_CONTENT_TYPE_QUERY
 	String searchField = DEFAULT_SEARCH_FIELD
