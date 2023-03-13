@@ -1879,14 +1879,17 @@ public class GitContentRepository implements ContentRepository {
             retryingRepositoryOperationFacade.call(git.pull()
                     .setRemote(DEFAULT_REMOTE_NAME)
                     .setStrategy(THEIRS));
-            // check if the target branch exists
-            if (!branchExists(repo, publishingTarget)) {
+            // check if the target branch exists,
+            boolean branchExist = branchExists(repo, publishingTarget);
+            boolean stagingTarget = publishingTarget.equals(servicesConfig.getStagingEnvironment(siteId));
+            if (!branchExist && !stagingTarget) {
                 logger.error("Publishing target '{}' not found in site '{}'", publishingTarget, siteId);
                 throw new PublishedRepositoryNotFoundException(format("Publishing target '%s' not " +
                         "found in site '%s'", publishingTarget, siteId));
             }
             // checkout target branch
-            checkoutBranch(git, publishingTarget);
+            boolean createBranch = !branchExist && stagingTarget;
+            checkoutBranch(git, publishingTarget, createBranch);
 
             // checkout temp branch
             checkoutBranch(git, inProgressBranchName, true);
