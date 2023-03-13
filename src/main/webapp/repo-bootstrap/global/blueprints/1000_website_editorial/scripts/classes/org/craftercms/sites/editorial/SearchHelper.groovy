@@ -39,11 +39,11 @@ class SearchHelper {
   static final int DEFAULT_ROWS = 10
   static final String MULTIPLE_VALUES_SEARCH_ANALYZER = Analyzer.Kind.Whitespace.jsonValue()
 
-  OpenSearchClientWrapper elasticsearchClient
+  OpenSearchClientWrapper searchClient
   UrlTransformationService urlTransformationService
 
-  SearchHelper(OpenSearchClientWrapper elasticsearchClient, UrlTransformationService urlTransformationService) {
-    this.elasticsearchClient = elasticsearchClient
+  SearchHelper(OpenSearchClientWrapper searchClient, UrlTransformationService urlTransformationService) {
+    this.searchClient = searchClient
     this.urlTransformationService = urlTransformationService
   }
 
@@ -117,7 +117,7 @@ class SearchHelper {
       .highlight(highlighter.build())
     )
 
-    def result = elasticsearchClient.search(request, Map)
+    def result = searchClient.search(request, Map)
 
     if (result) {
       return processUserSearchResults(result)
@@ -174,7 +174,7 @@ class SearchHelper {
       )
     )
 
-    def result = elasticsearchClient.search(request, Map)
+    def result = searchClient.search(request, Map)
 
     if (result) {
       return processArticleListingResults(result)
