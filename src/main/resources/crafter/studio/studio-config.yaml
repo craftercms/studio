@@ -471,12 +471,6 @@ studio.authoring.disableDeployCron: true
 studio.authoring.templateName: authoring
 
 ############################################################
-##                   Preview Search                       ##
-############################################################
-# The default search engine to use when creating targets for preview and nothing is indicated in the blueprint
-studio.preview.search.engine: Elasticsearch
-
-############################################################
 ##                   Publishing Manager                   ##
 ############################################################
 # Defines file name for index files (page containers). Default value is index.xml
@@ -644,11 +638,11 @@ studio.cors.maxage: -1
 ################################################################
 ##                           Search                           ##
 ################################################################
-# URLs to connect to Elasticsearch
+# URLs to connect to Search
 studio.search.urls: http://localhost:9201
-# The username for Elasticsearch
+# The username for search
 studio.search.username: ''
-# The password for Elasticsearch
+# The password for search
 studio.search.password: ''
 # The connection timeout in milliseconds, if set to -1 the default will be used
 studio.search.timeout.connect: -1
@@ -850,7 +844,7 @@ studio.serverless.delivery.deployer.target.remoteRepoUrl: ${env:CRAFTER_DATA_DIR
 studio.serverless.delivery.deployer.target.localRepoPath: ${env:CRAFTER_DATA_DIR}/repos/aws/{siteName}
 # Parameters for the target template. Please check the deployer template documentation for the possible parameters.
 # The following parameters will be sent automatically, and you don't need to specify them: env, site_name, replace,
-# disable_deploy_cron, local_repo_path, repo_url, use_crafter_search
+# disable_deploy_cron, local_repo_path, repo_url
 studio.serverless.delivery.deployer.target.template.params:
   aws:
     cloudformation:
@@ -1001,9 +995,9 @@ studio.scripting.allowedBeans: ''
 ##           Dashboard Service                  ##
 ##################################################
 
-# Elasticsearch query to retrieve content expiring
+# Search query to retrieve content expiring
 studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateFrom} TO {dateTo}] AND NOT _exists_:metadataPath
-# Elasticsearch query to retrieve content expired
+# Search query to retrieve content expired
 studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now] AND NOT _exists_:metadataPath
-# Elasticsearch query to retrieve content expired sort by field
+# Search query to retrieve content expired sort by field
 studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt

@@ -33,7 +33,6 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
-import org.craftercms.commons.plugin.model.SearchEngines;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -639,134 +638,93 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     "remote repository: " + remoteName + " (" + remoteUrl + ")");
         }
 
-        // TODO: SJ: Is this still needed now that we only support Elasticsearch?
-        // try to get the search engine from the blueprint descriptor file
-        String searchEngine = studioConfiguration.getProperty(StudioConfiguration.PREVIEW_SEARCH_ENGINE);
+        // Create the site in the preview deployer
+        try {
+            logger.info("Create Deployer targets for site '{}'", siteId);
+            deployer.createTargets(siteId);
+        } catch (Exception e) {
+            logger.error("Failed to create Deployer targets for site '{}' as a clone of '{}' url '{}' " +
+                    "branch '{}'. Site creation failed.", siteId, remoteName, remoteUrl, remoteBranch, e);
 
-        PluginDescriptor descriptor = sitesServiceInternal.getSiteBlueprintDescriptor(siteId);
-        if (nonNull(descriptor) && nonNull(descriptor.getPlugin())) {
-            searchEngine = descriptor.getPlugin().getSearchEngine();
-            logger.info("Using search engine '{}' based on the configuration of the plugin descriptor while " +
-                    "creating site '{}'", searchEngine, siteId);
-        } else if (nonNull(descriptor) && nonNull(descriptor.getBlueprint())) {
-            searchEngine = descriptor.getBlueprint().getSearchEngine();
-            logger.info("Using search engine '{}' based on the configuration of the blueprint while " +
-                    "creating site '{}'", searchEngine, siteId);
-        } else {
-            logger.info("Using default search engine '{}' while creating site '{}'", searchEngine, siteId);
-        }
-
-        if (StringUtils.equals(searchEngine, SearchEngines.CRAFTER_SEARCH)) {
-            logger.error("Failed to create site '{}'. Unsupported search engine '{}', please update your " +
-                "site to use Elasticsearch. For more information see " +
-                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html",
-                siteId, SearchEngines.CRAFTER_SEARCH);
-
-            // rollback ...
             contentRepositoryV2.removeRemote(siteId, remoteName);
-            contentRepository.deleteSite(siteId);
+            boolean deleted = contentRepository.deleteSite(siteId);
 
-            throw new SiteCreationException("Unsupported search engine CrafterSearch, please update your site to use " +
-                "Elasticsearch. For more information see " +
-                "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
+            if (!deleted) {
+                logger.error("Failed to rollback site creation for site '{}'.", siteId);
+            }
+
+            throw new DeployerTargetException("Error while creating site: " + siteId + " ID: " + siteId +
+                    " as clone from remote repository: " + remoteName +
+                    " (" + remoteUrl + "). The required Deployer targets couldn't " +
+                    "be created", e);
         }
 
-        if (success) {
-            // Create the site in the preview deployer
-            try {
-                logger.info("Create Deployer targets for site '{}'", siteId);
-                deployer.createTargets(siteId);
-            } catch (Exception e) {
-                logger.error("Failed to create Deployer targets for site '{}' as a clone of '{}' url '{}' " +
-                        "branch '{}'. Site creation failed.", siteId, remoteName, remoteUrl, remoteBranch, e);
+        ZonedDateTime now = DateUtils.getCurrentTime();
+        try {
+            logger.debug("Add site UUID to site '{}'", siteId);
+            addSiteUuidFile(siteId, siteUuid);
 
-                contentRepositoryV2.removeRemote(siteId, remoteName);
-                boolean deleted = contentRepository.deleteSite(siteId);
+            // insert database records
+            logger.debug("Add site record to the database for site '{}'", siteId);
+            SiteFeed siteFeed = new SiteFeed();
+            siteFeed.setName(siteName);
+            siteFeed.setSiteId(siteId);
+            siteFeed.setSiteUuid(siteUuid);
+            siteFeed.setDescription(description);
+            siteFeed.setPublishingStatus(READY);
+            siteFeed.setSandboxBranch(sandboxBranch);
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.createSite(siteFeed));
 
-                if (!deleted) {
-                    logger.error("Failed to rollback site creation for site '{}'.", siteId);
-                }
+            upgradeManager.upgrade(siteId);
 
-                throw new DeployerTargetException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " as clone from remote repository: " + remoteName +
-                        " (" + remoteUrl + "). The required Deployer targets couldn't " +
-                        "be created", e);
+
+            // Add default groups
+            logger.info("Add default groups to site '{}'", siteId);
+            addDefaultGroupsForNewSite();
+
+            String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
+            String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
+
+            long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L ;
+            Map<String, String> createdFiles =
+                    contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Get the change-set of created files finished in '{}' milliseconds",
+                        (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
             }
+
+            insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
+            processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+            contentRepositoryV2.populateGitLog(siteId);
+
+            updateLastCommitId(siteId, lastCommitId);
+            updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
+            updateLastSyncedGitlogCommitId(siteId, firstCommitId);
+
+            logger.info("Load the configuration for site '{}'", siteId);
+        } catch (Exception e) {
+            logger.error("Failed to create site '{}' by cloning '{}' url '{}' branch '{}'",
+                    siteId, remoteName, remoteUrl, remoteBranch, e);
+
+            deleteSite(siteId);
+
+            throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
+                    " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
         }
 
-        if (success) {
-            ZonedDateTime now = DateUtils.getCurrentTime();
-            try {
-                logger.debug("Add site UUID to site '{}'", siteId);
-                addSiteUuidFile(siteId, siteUuid);
+        // Now that everything is created, we can sync the preview deployer with the new content
+        logger.info("Sync site '{}' to preview", siteId);
+        setSiteState(siteId, STATE_READY);
+        try {
+            applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+        } catch (Exception e) {
+            setSiteState(siteId, STATE_INITIALIZING);
+            // TODO: SJ: This seems to leave the site in a bad state, review
+            logger.error("Failed to sync site '{}' to preview. The site will become previewable once " +
+                    "the preview deployer is reachable.", siteId, e);
 
-                // insert database records
-                logger.debug("Add site record to the database for site '{}'", siteId);
-                SiteFeed siteFeed = new SiteFeed();
-                siteFeed.setName(siteName);
-                siteFeed.setSiteId(siteId);
-                siteFeed.setSiteUuid(siteUuid);
-                siteFeed.setDescription(description);
-                siteFeed.setPublishingStatus(READY);
-                siteFeed.setSandboxBranch(sandboxBranch);
-                retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.createSite(siteFeed));
-
-                upgradeManager.upgrade(siteId);
-
-
-                // Add default groups
-                logger.info("Add default groups to site '{}'", siteId);
-                addDefaultGroupsForNewSite();
-
-                String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-                String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
-
-                long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L ;
-                Map<String, String> createdFiles =
-                        contentRepositoryV2.getChangeSetPathsFromDelta(siteId, null, lastCommitId);
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Get the change-set of created files finished in '{}' milliseconds",
-                            (System.currentTimeMillis() - startGetChangeSetCreatedFilesMark));
-                }
-
-                insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
-                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
-                contentRepositoryV2.populateGitLog(siteId);
-
-                updateLastCommitId(siteId, lastCommitId);
-                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-                updateLastSyncedGitlogCommitId(siteId, firstCommitId);
-
-                logger.info("Load the configuration for site '{}'", siteId);
-            } catch (Exception e) {
-                success = false;
-                logger.error("Failed to create site '{}' by cloning '{}' url '{}' branch '{}'",
-                        siteId, remoteName, remoteUrl, remoteBranch, e);
-
-                deleteSite(siteId);
-
-                throw new SiteCreationException("Error while creating site: " + siteId + " ID: " + siteId +
-                        " as clone from remote repository: " + remoteName + " (" + remoteUrl + "). Rolling back.", e);
-            }
-        }
-
-        if (success) {
-            // Now that everything is created, we can sync the preview deployer with the new content
-            logger.info("Sync site '{}' to preview", siteId);
-            setSiteState(siteId, STATE_READY);
-            try {
-                applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
-            } catch (Exception e) {
-                setSiteState(siteId, STATE_INITIALIZING);
-                // TODO: SJ: This seems to leave the site in a bad state, review
-                logger.error("Failed to sync site '{}' to preview. The site will become previewable once " +
-                        "the preview deployer is reachable.", siteId, e);
-
-                throw new SiteCreationException(format("Failed to sync site '%s' to preview. The site will become " +
-                        "previewable once the preview deployer is reachable.", siteId), e);
-            }
-        } else {
-            throw new SiteCreationException(format("Failed to create site '%s'", siteId));
+            throw new SiteCreationException(format("Failed to sync site '%s' to preview. The site will become " +
+                    "previewable once the preview deployer is reachable.", siteId), e);
         }
         logger.info("Site '{}' created successfully", siteId);
     }

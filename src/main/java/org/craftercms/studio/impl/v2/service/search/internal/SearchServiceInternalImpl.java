@@ -150,9 +150,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected String defaultType;
 
     /**
-     * The Elasticsearch service
+     * The Search service
      */
-    protected PermissionAwareSearchService elasticsearchService;
+    protected PermissionAwareSearchService searchService;
 
     /**
      * The Studio configuration
@@ -225,8 +225,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     @Required
-    public void setElasticsearchService(final PermissionAwareSearchService elasticsearchService) {
-        this.elasticsearchService = elasticsearchService;
+    public void setSearchService(final PermissionAwareSearchService searchService) {
+        this.searchService = searchService;
     }
 
     @Required
@@ -325,9 +325,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the information from Elasticsearch for a single {@link SearchResultItem}
-     * @param source the fields returned by Elasticsearch
-     * @param highlights the highlights returned by Elasticsearch
+     * Maps the information from OpenSearch for a single {@link SearchResultItem}
+     * @param source the fields returned by OpenSearch
+     * @param highlights the highlights returned by OpenSearch
      * @return the search item object
      */
     //TODO: Implement previewUrl for supported types
@@ -444,7 +444,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the Elasticsearch {@link SearchResponse} to a {@link SearchResult} object
+     * Maps the OpenSearch {@link SearchResponse} to a {@link SearchResult} object
      * @param response the response to map
      * @return the search result object
      */
@@ -605,12 +605,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         SearchRequest request = builder.build();
 
         try {
-            SearchResponse<Map> response = elasticsearchService.search(siteId, allowedPaths, request, Map.class);
+            SearchResponse<Map> response = searchService.search(siteId, allowedPaths, request, Map.class);
             return processResults(response, siteFacets, params.getAdditionalFields());
         } catch (IOException e) {
-            throw new ServiceLayerException("Error connecting to Elasticsearch", e);
+            throw new ServiceLayerException("Error connecting to OpenSearch", e);
         } catch (Exception e) {
-            throw new ServiceLayerException("Error executing search in Elasticsearch", e);
+            throw new ServiceLayerException("Error executing search in OpenSearch", e);
         }
     }
 
@@ -691,8 +691,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the Elasticsearch aggregations to {@link SearchFacet} objects
-     * @param response the Elasticsearch response to map
+     * Maps the OpenSearch aggregations to {@link SearchFacet} objects
+     * @param response the OpenSearch response to map
      * @return the list of search facet objects
      */
     @SuppressWarnings("unchecked, rawtypes")
@@ -780,7 +780,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the Elasticsearch highlighting to simple text snippets
+     * Maps the OpenSearch highlighting to simple text snippets
      * @param highlights the highlighting to map
      * @return the list of snippets
      */

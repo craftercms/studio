@@ -19,7 +19,7 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="elasticsearchClient" class="org.craftercms.search.opensearch.spring.OpenSearchClientFactory">
+    <bean id="searchClient" class="org.craftercms.search.opensearch.spring.OpenSearchClientFactory">
         <constructor-arg name="serverUrls" value="#{studioConfiguration.getProperty('studio.search.urls')}"/>
         <property name="username" value="#{studioConfiguration.getProperty('studio.search.username')}"/>
         <property name="password" value="#{studioConfiguration.getProperty('studio.search.password')}"/>
@@ -29,8 +29,8 @@
         <property name="socketKeepAlive" value="#{studioConfiguration.getProperty('studio.search.keepAlive')}"/>
     </bean>
 
-    <bean id="elasticsearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
-        <constructor-arg name="client" ref="elasticsearchClient"/>
+    <bean id="openSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
+        <constructor-arg name="client" ref="searchClient"/>
         <constructor-arg name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
         <constructor-arg name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
     </bean>
@@ -47,7 +47,7 @@
         <property name="snippetSize" value="#{studioConfiguration.getProperty('studio.search.snippets.size')}"/>
         <property name="numberOfSnippets" value="#{studioConfiguration.getProperty('studio.search.snippets.number')}"/>
         <property name="defaultType" value="#{studioConfiguration.getProperty('studio.search.default.type')}"/>
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+        <property name="searchService" ref="openSearchService"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
