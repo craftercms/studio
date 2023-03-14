@@ -18,7 +18,10 @@ package org.craftercms.studio.api.v2.service.publish.internal;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.DeploymentHistoryItem;
+import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
+import org.craftercms.studio.api.v2.dal.PublishingPackage;
+import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
@@ -108,28 +111,6 @@ public interface PublishServiceInternal {
     List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path, String publisher,
                                                      ZonedDateTime dateFrom, ZonedDateTime dateTo, String contentType,
                                                      long state, String sortBy, String order, int offset, int limit);
-
-    /**
-     * Get publishing history package detail total items
-     *
-     * @param siteId site identifier
-     * @param packageId package identifier
-     *
-     * @return number of package items
-     */
-    int getPublishingHistoryDetailTotalItems(String siteId, String packageId);
-
-    /**
-     * Get publishing history package detail items
-     *
-     * @param siteId site identifier
-     * @param packageId package identifier
-     * @param offset offset of the first result
-     * @param limit limit number of results
-     *
-     * @return publishing history package's items
-     */
-    List<PublishRequest> getPublishingHistoryDetail(String siteId, String packageId, int offset, int limit);
 
     /**
      * Get deployment history from database

@@ -53,7 +53,6 @@
         <id property="id" column="pr_id"/>
         <result property="packageId" column="package_id"/>
         <result property="label" column="label" />
-        <result property="comment" column="submissioncomment"/>
         <result property="size" column="size" />
         <result property="publishingTarget" column="environment" />
         <result property="schedule" column="published_on" />
@@ -103,20 +102,6 @@
         SELECT * FROM publish_request
         WHERE site = #{siteId}
         AND package_id = #{packageId}
-    </select>
-
-    <select id="getPublishingHistoryDetailTotalItems" resultType="int">
-        SELECT COUNT(*) FROM publish_request
-        WHERE site = #{siteId}
-        AND package_id = #{packageId}
-    </select>
-
-    <select id="getPublishingHistoryDetail"
-            resultMap="org.craftercms.studio.api.v2.dal.PublishRequestDAO.PublishRequestMap">
-        SELECT * FROM publish_request
-        WHERE site = #{siteId}
-        AND package_id = #{packageId}
-        LIMIT #{offset}, #{limit}
     </select>
 
     <update id="cancelPackages">
@@ -199,7 +184,7 @@
             </if>
         </where>
     </sql>
-
+    
     <select id="getPublishingPackagesScheduledTotal" resultType="Integer">
         SELECT count(pr.package_id)
         FROM publish_request pr
@@ -208,7 +193,7 @@
     </select>
 
     <select id="getPublishingPackagesScheduled" resultMap="DashboardPublishingPackageMap">
-        SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id, pr.submissioncomment,
+        SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id,
         IFNULL(pr.published_on, pr.scheduleddate) as published_on,
             u.username, u.first_name, u.last_name, u.avatar
         FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
@@ -246,7 +231,7 @@
 
     <!-- Can we use <sql> to avoid repeating the WHERE from above -->
     <select id="getPublishingPackagesHistory" resultMap="DashboardPublishingPackageMap">
-        SELECT pr.id as pr_id, pr.label, count(*) as size, pr.environment, pr.package_id, pr.submissioncomment,
+        SELECT pr.id as pr_id, pr.label, count(*) as size, pr.environment, pr.package_id,
         IFNULL(pr.published_on, pr.scheduleddate) as published_on, u.username, u.first_name, u.last_name, u.avatar
         FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
         <include refid="publishingPackagesHistoryFilters"/>
@@ -256,7 +241,7 @@
     </select>
 
     <select id="getNumberOfPublishes" resultType="int">
-        SELECT COUNT(DISTINCT path)
+        SELECT COUNT(DISTINCT package_id)
         FROM publish_request
         WHERE site = #{siteId}
         AND DATE(published_on) &gt;= DATE(NOW() - INTERVAL ${days} DAY)

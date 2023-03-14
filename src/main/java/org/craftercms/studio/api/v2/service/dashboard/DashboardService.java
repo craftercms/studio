@@ -160,21 +160,27 @@ public interface DashboardService {
      *
      * @param siteId site identifier
      * @param publishingTarget publishing target to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
      * @return number of results
      */
-    int getPublishingScheduledTotal(String siteId, String publishingTarget) throws SiteNotFoundException;
+    int getPublishingScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
+                                    ZonedDateTime dateTo) throws SiteNotFoundException;
 
     /**
      * Get publishing scheduled
      *
      * @param siteId site identifier
      * @param publishingTarget publishing target to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
      * @param offset offset of the first result item
      * @param limit number of results to return
-     * @return list of DetailedItem scheduled for publishing
+     * @return
      */
-    List<DetailedItem> getPublishingScheduled(String siteId, String publishingTarget,
-                                              int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+    List<DashboardPublishingPackage> getPublishingScheduled(String siteId, String publishingTarget,
+                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
+                                                            int limit) throws SiteNotFoundException;
 
     /**
      * Get publishing package details
@@ -216,25 +222,13 @@ public interface DashboardService {
                                                           int limit) throws SiteNotFoundException;
 
     /**
-     * Get publishing package detail total items
-     *
-     * @param siteId site identifier
-     * @param publishingPackageId publishing package identifier
-     *
-     * @return number of package items
-     */
-    int getPublishingHistoryDetailTotalItems(String siteId, String publishingPackageId) throws SiteNotFoundException;
-
-    /**
      * Get publishing package details
      *
      * @param siteId site identifier
      * @param publishingPackageId publishing package identifier
-     * @param offset offset of the first result item
-     * @param limit number of results to return
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getPublishingHistoryDetail(String siteId, String publishingPackageId, int offset, int limit)
+    List<SandboxItem> getPublishingHistoryDetail(String siteId, String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
