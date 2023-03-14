@@ -5547,10 +5547,10 @@ paths:
                     type: integer
                     format: int32
                     description: Number of records returned in this response
-                  publishingItems:
+                  publishingPackages:
                     type: array
                     items:
-                      $ref: '#/components/schemas/DetailedItem'
+                      $ref: '#/components/schemas/DashboardPublishingPackage'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5716,18 +5716,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: offset
-          in: query
-          description: offset of the first result item, default 0
-          required: false
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          description: number of results to return, default 10
-          required: false
-          schema:
-            type: integer
       responses:
         '200':
           description: OK
@@ -5738,18 +5726,6 @@ paths:
                 properties:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
-                  total:
-                    type: integer
-                    format: int32
-                    description: Total records in the system
-                  offset:
-                    type: integer
-                    format: int32
-                    description: Offset of first record in this response
-                  limit:
-                    type: integer
-                    format: int32
-                    description: Number of records returned in this response
                   publishingPackageItems:
                     type: array
                     items:
@@ -9061,9 +9037,6 @@ components:
         label:
           type: string
           description: user friendly name of the package
-        comment:
-          type: string
-          description: submission comment by publisher
         submitter:
           $ref: '#/components/schemas/Person'
         size:

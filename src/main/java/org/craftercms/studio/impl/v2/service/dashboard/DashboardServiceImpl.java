@@ -26,7 +26,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
@@ -64,7 +63,8 @@ import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY;
@@ -208,7 +208,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         var ids = items.stream().map(Item::getId)
                 .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, true);
     }
 
     protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
@@ -257,31 +257,19 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingScheduledTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                           String publishingTarget) throws SiteNotFoundException {
+                                           String publishingTarget, ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK);
+        return publishServiceInternal.getPublishingPackagesScheduledTotal(siteId, publishingTarget, dateFrom, dateTo);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DetailedItem> getPublishingScheduled(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget,
-            int offset, int limit) throws ServiceLayerException, UserNotFoundException {
+    public List<DashboardPublishingPackage> getPublishingScheduled(
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget, ZonedDateTime dateFrom,
+            ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK, offset, limit);
-        if (items.isEmpty()) {
-            return emptyList();
-        }
-
-        var paths = items.stream().map(Item::getPath).collect(toList());
-        List<DetailedItem> result = new ArrayList<>();
-        for (String path : paths) {
-            var item = contentServiceInternal.getItemByPath(siteId, path, false);
-            result.add(item);
-        }
-
-        return result;
+        return publishServiceInternal.getPublishingPackagesScheduled(siteId, publishingTarget, dateFrom, dateTo,
+                offset, limit);
     }
 
     @Override
@@ -323,21 +311,15 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getPublishingHistoryDetailTotalItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                    String publishingPackageId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
-        return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
-    }
-
-    @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingHistoryDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                        String publishingPackageId, int offset, int limit)
+                                                        String publishingPackageId)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
-        var packageDetail = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
-        var paths = packageDetail.stream()
-                .map(PublishRequest::getPath)
+        // TODO: Try to do a single query
+        var publishingPackageDetails =
+                publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
+        var paths = publishingPackageDetails.getItems().stream()
+                .map(PublishingPackageDetails.PublishingPackageItem::getPath)
                 .collect(toList());
         if (isEmpty(paths)) {
             throw new PublishingPackageNotFoundException(siteId, publishingPackageId);

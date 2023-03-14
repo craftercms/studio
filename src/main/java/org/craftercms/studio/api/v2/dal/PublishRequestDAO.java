@@ -94,30 +94,6 @@ public interface PublishRequestDAO {
                                                      @Param(PACKAGE_ID) String packageId);
 
     /**
-     * Get total number of items for a publishing package
-     *
-     * @param siteId site identifier
-     * @param packageId package id
-     * @return number of package items
-     */
-    int getPublishingHistoryDetailTotalItems(@Param(SITE_ID) String siteId,
-                                             @Param(PACKAGE_ID) String packageId);
-
-    /**
-     * Get publishing package details
-     *
-     * @param siteId site identifier
-     * @param packageId package id
-     * @param offset offset for pagination
-     * @param limit limit for pagination
-     * @return list of publishing requests belonging to the package
-     */
-    List<PublishRequest> getPublishingHistoryDetail(@Param(SITE_ID) String siteId,
-                                                    @Param(PACKAGE_ID) String packageId,
-                                                    @Param(OFFSET) int offset,
-                                                    @Param(LIMIT) int limit);
-
-    /**
      * Cancel publishing packages
      *
      * @param siteId site identifier
