@@ -257,24 +257,26 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingScheduledTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                           String publishingTarget) throws SiteNotFoundException {
+                                           String publishingTarget, String approver,
+                                           ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK);
+        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DetailedItem> getPublishingScheduled(
             @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget,
+            String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
             int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMIT_TO_WORKFLOW_SCHEDULED_ON_MASK, offset, limit);
+                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
 
-        var paths = items.stream().map(Item::getPath).collect(toList());
+        var paths = items.stream().map(PublishRequest::getPath).collect(toList());
         List<DetailedItem> result = new ArrayList<>();
         for (String path : paths) {
             var item = contentServiceInternal.getItemByPath(siteId, path, false);

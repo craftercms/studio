@@ -167,29 +167,31 @@ public interface PublishServiceInternal {
     void initialPublish(String siteId) throws SiteNotFoundException;
 
     /**
-     * Get total number of scheduled publishing packages for given filters
+     * Get total number of scheduled publishing items for given filters
      *
      * @param siteId site identifier
      * @param publishingTarget publishing target
+     * @param approver approver
      * @param dateFrom lower boundary for schedule
      * @param dateTo upper boundary for schedule
      * @return total number of results
      */
-    int getPublishingPackagesScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
+    int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver, ZonedDateTime dateFrom,
                                             ZonedDateTime dateTo);
 
     /**
-     * Get scheduled publishing packages
+     * Get scheduled publishing items
      *
      * @param siteId site identifier
      * @param publishingTarget publishing target
+     * @param approver approver
      * @param dateFrom lower boundary for schedule
      * @param dateTo upper boundary for schedule
      * @param offset offset of the first result
      * @param limit limit number of results
-     * @return list of dashboard publishing packages
+     * @return list of publishing request items
      */
-    List<DashboardPublishingPackage> getPublishingPackagesScheduled(String siteId, String publishingTarget,
+    List<PublishRequest> getPublishingItemsScheduled(String siteId, String publishingTarget, String approver,
                                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                                                     int offset, int limit);
 

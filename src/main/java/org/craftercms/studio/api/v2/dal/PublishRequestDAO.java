@@ -188,23 +188,26 @@ public interface PublishRequestDAO {
                                    @Param(READY_STATE) String readyState);
 
     /**
-     * Get number of scheduled publishing packages results for given filters
+     * Get number of scheduled publishing items results for given filters
      * @param siteId site identifier
      * @param publishingTarget publishing target
+     * @param approver approver
      * @param scheduledState scheduled state
      * @param fromDate get history from date
      * @param toDate get history to date
      * @return total number of results
      */
-    Optional<Integer> getPublishingPackagesScheduledTotal(@Param(SITE_ID) String siteId,
+    Optional<Integer> getPublishingItemsScheduledTotal(@Param(SITE_ID) String siteId,
                                                           @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                          @Param(APPROVER) String approver,
                                                           @Param(SCHEDULED_STATE) String scheduledState,
                                                           @Param(FROM_DATE) ZonedDateTime fromDate,
                                                           @Param(TO_DATE) ZonedDateTime toDate);
     /**
-     * Get scheduled publishing packages
+     * Get scheduled publishing items
      * @param siteId site identifier
      * @param publishingTarget publishing target
+     * @param approver approver
      * @param scheduledState scheduled state
      * @param fromDate get history from date
      * @param toDate get history to date
@@ -212,8 +215,9 @@ public interface PublishRequestDAO {
      * @param limit number of records to return
      * @return
      */
-    List<DashboardPublishingPackage> getPublishingPackagesScheduled(@Param(SITE_ID) String siteId,
+    List<PublishRequest> getPublishingItemsScheduled(@Param(SITE_ID) String siteId,
                                                                     @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                                    @Param(APPROVER) String approver,
                                                                     @Param(SCHEDULED_STATE) String scheduledState,
                                                                     @Param(FROM_DATE) ZonedDateTime fromDate,
                                                                     @Param(TO_DATE) ZonedDateTime toDate,

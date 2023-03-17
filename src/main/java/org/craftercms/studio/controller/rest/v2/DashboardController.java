@@ -213,10 +213,16 @@ public class DashboardController {
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @EsapiValidatedParam(type = ALPHANUMERIC)
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
+            @EsapiValidatedParam(type = USERNAME)
+            @RequestParam(value = REQUEST_PARAM_APPROVER, required = false) String approver,
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
+            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws ServiceLayerException, UserNotFoundException {
-        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget);
-        var scheduledItems = dashboardService.getPublishingScheduled(siteId, publishingTarget, offset, limit);
+        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
+        var scheduledItems = dashboardService.getPublishingScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
 
         var result = new PaginatedResultList<DetailedItem>();
         result.setTotal(total);
@@ -248,9 +254,9 @@ public class DashboardController {
             @RequestParam(value = REQUEST_PARAM_PUBLISHING_TARGET, required = false) String publishingTarget,
             @EsapiValidatedParam(type = USERNAME)
             @RequestParam(value = REQUEST_PARAM_APPROVER, required = false) String approver,
-            @RequestParam(value = REQUEST_PARAM_DATE_FROM)
+            @RequestParam(value = REQUEST_PARAM_DATE_FROM, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateFrom,
-            @RequestParam(value = REQUEST_PARAM_DATE_TO)
+            @RequestParam(value = REQUEST_PARAM_DATE_TO, required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit) throws SiteNotFoundException {

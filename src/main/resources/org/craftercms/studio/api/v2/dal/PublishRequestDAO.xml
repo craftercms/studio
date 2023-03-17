@@ -184,7 +184,7 @@
         </foreach>
     </update>
 
-    <sql id="publishingPackagesScheduledFilters">
+    <sql id="publishingItemsScheduledFilters">
         <where>
             pr.site = #{siteId}
             AND pr.state = #{scheduledState}
@@ -197,23 +197,22 @@
             <if test="publishingTarget != null">
                 AND pr.environment = #{publishingTarget}
             </if>
+            <if test="approver != null">
+                AND pr.username = #{approver}
+            </if>
         </where>
     </sql>
 
-    <select id="getPublishingPackagesScheduledTotal" resultType="Integer">
-        SELECT count(pr.package_id)
+    <select id="getPublishingItemsScheduledTotal" resultType="Integer">
+        SELECT count(*)
         FROM publish_request pr
-        <include refid="publishingPackagesScheduledFilters"/>
-        GROUP BY pr.package_id
+        <include refid="publishingItemsScheduledFilters"/>
     </select>
 
-    <select id="getPublishingPackagesScheduled" resultMap="DashboardPublishingPackageMap">
-        SELECT pr.id, pr.label, count(*) as size, pr.environment, pr.package_id, pr.submissioncomment,
-        IFNULL(pr.published_on, pr.scheduleddate) as published_on,
-            u.username, u.first_name, u.last_name, u.avatar
-        FROM publish_request pr LEFT OUTER JOIN user u ON pr.username = u.username
-        <include refid="publishingPackagesScheduledFilters"/>
-        GROUP BY pr.package_id
+    <select id="getPublishingItemsScheduled" resultMap="PublishRequestMap">
+        SELECT pr.*
+        FROM publish_request pr
+        <include refid="publishingItemsScheduledFilters"/>
         ORDER BY IFNULL(pr.published_on, pr.scheduleddate) DESC
         LIMIT #{offset}, #{limit}
     </select>

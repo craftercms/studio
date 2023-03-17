@@ -160,20 +160,28 @@ public interface DashboardService {
      *
      * @param siteId site identifier
      * @param publishingTarget publishing target to filter by
+     * @param approver approver user to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
      * @return number of results
      */
-    int getPublishingScheduledTotal(String siteId, String publishingTarget) throws SiteNotFoundException;
+    int getPublishingScheduledTotal(String siteId, String publishingTarget, String approver,
+                                    ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException;
 
     /**
      * Get publishing scheduled
      *
      * @param siteId site identifier
      * @param publishingTarget publishing target to filter by
+     * @param approver approver user to filter by
+     * @param dateFrom lower boundary to filter by date-time range
+     * @param dateTo upper boundary to filter by date-time range
      * @param offset offset of the first result item
      * @param limit number of results to return
      * @return list of DetailedItem scheduled for publishing
      */
-    List<DetailedItem> getPublishingScheduled(String siteId, String publishingTarget,
+    List<DetailedItem> getPublishingScheduled(String siteId, String publishingTarget, String approver,
+                                              ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                               int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**

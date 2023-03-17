@@ -5483,9 +5483,9 @@ paths:
     get:
       tags:
         - dashboard
-      summary: Get scheduled publishing packages
+      summary: Get scheduled publishing items
       description: 'Required permission "content_read"'
-      operationId: getDashboardPublishingScheduled
+      operationId: getPublishingScheduled
       parameters:
         - name: siteId
           in: query
@@ -5499,17 +5499,23 @@ paths:
           required: false
           schema:
             type: string
+        - name: approver
+          in: query
+          description: approver user to filter results
+          required: false
+          schema:
+            type: string
         - name: dateFrom
           in: query
           description: lower boundary to filter by date-time range
-          required: true
+          required: false
           schema:
             type: string
             format: date-time
         - name: dateTo
           in: query
           description: upper boundary to filter by date-time range
-          required: true
+          required: false
           schema:
             type: string
             format: date-time
@@ -5636,14 +5642,14 @@ paths:
         - name: dateFrom
           in: query
           description: lower boundary to filter by date-time range
-          required: true
+          required: false
           schema:
             type: string
             format: date-time
         - name: dateTo
           in: query
           description: upper boundary to filter by date-time range
-          required: true
+          required: false
           schema:
             type: string
             format: date-time
