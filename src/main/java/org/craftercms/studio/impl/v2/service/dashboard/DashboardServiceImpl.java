@@ -52,6 +52,7 @@ import org.craftercms.studio.model.search.SearchResult;
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
@@ -224,7 +225,7 @@ public class DashboardServiceImpl implements DashboardService {
     public ExpiringContentResult getContentExpiring(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                                     int offset, int limit)
-            throws AuthenticationException, ServiceLayerException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiringQuery()
@@ -232,25 +233,35 @@ public class DashboardServiceImpl implements DashboardService {
                 .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
         prepareSearchParams(searchParams, query, Asc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
-        return processResults(result);
+        return processResults(siteId, result);
     }
 
     @Override
     public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
-            throws AuthenticationException, ServiceLayerException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiredQuery();
         prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
-        return processResults(result);
+        return processResults(siteId, result);
     }
 
-    protected ExpiringContentResult processResults(SearchResult results) {
-        List<ExpiringContentItem> items = results.getItems().stream()
-                .map(result -> new ExpiringContentItem(result.getName(), result.getPath(),
-                                    parseDateIso((String) result.getAdditionalFields().get(getExpireFieldName()))))
-                .collect(toList());
+    protected ExpiringContentResult processResults(String siteId, SearchResult results) throws ServiceLayerException, UserNotFoundException {
+        List<ExpiringContentItem> items = new ArrayList<>();
+        for (var item : results.getItems()) {
+            SandboxItem  sandboxItem =
+                    contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+                    .stream()
+                    .findFirst().orElse(null);
+            ExpiringContentItem contentItem = new ExpiringContentItem(
+                    item.getName(),
+                    item.getPath(),
+                    parseDateIso((String) item.getAdditionalFields().get(getExpireFieldName())),
+                    sandboxItem
+            );
+            items.add(contentItem);
+        }
         return new ExpiringContentResult(items, results.getTotal());
     }
 
@@ -337,13 +348,14 @@ public class DashboardServiceImpl implements DashboardService {
                                                         String publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
-        var packageDetail = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
-        var paths = packageDetail.stream()
-                .map(PublishRequest::getPath)
-                .collect(toList());
-        if (isEmpty(paths)) {
+        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
+        if (isEmpty(packageDetails)) {
             throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
         }
+
+        var paths = packageDetails.stream()
+                .map(PublishRequest::getPath)
+                .collect(toList());
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 

@@ -143,7 +143,7 @@ public interface DashboardService {
      * @return list of content items that is expiring
      */
     ExpiringContentResult getContentExpiring(String siteId, ZonedDateTime dateFrom, ZonedDateTime dateTo, int offset,
-                                                 int limit) throws AuthenticationException, ServiceLayerException;
+                                                 int limit) throws AuthenticationException, ServiceLayerException, UserNotFoundException;
 
     /**
      * Get content that expired
@@ -153,7 +153,7 @@ public interface DashboardService {
      * @return list of content items that expired
      */
     ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
-            throws AuthenticationException, ServiceLayerException;
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException;
 
     /**
      * Get total number of result for publishing scheduled with given filters

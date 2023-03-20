@@ -176,7 +176,7 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
-            throws AuthenticationException, ServiceLayerException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
 
         var contentExpiring = dashboardService.getContentExpiring(siteId, dateFrom, dateTo, offset,
                 limit);
@@ -195,7 +195,7 @@ public class DashboardController {
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit)
-            throws AuthenticationException, ServiceLayerException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
 
         var contentExpired = dashboardService.getContentExpired(siteId, offset, limit);
         var result = new PaginatedResultList<ExpiringContentItem>();
