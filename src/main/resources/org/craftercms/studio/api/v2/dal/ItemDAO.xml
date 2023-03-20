@@ -1006,7 +1006,7 @@
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND (i1.state &amp; #{newMask}) > 0
+        AND (i3.state &amp; #{newMask}) > 0
         UNION
         SELECT i4.path AS path
         FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id INNER JOIN item i4 ON i2.parent_id = i4.id
@@ -1018,7 +1018,7 @@
                  open="(" separator="," close=")">
             #{path}
         </foreach>
-        AND (i2.state &amp; #{modifiedMask}) > 0
+        AND (i4.state &amp; #{modifiedMask}) > 0
     </select>
 
     <select id="getExistingRenamedChildrenOfMandatoryParentsForPublishing" parameterType="java.util.Map" resultType="String">
