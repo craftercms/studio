@@ -48,6 +48,7 @@
         <result property="previewUrl" column="preview_url" />
         <result property="ignoredAsInt" column="ignored" />
         <result property="childrenCount" column="children_count" />
+        <result property="previousPath" column="previous_path" />
     </resultMap>
 
     <resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem">
