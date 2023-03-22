@@ -229,6 +229,15 @@ public interface ContentService {
     ContentItemTO getContentItem(String site, String path, int depth);
 
     /**
+     * Retrieves the content type for a given path
+     * @param site the site id
+     * @param path the content path
+     * @return content type
+     * @throws DocumentException on failure to retrieve the content type from xml (when applicable)
+     */
+    String getItemContentType(String site, String path) throws DocumentException;
+
+    /**
      * get the version history for an item
      *
      * @param site - the project ID
