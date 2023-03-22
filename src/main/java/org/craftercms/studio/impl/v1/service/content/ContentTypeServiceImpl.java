@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME;
@@ -69,16 +70,14 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     public ContentTypeConfigTO getContentTypeForContent(@ValidateStringParam String site,
                                                         @ValidateSecurePathParam String path)
             throws ServiceLayerException {
-        ContentItemTO itemTO = contentService.getContentItem(site, path, 0);
-        if (itemTO != null) {
-            String type = itemTO.getContentType();
-            if (!StringUtils.isEmpty(type)) {
-                return servicesConfig.getContentTypeConfig(site, type);
-            } else {
-                throw new ServiceLayerException("No content type specified for " + path + " in site: " + site);
+        try {
+            String type = contentService.getItemContentType(site, path);
+            if (StringUtils.isEmpty(type)) {
+                throw new ServiceLayerException(format("No content type specified for '%s' in site '%s'", path, site));
             }
-        } else {
-            throw new ContentNotFoundException(path + " is not found in site: " + site);
+            return servicesConfig.getContentTypeConfig(site, type);
+        } catch (DocumentException e) {
+            throw new ServiceLayerException(format("Failed to get content type for item at path '%s' site '%s'", path, site));
         }
     }
 
@@ -114,7 +113,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     @Valid
     public ContentTypeConfigTO getContentTypeByRelativePath(@ValidateStringParam String site,
                                                             @ValidateSecurePathParam
-                                                                    String relativePath) throws ServiceLayerException {
+                                                            String relativePath) throws ServiceLayerException {
         ContentItemTO item = contentService.getContentItem(site, relativePath, 0);
         if (item != null) {
             String type = item.getContentType();
@@ -146,7 +145,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     @Valid
     public List<ContentTypeConfigTO> getAllowedContentTypesForPath(@ValidateStringParam String site,
                                                                    @ValidateSecurePathParam
-                                                                           String relativePath) {
+                                                                   String relativePath) {
         String user = securityService.getCurrentUser();
         Set<String> userRoles = securityService.getUserRoles(site, user);
         List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(site);
@@ -155,7 +154,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
             List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
             for (ContentTypeConfigTO contentTypeConfig : allContentTypes) {
                 // check if the path matches one of includes paths
-                if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())){
+                if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())) {
                     for (String pathIncludes : contentTypeConfig.getPathIncludes()) {
                         if (relativePath.matches(pathIncludes)) {
                             logger.trace("In site '{}' path '{}' matches '{}'", site, relativePath, pathIncludes);
@@ -202,7 +201,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
                                      @ValidateStringParam String contentType)
             throws ServiceLayerException, UserNotFoundException {
         ContentTypeConfigTO contentTypeConfigTO = getContentType(site, contentType);
-        if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)){
+        if (contentTypeConfigTO.getFormPath().equalsIgnoreCase(DmConstants.CONTENT_TYPE_CONFIG_FORM_PATH_SIMPLE)) {
             // Simple form engine is not using templates - skip copying template and merging content
             return true;
         }

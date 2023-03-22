@@ -60,6 +60,7 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -140,15 +141,16 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         siteService.checkSiteExists(siteId);
         List<String> affectedPaths = new LinkedList<>();
         List<SandboxItem> result = new LinkedList<>();
-        Item item = itemServiceInternal.getItem(siteId, path);
-        if (Objects.isNull(item)) {
+        List<SandboxItem> sandboxItems = contentServiceInternal.getSandboxItemsByPath(siteId, List.of(path), false);
+        if (CollectionUtils.isEmpty(sandboxItems)) {
             throw new ContentNotFoundException(path, siteId,
                     "Content not found for site " + siteId + " and path " + path);
         }
-        if (isInWorkflowOrScheduled(item.getState())) {
+        SandboxItem sandboxItem = sandboxItems.get(0);
+        if (isInWorkflowOrScheduled(sandboxItem.getState())) {
             affectedPaths.add(path);
-            boolean isNew = isNew(item.getState());
-            boolean isRenamed = StringUtils.isNotEmpty(item.getPreviousPath());
+            boolean isNew = isNew(sandboxItem.getState());
+            boolean isRenamed = isNotEmpty(sandboxItem.getPreviousPath());
             if (isNew || isRenamed) {
                 affectedPaths.addAll(getMandatoryDescendants(siteId, path));
             }
@@ -317,7 +319,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
-        if (StringUtils.isNotEmpty(comment)) {
+        if (isNotEmpty(comment)) {
             AuditLogParameter auditLogParameter = new AuditLogParameter();
             auditLogParameter.setTargetId(siteId + ":submissionComment");
             auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
@@ -383,7 +385,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         // Calculate renamed items and add renamed children
         List<Item> items = itemServiceInternal.getItems(siteId, submissionPackage, false);
         items.forEach(item -> {
-            if (StringUtils.isNotEmpty(item.getPreviousPath())) {
+            if (isNotEmpty(item.getPreviousPath())) {
                 publishPackage.addAll(itemServiceInternal.getSubtreeForDelete(siteId, item.getPath()));
             }
         });
@@ -493,7 +495,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
-        if (StringUtils.isNotEmpty(comment)) {
+        if (isNotEmpty(comment)) {
             AuditLogParameter auditLogParameter = new AuditLogParameter();
             auditLogParameter.setTargetId(siteId + ":submissionComment");
             auditLogParameter.setTargetType(TARGET_TYPE_SUBMISSION_COMMENT);
@@ -596,7 +598,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
             auditLogParameter.setTargetValue(path);
             auditLogParameters.add(auditLogParameter);
         });
-        if (StringUtils.isNotEmpty(comment)) {
+        if (isNotEmpty(comment)) {
             AuditLogParameter auditLogParameter = new AuditLogParameter();
             auditLogParameter.setTargetId(siteId + ":rejectionComment");
             auditLogParameter.setTargetType(TARGET_TYPE_REJECTION_COMMENT);
