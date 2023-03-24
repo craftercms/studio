@@ -92,11 +92,14 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.DOCUMENT_ELM_CONTENT_TYPE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
@@ -916,7 +919,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 if (copyDependencyPatterns != null && copyDependencyPatterns.size() > 0) {
                     logger.debug("Copy Pattern provided for contentType '{}' in site '{}'", contentType, site);
                     Set<String> dependencies = dependencyService.getItemDependencies(site, dependencyPath, 1);
-                    if (CollectionUtils.isNotEmpty(dependencies)) {
+                    if (isNotEmpty(dependencies)) {
                         for (String dependency : dependencies) {
                             for (CopyDependencyConfigTO copyConfig : copyDependencyPatterns) {
                                 if (contentExists(site, dependency) &&
@@ -1795,6 +1798,34 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         return item;
+    }
+
+    @Override
+    public String getItemContentType(String site, String path) throws DocumentException {
+        List<Item> items = itemServiceInternal.getItems(site, List.of(path), false);
+        if (CollectionUtils.isEmpty(items)) {
+            return getContentTypeClass(site, path);
+        }
+        Pattern taxonomyPattern = Pattern.compile(CONTENT_TYPE_TAXONOMY_REGEX);
+        Matcher matcher = taxonomyPattern.matcher(path);
+        if (matcher.matches()) {
+            return CONTENT_TYPE_TAXONOMY;
+        }
+        Item item = items.get(0);
+        if (isNotEmpty(item.getContentTypeId())) {
+            return item.getContentTypeId();
+        }
+        if (CONTENT_TYPE_FOLDER.equals(item.getSystemType())) {
+            return CONTENT_TYPE_FOLDER;
+        }
+        if (path.endsWith(XML_PATTERN) && !path.startsWith(CONFIG_PATH_ROOT)) {
+            Document contentDoc = this.getContentAsDocument(site, path);
+            if (contentDoc != null) {
+                Element rootElement = contentDoc.getRootElement();
+                return rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
+            }
+        }
+        return getContentTypeClass(site, path);
     }
 
     protected ContentItemTO loadContentItem(String site, String path) {

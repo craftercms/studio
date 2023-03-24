@@ -401,7 +401,8 @@ public class PublishingManagerImpl implements PublishingManager {
                     // TODO: SJ: This bypasses the Content Service, fix
                     Item it = itemServiceInternal.getItem(site, dependentPath);
                     if (ItemState.isNew(it.getState()) || isNotEmpty(it.getPreviousPath())) {
-                        if (!missingDependenciesPaths.contains(dependentPath) &&
+                        if (!StringUtils.equals(it.getSystemType(), CONTENT_TYPE_FOLDER) &&
+                                !missingDependenciesPaths.contains(dependentPath) &&
                                 !pathsToDeploy.contains(dependentPath)) {
                             deploymentService.cancelWorkflow(site, dependentPath);
                             missingDependenciesPaths.add(dependentPath);
