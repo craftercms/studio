@@ -315,11 +315,44 @@
 
     <select id="getItemByPath" resultMap="DetailedItemMap">
             SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
-                   w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{stagingEnvironment}
+                            AND state = 'OPENED'
+                            AND i.id = w.item_id
+                        )
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{stagingEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i.id = w.item_id)
+                    ORDER BY schedule DESC LIMIT 0, 1
+                    ) AS staging_scheduleddate,
+                   staging1.published_on AS staging_published_on,
                    staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
-                   w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
-                   live1.username AS live_username, live1.commit_id AS live_commit_id,
-                   COUNT(DISTINCT i3.id) AS children_count
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{liveEnvironment}
+                            AND state = 'OPENED'
+                            AND i.id = w.item_id
+                        )
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{liveEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i.id = w.item_id
+                        )
+                    ORDER BY schedule DESC
+                    ) AS live_scheduleddate,
+                    live1.published_on AS live_published_on,
+                    live1.username AS live_username, live1.commit_id AS live_commit_id,
+                    COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
                 LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
@@ -335,19 +368,6 @@
                     ORDER BY pr1. published_on DESC LIMIT 0, 1
                     ) AS staging1 ON s1.site_id = staging1.site AND i.path = staging1.path
                 LEFT OUTER JOIN (
-                    (SELECT item_id, schedule
-                    FROM workflow
-                    WHERE target_environment = #{stagingEnvironment}
-                      AND state = 'OPENED')
-                    UNION
-                    (SELECT w.item_id, pr.scheduleddate AS schedule
-                    FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                    WHERE w.target_environment = #{stagingEnvironment}
-                      AND w.state = 'APPROVED'
-                      AND pr.state = 'READY_FOR_LIVE'
-                    ORDER BY scheduleddate DESC)
-                    ) AS w1 ON i.id = w1.item_id
-                LEFT OUTER JOIN (
                     SELECT pr2.*
                     FROM publish_request pr2 INNER JOIN site s3 ON pr2.site = s3.site_id
                     WHERE s3.id = #{siteId}
@@ -356,19 +376,6 @@
                       AND pr2.state = #{completedState}
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i.path = live1.path
-                LEFT OUTER JOIN (
-                    (SELECT item_id, schedule
-                    FROM workflow
-                    WHERE target_environment = #{liveEnvironment}
-                      AND state = 'OPENED')
-                    UNION
-                    (SELECT w.item_id, pr.scheduleddate AS schedule
-                    FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                    WHERE w.target_environment = #{liveEnvironment}
-                      AND w.state = 'APPROVED'
-                      AND pr.state = 'READY_FOR_LIVE'
-                    ORDER BY scheduleddate DESC)
-                    ) AS w2 ON i.id = w2.item_id
             WHERE i.site_id = #{siteId}
               AND i.path = #{path}
               AND (i3.ignored = 0 OR i3.ignored IS NULL)
@@ -380,9 +387,41 @@
 
     <select id="getItemByPathPreferContent" resultMap="DetailedItemMap">
             (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
-                    w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{stagingEnvironment}
+                            AND state = 'OPENED'
+                            AND i1.id = w.item_id
+                        )
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{stagingEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i1.id = w.item_id
+                        )
+                    ORDER BY schedule DESC LIMIT 0, 1
+                    ) AS staging_scheduleddate,
+                    staging1.published_on AS staging_published_on,
                     staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
-                    w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{liveEnvironment}
+                            AND state = 'OPENED'
+                            AND i1.id = w.item_id)
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{liveEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i1.id = w.item_id)
+                    ORDER BY schedule DESC LIMIT 0, 1
+                    ) AS live_scheduleddate,
+                    live1.published_on AS live_published_on,
                     live1.username AS live_username, live1.commit_id AS live_commit_id,
                     COUNT(DISTINCT i5.id) AS children_count
             FROM item i1 INNER join site s1 ON i1.site_id = s1.id
@@ -400,19 +439,6 @@
                     ORDER BY pr1. published_on DESC LIMIT 0, 1
                     ) AS staging1 ON s1.site_id = staging1.site AND i1.path = staging1.path
                 LEFT OUTER JOIN (
-                    (SELECT item_id, schedule
-                    FROM workflow
-                    WHERE target_environment = #{stagingEnvironment}
-                      AND state = 'OPENED')
-                    UNION
-                    (SELECT w.item_id, pr.scheduleddate AS schedule
-                    FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                    WHERE w.target_environment = #{stagingEnvironment}
-                      AND w.state = 'APPROVED'
-                      AND pr.state = 'READY_FOR_LIVE'
-                    ORDER BY scheduleddate DESC)
-                    ) AS w1 ON i1.id = w1.item_id
-                LEFT OUTER JOIN (
                     SELECT pr2.*
                     FROM publish_request pr2 INNER JOIN site s3 ON pr2.site = s3.site_id
                     WHERE s3.id = #{siteId}
@@ -421,19 +447,7 @@
                       AND pr2.state = #{completedState}
                     ORDER BY pr2.published_on DESC LIMIT 0, 1
                     ) AS live1 ON s1.site_id = live1.site AND i1.path = live1.path
-                LEFT OUTER JOIN (
-                    (SELECT item_id, schedule
-                    FROM workflow
-                    WHERE target_environment = #{liveEnvironment}
-                      AND state = 'OPENED')
-                    UNION
-                    (SELECT w.item_id, pr.scheduleddate AS schedule
-                    FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                    WHERE w.target_environment = #{liveEnvironment}
-                      AND w.state = 'APPROVED'
-                      AND pr.state = 'READY_FOR_LIVE'
-                    ORDER BY scheduleddate DESC)
-                    ) AS w2 ON i1.id = w2.item_id, item i2
+                ,item i2
             WHERE i2.site_id = #{siteId}
               AND i2.path = #{path}
               AND i1.site_id = i2.site_id
@@ -444,9 +458,40 @@
              GROUP BY i1.id)
             UNION
             (select i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
-                    w3.schedule AS staging_scheduleddate, staging2.published_on AS staging_published_on,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{stagingEnvironment}
+                            AND state = 'OPENED'
+                            AND i3.id = w.item_id
+                        )
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{stagingEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i3.id = w.item_id
+                    ORDER BY schedule DESC LIMIT 0, 1)
+                    ) AS staging_scheduleddate,
+                    staging2.published_on AS staging_published_on,
                     staging2.username AS staging_username, staging2.commit_id AS staging_commit_id,
-                    w4.schedule AS live_scheduleddate, live2.published_on AS live_published_on,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{liveEnvironment}
+                            AND state = 'OPENED'
+                            AND i3.id = w.item_id)
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{liveEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i3.id = w.item_id)
+                    ORDER BY schedule DESC LIMIT 0, 1
+                    ) AS live_scheduleddate,
+                    live2.published_on AS live_published_on,
                     live2.username AS live_username, live2.commit_id AS live_commit_id,
                     COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
@@ -464,19 +509,6 @@
                     ORDER BY pr3. published_on DESC LIMIT 0, 1
                     ) AS staging2 ON s4.site_id = staging2.site AND i3.path = staging2.path
                 LEFT OUTER JOIN (
-                    (SELECT item_id, schedule
-                    FROM workflow
-                    WHERE target_environment = #{stagingEnvironment}
-                      AND state = 'OPENED')
-                    UNION
-                    (SELECT w.item_id, pr.scheduleddate AS schedule
-                    FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                    WHERE w.target_environment = #{stagingEnvironment}
-                      AND w.state = 'APPROVED'
-                      AND pr.state = 'READY_FOR_LIVE'
-                    ORDER BY scheduleddate DESC)
-                    ) AS w3 ON i3.id = w3.item_id
-                LEFT OUTER JOIN (
                     SELECT pr4.*
                     FROM publish_request pr4 INNER JOIN site s6 ON pr4.site = s6.site_id
                     WHERE s6.id = #{siteId}
@@ -485,19 +517,6 @@
                       AND pr4.state = #{completedState}
                     ORDER BY pr4.published_on DESC LIMIT 0, 1
                     ) AS live2 ON s4.site_id = live2.site AND i3.path = live2.path
-                LEFT OUTER JOIN (
-                    (SELECT item_id, schedule
-                    FROM workflow
-                    WHERE target_environment = #{liveEnvironment}
-                      AND state = 'OPENED')
-                    UNION
-                    (SELECT w.item_id, pr.scheduleddate AS schedule
-                    FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
-                    WHERE w.target_environment = #{liveEnvironment}
-                      AND w.state = 'APPROVED'
-                      AND pr.state = 'READY_FOR_LIVE'
-                    ORDER BY scheduleddate DESC)
-                    ) AS w4 ON i3.id = w4.item_id
             WHERE i3.site_id = #{siteId}
               AND i3.path = #{path}
               AND (i6.ignored = 0 OR i6.ignored IS NULL)
