@@ -26,7 +26,6 @@ import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.http.RequestContext;
-import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -40,6 +39,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
+import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.UserService;
@@ -488,7 +488,7 @@ public class UserServiceImpl implements UserService {
             AuthenticationException, UserNotFoundException {
         AuthenticatedUser currentUser = getCurrentUser();
         if (currentUser == null || !StringUtils.equals(username, currentUser.getUsername())) {
-            throw new PermissionException("Cannot change password: current logged in user does not match provided username");
+            throw new ActionsDeniedException("Cannot change password: current logged in user does not match provided username");
         }
         boolean success = userServiceInternal.changePassword(username, current, newPassword);
         if (success) {
