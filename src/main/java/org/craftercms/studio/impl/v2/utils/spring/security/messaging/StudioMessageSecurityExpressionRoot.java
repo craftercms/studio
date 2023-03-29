@@ -65,10 +65,10 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
     public boolean isSystemAdmin() {
         try {
             // TODO: Check if Spring Security can load the groups during authentication to avoid these extra queries
-            List<Group> userGroups = userServiceInternal.getUserGroups(-1, authentication.getName());
+            List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
             return containsSystemAdminGroup(userGroups);
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to check the groups for user '{}'", authentication.getName(), e);
+            logger.error("Failed to check the groups for user '{}'", getAuthentication().getName(), e);
         }
         return false;
     }
@@ -80,7 +80,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
      */
     public boolean isSiteMember(String siteId) {
         try {
-            List<Group> userGroups = userServiceInternal.getUserGroups(-1, authentication.getName());
+            List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
             if (containsSystemAdminGroup(userGroups)) {
                 return true;
             } else {
@@ -90,7 +90,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
                         .anyMatch(siteGroups::contains);
             }
         } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to check the groups for user '{}' in site '{}'", authentication.getName(), siteId, e);
+            logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
         }
         return false;
     }
