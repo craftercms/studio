@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.PublishRequest;
 import org.craftercms.studio.api.v2.dal.PublishingPackageDetails;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
@@ -51,6 +52,7 @@ import org.craftercms.studio.model.search.SearchResult;
 import java.beans.ConstructorProperties;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.opensearch.client.opensearch._types.SortOrder.Asc;
@@ -63,8 +65,7 @@ import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
-import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY;
@@ -208,7 +209,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         var ids = items.stream().map(Item::getId)
                 .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, true);
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
     }
 
     protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
@@ -224,7 +225,7 @@ public class DashboardServiceImpl implements DashboardService {
     public ExpiringContentResult getContentExpiring(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                                     int offset, int limit)
-            throws AuthenticationException, ServiceLayerException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiringQuery()
@@ -232,44 +233,68 @@ public class DashboardServiceImpl implements DashboardService {
                 .replaceAll(DATE_TO_REGEX, DateUtils.formatDate(dateTo, ISO_FORMATTER));
         prepareSearchParams(searchParams, query, Asc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
-        return processResults(result);
+        return processResults(siteId, result);
     }
 
     @Override
     public ExpiringContentResult getContentExpired(String siteId, int offset, int limit)
-            throws AuthenticationException, ServiceLayerException {
+            throws AuthenticationException, ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         SearchParams searchParams = new SearchParams();
         String query = getContentExpiredQuery();
         prepareSearchParams(searchParams, query, Desc.jsonValue(), offset, limit);
         SearchResult result = searchService.search(siteId, searchParams);
-        return processResults(result);
+        return processResults(siteId, result);
     }
 
-    protected ExpiringContentResult processResults(SearchResult results) {
-        List<ExpiringContentItem> items = results.getItems().stream()
-                .map(result -> new ExpiringContentItem(result.getName(), result.getPath(),
-                                    parseDateIso((String) result.getAdditionalFields().get(getExpireFieldName()))))
-                .collect(toList());
+    protected ExpiringContentResult processResults(String siteId, SearchResult results) throws ServiceLayerException, UserNotFoundException {
+        List<ExpiringContentItem> items = new ArrayList<>();
+        for (var item : results.getItems()) {
+            SandboxItem  sandboxItem =
+                    contentServiceInternal.getSandboxItemsByPath(siteId, Arrays.asList(item.getPath()), false)
+                    .stream()
+                    .findFirst().orElse(null);
+            ExpiringContentItem contentItem = new ExpiringContentItem(
+                    item.getName(),
+                    item.getPath(),
+                    parseDateIso((String) item.getAdditionalFields().get(getExpireFieldName())),
+                    sandboxItem
+            );
+            items.add(contentItem);
+        }
         return new ExpiringContentResult(items, results.getTotal());
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingScheduledTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                           String publishingTarget, ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
+                                           String publishingTarget, String approver,
+                                           ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return publishServiceInternal.getPublishingPackagesScheduledTotal(siteId, publishingTarget, dateFrom, dateTo);
+        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<DashboardPublishingPackage> getPublishingScheduled(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget, ZonedDateTime dateFrom,
-            ZonedDateTime dateTo, int offset, int limit) throws SiteNotFoundException {
+    public List<DetailedItem> getPublishingScheduled(
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget,
+            String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
+            int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
-        return publishServiceInternal.getPublishingPackagesScheduled(siteId, publishingTarget, dateFrom, dateTo,
-                offset, limit);
+        var items =
+                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
+        if (items.isEmpty()) {
+            return emptyList();
+        }
+
+        var paths = items.stream().map(PublishRequest::getPath).collect(toList());
+        List<DetailedItem> result = new ArrayList<>();
+        for (String path : paths) {
+            var item = contentServiceInternal.getItemByPath(siteId, path, false);
+            result.add(item);
+        }
+
+        return result;
     }
 
     @Override
@@ -311,19 +336,26 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public int getPublishingHistoryDetailTotalItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                                    String publishingPackageId) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
+        return publishServiceInternal.getPublishingHistoryDetailTotalItems(siteId, publishingPackageId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getPublishingHistoryDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                        String publishingPackageId)
+                                                        String publishingPackageId, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
-        // TODO: Try to do a single query
-        var publishingPackageDetails =
-                publishServiceInternal.getPublishingPackageDetails(siteId, publishingPackageId);
-        var paths = publishingPackageDetails.getItems().stream()
-                .map(PublishingPackageDetails.PublishingPackageItem::getPath)
-                .collect(toList());
-        if (isEmpty(paths)) {
+        var packageDetails = publishServiceInternal.getPublishingHistoryDetail(siteId, publishingPackageId, offset, limit);
+        if (isEmpty(packageDetails)) {
             throw new PublishingPackageNotFoundException(siteId, publishingPackageId);
         }
+
+        var paths = packageDetails.stream()
+                .map(PublishRequest::getPath)
+                .collect(toList());
         return contentServiceInternal.getSandboxItemsByPath(siteId, paths, true);
     }
 
