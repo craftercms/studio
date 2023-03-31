@@ -22,7 +22,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 
 import javax.validation.constraints.NotEmpty;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.CONTENT_PATH_WRITE;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ASSET_PATH_WRITE;
 
 public class UnlockItemByPathRequest {
 
@@ -31,7 +31,7 @@ public class UnlockItemByPathRequest {
     private String siteId;
     @NotEmpty
     @ValidateSecurePathParam
-    @EsapiValidatedParam(type = CONTENT_PATH_WRITE)
+    @EsapiValidatedParam(type = ASSET_PATH_WRITE)
     private String path;
 
     public String getSiteId() {
