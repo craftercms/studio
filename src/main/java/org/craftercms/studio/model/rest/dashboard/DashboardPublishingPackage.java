@@ -31,6 +31,7 @@ public class DashboardPublishingPackage {
     @JsonProperty("id")
     private String packageId;
     private String label;
+    private String comment;
     private Person submitter;
     private int size;
     private String publishingTarget;
@@ -58,6 +59,14 @@ public class DashboardPublishingPackage {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 
     public Person getSubmitter() {

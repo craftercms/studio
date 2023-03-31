@@ -113,6 +113,15 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
+    public int getPublishingHistoryDetailTotalItems(String siteId, String packageId) {
+        return publishRequestDao.getPublishingHistoryDetailTotalItems(siteId, packageId);
+    }
+
+    public List<PublishRequest> getPublishingHistoryDetail(String siteId, String packageId, int offset, int limit) {
+        return publishRequestDao.getPublishingHistoryDetail(siteId, packageId, offset, limit);
+    }
+
+    @Override
     public List<DeploymentHistoryItem> getDeploymentHistory(String siteId, List<String> environments,
                                                             ZonedDateTime fromDate, ZonedDateTime toDate,
                                                             String filterType, int numberOfItems) {
@@ -171,19 +180,19 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
     }
 
     @Override
-    public int getPublishingPackagesScheduledTotal(String siteId, String publishingTarget, ZonedDateTime dateFrom,
-                                                   ZonedDateTime dateTo) {
+    public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
+                                                ZonedDateTime dateFrom, ZonedDateTime dateTo) {
         return publishRequestDao
-                .getPublishingPackagesScheduledTotal(siteId, publishingTarget, READY_FOR_LIVE, dateFrom, dateTo)
+                .getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, READY_FOR_LIVE, dateFrom, dateTo)
                 .orElse(0);
     }
 
     @Override
-    public List<DashboardPublishingPackage> getPublishingPackagesScheduled(String siteId, String publishingTarget,
-                                                                           ZonedDateTime dateFrom,
-                                                                           ZonedDateTime dateTo, int offset, int limit) {
-        return publishRequestDao.getPublishingPackagesScheduled(siteId, publishingTarget, READY_FOR_LIVE, dateFrom,
-                dateTo, offset, limit);
+    public List<PublishRequest> getPublishingItemsScheduled(String siteId, String publishingTarget, String approver,
+                                                            ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                            int offset, int limit) {
+        return publishRequestDao.getPublishingItemsScheduled(siteId, publishingTarget, approver, READY_FOR_LIVE,
+                dateFrom, dateTo, offset, limit);
     }
 
     @Override
