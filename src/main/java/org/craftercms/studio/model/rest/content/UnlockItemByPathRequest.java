@@ -16,13 +16,10 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidExistingContentPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.constraints.NotEmpty;
-
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ASSET_PATH_WRITE;
 
 public class UnlockItemByPathRequest {
 
@@ -30,8 +27,7 @@ public class UnlockItemByPathRequest {
     @ValidSiteId
     private String siteId;
     @NotEmpty
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = ASSET_PATH_WRITE)
+    @ValidExistingContentPath
     private String path;
 
     public String getSiteId() {
