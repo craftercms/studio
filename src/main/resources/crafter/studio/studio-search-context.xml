@@ -29,7 +29,7 @@
         <property name="socketKeepAlive" value="#{studioConfiguration.getProperty('studio.search.keepAlive')}"/>
     </bean>
 
-    <bean id="openSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
+    <bean id="authoringSearchService" class="org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService">
         <constructor-arg name="client" ref="searchClient"/>
         <constructor-arg name="indexSuffix" value="#{studioConfiguration.getProperty('studio.search.index.suffix')}"/>
         <constructor-arg name="pathFieldName" value="#{studioConfiguration.getProperty('studio.search.field.path')}"/>
@@ -47,7 +47,7 @@
         <property name="snippetSize" value="#{studioConfiguration.getProperty('studio.search.snippets.size')}"/>
         <property name="numberOfSnippets" value="#{studioConfiguration.getProperty('studio.search.snippets.number')}"/>
         <property name="defaultType" value="#{studioConfiguration.getProperty('studio.search.default.type')}"/>
-        <property name="searchService" ref="openSearchService"/>
+        <property name="searchService" ref="authoringSearchService"/>
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
     </bean>
