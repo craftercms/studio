@@ -58,4 +58,8 @@
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
+
+    <alias name="searchClient" alias="elasticsearchClient"/>
+    <alias name="authoringSearchService" alias="elasticsearchService"/>
+
 </beans>
