@@ -643,25 +643,25 @@ pipelines:
             includedPaths:
               - (config/studio/)?scripts/.*\.groovy
             pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import org.opensearch.client.opensearch.$2$3'
+            replacement: 'import $1org.opensearch.client.opensearch.$2$3'
             commitDetails: Migrate Elasticsearch to OpenSearch
           - type: findAndReplaceUpgrader
             includedPaths:
               - (config/studio/)?scripts/.*\.groovy
             pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import org.opensearch.client.$2$3'
+            replacement: 'import $1org.opensearch.client.$2$3'
             commitDetails: Migrate Elasticsearch to OpenSearch
           - type: findAndReplaceUpgrader
             includedPaths:
               - (config/studio/)?scripts/.*\.groovy
             pattern: "import\\s+(static\\s+)?org\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import org.opensearch.$2$3'
+            replacement: 'import $1org.opensearch.$2$3'
             commitDetails: Migrate Elasticsearch to OpenSearch
           - type: findAndReplaceUpgrader
             includedPaths:
               - (config/studio/)?scripts/.*\.groovy
             pattern: "import\\s+(static\\s+)?org\\.craftercms\\.search\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import org.craftercms.search.opensearch.$2$3'
+            replacement: 'import $1org.craftercms.search.opensearch.$2$3'
             commitDetails: Migrate Elasticsearch to OpenSearch
           - type: findAndReplaceUpgrader
             includedPaths:
