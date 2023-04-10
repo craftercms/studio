@@ -55,8 +55,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static co.elastic.clients.elasticsearch._types.SortOrder.Asc;
-import static co.elastic.clients.elasticsearch._types.SortOrder.Desc;
+import static org.opensearch.client.opensearch._types.SortOrder.Asc;
+import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;

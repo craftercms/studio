@@ -225,9 +225,6 @@ public interface StudioConfiguration {
     String AUTHORING_DISABLE_DEPLOY_CRON = "studio.authoring.disableDeployCron";
     String AUTHORING_TEMPLATE_NAME = "studio.authoring.templateName";
 
-    /** Preview Search **/
-    String PREVIEW_SEARCH_ENGINE = "studio.preview.search.engine";
-
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
     String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED =

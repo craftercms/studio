@@ -234,21 +234,6 @@ class ContentServices {
 		return contentServicesImpl.getContentVersionAtPath(site, path, version)
 	}
 
-	/**
-	 * search the repository
-	 * @param site - the project ID
-	 * @param keywords - keywords
-	 * @param filters - Filters object (document based)
-	 * @param sort - sort object
-	 * @param page - page to start on
-	 * @param resultsPerPage - items to return per page
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static search(site, keywords, searchParams, sort, page, resultsPerPage, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.search(site, keywords, searchParams, sort, page, resultsPerPage)
-	}
-
 	static writeContentAndRename(context, site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context);
 		return contentServicesImpl.writeContentAndRename(site, oldPath, targetPath, fileName, contentType, input, createFolders, edit, unlock, createFolder)

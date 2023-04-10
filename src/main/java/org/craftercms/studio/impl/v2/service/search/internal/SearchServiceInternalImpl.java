@@ -16,16 +16,16 @@
 
 package org.craftercms.studio.impl.v2.service.search.internal;
 
-import co.elastic.clients.elasticsearch._types.SortOrder;
-import co.elastic.clients.elasticsearch._types.aggregations.*;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch.core.search.Highlight;
-import co.elastic.clients.json.JsonData;
+import org.opensearch.client.opensearch._types.SortOrder;
+import org.opensearch.client.opensearch._types.aggregations.*;
+import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
+import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
+import org.opensearch.client.opensearch._types.query_dsl.RangeQuery;
+import org.opensearch.client.opensearch._types.query_dsl.TextQueryType;
+import org.opensearch.client.opensearch.core.SearchRequest;
+import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.search.Highlight;
+import org.opensearch.client.json.JsonData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -150,9 +150,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     protected String defaultType;
 
     /**
-     * The Elasticsearch service
+     * The Search service
      */
-    protected PermissionAwareSearchService elasticsearchService;
+    protected PermissionAwareSearchService searchService;
 
     /**
      * The Studio configuration
@@ -225,8 +225,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     @Required
-    public void setElasticsearchService(final PermissionAwareSearchService elasticsearchService) {
-        this.elasticsearchService = elasticsearchService;
+    public void setSearchService(final PermissionAwareSearchService searchService) {
+        this.searchService = searchService;
     }
 
     @Required
@@ -325,9 +325,9 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the information from Elasticsearch for a single {@link SearchResultItem}
-     * @param source the fields returned by Elasticsearch
-     * @param highlights the highlights returned by Elasticsearch
+     * Maps the information from OpenSearch for a single {@link SearchResultItem}
+     * @param source the fields returned by OpenSearch
+     * @param highlights the highlights returned by OpenSearch
      * @return the search item object
      */
     //TODO: Implement previewUrl for supported types
@@ -444,7 +444,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the Elasticsearch {@link SearchResponse} to a {@link SearchResult} object
+     * Maps the OpenSearch {@link SearchResponse} to a {@link SearchResult} object
      * @param response the response to map
      * @return the search result object
      */
@@ -605,12 +605,12 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         SearchRequest request = builder.build();
 
         try {
-            SearchResponse<Map> response = elasticsearchService.search(siteId, allowedPaths, request, Map.class);
+            SearchResponse<Map> response = searchService.search(siteId, allowedPaths, request, Map.class);
             return processResults(response, siteFacets, params.getAdditionalFields());
         } catch (IOException e) {
-            throw new ServiceLayerException("Error connecting to Elasticsearch", e);
+            throw new ServiceLayerException("Error connecting to OpenSearch", e);
         } catch (Exception e) {
-            throw new ServiceLayerException("Error executing search in Elasticsearch", e);
+            throw new ServiceLayerException("Error executing search in OpenSearch", e);
         }
     }
 
@@ -691,8 +691,8 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the Elasticsearch aggregations to {@link SearchFacet} objects
-     * @param response the Elasticsearch response to map
+     * Maps the OpenSearch aggregations to {@link SearchFacet} objects
+     * @param response the OpenSearch response to map
      * @return the list of search facet objects
      */
     @SuppressWarnings("unchecked, rawtypes")
@@ -780,7 +780,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     }
 
     /**
-     * Maps the Elasticsearch highlighting to simple text snippets
+     * Maps the OpenSearch highlighting to simple text snippets
      * @param highlights the highlighting to map
      * @return the list of snippets
      */

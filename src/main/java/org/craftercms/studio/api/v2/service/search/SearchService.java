@@ -22,7 +22,7 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 /**
- * Provides access to Elasticsearch for authoring indexes
+ * Provides access to OpenSearch for authoring indexes
  * @author joseross
  */
 public interface SearchService {
@@ -33,7 +33,7 @@ public interface SearchService {
      * @param params the parameters for the search
      * @return the search results
      * @throws AuthenticationException if there is an error checking the current user
-     * @throws ServiceLayerException if there is any error executing the search in Elasticsearch
+     * @throws ServiceLayerException if there is any error executing the search in OpenSearch
      */
     SearchResult search(String siteId, SearchParams params) throws AuthenticationException, ServiceLayerException;
 

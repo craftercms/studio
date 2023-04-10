@@ -16,16 +16,16 @@
 
 package org.craftercms.sites.editorial
 
-import co.elastic.clients.elasticsearch._types.SortOrder
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
-import co.elastic.clients.elasticsearch._types.query_dsl.Query
-import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
-import co.elastic.clients.elasticsearch._types.analysis.Analyzer
-import co.elastic.clients.elasticsearch.core.SearchRequest
-import co.elastic.clients.elasticsearch.core.search.Highlight
+import org.opensearch.client.opensearch._types.SortOrder
+import org.opensearch.client.opensearch._types.query_dsl.BoolQuery
+import org.opensearch.client.opensearch._types.query_dsl.Query
+import org.opensearch.client.opensearch._types.query_dsl.TextQueryType
+import org.opensearch.client.opensearch._types.analysis.Analyzer
+import org.opensearch.client.opensearch.core.SearchRequest
+import org.opensearch.client.opensearch.core.search.Highlight
 import org.apache.commons.lang3.StringUtils
 import org.craftercms.engine.service.UrlTransformationService
-import org.craftercms.search.elasticsearch.client.ElasticsearchClientWrapper
+import org.craftercms.search.opensearch.client.OpenSearchClientWrapper
 
 class SearchHelper {
 
@@ -39,11 +39,11 @@ class SearchHelper {
   static final int DEFAULT_ROWS = 10
   static final String MULTIPLE_VALUES_SEARCH_ANALYZER = Analyzer.Kind.Whitespace.jsonValue()
 
-  ElasticsearchClientWrapper elasticsearchClient
+  OpenSearchClientWrapper searchClient
   UrlTransformationService urlTransformationService
 
-  SearchHelper(ElasticsearchClientWrapper elasticsearchClient, UrlTransformationService urlTransformationService) {
-    this.elasticsearchClient = elasticsearchClient
+  SearchHelper(OpenSearchClientWrapper searchClient, UrlTransformationService urlTransformationService) {
+    this.searchClient = searchClient
     this.urlTransformationService = urlTransformationService
   }
 
@@ -117,7 +117,7 @@ class SearchHelper {
       .highlight(highlighter.build())
     )
 
-    def result = elasticsearchClient.search(request, Map)
+    def result = searchClient.search(request, Map)
 
     if (result) {
       return processUserSearchResults(result)
@@ -174,7 +174,7 @@ class SearchHelper {
       )
     )
 
-    def result = elasticsearchClient.search(request, Map)
+    def result = searchClient.search(request, Map)
 
     if (result) {
       return processArticleListingResults(result)
