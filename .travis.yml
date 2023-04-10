@@ -23,10 +23,8 @@ before_install:
   - mkdir -p $HOME/.m2
   - cp .travis-settings.xml $HOME/.m2/settings.xml
 script:
-- if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean
-  deploy -DcloneUi=true --settings .travis-settings.xml; fi
-- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean
-  install -DcloneUi=true ;fi
+- if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean deploy -DcloneUi=true --settings .travis-settings.xml; fi
+- if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean install -DcloneUi=true; fi
 env:
   global:
   - secure: UrqsAwhqy/hg3bJh6zDDg51+a60bnvdFaNZx/9KsgGxrz174mMU0aJCAl1uUcY1tte8v5cylWvdSzPfBQhgH4p8zu2naFmIgtX+NUBLOqR5CX8w60+kNuSPBRj7TY+PRr1Vak8WztRxQE/T+VjAGH2ZdL0Ww9Soq2RFvMKgtvKk=
