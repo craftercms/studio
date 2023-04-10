@@ -2,7 +2,7 @@ version: "~> 1.0"
 dist: focal
 language: java
 jdk:
-- openjdk11
+- openjdk17
 cache:
   directories:
   - "$HOME/.m2"
@@ -22,15 +22,7 @@ notifications:
 before_install:
   - mkdir -p $HOME/.m2
   - cp .travis-settings.xml $HOME/.m2/settings.xml
-install: skip
 script:
-- wget -q https://raw.githubusercontent.com/craftercms/craftercms/develop/.travis-prep-jdk.sh
-- chmod +x .travis-prep-jdk.sh
-- "./.travis-prep-jdk.sh"
-- export JAVA_HOME=$HOME/jdk
-- export PATH=$HOME/jdk/bin:$PATH
-- which java
-- java -version
 - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then mvn -Dmaven.javadoc.skip=true clean
   deploy -DcloneUi=true --settings .travis-settings.xml; fi
 - if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then mvn -Dmaven.javadoc.skip=true clean
