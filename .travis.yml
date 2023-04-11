@@ -1,6 +1,9 @@
 version: "~> 1.0"
 dist: jammy
 language: java
+git:
+  depth: 1
+  quiet: true
 jdk:
   - openjdk17
 cache:
