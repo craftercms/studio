@@ -16,14 +16,13 @@
 
 package org.craftercms.studio.impl.v2.service.search;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
-import co.elastic.clients.elasticsearch._types.query_dsl.Query;
-import co.elastic.clients.elasticsearch.core.SearchRequest;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.search.elasticsearch.ElasticsearchWrapper;
-import org.craftercms.search.elasticsearch.impl.client.AbstractElasticsearchClientWrapper;
+import org.craftercms.search.opensearch.impl.client.AbstractOpenSearchClientWrapper;
+import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
+import org.opensearch.client.opensearch._types.query_dsl.Query;
+import org.opensearch.client.opensearch.core.SearchRequest;
+import org.opensearch.client.opensearch.core.SearchResponse;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
@@ -31,10 +30,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Implementation of {@link ElasticsearchWrapper} specific for authoring indexes
+ * Implementation of {@link org.craftercms.search.opensearch.OpenSearchWrapper} specific for authoring indexes
  * @author joseross
  */
-public class PermissionAwareSearchService extends AbstractElasticsearchClientWrapper {
+public class PermissionAwareSearchService extends AbstractOpenSearchClientWrapper {
 
     /**
      * The suffix to append to the site name
@@ -47,7 +46,7 @@ public class PermissionAwareSearchService extends AbstractElasticsearchClientWra
     protected String pathFieldName;
 
     @ConstructorProperties({"client", "indexSuffix", "pathFieldName"})
-    public PermissionAwareSearchService(ElasticsearchClient client, String indexSuffix, String pathFieldName) {
+    public PermissionAwareSearchService(OpenSearchClient client, String indexSuffix, String pathFieldName) {
         super(client);
         this.indexSuffix = indexSuffix;
         this.pathFieldName = pathFieldName;
