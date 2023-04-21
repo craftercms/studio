@@ -183,6 +183,9 @@
     <bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.site.FindAndReplaceUpgradeOperation"/>
 
+    <bean id="multiFindAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.MultiFindAndReplaceUpgradeOperation"/>
+
     <bean id="boxControlUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.site.BoxRemoteAssetUpgradeOperation">
         <constructor-arg name="contentTypeXpath"

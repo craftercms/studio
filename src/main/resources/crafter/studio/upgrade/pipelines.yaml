@@ -640,155 +640,60 @@ pipelines:
       - currentVersion: 4.0.0.8
         nextVersion: 4.0.0.9
         operations:
-          - type: findAndReplaceUpgrader
+          - type: multiFindAndReplaceUpgrader
             includedPaths:
               - (config/studio/)?scripts/.*\.groovy
-            pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import $1org.opensearch.client.opensearch.$2$3'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import $1org.opensearch.client.$2$3'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "import\\s+(static\\s+)?org\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import $1org.opensearch.$2$3'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "import\\s+(static\\s+)?org\\.craftercms\\.search\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
-            replacement: 'import $1org.craftercms.search.opensearch.$2$3'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\\bElasticsearchClientWrapper\\b"
-            replacement: 'OpenSearchClientWrapper'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchAdminService\b"
-            replacement: 'OpenSearchAdminService'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchService\b"
-            replacement: 'OpenSearchService'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchWrapper\b"
-            replacement: 'OpenSearchWrapper'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchBinaryFileBatchIndexer\b"
-            replacement: 'OpenSearchBinaryFileBatchIndexer'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchBinaryFileWithMetadataBatchIndexer\b"
-            replacement: 'OpenSearchBinaryFileWithMetadataBatchIndexer'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchIndexingUtils\b"
-            replacement: 'OpenSearchIndexingUtils'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchXmlFileBatchIndexer\b"
-            replacement: 'OpenSearchXmlFileBatchIndexer'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bAuthoringElasticsearchBinaryFileWithMetadataBatchIndexer\b"
-            replacement: 'AuthoringOpenSearchBinaryFileWithMetadataBatchIndexer'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchClientWrapper\b"
-            replacement: 'OpenSearchClientWrapper'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchException\b"
-            replacement: 'OpenSearchException'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bAbstractElasticsearchWrapper\b"
-            replacement: 'AbstractOpenSearchWrapper'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bMultiElasticsearchAdminServiceImpl\b"
-            replacement: 'MultiOpenSearchAdminServiceImpl'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bMultiElasticsearchServiceImpl\b"
-            replacement: 'MultiOpenSearchServiceImpl'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchAdminServiceImpl\b"
-            replacement: 'OpenSearchAdminServiceImpl'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchDocumentBuilder\b"
-            replacement: 'OpenSearchDocumentBuilder'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchElementParserImpl\b"
-            replacement: 'OpenSearchElementParserImpl'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchServiceImpl\b"
-            replacement: 'OpenSearchServiceImpl'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bAbstractElasticsearchClientWrapper\b"
-            replacement: 'AbstractOpenSearchClientWrapper'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchClientFactory\b"
-            replacement: 'OpenSearchClientFactory'
-            commitDetails: Migrate Elasticsearch to OpenSearch
-          - type: findAndReplaceUpgrader
-            includedPaths:
-              - (config/studio/)?scripts/.*\.groovy
-            pattern: "\bElasticsearchClient\b"
-            replacement: 'OpenSearchClient'
+            rules:
+              - pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
+                replacement: 'import $1org.opensearch.client.opensearch.$2$3'
+              - pattern: "import\\s+(static\\s+)?co\\.elastic\\.clients\\.(.*)(\\r*\\n*\\s*)"
+                replacement: 'import $1org.opensearch.client.$2$3'
+              - pattern: "import\\s+(static\\s+)?org\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
+                replacement: 'import $1org.opensearch.$2$3'
+              - pattern: "import\\s+(static\\s+)?org\\.craftercms\\.search\\.elasticsearch\\.(.*)(\\r*\\n*\\s*)"
+                replacement: 'import $1org.craftercms.search.opensearch.$2$3'
+              - pattern: "\\bElasticsearchClientWrapper\\b"
+                replacement: 'OpenSearchClientWrapper'
+              - pattern: "\bElasticsearchAdminService\b"
+                replacement: 'OpenSearchAdminService'
+              - pattern: "\bElasticsearchService\b"
+                replacement: 'OpenSearchService'
+              - pattern: "\bElasticsearchWrapper\b"
+                replacement: 'OpenSearchWrapper'
+              - pattern: "\bElasticsearchBinaryFileBatchIndexer\b"
+                replacement: 'OpenSearchBinaryFileBatchIndexer'
+              - pattern: "\bElasticsearchBinaryFileWithMetadataBatchIndexer\b"
+                replacement: 'OpenSearchBinaryFileWithMetadataBatchIndexer'
+              - pattern: "\bElasticsearchIndexingUtils\b"
+                replacement: 'OpenSearchIndexingUtils'
+              - pattern: "\bElasticsearchXmlFileBatchIndexer\b"
+                replacement: 'OpenSearchXmlFileBatchIndexer'
+              - pattern: "\bAuthoringElasticsearchBinaryFileWithMetadataBatchIndexer\b"
+                replacement: 'AuthoringOpenSearchBinaryFileWithMetadataBatchIndexer'
+              - pattern: "\bElasticsearchClientWrapper\b"
+                replacement: 'OpenSearchClientWrapper'
+              - pattern: "\bElasticsearchException\b"
+                replacement: 'OpenSearchException'
+              - pattern: "\bAbstractElasticsearchWrapper\b"
+                replacement: 'AbstractOpenSearchWrapper'
+              - pattern: "\bMultiElasticsearchAdminServiceImpl\b"
+                replacement: 'MultiOpenSearchAdminServiceImpl'
+              - pattern: "\bMultiElasticsearchServiceImpl\b"
+                replacement: 'MultiOpenSearchServiceImpl'
+              - pattern: "\bElasticsearchAdminServiceImpl\b"
+                replacement: 'OpenSearchAdminServiceImpl'
+              - pattern: "\bElasticsearchDocumentBuilder\b"
+                replacement: 'OpenSearchDocumentBuilder'
+              - pattern: "\bElasticsearchElementParserImpl\b"
+                replacement: 'OpenSearchElementParserImpl'
+              - pattern: "\bElasticsearchServiceImpl\b"
+                replacement: 'OpenSearchServiceImpl'
+              - pattern: "\bAbstractElasticsearchClientWrapper\b"
+                replacement: 'AbstractOpenSearchClientWrapper'
+              - pattern: "\bElasticsearchClientFactory\b"
+                replacement: 'OpenSearchClientFactory'
+              - pattern: "\bElasticsearchClient\b"
+                replacement: 'OpenSearchClient'
             commitDetails: Migrate Elasticsearch to OpenSearch
 
   # Pipeline to upgrade blueprints
