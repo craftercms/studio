@@ -256,6 +256,7 @@ pipelines:
         operations:
           - type: populateItemTableUpgrader
             spName: populateItemTable
+            parentIdSpName: populateItemParentId
             clearExistingData: true
       # Populate Workflow table
       - currentVersion: 4.0-t28

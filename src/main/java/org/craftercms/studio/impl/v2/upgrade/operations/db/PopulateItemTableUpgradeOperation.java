@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,19 +17,14 @@
 package org.craftercms.studio.impl.v2.upgrade.operations.db;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.entitlements.validator.DbIntegrityValidator;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.exception.UpgradeNotSupportedException;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunner;
-import org.craftercms.studio.api.v2.dal.StudioDBScriptRunnerFactory;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -44,33 +39,27 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.TreeWalk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.ZoneOffset.UTC;
 import static org.apache.commons.io.FilenameUtils.getName;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.updateParentId;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.DB_SCHEMA;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -81,6 +70,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
 
     public static final String CONFIG_KEY_CLEAR_EXISTING_DATA = "clearExistingData";
     public static final String CONFIG_KEY_STORED_PROCEDURE_NAME = "spName";
+    public static final String CONFIG_KEY_STORED_PARENT_ID_PROCEDURE_NAME = "parentIdSpName";
     public static final String QUERY_GET_ALL_SITES =
             "SELECT id, site_id FROM " + CRAFTER_SCHEMA_NAME + ".site WHERE system = 0 AND deleted = 0";
     public static final String STORED_PROCEDURE_NAME = "@spName";
@@ -94,28 +84,32 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
     private boolean clearExistingData;
     private String crafterSchemaName;
     private String spName;
+    private String populateParentIdSpName;
     private final String blobExtension;
     private final ItemServiceInternal itemServiceInternal;
     private final ContentService contentService;
     private final GitRepositoryHelper gitRepositoryHelper;
-    private final StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
+    private final long executorTimeoutSeconds;
+    private final int executorThreadCount;
 
     @ConstructorProperties({"studioConfiguration", "scriptFolder", "integrityValidator", "itemServiceInternal",
-            "contentService", "gitRepositoryHelper", "studioDBScriptRunnerFactory", "blobExtension"})
+            "contentService", "gitRepositoryHelper", "blobExtension", "executorTimeoutSeconds", "executorThreadCount"})
     public PopulateItemTableUpgradeOperation(StudioConfiguration studioConfiguration,
                                              String scriptFolder,
                                              DbIntegrityValidator integrityValidator,
                                              ItemServiceInternal itemServiceInternal,
                                              ContentService contentService,
                                              GitRepositoryHelper gitRepositoryHelper,
-                                             StudioDBScriptRunnerFactory studioDBScriptRunnerFactory,
-                                             String blobExtension) {
+                                             String blobExtension,
+                                             long executorTimeoutSeconds,
+                                             int executorThreadCount) {
         super(studioConfiguration, scriptFolder, integrityValidator);
         this.itemServiceInternal = itemServiceInternal;
         this.contentService = contentService;
         this.gitRepositoryHelper = gitRepositoryHelper;
-        this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
         this.blobExtension = blobExtension;
+        this.executorTimeoutSeconds = executorTimeoutSeconds;
+        this.executorThreadCount = executorThreadCount;
     }
 
     @Override
@@ -124,6 +118,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         clearExistingData = config.getBoolean(CONFIG_KEY_CLEAR_EXISTING_DATA, false);
         crafterSchemaName = studioConfiguration.getProperty(DB_SCHEMA);
         spName = config.getString(CONFIG_KEY_STORED_PROCEDURE_NAME);
+        populateParentIdSpName = config.getString(CONFIG_KEY_STORED_PARENT_ID_PROCEDURE_NAME);
     }
 
     /**
@@ -183,15 +178,23 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         }
 
         try {
-            StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
-            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
-            populateDataFromRepo(site, siteId, updateParentIdScriptPath);
+            populateDataFromRepo(site);
             logger.debug("Update the parent IDs in site '{}'", site);
-            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-            Files.deleteIfExists(updateParentIdScriptPath);
-        } catch (IOException e) {
+            populateParentId(context, site, siteId);
+        } catch (Exception e) {
             logger.error("Failed to populate the item table from the repository for site '{}'", site, e);
+        }
+    }
+
+    private void populateParentId(final StudioUpgradeContext context, String site, long siteId) {
+        logger.debug("Execute the stored procedure '{}' in site '{}'", populateParentIdSpName, site);
+        try (Connection connection = context.getConnection()) {
+            CallableStatement callableStatement = connection.prepareCall(
+                    QUERY_CALL_STORED_PROCEDURE.replace(STORED_PROCEDURE_NAME, populateParentIdSpName)
+                            .replace(SP_PARAM_SITE, String.valueOf(siteId)));
+            callableStatement.execute();
+        } catch (SQLException e) {
+            logger.error("Failed to populate item table parent ID for site '{}'", site, e);
         }
     }
 
@@ -216,8 +219,8 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         }
     }
 
-    private void populateDataFromRepo(final String siteName, final long siteId, final Path updateParentIdScriptPath)
-            throws IOException {
+    private void populateDataFromRepo(final String siteName)
+            throws Exception {
         logger.debug("Populate data from the repository for site '{}'", siteName);
         try (Repository repo = getRepository(siteName)) {
             ObjectId objCommitId = repo.resolve(HEAD);
@@ -227,26 +230,41 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 TreeWalk treeWalk = new TreeWalk(repo);
                 treeWalk.addTree(tree);
                 treeWalk.setRecursive(false);
+                ExecutorService taskExecutor = Executors.newFixedThreadPool(executorThreadCount);
                 while (treeWalk.next()) {
-                    try {
-                        if (treeWalk.isSubtree()) {
-                            processFolder(siteName, siteId,FILE_SEPARATOR + treeWalk.getPathString(),
-                                    ObjectId.toString(commit), treeWalk.getNameString(), updateParentIdScriptPath);
-                            treeWalk.enterSubtree();
+                    String pathString = treeWalk.getPathString();
+                    String nameString = treeWalk.getNameString();
+                    if (treeWalk.isSubtree()) {
+                        taskExecutor.execute(() -> {
+                                    try {
+                                        processFolder(siteName, FILE_SEPARATOR + pathString,
+                                                ObjectId.toString(commit), nameString);
+                                    } catch (IOException e) {
+                                        logger.error("Failed to process file '{}' in site '{}'", pathString,
+                                                siteName, e);
+                                    }
+                                }
+                        );
+                        treeWalk.enterSubtree();
+                    } else {
+                        if (StringUtils.containsAny(getName(nameString), IGNORE_FILES)) {
+                            logger.debug("Skip ignored file '{}' in site '{}'", pathString,
+                                    siteName);
                         } else {
-                            if (StringUtils.containsAny(getName(treeWalk.getNameString()), IGNORE_FILES)) {
-                                logger.debug("Skip ignored file '{}' in site '{}'", treeWalk.getPathString(),
-                                        siteName);
-                            } else {
-                                processFile(siteName, siteId, FILE_SEPARATOR + treeWalk.getPathString(),
-                                        ObjectId.toString(commit), treeWalk.getNameString(), updateParentIdScriptPath);
-                            }
+                            taskExecutor.execute(() -> {
+                                try {
+                                    processFile(siteName, FILE_SEPARATOR + pathString,
+                                            ObjectId.toString(commit), nameString);
+                                } catch (DocumentException | IOException e) {
+                                    logger.error("Failed to process file '{}' in site '{}'", pathString,
+                                            siteName, e);
+                                }
+                            });
                         }
-                    } catch (DocumentException | IOException e) {
-                        logger.error("Failed to process file '{}' in site '{}'", treeWalk.getPathString(),
-                                siteName, e);
                     }
                 }
+                taskExecutor.shutdown();
+                taskExecutor.awaitTermination(executorTimeoutSeconds, TimeUnit.SECONDS);
             }
         }
     }
@@ -255,8 +273,8 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         return gitRepositoryHelper.getRepository(site, GitRepositories.SANDBOX);
     }
 
-    private void processFolder(String site, long siteId, String path, String commitId,
-                               String name, Path updateParentIdScriptPath) throws IOException {
+    private void processFolder(String site, String path, String commitId,
+                               String name) throws IOException {
         logger.debug("Process the folder '{}' in site '{}'", path, site);
         File folder = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
@@ -269,11 +287,10 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 .withSystemType("folder")
                 .build();
         itemServiceInternal.upsertEntry(item);
-        addUpdateParentIdScriptSnippets(siteId, path, updateParentIdScriptPath);
     }
 
-    private void processFile(String site, long siteId, String path, String commitId,
-                             String name, Path updateParentIdScriptPath) throws DocumentException, IOException {
+    private void processFile(String site, String path, String commitId,
+                             String name) throws DocumentException, IOException {
         logger.debug("Process the file '{}' in site '{}'", path, site);
         File file = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
@@ -301,7 +318,6 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         }
 
         itemServiceInternal.upsertEntry(item);
-        addUpdateParentIdScriptSnippets(siteId, path, updateParentIdScriptPath);
     }
 
     private void populateDescriptorProperties(String site, String path, Item item) throws DocumentException {
@@ -321,23 +337,6 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
             if (isNotEmpty(disabled) && "true".equalsIgnoreCase(disabled)) {
                 item.setState(item.getState() | DISABLED.value);
             }
-        }
-    }
-
-    // Copied from SiteServiceImpl.java
-    private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath)
-            throws IOException {
-        String parentPath = FilenameUtils.getPrefix(path) +
-                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, "/index.xml", ""));
-        if (StringUtils.isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
-            addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-            if (StringUtils.endsWith(path, "/index.xml")) {
-                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path, "/index.xml", ""),
-                        updateParentIdScriptPath);
-            }
-            Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
         }
     }
 
