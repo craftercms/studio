@@ -25,7 +25,6 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +62,7 @@ public class MultiFindAndReplaceUpgradeOperation extends AbstractContentUpgradeO
 
     protected List<Rule> rules;
 
-    public MultiFindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration, DataSource dataSource) {
+    public MultiFindAndReplaceUpgradeOperation(StudioConfiguration studioConfiguration) {
         super(studioConfiguration);
     }
 
