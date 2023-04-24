@@ -168,218 +168,128 @@ VALUES (CURRENT_TIMESTAMP, 'git_repo_user', '',
 
 CREATE PROCEDURE populateItemTable(IN siteId VARCHAR(50))
 BEGIN
-    DECLARE v_site_id BIGINT;
-    DECLARE v_path VARCHAR(2048);
-    DECLARE v_state_str VARCHAR(255);
-    DECLARE v_sys_process INT;
-    DECLARE v_state BIGINT;
-    DECLARE v_owner VARCHAR(255);
-    DECLARE v_locked_by BIGINT;
-    DECLARE v_creator VARCHAR(255);
-    DECLARE v_created_by BIGINT;
-    DECLARE v_created_on TIMESTAMP;
-    DECLARE v_modifier VARCHAR(255);
-    DECLARE v_last_modified_by BIGINT;
-    DECLARE v_last_modified_on TIMESTAMP;
-    DECLARE v_commit_id VARCHAR(128);
-    DECLARE v_current_env VARCHAR(20);
-    DECLARE v_current_state VARCHAR(50);
-    DECLARE v_wf_target VARCHAR(255);
-    DECLARE v_dest INT;
-    DECLARE v_live INT;
-    DECLARE v_stage INT;
-    DECLARE v_finished INTEGER DEFAULT 0;
-    DECLARE item_cursor CURSOR FOR
-        SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
-               im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
-               im.modified as item_modified, im.commit_id as item_commit_id,
-               submittedtoenvironment as item_wf_env
-        FROM item_state ist
-            LEFT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
-        WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store'
-        UNION
-        SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
-               im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
-               im.modified as item_modified, im.commit_id as item_commit_id,
-               submittedtoenvironment as item_wf_env
-        FROM item_state ist
-            RIGHT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
-        WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store';
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_finished = 1;
-    SELECT id INTO v_site_id FROM site WHERE site_id = siteId AND deleted = 0;
-    DELETE FROM item WHERE site_id = v_site_id;
-    OPEN item_cursor;
-    insert_item: LOOP
-        -- Init all variables used inside the loop to avoid possible issues with previous iterations
-        SET v_path = NULL;
-        SET v_state= 0;
-        SET v_state_str = NULL;
-        SET v_sys_process = 0;
-        SET v_creator = NULL;
-        SET v_modifier = NULL;
-        SET v_last_modified_on = NULL;
-        SET v_commit_id = NULL;
-        SET v_current_env = NULL;
-        SET v_current_state = NULL;
-        SET v_dest = 0;
-        SET v_stage = 0;
-        SET v_live = 0;
-        SET v_locked_by = NULL;
-        SET v_created_by = NULL;
-        SET v_last_modified_by = NULL;
-        SET v_wf_target = NULL;
+	DECLARE siteIdInt BIGINT;
+    DECLARE created_on TIMESTAMP DEFAULT now();
 
-        FETCH item_cursor INTO v_path, v_state_str, v_sys_process, v_owner, v_creator, v_modifier, v_last_modified_on,
-                               v_commit_id, v_wf_target;
 
-        IF v_finished = 1 THEN
-            LEAVE insert_item;
-        END IF;
+	SELECT id INTO siteIdInt FROM site WHERE site_id = siteId AND deleted = 0;
 
-        SELECT state, environment INTO v_current_state, v_current_env
-            FROM publish_request WHERE site = siteId and path = v_path ORDER BY scheduleddate DESC LIMIT 1;
+	DELETE FROM item WHERE site_id = siteIdInt;
 
-        IF v_current_env = 'live' AND v_current_state = 'COMPLETED' THEN
-            SET v_live = 1;
-        ELSEIF v_current_env = 'staging' AND v_current_state = 'COMPLETED' THEN
-            SET v_stage = 1;
-        END IF;
+ 	INSERT INTO item
+             (site_id, path, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, commit_id)
+    SELECT siteIdInt as site_id, item_path as path,
+            (CASE WHEN item_state = 'NEW_UNPUBLISHED_LOCKED' THEN
+                        1 + 2 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_UNPUBLISHED_UNLOCKED' THEN
+                        1 + 2 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_WITH_WF_SCHEDULED' THEN
+                        1 + 2 + 32 + 64 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN
+                        1 + 2 + 32 + 64 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED' THEN
+                        1 + 2 + 32 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN
+                        1 + 2 + 32 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_NO_WF_SCHEDULED' THEN
+                        1 + 2 + 64 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN
+                        1 + 2 + 64 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_SUBMITTED_NO_WF_UNSCHEDULED' THEN
+                        1 + 2 + 128 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_PUBLISHING_FAILED' THEN
+                        1 + 2 + 128 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'NEW_DELETED' THEN
+                        1 + 4 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_UNEDITED_LOCKED' THEN
+                        8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_UNEDITED_UNLOCKED' THEN
+                        16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_EDITED_LOCKED' THEN
+                        2 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_EDITED_UNLOCKED' THEN
+                        2 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED' THEN
+                        2 + 32 + 64 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN
+                        2 + 32 + 64 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED' THEN
+                        2 + 32 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN
+                        2 + 32 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED' THEN
+                        2 + 64 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN
+                        2 + 64 + 8 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_SUBMITTED_NO_WF_UNSCHEDULED' THEN
+                        2 + 128 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_PUBLISHING_FAILED' THEN
+                        2 + 128 + 16 * item_sys_process + 256 * dest + 512 * staging + 1024 * live
+                        WHEN item_state = 'EXISTING_DELETED' THEN
+                        4 + 16 * item_sys_process
+                    ELSE 0 END) as state,
+            (SELECT id from user WHERE username = item_owner LIMIT 1) as locked_by,
+            (SELECT id from user WHERE username = item_creator LIMIT 1) as created_by, created_on,
+            (SELECT id FROM user WHERE username = item_modifier LIMIT 1) as last_modified_by,
+            item_modified as last_modified_on,
+            item_commit_id as commit_id
+    FROM
+    (SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
+	   im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+	   im.modified as item_modified, im.commit_id as item_commit_id,
+	   submittedtoenvironment as item_wf_env,
+			IFNULL((SELECT if(state = 'COMPLETED' AND environment = 'live', 1, 0)
+				FROM publish_request WHERE site = siteId and path = item_path ORDER BY scheduleddate DESC LIMIT 1), 0) as live,
+            IFNULL((SELECT if(state = 'COMPLETED' AND environment = 'staging', 1, 0)
+				FROM publish_request WHERE site = siteId and path = item_path ORDER BY scheduleddate DESC LIMIT 1), 0) as staging,
+			IF(submittedtoenvironment = 'live', 1, 0) AS dest
+	FROM item_state ist
+		LEFT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
+	WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store'
+	UNION
+	SELECT im.path as item_path, ist.state as item_state, ist.system_processing as item_sys_process,
+		   im.lockowner as item_owner, im.creator as item_creator, im.modifier as item_modifier,
+		   im.modified as item_modified, im.commit_id as item_commit_id,
+		   submittedtoenvironment as item_wf_env,
+			IFNULL((SELECT if(state = 'COMPLETED' AND environment = 'live', 1, 0)
+				FROM publish_request WHERE site = siteId and path = item_path ORDER BY scheduleddate DESC LIMIT 1), 0) as live,
+            IFNULL((SELECT if(state = 'COMPLETED' AND environment = 'staging', 1, 0)
+				FROM publish_request WHERE site = siteId and path = item_path ORDER BY scheduleddate DESC LIMIT 1), 0) as staging,
+			IF(submittedtoenvironment = 'live', 1, 0) AS dest
+	FROM item_state ist
+		RIGHT OUTER JOIN item_metadata im ON ist.site = im.site AND ist.path = im.path
+	WHERE ist.site = siteId AND im.path NOT LIKE '%.keep' AND im.path NOT LIKE '%.DS_Store'
+    ) AS item_states;
 
-        IF v_wf_target = 'live' THEN
-            SET v_dest = 1;
-        END IF;
+    SELECT COUNT(1) FROM item WHERE site_id = siteIdInt;
+END ;
 
-        CASE
-            WHEN v_state_str = 'NEW_UNPUBLISHED_LOCKED' THEN
-            -- NEW + MODIFIED + USER_LOCKED
-            SELECT 1 + 2 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_UNPUBLISHED_UNLOCKED' THEN
-            -- NEW + MODIFIED
-            SELECT 1 + 2 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_SCHEDULED' THEN
-            -- NEW + MODIFIED + IN_WORKFLOW + SCHEDULED
-            SELECT 1 + 2 + 32 + 64 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN
-            -- NEW + MODIFIED + IN_WORKFLOW + SCHEDULED + USER_LOCKED
-            SELECT 1 + 2 + 32 + 64 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED' THEN
-            -- NEW + MODIFIED + IN_WORKFLOW
-            SELECT 1 + 2 + 32 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN
-            -- NEW + MODIFIED + IN_WORKFLOW + USER_LOCKED
-            SELECT 1 + 2 + 32 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_NO_WF_SCHEDULED' THEN
-            -- NEW + MODIFIED + SCHEDULED
-            SELECT 1 + 2 + 64 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN
-            -- NEW + MODIFIED + SCHEDULED + USER_LOCKED
-            SELECT 1 + 2 + 64 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_SUBMITTED_NO_WF_UNSCHEDULED' THEN
-            -- NEW + MODIFIED + PUBLISHING?
-            SELECT 1 + 2 + 128 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_PUBLISHING_FAILED' THEN
-            --  NEW + MODIFIED + PUBLISHING
-            SELECT 1 + 2 + 128 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'NEW_DELETED' THEN
-            -- NEW + DELETED
-            SELECT 1 + 4 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_UNEDITED_LOCKED' THEN
-            -- LIVE + USER_LOCKED
-            SET v_live = 1;
-            SELECT 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_UNEDITED_UNLOCKED' THEN
-            -- LIVE
-            SET v_live = 1;
-            SELECT 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_EDITED_LOCKED' THEN
-            -- LIVE + MODIFIED + USER_LOCKED
-            SET v_live = 1;
-            SELECT 2 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_EDITED_UNLOCKED' THEN
-            -- LIVE + MODIFIED
-            SET v_live = 1;
-            SELECT 2 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED' THEN
-            -- LIVE + MODIFIED + IN_WORKFLOW + SCHEDULED
-            SET v_live = 1;
-            SELECT 2 + 32 + 64 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_SCHEDULED_LOCKED' THEN
-            -- LIVE + MODIFIED + IN_WORKFLOW + SCHEDULED + USER_LOCKED
-            SET v_live = 1;
-            SELECT 2 + 32 + 64 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED' THEN
-            -- LIVE + MODIFIED + IN_WORKFLOW
-            SET v_live = 1;
-            SELECT 2 + 32 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_WITH_WF_UNSCHEDULED_LOCKED' THEN
-            -- LIVE + MODIFIED + IN_WORKFLOW + USER_LOCKED
-            SET v_live = 1;
-            SELECT 2 + 32 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED' THEN
-            -- LIVE + MODIFIED + SCHEDULED
-            SET v_live = 1;
-            SELECT 2 + 64 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_NO_WF_SCHEDULED_LOCKED' THEN
-            -- LIVE + MODIFIED + SCHEDULED + USER_LOCKED
-            SET v_live = 1;
-            SELECT 2 + 64 + 8 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_SUBMITTED_NO_WF_UNSCHEDULED' THEN
-            -- MODIFIED + PUBLISHING?
-            SELECT 2 + 128 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_PUBLISHING_FAILED' THEN
-            -- MODIFIED + PUBLISHING
-            SELECT 2 + 128 + 16 * v_sys_process + 256 * v_dest + 512 * v_stage + 1024 * v_live INTO v_state;
-
-            WHEN v_state_str = 'EXISTING_DELETED' THEN
-            -- DELETED
-            SELECT 4 + 16 * v_sys_process INTO v_state;
-
-        ELSE
-            SELECT 0 INTO v_state;
-        END CASE;
-
-        SELECT a.id INTO v_locked_by FROM
-            (SELECT id FROM user WHERE username = v_owner UNION
-             SELECT id from user WHERE username = v_owner LIMIT 1) as a;
-
-        SELECT a.id INTO v_created_by FROM
-            (SELECT id FROM user WHERE username = v_creator UNION
-             SELECT id from user WHERE username = v_creator LIMIT 1) as a;
-
-        SELECT a.id INTO v_last_modified_by FROM
-            (SELECT id FROM user WHERE username = v_modifier UNION
-             SELECT id from user WHERE username = v_modifier LIMIT 1) as a;
-
-        INSERT INTO item
-            (site_id, path, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, commit_id)
-        VALUES
-            (v_site_id, v_path, v_state, v_locked_by, v_created_by, v_created_on, v_last_modified_by, v_last_modified_on, v_commit_id);
-
-        SET v_finished = 0;
-    end loop insert_item;
-    SELECT COUNT(1) FROM item WHERE site_id = v_site_id;
+CREATE PROCEDURE populateItemParentId(IN siteId BIGINT)
+BEGIN
+    UPDATE item,
+        (SELECT id, max(potential_parent_path) as calculated_parent_path,
+						(SELECT p.id FROM item p WHERE (p.path = max(potential_parent_path)) and p.site_id = siteId) AS calculated_parent_id
+        FROM
+            (SELECT candidates.id, candidates.path, candidates.parent_id,
+                    (SELECT p.id FROM item p WHERE (p.path = candidates.parent_path) AND p.site_id = siteId) AS potential_parent_id,
+                    candidates.parent_path as potential_parent_path
+            FROM (
+					SELECT id, parent_id, path,
+							reverse(substr(reverse(trim('/index.xml' from path)), locate('/', reverse(trim('/index.xml' from path)))+1)) AS parent_path
+					FROM item
+					WHERE site_id = siteId
+				UNION
+					SELECT id, parent_id, path,
+							concat(reverse(substr(reverse(trim('/index.xml' from path)), locate('/', reverse(trim('/index.xml' from path)))+1)), '/index.xml') AS parent_path
+					FROM item
+					WHERE site_id = siteId
+				) AS candidates
+			) AS mapped
+        WHERE potential_parent_id IS NOT NULL
+        GROUP BY id
+        ) AS updates
+    SET item.parent_id = updates.calculated_parent_id
+    WHERE item.id = updates.id;
 END ;
 
 CREATE PROCEDURE migrateWorkflow(IN siteId VARCHAR(50))
