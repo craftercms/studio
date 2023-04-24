@@ -186,6 +186,14 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         }
     }
 
+    /**
+     * Calls the 'populate parent id' stored procedure. It takes the name from
+     * the property 'parentIdSpName'.
+     * The SP is meant to set the parent Id for each item based on the path.
+     * @param context the upgrade context
+     * @param site the site id
+     * @param siteId the numeric site id
+     */
     private void populateParentId(final StudioUpgradeContext context, String site, long siteId) {
         logger.debug("Execute the stored procedure '{}' in site '{}'", populateParentIdSpName, site);
         try (Connection connection = context.getConnection()) {

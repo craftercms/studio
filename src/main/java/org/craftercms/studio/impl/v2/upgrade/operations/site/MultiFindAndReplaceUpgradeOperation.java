@@ -33,16 +33,21 @@ import java.util.List;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
- * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that replaces text in the content repository.
+ * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that replaces text in the content repository
+ * according to multiple 'pattern/replacement' rules.
  *
  * <p>Supported YAML properties:</p>
  * <ul>
- *     <li><strong>pattern</strong>: (required) the pattern to search in the files, can be a regular expression</li>
- *     <li><strong>replacement</strong>: (required) the expression to replace in the files, can use matched groups
+ *     <li><strong>rules</strong>: (required) the list of rules to find and replace text. Each rule should contain the properties:
+ *     <ul>
+ *          <li><strong>pattern</strong>: (required) the pattern to search in the files, can be a regular expression</li>
+ *          <li><strong>replacement</strong>: (required) the expression to replace in the files, can use matched groups
  *     from the regular expression in the pattern</li>
+ *     </ul>
+ *     </li>
  * </ul>
  *
- * @author joseross
+ * @author jmendeza
  */
 public class MultiFindAndReplaceUpgradeOperation extends AbstractContentUpgradeOperation {
 
