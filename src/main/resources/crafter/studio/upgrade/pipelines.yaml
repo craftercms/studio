@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || >=4.0.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || >=4.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -502,7 +502,7 @@ pipelines:
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file to include regex pattern overrides
       - currentVersion: 4.0.1.17
-        nextVersion: 4.0.1.18
+        nextVersion: 4.1.0
         operations:
           - type: globalRepoUpgrader
             files:
@@ -638,7 +638,7 @@ pipelines:
               - config/studio/data-sources/cmis-config.xml
             commitDetails: Delete CMIS configurations
       - currentVersion: 4.0.0.8
-        nextVersion: 4.0.0.9
+        nextVersion: 4.1.0
         operations:
           - type: multiFindAndReplaceUpgrader
             includedPaths:
