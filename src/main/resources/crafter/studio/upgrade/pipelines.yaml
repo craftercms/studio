@@ -515,6 +515,14 @@ pipelines:
             pattern: "elasticsearch_url:(\\r*\\n*\\s*)"
             replacement: "search_url:$1"
             commitDetails: Update search_url config property name
+      - currentVersion: 4.1.0
+        nextVersion: 4.1.1
+        operations:
+        - type: globalRepoUpgrader
+          files:
+            - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+              dest: configuration/samples/sample-ui.xml
+          commitDetails: Add sample file for ui.xml
 
   # Pipeline to upgrade site repositories
   site:
@@ -1200,3 +1208,10 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.0.x/config/ui/ui-v4.0.6.xslt
             commitDetails: Update the UI with new Dashlets to replace 'AwaitingApprovalDashlet'
+      - currentVersion: 4.0.6
+        nextVersion: 4.1.0
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.0.xslt
+            commitDetails: Update the UI to use 'PathNavigatorTree' and new Dashboard widgets
+
