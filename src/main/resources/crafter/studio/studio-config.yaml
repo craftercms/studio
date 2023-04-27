@@ -894,12 +894,14 @@ studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
 
 ##################################################
-##             Studio Url Restrictions          ##
+##             Studio URL Restrictions          ##
 ##################################################
-# 3.1-only way to restrict URLs
+# This is a v3.1-only mechanism
+#
 # If a request URL is matched with any of following, check if current user has a role to access it.
 # system_admin can access any URLs
 # URL can have an optional `path` parameter staring with / to restrict an API by path
+#
 studio.security.restrictedUrls:
   - url: /api/1/services/api/1/server/get-loggers.json
     roles: system_admin
