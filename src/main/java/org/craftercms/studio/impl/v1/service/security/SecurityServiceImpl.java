@@ -840,14 +840,16 @@ public class SecurityServiceImpl implements SecurityService {
                                  @ValidateStringParam(name = "newPassword") String newPassword)
         throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         String currentUser = getCurrentUser();
-        if (isAdmin(currentUser)) {
+        if (isSystemAdmin(currentUser)) {
             return userServiceInternal.setUserPassword(username, newPassword);
         } else {
             return false;
         }
     }
 
-    private boolean isAdmin(String username) throws ServiceLayerException, UserNotFoundException {
+    @Override
+    @ValidateParams
+    public boolean isSystemAdmin(@ValidateStringParam(name = "username") String username) throws ServiceLayerException, UserNotFoundException {
         List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
         boolean toRet = false;
         if (CollectionUtils.isNotEmpty(userGroups)) {

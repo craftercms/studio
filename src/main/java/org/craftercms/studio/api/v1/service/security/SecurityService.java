@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.api.v1.service.security;
 
+import org.craftercms.commons.validation.annotations.param.ValidateParams;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
@@ -146,6 +148,16 @@ public interface SecurityService {
      * @return true if user session is valid
      */
     boolean validateSession(HttpServletRequest request) throws ServiceLayerException;
+
+    /**
+     * Check if user is system admin
+     * @param username the username to check
+     * @return true if user is system admin, false otherwise
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     */
+    @ValidateParams
+    boolean isSystemAdmin(@ValidateStringParam(name = "username") String username) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Check if given user is site admin

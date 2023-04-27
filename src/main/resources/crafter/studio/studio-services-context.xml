@@ -1442,6 +1442,11 @@
         <constructor-arg value="#{studioConfiguration.getProperty('studio.forwarded.headers.enabled')}"/>
     </bean>
 
+    <bean id="cstudioUrlRestrictionFilter" class="org.craftercms.studio.impl.v1.web.security.access.StudioUrlRestrictionFilter">
+        <constructor-arg ref="studioConfiguration"/>
+        <constructor-arg ref="cstudioSecurityService"/>
+    </bean>
+
     <!-- ////////////////////////////////////// -->
     <!--          Unlock Repositories           -->
     <!-- ////////////////////////////////////// -->

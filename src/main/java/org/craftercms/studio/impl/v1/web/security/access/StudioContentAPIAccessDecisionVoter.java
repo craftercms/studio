@@ -41,7 +41,6 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
     private final static Logger logger = LoggerFactory.getLogger(StudioContentAPIAccessDecisionVoter.class);
 
     private final static String WRITE_CONTENT = "/api/1/services/api/1/content/write-content.json";
-    private final static String GET_ITEM = "/api/1/services/api/1/content/get-item-states.json";
     private final static String WRITE_PERMISSION = "write";
 
     @Override
@@ -57,7 +56,7 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
             FilterInvocation filterInvocation = (FilterInvocation) o;
             HttpServletRequest request = filterInvocation.getRequest();
             requestUri = request.getRequestURI().replace(request.getContextPath(), "");
-            if (StringUtils.equals(requestUri, WRITE_CONTENT) || StringUtils.equals(requestUri, GET_ITEM)) {
+            if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
                 String userParam = request.getParameter("username");
                 String siteParam = request.getParameter("site_id");
                 if (StringUtils.isEmpty(siteParam)) {
@@ -107,17 +106,6 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                         if (siteService.exists(siteParam)) {
                             if (currentUser != null && isSiteMember(siteParam, currentUser) &&
                                     hasPermission(siteParam, pathParam, currentUser.getUsername(), WRITE_PERMISSION)) {
-                                toRet = ACCESS_GRANTED;
-                            } else {
-                                toRet = ACCESS_DENIED;
-                            }
-                        } else {
-                            toRet = ACCESS_ABSTAIN;
-                        }
-                        break;
-                    case GET_ITEM:
-                        if (siteService.exists(siteParam)) {
-                            if (currentUser != null && hasAdminRole(siteParam, currentUser.getUsername())) {
                                 toRet = ACCESS_GRANTED;
                             } else {
                                 toRet = ACCESS_DENIED;
