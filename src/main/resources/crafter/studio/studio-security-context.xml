@@ -41,6 +41,7 @@
         <security:form-login login-page="/login"
                              authentication-success-handler-ref="studioRedirectAuthenticationSuccessHandler"/>
         <security:custom-filter position="LOGOUT_FILTER" ref="logoutFilter"/>
+        <security:custom-filter position="LAST" ref="cstudioUrlRestrictionFilter"/>
     </security:http>
 
     <bean id="publicUrlMatcher" class="org.craftercms.studio.impl.v2.utils.spring.security.OrRegexRequestMatcher">

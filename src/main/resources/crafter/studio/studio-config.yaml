@@ -892,3 +892,61 @@ studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 1000
 # Process N unaudited commits with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
+
+##################################################
+##             Studio URL Restrictions          ##
+##################################################
+# This is a v3.1-only mechanism
+#
+# If a request URL is matched with any of following, check if current user has a role to access it.
+# system_admin can access any URLs
+# URL can have an optional `path` parameter staring with / to restrict an API by path
+#
+studio.security.restrictedUrls:
+  - url: /api/1/services/api/1/server/get-loggers.json
+    roles: system_admin
+  - url: /api/2/monitoring/log
+    roles: system_admin
+  - url: /api/1/services/api/1/content/get-item-states.json
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /blob-stores-config.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /aws/aws.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /webdav/webdav.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /box/box.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /permission-mappings-config.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /role-mappings-config.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /workflow/notification-config.xml
+    roles: admin, developer
+  - url: /static-assets/ng-views/encrypt.html
+    roles: system_admin
+  - url: /static-assets/ng-views/admin-groups.html
+    roles: system_admin
+  - url: /static-assets/ng-views/admin-users.html
+    roles: system_admin
+  - url: /static-assets/ng-views/admin-cluster.html
+    roles: system_admin
+  - url: /static-assets/ng-views/global-config.html
+    roles: system_admin
+  - url: /static-assets/ng-views/audit.html
+    roles: admin, developer
+  - url: /static-assets/ng-views/log-console.html
+    roles: admin, developer
+  - url: /static-assets/ng-views/publishing.html
+    roles: admin, developer
+  - url: /studio/static-assets/ng-views/logging.html
+    roles: admin, developer
+  - url: /studio/static-assets/ng-views/log-console.html
+    roles: admin, developer

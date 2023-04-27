@@ -165,10 +165,6 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
                         && CollectionUtils.containsAny(userPermissions, permissions));
     }
 
-    protected boolean hasAdminRole(String siteId, String user) {
-        return securityService.isSiteAdmin(user, siteId);
-    }
-
     public StudioConfiguration getStudioConfiguration() {
         return studioConfiguration;
     }
