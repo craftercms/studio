@@ -135,7 +135,7 @@ public interface PublishService {
      * @return
      */
     List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
-                                                      String filterType) throws SiteNotFoundException;
+                                                      String filterType) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get available publishing targets for given site
