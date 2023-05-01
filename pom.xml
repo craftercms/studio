@@ -50,7 +50,8 @@
         <spring.data.version>2.0.9.RELEASE</spring.data.version>
         <spring.ldap.version>2.3.2.RELEASE</spring.ldap.version>
 	<aws.version>1.12.139</aws.version>
-	<box.sdk.version>3.8.2</box.sdk.version>
+	<box.sdk.version>2.58.0</box.sdk.version>
+	<jose4j.version>0.9.3</jose4j.version>
         <tinify.version>1.7.0</tinify.version>
         <okhttp.version>4.9.2</okhttp.version>
         <mariadb4j.version>2.4.12.1</mariadb4j.version>
@@ -519,6 +520,11 @@
                     <artifactId>bcpkix-jdk15on</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.bitbucket.b_c</groupId>
+            <artifactId>jose4j</artifactId>
+            <version>${jose4j.version}</version>
         </dependency>
 
         <!-- WebDAV Client -->
