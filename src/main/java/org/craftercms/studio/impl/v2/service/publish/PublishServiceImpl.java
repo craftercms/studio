@@ -169,7 +169,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     public List<DeploymentHistoryGroup> getDeploymentHistory(String siteId, int daysFromToday, int numberOfItems,
-                                                             String filterType) throws SiteNotFoundException {
+                                                             String filterType) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         ZonedDateTime toDate = DateUtils.getCurrentTime();
         ZonedDateTime fromDate = toDate.minusDays(daysFromToday);
@@ -194,7 +194,10 @@ public class PublishServiceImpl implements PublishService {
                 if (deployedItem != null) {
                     deployedItem.eventDate = entry.getDeploymentDate();
                     deployedItem.endpoint = entry.getTarget();
-                    deployedItem.setUser(entry.getUser());
+                    User user = userServiceInternal.getUserByIdOrUsername(-1, entry.getUser());
+                    deployedItem.setUser(user.getUsername());
+                    deployedItem.setUserFirstName(user.getFirstName());
+                    deployedItem.setUserLastName(user.getLastName());
                     deployedItem.setEndpoint(entry.getEnvironment());
                     String deployedLabel = formatDateIso(entry.getDeploymentDate().truncatedTo(DAYS));
                     if (groups.size() > 0) {
