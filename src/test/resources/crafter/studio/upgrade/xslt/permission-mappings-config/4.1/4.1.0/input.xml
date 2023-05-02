@@ -76,7 +76,6 @@
 
 -->
 <permissions>
-    <version>4.1.0</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
@@ -120,7 +119,6 @@
                 <permission>publish_status</permission>
                 <permission>content_search</permission>
                 <permission>read_configuration</permission>
-                <permission>get_publishing_queue</permission>
             </allowed-permissions>
         </rule>
     </role>

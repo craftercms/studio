@@ -923,6 +923,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.12.xslt
               commitDetails: Remove cmis-related permissions
+        - currentVersion: 4.0.12
+          nextVersion: 4.1.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.0.xslt
+              commitDetails: Add 'get_publishing_queue' permission to 'author' role
 
   role-mappings-config:
     module: studio
