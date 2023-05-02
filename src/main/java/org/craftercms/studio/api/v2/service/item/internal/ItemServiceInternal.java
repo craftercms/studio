@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DetailedItem;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
-import org.craftercms.studio.model.rest.dashboard.ContentDashboardItem;
 import org.craftercms.studio.model.rest.dashboard.PublishingDashboardItem;
 
 import java.time.ZonedDateTime;
@@ -36,14 +35,6 @@ public interface ItemServiceInternal {
      * @param item item to add or update
      */
     boolean upsertEntry(Item item);
-
-    /**
-     * Insert records for list of item if they do not exist, otherwise update them
-     *
-     * @param siteId site identifier
-     * @param items list of items to add or update
-     */
-    void upsertEntries(String siteId, List<Item> items);
 
     /**
      * Get item by given id
@@ -95,12 +86,6 @@ public interface ItemServiceInternal {
 
     /**
      * Delete item
-     * @param itemId item id
-     */
-    void deleteItem(long itemId);
-
-    /**
-     * Delete item
      * @param siteId siteIdentifier
      * @param path path of item to be deleted
      */
@@ -123,53 +108,6 @@ public interface ItemServiceInternal {
     void setSystemProcessingBulk(String siteId, List<String> paths, boolean isSystemProcessing);
 
     /**
-     * Update states bitmap for item by setting bits to 1
-     * @param siteId site identifier
-     * @param path path of item
-     * @param statesBitMask bit mask for states to be updated
-     */
-    void setStateBits(String siteId, String path, long statesBitMask);
-
-    /**
-     * Update states bitmap for list of items by setting bits to 1
-     * @param siteId site identifier
-     * @param paths paths of items
-     * @param statesBitMask bit mask for states to be updated
-     */
-    void setStateBitsBulk(String siteId, List<String> paths, long statesBitMask);
-
-    /**
-     * Update states bitmap for item by setting bits to 0
-     * @param siteId site identifier
-     * @param path path of item
-     * @param statesBitMask bit mask for states to be updated
-     */
-    void resetStateBits(String siteId, String path, long statesBitMask);
-
-    /**
-     * Update states bitmap for list of items by setting bits to 0
-     * @param siteId site identifier
-     * @param paths paths of items
-     * @param statesBitMask bit mask for states to be updated
-     */
-    void resetStateBitsBulk(String siteId, List<String> paths, long statesBitMask);
-
-
-    /**
-     * Update states bitmap for item by setting bits to 1
-     * @param itemId item identifier
-     * @param statesBitMask bit mask for states to be updated
-     */
-    void setStateBits(long itemId, long statesBitMask);
-
-    /**
-     * Update states bitmap for item by setting bits to 0
-     * @param itemId item identifier
-     * @param statesBitMask bit mask for states to be updated
-     */
-    void resetStateBits(long itemId, long statesBitMask);
-
-    /**
      * Update states to flip on list off states and flip off another list of states for item
      *
      * @param siteId site identifier
@@ -178,15 +116,6 @@ public interface ItemServiceInternal {
      * @param offStateBitMap stats bitmap to flip off
      */
     void updateStateBits(String siteId, String path, long onStateBitMap, long offStateBitMap);
-
-    /**
-     * Update states to flip on list off states and flip off another list of states for item
-     *
-     * @param itemId item identifier
-     * @param onStateBitMap states bitmap to flip on
-     * @param offStateBitMap stats bitmap to flip off
-     */
-    void updateStateBits(long itemId, long onStateBitMap, long offStateBitMap);
 
     /**
      * Update states to flip on list off states and flip off another list of states for items
@@ -198,103 +127,13 @@ public interface ItemServiceInternal {
      */
     void updateStateBitsBulk(String siteId, Collection<String> paths, long onStateBitMap, long offStateBitMap);
 
-    /**
-     * Update states to flip on list off states and flip off another list of states for items
-     *
-     * @param itemIds list of item ids
-     * @param onStateBitMap states bitmap to flip on
-     * @param offStateBitMap stats bitmap to flip off
-     */
-    void updateStateBitsBulk(List<Long> itemIds, long onStateBitMap, long offStateBitMap);
-
     Item.Builder instantiateItem(String siteName, String path);
-
-    /**
-     * Instantiate item by getting it from DB and setting properties to values
-     *
-     * @param siteId site identifier
-     * @param siteName site name
-     * @param path path of the item
-     * @param previewUrl preview URL
-     * @param state state of the item (bitmap)
-     * @param ownedBy owner id
-     * @param owner owner username
-     * @param createdBy creator id
-     * @param creator creator username
-     * @param createdOn created date
-     * @param lastModifiedBy modifier id
-     * @param modifier modifier username
-     * @param lastModifiedOn modified date
-     * @param label label for the item
-     * @param contentTypeId content type id
-     * @param systemType system type
-     * @param mimeType mime type
-     * @param localeCode locale code
-     * @param translationSourceId translation source item id
-     * @param size size of the file
-     * @param parentId parent id
-     * @param commitId commit id
-     * @return Item object
-     */
-    Item instantiateItem(long siteId, String siteName, String path, String previewUrl, long state, Long ownedBy,
-                         String owner, Long createdBy, String creator, ZonedDateTime createdOn, Long lastModifiedBy,
-                         String modifier, ZonedDateTime lastModifiedOn, String label, String contentTypeId,
-                         String systemType, String mimeType, String localeCode, Long translationSourceId, long size,
-                         Long parentId, String commitId);
 
     /**
      * Delete all items for site
      * @param siteId site id
      */
     void deleteItemsForSite(long siteId);
-
-    /**
-     * Delete items by ids
-     * @param itemIds ids of items to delete
-     */
-    void deleteItemsById(List<Long> itemIds);
-
-    /**
-     * Delete items for site and paths
-     * @param siteId site id
-     * @param paths list of item paths to delete
-     */
-    void deleteItemsForSiteAndPaths(long siteId, List<String> paths);
-
-    /**
-     * Get total number of records for content dashboard
-     *
-     * @param siteId site identifier
-     * @param path path regular expression to apply as filter for result set
-     * @param modifier filter results by user
-     * @param contentType filter results by content type
-     * @param state filter results by state
-     * @param dateFrom lower boundary for modified date
-     * @param dateTo upper boundary for modified date
-     * @return total number of records in result set
-     */
-    int getContentDashboardTotal(String siteId, String path, String modifier, String contentType,
-                                 long state, ZonedDateTime dateFrom, ZonedDateTime dateTo);
-
-    /**
-     * Get result set for content dashboard
-     *
-     * @param siteId site identifier
-     * @param path path regular expression to apply as filter for result set
-     * @param modifier filter results by user
-     * @param contentType filter results by content type
-     * @param state filter results by state
-     * @param dateFrom lower boundary for modified date
-     * @param dateTo upper boundary for modified date
-     * @param sortBy sort results by column
-     * @param order order of results
-     * @param offset offset of the first record in result set
-     * @param limit number of records to return
-     * @return list of item metadata records
-     */
-    List<ContentDashboardItem> getContentDashboard(String siteId, String path, String modifier, String contentType,
-                                                   long state, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                   String sortBy, String order, int offset, int limit);
 
     /**
      * Get browser url for given repository item
@@ -371,16 +210,6 @@ public interface ItemServiceInternal {
     void moveItem(String siteId, String oldPath, String newPath, Long parentId, String label);
 
     /**
-     * Move items
-     * @param siteId site identifier
-     * @param oldPath old path
-     * @param newPath new path
-     * @param parentId new parent id, if null it will not be updated
-     * @param label new label, if null it will not be updated
-     */
-    void moveItems(String siteId, String oldPath, String newPath, Long parentId, String label);
-
-    /**
      * Check if item is new
      * @param siteId site identifier
      * @param path path of the item
@@ -409,26 +238,11 @@ public interface ItemServiceInternal {
     PublishingDashboardItem convertHistoryItemToDashboardItem(PublishingHistoryItem historyItem);
 
     /**
-     * Convert Item to Content Dashboard Item
-     * @param siteId site identifier
-     * @param item item
-     * @return content dashboard item
-     */
-    ContentDashboardItem convertItemToContentDashboardItem(String siteId, Item item);
-
-    /**
      * Get in progress items for given site
      * @param siteId site identifier
      * @return list of items
      */
     List<Item> getInProgressItems(String siteId);
-
-    /**
-     * Get submitted items for given site
-     * @param site site identifier
-     * @return list of items
-     */
-    List<Item> getSubmittedItems(String site);
 
     /**
      * Check if item is update or new
@@ -510,30 +324,12 @@ public interface ItemServiceInternal {
     void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn);
 
     /**
-     * Update last published date for item
-     * @param siteId site identifier
-     * @param paths list of paths
-     * @param lastPublishedOn published date
-     */
-    void updateLastPublishedOnBulk(String siteId, List<String> paths, ZonedDateTime lastPublishedOn);
-
-    /**
      * Lock item for given lock owner
      * @param siteId site identifier
      * @param path item path
      * @param username user that owns the lock
      */
     void lockItemByPath(String siteId, String path, String username)
-            throws UserNotFoundException, ServiceLayerException;
-
-
-    /**
-     * Lock items for given lock owner
-     * @param siteId site identifier
-     * @param paths list of item paths
-     * @param username user that owns the lock
-     */
-    void lockItemsByPath(String siteId, List<String> paths, String username)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
