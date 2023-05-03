@@ -900,7 +900,7 @@ studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
 #
 # If a request URL is matched with any of following, check if current user has a role to access it.
 # system_admin can access any URLs
-# URL can have an optional `path` parameter staring with / to restrict an API by path
+# URL can have an optional `path` parameter starting with / to restrict an API by path
 #
 studio.security.restrictedUrls:
   - url: /api/1/services/api/1/server/get-loggers.json
@@ -908,6 +908,12 @@ studio.security.restrictedUrls:
   - url: /api/2/monitoring/log
     roles: system_admin
   - url: /api/1/services/api/1/content/get-item-states.json
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /administration/config-list.xml
+    roles: admin, developer
+  - url: /api/1/services/api/1/site/get-configuration.json
+    path: /administration/site-config-tools.xml
     roles: admin, developer
   - url: /api/1/services/api/1/site/get-configuration.json
     path: /blob-stores-config.xml
