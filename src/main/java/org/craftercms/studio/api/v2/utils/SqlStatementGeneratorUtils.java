@@ -81,8 +81,8 @@ public final class SqlStatementGeneratorUtils {
     public static final String DEPENDENCIES_DELETE =
             "DELETE FROM dependency WHERE site = '#{site}' AND (source_path = '#{path}' OR target_path = '#{path}') ;";
 
-    public static final String GITLOG_INSERT =
-            "INSERT INTO gitlog (site_id, commit_id, processed, audited) " +
+    public static final String GITLOG_INSERT_IGNORE =
+            "INSERT IGNORE INTO gitlog (site_id, commit_id, processed, audited) " +
                     "VALUES ('#{site}', '#{commit}', #{processed}, #{audited}) ;\n";
 
     public static String insertItemRow(long siteId, String path, String previewUrl, long state, Long lockedBy,
@@ -239,7 +239,7 @@ public final class SqlStatementGeneratorUtils {
     }
 
     public static String insertGitLogRow(String siteId, String commitId, boolean processed, boolean audited) {
-        String sql = StringUtils.replace(GITLOG_INSERT, "#{site}", siteId);
+        String sql = StringUtils.replace(GITLOG_INSERT_IGNORE, "#{site}", siteId);
         sql = StringUtils.replace(sql, "#{commit}", commitId);
         sql = StringUtils.replace(sql, "#{processed}", processed? "1" : "0");
         sql = StringUtils.replace(sql, "#{audited}", audited? "1" : "0");
