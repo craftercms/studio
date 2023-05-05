@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || >=4.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || 3.1.30 || >=4.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -923,6 +923,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/permission-mappings-config/permission-mappings-config-v4.0.12.xslt
               commitDetails: Remove cmis-related permissions
+        - currentVersion: 4.0.12
+          nextVersion: 4.1.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.0.xslt
+              commitDetails: Add 'get_publishing_queue' permission to 'author' role
 
   role-mappings-config:
     module: studio

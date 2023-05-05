@@ -154,7 +154,7 @@ public class PublishController {
                                                                    @PositiveOrZero @RequestParam(name = REQUEST_PARAM_NUM) int numberOfItems,
                                                                    @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = REQUEST_PARAM_FILTER_TYPE, required = false,
                                                                            defaultValue = "page") String filterType)
-            throws SiteNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         List<DeploymentHistoryGroup> history =
                 publishService.getDeploymentHistory(siteId, daysFromToday, numberOfItems, filterType);
         PaginatedResultList<DeploymentHistoryGroup> result = new PaginatedResultList<>();
