@@ -59,6 +59,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
@@ -487,7 +488,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 case "yaml":
                 case "yml":
                     try {
-                        Yaml yaml = new Yaml(new DisableClassLoadingConstructor());
+                        Yaml yaml = new Yaml(new DisableClassLoadingConstructor(new LoaderOptions()));
                         // The assign is needed to detect invalid files
                         Map<String, Object> map = yaml.load(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
