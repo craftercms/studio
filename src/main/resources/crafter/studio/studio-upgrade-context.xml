@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -140,9 +140,9 @@
         <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
         <constructor-arg name="contentService" ref="cstudioContentService" />
         <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
-        <constructor-arg name="studioDBScriptRunnerFactory" ref="studio.dbScriptRunner"/>
         <constructor-arg name="blobExtension" value="#{studioConfiguration.getProperty('studio.blob.file.extension')}"/>
-
+        <constructor-arg name="executorThreadCount" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.threadCount')}" />
+        <constructor-arg name="executorTimeoutSeconds" value="#{studioConfiguration.getProperty('studio.upgrade.db.population.timeoutSeconds')}" />
     </bean>
 
     <bean id="migrateWorkflowUpgrader" scope="prototype" parent="upgradeOperation"
@@ -182,6 +182,9 @@
 
     <bean id="findAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.site.FindAndReplaceUpgradeOperation"/>
+
+    <bean id="multiFindAndReplaceUpgrader" scope="prototype" parent="upgradeOperation"
+          class="org.craftercms.studio.impl.v2.upgrade.operations.site.MultiFindAndReplaceUpgradeOperation"/>
 
     <bean id="boxControlUpgrader" scope="prototype" parent="upgradeOperation"
           class="org.craftercms.studio.impl.v2.upgrade.operations.site.BoxRemoteAssetUpgradeOperation">

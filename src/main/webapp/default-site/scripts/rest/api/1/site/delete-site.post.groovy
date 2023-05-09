@@ -18,7 +18,14 @@
 import groovy.json.JsonException
 import groovy.json.JsonSlurper
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.engine.exception.HttpStatusCodeException
+import org.springframework.http.HttpStatus
 import scripts.api.SiteServices
+
+import static java.lang.String.format
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE
+
+def studioConfiguration = applicationContext.get('studioConfiguration')
 
 def result = [:]
 try {
@@ -50,6 +57,10 @@ try {
         response.setStatus(400)
         result.message = "Invalid parameter(s): " + paramsList
     } else {
+        String systemSite = studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)
+        if (StringUtils.equalsIgnoreCase(siteId.trim(), systemSite)) {
+            throw new HttpStatusCodeException(HttpStatus.BAD_REQUEST,format("Deleting system site %s is not allowed", systemSite))
+        }
         def context = SiteServices.createContext(applicationContext, request)
         result = SiteServices.deleteSite(context, siteId)
     }

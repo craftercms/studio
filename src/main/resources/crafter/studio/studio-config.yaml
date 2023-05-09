@@ -609,6 +609,10 @@ studio.upgrade.scriptFolder: crafter/studio/database/
 studio.upgrade.xpath.contentType: '*/content-type'
 studio.upgrade.template.formDefinition: config/studio/content-types{name}/form-definition.xml
 
+# Upgrade (Populate DB) thread pool
+studio.upgrade.db.population.threadCount: 50
+studio.upgrade.db.population.timeoutSeconds: 7200
+
 ################################################################
 ##                   Publishing Thread Pool                   ##
 ################################################################
@@ -1001,3 +1005,4 @@ studio.configuration.dashboard.contentExpiringQuery: expired_dt:[{dateFrom} TO {
 studio.configuration.dashboard.contentExpiredQuery: expired_dt:[* TO now] AND NOT _exists_:metadataPath
 # Search query to retrieve content expired sort by field
 studio.configuration.dashboard.contentExpiredQuery.sortBy: expired_dt
+

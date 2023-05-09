@@ -15,7 +15,7 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
-	<version>4.0.5</version>
+	<version>4.1.0</version>
 	<widget id="craftercms.components.ToolsPanel">
 		<configuration>
 			<widgets>
@@ -23,10 +23,10 @@
 					<configuration>
 						<title id="words.dashboard" defaultMessage="Dashboard"/>
 						<icon id="@mui/icons-material/DashboardRounded"/>
-						<widget id="craftercms.components.Dashboard"/>
+						<widget id="craftercms.components.SiteDashboard"/>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.PathNavigator">
+				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>Pages</id>
 						<label>Pages</label>
@@ -35,7 +35,7 @@
 						<locale>en</locale>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.PathNavigator">
+				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>Items</id>
 						<label>Items</label>
@@ -44,7 +44,7 @@
 						<locale>en</locale>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.PathNavigator">
+				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>Taxonomy</id>
 						<label>Taxonomy</label>
@@ -53,7 +53,7 @@
 						<locale>en</locale>
 					</configuration>
 				</widget>
-				<widget id="craftercms.components.PathNavigator">
+				<widget id="craftercms.components.PathNavigatorTree">
 					<configuration>
 						<id>StaticAssets</id>
 						<label>Static Assets</label>
@@ -349,38 +349,52 @@
 	</widget>
 	<widget id="craftercms.components.Dashboard">
 		<configuration>
-			<widgets>
-				<widget id="craftercms.components.LegacyInReviewDashlet">
-					<permittedRoles>
-						<role>admin</role>
-						<role>developer</role>
-						<role>publisher</role>
-					</permittedRoles>
-				</widget>
-				<widget id="craftercms.components.LegacyUnpublishedDashlet">
-					<permittedRoles>
-						<role>admin</role>
-						<role>developer</role>
-						<role>publisher</role>
-					</permittedRoles>
-				</widget>
-				<widget id="craftercms.components.ApprovedScheduledDashlet">
-					<permittedRoles>
-						<role>admin</role>
-						<role>developer</role>
-						<role>publisher</role>
-					</permittedRoles>
-				</widget>
-				<widget id="craftercms.components.RecentlyPublishedDashlet">
-					<permittedRoles>
-						<role>admin</role>
-						<role>developer</role>
-						<role>publisher</role>
-					</permittedRoles>
-				</widget>
-				<widget id="craftercms.components.RecentActivityDashlet"/>
-				<widget id="craftercms.components.IconGuideDashlet"/>
-			</widgets>
+			<mainSection>
+				<widgets>
+					<widget id="craftercms.components.MyRecentActivityDashlet">
+						<permittedRoles>
+							<role>admin</role>
+							<role>developer</role>
+							<role>publisher</role>
+						</permittedRoles>
+					</widget>
+					<widget id="craftercms.components.UnpublishedDashlet">
+						<permittedRoles>
+							<role>admin</role>
+							<role>developer</role>
+							<role>publisher</role>
+						</permittedRoles>
+					</widget>
+					<widget id="craftercms.components.PendingApprovalDashlet">
+						<permittedRoles>
+							<role>admin</role>
+							<role>developer</role>
+							<role>publisher</role>
+						</permittedRoles>
+					</widget>
+					<widget id="craftercms.components.ScheduledDashlet">
+						<permittedRoles>
+							<role>admin</role>
+							<role>developer</role>
+							<role>publisher</role>
+						</permittedRoles>
+					</widget>
+					<widget id="craftercms.components.RecentlyPublishedDashlet">
+						<permittedRoles>
+							<role>admin</role>
+							<role>developer</role>
+							<role>publisher</role>
+						</permittedRoles>
+					</widget>
+					<widget id="craftercms.components.ExpiringDashlet">
+						<permittedRoles>
+							<role>admin</role>
+							<role>developer</role>
+							<role>publisher</role>
+						</permittedRoles>
+					</widget>
+				</widgets>
+			</mainSection>
 		</configuration>
 	</widget>
 	<widget id="craftercms.components.TinyMCE">
