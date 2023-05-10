@@ -938,6 +938,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.0.xslt
               commitDetails: Add 'get_publishing_queue' permission to 'author' role
+        - currentVersion: 4.1.0
+          nextVersion: 4.1.1
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.1.xslt
+              commitDetails: Add 'get_publishing_queue' permission to 'publisher' role
 
   role-mappings-config:
     module: studio
