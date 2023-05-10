@@ -703,6 +703,15 @@ pipelines:
               - pattern: "\bElasticsearchClient\b"
                 replacement: 'OpenSearchClient'
             commitDetails: Migrate Elasticsearch to OpenSearch
+      - currentVersion: 4.1.0
+        nextVersion: 4.1.1
+        operations:
+          - type: findAndReplaceUpgrader
+            pattern: "\\s*searchEngine\\:.*"
+            replacement: ""
+            commitDetails: Remove searchEngine property from plugin descriptor
+            includedPaths:
+              - craftercms-plugin.yaml
 
   # Pipeline to upgrade blueprints
   blueprint:
