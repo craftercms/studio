@@ -523,6 +523,14 @@ pipelines:
             - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
               dest: configuration/samples/sample-ui.xml
           commitDetails: Add sample file for ui.xml
+      - currentVersion: 4.1.1
+        nextVersion: 4.1.2
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file
 
   # Pipeline to upgrade site repositories
   site:
