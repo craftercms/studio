@@ -42,4 +42,10 @@ public interface SecurityService {
      * @return list of user permissions
      */
     List<String> getUserPermission(String siteId, String username, List<String> roles) throws ExecutionException;
+
+    /**
+     * Returns the username of the current user
+     * @return username of the current user, or null if no user is authenticated
+     */
+    String getCurrentUser();
 }

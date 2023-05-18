@@ -20,6 +20,7 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -76,13 +77,25 @@ public class SitesServiceImpl implements SitesService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
-    public void updateSite(@ProtectedResourceId("siteId") String siteId, String name, String description)
+    public void updateSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String name, String description)
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
         if (isBlank(name) && isBlank(description)) {
             throw new InvalidParametersException("The request needs to include a name or a description");
         }
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
+    public void deleteSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
+        checkSiteExists(siteId);
+        sitesServiceInternal.deleteSite(siteId);
+    }
+
+    @Override
+    public boolean exists(String siteId) {
+        return sitesServiceInternal.exists(siteId);
     }
 
     @Override
@@ -107,5 +120,11 @@ public class SitesServiceImpl implements SitesService {
     public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
+    public void enablePublishing(String siteId, boolean enabled) {
+        sitesServiceInternal.enablePublishing(siteId, enabled);
     }
 }

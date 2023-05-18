@@ -453,4 +453,11 @@ public interface ContentRepository {
      * @throws ServiceLayerException if no content is found at the given path
      */
     void checkContentExists(String site, String path) throws ServiceLayerException;
+
+    /**
+     * Deletes the underlying git repositories for a site
+     * @param siteId the id of the site
+     * @return true if successful, false otherwise
+     */
+    boolean deleteSite(String siteId);
 }

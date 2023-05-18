@@ -98,6 +98,46 @@ BEGIN
     END IF;
 END ;
 
+CREATE PROCEDURE deleteSite(
+    IN siteId VARCHAR(50))
+BEGIN
+	DECLARE id BIGINT(20);
+
+    IF EXISTS (SELECT (1) FROM site WHERE site_id = siteId AND deleted = 0)
+    THEN
+		SELECT s.id into id
+		FROM site s
+		WHERE site_id = siteId AND deleted = 0;
+
+		-- Item will cascade delete workflow
+        DELETE FROM item WHERE site_id = id;
+
+        -- user_properties
+        DELETE FROM user_properties WHERE site_id = id;
+
+        -- dependencies
+        DELETE FROM dependency WHERE site = siteId;
+
+        -- deployment data
+        DELETE FROM publish_request WHERE site = siteId;
+
+        -- sequences
+        DELETE FROM navigation_order_sequence WHERE site = siteId;
+
+        -- git log
+        DELETE FROM gitlog WHERE site_id = siteId;
+
+        -- remote repositories
+        DELETE FROM remote_repository WHERE site_id = siteId;
+
+        -- audit log
+        DELETE FROM audit WHERE site_id = id;
+
+        -- Mark the site as deleted
+        UPDATE site SET state = 'DELETED', deleted = 1 WHERE site_id = siteId AND deleted = 0;
+    END IF;
+END ;
+
 CREATE TABLE _meta (
   `version` VARCHAR(10) NOT NULL,
   `integrity` BIGINT(10),
@@ -105,7 +145,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.0.1.16', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.1.3', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,

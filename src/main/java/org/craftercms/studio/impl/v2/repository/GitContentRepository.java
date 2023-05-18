@@ -1312,6 +1312,16 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
+    public boolean deleteSite(String siteId) {
+        // Destroy site context
+        contextManager.destroyContext(siteId);
+        // Delete git repositories (sandbox and published)
+        // The helper will take care of locking the repos
+        return helper.deleteSiteGitRepo(siteId);
+    }
+
+
+    @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
         try {

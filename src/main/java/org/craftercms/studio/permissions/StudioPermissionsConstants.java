@@ -37,6 +37,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_DELETE_GROUPS = "delete_groups";
     public static final String PERMISSION_DELETE_USERS = "delete_users";
     public static final String PERMISSION_EDIT_SITE = "edit_site";
+    public static final String PERMISSION_DELETE_SITE = "site_delete";
     public static final String PERMISSION_ENCRYPTION_TOOL = "encryption_tool";
     public static final String PERMISSION_GET_CHILDREN = "get_children";
     public static final String PERMISSION_GET_PUBLISHING_QUEUE = "get_publishing_queue";
