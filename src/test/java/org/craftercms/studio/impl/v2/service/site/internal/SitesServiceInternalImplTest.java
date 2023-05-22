@@ -59,8 +59,6 @@ public class SitesServiceInternalImplTest {
     @Mock
     protected ContentRepository contentRepository;
     @Mock
-    protected SiteFeedMapper siteFeedMapper;
-    @Mock
     protected Deployer deployer;
     @Mock
     protected StudioConfiguration studioConfiguration;
@@ -139,7 +137,7 @@ public class SitesServiceInternalImplTest {
     public void multipleExceptionsSiteDeleteTest() throws ServiceLayerException {
         doNothing().when(serviceInternal).destroySitePreviewContext(SITE_ID);
         doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
-        doThrow(new Exception("Unexpected file system error")).when(contentRepository).deleteSite(SITE_ID);
+        doThrow(new RuntimeException("Unexpected file system error")).when(contentRepository).deleteSite(SITE_ID);
 
         CompositeException exception = assertThrows(CompositeException.class, () -> serviceInternal.deleteSite(SITE_ID));
         assertEquals(2, exception.getExceptions().size());

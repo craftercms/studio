@@ -212,14 +212,118 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     }
 
     @Override
-    public void deleteSite(String siteId) throws ServiceLayerException {
+    public void deleteSite(final String siteId) throws ServiceLayerException {
         logger.info("Delete site '{}'", siteId);
         Site site = siteDao.getSite(siteId);
-        insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
-        siteDao.startSiteDelete(siteId);
 
         List<Exception> exceptions = new ArrayList<>();
+        startSiteDelete(site);
 
+        logger.debug("Delete deployer targets for site '{}'", siteId);
+        deleteDeployerTargets(siteId, exceptions);
+
+        logger.debug("Delete site content repository for site '{}'", siteId);
+        deleteSiteRepositories(siteId, exceptions);
+
+        logger.debug("Clear configuration cache for site '{}'", siteId);
+        clearConfigurationCache(siteId, exceptions);
+
+        logger.debug("Delete database records for site '{}'", siteId);
+        deleteSiteRelatedDBItems(siteId, exceptions);
+
+        // Don't update site record if there are any exceptions
+        if (exceptions.isEmpty()) {
+            completeSiteDelete(site, exceptions);
+        }
+        if (!exceptions.isEmpty()) {
+            throw new CompositeException(format("Failed to delete site '%s'", siteId), exceptions);
+        }
+    }
+
+    /**
+     * Utility method to try a block of code, and then add to a list of exceptions if an exception is thrown during the execution
+     *
+     * @param operation          {@link Runnable} to execute
+     * @param errorMessageFormat error message format, to be use with String.format and siteId parameter
+     * @param siteId             siteId to use in the error message
+     * @param exceptions         list of exceptions to add to if an exception is thrown
+     */
+    private void tryOperation(Runnable operation, String errorMessageFormat, String siteId, List<Exception> exceptions) {
+        try {
+            operation.run();
+        } catch (Exception e) {
+            logger.error(format(errorMessageFormat, siteId), e);
+            exceptions.add(new ServiceLayerException(format(errorMessageFormat, siteId), e));
+        }
+    }
+
+    /**
+     * Mark the site as DELETED, insert audit log and publish site delete event
+     *
+     * @param site       site to delete
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void completeSiteDelete(final Site site, final List<Exception> exceptions) {
+        String siteId = site.getSiteId();
+        tryOperation(() -> {
+            logger.debug("Mark the site '{}' as DELETED", siteId);
+            retryingDatabaseOperationFacade.retry(() -> siteDao.completeSiteDelete(siteId));
+            insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_DELETE);
+            logger.info("Site '{}' deleted", siteId);
+            applicationContext.publishEvent(new SiteDeleteEvent(siteId, site.getSiteUuid()));
+        }, "Failed to complete the site '%s' deletion", siteId, exceptions);
+    }
+
+    /**
+     * Delete the site-related db records. e.g.: dependencies, items, publish_request, etc.
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void deleteSiteRelatedDBItems(final String siteId, final List<Exception> exceptions) {
+        tryOperation(() -> siteDao.deleteSiteRelatedItems(siteId), "Failed to delete the database records for site '%s'", siteId, exceptions);
+    }
+
+    /**
+     * Invalidate the configuration cache for the site
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void clearConfigurationCache(String siteId, List<Exception> exceptions) {
+        tryOperation(() -> configurationService.invalidateConfiguration(siteId),
+                "Failed to clear configuration cache for site '%s'", siteId, exceptions);
+    }
+
+    /**
+     * Delete the site content repositories
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void deleteSiteRepositories(String siteId, List<Exception> exceptions) {
+        tryOperation(() -> contentRepository.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
+    }
+
+    /**
+     * Delete the deployer targets
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void deleteDeployerTargets(final String siteId, final List<Exception> exceptions) {
+        tryOperation(() -> deployer.deleteTargets(siteId), "Failed to delete deployer targets for site '%s'", siteId, exceptions);
+    }
+
+    /**
+     * Start the site delete process. This marks the site as DELETING and disables publishing and destroys the site preview context.
+     *
+     * @param site site to delete
+     */
+    private void startSiteDelete(final Site site) {
+        String siteId = site.getSiteId();
+        insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
+        retryingDatabaseOperationFacade.retry(() -> siteDao.startSiteDelete(siteId));
         try {
             // Disable publishing
             logger.debug("Disable publishing for site '{}'", siteId);
@@ -229,67 +333,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         }
 
         try {
-            // Delete deployer targets
-            logger.debug("Delete deployer targets for site '{}'", siteId);
-            deployer.deleteTargets(siteId);
-        } catch (Exception e) {
-            logger.error("Failed to delete deployer targets for site '{}'", siteId, e);
-            exceptions.add(new ServiceLayerException(format("Failed to delete deployer targets for site '%s'", siteId), e));
-        }
-
-        try {
             // Destroy site preview context
             logger.debug("Destroy site preview context for site '{}'", siteId);
             destroySitePreviewContext(siteId);
         } catch (Exception e) {
             logger.error("Failed to destroy site preview context for site '{}'", siteId, e);
         }
-
-        try {
-            // Delete site content repository
-            logger.debug("Delete site content repository for site '{}'", siteId);
-            contentRepository.deleteSite(siteId);
-        } catch (Exception e) {
-            logger.error("Failed to delete site content repository for site '{}'", siteId, e);
-            exceptions.add(new ServiceLayerException(format("Failed to delete site content repository for site '%s'", siteId), e));
-        }
-
-        try {
-            // Clear configuration cache for site
-            logger.debug("Clear configuration cache for site '{}'", siteId);
-            configurationService.invalidateConfiguration(siteId);
-        } catch (Exception e) {
-            logger.error("Failed to clear configuration cache for site '{}'", siteId, e);
-            exceptions.add(new ServiceLayerException(format("Failed to clear configuration cache for site '%s'", siteId), e));
-        }
-
-        try {
-            // Delete database records
-            logger.debug("Delete database records for site '{}'", siteId);
-            retryingDatabaseOperationFacade.retry(() -> siteDao.deleteSiteRelatedItems(siteId));
-        } catch (Exception e) {
-            logger.error("Failed to delete the database records for site '{}'", siteId, e);
-            exceptions.add(new ServiceLayerException(format("Failed to delete the database records for site '%s'", siteId), e));
-        }
-
-        // Don't update site record if there are any exceptions
-        if (exceptions.isEmpty()) {
-            try {
-                // delete database records
-                logger.debug("Mark the site '{}' as DELETED", siteId);
-                retryingDatabaseOperationFacade.retry(() -> siteDao.completeSiteDelete(siteId));
-                insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_DELETE);
-            } catch (Exception e) {
-                logger.error("Failed to mark site '{}' as 'DELETED'", siteId, e);
-                exceptions.add(new ServiceLayerException(format("Failed to mark site '%s' as 'DELETED'", siteId), e));
-            }
-        }
-        if (!exceptions.isEmpty()) {
-            throw new CompositeException(format("Failed to delete site '%s'", siteId), exceptions);
-        }
-
-        logger.info("Site '{}' deleted", siteId);
-        applicationContext.publishEvent(new SiteDeleteEvent(siteId, site.getSiteUuid()));
     }
 
     /**
@@ -312,6 +361,12 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
+    /**
+     * Call the engine API to destroy the site preview context
+     *
+     * @param siteId site id
+     * @throws ServiceLayerException if the request fails or response status code is not 200
+     */
     protected void destroySitePreviewContext(String siteId) throws ServiceLayerException {
         String requestUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL)
                 .replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, siteId);
