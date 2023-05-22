@@ -27,10 +27,25 @@ public interface SiteDAO {
      *
      * @param siteId site identifier
      */
-    void deleteSite(@Param(SITE_ID) String siteId);
+    void deleteSiteRelatedItems(@Param(SITE_ID) String siteId);
+
+    /**
+     * Mark the site as DELETING
+     *
+     * @param siteId the site id
+     */
+    void startSiteDelete(@Param(SITE_ID) String siteId);
+
+    /**
+     * Marks the site as DELETED
+     *
+     * @param siteId the site id
+     */
+    void completeSiteDelete(@Param(SITE_ID) String siteId);
 
     /**
      * Checks if a non-deleted site exists with the given site id
+     *
      * @param siteId the site id
      * @return true if the site exists, false otherwise
      */
@@ -38,16 +53,17 @@ public interface SiteDAO {
 
     /**
      * Enables/disables publishing for the given site
-     * @param siteId the site id
+     *
+     * @param siteId  the site id
      * @param enabled true to enable publishing, false to disable
      */
     void enablePublishing(@Param(SITE_ID) String siteId, @Param(ENABLED) boolean enabled);
 
     /**
      * Gets the site with the given site id
+     *
      * @param siteId the site id
      * @return the {@link Site} object
      */
     Site getSite(@Param(SITE_ID) String siteId);
-
 }

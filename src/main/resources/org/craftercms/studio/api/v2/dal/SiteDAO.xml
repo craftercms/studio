@@ -20,7 +20,7 @@
 
 <mapper namespace="org.craftercms.studio.api.v2.dal.SiteDAO">
     <resultMap id="SiteMap" type="org.craftercms.studio.api.v2.dal.Site">
-        <id property="id" column="id" />
+        <id property="id" column="id"/>
         <result property="siteUuid" column="site_uuid"/>
         <result property="siteId" column="site_id"/>
         <result property="name" column="name"/>
@@ -29,12 +29,13 @@
         <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
         <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
-        <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
+        <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR"
+                javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
-        <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
-        <result property="publishingLockOwner" column="publishing_lock_owner" />
-        <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
-        <result property="state" column="state" />
+        <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER"/>
+        <result property="publishingLockOwner" column="publishing_lock_owner"/>
+        <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat"/>
+        <result property="state" column="state"/>
         <result property="lastSyncedGitlogCommitId" column="last_synced_gitlog_commit_id" jdbcType="VARCHAR"
                 javaType="String"/>
     </resultMap>
@@ -43,9 +44,17 @@
         SELECT * FROM site WHERE site_id = #{siteId} and deleted = 0
     </select>
 
-    <select id="deleteSite" statementType="CALLABLE">
-        {call deleteSite(#{siteId,jdbcType=VARCHAR,mode=IN})}
+    <select id="deleteSiteRelatedItems" statementType="CALLABLE">
+        {call deleteSiteRelatedItems(#{siteId,jdbcType=VARCHAR,mode=IN})}
     </select>
+
+    <update id="startSiteDelete" parameterType="java.lang.String">
+        UPDATE site SET state = 'DELETING' WHERE site_id = #{siteId} AND deleted = 0
+    </update>
+
+    <update id="completeSiteDelete" parameterType="java.lang.String">
+        UPDATE site SET state = 'DELETED', deleted = 1 WHERE site_id = #{siteId} AND deleted = 0;
+    </update>
 
     <select id="exists" parameterType="java.lang.String" resultType="boolean">
         SELECT count(1) FROM site WHERE site_id = #{siteId} AND deleted = 0

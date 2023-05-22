@@ -14,7 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-CREATE PROCEDURE deleteSite(
+CREATE PROCEDURE deleteSiteRelatedItems(
     IN siteId VARCHAR(50))
 BEGIN
 	DECLARE id BIGINT(20);
@@ -48,8 +48,5 @@ BEGIN
 
         -- audit log
         DELETE FROM audit WHERE site_id = id;
-
-        -- Mark the site as deleted
-        UPDATE site SET state = 'DELETED', deleted = 1 WHERE site_id = siteId AND deleted = 0;
     END IF;
 END ;

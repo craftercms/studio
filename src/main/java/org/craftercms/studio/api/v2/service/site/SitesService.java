@@ -116,6 +116,7 @@ public interface SitesService {
 
     /**
      * Delete a site from the system
+     *
      * @param siteId the site id
      * @throws SiteNotFoundException if the site doesn't exist
      */

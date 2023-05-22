@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeleteEvent;
+import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
@@ -58,8 +59,7 @@ import java.util.List;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_SITE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
@@ -214,8 +214,15 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public void deleteSite(String siteId) throws ServiceLayerException {
         logger.info("Delete site '{}'", siteId);
+        Site site = siteDao.getSite(siteId);
+        insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
+        siteDao.startSiteDelete(siteId);
+
+        List<Exception> exceptions = new ArrayList<>();
+
         try {
             // Disable publishing
+            logger.debug("Disable publishing for site '{}'", siteId);
             enablePublishing(siteId, false);
         } catch (Exception e) {
             logger.error("Failed to disable publishing for site '{}'", siteId, e);
@@ -223,13 +230,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
         try {
             // Delete deployer targets
+            logger.debug("Delete deployer targets for site '{}'", siteId);
             deployer.deleteTargets(siteId);
         } catch (Exception e) {
             logger.error("Failed to delete deployer targets for site '{}'", siteId, e);
+            exceptions.add(new ServiceLayerException(format("Failed to delete deployer targets for site '%s'", siteId), e));
         }
 
         try {
             // Destroy site preview context
+            logger.debug("Destroy site preview context for site '{}'", siteId);
             destroySitePreviewContext(siteId);
         } catch (Exception e) {
             logger.error("Failed to destroy site preview context for site '{}'", siteId, e);
@@ -237,43 +247,64 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
         try {
             // Delete site content repository
+            logger.debug("Delete site content repository for site '{}'", siteId);
             contentRepository.deleteSite(siteId);
         } catch (Exception e) {
             logger.error("Failed to delete site content repository for site '{}'", siteId, e);
+            exceptions.add(new ServiceLayerException(format("Failed to delete site content repository for site '%s'", siteId), e));
         }
 
         try {
             // Clear configuration cache for site
+            logger.debug("Clear configuration cache for site '{}'", siteId);
             configurationService.invalidateConfiguration(siteId);
         } catch (Exception e) {
             logger.error("Failed to clear configuration cache for site '{}'", siteId, e);
+            exceptions.add(new ServiceLayerException(format("Failed to clear configuration cache for site '%s'", siteId), e));
         }
 
         try {
-            // delete database records
-            logger.debug("Delete the database records for site '{}'", siteId);
-            Site site = siteDao.getSite(siteId);
-
-            retryingDatabaseOperationFacade.retry(() -> siteDao.deleteSite(siteId));
-            insertDeleteSiteAuditLog(site.getId(), site.getSiteId(), site.getName());
-
-            applicationContext.publishEvent(new SiteDeleteEvent(siteId, site.getSiteUuid()));
+            // Delete database records
+            logger.debug("Delete database records for site '{}'", siteId);
+            retryingDatabaseOperationFacade.retry(() -> siteDao.deleteSiteRelatedItems(siteId));
         } catch (Exception e) {
             logger.error("Failed to delete the database records for site '{}'", siteId, e);
+            exceptions.add(new ServiceLayerException(format("Failed to delete the database records for site '%s'", siteId), e));
         }
+
+        // Don't update site record if there are any exceptions
+        if (exceptions.isEmpty()) {
+            try {
+                // delete database records
+                logger.debug("Mark the site '{}' as DELETED", siteId);
+                retryingDatabaseOperationFacade.retry(() -> siteDao.completeSiteDelete(siteId));
+                insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_DELETE);
+            } catch (Exception e) {
+                logger.error("Failed to mark site '{}' as 'DELETED'", siteId, e);
+                exceptions.add(new ServiceLayerException(format("Failed to mark site '%s' as 'DELETED'", siteId), e));
+            }
+        }
+        if (!exceptions.isEmpty()) {
+            throw new CompositeException(format("Failed to delete site '%s'", siteId), exceptions);
+        }
+
+        logger.info("Site '{}' deleted", siteId);
+        applicationContext.publishEvent(new SiteDeleteEvent(siteId, site.getSiteUuid()));
     }
 
     /**
      * Insert delete site audit log entry
-     * @param id the site id (db numeric id)
-     * @param siteId the site id (String id)
-     * @param siteName the site name
+     *
+     * @param siteId    the site id (String id)
+     * @param siteName  the site name
+     * @param operation the operation to record: OPERATION_START_DELETE or OPERATION_DELETE
      */
-    private void insertDeleteSiteAuditLog(long id, String siteId, String siteName) {
+    private void insertDeleteSiteAuditLog(String siteId, String siteName, String operation) {
+        Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
         String user = securityService.getCurrentUser();
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-        auditLog.setOperation(OPERATION_DELETE);
-        auditLog.setSiteId(id);
+        auditLog.setOperation(operation);
+        auditLog.setSiteId(globalSite.getId());
         auditLog.setActorId(user);
         auditLog.setPrimaryTargetId(siteId);
         auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
