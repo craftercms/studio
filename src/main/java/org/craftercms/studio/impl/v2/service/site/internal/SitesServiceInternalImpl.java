@@ -312,7 +312,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
-    private void destroySitePreviewContext(String siteId) throws ServiceLayerException {
+    protected void destroySitePreviewContext(String siteId) throws ServiceLayerException {
         String requestUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL)
                 .replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, siteId);
 
