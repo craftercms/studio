@@ -170,8 +170,12 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
         AmazonS3 s3Client = getS3Client(profile);
         AWSMediaConvert mediaConvertClient = getMediaConvertClient(profile);
 
+        String[] pathTokens = profile.getInputPath().split("/", 2);
+        String inputBucket = pathTokens[0];
+        String inputKey = pathTokens.length == 2 ? (pathTokens[1] + "/" + filename) : filename;
+
         logger.debug("Upload file '{}' to site '{}'", filename, site);
-        AwsUtils.uploadStream(profile.getInputPath(), filename, s3Client, partSize, filename, content);
+        AwsUtils.uploadStream(inputBucket, inputKey, s3Client, partSize, filename, content);
         logger.debug("Completed upload of file '{}' to site '{}'", filename, site);
 
         String originalName = FilenameUtils.getBaseName(filename);

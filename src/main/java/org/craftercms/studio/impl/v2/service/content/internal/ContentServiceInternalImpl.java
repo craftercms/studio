@@ -40,15 +40,10 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -202,17 +197,18 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
             throws ServiceLayerException, UserNotFoundException {
+        if (!CollectionUtils.isNotEmpty(items)) {
+            return emptyList();
+        }
         List<SandboxItem> toRet = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(items)) {
-            String user = securityService.getCurrentUser();
-            for (Item item : items) {
-                if (!contentRepository.contentExists(siteId, item.getPath())) {
-                    logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
-                } else {
-                    item.setAvailableActions(
-                            semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
-                    toRet.add(SandboxItem.getInstance(item));
-                }
+        String user = securityService.getCurrentUser();
+        for (Item item : items) {
+            if (!contentRepository.contentExists(siteId, item.getPath())) {
+                logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
+            } else {
+                item.setAvailableActions(
+                        semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+                toRet.add(SandboxItem.getInstance(item));
             }
         }
         return toRet;
