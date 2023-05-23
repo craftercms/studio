@@ -511,6 +511,8 @@
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
+        SELECT tbl.*
+        FROM (
         (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(DISTINCT i5.id ) AS children_count
         FROM item i1
@@ -547,6 +549,8 @@
         AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
         GROUP BY i3.id)
+        ) AS tbl
+        ORDER BY tbl.id
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
@@ -1068,6 +1072,7 @@
         <if test="statesBitMap != null">
         AND (i.state &amp; #{statesBitMap}) > 0
         </if>
+        ORDER BY i.id ASC
         LIMIT #{offset}, #{limit}
     </select>
 
