@@ -31,6 +31,11 @@ import javax.xml.XMLConstants
 
 import org.xml.sax.InputSource
 import org.apache.commons.text.StringEscapeUtils
+import org.apache.commons.text.translate.AggregateTranslator
+import org.apache.commons.text.translate.CharSequenceTranslator
+import org.apache.commons.text.translate.EntityArrays
+import org.apache.commons.text.translate.LookupTranslator
+import org.apache.commons.text.translate.NumericEntityUnescaper
 
 import static java.nio.charset.StandardCharsets.UTF_8
 
@@ -41,9 +46,20 @@ class HTMLCompareTools {
 
 	static CONTENT_XML_TO_HTML_XSL = new ClassPathResource("crafter/studio/utils/xml-to-html.xslt")
 
+	static CharSequenceTranslator UNESCAPE_HTML_SPECIFIC =
+				new AggregateTranslator(
+					new LookupTranslator(EntityArrays.ISO8859_1_UNESCAPE),
+					new LookupTranslator(EntityArrays.HTML40_EXTENDED_UNESCAPE),
+					new NumericEntityUnescaper())
+
 	static String xmlAsStringToHtml(String xml) {
 		return xmlToHtml(IOUtils.toInputStream(xml, UTF_8))
 	}
+
+	static String unescapeHtmlToXml(final String input) {
+		return UNESCAPE_HTML_SPECIFIC.translate(input);
+	}
+
 
 	static String xmlToHtml(InputStream xml) {
 		try (def template = CONTENT_XML_TO_HTML_XSL.getInputStream()) {
@@ -60,7 +76,7 @@ class HTMLCompareTools {
 
 			transformer.transform(xmlSource, result)
 
-			return resultWriter.toString()
+			return unescapeHtmlToXml(resultWriter.toString())
 		}
 		catch (Throwable e) {
 			throw new RuntimeException(e)
