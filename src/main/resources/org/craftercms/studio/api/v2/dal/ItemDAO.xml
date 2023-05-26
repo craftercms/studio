@@ -902,7 +902,7 @@
         SELECT i4.path AS path
         FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id INNER JOIN item i4 ON i2.parent_id = i4.id
         WHERE s2.site_id = #{siteId}
-        AND TRIM(IFNULL(i2.previous_path, '')) &lt;&gt; ''
+        AND TRIM(IFNULL(i4.previous_path, '')) &lt;&gt; ''
         AND i2.ignored = 0
         AND i2.path IN
         <foreach item="path" index="index" collection="possibleParents"
