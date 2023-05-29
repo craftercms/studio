@@ -577,4 +577,15 @@ public interface ItemDAO {
      */
     List<String> getSubtreeForDelete(@Param(SITE_ID) String siteId,
                                      @Param(LIKE_PATH) String likePath);
+
+    /**
+     * When creating a new page in an already existing folder, we need to update the children of the folder
+     * to become the children of the page.
+     * This method will find the direct children of the given folder, and update
+     * their parent id to be the id the new page (the item with path = folderPath + /index.xml).
+     *
+     * @param siteId     site identifier
+     * @param folderPath path of the folder
+     */
+    void updateNewPageChildren(@Param(SITE_ID) String siteId, @Param(PATH) String folderPath);
 }

@@ -74,6 +74,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.dom4j.io.SAXReader;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -95,6 +96,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.DmXmlConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -304,63 +306,78 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)
-    public void writeContent(@SiteId String site,
-                             @ActionTargetPath String path,
-                             @ActionTargetFilename String fileName,
-                             @ActionContentType String contentType,
-                             InputStream input,
-                             String createFolders,
-                             String edit,
-                             String unlock,
-                             boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
-        path = path.replaceAll("//", "/");
+    public void writeContent(@SiteId final String site,
+                             @ActionTargetPath final String path,
+                             @ActionTargetFilename final String fileName,
+                             @ActionContentType final String contentType,
+                             final InputStream input,
+                             final String createFolders,
+                             final String edit,
+                             final String unlock,
+                             final boolean skipAuditLogInsert) throws ServiceLayerException, UserNotFoundException {
         try {
             entitlementValidator.validateEntitlement(EntitlementType.ITEM, 1);
         } catch (EntitlementException e) {
             throw new ServiceLayerException("Unable to complete request due to entitlement limits. Please contact your "
-                + "system administrator.");
+                    + "system administrator.");
+        }
+
+        // Let's force path to include the filename
+        String pathWithFilename = removeEnd(path.replaceAll("//", "/"), FILE_SEPARATOR);
+        if (!path.endsWith(fileName)) {
+            pathWithFilename += FILE_SEPARATOR + fileName;
         }
 
         Map<String, String> params = new HashMap<>();
         params.put(DmConstants.KEY_SITE, site);
-        params.put(DmConstants.KEY_PATH, path);
+        params.put(DmConstants.KEY_PATH, pathWithFilename);
         params.put(DmConstants.KEY_FILE_NAME, fileName);
         params.put(DmConstants.KEY_CONTENT_TYPE, contentType);
         params.put(DmConstants.KEY_CREATE_FOLDERS, createFolders);
         params.put(DmConstants.KEY_EDIT, edit);
         params.put(DmConstants.KEY_UNLOCK, unlock);
         params.put(DmConstants.KEY_SKIP_AUDIT_LOG_INSERT, String.valueOf(skipAuditLogInsert));
-        String id = site + ":" + path + ":" + fileName + ":" + contentType;
-        String relativePath = path;
-        boolean contentExists = contentExists(site, path);
-        try {
-            // Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
-            // If "unlock" is empty, it means it's a save and close operation
-            // if "unlock" is set to "false", it also means it's a save and continue operation
-            boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
 
-            if (contentExists) {
-                    if (itemServiceInternal.isSystemProcessing(site, path)) {
-                        // TODO: SJ: Review and refactor/redo
-                        logger.error("Failed to write content at site '{}' path '{}' because it is being processed " +
-                                        "(Object State is system processing)", site, path);
-                        throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s' " +
-                                        "because it is being processed  (Object State is system processing)",
-                                        site, path));
-                    }
-                    itemServiceInternal.setSystemProcessing(site, path, true);
+        // Check if the user is saving and closing (releasing the lock) or just saving and will continue to edit
+        // If "unlock" is empty, it means it's a save and close operation
+        // if "unlock" is set to "false", it also means it's a save and continue operation
+        boolean isSaveAndClose = (StringUtils.isNotEmpty(unlock) && !unlock.equalsIgnoreCase("false"));
+
+        doWriteContent(site, pathWithFilename, fileName, contentType, input, params, isSaveAndClose);
+    }
+
+    /**
+     * Write content to the repository
+     *
+     * @param site           the site id
+     * @param path           the path, including filename
+     * @param fileName       the filename
+     * @param contentType    the content type
+     * @param input          content to be written
+     * @param params         parameter map for the content processor pipeline
+     * @param isSaveAndClose true if the user is saving and closing (releasing the lock) or just saving and will continue to edit
+     * @throws ServiceLayerException if the content cannot be written
+     * @throws UserNotFoundException if the user cannot be found
+     */
+    private void doWriteContent(final String site,
+                                final String path,
+                                final String fileName,
+                                final String contentType,
+                                final InputStream input,
+                                final Map<String, String> params,
+                                final boolean isSaveAndClose) throws ServiceLayerException, UserNotFoundException {
+
+        String folderPath = removeEnd(path, FILE_SEPARATOR + fileName);
+        String id = site + ":" + path + ":" + fileName + ":" + contentType;
+
+        try {
+            boolean shouldUpdateChildrenParent = false;
+            if (contentExists(site, path)) {
+                trySetSystemProcessing(site, path);
             } else {
                 // Check if creating a new page to an existing folder
-                boolean isPage = path.endsWith(FILE_SEPARATOR + INDEX_FILE);
-                if (isPage) {
-                    String parentFolder = path.substring(0, path.lastIndexOf(FILE_SEPARATOR));
-                    if (contentExists(site, parentFolder)) {
-                        logger.error("Failed to create content at site '{}' path '{}' because the " +
-                                "folder '{}' already exists", site, path, parentFolder);
-                        throw new ContentExistException(format("Failed to create content at site '%s' path '%s' " +
-                                "because the folder '%s' already exists", site, path, parentFolder));
-                    }
-                }
+                boolean isPage = path.startsWith(ROOT_PATTERN_PAGES) && path.endsWith(FILE_SEPARATOR + INDEX_FILE);
+                shouldUpdateChildrenParent = isPage && contentExists(site, folderPath);
 
                 // Content does not exist; check for moved content and deleted content
                 if (itemServiceInternal.previousPathExists(site, path)) {
@@ -373,41 +390,20 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 }
             }
 
-            // TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
-            // TODO: SJ: We need to consider various mechanics for pipeline choice other than path
-            // TODO: SJ: Furthermore, we already have similar machinery in Crafter Core that might be a fit for some
-            // TODO: SJ: of this work
-
-            // default chain is asset type
-            String chainID = DmConstants.CONTENT_CHAIN_ASSET;
-
-            if (path.startsWith(SLASH_SITE)) {
-                // anything inside site is a form based XML
-                // example /site/website
-                //         /site/components
-                //         /site/books
-                chainID = DmConstants.CONTENT_CHAIN_FORM;
-            }
-
             // TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
             // TODO: SJ: refactored in 2.7.x
-            processContent(id, input, true, params, chainID);
+            processContent(id, input, true, params, getContentChainID(path));
 
-            // Item has been processed and persisted, set system processing state to off
-            itemServiceInternal.setSystemProcessing(site, path, false);
-
-            // TODO: SJ: The path sent from the UI is inconsistent, hence the acrobatics below. Fix in 2.7.x
-            String savedFileName = params.get(DmConstants.KEY_FILE_NAME);
-            String savedPath = params.get(DmConstants.KEY_PATH);
-            relativePath = savedPath;
-            if (!savedPath.endsWith(savedFileName)) {
-                relativePath = savedPath + FILE_SEPARATOR + savedFileName;
+            if (shouldUpdateChildrenParent) {
+                // Update folder's children parentId, so they become this new page children instead
+                itemServiceInternal.updateNewPageChildren(site, folderPath);
             }
 
             // TODO: SJ: Why is the item being loaded again? Why is the state being set to system not processing
             // TODO: SJ: again? Why would we insert the item into objectStateService again?
             // TODO: SJ: Refactor for 2.7.x
-            ContentItemTO itemTo = getContentItem(site, relativePath, 0);
+            ContentItemTO itemTo = getContentItem(site, path, 0);
+
             if (isSaveAndClose) {
                 itemServiceInternal.updateStateBits(site, itemTo.getUri(), SAVE_AND_CLOSE_ON_MASK,
                         SAVE_AND_CLOSE_OFF_MASK);
@@ -417,12 +413,55 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             }
         }  catch (RuntimeException e) {
             logger.error("Failed to write content at site '{}' path '{}'", site, path, e);
-
-            // TODO: SJ: Why setting two things? Are we guessing? Fix in 2.7.x
-            itemServiceInternal.setSystemProcessing(site, relativePath, false);
             itemServiceInternal.setSystemProcessing(site, path, false);
             throw e;
         }
+    }
+
+    /**
+     * Tries to set the system processing flag for the given site and path. If the flag is already set, it throws an exception.
+     * @param site the site
+     * @param path the path
+     * @throws ServiceLayerException if the flag is already set
+     */
+    private void trySetSystemProcessing(final String site, final String path) throws ServiceLayerException {
+        if (itemServiceInternal.isSystemProcessing(site, path)) {
+            // TODO: SJ: Review and refactor/redo
+            logger.error("Failed to write content at site '{}' path '{}' because it is being processed " +
+                    "(Object State is system processing)", site, path);
+            throw new ServiceLayerException(format("Failed to write content at site '%s' path '%s' " +
+                            "because it is being processed  (Object State is system processing)",
+                    site, path));
+        }
+        itemServiceInternal.setSystemProcessing(site, path, true);
+    }
+
+    /**
+     * Returns the content chain ID for the given path.
+     * {@value DmConstants#CONTENT_CHAIN_FORM} for anything inside {@value DmConstants#SLASH_SITE},
+     * {@value DmConstants#CONTENT_CHAIN_ASSET} otherwise.
+     *
+     * @param path the path
+     * @return the content chain ID
+     */
+    @NotNull
+    private static String getContentChainID(final String path) {
+        // TODO: SJ: Item processing pipeline needs to be configurable without hardcoded paths
+        // TODO: SJ: We need to consider various mechanics for pipeline choice other than path
+        // TODO: SJ: Furthermore, we already have similar machinery in Crafter Core that might be a fit for some
+        // TODO: SJ: of this work
+
+        // default chain is asset type
+        String chainID = DmConstants.CONTENT_CHAIN_ASSET;
+
+        if (path.startsWith(SLASH_SITE)) {
+            // anything inside site is a form based XML
+            // example /site/website
+            //         /site/components
+            //         /site/books
+            chainID = DmConstants.CONTENT_CHAIN_FORM;
+        }
+        return chainID;
     }
 
     @Override

@@ -1283,4 +1283,21 @@
         AND s.deleted = 0
         AND i.path LIKE #{likePath}
     </select>
+
+    <update id="updateNewPageChildren">
+        UPDATE item,
+            (SELECT child.id AS childId,
+                            (SELECT i.id
+                            FROM item i INNER JOIN site s on s.id = i.site_id
+                            WHERE s.site_id = #{siteId} AND s.deleted = 0
+                            AND i.path = concat(#{path}, '/index.xml')) AS newParentId
+            FROM item child
+                INNER JOIN item parent ON child.parent_id = parent.id
+                INNER JOIN site s ON s.id = child.site_id
+            WHERE s.site_id = #{siteId} AND s.deleted = 0
+                AND parent.path = #{path}
+            ) AS updates
+        SET item.parent_id = updates.newParentId
+        WHERE item.id = updates.childId
+    </update>
 </mapper>
