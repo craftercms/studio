@@ -402,4 +402,13 @@ public interface ItemServiceInternal {
      * @param offStateBitMap states bitmap to flip off
      */
     void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Updates a new page's children (in case the folder existed before the page was created)
+     * to point to the new page.
+     *
+     * @param site site identifier
+     * @param path path of the folder where the new index.xml has been added
+     */
+    void updateNewPageChildren(String site, String path);
 }
