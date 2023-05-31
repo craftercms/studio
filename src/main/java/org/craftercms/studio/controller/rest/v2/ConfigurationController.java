@@ -99,8 +99,9 @@ public class ConfigurationController {
         return responseBody;
     }
 
+    @Valid
     @PostMapping("/write_configuration")
-    public ResponseBody writeConfiguration(@RequestBody WriteConfigurationRequest wcRequest)
+    public ResponseBody writeConfiguration(@Valid @RequestBody WriteConfigurationRequest wcRequest)
             throws ServiceLayerException, UserNotFoundException {
         InputStream is = IOUtils.toInputStream(wcRequest.getContent(), UTF_8);
         String siteId = wcRequest.getSiteId();
