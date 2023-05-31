@@ -102,6 +102,7 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -466,20 +467,21 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
         String parentPath = FilenameUtils.getPrefix(path) +
                 FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, SLASH_INDEX_FILE, ""));
-        if (isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
-            addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-            if (StringUtils.endsWith(path, SLASH_INDEX_FILE)) {
-                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
-                        "/index.xml", ""), updateParentIdScriptPath);
-                if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES)) {
-                    Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
-                            StandardOpenOption.APPEND);
-                }
-            }
-            Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+        if (isEmpty(parentPath) || StringUtils.equals(parentPath, path)) {
+            return;
         }
+        addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
+        if (StringUtils.endsWith(path, SLASH_INDEX_FILE)) {
+            addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
+                    "/index.xml", ""), updateParentIdScriptPath);
+            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES)) {
+                Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
+                        StandardOpenOption.APPEND);
+            }
+        }
+        Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
+                StandardOpenOption.APPEND);
+        Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
     }
 
     private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file) throws IOException {
@@ -1219,11 +1221,20 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     }
                     break;
                 case DELETE:
+                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
+                    boolean folderExists = contentRepositoryV2.contentExists(siteId, folder);
+
+                    // If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
+                    if (folderExists && StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
+                            StringUtils.endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
+                        Files.write(repoOperationsScriptPath,
+                                updateDeletedPageChildren(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    }
+
                     Files.write(repoOperationsScriptPath,
                             deleteItemRow(siteFeed.getId(), repoOperation.getPath()).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
-                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
-                    if (!contentRepositoryV2.contentExists(siteId, folder)) {
+                    if (!folderExists) {
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath,
                                 deleteItemRow(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);

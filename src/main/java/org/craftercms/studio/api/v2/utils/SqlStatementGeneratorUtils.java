@@ -84,6 +84,20 @@ public final class SqlStatementGeneratorUtils {
             "SET item.parent_id = updates.newParentId\n" +
             "WHERE item.id = updates.childId ;\n\n";
 
+    public static final String UPDATE_DELETED_PAGE_CHILDREN = "UPDATE item,\n" +
+            "(SELECT child.id AS childId,\n" +
+            "(SELECT i.id\n" +
+            "FROM item i\n" +
+            "WHERE i.site_id = #{siteId}\n" +
+            "AND i.path = '#{folderPath}') AS newParentId\n" +
+            "FROM item child\n" +
+            "INNER JOIN item parent ON child.parent_id = parent.id\n" +
+            "WHERE child.site_id = #{siteId}\n" +
+            "AND parent.path = concat('#{folderPath}', '/index.xml')\n" +
+            ") AS updates\n" +
+            "SET item.parent_id = updates.newParentId\n" +
+            "WHERE item.id = updates.childId ;\n\n";
+
     public static final String ITEM_UPDATE_PARENT_ID_SIMPLE =
             "UPDATE item SET parent_id = #{parentId} WHERE id = #{itemId} ;" ;
 
@@ -240,6 +254,20 @@ public final class SqlStatementGeneratorUtils {
         String folderPath = removeEnd(path, SLASH_INDEX_FILE);
         String sql = StringUtils.replace(UPDATE_NEW_PAGE_CHILDREN, "#{siteId}", Long.toString(siteId));
         sql = StringUtils.replace(sql, "#{path}", folderPath);
+        return sql;
+    }
+
+    /**
+     * Generates the sql statements to update a deleted page children.
+     * This should be called when a page (index.xml) is deleted via git but its children still exists
+     *
+     * @param siteId     the site id
+     * @param folderPath the folder path to the deleted page
+     * @return the sql statement
+     */
+    public static String updateDeletedPageChildren(long siteId, String folderPath) {
+        String sql = StringUtils.replace(UPDATE_DELETED_PAGE_CHILDREN, "#{siteId}", Long.toString(siteId));
+        sql = StringUtils.replace(sql, "#{folderPath}", folderPath);
         return sql;
     }
 
