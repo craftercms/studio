@@ -465,12 +465,16 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
         String parentPath = FilenameUtils.getPrefix(path) +
-                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, "/index.xml", ""));
+                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, SLASH_INDEX_FILE, ""));
         if (isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
             addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-            if (StringUtils.endsWith(path, "/index.xml")) {
+            if (StringUtils.endsWith(path, SLASH_INDEX_FILE)) {
                 addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
                         "/index.xml", ""), updateParentIdScriptPath);
+                if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES)) {
+                    Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
+                            StandardOpenOption.APPEND);
+                }
             }
             Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
