@@ -105,28 +105,4 @@ public abstract class ValidationUtils {
         }
     }
 
-    public static void validateNewContentParams(final String siteId, final String path) throws ValidationException {
-        Map<String, String> errors = new HashMap<>();
-        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-        Validator siteIdValidator = new EsapiValidator(SITE_ID);
-
-        validateValue(siteIdValidator, siteId, "siteId", errors);
-        validateValue(pathValidator, path, "path", errors);
-
-        throwExceptionIfErrorsFound(errors);
-    }
-
-    public static void validateNewContentParams(final String siteId, final String path, final String filename) throws ValidationException {
-        Map<String, String> errors = new HashMap<>();
-        Validator pathValidator = new EsapiValidator(CONTENT_PATH_WRITE);
-        Validator siteIdValidator = new EsapiValidator(SITE_ID);
-        Validator filenameValidator = new EsapiValidator(CONTENT_FILE_NAME_WRITE);
-
-        validateValue(siteIdValidator, siteId, "siteId", errors);
-        validateValue(pathValidator, path, "path", errors);
-        validateValue(filenameValidator, filename, "filename", errors);
-
-        throwExceptionIfErrorsFound(errors);
-    }
-
 }
