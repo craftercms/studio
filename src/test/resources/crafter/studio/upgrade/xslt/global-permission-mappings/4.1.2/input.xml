@@ -47,7 +47,7 @@
                 <permission>content_write</permission>
                 <permission>folder_create</permission>
                 <permission>publish</permission>
-                <permission>create_site</permission>
+                <permission>create-site</permission>
                 <permission>read_groups</permission>
                 <permission>create_groups</permission>
                 <permission>update_groups</permission>
@@ -83,7 +83,7 @@
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
                 <permission>remove_plugins</permission>
-                <permission>delete_site</permission>
+                <permission>site_delete</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
                 <permission>publish_status</permission>

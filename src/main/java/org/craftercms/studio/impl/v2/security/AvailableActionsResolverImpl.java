@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.mapPermissionsToContentItemAvailableActions;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
@@ -187,15 +186,14 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     private long calculateAvailableActions(String username, String path,
                                            SitePermissionMappings sitePermissionMappings)
             throws ServiceLayerException, UserNotFoundException {
+        if (userServiceInternal.isSystemAdmin(username)) {
+            return -1L;
+        }
+
         long toReturn = 0L;
         List<Group> groups = userServiceInternal.getUserGroups(-1, username);
         if (CollectionUtils.isNotEmpty(groups)) {
-            List<String> groupNames = groups.stream().map(g -> g.getGroupName()).collect(Collectors.toList());
-            if (groupNames.contains(SYSTEM_ADMIN_GROUP)) {
-                toReturn = -1L;
-            } else {
-                toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
-            }
+            toReturn = sitePermissionMappings.getAvailableActions(username, groups, path);
         }
         return toReturn;
     }

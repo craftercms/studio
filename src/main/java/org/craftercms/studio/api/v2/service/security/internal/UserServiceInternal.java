@@ -90,8 +90,6 @@ public interface UserServiceInternal {
 
     List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException;
 
-    boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException, ServiceLayerException;
-
     boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
@@ -141,4 +139,10 @@ public interface UserServiceInternal {
      */
     AuthenticatedUser getCurrentUser() throws AuthenticationException;
 
+    /**
+     * Check if given user has system_admin role
+     * @param username user
+     * @return true if user is system_admin, false otherwise
+     */
+    boolean isSystemAdmin(String username);
 }
