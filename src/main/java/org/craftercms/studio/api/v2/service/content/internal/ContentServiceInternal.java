@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.content.internal;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -106,10 +107,11 @@ public interface ContentServiceInternal {
      *
      * @param siteId        site identifier
      * @param ids           list of ids to get sandbox items
+     * @param sortFields
      * @param preferContent if true return content items if available
      * @return list of sandbox items
      */
-    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
+    List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException;
 
     /**

@@ -58,6 +58,10 @@ public final class RequestConstants {
 
     public static final String USER_SORT_COLUMNS = "id username firstName lastName externally_managed email enabled";
 
+    public static final String ITEM_SORT_FIELDS = "id dateModified label";
+
+    public static final String PUBLISH_REQUEST_SORT_FIELDS = "id dateScheduled label";
+
     private RequestConstants() {
     }
 }

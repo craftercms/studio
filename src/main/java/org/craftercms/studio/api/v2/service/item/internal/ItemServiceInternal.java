@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.item.internal;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DetailedItem;
@@ -350,14 +351,16 @@ public interface ItemServiceInternal {
 
     /**
      * Get item states for given filters by path regex and states mask
-     * @param siteId site identifier
-     * @param path path regex to filter items
-     * @param states states mask to filter items by state
-     * @param offset offset for the first record in result set
-     * @param limit number of item states records to return
+     *
+     * @param siteId     site identifier
+     * @param sortFields
+     * @param path       path regex to filter items
+     * @param states     states mask to filter items by state
+     * @param offset     offset for the first record in result set
+     * @param limit      number of item states records to return
      * @return list of sandbox items
      */
-    List<Item> getItemStates(String siteId, String path, Long states, int offset, int limit);
+    List<Item> getItemStates(String siteId, String path, Long states, List<SortField> sortFields, int offset, int limit);
 
     /**
      * Update item state flags for given items
