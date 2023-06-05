@@ -186,10 +186,6 @@ public class AvailableActionsResolverImpl implements AvailableActionsResolver {
     private long calculateAvailableActions(String username, String path,
                                            SitePermissionMappings sitePermissionMappings)
             throws ServiceLayerException, UserNotFoundException {
-        if (userServiceInternal.isSystemAdmin(username)) {
-            return -1L;
-        }
-
         long toReturn = 0L;
         List<Group> groups = userServiceInternal.getUserGroups(-1, username);
         if (CollectionUtils.isNotEmpty(groups)) {

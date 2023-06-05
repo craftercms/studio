@@ -92,6 +92,16 @@
                 <permission>view_logs</permission>
                 <permission>view_log_levels</permission>
                 <permission>configure_log_levels</permission>
+                <permission>content_create</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>Change Content Type</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>publish_clear_lock</permission>
             </allowed-permissions>
         </rule>
     </role>

@@ -36,10 +36,76 @@
         </xsl:if>
     </xsl:template>
 
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'create-site']">
+    <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions/permission[. = 'create-site']">
         <xsl:element name="permission"><xsl:text>create_site</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
     </xsl:template>
-    <xsl:template match="permissions/role/rule/allowed-permissions/permission[. = 'site_delete']">
+    <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions/permission[. = 'site_delete']">
         <xsl:element name="permission"><xsl:text>delete_site</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+    </xsl:template>
+    <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions">
+        <xsl:copy>
+            <xsl:copy-of select="@*"/>
+            <xsl:apply-templates/>
+            <xsl:if test="not(permission = 'content_create')">
+                <xsl:element name="permission">
+                    <xsl:text>content_create</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'get_publishing_queue')">
+                <xsl:element name="permission">
+                    <xsl:text>get_publishing_queue</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'cancel_publish')">
+                <xsl:element name="permission">
+                    <xsl:text>cancel_publish</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'Change Content Type')">
+                <xsl:element name="permission">
+                    <xsl:text>Change Content Type</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'site_status')">
+                <xsl:element name="permission">
+                    <xsl:text>site_status</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'resolve_conflict')">
+                <xsl:element name="permission">
+                    <xsl:text>resolve_conflict</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'site_diff_conflicted_file')">
+                <xsl:element name="permission">
+                    <xsl:text>site_diff_conflicted_file</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'commit_resolution')">
+                <xsl:element name="permission">
+                    <xsl:text>commit_resolution</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'cancel_failed_pull')">
+                <xsl:element name="permission">
+                    <xsl:text>cancel_failed_pull</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+            <xsl:if test="not(permission = 'publish_clear_lock')">
+                <xsl:element name="permission">
+                    <xsl:text>publish_clear_lock</xsl:text>
+                </xsl:element>
+                <xsl:text>&#10;</xsl:text>
+            </xsl:if>
+        </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
