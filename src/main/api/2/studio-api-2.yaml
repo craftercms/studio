@@ -5334,6 +5334,14 @@ paths:
           required: false
           schema:
             type: integer
+        - name: sort
+          in: query
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+          Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+        - name: itemType
+          in: query
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
+          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
       responses:
         '200':
           description: OK
@@ -5442,6 +5450,14 @@ paths:
           required: false
           schema:
             type: integer
+        - name: sort
+          in: query
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+          Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+        - name: itemType
+          in: query
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
+          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
       responses:
         '200':
           description: OK
@@ -5531,6 +5547,14 @@ paths:
           required: false
           schema:
             type: integer
+        - name: sort
+          in: query
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+          Multiple fields are separated by commas. Example: `dateScheduled asc, label desc`. Supported fields: `id` `dateScheduled` `label`. Default `dateScheduled desc`"
+        - name: itemType
+          in: query
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
+          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
       responses:
         '200':
           description: OK
@@ -7396,7 +7420,6 @@ components:
       required:
         - id
         - name
-        -
     UpdateGroupRequest:
       type: object
       properties:

@@ -410,26 +410,32 @@ public interface ItemDAO {
 
     /**
      * Get total number of item states records for given filters by path regex and states mask
-     * @param siteId site identifier
-     * @param path path regex to filter items
-     * @param states states mask to filter items by state
+     *
+     * @param siteId      site identifier
+     * @param path        path regex to filter items
+     * @param states      states mask to filter items by state
+     * @param systemTypes system types to filter items
      * @return number of records
      */
-    int getItemStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(STATES_BIT_MAP) Long states);
+    int getItemStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                           @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes);
 
     /**
      * Get item states for given filters by path regex and states mask
      *
-     * @param siteId     site identifier
-     * @param path       path regex to filter items
-     * @param states     states mask to filter items by state
-     * @param sortFields
-     * @param offset     offset for the first record in result set
-     * @param limit      number of item states records to return
+     * @param siteId      site identifier
+     * @param path        path regex to filter items
+     * @param states      states mask to filter items by state
+     * @param systemTypes system types to filter items
+     * @param sortFields  list of sort fields
+     * @param offset      offset for the first record in result set
+     * @param limit       number of item states records to return
      * @return list of sandbox items
      */
     List<Item> getItemStates(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                             @Param(STATES_BIT_MAP) Long states, @Param(SORT_FIELDS) List<SortField> sortFields, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+                             @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes,
+                             @Param(SORT_FIELDS) List<SortField> sortFields,
+                             @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
      * Update item state by query
