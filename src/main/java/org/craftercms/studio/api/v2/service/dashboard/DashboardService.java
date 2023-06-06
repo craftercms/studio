@@ -92,20 +92,24 @@ public interface DashboardService {
 
     /**
      * Get total number of content packages pending approval
-     * @param siteId site identifier
+     *
+     * @param siteId      site identifier
+     * @param systemTypes list of system types to filter
      * @return number of results to return
      */
-    int getContentPendingApprovalTotal(String siteId) throws SiteNotFoundException;
+    int getContentPendingApprovalTotal(String siteId, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get pending content for approval
      *
-     * @param siteId
-     * @param offset
-     * @param limit
+     * @param siteId      site identifier
+     * @param systemTypes list of system types to filter
+     * @param sortFields  list of sort fields
+     * @param offset      offset of the first result item
+     * @param limit       number of results to return
      * @return list of DetailedItem waiting for approval
      */
-    List<DetailedItem> getContentPendingApproval(String siteId, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+    List<DetailedItem> getContentPendingApproval(String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get content pending approval package details
@@ -119,21 +123,24 @@ public interface DashboardService {
 
     /**
      * Get total number of unpublished content
-     * @param siteId site identifier
+     *
+     * @param siteId      site identifier
+     * @param systemTypes list of system types to filter
      * @return number of results to return
      */
-    int getContentUnpublishedTotal(String siteId) throws SiteNotFoundException;
+    int getContentUnpublishedTotal(String siteId, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get unpublished content items
      *
      * @param siteId     site identifier
+     * @param systemTypes list of system types to filter
      * @param sortFields list of sort fields
      * @param offset     offset of the first result item
      * @param limit      number of results to return
      * @return list of unpublished content items
      */
-    List<SandboxItem> getContentUnpublished(String siteId, List<SortField> sortFields, int offset, int limit)
+    List<SandboxItem> getContentUnpublished(String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
@@ -161,15 +168,16 @@ public interface DashboardService {
     /**
      * Get total number of result for publishing scheduled with given filters
      *
-     * @param siteId site identifier
+     * @param siteId           site identifier
      * @param publishingTarget publishing target to filter by
-     * @param approver approver user to filter by
-     * @param dateFrom lower boundary to filter by date-time range
-     * @param dateTo upper boundary to filter by date-time range
+     * @param approver         approver user to filter by
+     * @param dateFrom         lower boundary to filter by date-time range
+     * @param dateTo           upper boundary to filter by date-time range
+     * @param systemTypes     list of system types to filter
      * @return number of results
      */
     int getPublishingScheduledTotal(String siteId, String publishingTarget, String approver,
-                                    ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException;
+                                    ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException;
 
     /**
      * Get publishing scheduled
@@ -179,14 +187,15 @@ public interface DashboardService {
      * @param approver         approver user to filter by
      * @param dateFrom         lower boundary to filter by date-time range
      * @param dateTo           upper boundary to filter by date-time range
-     * @param sortFields      list of sort fields
+     * @param systemTypes    list of system types to filter
+     * @param sortFields       list of sort fields
      * @param offset           offset of the first result item
      * @param limit            number of results to return
      * @return list of DetailedItem scheduled for publishing
      */
     List<DetailedItem> getPublishingScheduled(String siteId, String publishingTarget, String approver,
                                               ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                              List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+                                              List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get publishing package details

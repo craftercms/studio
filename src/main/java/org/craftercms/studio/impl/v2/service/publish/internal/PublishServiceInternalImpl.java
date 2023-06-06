@@ -183,18 +183,18 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
 
     @Override
     public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
-                                                ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
         return publishRequestDao
-                .getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, READY_FOR_LIVE, dateFrom, dateTo)
+                .getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, READY_FOR_LIVE, dateFrom, dateTo, systemTypes)
                 .orElse(0);
     }
 
     @Override
     public List<PublishRequest> getPublishingItemsScheduled(String siteId, String publishingTarget, String approver,
                                                             ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                            List<SortField> sortFields, int offset, int limit) {
+                                                            List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
         return publishRequestDao.getPublishingItemsScheduled(siteId, publishingTarget, approver, READY_FOR_LIVE,
-                dateFrom, dateTo, DalUtils.mapSortFields(sortFields,PublishRequestDAO.SORT_FIELD_MAP), offset, limit);
+                dateFrom, dateTo, systemTypes, DalUtils.mapSortFields(sortFields,PublishRequestDAO.SORT_FIELD_MAP), offset, limit);
     }
 
     @Override

@@ -172,20 +172,23 @@ public interface PublishRequestDAO {
 
     /**
      * Get number of scheduled publishing items results for given filters
-     * @param siteId site identifier
+     *
+     * @param siteId           site identifier
      * @param publishingTarget publishing target
-     * @param approver approver
-     * @param scheduledState scheduled state
-     * @param fromDate get history from date
-     * @param toDate get history to date
+     * @param approver         approver
+     * @param scheduledState   scheduled state
+     * @param fromDate         get history from date
+     * @param toDate           get history to date
+     * @param systemTypes     system types to filter
      * @return total number of results
      */
     Optional<Integer> getPublishingItemsScheduledTotal(@Param(SITE_ID) String siteId,
-                                                          @Param(PUBLISHING_TARGET) String publishingTarget,
-                                                          @Param(APPROVER) String approver,
-                                                          @Param(SCHEDULED_STATE) String scheduledState,
-                                                          @Param(FROM_DATE) ZonedDateTime fromDate,
-                                                          @Param(TO_DATE) ZonedDateTime toDate);
+                                                       @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                       @Param(APPROVER) String approver,
+                                                       @Param(SCHEDULED_STATE) String scheduledState,
+                                                       @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                       @Param(TO_DATE) ZonedDateTime toDate,
+                                                       @Param(SYSTEM_TYPES) List<String> systemTypes);
     /**
      * Get scheduled publishing items
      *
@@ -195,6 +198,7 @@ public interface PublishRequestDAO {
      * @param scheduledState   scheduled state
      * @param fromDate         get history from date
      * @param toDate           get history to date
+     * @param systemTypes system types to filter
      * @param sortFields       sort fields
      * @param offset           offset for pagination
      * @param limit            number of records to return
@@ -205,6 +209,7 @@ public interface PublishRequestDAO {
                                                      @Param(SCHEDULED_STATE) String scheduledState,
                                                      @Param(FROM_DATE) ZonedDateTime fromDate,
                                                      @Param(TO_DATE) ZonedDateTime toDate,
+                                                     @Param(SYSTEM_TYPES) List<String> systemTypes,
                                                      @Param(SORT_FIELDS) List<SortField> sortFields,
                                                      @Param(OFFSET) int offset,
                                                      @Param(LIMIT) int limit);

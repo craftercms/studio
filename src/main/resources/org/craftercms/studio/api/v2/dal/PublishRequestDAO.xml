@@ -200,7 +200,17 @@
             <if test="approver != null">
                 AND pr.username = #{approver}
             </if>
+            <include refid="filterBySystemType"/>
         </where>
+    </sql>
+
+    <sql id="filterBySystemType">
+        <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
+            AND pr.contenttypeclass IN
+            <foreach collection="systemTypes" item="systemType" separator="," open="(" close=")">
+                #{systemType}
+            </foreach>
+        </if>
     </sql>
 
     <select id="getPublishingItemsScheduledTotal" resultType="Integer">
@@ -218,7 +228,7 @@
     </select>
 
     <sql id="orderBySortFields">
-        <if test="sortFields != null">
+        <if test="sortFields != null &amp;&amp; !sortFields.isEmpty()">
             ORDER BY
             <foreach collection="sortFields" item="sortField" separator=",">
                 ${sortField.field} ${sortField.order}

@@ -18,10 +18,7 @@ package org.craftercms.studio.controller.rest.v2;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.rest.parameters.SortField;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.SqlSort;
-import org.craftercms.commons.validation.annotations.param.ValidSiteId;
-import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -125,10 +122,11 @@ public class DashboardController {
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateModified desc")
-            List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields) throws ServiceLayerException, UserNotFoundException {
-
-        var total = dashboardService.getContentPendingApprovalTotal(siteId);
-        var publishingContent = dashboardService.getContentPendingApproval(siteId, sortFields, offset, limit);
+            List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields,
+            @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
+            List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes) throws ServiceLayerException, UserNotFoundException {
+        var total = dashboardService.getContentPendingApprovalTotal(siteId, systemTypes);
+        var publishingContent = dashboardService.getContentPendingApproval(siteId, systemTypes, sortFields, offset, limit);
 
         var result = new PaginatedResultList<DetailedItem>();
         result.setTotal(total);
@@ -160,10 +158,11 @@ public class DashboardController {
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateModified desc")
-            List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields)
-            throws UserNotFoundException, ServiceLayerException {
-        var total = dashboardService.getContentUnpublishedTotal(siteId);
-        var unpublishedContent = dashboardService.getContentUnpublished(siteId, sortFields, offset, limit);
+            List<@SqlSort(columns = ITEM_SORT_FIELDS) SortField> sortFields,
+            @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
+            List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes) throws UserNotFoundException, ServiceLayerException {
+        var total = dashboardService.getContentUnpublishedTotal(siteId, systemTypes);
+        var unpublishedContent = dashboardService.getContentUnpublished(siteId, systemTypes, sortFields, offset, limit);
 
         var result = new PaginatedResultList<SandboxItem>();
         result.setTotal(total);
@@ -230,10 +229,12 @@ public class DashboardController {
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
             @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateScheduled desc")
-            List<@SqlSort(columns = PUBLISH_REQUEST_SORT_FIELDS) SortField> sortFields
-    ) throws ServiceLayerException, UserNotFoundException {
-        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
-        var scheduledItems = dashboardService.getPublishingScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, sortFields, offset, limit);
+            List<@SqlSort(columns = PUBLISH_REQUEST_SORT_FIELDS) SortField> sortFields,
+            @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
+            List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes)
+            throws ServiceLayerException, UserNotFoundException {
+        var total = dashboardService.getPublishingScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
+        var scheduledItems = dashboardService.getPublishingScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
 
         var result = new PaginatedResultList<DetailedItem>();
         result.setTotal(total);
