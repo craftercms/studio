@@ -20,6 +20,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
@@ -44,6 +45,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 
 public class ItemServiceInternalImpl implements ItemServiceInternal {
     // TODO: SJ: Add logging to this class
@@ -190,7 +192,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public Item.Builder instantiateItem(String siteName, String path) {
         Item item = getItem(siteName, path);
-        if (Objects.isNull(item))  {
+        if (Objects.isNull(item)) {
             item = new Item();
             Map<String, String> params = new HashMap<>();
             params.put(SITE_ID, siteName);
@@ -217,7 +219,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         } else if (ContentUtils.matchesPatterns(path, List.of(CONTENT_TYPE_TAXONOMY_REGEX))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getComponentPatterns(site)) ||
-                StringUtils.endsWith(path,FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
+                StringUtils.endsWith(path, FILE_SEPARATOR + servicesConfig.getLevelDescriptorName(site))) {
             return null;
         } else if (ContentUtils.matchesPatterns(path, servicesConfig.getScriptsPatterns(site))) {
             return null;
@@ -252,7 +254,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     public void persistItemAfterCreate(String siteId, String path, String username, String commitId,
                                        boolean unlock, Long parentId)
             throws ServiceLayerException, UserNotFoundException {
-        String lockKey = "persistItemAfterCreate:" + siteId ;
+        String lockKey = "persistItemAfterCreate:" + siteId;
         generalLockService.lock(lockKey);
         try {
             User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
@@ -348,7 +350,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public void persistItemAfterRenameContent(String siteId, String path, String name, String username,
-                                             String commitId, String contentType)
+                                              String commitId, String contentType)
             throws ServiceLayerException, UserNotFoundException {
         User userObj = userServiceInternal.getUserByIdOrUsername(-1, username);
         Item item = instantiateItem(siteId, path)
@@ -483,8 +485,8 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<Item> getItemStates(String siteId, String path, Long states, int offset, int limit) {
-        return itemDao.getItemStates(siteId, path, states, offset, limit);
+    public List<Item> getItemStates(String siteId, String path, Long states, List<SortField> sortFields, int offset, int limit) {
+        return itemDao.getItemStates(siteId, path, states, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP), offset, limit);
     }
 
     @Override

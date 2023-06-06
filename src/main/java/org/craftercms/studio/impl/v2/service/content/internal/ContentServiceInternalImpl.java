@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -49,6 +50,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARAT
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
@@ -184,13 +186,13 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
+    public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         } else {
-            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         }
         return calculatePossibleActions(siteId, items);
     }

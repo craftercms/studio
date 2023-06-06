@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.publish.internal;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.*;
@@ -182,18 +183,19 @@ public interface PublishServiceInternal {
     /**
      * Get scheduled publishing items
      *
-     * @param siteId site identifier
+     * @param siteId           site identifier
      * @param publishingTarget publishing target
-     * @param approver approver
-     * @param dateFrom lower boundary for schedule
-     * @param dateTo upper boundary for schedule
-     * @param offset offset of the first result
-     * @param limit limit number of results
+     * @param approver         approver
+     * @param dateFrom         lower boundary for schedule
+     * @param dateTo           upper boundary for schedule
+     * @param sortFields       sort fields
+     * @param offset           offset of the first result
+     * @param limit            limit number of results
      * @return list of publishing request items
      */
     List<PublishRequest> getPublishingItemsScheduled(String siteId, String publishingTarget, String approver,
-                                                                    ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                                    int offset, int limit);
+                                                     ZonedDateTime dateFrom, ZonedDateTime dateTo,
+                                                     List<SortField> sortFields, int offset, int limit);
 
     /**
      * Get total number of publishing packages for given filters

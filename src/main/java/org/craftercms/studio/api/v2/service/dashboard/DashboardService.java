@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.dashboard;
 
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
@@ -104,7 +105,7 @@ public interface DashboardService {
      * @param limit
      * @return list of DetailedItem waiting for approval
      */
-    List<DetailedItem> getContentPendingApproval(String siteId, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+    List<DetailedItem> getContentPendingApproval(String siteId, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get content pending approval package details
@@ -113,7 +114,7 @@ public interface DashboardService {
      * @param publishingPackageId publishing package identifier
      * @return list of sandbox items included in given package
      */
-    List<SandboxItem> getContentPendingApprovalDetail(String siteId, String publishingPackageId)
+    List<SandboxItem> getContentPendingApprovalDetail(String siteId, String publishingPackageId, List<SortField> sortFields)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
@@ -125,12 +126,14 @@ public interface DashboardService {
 
     /**
      * Get unpublished content items
-     * @param siteId
-     * @param offset
-     * @param limit
-     * @return
+     *
+     * @param siteId     site identifier
+     * @param sortFields list of sort fields
+     * @param offset     offset of the first result item
+     * @param limit      number of results to return
+     * @return list of unpublished content items
      */
-    List<SandboxItem> getContentUnpublished(String siteId, int offset, int limit)
+    List<SandboxItem> getContentUnpublished(String siteId, List<SortField> sortFields, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException;
 
     /**
@@ -171,18 +174,19 @@ public interface DashboardService {
     /**
      * Get publishing scheduled
      *
-     * @param siteId site identifier
+     * @param siteId           site identifier
      * @param publishingTarget publishing target to filter by
-     * @param approver approver user to filter by
-     * @param dateFrom lower boundary to filter by date-time range
-     * @param dateTo upper boundary to filter by date-time range
-     * @param offset offset of the first result item
-     * @param limit number of results to return
+     * @param approver         approver user to filter by
+     * @param dateFrom         lower boundary to filter by date-time range
+     * @param dateTo           upper boundary to filter by date-time range
+     * @param sortFields      list of sort fields
+     * @param offset           offset of the first result item
+     * @param limit            number of results to return
      * @return list of DetailedItem scheduled for publishing
      */
     List<DetailedItem> getPublishingScheduled(String siteId, String publishingTarget, String approver,
                                               ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                              int offset, int limit) throws ServiceLayerException, UserNotFoundException;
+                                              List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get publishing package details
