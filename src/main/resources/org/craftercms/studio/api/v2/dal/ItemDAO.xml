@@ -508,6 +508,7 @@
         AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * from item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
         GROUP BY i.id
+        <include refid="orderBySortFields"/>
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
@@ -550,7 +551,7 @@
             (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
         GROUP BY i3.id)
         ) AS tbl
-        ORDER BY tbl.id
+        <include refid="orderBySortFields"/>
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
@@ -1072,9 +1073,18 @@
         <if test="statesBitMap != null">
         AND (i.state &amp; #{statesBitMap}) > 0
         </if>
-        ORDER BY i.id ASC
+        <include refid="orderBySortFields"/>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <sql id="orderBySortFields">
+        <if test="sortFields != null">
+            ORDER BY
+            <foreach collection="sortFields" item="sortField" separator=",">
+                ${sortField.field} ${sortField.order}
+            </foreach>
+        </if>
+    </sql>
 
     <update id="updateStatesByQuery" >
         UPDATE item i INNER JOIN site s ON i.site_id = s.id

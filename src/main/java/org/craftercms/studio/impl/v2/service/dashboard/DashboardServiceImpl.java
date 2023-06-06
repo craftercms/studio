@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.dashboard;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
@@ -41,11 +42,7 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.SandboxItem;
-import org.craftercms.studio.model.rest.dashboard.Activity;
-import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
-import org.craftercms.studio.model.rest.dashboard.ExpiringContentItem;
-import org.craftercms.studio.model.rest.dashboard.ExpiringContentResult;
-import org.craftercms.studio.model.rest.dashboard.PublishingStats;
+import org.craftercms.studio.model.rest.dashboard.*;
 import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
@@ -55,8 +52,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.opensearch.client.opensearch._types.SortOrder.Asc;
-import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -65,14 +60,15 @@ import static org.craftercms.studio.api.v1.dal.PublishRequest.Action.UPDATE;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_QUERY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRED_SORT_BY;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DASHBOARD_CONTENT_EXPIRING_QUERY;
+import static org.craftercms.studio.api.v2.dal.ItemState.SUBMITTED_MASK;
+import static org.craftercms.studio.api.v2.dal.ItemState.UNPUBLISHED_MASK;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.ISO_FORMATTER;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.parseDateIso;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
+import static org.opensearch.client.opensearch._types.SortOrder.Asc;
+import static org.opensearch.client.opensearch._types.SortOrder.Desc;
 
 public class DashboardServiceImpl implements DashboardService {
 
@@ -155,10 +151,10 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DetailedItem> getContentPendingApproval(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, offset, limit);
+                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
@@ -176,7 +172,8 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getContentPendingApprovalDetail(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                             String publishingPackageId)
+                                                             String publishingPackageId,
+                                                             List<SortField> sortFields)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
         var workflowEntries = workflowServiceInternal.getContentPendingApprovalDetail(siteId, publishingPackageId);
@@ -186,7 +183,7 @@ public class DashboardServiceImpl implements DashboardService {
         var ids = workflowEntries.stream()
                 .map(Workflow::getItemId)
                 .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, true);
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, true);
     }
 
     @Override
@@ -199,17 +196,17 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getContentUnpublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                   int offset, int limit)
+                                                   List<SortField> sortFields, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
         var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, offset, limit);
+                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
         var ids = items.stream().map(Item::getId)
                 .collect(toList());
-        return contentServiceInternal.getSandboxItemsById(siteId, ids, false);
+        return contentServiceInternal.getSandboxItemsById(siteId, ids, sortFields, false);
     }
 
     protected void prepareSearchParams(SearchParams searchParams, String query, String order, int offset, int limit) {
@@ -279,10 +276,10 @@ public class DashboardServiceImpl implements DashboardService {
     public List<DetailedItem> getPublishingScheduled(
             @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget,
             String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-            int offset, int limit) throws ServiceLayerException, UserNotFoundException {
+            List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         var items =
-                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, offset, limit);
+                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
