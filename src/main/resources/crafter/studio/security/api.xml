@@ -74,13 +74,7 @@
                 <bean class="org.springframework.security.access.vote.AuthenticatedVoter"/>
                 <bean class="org.springframework.security.access.vote.RoleVoter"/>
                 <!-- Custom Studio Voters -->
-                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioSiteAPIAccessDecisionVoter"
-                      parent="legacyAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioPublishingAPIAccessDecisionVoter"
-                      parent="legacyAccessDecisionVoter" />
-                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioUserAPIAccessDecisionVoter"
-                      parent="legacyAccessDecisionVoter" />
-                <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioGroupAPIAccessDecisionVoter"
                       parent="legacyAccessDecisionVoter" />
                 <bean class="org.craftercms.studio.impl.v1.web.security.access.StudioWorkflowAPIAccessDecisionVoter"
                       parent="legacyAccessDecisionVoter" />

@@ -107,8 +107,8 @@
         <rule regex=".*">
             <allowed-permissions>
                 <permission>content_read</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
@@ -161,8 +161,8 @@
         <rule regex=".*">
             <allowed-permissions>
                 <permission>content_read</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
@@ -181,7 +181,7 @@
                 <permission>cancel_publish</permission>
                 <permission>folder_create</permission>
                 <permission>content_create</permission>
-                <permission>Change Content Type</permission>
+                <permission>change_content_type</permission>
                 <permission>write_configuration</permission>
                 <permission>add_remote</permission>
                 <permission>list_remotes</permission>
@@ -231,8 +231,8 @@
         <rule regex=".*">
             <allowed-permissions>
                 <permission>content_read</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>list_plugins</permission>
@@ -252,7 +252,7 @@
                 <permission>cancel_publish</permission>
                 <permission>folder_create</permission>
                 <permission>content_create</permission>
-                <permission>Change Content Type</permission>
+                <permission>change_content_type</permission>
                 <permission>add_remote</permission>
                 <permission>list_remotes</permission>
                 <permission>pull_from_remote</permission>
@@ -308,8 +308,8 @@
         <rule regex=".*">
             <allowed-permissions>
                 <permission>content_read</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
                 <permission>edit_site</permission>
@@ -346,7 +346,7 @@
         <rule regex=".*">
             <allowed-permissions>
                 <permission>content_read</permission>
-                <permission>S3 Read</permission>
+                <permission>s3_read</permission>
                 <permission>webdav_read</permission>
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>
@@ -364,7 +364,7 @@
         <rule regex=".*">
             <allowed-permissions>
                 <permission>content_read</permission>
-                <permission>S3 Read</permission>
+                <permission>s3_read</permission>
                 <permission>webdav_read</permission>
                 <permission>list_plugins</permission>
                 <permission>get_children</permission>

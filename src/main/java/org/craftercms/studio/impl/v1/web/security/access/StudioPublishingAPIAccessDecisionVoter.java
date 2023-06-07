@@ -38,10 +38,7 @@ import org.springframework.security.web.FilterInvocation;
 public class StudioPublishingAPIAccessDecisionVoter extends StudioAbstractAccessDecisionVoter {
 
     private final static Logger logger = LoggerFactory.getLogger(StudioPublishingAPIAccessDecisionVoter.class);
-
-    private final static String START = "/api/1/services/api/1/publish/start.json";
     private final static String STATUS = "/api/1/services/api/1/publish/status.json";
-    private final static String STOP = "/api/1/services/api/1/publish/stop.json";
     private final static String COMMITS = "/api/1/services/api/1/publish/commits.json";
     private final static String PUBLISH_ITEMS = "/api/1/services/api/1/publish/publish-items.json";
     private final static String RESET_STAGING = "/api/1/services/api/1/publish/reset-staging.json";

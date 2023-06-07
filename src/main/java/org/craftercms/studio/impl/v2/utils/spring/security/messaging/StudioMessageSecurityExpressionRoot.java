@@ -28,9 +28,6 @@ import org.springframework.security.messaging.access.expression.MessageSecurityE
 
 import java.util.List;
 
-import static java.util.function.Predicate.isEqual;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
-
 /**
  * Extension of {@link MessageSecurityExpressionRoot} that adds Studio specific security expressions.
  *
@@ -53,24 +50,11 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
         this.groupServiceInternal = groupServiceInternal;
     }
 
-    protected boolean containsSystemAdminGroup(List<Group> groups) {
-        return groups.stream()
-                .map(Group::getGroupName)
-                .anyMatch(isEqual(SYSTEM_ADMIN_GROUP));
-    }
-
     /**
-     * Checks if the current user belongs to the {@code system_admin} group
+     * Checks if the current user has the {@code system_admin} role
      */
     public boolean isSystemAdmin() {
-        try {
-            // TODO: Check if Spring Security can load the groups during authentication to avoid these extra queries
-            List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
-            return containsSystemAdminGroup(userGroups);
-        } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to check the groups for user '{}'", getAuthentication().getName(), e);
-        }
-        return false;
+        return userServiceInternal.isSystemAdmin(getAuthentication().getName());
     }
 
     /**
@@ -80,15 +64,15 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
      */
     public boolean isSiteMember(String siteId) {
         try {
-            List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
-            if (containsSystemAdminGroup(userGroups)) {
+            if (isSystemAdmin()) {
                 return true;
-            } else {
-                List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
-                return userGroups.stream()
-                        .map(Group::getGroupName)
-                        .anyMatch(siteGroups::contains);
             }
+
+            List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
+            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            return userGroups.stream()
+                    .map(Group::getGroupName)
+                    .anyMatch(siteGroups::contains);
         } catch (ServiceLayerException | UserNotFoundException e) {
             logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
         }
