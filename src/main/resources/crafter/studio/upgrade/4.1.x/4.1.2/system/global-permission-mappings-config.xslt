@@ -42,6 +42,12 @@
     <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions/permission[. = 'site_delete']">
         <xsl:element name="permission"><xsl:text>delete_site</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
     </xsl:template>
+    <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions/permission[translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 's3 read']">
+        <xsl:element name="permission"><xsl:text>s3_read</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+    </xsl:template>
+    <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions/permission[translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 's3 write']">
+        <xsl:element name="permission"><xsl:text>s3_write</xsl:text></xsl:element><xsl:text>&#10;</xsl:text>
+    </xsl:template>
     <xsl:template match="permissions/role[@name='system_admin']/rule/allowed-permissions">
         <xsl:copy>
             <xsl:copy-of select="@*"/>
@@ -64,9 +70,9 @@
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>
-            <xsl:if test="not(permission = 'Change Content Type')">
+            <xsl:if test="not(permission = 'change_content_type')">
                 <xsl:element name="permission">
-                    <xsl:text>Change Content Type</xsl:text>
+                    <xsl:text>change_content_type</xsl:text>
                 </xsl:element>
                 <xsl:text>&#10;</xsl:text>
             </xsl:if>

@@ -1531,7 +1531,7 @@ paths:
         - aws
       summary: Get a list of items from an S3 bucket
       operationId: listItems
-      description: 'Required Permission: "S3 Read"'
+      description: 'Required Permission: "s3_read"'
       parameters:
         - name: siteId
           in: query
@@ -1584,7 +1584,7 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket
       operationId: uploadItem
-      description: 'Required Permission: "S3 Write"'
+      description: 'Required Permission: "s3_write"'
       requestBody:
         required: true
         content:
@@ -1638,7 +1638,7 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket and trigger a MediaConvert job
       operationId: uploadVideo
-      description: 'Required Permission: "S3 Write"'
+      description: 'Required Permission: "s3_write"'
       requestBody:
         required: true
         content:

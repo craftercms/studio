@@ -24,7 +24,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_AUDIT_LOG = "audit_log";
     public static final String PERMISSION_CANCEL_FAILED_PULL = "cancel_failed_pull";
     public static final String PERMISSION_CANCEL_PUBLISH = "cancel_publish";
-    public static final String PERMISSION_CHANGE_CONTENT_TYPE = "change content type";
+    public static final String PERMISSION_CHANGE_CONTENT_TYPE = "change_content_type";
     public static final String PERMISSION_COMMIT_RESOLUTION = "commit_resolution";
     public static final String PERMISSION_CONTENT_CREATE = "content_create";
     public static final String PERMISSION_FOLDER_CREATE = "folder_create";
@@ -56,8 +56,8 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_REBUILD_DATABASE = "rebuild_database";
     public static final String PERMISSION_REMOVE_REMOTE = "remove_remote";
     public static final String PERMISSION_RESOLVE_CONFLICT = "resolve_conflict";
-    public static final String PERMISSION_S3_READ = "s3 read";
-    public static final String PERMISSION_S3_WRITE = "s3 write";
+    public static final String PERMISSION_S3_READ = "s3_read";
+    public static final String PERMISSION_S3_WRITE = "s3_write";
     public static final String PERMISSION_SITE_DIFF_CONFLICTED_FILE = "site_diff_conflicted_file";
     public static final String PERMISSION_SITE_STATUS = "site_status";
     public static final String PERMISSION_UPDATE_CLUSTER = "update_cluster";

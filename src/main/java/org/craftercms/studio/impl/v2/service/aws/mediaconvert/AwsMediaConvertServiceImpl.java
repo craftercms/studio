@@ -57,6 +57,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3URI;
 
 import static java.lang.String.format;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_S3_WRITE;
 
 /**
  * Default implementation of {@link AwsMediaConvertService}
@@ -159,7 +160,7 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "s3 write")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_WRITE)
     public MediaConvertResult uploadVideo(@ValidateStringParam @ProtectedResourceId("siteId") final String site,
                                           @ValidateStringParam final String inputProfileId,
                                           @ValidateStringParam final String outputProfileId,
