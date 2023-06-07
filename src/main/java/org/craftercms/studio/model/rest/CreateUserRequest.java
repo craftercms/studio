@@ -30,7 +30,7 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 public class CreateUserRequest {
 
     @NotBlank
-    @Size(min = 5, max = 255)
+    @Size(min = 2, max = 255)
     @EsapiValidatedParam(type = USERNAME)
     private String username;
     @NotBlank
