@@ -48,6 +48,8 @@ import java.util.List;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.stripStart;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_S3_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_S3_WRITE;
 
 /**
  * Default implementation of {@link AwsS3Service}.
@@ -110,7 +112,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "s3 write")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_WRITE)
     public S3Item uploadItem(@ValidateStringParam @ProtectedResourceId("siteId") String siteId,
                              @ValidateStringParam String profileId,
                              @ValidateStringParam String path,
@@ -133,7 +135,7 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "s3 read")
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_READ)
     public List<S3Item> listItems(@ValidateStringParam @ProtectedResourceId("siteId") String siteId,
                                   @ValidateStringParam String profileId,
                                   @ValidateStringParam String path,

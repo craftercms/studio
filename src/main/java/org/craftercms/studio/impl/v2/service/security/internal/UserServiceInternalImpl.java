@@ -301,25 +301,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public boolean isUserMemberOfGroup(String username, String groupName)
-            throws UserNotFoundException, ServiceLayerException {
-        if (!userExists(-1, username)) {
-            throw new UserNotFoundException("No user found for username '" + username + "'");
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put(GROUP_NAME, groupName);
-        params.put(USERNAME, username);
-
-        try {
-            int result = userDao.isUserMemberOfGroup(params);
-            return result > 0;
-        } catch (Exception e) {
-            throw new ServiceLayerException("Unknown database error", e);
-        }
-    }
-
-    @Override
     public boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
         Map<String, Object> params = new HashMap<>();
@@ -473,6 +454,11 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         } else {
             throw new AuthenticationException("User should be authenticated");
         }
+    }
+
+    @Override
+    public boolean isSystemAdmin(String username) {
+        return securityService.isSystemAdmin(username);
     }
 
 }

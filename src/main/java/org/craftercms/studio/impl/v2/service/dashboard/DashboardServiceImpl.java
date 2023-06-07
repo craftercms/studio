@@ -143,18 +143,18 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getContentPendingApprovalTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+    public int getContentPendingApprovalTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> systemTypes) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK);
+        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<DetailedItem> getContentPendingApproval(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
+            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, sortFields, offset, limit);
+                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
@@ -188,19 +188,19 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getContentUnpublishedTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+    public int getContentUnpublishedTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> systemTypes) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK);
+        return itemServiceInternal.getItemStatesTotal(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes);
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public List<SandboxItem> getContentUnpublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
-                                                   List<SortField> sortFields, int offset, int limit)
+                                                   List<String> systemTypes, List<SortField> sortFields, int offset, int limit)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
         var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, sortFields, offset, limit);
+                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, UNPUBLISHED_MASK, systemTypes, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
@@ -266,9 +266,9 @@ public class DashboardServiceImpl implements DashboardService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
     public int getPublishingScheduledTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                            String publishingTarget, String approver,
-                                           ZonedDateTime dateFrom, ZonedDateTime dateTo) throws SiteNotFoundException {
+                                           ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo);
+        return publishServiceInternal.getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes);
     }
 
     @Override
@@ -276,10 +276,10 @@ public class DashboardServiceImpl implements DashboardService {
     public List<DetailedItem> getPublishingScheduled(
             @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget,
             String approver, ZonedDateTime dateFrom, ZonedDateTime dateTo,
-            List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
+            List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         var items =
-                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, sortFields, offset, limit);
+                publishServiceInternal.getPublishingItemsScheduled(siteId, publishingTarget, approver, dateFrom, dateTo, systemTypes, sortFields, offset, limit);
         if (items.isEmpty()) {
             return emptyList();
         }
