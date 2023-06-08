@@ -16,6 +16,15 @@
   -->
 <site-policy>
     <statement>
+        <target-path-pattern>/test.*</target-path-pattern>
+        <permitted>
+            <path>
+                <source-regex>[\(\)\s]</source-regex>
+                <target-regex caseTransform="lowercase">-</target-regex>
+            </path>
+        </permitted>
+    </statement>
+    <statement>
         <target-path-pattern>/(?!scripts/.*|templates/.*|static-assets/app/.*).*</target-path-pattern>
         <permitted>
             <path>
