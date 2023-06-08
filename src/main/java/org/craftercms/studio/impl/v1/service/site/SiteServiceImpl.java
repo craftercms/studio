@@ -33,6 +33,8 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -101,6 +103,7 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
@@ -114,6 +117,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_SITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_DELETE_SITE;
 
 /**
  * Note: consider renaming
@@ -177,6 +182,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_CREATE_SITE)
     public void createSiteFromBlueprint(
             @ValidateStringParam String blueprintId,
             @Size(max = 50) @ValidateStringParam(whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
@@ -464,17 +470,22 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
         String parentPath = FilenameUtils.getPrefix(path) +
-                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, "/index.xml", ""));
-        if (isNotEmpty(parentPath) && !StringUtils.equals(parentPath, path)) {
-            addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-            if (StringUtils.endsWith(path, "/index.xml")) {
-                addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
-                        "/index.xml", ""), updateParentIdScriptPath);
-            }
-            Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
-                    StandardOpenOption.APPEND);
-            Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
+                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, SLASH_INDEX_FILE, ""));
+        if (isEmpty(parentPath) || StringUtils.equals(parentPath, path)) {
+            return;
         }
+        addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
+        if (StringUtils.endsWith(path, SLASH_INDEX_FILE)) {
+            addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
+                    "/index.xml", ""), updateParentIdScriptPath);
+            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES)) {
+                Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
+                        StandardOpenOption.APPEND);
+            }
+        }
+        Files.write(updateParentIdScriptPath, updateParentId(siteId, path, parentPath).getBytes(UTF_8),
+                StandardOpenOption.APPEND);
+        Files.write(updateParentIdScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
     }
 
     private void addDependenciesScriptSnippets(String siteId, String path, String oldPath, Path file) throws IOException {
@@ -552,6 +563,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_CREATE_SITE)
     public void createSiteWithRemoteOption(
             @Size(max = 50) @ValidateStringParam(whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
             @ValidateStringParam String siteName,
@@ -731,6 +743,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_DELETE_SITE)
     public boolean deleteSite(@ValidateStringParam String siteId) {
         boolean success = true;
         logger.info("Delete site '{}'", siteId);
@@ -1173,11 +1186,20 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     }
                     break;
                 case DELETE:
+                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
+                    boolean folderExists = contentRepositoryV2.contentExists(siteId, folder);
+
+                    // If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
+                    if (folderExists && StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
+                            StringUtils.endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
+                        Files.write(repoOperationsScriptPath,
+                                updateDeletedPageChildren(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
+                    }
+
                     Files.write(repoOperationsScriptPath,
                             deleteItemRow(siteFeed.getId(), repoOperation.getPath()).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
-                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
-                    if (!contentRepositoryV2.contentExists(siteId, folder)) {
+                    if (!folderExists) {
                         Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                         Files.write(repoOperationsScriptPath,
                                 deleteItemRow(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);

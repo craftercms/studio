@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,8 @@ import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
+import static org.apache.commons.lang.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 
 public final class SqlStatementGeneratorUtils {
@@ -67,6 +69,22 @@ public final class SqlStatementGeneratorUtils {
                     "'#{parentPath}/index.xml' or path = '#{parentPath}') ORDER BY PATH desc LIMIT 1 ;\n\n" +
                     "UPDATE item SET parent_id = @parentId WHERE id = @itemId ;\n\nSET @itemId = NULL ;\n\n" +
                     "SET @parentId = NULL ;" ;
+
+    public static final String UPDATE_NEW_PAGE_CHILDREN = "UPDATE item, " +
+            "(SELECT child.id AS childId, " +
+            "(SELECT i.id FROM item i WHERE i.site_id = #{siteId} AND i.path = concat('#{path}', '/index.xml')) AS newParentId " +
+            "FROM item child INNER JOIN item parent ON child.parent_id = parent.id " +
+            "WHERE child.site_id = #{siteId} AND parent.path = '#{path}') AS updates " +
+            "SET item.parent_id = updates.newParentId " +
+            "WHERE item.id = updates.childId ;\n\n";
+
+    public static final String UPDATE_DELETED_PAGE_CHILDREN = "UPDATE item, " +
+            "(SELECT child.id AS childId, " +
+            "(SELECT i.id FROM item i WHERE i.site_id = #{siteId} AND i.path = '#{folderPath}') AS newParentId " +
+            "FROM item child INNER JOIN item parent ON child.parent_id = parent.id " +
+            "WHERE child.site_id = #{siteId} AND parent.path = concat('#{folderPath}', '/index.xml')) AS updates " +
+            "SET item.parent_id = updates.newParentId " +
+            "WHERE item.id = updates.childId ;\n\n";
 
     public static final String ITEM_UPDATE_PARENT_ID_SIMPLE =
             "UPDATE item SET parent_id = #{parentId} WHERE id = #{itemId} ;" ;
@@ -209,6 +227,35 @@ public final class SqlStatementGeneratorUtils {
         String sql = StringUtils.replace(ITEM_UPDATE_PARENT_ID, "#{siteId}", Long.toString(siteId));
         sql = StringUtils.replace(sql,"#{itemPath}", StringUtils.replace(itemPath, "'", "''"));
         sql = StringUtils.replace(sql,"#{parentPath}", StringUtils.replace(parentPath, "'", "''"));
+        return sql;
+    }
+
+    /**
+     * Generates the sql statements to update a new page children.
+     * This should be called when a new page (index.xml) is created in an already existing folder
+     *
+     * @param siteId the site id
+     * @param path   the page to the content (including index.xml)
+     * @return the sql statement
+     */
+    public static String updateNewPageChildren(long siteId, String path) {
+        String folderPath = removeEnd(path, SLASH_INDEX_FILE);
+        String sql = StringUtils.replace(UPDATE_NEW_PAGE_CHILDREN, "#{siteId}", Long.toString(siteId));
+        sql = StringUtils.replace(sql, "#{path}", folderPath);
+        return sql;
+    }
+
+    /**
+     * Generates the sql statements to update a deleted page children.
+     * This should be called when a page (index.xml) is deleted via git but its children still exists
+     *
+     * @param siteId     the site id
+     * @param folderPath the folder path to the deleted page
+     * @return the sql statement
+     */
+    public static String updateDeletedPageChildren(long siteId, String folderPath) {
+        String sql = StringUtils.replace(UPDATE_DELETED_PAGE_CHILDREN, "#{siteId}", Long.toString(siteId));
+        sql = StringUtils.replace(sql, "#{folderPath}", folderPath);
         return sql;
     }
 

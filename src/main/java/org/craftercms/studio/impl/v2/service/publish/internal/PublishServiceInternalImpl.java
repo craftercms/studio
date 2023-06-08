@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v2.service.publish.internal;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -26,6 +27,7 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishServiceInternal;
+import org.craftercms.studio.api.v2.utils.DalUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 import org.springframework.beans.BeansException;
@@ -181,18 +183,18 @@ public class PublishServiceInternalImpl implements PublishServiceInternal, Appli
 
     @Override
     public int getPublishingItemsScheduledTotal(String siteId, String publishingTarget, String approver,
-                                                ZonedDateTime dateFrom, ZonedDateTime dateTo) {
+                                                ZonedDateTime dateFrom, ZonedDateTime dateTo, List<String> systemTypes) {
         return publishRequestDao
-                .getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, READY_FOR_LIVE, dateFrom, dateTo)
+                .getPublishingItemsScheduledTotal(siteId, publishingTarget, approver, READY_FOR_LIVE, dateFrom, dateTo, systemTypes)
                 .orElse(0);
     }
 
     @Override
     public List<PublishRequest> getPublishingItemsScheduled(String siteId, String publishingTarget, String approver,
                                                             ZonedDateTime dateFrom, ZonedDateTime dateTo,
-                                                            int offset, int limit) {
+                                                            List<String> systemTypes, List<SortField> sortFields, int offset, int limit) {
         return publishRequestDao.getPublishingItemsScheduled(siteId, publishingTarget, approver, READY_FOR_LIVE,
-                dateFrom, dateTo, offset, limit);
+                dateFrom, dateTo, systemTypes, DalUtils.mapSortFields(sortFields,PublishRequestDAO.SORT_FIELD_MAP), offset, limit);
     }
 
     @Override

@@ -92,40 +92,20 @@ public interface SecurityService {
     int getAllUsersTotal() throws ServiceLayerException;
 
     /**
-     * Change password
-     *
-     * @param username username
-     * @param current current password
-     * @param newPassword new password
-     * @return true if user's password is successfully changed
-     *
-     * @throws UserExternallyManagedException user is externally managed
-     * @throws PasswordDoesNotMatchException password does not match stored password
-     * @throws ServiceLayerException general service error
-     */
-    boolean changePassword(String username, String current, String newPassword) throws
-            PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
-
-
-    /**
-     * Reset user password
-     *
-     * @param username username
-     * @param newPassword new password
-     * @return true if user's password is successfully reset
-     *
-     * @throws UserNotFoundException user not found
-     * @throws UserExternallyManagedException user externally managed
-     * @throws ServiceLayerException general service error
-     */
-    boolean resetPassword(String username, String newPassword) throws UserNotFoundException,
-        UserExternallyManagedException, ServiceLayerException;
-
-    /**
      * Check if given user is site admin
      * @param username user
      * @param site site identifier
      * @return true if user belongs to admin group
      */
     boolean isSiteAdmin(String username, String site);
+
+    /**
+     * Check if given user has system_admin role
+     * @param username user
+     * @return true if user is system_admin, false otherwise
+     */
+    boolean isSystemAdmin(String username);
+
+    List<String> getUserGlobalRoles(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException;
 }

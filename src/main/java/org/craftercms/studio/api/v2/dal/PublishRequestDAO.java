@@ -17,39 +17,22 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.model.rest.dashboard.DashboardPublishingPackage;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ACTIVITY_ACTION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.APPROVER;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CANCELLED_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMPLETED_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.CONTENT_TYPE_CLASS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DAYS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.ENVIRONMENTS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.FROM_DATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.LIMIT;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NOW;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.OFFSET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PACKAGE_IDS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATH;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PATHS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_TARGET;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISH_ACTION;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISH_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.READY_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SCHEDULED_STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATES;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TO_DATE;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface PublishRequestDAO {
+
+    Map<String, String> SORT_FIELD_MAP = Map.of(
+            "id", "id",
+            "dateScheduled", "scheduleddate",
+            "label", "label");
 
     /**
      * Get total number of publishing package for given search filters
@@ -189,40 +172,47 @@ public interface PublishRequestDAO {
 
     /**
      * Get number of scheduled publishing items results for given filters
-     * @param siteId site identifier
+     *
+     * @param siteId           site identifier
      * @param publishingTarget publishing target
-     * @param approver approver
-     * @param scheduledState scheduled state
-     * @param fromDate get history from date
-     * @param toDate get history to date
+     * @param approver         approver
+     * @param scheduledState   scheduled state
+     * @param fromDate         get history from date
+     * @param toDate           get history to date
+     * @param systemTypes     system types to filter
      * @return total number of results
      */
     Optional<Integer> getPublishingItemsScheduledTotal(@Param(SITE_ID) String siteId,
-                                                          @Param(PUBLISHING_TARGET) String publishingTarget,
-                                                          @Param(APPROVER) String approver,
-                                                          @Param(SCHEDULED_STATE) String scheduledState,
-                                                          @Param(FROM_DATE) ZonedDateTime fromDate,
-                                                          @Param(TO_DATE) ZonedDateTime toDate);
+                                                       @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                       @Param(APPROVER) String approver,
+                                                       @Param(SCHEDULED_STATE) String scheduledState,
+                                                       @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                       @Param(TO_DATE) ZonedDateTime toDate,
+                                                       @Param(SYSTEM_TYPES) List<String> systemTypes);
     /**
      * Get scheduled publishing items
-     * @param siteId site identifier
+     *
+     * @param siteId           site identifier
      * @param publishingTarget publishing target
-     * @param approver approver
-     * @param scheduledState scheduled state
-     * @param fromDate get history from date
-     * @param toDate get history to date
-     * @param offset offset for pagination
-     * @param limit number of records to return
+     * @param approver         approver
+     * @param scheduledState   scheduled state
+     * @param fromDate         get history from date
+     * @param toDate           get history to date
+     * @param systemTypes system types to filter
+     * @param sortFields       sort fields
+     * @param offset           offset for pagination
+     * @param limit            number of records to return
      * @return
      */
-    List<PublishRequest> getPublishingItemsScheduled(@Param(SITE_ID) String siteId,
-                                                                    @Param(PUBLISHING_TARGET) String publishingTarget,
-                                                                    @Param(APPROVER) String approver,
-                                                                    @Param(SCHEDULED_STATE) String scheduledState,
-                                                                    @Param(FROM_DATE) ZonedDateTime fromDate,
-                                                                    @Param(TO_DATE) ZonedDateTime toDate,
-                                                                    @Param(OFFSET) int offset,
-                                                                    @Param(LIMIT) int limit);
+    List<PublishRequest> getPublishingItemsScheduled(@Param(SITE_ID) String siteId, @Param(PUBLISHING_TARGET) String publishingTarget,
+                                                     @Param(APPROVER) String approver,
+                                                     @Param(SCHEDULED_STATE) String scheduledState,
+                                                     @Param(FROM_DATE) ZonedDateTime fromDate,
+                                                     @Param(TO_DATE) ZonedDateTime toDate,
+                                                     @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                                     @Param(SORT_FIELDS) List<SortField> sortFields,
+                                                     @Param(OFFSET) int offset,
+                                                     @Param(LIMIT) int limit);
 
     /**
      * Get number of publishing packages history results for given filters

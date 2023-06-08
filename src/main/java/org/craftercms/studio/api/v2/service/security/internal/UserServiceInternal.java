@@ -141,4 +141,10 @@ public interface UserServiceInternal {
      */
     AuthenticatedUser getCurrentUser() throws AuthenticationException;
 
+    /**
+     * Check if given user has system_admin role
+     * @param username user
+     * @return true if user is system_admin, false otherwise
+     */
+    boolean isSystemAdmin(String username);
 }

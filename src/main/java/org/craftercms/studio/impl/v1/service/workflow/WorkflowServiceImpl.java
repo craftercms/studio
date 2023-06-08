@@ -611,7 +611,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
         List<String> affectedPaths = new ArrayList<>();
         List<String> filteredPaths = new ArrayList<>();
         Item item = itemServiceInternal.getItem(site, path);
-        if (isInWorkflow(item.getState())) {
+        if (isInWorkflowOrScheduled(item.getState())) {
             affectedPaths.add(path);
             boolean isNew = isNew(item.getState());
             boolean isRenamed = StringUtils.isNotEmpty(item.getPreviousPath());
@@ -629,7 +629,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
             List<SandboxItem> candidateItems = contentServiceInternal.getSandboxItemsByPath(site, candidates, true);
             for (SandboxItem cp : candidateItems) {
-                if (isInWorkflow(cp.getState())) {
+                if (isInWorkflowOrScheduled(cp.getState())) {
                     filteredPaths.add(cp.getPath());
                 }
             }

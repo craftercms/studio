@@ -1531,7 +1531,7 @@ paths:
         - aws
       summary: Get a list of items from an S3 bucket
       operationId: listItems
-      description: 'Required Permission: "S3 Read"'
+      description: 'Required Permission: "s3_read"'
       parameters:
         - name: siteId
           in: query
@@ -1584,7 +1584,7 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket
       operationId: uploadItem
-      description: 'Required Permission: "S3 Write"'
+      description: 'Required Permission: "s3_write"'
       requestBody:
         required: true
         content:
@@ -1638,7 +1638,7 @@ paths:
         - aws
       summary: Upload a file to an S3 bucket and trigger a MediaConvert job
       operationId: uploadVideo
-      description: 'Required Permission: "S3 Write"'
+      description: 'Required Permission: "s3_write"'
       requestBody:
         required: true
         content:
@@ -1921,7 +1921,7 @@ paths:
       tags:
         - sites
       summary: Deletes a site
-      description: 'Required Permission: "site_delete"'
+      description: 'Required Permission: "delete_site"'
       operationId: deleteSite
       parameters:
         - name: siteId
@@ -5367,6 +5367,14 @@ paths:
           required: false
           schema:
             type: integer
+        - name: sort
+          in: query
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+          Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+        - name: itemType
+          in: query
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
+          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
       responses:
         '200':
           description: OK
@@ -5475,6 +5483,14 @@ paths:
           required: false
           schema:
             type: integer
+        - name: sort
+          in: query
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+          Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+        - name: itemType
+          in: query
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
+          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
       responses:
         '200':
           description: OK
@@ -5564,6 +5580,14 @@ paths:
           required: false
           schema:
             type: integer
+        - name: sort
+          in: query
+          description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
+          Multiple fields are separated by commas. Example: `dateScheduled asc, label desc`. Supported fields: `id` `dateScheduled` `label`. Default `dateScheduled desc`"
+        - name: itemType
+          in: query
+          description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
+          Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
       responses:
         '200':
           description: OK

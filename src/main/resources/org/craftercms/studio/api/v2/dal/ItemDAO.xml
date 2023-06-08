@@ -508,9 +508,12 @@
         AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * from item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
         GROUP BY i.id
+        <include refid="orderBySortFields"/>
     </select>
 
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
+        SELECT tbl.*
+        FROM (
         (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                COUNT(DISTINCT i5.id ) AS children_count
         FROM item i1
@@ -547,6 +550,8 @@
         AND (i6.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
             (SELECT * FROM item i11 WHERE i11.site_id = i6.site_id AND i11.path = CONCAT(i6.path, '/index.xml')))
         GROUP BY i3.id)
+        ) AS tbl
+        <include refid="orderBySortFields"/>
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
@@ -898,7 +903,7 @@
         SELECT i4.path AS path
         FROM item i2 INNER JOIN site s2 ON i2.site_id = s2.id INNER JOIN item i4 ON i2.parent_id = i4.id
         WHERE s2.site_id = #{siteId}
-        AND TRIM(IFNULL(i2.previous_path, '')) &lt;&gt; ''
+        AND TRIM(IFNULL(i4.previous_path, '')) &lt;&gt; ''
         AND i2.ignored = 0
         AND i2.path IN
         <foreach item="path" index="index" collection="possibleParents"
@@ -1053,6 +1058,7 @@
         <if test="statesBitMap != null">
         AND (i.state &amp; #{statesBitMap}) &gt; 0
         </if>
+        <include refid="filterBySystemType"/>
     </select>
 
     <select id="getItemStates" resultMap="ItemMap">
@@ -1068,8 +1074,28 @@
         <if test="statesBitMap != null">
         AND (i.state &amp; #{statesBitMap}) > 0
         </if>
+        <include refid="filterBySystemType"/>
+        <include refid="orderBySortFields"/>
         LIMIT #{offset}, #{limit}
     </select>
+
+    <sql id="filterBySystemType">
+        <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
+            AND i.system_type IN
+            <foreach collection="systemTypes" item="systemType" separator="," open="(" close=")">
+                #{systemType}
+            </foreach>
+        </if>
+    </sql>
+
+    <sql id="orderBySortFields">
+        <if test="sortFields != null &amp;&amp; !sortFields.isEmpty()">
+            ORDER BY
+            <foreach collection="sortFields" item="sortField" separator=",">
+                ${sortField.field} ${sortField.order}
+            </foreach>
+        </if>
+    </sql>
 
     <update id="updateStatesByQuery" >
         UPDATE item i INNER JOIN site s ON i.site_id = s.id
@@ -1092,4 +1118,21 @@
         AND s.deleted = 0
         AND i.path LIKE #{likePath}
     </select>
+
+    <update id="updateNewPageChildren">
+        UPDATE item,
+            (SELECT child.id AS childId,
+                            (SELECT i.id
+                            FROM item i INNER JOIN site s on s.id = i.site_id
+                            WHERE s.site_id = #{siteId} AND s.deleted = 0
+                            AND i.path = concat(#{path}, '/index.xml')) AS newParentId
+            FROM item child
+                INNER JOIN item parent ON child.parent_id = parent.id
+                INNER JOIN site s ON s.id = child.site_id
+            WHERE s.site_id = #{siteId} AND s.deleted = 0
+                AND parent.path = #{path}
+            ) AS updates
+        SET item.parent_id = updates.newParentId
+        WHERE item.id = updates.childId
+    </update>
 </mapper>

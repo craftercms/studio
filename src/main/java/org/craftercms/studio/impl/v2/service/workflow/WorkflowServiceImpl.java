@@ -100,7 +100,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
     public int getItemStatesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
                                   @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return itemServiceInternal.getItemStatesTotal(siteId, path, states);
+        return itemServiceInternal.getItemStatesTotal(siteId, path, states, null);
     }
 
     @Override
@@ -109,7 +109,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
                                            int offset, int limit) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
-        return itemServiceInternal.getItemStates(siteId, path, states, offset, limit).stream()
+        return itemServiceInternal.getItemStates(siteId, path, states, null, null, offset, limit).stream()
                 .map(SandboxItem::getInstance)
                 .collect(toList());
     }

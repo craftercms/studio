@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.service.content.internal;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -40,20 +41,16 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
+import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 
 public class ContentServiceInternalImpl implements ContentServiceInternal {
@@ -189,30 +186,31 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
-    public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, boolean preferContent)
+    public List<SandboxItem> getSandboxItemsById(String siteId, List<Long> ids, List<SortField> sortFields, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         List<Item> items;
         if (preferContent) {
-            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsByIdPreferContent(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         } else {
-            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER);
+            items = itemDao.getSandboxItemsById(ids, CONTENT_TYPE_FOLDER, mapSortFields(sortFields, ItemDAO.SORT_FIELD_MAP));
         }
         return calculatePossibleActions(siteId, items);
     }
 
     private List<SandboxItem> calculatePossibleActions(String siteId, List<Item> items)
             throws ServiceLayerException, UserNotFoundException {
+        if (!CollectionUtils.isNotEmpty(items)) {
+            return emptyList();
+        }
         List<SandboxItem> toRet = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(items)) {
-            String user = securityService.getCurrentUser();
-            for (Item item : items) {
-                if (!contentRepository.contentExists(siteId, item.getPath())) {
-                    logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
-                } else {
-                    item.setAvailableActions(
-                            semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
-                    toRet.add(SandboxItem.getInstance(item));
-                }
+        String user = securityService.getCurrentUser();
+        for (Item item : items) {
+            if (!contentRepository.contentExists(siteId, item.getPath())) {
+                logger.warn("Content not found in site '{}' path '{}'", siteId, item.getPath());
+            } else {
+                item.setAvailableActions(
+                        semanticsAvailableActionsResolver.calculateContentItemAvailableActions(user, siteId, item));
+                toRet.add(SandboxItem.getInstance(item));
             }
         }
         return toRet;

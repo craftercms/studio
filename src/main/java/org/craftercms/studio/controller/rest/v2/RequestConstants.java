@@ -53,10 +53,17 @@ public final class RequestConstants {
     public static final String REQUEST_PARAM_USERNAMES = "usernames";
     public static final String REQUEST_PARAM_PUBLISHING_TARGET = "publishingTarget";
     public static final String REQUEST_PARAM_APPROVER = "approver";
+    public static final String REQUEST_PARAM_ITEM_TYPE = "itemType";
 
     public static final String GROUP_SORT_COLUMNS = "id record_last_updated group_name externally_managed";
 
     public static final String USER_SORT_COLUMNS = "id username firstName lastName externally_managed email enabled";
+
+    public static final String ITEM_SORT_FIELDS = "id dateModified label";
+
+    public static final String PUBLISH_REQUEST_SORT_FIELDS = "id dateScheduled label";
+
+    public static final String ITEM_TYPE_VALUES = "asset|component|content type|document|file|folder|levelDescriptor|page|renderingTemplate|script|taxonomy";
 
     private RequestConstants() {
     }

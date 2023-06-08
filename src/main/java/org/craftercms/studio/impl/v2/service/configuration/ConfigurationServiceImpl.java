@@ -123,8 +123,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         Document document;
 
         try {
-            // The `write` seems to always send env = null
-            document = getConfigurationAsDocument(siteId, MODULE_STUDIO, roleMappingsConfigPath, null);
+            document = getConfigurationAsDocument(siteId, MODULE_STUDIO, roleMappingsConfigPath,
+                    studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE));
             if (document != null) {
                 Element root = document.getRootElement();
                 if (root.getName().equals(DOCUMENT_ROLE_MAPPINGS)) {

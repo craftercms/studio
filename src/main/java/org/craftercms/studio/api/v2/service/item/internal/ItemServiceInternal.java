@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.service.item.internal;
 
+import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.DetailedItem;
@@ -346,18 +347,21 @@ public interface ItemServiceInternal {
      * @param states states mask to filter items by state
      * @return number of records
      */
-    int getItemStatesTotal(String siteId, String path, Long states);
+    int getItemStatesTotal(String siteId, String path, Long states, List<String> systemTypes);
 
     /**
      * Get item states for given filters by path regex and states mask
-     * @param siteId site identifier
-     * @param path path regex to filter items
-     * @param states states mask to filter items by state
-     * @param offset offset for the first record in result set
-     * @param limit number of item states records to return
+     *
+     * @param siteId      site identifier
+     * @param path        path regex to filter items
+     * @param states      states mask to filter items by state
+     * @param systemTypes system types to filter items
+     * @param sortFields sort fields
+     * @param offset      offset for the first record in result set
+     * @param limit       number of item states records to return
      * @return list of sandbox items
      */
-    List<Item> getItemStates(String siteId, String path, Long states, int offset, int limit);
+    List<Item> getItemStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
 
     /**
      * Update item state flags for given items
@@ -402,4 +406,13 @@ public interface ItemServiceInternal {
      * @param offStateBitMap states bitmap to flip off
      */
     void updateStatesForSite(String siteId, long onStateBitMap, long offStateBitMap);
+
+    /**
+     * Updates a new page's children (in case the folder existed before the page was created)
+     * to point to the new page.
+     *
+     * @param site site identifier
+     * @param path path of the folder where the new index.xml has been added
+     */
+    void updateNewPageChildren(String site, String path);
 }

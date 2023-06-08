@@ -17,14 +17,21 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.commons.rest.parameters.SortField;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface ItemDAO {
+
+    Map<String, String> SORT_FIELD_MAP = Map.of(
+            "id", "id",
+            "dateModified", "last_modified_on",
+            "label", "label");
 
     /**
      * Get total number of children for given path
@@ -263,21 +270,25 @@ public interface ItemDAO {
 
     /**
      * Get sandbox items for given ids with prefer content option
-     * @param itemIds item ids
+     *
+     * @param itemIds          item ids
+     * @param sortFields
      * @param systemTypeFolder value for system type folder
      * @return list of items
      */
     List<Item> getSandboxItemsByIdPreferContent(@Param(ITEM_IDS) List<Long> itemIds,
-                                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
+                                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder, @Param(SORT_FIELDS) List<SortField> sortFields);
 
     /**
      * Get sandbox items for given ids
-     * @param itemIds item ids
+     *
+     * @param itemIds          item ids
+     * @param sortFields
      * @param systemTypeFolder value for system type folder
      * @return list of items
      */
     List<Item> getSandboxItemsById(@Param(ITEM_IDS) List<Long> itemIds,
-                                   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder);
+                                   @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder, @Param(SORT_FIELDS) List<SortField> sortFields);
 
     /**
      * Get mandatory parents for publishing
@@ -399,24 +410,32 @@ public interface ItemDAO {
 
     /**
      * Get total number of item states records for given filters by path regex and states mask
-     * @param siteId site identifier
-     * @param path path regex to filter items
-     * @param states states mask to filter items by state
+     *
+     * @param siteId      site identifier
+     * @param path        path regex to filter items
+     * @param states      states mask to filter items by state
+     * @param systemTypes system types to filter items
      * @return number of records
      */
-    int getItemStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(STATES_BIT_MAP) Long states);
+    int getItemStatesTotal(@Param(SITE_ID) String siteId, @Param(PATH) String path,
+                           @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes);
 
     /**
      * Get item states for given filters by path regex and states mask
-     * @param siteId site identifier
-     * @param path path regex to filter items
-     * @param states states mask to filter items by state
-     * @param offset offset for the first record in result set
-     * @param limit number of item states records to return
+     *
+     * @param siteId      site identifier
+     * @param path        path regex to filter items
+     * @param states      states mask to filter items by state
+     * @param systemTypes system types to filter items
+     * @param sortFields  list of sort fields
+     * @param offset      offset for the first record in result set
+     * @param limit       number of item states records to return
      * @return list of sandbox items
      */
     List<Item> getItemStates(@Param(SITE_ID) String siteId, @Param(PATH) String path,
-                             @Param(STATES_BIT_MAP) Long states, @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+                             @Param(STATES_BIT_MAP) Long states, @Param(SYSTEM_TYPES) List<String> systemTypes,
+                             @Param(SORT_FIELDS) List<SortField> sortFields,
+                             @Param(OFFSET) int offset, @Param(LIMIT) int limit);
 
     /**
      * Update item state by query
@@ -439,4 +458,15 @@ public interface ItemDAO {
      */
     List<String> getSubtreeForDelete(@Param(SITE_ID) String siteId,
                                      @Param(LIKE_PATH) String likePath);
+
+    /**
+     * When creating a new page in an already existing folder, we need to update the children of the folder
+     * to become the children of the page.
+     * This method will find the direct children of the given folder, and update
+     * their parent id to be the id the new page (the item with path = folderPath + /index.xml).
+     *
+     * @param siteId     site identifier
+     * @param folderPath path of the folder
+     */
+    void updateNewPageChildren(@Param(SITE_ID) String siteId, @Param(PATH) String folderPath);
 }
