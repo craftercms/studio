@@ -90,6 +90,8 @@ public interface UserServiceInternal {
 
     List<Group> getUserGroups(long userId, String username) throws UserNotFoundException, ServiceLayerException;
 
+    boolean isUserMemberOfGroup(String username, String groupName) throws UserNotFoundException, ServiceLayerException;
+
     boolean changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException;
 
