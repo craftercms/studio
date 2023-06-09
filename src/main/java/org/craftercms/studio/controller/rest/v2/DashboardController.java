@@ -228,7 +228,7 @@ public class DashboardController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime dateTo,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
-            @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateScheduled desc")
+            @RequestParam(value = REQUEST_PARAM_SORT, required = false, defaultValue = "dateScheduled asc")
             List<@SqlSort(columns = PUBLISH_REQUEST_SORT_FIELDS) SortField> sortFields,
             @RequestParam(value = REQUEST_PARAM_ITEM_TYPE, required = false, defaultValue = "")
             List<@ValidateStringParam(whitelistedPatterns = ITEM_TYPE_VALUES) String> systemTypes)
