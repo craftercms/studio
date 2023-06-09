@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_DEFAULT_ADMIN_GROUP;
 
 public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisionVoter {
@@ -63,33 +62,6 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
     }
 
     protected abstract int voteInternal(Authentication authentication, Object object, Collection collection);
-
-    protected boolean isSiteMember(User currentUser, String userParam) {
-        try {
-            int total1 = siteService.getSitesPerUserTotal(userParam);
-            List<SiteFeed> sitesFeed1 = siteService.getSitesPerUser(userParam, 0, total1);
-            int total2 = siteService.getSitesPerUserTotal(currentUser.getUsername());
-            List<SiteFeed> sitesFeed2 = siteService.getSitesPerUser(currentUser.getUsername(), 0, total2);
-
-            Set<String> sites1 = new HashSet<>();
-            Set<String> sites2 = new HashSet<>();
-            for (SiteFeed site : sitesFeed1) {
-                sites1.add(site.getSiteId());
-            }
-            for (SiteFeed site : sitesFeed2) {
-                sites2.add(site.getSiteId());
-            }
-
-            Collection intersection = CollectionUtils.intersection(sites1, sites2);
-            return CollectionUtils.isNotEmpty(intersection);
-        } catch (UserNotFoundException e) {
-            logger.info("User '{}' is not a site member", currentUser.getUsername(), e);
-            return false;
-        } catch (ServiceLayerException e) {
-            logger.warn("Failed to get site membership for user '{}'", currentUser.getUsername(), e);
-            return false;
-        }
-    }
 
     protected boolean isSiteMember(String siteId, User currentUser) {
         try {
@@ -140,34 +112,6 @@ public abstract class StudioAbstractAccessDecisionVoter implements AccessDecisio
             logger.warn("Failed to get site membership for user '{}' site '{}'", currentUser.getUsername(), siteId, e);
             return false;
         }
-    }
-
-    protected boolean isSelf(User currentUser, String userParam) {
-        return StringUtils.equals(userParam, currentUser.getUsername());
-    }
-
-    protected boolean isAdmin(User user) {
-        List<Group> userGroups = null;
-        try {
-            userGroups = userServiceInternal.getUserGroups(-1, user.getUsername());
-        } catch (UserNotFoundException e) {
-            logger.info("User '{}' is not a site member", user.getUsername(), e);
-            return false;
-        } catch (ServiceLayerException e) {
-            logger.warn("Failed to get site membership for user '{}'", user.getUsername(), e);
-            return false;
-        }
-
-        boolean toRet = false;
-        if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getGroupName(), SYSTEM_ADMIN_GROUP)) {
-                    toRet = true;
-                    break;
-                }
-            }
-        }
-        return toRet;
     }
 
     protected boolean hasPermission(String siteId, String path, String user, String permission) {

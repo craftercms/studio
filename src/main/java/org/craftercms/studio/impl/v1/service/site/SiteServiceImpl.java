@@ -33,6 +33,8 @@ import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
@@ -115,6 +117,8 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_SITE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_DELETE_SITE;
 
 /**
  * Note: consider renaming
@@ -178,6 +182,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_CREATE_SITE)
     public void createSiteFromBlueprint(
             @ValidateStringParam String blueprintId,
             @Size(max = 50) @ValidateStringParam(whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
@@ -558,6 +563,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_CREATE_SITE)
     public void createSiteWithRemoteOption(
             @Size(max = 50) @ValidateStringParam(whitelistedPatterns = "[a-z0-9\\-]*") String siteId,
             @ValidateStringParam String siteName,
@@ -737,6 +743,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_DELETE_SITE)
     public boolean deleteSite(@ValidateStringParam String siteId) {
         boolean success = true;
         logger.info("Delete site '{}'", siteId);

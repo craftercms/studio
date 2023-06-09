@@ -475,4 +475,9 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         }
     }
 
+    @Override
+    public boolean isSystemAdmin(String username) {
+        return securityService.isSystemAdmin(username);
+    }
+
 }

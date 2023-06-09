@@ -25,8 +25,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -336,7 +334,7 @@ public class SecurityServiceImpl implements SecurityService {
                     Map<String, List<String>> rolesMap = rolesConfig.getRoles();
                     for (Group group : groups) {
                         String groupName = group.getGroupName();
-                        if (StringUtils.equals(groupName, SYSTEM_ADMIN_GROUP)) {
+                        if (isSystemAdmin(user)) {
                             Collection<List<String>> mapValues = rolesMap.values();
                             mapValues.forEach(valueList -> {
                                 userRoles.addAll(valueList);
@@ -591,32 +589,22 @@ public class SecurityServiceImpl implements SecurityService {
 
     @Override
     @Valid
-    public boolean changePassword(@ValidateStringParam String username,
-                                  @ValidateStringParam String current,
-                                  @ValidateStringParam String newPassword)
-        throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException {
-        return userServiceInternal.changePassword(username, current, newPassword);
-    }
-
-    @Override
-    @Valid
-    public boolean resetPassword(@ValidateStringParam String username,
-                                 @ValidateStringParam String newPassword)
-        throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
-        String currentUser = getCurrentUser();
-        if (isAdmin(currentUser)) {
-            return userServiceInternal.setUserPassword(username, newPassword);
-        } else {
+    public boolean isSystemAdmin(@ValidateStringParam String username) {
+        List<String> roles;
+        try {
+            roles = getUserGlobalRoles(-1, username);
+        } catch (UserNotFoundException e) {
+            logger.info("User '{}' is not a site member", username, e);
+            return false;
+        } catch (ServiceLayerException e) {
+            logger.warn("Failed to get site membership for user '{}'", username, e);
             return false;
         }
-    }
 
-    private boolean isAdmin(String username) throws ServiceLayerException, UserNotFoundException {
-        List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
         boolean toRet = false;
-        if (CollectionUtils.isNotEmpty(userGroups)) {
-            for (Group group : userGroups) {
-                if (StringUtils.equalsIgnoreCase(group.getGroupName(), SYSTEM_ADMIN_GROUP)) {
+        if (CollectionUtils.isNotEmpty(roles)) {
+            for (String role : roles) {
+                if (StringUtils.equalsIgnoreCase(role, SYSTEM_ADMIN_ROLE)) {
                     toRet = true;
                     break;
                 }
@@ -631,7 +619,7 @@ public class SecurityServiceImpl implements SecurityService {
 
         boolean toRet = false;
         try {
-            if (userServiceInternal.isUserMemberOfGroup(username, SYSTEM_ADMIN_GROUP)) {
+            if (isSystemAdmin(username)) {
                 return true;
             }
 
@@ -670,6 +658,32 @@ public class SecurityServiceImpl implements SecurityService {
             return context.getAuthentication();
         }
         return null;
+    }
+
+    @Override
+    @Valid
+    public List<String> getUserGlobalRoles(long userId, @ValidateStringParam String username)
+            throws ServiceLayerException, UserNotFoundException {
+        List<Group> groups = userServiceInternal.getUserGroups(userId, username);
+
+        if (CollectionUtils.isEmpty(groups)) {
+            return Collections.emptyList();
+        }
+
+        Map<String, List<String>> roleMappings = configurationService.getGlobalRoleMappings();
+        Set<String> userRoles = new LinkedHashSet<>();
+
+        if (MapUtils.isNotEmpty(roleMappings)) {
+            for (Group group : groups) {
+                String groupName = group.getGroupName();
+                List<String> roles = roleMappings.get(groupName);
+                if (CollectionUtils.isNotEmpty(roles)) {
+                    userRoles.addAll(roles);
+                }
+            }
+        }
+
+        return new ArrayList<>(userRoles);
     }
 
     public String getRoleMappingsFileName() {

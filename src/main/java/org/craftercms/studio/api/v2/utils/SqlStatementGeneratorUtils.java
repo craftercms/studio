@@ -70,32 +70,20 @@ public final class SqlStatementGeneratorUtils {
                     "UPDATE item SET parent_id = @parentId WHERE id = @itemId ;\n\nSET @itemId = NULL ;\n\n" +
                     "SET @parentId = NULL ;" ;
 
-    public static final String UPDATE_NEW_PAGE_CHILDREN = "UPDATE item,\n" +
-            "(SELECT child.id AS childId,\n" +
-            "(SELECT i.id\n" +
-            "FROM item i\n" +
-            "WHERE i.site_id = #{siteId}\n" +
-            "AND i.path = concat('#{path}', '/index.xml')) AS newParentId\n" +
-            "FROM item child\n" +
-            "INNER JOIN item parent ON child.parent_id = parent.id\n" +
-            "WHERE child.site_id = #{siteId}\n" +
-            "AND parent.path = '#{path}'\n" +
-            ") AS updates\n" +
-            "SET item.parent_id = updates.newParentId\n" +
+    public static final String UPDATE_NEW_PAGE_CHILDREN = "UPDATE item, " +
+            "(SELECT child.id AS childId, " +
+            "(SELECT i.id FROM item i WHERE i.site_id = #{siteId} AND i.path = concat('#{path}', '/index.xml')) AS newParentId " +
+            "FROM item child INNER JOIN item parent ON child.parent_id = parent.id " +
+            "WHERE child.site_id = #{siteId} AND parent.path = '#{path}') AS updates " +
+            "SET item.parent_id = updates.newParentId " +
             "WHERE item.id = updates.childId ;\n\n";
 
-    public static final String UPDATE_DELETED_PAGE_CHILDREN = "UPDATE item,\n" +
-            "(SELECT child.id AS childId,\n" +
-            "(SELECT i.id\n" +
-            "FROM item i\n" +
-            "WHERE i.site_id = #{siteId}\n" +
-            "AND i.path = '#{folderPath}') AS newParentId\n" +
-            "FROM item child\n" +
-            "INNER JOIN item parent ON child.parent_id = parent.id\n" +
-            "WHERE child.site_id = #{siteId}\n" +
-            "AND parent.path = concat('#{folderPath}', '/index.xml')\n" +
-            ") AS updates\n" +
-            "SET item.parent_id = updates.newParentId\n" +
+    public static final String UPDATE_DELETED_PAGE_CHILDREN = "UPDATE item, " +
+            "(SELECT child.id AS childId, " +
+            "(SELECT i.id FROM item i WHERE i.site_id = #{siteId} AND i.path = '#{folderPath}') AS newParentId " +
+            "FROM item child INNER JOIN item parent ON child.parent_id = parent.id " +
+            "WHERE child.site_id = #{siteId} AND parent.path = concat('#{folderPath}', '/index.xml')) AS updates " +
+            "SET item.parent_id = updates.newParentId " +
             "WHERE item.id = updates.childId ;\n\n";
 
     public static final String ITEM_UPDATE_PARENT_ID_SIMPLE =

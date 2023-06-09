@@ -149,6 +149,7 @@ public final class StudioConstants {
      */
     public static final String FILE_SEPARATOR = "/";
     public static final String SYSTEM_ADMIN_GROUP = "system_admin";
+    public static final String SYSTEM_ADMIN_ROLE = "system_admin";
     public static final String ADMIN_ROLE = "admin";
     public static final String STRING_SEPARATOR = ",";
 

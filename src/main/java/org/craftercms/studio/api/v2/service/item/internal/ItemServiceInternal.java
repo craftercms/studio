@@ -347,20 +347,21 @@ public interface ItemServiceInternal {
      * @param states states mask to filter items by state
      * @return number of records
      */
-    int getItemStatesTotal(String siteId, String path, Long states);
+    int getItemStatesTotal(String siteId, String path, Long states, List<String> systemTypes);
 
     /**
      * Get item states for given filters by path regex and states mask
      *
-     * @param siteId     site identifier
-     * @param sortFields
-     * @param path       path regex to filter items
-     * @param states     states mask to filter items by state
-     * @param offset     offset for the first record in result set
-     * @param limit      number of item states records to return
+     * @param siteId      site identifier
+     * @param path        path regex to filter items
+     * @param states      states mask to filter items by state
+     * @param systemTypes system types to filter items
+     * @param sortFields sort fields
+     * @param offset      offset for the first record in result set
+     * @param limit       number of item states records to return
      * @return list of sandbox items
      */
-    List<Item> getItemStates(String siteId, String path, Long states, List<SortField> sortFields, int offset, int limit);
+    List<Item> getItemStates(String siteId, String path, Long states, List<String> systemTypes, List<SortField> sortFields, int offset, int limit);
 
     /**
      * Update item state flags for given items

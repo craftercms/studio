@@ -1058,6 +1058,7 @@
         <if test="statesBitMap != null">
         AND (i.state &amp; #{statesBitMap}) &gt; 0
         </if>
+        <include refid="filterBySystemType"/>
     </select>
 
     <select id="getItemStates" resultMap="ItemMap">
@@ -1073,12 +1074,21 @@
         <if test="statesBitMap != null">
         AND (i.state &amp; #{statesBitMap}) > 0
         </if>
+        <include refid="filterBySystemType"/>
         <include refid="orderBySortFields"/>
         LIMIT #{offset}, #{limit}
     </select>
+    <sql id="filterBySystemType">
+        <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
+            AND i.system_type IN
+            <foreach collection="systemTypes" item="systemType" separator="," open="(" close=")">
+                #{systemType}
+            </foreach>
+        </if>
+    </sql>
 
     <sql id="orderBySortFields">
-        <if test="sortFields != null">
+        <if test="sortFields != null &amp;&amp; !sortFields.isEmpty()">
             ORDER BY
             <foreach collection="sortFields" item="sortField" separator=",">
                 ${sortField.field} ${sortField.order}
