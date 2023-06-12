@@ -279,6 +279,79 @@
             limit 0, 1
     </select>
 
+    <select id="getDetailedItemsByStates" resultMap="DetailedItemMap">
+            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{stagingEnvironment}
+                            AND state = 'OPENED'
+                            AND i.id = w.item_id
+                        )
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{stagingEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i.id = w.item_id)
+                    ORDER BY schedule DESC LIMIT 0, 1
+                    ) AS staging_scheduleddate,
+                   staging1.published_on AS staging_published_on,
+                   staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
+                    (
+                        (SELECT schedule
+                        FROM workflow w
+                        WHERE target_environment = #{liveEnvironment}
+                            AND state = 'OPENED'
+                            AND i.id = w.item_id
+                        )
+                    UNION
+                        (SELECT pr.scheduleddate AS schedule
+                        FROM workflow w INNER JOIN publish_request pr ON w.publishing_package_id = pr.package_id
+                        WHERE w.target_environment = #{liveEnvironment}
+                            AND w.state = 'APPROVED'
+                            AND pr.state = 'READY_FOR_LIVE'
+                            AND i.id = w.item_id
+                        )
+                    ORDER BY schedule DESC
+                    ) AS live_scheduleddate,
+                    live1.published_on AS live_published_on,
+                    live1.username AS live_username, live1.commit_id AS live_commit_id,
+                    COUNT(DISTINCT i3.id) AS children_count
+            FROM item i INNER JOIN site s1 ON i.site_id = s1.id
+                LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
+                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
+                LEFT OUTER JOIN user u2 ON i.created_by = u2.id
+                LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
+                LEFT OUTER JOIN (
+                    SELECT pr1.*
+                    FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
+                    WHERE s2.id = #{siteId}
+                      AND pr1.environment = #{stagingEnvironment}
+                      AND pr1.state = #{completedState}
+                    ORDER BY pr1. published_on DESC LIMIT 0, 1
+                    ) AS staging1 ON s1.site_id = staging1.site AND i.path = staging1.path
+                LEFT OUTER JOIN (
+                    SELECT pr2.*
+                    FROM publish_request pr2 INNER JOIN site s3 ON pr2.site = s3.site_id
+                    WHERE s3.id = #{siteId}
+                      AND pr2.environment = #{liveEnvironment}
+                      AND pr2.state = #{completedState}
+                    ORDER BY pr2.published_on DESC LIMIT 0, 1
+                    ) AS live1 ON s1.site_id = live1.site AND i.path = live1.path
+            WHERE i.site_id = #{siteId}
+                AND (i3.ignored = 0 OR i3.ignored IS NULL)
+                AND (i3.system_type &lt;&gt; #{systemTypeFolder} OR NOT EXISTS
+                    (SELECT * FROM item i10 WHERE i10.site_id = i3.site_id AND i10.path = CONCAT(i3.path, '/index.xml')))
+                AND (i.state &amp; #{statesBitMap}) > 0
+                AND i.system_type != #{systemTypeFolder}
+            <include refid="filterBySystemType"/>
+            GROUP BY i.id
+            <include refid="orderBySortFields"/>
+            LIMIT #{offset}, #{limit}
+    </select>
+
     <select id="getItemByPath" resultMap="DetailedItemMap">
             SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
                     (
@@ -1078,6 +1151,7 @@
         <include refid="orderBySortFields"/>
         LIMIT #{offset}, #{limit}
     </select>
+
     <sql id="filterBySystemType">
         <if test="systemTypes != null &amp;&amp; !systemTypes.isEmpty()">
             AND i.system_type IN
