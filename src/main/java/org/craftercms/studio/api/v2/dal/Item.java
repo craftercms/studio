@@ -596,6 +596,11 @@ public class Item {
             return this;
         }
 
+        public Builder withAvailableActions(long availableActions) {
+            this.availableActions = availableActions;
+            return this;
+        }
+
         public Item build() {
             String fileName = FilenameUtils.getName(this.path);
             if (ArrayUtils.contains(IGNORE_FILES, fileName)) {

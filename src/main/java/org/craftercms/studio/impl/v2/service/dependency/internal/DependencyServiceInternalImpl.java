@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.model.rest.content.DependencyItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -33,13 +34,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
@@ -197,6 +192,16 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         }
         List<String> result = dependencyDao.getDependentItems(siteId, paths);
         return result.stream().distinct().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<DependencyItem> getDependentItems(String siteId, String path) {
+        List<String> dependentPaths = dependencyDao.getDependentItems(siteId, Collections.singletonList(path))
+                .stream().distinct().collect(Collectors.toList());
+
+        return dependentPaths.stream()
+                .map(dep -> DependencyItem.getInstance(itemServiceInternal.getItem(siteId, dep)))
+                .collect(Collectors.toList());
     }
 
     @Override
