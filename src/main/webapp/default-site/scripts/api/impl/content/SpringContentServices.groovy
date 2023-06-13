@@ -87,6 +87,7 @@ class SpringContentServices {
   	 * @param site - the project ID
   	 * @param path - the path to check
   	 */
+	@Deprecated
 	def doesContentItemExist(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
         return springBackedService.contentExists(site, path)
