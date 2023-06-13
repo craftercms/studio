@@ -270,11 +270,11 @@ public class BlobAwareContentRepository implements ContentRepository,
             if (store != null) {
                 store.createFolder(site, normalize(path), name);
             }
-            return localRepositoryV1.createFolder(site, path, name);
+            return localRepositoryV2.createFolder(site, path, name);
         } catch (BlobStoreConfigurationMissingException e) {
             logger.debug("No blob store configuration found for site '{}', " +
                     "will create folder '{}' in the local repository", site, path);
-            return localRepositoryV1.createFolder(site, path, name);
+            return localRepositoryV2.createFolder(site, path, name);
         } catch (Exception e) {
             logger.error("Failed to create folder in site '{}' path '{}'", site, path, e);
             return null;

@@ -3792,6 +3792,58 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/{siteId}/folder:
+    post:
+      tags:
+        - content
+      summary: Create new folder
+      description: 'Required permission "content_write"'
+      operationId: createFolder
+      parameters:
+        - name: siteId
+          in: path
+          description: Site identifier
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Create new folder request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                path:
+                  type: string
+                  description: The full path of the parent folder in which to create a new folder
+                name:
+                  type: string
+                  description: New folder name
+              required:
+                - path
+                - name
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/children_by_path:
     post:
       tags:

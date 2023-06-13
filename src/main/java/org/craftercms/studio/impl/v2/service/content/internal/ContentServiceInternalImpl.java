@@ -27,12 +27,14 @@ import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.event.content.ContentEvent;
+import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemDAO;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -41,6 +43,8 @@ import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 
@@ -49,25 +53,28 @@ import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_FOLDER;
 import static org.craftercms.studio.api.v2.dal.PublishRequest.State.COMPLETED;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.DalUtils.mapSortFields;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONTENT_ITEM_EDITABLE_TYPES;
 
-public class ContentServiceInternalImpl implements ContentServiceInternal {
+public class ContentServiceInternalImpl implements ContentServiceInternal, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ContentServiceInternalImpl.class);
 
+    private ApplicationContext applicationContext;
     private ContentRepository contentRepository;
+    private SiteDAO siteDao;
     private ItemDAO itemDao;
     private ServicesConfig servicesConfig;
     private SiteFeedMapper siteFeedMapper;
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
+    private ItemServiceInternal itemServiceInternal;
     private AuditServiceInternal auditServiceInternal;
 
     @Override
@@ -292,8 +299,78 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         }
     }
 
+    public boolean createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
+        String folderPath = path + FILE_SEPARATOR + name;
+        boolean toRet = false;
+        String commitId = contentRepository.createFolder(siteId, path, name);
+        if (commitId != null) {
+            Item parentItem = itemServiceInternal.getItem(siteId, path, true);
+            if (Objects.isNull(parentItem)) {
+                parentItem = createMissingParentItem(siteId, path, commitId);
+            }
+            itemServiceInternal.persistItemAfterCreateFolder(siteId, folderPath, name, securityService.getCurrentUser(),
+                    commitId, parentItem.getId());
+
+            String username = securityService.getCurrentUser();
+            Site site = siteDao.getSite(siteId);
+            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+            auditLog.setOperation(OPERATION_CREATE);
+            auditLog.setSiteId(site.getId());
+            auditLog.setActorId(username);
+
+            auditLog.setPrimaryTargetId(siteId + ":" + folderPath);
+            auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
+            auditLog.setPrimaryTargetValue(folderPath);
+            auditServiceInternal.insertAuditLog(auditLog);
+
+            contentRepository.insertGitLog(siteId, commitId, 1, 1);
+            siteDao.updateLastCommitId(siteId, commitId);
+            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), siteId, folderPath));
+            toRet = true;
+        }
+
+        return toRet;
+    }
+
+    /**
+     * Recursive method to create missing parent item while creating a new folder
+     * @param site site identifier
+     * @param parentPath parent path
+     * @param commitId commit id
+     * @return parent path {@link Item}
+     *
+     * @throws UserNotFoundException
+     * @throws ServiceLayerException
+     */
+    protected Item createMissingParentItem(String site, String parentPath, String commitId)
+            throws UserNotFoundException, ServiceLayerException {
+        String ancestorPath = ContentUtils.getParentUrl(parentPath);
+        String name = ContentUtils.getPageName(parentPath);
+
+        Item ancestor = itemServiceInternal.getItem(site, ancestorPath, false);
+        if (Objects.isNull(ancestor) && StringUtils.isNotEmpty(ancestorPath)) {
+            createMissingParentItem(site, ancestorPath, commitId);
+            ancestor = itemServiceInternal.getItem(site, ancestorPath, false);
+        }
+
+        Long ancestorId = ancestor != null ? ancestor.getId() : null;
+        itemServiceInternal.persistItemAfterCreateFolder(site, parentPath, name, securityService.getCurrentUser(),
+                commitId, ancestorId);
+
+        return itemServiceInternal.getItem(site, parentPath, true);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
+    }
+
+    public void setSiteDao(SiteDAO siteDao) {
+        this.siteDao = siteDao;
     }
 
     public void setItemDao(ItemDAO itemDao) {
@@ -322,5 +399,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
+    }
+
+    public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
+        this.itemServiceInternal = itemServiceInternal;
     }
 }

@@ -1355,6 +1355,57 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
+    public String createFolder(String site, String path, String name) {
+        String commitId = null;
+        boolean result;
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+        generalLockService.lock(gitLockKey);
+        try {
+            Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+
+            try {
+                // Create basic file
+                File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
+
+                // Create parent folders
+                File folder = file.getParentFile();
+                if (folder != null && !folder.exists()) {
+                    folder.mkdirs();
+                }
+
+                // Create the file
+                if (!file.createNewFile()) {
+                    logger.error("Failed to write file to site '{}' path '{}'", site, emptyFilePath);
+                    result = false;
+                } else {
+                    // Add the file to git
+                    result = helper.addFiles(repo, site, emptyFilePath.toString());
+                }
+            } catch (Exception e) {
+                logger.error("Failed to add file to git in site '{}' path '{}'", site, emptyFilePath, e);
+                result = false;
+            }
+
+            if (result) {
+                try {
+                    commitId = helper.commitFiles(repo, site,
+                            helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+                                    .replaceAll(PATTERN_SITE, site)
+                                    .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
+                            helper.getCurrentUserIdent(),
+                            emptyFilePath.toString());
+                } catch (ServiceLayerException | UserNotFoundException e) {
+                    logger.error("Failed to commit file in site '{}' path '{}'", site, emptyFilePath, e);
+                }
+            }
+        } finally {
+            generalLockService.unlock(gitLockKey);
+        }
+        return commitId;
+    }
+
+    @Override
     public String getRepoLastCommitId(final String site) {
         String toReturn = EMPTY;
         String gitLockKey = helper.getSandboxRepoLockKey(site);

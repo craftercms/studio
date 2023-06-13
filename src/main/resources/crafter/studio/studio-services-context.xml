@@ -531,12 +531,14 @@
     <bean id="contentServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentServiceInternalImpl">
         <property name="contentRepository" ref="contentRepository" />
+        <property name="siteDao" ref="siteDao" />
         <property name="itemDao" ref="itemDao" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
+        <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 

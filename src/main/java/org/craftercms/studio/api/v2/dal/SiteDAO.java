@@ -17,7 +17,6 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
-
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteDAO {
@@ -66,4 +65,12 @@ public interface SiteDAO {
      * @return the {@link Site} object
      */
     Site getSite(@Param(SITE_ID) String siteId);
+
+    /**
+     * update last commit id
+     *
+     * @param siteId       site identifier
+     * @param lastCommitId last commit id
+     */
+    void updateLastCommitId(@Param(SITE_ID) String siteId, @Param(LAST_COMMIT_ID) String lastCommitId);
 }

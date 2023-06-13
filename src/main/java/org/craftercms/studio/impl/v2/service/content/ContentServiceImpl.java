@@ -37,6 +37,9 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
+import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -53,6 +56,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -363,6 +367,16 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         siteService.checkSiteExists(siteId);
         contentServiceV1.checkContentExists(siteId, path);
         return contentServiceInternal.getContentVersionHistory(siteId, path);
+    }
+
+    @Valid
+    @ValidateAction(type = Type.CREATE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    public boolean createFolder(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam @SiteId String siteId,
+                                @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
+                                @ValidateStringParam @ActionTargetFilename String name) throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
+        return contentServiceInternal.createFolder(siteId, path, name);
     }
 
     @Override

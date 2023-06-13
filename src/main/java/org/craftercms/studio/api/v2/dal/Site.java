@@ -22,6 +22,9 @@ import java.time.ZonedDateTime;
  * Represents a Crafter site from the database.
  */
 public class Site {
+    public static final String STATE_INITIALIZING = "INITIALIZING";
+    public static final String STATE_READY = "READY";
+    public static final String STATE_DELETED = "DELETED";
 
     protected long id;
     protected String siteUuid;
@@ -31,6 +34,7 @@ public class Site {
     protected int deleted;
     protected String liveUrl;
     protected String lastCommitId;
+    protected int system;
     protected int publishingEnabled;
     protected String publishingStatus;
     protected String lastVerifiedGitlogCommitId;
@@ -95,6 +99,14 @@ public class Site {
 
     public void setLastCommitId(String lastCommitId) {
         this.lastCommitId = lastCommitId;
+    }
+
+    public int getSystem() {
+        return system;
+    }
+
+    public void setSystem(int system) {
+        this.system = system;
     }
 
     public int getPublishingEnabled() {

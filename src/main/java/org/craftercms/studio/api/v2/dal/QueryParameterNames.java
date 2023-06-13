@@ -63,6 +63,7 @@ public final class  QueryParameterNames {
     public static final String DESC = "description";
     public static final String SANDBOX_BRANCH = "sandboxBranch";
     public static final String UUID = "uuid";
+    public static final String LAST_COMMIT_ID = "lastCommitId";
 
 
     public static final String PUBLISHING_STATUS = "publishingStatus";

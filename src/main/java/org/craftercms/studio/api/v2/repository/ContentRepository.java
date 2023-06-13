@@ -246,6 +246,15 @@ public interface ContentRepository {
     boolean contentExists(String site, String path);
 
     /**
+     * Create a new folder
+     * @param site site identifier
+     * @param path parent path to create the folder into
+     * @param name folder name
+     * @return commit id of the creation
+     */
+    String createFolder(String site, String path, String name) throws ServiceLayerException;
+
+    /**
      * Get last commit id from repository for given site.
      *
      * @param site site id

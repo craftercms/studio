@@ -297,7 +297,15 @@ public class ContentController {
         ResultList<ItemVersion> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS, contentService.getContentVersionHistory(siteId, path));
+        return result;
+    }
 
+    @PostMapping(value = PATH_PARAM_SITE + FOLDER, consumes = APPLICATION_JSON_VALUE)
+    public ResultOne createFolder(@ValidSiteId @PathVariable(value = REQUEST_PARAM_SITE) String siteId,
+                                  @Valid @RequestBody CreateFolderRequestBody body) throws UserNotFoundException, ServiceLayerException {
+        contentService.createFolder(siteId, body.getPath(), body.getName());
+        var result = new ResultOne();
+        result.setResponse(OK);
         return result;
     }
 }

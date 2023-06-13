@@ -643,6 +643,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
     }
 
+    @Deprecated
     @Override
     @Valid
     @ValidateAction(type = Type.CREATE)

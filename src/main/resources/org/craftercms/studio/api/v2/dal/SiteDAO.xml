@@ -63,4 +63,8 @@
     <update id="enablePublishing" parameterType="java.util.Map">
         UPDATE site SET publishing_enabled = #{enabled} WHERE site_id = #{siteId} AND deleted = 0
     </update>
+
+    <update id="updateLastCommitId">
+        UPDATE site SET last_commit_id = #{lastCommitId} WHERE site_id = #{siteId} AND deleted = 0
+    </update>
 </mapper>
