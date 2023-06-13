@@ -732,6 +732,13 @@ pipelines:
             commitDetails: Remove searchEngine property from plugin descriptor
             includedPaths:
               - craftercms-plugin.yaml
+      - currentVersion: 4.1.1
+        nextVersion: 4.1.2
+        operations:
+          - type: xsltFileUpgrader
+            path: /config/studio/site-policy-config.xml
+            template: crafter/studio/upgrade/4.1.x/site-policy-config/site-policy-config-v4.1.2.xslt
+            commitDetails: Update site-policy-config.xml to prevent uppercase
 
   # Pipeline to upgrade blueprints
   blueprint:
