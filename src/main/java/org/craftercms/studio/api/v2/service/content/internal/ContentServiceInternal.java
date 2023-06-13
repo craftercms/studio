@@ -149,4 +149,20 @@ public interface ContentServiceInternal {
      */
     Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException;
+
+    /**
+     * Get a list of items by state and system types.
+     * @param siteId site identifier
+     * @param statesBitMap mask of the states to filter by
+     * @param systemTypes list of system types to filter by
+     * @param sortFields list of sort fields
+     * @param offset number of items to skip
+     * @param limit number of items to return
+     * @return list of items
+     * @throws UserNotFoundException
+     * @throws ServiceLayerException
+     */
+    List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
+                                        List<String> systemTypes, List<SortField> sortFields,
+                                        int offset, int limit) throws UserNotFoundException, ServiceLayerException;
 }
