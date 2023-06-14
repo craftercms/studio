@@ -153,20 +153,7 @@ public class DashboardServiceImpl implements DashboardService {
     public List<DetailedItem> getContentPendingApproval(
             @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
-        var items =
-                itemServiceInternal.getItemStates(siteId, ALL_CONTENT_REGEX, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
-        if (items.isEmpty()) {
-            return emptyList();
-        }
-
-        var paths = items.stream().map(Item::getPath).collect(toList());
-        List<DetailedItem> result = new ArrayList<>();
-        for (String path : paths) {
-            var item = contentServiceInternal.getItemByPath(siteId, path, false);
-            result.add(item);
-        }
-
-        return result;
+        return contentServiceInternal.getItemsByStates(siteId, SUBMITTED_MASK, systemTypes, sortFields, offset, limit);
     }
 
     @Override

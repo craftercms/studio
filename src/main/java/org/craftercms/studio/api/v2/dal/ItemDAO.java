@@ -33,6 +33,12 @@ public interface ItemDAO {
             "dateModified", "last_modified_on",
             "label", "label");
 
+    Map<String, String> DETAILED_ITEM_SORT_FIELD_MAP = Map.of(
+            "id", "id",
+            "dateModified", "last_modified_on",
+            "dateScheduled", "IFNULL(live_scheduleddate,staging_scheduleddate)",
+            "label", "label");
+
     /**
      * Get total number of children for given path
      *
@@ -238,6 +244,32 @@ public interface ItemDAO {
                                @Param(COMPLETED_STATE) String completedState,
                                @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
                                @Param(LIVE_ENVIRONMENT) String liveEnvironment);
+
+    /**
+     * Get a list of {@link DetailedItem} for given site and filters (system_types, states)
+     *
+     * @param siteId             site identifier
+     * @param statesBitMap       states bit map to filter by
+     * @param systemTypeFolder   value for system type folder
+     * @param completedState     completed state
+     * @param systemTypes        system types to filter by
+     * @param sortFields         sort fields
+     * @param stagingEnvironment staging environment
+     * @param liveEnvironment    live environment
+     * @param offset             offset for the first record in result set
+     * @param limit              number of records to return
+     * @return list of filtered {@link DetailedItem}s
+     */
+    List<DetailedItem> getDetailedItemsByStates(@Param(SITE_ID) long siteId,
+                                                @Param(STATES_BIT_MAP) long statesBitMap,
+                                                @Param(SYSTEM_TYPE_FOLDER) String systemTypeFolder,
+                                                @Param(COMPLETED_STATE) String completedState,
+                                                @Param(SYSTEM_TYPES) List<String> systemTypes,
+                                                @Param(SORT_FIELDS) List<SortField> sortFields,
+                                                @Param(STAGING_ENVIRONMENT) String stagingEnvironment,
+                                                @Param(LIVE_ENVIRONMENT) String liveEnvironment,
+                                                @Param(OFFSET) int offset, @Param(LIMIT) int limit);
+
     /**
      * Get item with prefer content option for given path from database
      *
