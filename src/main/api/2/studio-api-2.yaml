@@ -4232,11 +4232,61 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/{siteId}:
+    get:
+      tags:
+        - content
+      summary: Get content for a path
+      description: 'Required permission "content_read" and additional "content_write" if edit parameter is `true`'
+      operationId: getContent
+      parameters:
+        - name: siteId
+          in: path
+          description: The site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of the content
+          required: true
+          schema:
+            type: string
+        - name: commitId
+          in: query
+          description: commit id of the content version
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  content:
+                    type: string
+                    description: requested content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/get_content_by_commit_id:
     get:
       tags:
         - content
-      summary: Get content for commit id
+      summary: Get content for commit id. (Deprecated. Use /content/{siteId} instead.)
       description: 'Required permission "content_read"'
       operationId: getContentByCommitId
       parameters:

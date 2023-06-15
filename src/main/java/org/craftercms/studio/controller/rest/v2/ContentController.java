@@ -63,6 +63,7 @@ import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.eclipse.jgit.lib.Constants.HEAD;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Validated
@@ -265,7 +266,26 @@ public class ContentController {
     }
 
     @Valid
+    @GetMapping(PATH_PARAM_SITE)
+    public ResponseEntity<Resource> getContent(@ValidSiteId @PathVariable(value = REQUEST_PARAM_SITE) String siteId,
+                                          @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
+                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID, required = false) String commitId)
+            throws ServiceLayerException, UserNotFoundException {
+        if (commitId == null) {
+            commitId = HEAD;
+        }
+        Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
+
+        String mimeType = StudioUtils.getMimeType(path);
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .body(resource);
+    }
+
+    @Valid
     @GetMapping(GET_CONTENT_BY_COMMIT_ID)
+    @Deprecated
     public ResponseEntity<Resource> getContentByCommitId(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                                          @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)

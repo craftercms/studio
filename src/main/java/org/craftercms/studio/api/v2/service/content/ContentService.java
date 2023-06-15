@@ -199,7 +199,6 @@ public interface ContentService {
      */
     Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
-
     /**
      * Get the version history for a given content item.
      *
