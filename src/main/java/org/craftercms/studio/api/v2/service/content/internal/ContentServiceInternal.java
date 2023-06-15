@@ -191,7 +191,6 @@ public interface ContentServiceInternal {
      * @param path parent path to create new folder into
      * @param name new folder name
      * @return true if success, otherwise false
-     *
      * @throws UserNotFoundException user not found error
      * @throws ServiceLayerException general service error
      */

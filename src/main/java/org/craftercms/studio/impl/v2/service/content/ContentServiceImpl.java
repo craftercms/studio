@@ -371,7 +371,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Valid
     @ValidateAction(type = Type.CREATE)
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_FOLDER)
     public boolean createFolder(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam @SiteId String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
                                 @ValidateStringParam @ActionTargetFilename String name) throws ServiceLayerException, UserNotFoundException {

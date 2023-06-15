@@ -3816,7 +3816,7 @@ paths:
               properties:
                 path:
                   type: string
-                  description: The full path of the parent folder in which to create a new folder
+                  description: The parent folder in which to create a new folder
                 name:
                   type: string
                   description: New folder name

@@ -211,9 +211,9 @@ public interface ContentService {
     List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
 
     /**
-     * Create new folder
+     * Create a new folder
      * @param siteId site identifier
-     * @param path parent path to create new folder into
+     * @param path The parent folder in which to create a new folder
      * @param name new folder name
      * @return true if success, otherwise false
      * @throws UserNotFoundException user not found error
