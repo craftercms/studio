@@ -1323,7 +1323,6 @@ public class GitContentRepository implements ContentRepository {
         return helper.deleteSiteGitRepo(siteId);
     }
 
-
     @Override
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;

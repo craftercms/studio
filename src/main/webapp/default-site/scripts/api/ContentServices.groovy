@@ -73,6 +73,7 @@ class ContentServices {
 	 * @param path - the path of the content to get
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
+	@Deprecated
 	static getContent(site, path, edit, encoding, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		if (edit) {
