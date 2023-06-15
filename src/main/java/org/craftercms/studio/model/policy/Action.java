@@ -118,6 +118,14 @@ public class Action {
         return contentMetadata.containsKey(key);
     }
 
+    /**
+     * Check if the action type has a change in name
+     * @return true if of type CREATE or RENAME, false otherwise
+     */
+    public boolean upsertType() {
+        return type == Type.CREATE || type == Type.RENAME;
+    }
+
     @Override
     public String toString() {
         return "Action{" +

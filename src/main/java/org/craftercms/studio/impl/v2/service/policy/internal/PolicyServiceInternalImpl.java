@@ -146,7 +146,7 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
         ValidationResult result = ValidationResult.allowed(action);
 
         for (HierarchicalConfiguration<?> statement : statements) {
-            if (action.getType() == Type.CREATE) {
+            if (action.upsertType()) {
                 String target = result.getModifiedValue() != null ? result.getModifiedValue() : action.getTarget();
                 action.setNewPath(getNewPath(siteId, target));
             }
@@ -205,8 +205,11 @@ public class PolicyServiceInternalImpl implements PolicyServiceInternal {
     }
 
     /**
-     * Get the new path by CREATE action
+     * Get the new path by CREATE or RENAME action
      * If all the path exists, return the file name
+     * @param siteId site identifier
+     * @param target action target
+     * @return the relative new path of the target
     */
     protected String getNewPath(String siteId, String target) {
         String [] levels = target.split(FILE_SEPARATOR);

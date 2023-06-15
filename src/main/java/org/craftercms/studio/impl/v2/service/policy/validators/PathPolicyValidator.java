@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
-import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.policy.ValidationResult;
 import static org.apache.commons.lang3.StringUtils.*;
 
@@ -44,8 +43,8 @@ public class PathPolicyValidator implements PolicyValidator {
             return;
         }
 
-        if (action.getType() != Type.CREATE) {
-            logger.debug("Path policy is only applied to CREATE, skip action '{}'", action);
+        if (!action.upsertType()) {
+            logger.debug("Path policy is only applied to an action type with name changed, skip action '{}'", action);
             return;
         }
 
