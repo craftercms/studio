@@ -107,7 +107,7 @@ public interface UserServiceInternal {
     User getUserByGitName(String gitName) throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * Get the properties for the given site & the current user
+     * Get the properties for the given site &amp; the current user
      * @param siteId the id of the site
      * @return the current properties
      * @throws ServiceLayerException if there is any error fetching the properties
@@ -115,7 +115,7 @@ public interface UserServiceInternal {
     Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException;
 
     /**
-     * Update or add properties for the given site & the current user
+     * Update or add properties for the given site &amp; the current user
      * @param siteId the id of the site
      * @param propertiesToUpdate the properties to update or add
      * @return the updated properties
@@ -125,7 +125,7 @@ public interface UserServiceInternal {
             throws ServiceLayerException;
 
     /**
-     * Delete properties for the given site & current user
+     * Delete properties for the given site &amp; current user
      * @param siteId the id of the site
      * @param propertiesToDelete the list of keys to delete
      * @return the updated properties

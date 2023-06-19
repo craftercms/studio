@@ -398,7 +398,7 @@ public interface ContentRepository {
     void initialPublish(String siteId) throws SiteNotFoundException;
 
     /**
-     * Publishes all changes for the given site & target
+     * Publishes all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -407,7 +407,7 @@ public interface ContentRepository {
     RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
     /**
-     * Prepares the repository to publish all changes for the given site & target
+     * Prepares the repository to publish all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -417,7 +417,7 @@ public interface ContentRepository {
     RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
 
     /**
-     * Performs the actual publish of all changes for the given site & target
+     * Performs the actual publish of all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -429,7 +429,7 @@ public interface ContentRepository {
             throws ServiceLayerException;
 
     /**
-     * Performs the cleanup after a failed publish all operation for the given site & target
+     * Performs the cleanup after a failed publish all operation for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target

@@ -30,7 +30,7 @@ import java.net.URISyntaxException;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 
 /**
- * Controller to proxy request to preview & add the management token if needed
+ * Controller to proxy request to preview &amp; add the management token if needed
  */
 @Validated
 @RestController

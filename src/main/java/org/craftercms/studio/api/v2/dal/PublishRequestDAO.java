@@ -266,7 +266,7 @@ public interface PublishRequestDAO {
      * @param activityAction the activity action to filter
      * @param publishState  the publishing state to filter
      * @param publishAction the publishing action to filter
-     * @return number of newly created <nd published items
+     * @return number of newly created and published items
      */
     int getNumberOfPublishedItemsByState(@Param(SITE_ID) String siteId, @Param(DAYS) int days,
                                         @Param(ACTIVITY_ACTION) String activityAction,

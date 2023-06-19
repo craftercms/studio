@@ -22,7 +22,7 @@ import org.springframework.security.core.Authentication;
 /**
  * Event triggered when items go through the different workflow states
  *
- * @implNote For now this is triggered for any state change
+ * <p><b>Note:</b>For now this is triggered for any state change</p>
  *
  * @author joseross
  * @since 4.0.0
