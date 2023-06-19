@@ -22,7 +22,7 @@ import org.springframework.security.core.Authentication;
 /**
  * Event triggered when content is locked or unlocked
  *
- * @implNote This event is not part of the content hierarchy to prevent triggering a reindex
+ * <p><b>Note:</b>This event is not part of the content hierarchy to prevent triggering a reindex</p>
  *
  * @author joseross
  * @since 4.0.0

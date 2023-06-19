@@ -70,7 +70,7 @@ public class SiteConfigTO implements Serializable {
     protected String sandboxBranch = null;
 
     /**
-     * Map of fields & boosting to use in search
+     * Map of fields &amp; boosting to use in search
      */
     protected Map<String, Float> searchFields;
 

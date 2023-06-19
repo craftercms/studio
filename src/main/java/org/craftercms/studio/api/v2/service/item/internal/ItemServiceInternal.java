@@ -150,7 +150,7 @@ public interface ItemServiceInternal {
      * @param path path of the content
      * @param username user that executed write operation
      * @param commitId commit id of the write operation
-     * @param unlock Indicates if content needs to be unlocked after write (save & close)
+     * @param unlock Indicates if content needs to be unlocked after write (save &amp; close)
      * @param parentId id of parent item
      * @throws ServiceLayerException
      * @throws UserNotFoundException
@@ -165,7 +165,7 @@ public interface ItemServiceInternal {
      * @param path path of the content
      * @param username user that executed write operation
      * @param commitId commit id of the write operation
-     * @param unlock Indicates if content needs to be unlocked after write (save & close)
+     * @param unlock Indicates if content needs to be unlocked after write (save &amp; close)
      */
     void persistItemAfterWrite(String siteId, String path, String username, String commitId,
                                boolean unlock) throws ServiceLayerException, UserNotFoundException;

@@ -40,14 +40,13 @@ import static org.craftercms.studio.model.policy.Action.METADATA_CONTENT_TYPE;
 /**
  * Interceptor that validates content actions before executing the actual changes.
  *
- * <p>In order to intercept a method it needs to:
+ * <p>In order to intercept a method it needs to:</p>
  * <ol>
  *     <li>Have a {@link ValidateAction} annotation</li>
  *     <li>Have one {@link String} parameter with a {@link SiteId} annotation</li>
  *     <li>Have one {@link String} parameter with a {@link ActionTargetPath} annotation</li>
  * </ol>
  * All other annotations are optional.
- * </p>
  *
  * @author joseross
  * @since 4.0.0

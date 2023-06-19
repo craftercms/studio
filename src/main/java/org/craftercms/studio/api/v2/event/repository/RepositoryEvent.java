@@ -21,7 +21,7 @@ import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 /**
  * Event triggered when there is a change in the repository of a site
  *
- * @implNote For now this is only triggered when a repo sync is complete
+ * <p><b>Note:</b>For now this is only triggered when a repo sync is complete</p>
  *
  * @author joseross
  * @since 4.0.0
