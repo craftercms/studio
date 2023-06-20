@@ -66,6 +66,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
 
     @Override
+    public boolean contentExists(String siteId, String path) {
+        return contentRepository.contentExists(siteId, path);
+    }
+
+    @Override
     public List<String> getSubtreeItems(String siteId, String path) {
         return contentRepository.getSubtreeItems(siteId, path);
     }

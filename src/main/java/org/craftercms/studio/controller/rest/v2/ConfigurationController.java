@@ -29,6 +29,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 import java.io.InputStream;
+import java.util.List;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
@@ -144,6 +146,26 @@ public class ConfigurationController {
         body.setResult(result);
 
         return body;
+    }
+
+    @GetMapping("/get_content_type")
+    public ResultOne<ContentTypeConfigTO> getContentType(@ValidSiteId @RequestParam String siteId,
+                                                         @ValidConfigurationPath @RequestParam String contentTypeId)
+        throws ServiceLayerException {
+        ResultOne<ContentTypeConfigTO> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_ITEM, contentTypeService.getContentType(siteId, contentTypeId));
+        return result;
+    }
+
+    @GetMapping("/get_content_types")
+    public ResultOne<List<ContentTypeConfigTO>> getContentTypes(
+            @ValidSiteId @RequestParam String siteId,
+            @ValidConfigurationPath @RequestParam(name = "path", required = false) String path) throws ServiceLayerException {
+        ResultOne<List<ContentTypeConfigTO>> result = new ResultOne<>();
+        result.setResponse(OK);
+        result.setEntity(RESULT_KEY_ITEMS, contentTypeService.getContentTypes(siteId, path));
+        return result;
     }
 
     @GetMapping("content-type/usage")

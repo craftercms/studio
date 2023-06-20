@@ -245,6 +245,7 @@ class ContentServices {
 	}
 
 
+	@Deprecated
 	static getContentType(context, site, type) {
 		def contentTypeServicesImpl = ServiceFactory.getContentTypeServices(context);
 		return contentTypeServicesImpl.getContentType(site, type)

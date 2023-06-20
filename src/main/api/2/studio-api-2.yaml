@@ -3180,6 +3180,94 @@ paths:
   #       '403':
   #         $ref: '#/components/responses/Forbidden'
 
+  /configuration/get_content_type:
+    get:
+      tags:
+        - configuration
+      summary: Get content type configuration item by ID
+      description: 'Required permission "read_configuration"'
+      operationId: getContentType
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: contentTypeId
+          in: query
+          description: Content type ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  item:
+                    $ref: '#/components/schemas/ContentTypeConfigItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /configuration/get_content_types:
+    get:
+      tags:
+        - configuration
+      summary: Get content type items by site ID with optional filtering by path
+      description: 'Required permission "read_configuration"'
+      operationId: getContentTypes
+      parameters:
+        - name: siteId
+          in: query
+          description: Site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: Content type path
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContentTypeConfigItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /configuration/content-type/usage:
     get:
       tags:
@@ -8463,6 +8551,95 @@ components:
         - children
         - publishingTarget
 
+    ContentTypeConfigItem:
+      type: object
+      properties:
+        name:
+          type: string
+          description: content type configuration item name
+        label:
+          type: string
+          description: user friendly display name for the content type configuration item
+        form:
+          type: string
+          description: content type configuration item form ID
+        formPath:
+          type: string
+          description: content type configuration item form path
+        contentAsFolder:
+          type: boolean
+          description: is content created in a folder wrapper
+        useRoundedFolder:
+          type: boolean
+          description: is used rounded folder to arrange content
+        modelInstancePath:
+          type: string
+          description: model instance path
+        allowedRoles:
+          type: array
+          description: list of allowed roles
+          items:
+            type: string
+            description: allowed role
+        lastUpdated:
+          type: string
+          format: datetime
+          description: timestamp when item was last updated
+        copyDepedencyPattern:
+          type: array
+          description: list of copy association patterns
+          items:
+            type: object
+            properties:
+              pattern:
+                type: string
+                description: copy pattern
+              target:
+                type: string
+                description: target
+        imageThumbnail:
+          type: string
+          description: content type item image thumbnail
+        noThumbnail:
+          type: boolean
+          description: true if content type item has no thumbnail
+        pathIncludes:
+          type: array
+          description: list of path include patterns
+          items:
+            type: string
+            description: path include pattern
+        pathExcludes:
+          type: array
+          description: list of path exclude patterns
+          items:
+            type: string
+            description: path exclude pattern
+        nodeRef:
+          type: string
+          description: the configuration node reference which this content type is associated with
+        quickCreate:
+          type: boolean
+          description: is content type quick create
+        quickCreatePath:
+          type: string
+          description: content type quick create path
+        previewable:
+          type: boolean
+          description: is content type preview-able
+        deleteDependencyPattern:
+          type: array
+          description: list of delete association patterns that this content type is dependent on for deleting
+          items:
+            type: object
+            description: a delete dependency pattern
+            properties:
+              pattern:
+                type: string
+                description: pattern
+              removeEmptyFolder:
+                type: boolean
+                description: is remove empty folder
 
     SandboxItem:
       type: object

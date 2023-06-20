@@ -55,12 +55,15 @@ public interface ContentTypeService {
      * @param type content type name
      * @return content type
      */
+    @Deprecated
     ContentTypeConfigTO getContentType(String site, String type);
 
     ContentTypeConfigTO getContentTypeByRelativePath(String site, String relativePath) throws ServiceLayerException;
 
+    @Deprecated
     List<ContentTypeConfigTO> getAllContentTypes(String site, boolean searchable);
 
+    @Deprecated
     List<ContentTypeConfigTO> getAllowedContentTypesForPath(String site, String relativePath);
 
     boolean changeContentType(String site, String path, String contentType) throws ServiceLayerException, UserNotFoundException;

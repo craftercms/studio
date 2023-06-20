@@ -33,11 +33,13 @@ class SpringContentTypeServices {
         this.context = context
     }
 
+    @Deprecated
     def getContentTypes(site, searchable) {
         def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
         return springBackedService.getAllContentTypes(site, searchable)
     }
 
+    @Deprecated
     def getContentType(site, type) {
         def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
         return springBackedService.getContentType(site, type)
@@ -53,6 +55,7 @@ class SpringContentTypeServices {
         return springBackedService.getContentTypeByRelativePath(site, path)
     }
 
+    @Deprecated
     def getAllowedContentTypesForPath(site, path) {
         def springBackedService = this.context.applicationContext.get(CONTENT_TYPE_SERVICES_BEAN)
         return springBackedService.getAllowedContentTypesForPath(site, path);

@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -1309,6 +1310,83 @@ public class GitContentRepository implements ContentRepository {
         if (!contentExists(site, path)) {
             throw new ContentNotFoundException(path, site, format("Content does not exist at '%s' for site '%s'", path, site));
         }
+    }
+
+    @Override
+    public RepositoryItem[] getContentChildren(String site, String path) {
+        // TODO: SJ: Rethink this API call for 3.1+
+        final List<RepositoryItem> retItems = new ArrayList<>();
+        try {
+            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            RevTree tree = helper.getTreeForLastCommit(repo);
+            try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
+
+                if (tw != null) {
+                    // Loop for all children and gather path of item excluding the item, file/folder name, and
+                    // whether or not it's a folder
+                    ObjectLoader loader = repo.open(tw.getObjectId(0));
+                    if (loader.getType() == OBJ_TREE) {
+                        int depth = tw.getDepth();
+                        tw.enterSubtree();
+                        while (tw.next()) {
+                            if (tw.getDepth() == depth + 1) {
+
+                                RepositoryItem item = new RepositoryItem();
+                                item.name = tw.getNameString();
+
+                                String visitFolderPath = FILE_SEPARATOR + tw.getPathString();
+                                loader = repo.open(tw.getObjectId(0));
+                                item.isFolder = loader.getType() == OBJ_TREE;
+                                int lastIdx = visitFolderPath.lastIndexOf(FILE_SEPARATOR + item.name);
+                                if (lastIdx > 0) {
+                                    item.path = visitFolderPath.substring(0, lastIdx);
+                                }
+
+                                if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                    retItems.add(item);
+                                }
+                            }
+                        }
+                        tw.close();
+                    } else {
+                        logger.debug("Item at site '{}' path '{}' doesn't have any children",
+                                site, path);
+                    }
+                } else {
+                    String gitPath = helper.getGitPath(path);
+                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                        try (TreeWalk treeWalk = new TreeWalk(repo)) {
+                            treeWalk.addTree(tree);
+
+                            while (treeWalk.next()) {
+                                RepositoryItem item = new RepositoryItem();
+                                item.name = treeWalk.getNameString();
+
+                                String visitFolderPath = FILE_SEPARATOR + treeWalk.getPathString();
+                                ObjectLoader loader = repo.open(treeWalk.getObjectId(0));
+                                item.isFolder = loader.getType() == OBJ_TREE;
+                                int lastIdx = visitFolderPath.lastIndexOf(FILE_SEPARATOR + item.name);
+                                if (lastIdx > 0) {
+                                    item.path = visitFolderPath.substring(0, lastIdx);
+                                } else {
+                                    item.path = EMPTY;
+                                }
+
+                                if (!ArrayUtils.contains(IGNORE_FILES, item.name)) {
+                                    retItems.add(item);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Failed to get children at site '{}' path '{}'", site, path, e);
+        }
+
+        RepositoryItem[] items = new RepositoryItem[retItems.size()];
+        items = retItems.toArray(items);
+        return items;
     }
 
     @Override

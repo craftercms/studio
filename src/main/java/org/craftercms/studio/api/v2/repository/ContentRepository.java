@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
@@ -453,4 +454,13 @@ public interface ContentRepository {
      * @throws ServiceLayerException if no content is found at the given path
      */
     void checkContentExists(String site, String path) throws ServiceLayerException;
+
+    /**
+     * get immediate children for path
+     *
+     * @param site site id where the operation will be executed
+     * @param path path to content
+     * @return a list of children
+     */
+    RepositoryItem[] getContentChildren(String site, String path);
 }

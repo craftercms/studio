@@ -18,9 +18,11 @@ package org.craftercms.studio.api.v2.service.content.internal;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
@@ -28,6 +30,23 @@ import org.springframework.core.io.Resource;
 import java.util.List;
 
 public interface ContentTypeServiceInternal {
+    /**
+     * load content type's configuration from the noderRef given
+     * @param siteId site identifier
+     * @param contentTypeId content type identifier
+     * @return {@link ContentTypeConfigTO} object of the given content type
+     */
+    ContentTypeConfigTO loadContentTypeConfiguration(String siteId, String contentTypeId);
+
+    /**
+     * Get list of content type items by site and optional a relative path
+     * @param siteId site identifier
+     * @param path path to filter content type
+     * @return List of {@link ContentTypeConfigTO} objects of the content types
+
+     * @throws ServiceLayerException
+     */
+    List<ContentTypeConfigTO> getContentTypes(String siteId, String path) throws ServiceLayerException;
 
     /**
      * Get list of content types marked as quick creatable for given site
@@ -35,7 +54,7 @@ public interface ContentTypeServiceInternal {
      * @param siteId site identifier
      * @return List of quick creatable content types
      */
-    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId);
+    List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException;
 
     /**
      * Finds all items related to a given content-type
