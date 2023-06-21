@@ -1824,6 +1824,13 @@ paths:
       summary: Get the local Studio instance cluster mode
       description: 'Required Permission: "read_cluster"'
       operationId: getClusterMode
+      parameters:
+        - name: token
+          in: query
+          description: Management token - not required for authenticated users
+          required: true
+          schema:
+            type: string
       responses:
         '200':
           description: OK
