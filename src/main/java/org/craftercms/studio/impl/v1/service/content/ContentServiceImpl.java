@@ -2625,9 +2625,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public boolean renameContent(@ValidateStringParam String site,
-                                @ValidateSecurePathParam String path,
-                                @ValidateStringParam String name)
+    @ValidateAction(type = Type.RENAME)
+    public boolean renameContent(@ValidateStringParam @SiteId String site,
+                                @ValidateSecurePathParam @ActionTargetPath String path,
+                                @ValidateStringParam @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
         boolean toRet = false;
 
