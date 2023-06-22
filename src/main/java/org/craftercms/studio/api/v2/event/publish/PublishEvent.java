@@ -22,7 +22,7 @@ import org.springframework.security.core.Authentication;
 /**
  * Event triggered when items are published
  *
- * @implNote For now this only triggered when items are processed in the publishing queue
+ * <p><b>Note:</b>For now this only triggered when items are processed in the publishing queue</p>
  *
  * @author joseross
  * @since 4.0.0

@@ -22,7 +22,7 @@ import org.springframework.security.core.Authentication;
 /**
  * Event triggered when there is a change in a site
  *
- * @implNote For now this is only triggered when a site creation is complete
+ * <p><b>Note:</b>For now this is only triggered when a site creation is complete</p>
  *
  * @author joseross
  * @since 4.0.0

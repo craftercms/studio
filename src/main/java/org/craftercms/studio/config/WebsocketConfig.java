@@ -29,7 +29,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 /**
  * Spring Websocket Configuration
  *
- * @implNote This configuration class is required because the XML namespace doesn't allow customizations
+ * <p><b>Note:</b> This configuration class is required because the XML namespace doesn't allow customizations</p>
  *
  * @author joseross
  * @since 4.0.0

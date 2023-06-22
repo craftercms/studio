@@ -36,7 +36,7 @@ import static java.util.stream.Collectors.toList;
  * Common operations related to git
  *
  * @author joseross
- * @ 4.0
+ * @since 4.0
  */
 public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils {
     public static List<String> getChangedFiles(Git git, ObjectId initialId, ObjectId finalId, String[] patterns)
