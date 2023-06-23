@@ -17,6 +17,7 @@
 package org.craftercms.studio.model.rest.content;
 
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 
@@ -31,7 +32,7 @@ public class DetailedItem {
     private String systemType;
     private String mimeType;
     private Long state;
-    private String lockOwner;
+    private Person lockOwner;
     private String localeCode;
     private Long translationSourceId;
     private long availableActions;
@@ -112,11 +113,11 @@ public class DetailedItem {
         this.state = state;
     }
 
-    public String getLockOwner() {
+    public Person getLockOwner() {
         return lockOwner;
     }
 
-    public void setLockOwner(String lockOwner) {
+    public void setLockOwner(Person lockOwner) {
         this.lockOwner = lockOwner;
     }
 
@@ -202,6 +203,7 @@ public class DetailedItem {
         instance.sandbox.dateCreated = item.getCreatedOn();
         instance.sandbox.modifier = item.getModifier();
         instance.sandbox.dateModified = item.getLastModifiedOn();
+        instance.sandbox.submitter = item.getSubmitter();
         instance.sandbox.commitId = item.getCommitId();
         instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
@@ -232,6 +234,7 @@ public class DetailedItem {
         instance.sandbox.dateCreated = item.getCreatedOn();
         instance.sandbox.modifier = item.getModifier();
         instance.sandbox.dateModified = item.getLastModifiedOn();
+        instance.sandbox.submitter = item.getSubmitter();
         instance.sandbox.commitId = item.getCommitId();
         instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
@@ -289,18 +292,19 @@ public class DetailedItem {
     }
 
     public static class Sandbox {
-        private String creator;
+        private Person creator;
         private ZonedDateTime dateCreated;
-        private String modifier;
+        private Person modifier;
         private ZonedDateTime dateModified;
+        private Person submitter;
         private String commitId;
         private long sizeInBytes;
 
-        public String getCreator() {
+        public Person getCreator() {
             return creator;
         }
 
-        public void setCreator(String creator) {
+        public void setCreator(Person creator) {
             this.creator = creator;
         }
 
@@ -312,11 +316,11 @@ public class DetailedItem {
             this.dateCreated = dateCreated;
         }
 
-        public String getModifier() {
+        public Person getModifier() {
             return modifier;
         }
 
-        public void setModifier(String modifier) {
+        public void setModifier(Person modifier) {
             this.modifier = modifier;
         }
 
@@ -326,6 +330,14 @@ public class DetailedItem {
 
         public void setDateModified(ZonedDateTime dateModified) {
             this.dateModified = dateModified;
+        }
+
+        public Person getSubmitter() {
+            return submitter;
+        }
+
+        public void setSubmitter(Person submitter) {
+            this.submitter = submitter;
         }
 
         public String getCommitId() {

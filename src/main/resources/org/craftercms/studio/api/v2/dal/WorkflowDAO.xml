@@ -52,12 +52,9 @@
             <result property="previewUrl" column="item_preview_url" />
             <result property="state" column="item_state" />
             <result property="lockedBy" column="item_locked_by" />
-            <result property="lockOwner" column="item_lock_owner" />
             <result property="createdBy" column="item_created_by" />
-            <result property="creator" column="item_creator" />
             <result property="createdOn" column="item_created_on" />
             <result property="lastModifiedBy" column="item_last_modified_by" />
-            <result property="modifier" column="item_modifier" />
             <result property="lastModifiedOn" column="item_last_modified_on" />
             <result property="label" column="item_label" />
             <result property="contentTypeId" column="item_content_type_id" />
@@ -68,6 +65,14 @@
             <result property="size" column="item_size" />
             <result property="parentId" column="item_parent_id" />
             <result property="commitId" column="item_commit_id" />
+            <association property="modifier" column="item_modifier"
+                         select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+            <association property="creator" column="item_creator"
+                         select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+            <association property="lockOwner" column="item_lock_owner"
+                         select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+            <association property="submitter" column="workflow_submitter_id"
+                         select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
         </association>
     </resultMap>
 

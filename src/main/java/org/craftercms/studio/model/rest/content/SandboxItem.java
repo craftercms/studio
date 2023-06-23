@@ -18,6 +18,7 @@ package org.craftercms.studio.model.rest.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 
@@ -32,13 +33,14 @@ public class SandboxItem {
     private String systemType;
     private String mimeType;
     private long state;
-    private String lockOwner;
+    private Person lockOwner;
     private String localeCode;
     private Long translationSourceId;
-    private String creator;
+    private Person creator;
     private ZonedDateTime dateCreated;
-    private String modifier;
+    private Person modifier;
     private ZonedDateTime dateModified;
+    private Person submitter;
     private String commitId;
     private long sizeInBytes;
     private long availableActions;
@@ -117,11 +119,11 @@ public class SandboxItem {
         this.state = state;
     }
 
-    public String getLockOwner() {
+    public Person getLockOwner() {
         return lockOwner;
     }
 
-    public void setLockOwner(String lockOwner) {
+    public void setLockOwner(Person lockOwner) {
         this.lockOwner = lockOwner;
     }
 
@@ -141,11 +143,11 @@ public class SandboxItem {
         this.translationSourceId = translationSourceId;
     }
 
-    public String getCreator() {
+    public Person getCreator() {
         return creator;
     }
 
-    public void setCreator(String creator) {
+    public void setCreator(Person creator) {
         this.creator = creator;
     }
 
@@ -157,12 +159,20 @@ public class SandboxItem {
         this.dateCreated = dateCreated;
     }
 
-    public String getModifier() {
+    public Person getModifier() {
         return modifier;
     }
 
-    public void setModifier(String modifier) {
+    public void setModifier(Person modifier) {
         this.modifier = modifier;
+    }
+
+    public Person getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(Person submitter) {
+        this.submitter = submitter;
     }
 
     public ZonedDateTime getDateModified() {
@@ -233,6 +243,7 @@ public class SandboxItem {
         instance.dateCreated = item.getCreatedOn();
         instance.modifier = item.getModifier();
         instance.dateModified = item.getLastModifiedOn();
+        instance.submitter = item.getSubmitter();
         instance.commitId = item.getCommitId();
         instance.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();

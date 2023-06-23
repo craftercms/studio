@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -33,13 +34,14 @@ public class DetailedItem {
     private String previewUrl;
     private long state;
     private Long lockedBy;
-    private String lockOwner;
+    private Person lockOwner;
     private Long createdBy = null;
-    private String creator;
+    private Person creator;
     private ZonedDateTime createdOn;
     private Long lastModifiedBy = null;
-    private String modifier;
+    private Person modifier;
     private ZonedDateTime lastModifiedOn;
+    private Person submitter;
     private ZonedDateTime lastPublishedOn;
     private String label;
     private String contentTypeId;
@@ -83,6 +85,7 @@ public class DetailedItem {
         lastModifiedBy = builder.lastModifiedBy;
         modifier = builder.modifier;
         lastModifiedOn = builder.lastModifiedOn;
+        submitter = builder.submitter;
         lastPublishedOn = builder.lastPublishedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
@@ -156,11 +159,11 @@ public class DetailedItem {
         this.lockedBy = lockedBy;
     }
 
-    public String getLockOwner() {
+    public Person getLockOwner() {
         return lockOwner;
     }
 
-    public void setLockOwner(String lockOwner) {
+    public void setLockOwner(Person lockOwner) {
         this.lockOwner = lockOwner;
     }
 
@@ -172,11 +175,11 @@ public class DetailedItem {
         this.createdBy = createdBy;
     }
 
-    public String getCreator() {
+    public Person getCreator() {
         return creator;
     }
 
-    public void setCreator(String creator) {
+    public void setCreator(Person creator) {
         this.creator = creator;
     }
 
@@ -196,11 +199,11 @@ public class DetailedItem {
         this.lastModifiedBy = lastModifiedBy;
     }
 
-    public String getModifier() {
+    public Person getModifier() {
         return modifier;
     }
 
-    public void setModifier(String modifier) {
+    public void setModifier(Person modifier) {
         this.modifier = modifier;
     }
 
@@ -210,6 +213,14 @@ public class DetailedItem {
 
     public void setLastModifiedOn(ZonedDateTime lastModifiedOn) {
         this.lastModifiedOn = lastModifiedOn;
+    }
+
+    public Person getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(Person submitter) {
+        this.submitter = submitter;
     }
 
     public ZonedDateTime getLastPublishedOn() {
@@ -444,13 +455,14 @@ public class DetailedItem {
         private String previewUrl;
         private long state;
         private Long lockedBy;
-        private String lockOwner;
+        private Person lockOwner;
         private Long createdBy;
-        private String creator;
+        private Person creator;
         private ZonedDateTime createdOn;
         private Long lastModifiedBy;
-        private String modifier;
+        private Person modifier;
         private ZonedDateTime lastModifiedOn;
+        private Person submitter;
         private ZonedDateTime lastPublishedOn;
         private String label;
         private String contentTypeId;
@@ -492,6 +504,7 @@ public class DetailedItem {
             clone.lastModifiedBy = item.lastModifiedBy;
             clone.modifier = item.modifier;
             clone.lastModifiedOn = item.lastModifiedOn;
+            clone.submitter = item.submitter;
             clone.lastPublishedOn = item.lastPublishedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;
@@ -554,7 +567,7 @@ public class DetailedItem {
             return this;
         }
 
-        public Builder withLockOwner(String lockOwner) {
+        public Builder withLockOwner(Person lockOwner) {
             this.lockOwner = lockOwner;
             return this;
         }
@@ -564,7 +577,7 @@ public class DetailedItem {
             return this;
         }
 
-        public Builder withCreator(String creator) {
+        public Builder withCreator(Person creator) {
             this.creator = creator;
             return this;
         }
@@ -579,13 +592,18 @@ public class DetailedItem {
             return this;
         }
 
-        public Builder withModifier(String modifier) {
+        public Builder withModifier(Person modifier) {
             this.modifier = modifier;
             return this;
         }
 
         public Builder withLastModifiedOn(ZonedDateTime lastModifiedOn) {
             this.lastModifiedOn = lastModifiedOn;
+            return this;
+        }
+
+        public Builder withSubmitter(Person submitter) {
+            this.submitter = submitter;
             return this;
         }
 
