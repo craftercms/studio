@@ -95,6 +95,8 @@ studio.repo.git.cli.enabled: true
 studio.repo.git.cli.process.name: git
 # Timeout in seconds when waiting for the Git CLI process to finish
 studio.repo.git.cli.process.waitForTimeout: 300
+# Timeout in seconds when waiting for the Git CLI process to finish after destroying the process forcibly
+studio.repo.git.cli.process.destroy.waitForTimeout: 30
 
 ############################################################
 ##                       Blob Store                       ##

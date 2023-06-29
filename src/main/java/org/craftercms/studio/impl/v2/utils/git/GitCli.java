@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,20 +29,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
 
 /**
  * Allows doing Git operations throw the CLI.
- *
+ * <br />
  * If you ever use this class, please lock/synchronize the calls (hopefully with the
  * {@link org.craftercms.studio.api.v1.service.GeneralLockService})
  *
  * @author Sumer Jabri
  * @author Alfonso Vasquez
- * @since  3.1.23
+ * @since 3.1.23
  */
 public class GitCli {
 
@@ -50,6 +55,7 @@ public class GitCli {
 
     private static final String DEFAULT_GIT_COMMAND_NAME = "git";
     private static final int DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT = 60 * 5; // 5 minutes
+    private static final int DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT = 30;
 
     // Exception resolvers
     public final GitCliOutputExceptionResolver DEFAULT_EX_RESOLVER = RepositoryLockedExceptionResolver.INSTANCE;
@@ -58,15 +64,18 @@ public class GitCli {
 
     private final String gitProcName;
     private final int gitProcWaitForTimeoutSecs;
+    private final int gitProcDestroyWaitForTimeoutSecs;
 
     public GitCli() {
         this.gitProcName = DEFAULT_GIT_COMMAND_NAME;
         this.gitProcWaitForTimeoutSecs = DEFAULT_GIT_PROC_WAIT_FOR_TIMEOUT;
+        this.gitProcDestroyWaitForTimeoutSecs = DEFAULT_GIT_PROC_DESTROY_WAIT_FOR_TIMEOUT;
     }
 
-    public GitCli(String gitProcName, int gitProcWaitForTimeoutSecs) {
+    public GitCli(String gitProcName, int gitProcWaitForTimeoutSecs, int gitProcDestroyWaitForTimeoutSecs) {
         this.gitProcName = gitProcName;
         this.gitProcWaitForTimeoutSecs = gitProcWaitForTimeoutSecs;
+        this.gitProcDestroyWaitForTimeoutSecs = gitProcDestroyWaitForTimeoutSecs;
     }
 
     protected String executeGitCommand(String directory, GitCommandLine commandLine)
@@ -74,46 +83,103 @@ public class GitCli {
         return executeGitCommand(directory, commandLine, DEFAULT_EX_RESOLVER);
     }
 
-    protected String executeGitCommand(String directory, GitCommandLine commandLine,
-                                       GitCliOutputExceptionResolver exceptionResolver)
+    protected String executeGitCommand(String directory, GitCommandLine commandLine, GitCliOutputExceptionResolver exceptionResolver)
             throws IOException, InterruptedException {
-        if (Files.notExists(Paths.get(directory)) || Files.notExists(Paths.get(directory, ".git"))) {
-            throw new IOException("Directory " + directory + " does not exist or is not a Git repository");
-        }
+        checkGitDirectory(directory);
 
-        ProcessBuilder pb = new ProcessBuilder(commandLine);
-        pb.directory(new File(directory));
-        // Read stderr from stdout
-        pb.redirectErrorStream(true);
-
+        ProcessBuilder pb = new ProcessBuilder(commandLine).directory(new File(directory));
         logger.debug("Executing git command: {}", commandLine);
 
         // Start process
         Process p = pb.start();
 
-        // Read output before wait to avoid process from hanging
-        String output = IOUtils.toString(p.getInputStream());
-
-        // Wait till the process has finished
-        boolean exited = p.waitFor(gitProcWaitForTimeoutSecs, TimeUnit.SECONDS);
-        if (exited) {
-            int exitValue = p.exitValue();
-            if (exitValue == 0) {
-                logger.debug("Git command successfully executed on {}:\n{}", directory, output);
-
-                return output;
-            } else {
-                logger.debug("Git command failed with exit value {} on {}:\n{}", exitValue, directory, output);
-
-                GitCliOutputException ex = exceptionResolver.resolveException(exitValue, output);
-                if (ex == null) {
-                    ex = new GitCliOutputException(exitValue, output);
-                }
-
-                throw ex;
+        InputStream processInputStream = p.getInputStream();
+        InputStream processErrorStream = p.getErrorStream();
+        try {
+            // Wait for the process to finish, up to gitProcWaitForTimeoutSecs
+            boolean exited = p.waitFor(gitProcWaitForTimeoutSecs, TimeUnit.SECONDS);
+            if (!exited) {
+                handleProcessTimeout(p, directory, processInputStream, processErrorStream);
             }
-        } else {
-            throw new IOException("Timeout while waiting for git command to exit");
+
+            int exitValue = p.exitValue();
+            if (exitValue != 0) {
+                handleErrorExitValue(directory, exceptionResolver, p, processInputStream);
+            }
+
+            // Read std output if process has finished successfully
+            String output = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
+            logger.debug("Git command successfully executed on {}:\n{}", directory, output);
+            return output;
+        } finally {
+            IOUtils.closeQuietly(processInputStream);
+            IOUtils.closeQuietly(processErrorStream);
+            if (p.isAlive()) {
+                // Destroy process
+                destroyProcess(p);
+            }
+        }
+    }
+
+    private void handleErrorExitValue(String directory, GitCliOutputExceptionResolver exceptionResolver,
+                                      Process p, InputStream processInputStream) throws IOException {
+        int exitValue = p.exitValue();
+        String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());
+        String stdOutput = IOUtils.toString(processInputStream, Charset.defaultCharset());
+
+        String errorMessage = format("Git command failed with exit value %s on %s:\n\nSTDOUT: %s\nSTDERR: %s", exitValue, directory, stdOutput, errorOutput);
+        logger.debug(errorMessage);
+
+        throw Optional
+                .ofNullable(exceptionResolver.resolveException(exitValue, errorOutput))
+                .or(() -> Optional.ofNullable(exceptionResolver.resolveException(exitValue, stdOutput)))
+                .orElse(new GitCliOutputException(exitValue, errorMessage));
+    }
+
+    private void handleProcessTimeout(Process p, String directory, InputStream processInputStream, InputStream processErrorStream) throws IOException {
+        // Read available bytes, avoiding blocking
+        String stdOutput = new String(processInputStream.readNBytes(processInputStream.available()));
+        String errorOutput = new String(processErrorStream.readNBytes(processErrorStream.available()));
+        destroyProcess(p);
+        String errorMessage = format("Timeout while waiting for git command to exit on '%s'\nSTDOUT: %s\nSTDERR: %s", directory, stdOutput, errorOutput);
+        logger.debug(errorMessage);
+        throw new GitCliException(errorMessage);
+    }
+
+    /**
+     * Destroys the process. It will wait for {@link #gitProcDestroyWaitForTimeoutSecs} seconds for the process to
+     * exit, and if it does not, it will destroy it forcibly.
+     *
+     * @param process the process
+     */
+    private void destroyProcess(Process process) {
+        try {
+            logger.debug("Destroying process with PID {}", process.pid());
+            process.destroy();
+            boolean destroyed = process.waitFor(gitProcDestroyWaitForTimeoutSecs, TimeUnit.SECONDS);
+            if (!destroyed) {
+                logger.warn("Git process with PID {} did not exit after {} seconds, destroying it", process.pid(), gitProcDestroyWaitForTimeoutSecs);
+                process.destroyForcibly();
+                process.waitFor();
+                logger.debug("Process with PID {} destroyed", process.pid());
+            }
+        } catch (InterruptedException e) {
+            logger.warn("Interrupted while waiting for process with PID {} to exit", process.pid(), e);
+        }
+    }
+
+    /**
+     * Checks if the given directory exists and is a Git repository.
+     *
+     * @param directory the directory to check
+     * @throws GitCliException if the directory does not exist or is not a Git repository
+     */
+    private static void checkGitDirectory(final String directory) throws GitCliException {
+        if (Files.notExists(Paths.get(directory))) {
+            throw new GitCliException(format("Directory '%s' does not exist", directory));
+        }
+        if (Files.notExists(Paths.get(directory, ".git"))) {
+            throw new GitCliException(format("Directory '%s' is not a Git repository", directory));
         }
     }
 
@@ -122,7 +188,7 @@ public class GitCli {
             executeGitCommand(directory, new GitCommandLine("add", paths));
         } catch (Exception e) {
             throw new GitCliException("Git add failed on directory " + directory + " for paths " +
-                                      ArrayUtils.toString(paths), e);
+                    ArrayUtils.toString(paths), e);
         }
     }
 
@@ -139,7 +205,7 @@ public class GitCli {
             return StringUtils.trim(executeGitCommand(directory, revParseCl));
         } catch (Exception e) {
             throw new GitCliException("Git commit failed on directory " + directory + " for paths " +
-                                      ArrayUtils.toString(paths), e);
+                    ArrayUtils.toString(paths), e);
         }
     }
 
