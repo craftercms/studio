@@ -88,7 +88,7 @@ public class GitCli {
         checkGitDirectory(directory);
 
         ProcessBuilder pb = new ProcessBuilder(commandLine).directory(new File(directory));
-        logger.debug("Executing git command: {}", commandLine);
+        logger.debug("Executing git command: '{}'", commandLine);
 
         // Start process
         Process p = pb.start();
@@ -109,7 +109,7 @@ public class GitCli {
 
             // Read std output if process has finished successfully
             String output = IOUtils.toString(p.getInputStream(), Charset.defaultCharset());
-            logger.debug("Git command successfully executed on {}:\n{}", directory, output);
+            logger.debug("Git command successfully executed on '{}':\n'{}'", directory, output);
             return output;
         } finally {
             IOUtils.closeQuietly(processInputStream);
@@ -154,17 +154,17 @@ public class GitCli {
      */
     private void destroyProcess(Process process) {
         try {
-            logger.debug("Destroying process with PID {}", process.pid());
+            logger.debug("Destroying process with PID '{}'", process.pid());
             process.destroy();
             boolean destroyed = process.waitFor(gitProcDestroyWaitForTimeoutSecs, TimeUnit.SECONDS);
             if (!destroyed) {
-                logger.warn("Git process with PID {} did not exit after {} seconds, destroying it", process.pid(), gitProcDestroyWaitForTimeoutSecs);
+                logger.warn("Git process with PID '{}' did not exit after '{}' seconds, destroying it", process.pid(), gitProcDestroyWaitForTimeoutSecs);
                 process.destroyForcibly();
                 process.waitFor();
-                logger.debug("Process with PID {} destroyed", process.pid());
+                logger.debug("Process with PID '{}' destroyed", process.pid());
             }
         } catch (InterruptedException e) {
-            logger.warn("Interrupted while waiting for process with PID {} to exit", process.pid(), e);
+            logger.warn("Interrupted while waiting for process with PID '{}' to exit", process.pid(), e);
         }
     }
 
@@ -220,7 +220,7 @@ public class GitCli {
             // No result means there's no changes, so the repo is clean
             return StringUtils.isEmpty(result);
         } catch (Exception e) {
-            throw new GitCliException("Git gc failed on directory " + directory, e);
+            throw new GitCliException("Git GC failed on directory " + directory, e);
         }
     }
 
