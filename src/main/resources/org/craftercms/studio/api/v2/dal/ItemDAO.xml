@@ -32,6 +32,7 @@
         <result property="lastModifiedBy" column="last_modified_by" />
         <result property="lastModifiedOn" column="last_modified_on" />
         <result property="lastPublishedOn" column="last_published_on" />
+        <result property="submittedOn" column="submitted_on" />
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
@@ -69,6 +70,7 @@
         <result property="lastModifiedBy" column="last_modified_by" />
         <result property="lastModifiedOn" column="last_modified_on" />
         <result property="lastPublishedOn" column="last_published_on" />
+        <result property="submittedOn" column="submitted_on" />
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
@@ -154,6 +156,11 @@
 
     <select id="getChildrenByPath" resultMap="ItemMap">
         SELECT child.*, child.locked_by AS lock_owner, child.created_by AS creator, child.last_modified_by AS modifier,
+                (
+                SELECT w.submitted_on
+                FROM workflow w
+                WHERE w.item_id = child.id
+                ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
@@ -294,6 +301,11 @@
     <select id="getDetailedItemsByStates" resultMap="DetailedItemMap">
             SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                     (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i.id
+                    ) as submitted_on,
+                    (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i.id
@@ -369,6 +381,11 @@
     <select id="getItemByPath" resultMap="DetailedItemMap">
             SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                     (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i.id
+                    ) as submitted_on,
+                    (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i.id
@@ -443,6 +460,11 @@
     <select id="getItemByPathPreferContent" resultMap="DetailedItemMap">
             (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
                     (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i1.id
+                    ) as submitted_on,
+                    (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i1.id
@@ -516,6 +538,11 @@
             UNION
             (select i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
                     (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i3.id
+                    ) as submitted_on,
+                    (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i3.id
@@ -588,6 +615,11 @@
     <select id="getSandboxItemsById" resultMap="ItemMap">
         SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                 (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i.id
+                ) as submitted_on,
+                (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = i.id
@@ -611,6 +643,11 @@
         FROM (
         (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
                 (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i1.id
+                ) as submitted_on,
+                (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = i1.id
@@ -630,6 +667,11 @@
         GROUP BY i1.id)
         UNION
         (SELECT i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
+                (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i3.id
+                ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
@@ -655,6 +697,11 @@
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
         SELECT item.*, item.locked_by AS lock_owner, item.created_by AS creator, item.last_modified_by AS modifier,
+                (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = item.id
+                ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w

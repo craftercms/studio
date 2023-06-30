@@ -42,6 +42,7 @@ public class DetailedItem {
     private Person modifier;
     private ZonedDateTime lastModifiedOn;
     private Person submitter;
+    private ZonedDateTime submittedOn;
     private ZonedDateTime lastPublishedOn;
     private String label;
     private String contentTypeId;
@@ -86,6 +87,7 @@ public class DetailedItem {
         modifier = builder.modifier;
         lastModifiedOn = builder.lastModifiedOn;
         submitter = builder.submitter;
+        submittedOn = builder.dateSubmitted;
         lastPublishedOn = builder.lastPublishedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
@@ -221,6 +223,14 @@ public class DetailedItem {
 
     public void setSubmitter(Person submitter) {
         this.submitter = submitter;
+    }
+
+    public ZonedDateTime getSubmittedOn() {
+        return submittedOn;
+    }
+
+    public void setSubmittedOn(ZonedDateTime submittedOn) {
+        this.submittedOn = submittedOn;
     }
 
     public ZonedDateTime getLastPublishedOn() {
@@ -463,6 +473,7 @@ public class DetailedItem {
         private Person modifier;
         private ZonedDateTime lastModifiedOn;
         private Person submitter;
+        public ZonedDateTime dateSubmitted;
         private ZonedDateTime lastPublishedOn;
         private String label;
         private String contentTypeId;
@@ -505,6 +516,7 @@ public class DetailedItem {
             clone.modifier = item.modifier;
             clone.lastModifiedOn = item.lastModifiedOn;
             clone.submitter = item.submitter;
+            clone.dateSubmitted = item.submittedOn;
             clone.lastPublishedOn = item.lastPublishedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;

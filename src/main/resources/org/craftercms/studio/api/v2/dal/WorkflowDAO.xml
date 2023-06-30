@@ -26,6 +26,7 @@
         <result property="state" column="state" />
         <result property="submitterId" column="submitter_id" />
         <result property="submitterComment" column="submitter_comment" />
+        <result property="submittedOn" column="submitted_on" />
         <result property="reviewerId" column="reviewer_id" />
         <result property="reviewerComment" column="reviewer_comment" />
         <result property="notifySubmitter" column="notify_submitter" />
@@ -39,6 +40,7 @@
         <result property="state" column="workflow_state" />
         <result property="submitterId" column="workflow_submitter_id" />
         <result property="submitterComment" column="workflow_submitter_comment" />
+        <result property="submittedOn" column="workflow_submitted_on" />
         <result property="reviewerId" column="workflow_reviewer_id" />
         <result property="reviewerComment" column="workflow_reviewer_comment" />
         <result property="notifySubmitter" column="workflow_notify_submitter" />
@@ -94,6 +96,7 @@
             workflow.state as workflow_state,
             workflow.submitter_id as workflow_submitter_id,
             workflow.submitter_comment as workflow_submitter_comment,
+            workflow.submitted_on as workflow_submitted_on,
             workflow.reviewer_id as workflow_reviewer_id,
             workflow.reviewer_comment as workdlow_reviewer_comment,
             workflow.notify_submitter as workflow_notify_submitter,
@@ -154,6 +157,7 @@
             workflow.state as workflow_state,
             workflow.submitter_id as workflow_submitter_id,
             workflow.submitter_comment as workflow_submitter_comment,
+            workflow.submitted_on as workflow_submitted_on,
             workflow.reviewer_id as workflow_reviewer_id,
             workflow.reviewer_comment as workdlow_reviewer_comment,
             workflow.notify_submitter as workflow_notify_submitter,

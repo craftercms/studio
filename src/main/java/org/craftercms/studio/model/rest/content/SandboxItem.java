@@ -41,6 +41,7 @@ public class SandboxItem {
     private Person modifier;
     private ZonedDateTime dateModified;
     private Person submitter;
+    private ZonedDateTime dateSubmitted;
     private String commitId;
     private long sizeInBytes;
     private long availableActions;
@@ -175,6 +176,14 @@ public class SandboxItem {
         this.submitter = submitter;
     }
 
+    public ZonedDateTime getDateSubmitted() {
+        return dateSubmitted;
+    }
+
+    public void setDateSubmitted(ZonedDateTime dateSubmitted) {
+        this.dateSubmitted = dateSubmitted;
+    }
+
     public ZonedDateTime getDateModified() {
         return dateModified;
     }
@@ -244,6 +253,7 @@ public class SandboxItem {
         instance.modifier = item.getModifier();
         instance.dateModified = item.getLastModifiedOn();
         instance.submitter = item.getSubmitter();
+        instance.dateSubmitted = item.getSubmittedOn();
         instance.commitId = item.getCommitId();
         instance.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();

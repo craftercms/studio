@@ -47,6 +47,7 @@ public class Item {
     private ZonedDateTime lastModifiedOn;
     private ZonedDateTime lastPublishedOn;
     private Person submitter;
+    private ZonedDateTime submittedOn;
     private String label;
     private String contentTypeId;
     private String systemType;
@@ -81,6 +82,7 @@ public class Item {
         lastModifiedOn = builder.lastModifiedOn;
         lastPublishedOn = builder.lastPublishedOn;
         submitter = builder.submitter;
+        submittedOn = builder.submittedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
@@ -225,6 +227,14 @@ public class Item {
         this.submitter = submitter;
     }
 
+    public ZonedDateTime getSubmittedOn() {
+        return submittedOn;
+    }
+
+    public void setSubmittedOn(ZonedDateTime submittedOn) {
+        this.submittedOn = submittedOn;
+    }
+
     public String getLabel() {
         return label;
     }
@@ -359,6 +369,7 @@ public class Item {
         instance.modifier = item.getModifier();
         instance.lastModifiedOn = item.getLastModifiedOn();
         instance.submitter = item.getSubmitter();
+        instance.submittedOn = item.getSubmittedOn();
         instance.lastPublishedOn = item.getLastPublishedOn();
         instance.label = item.getLabel();
         instance.contentTypeId = item.getContentTypeId();
@@ -379,7 +390,6 @@ public class Item {
     }
 
     public static final class Builder {
-        public Person submitter;
         private long id;
         private long siteId;
         private String siteName;
@@ -395,6 +405,8 @@ public class Item {
         private Person modifier;
         private ZonedDateTime lastModifiedOn;
         private ZonedDateTime lastPublishedOn;
+        public Person submitter;
+        public ZonedDateTime submittedOn;
         private String label;
         private String contentTypeId;
         private String systemType;
@@ -429,6 +441,7 @@ public class Item {
             clone.lastModifiedOn = item.lastModifiedOn;
             clone.lastPublishedOn = item.lastPublishedOn;
             clone.submitter = item.submitter;
+            clone.submittedOn = item.submittedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
