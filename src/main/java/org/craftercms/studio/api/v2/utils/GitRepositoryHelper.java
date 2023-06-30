@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.git.cli.GitCliException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
@@ -1242,6 +1243,7 @@ public class GitRepositoryHelper implements DisposableBean {
                     logger.debug("No changes were committed to git in site '{}' paths '{}'", site,
                                  ArrayUtils.toString(paths));
                 } else {
+                    restorePaths(repo, site, paths);
                     logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
                                  ArrayUtils.toString(paths), e);
                 }
@@ -1251,6 +1253,37 @@ public class GitRepositoryHelper implements DisposableBean {
         }
 
         return commitId;
+    }
+
+    /**
+     * Remove the given paths from the index and discard changes
+     * @param repo the repository
+     * @param site the site
+     * @param paths the paths
+     */
+    private void restorePaths(Repository repo, String site, String... paths) {
+        // TODO: JM: Refactor this class to implement Strategy pattern and get rid of these if-else statements
+        if (gitCliEnabled) {
+            try {
+                gitCli.restore(repo.getWorkTree().getAbsolutePath(), getGitPaths(paths));
+            } catch (GitCliException e) {
+                logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
+            }
+        } else {
+            try (Git git = new Git(repo)) {
+                // Remove from index
+                ResetCommand resetCommand = git.reset();
+                Arrays.stream(paths).forEach(p -> resetCommand.addPath(getGitPath(p)));
+                retryingRepositoryOperationFacade.call(resetCommand);
+
+                // Discard changes
+                CheckoutCommand checkoutCommand = git.checkout();
+                Arrays.stream(paths).forEach(p -> checkoutCommand.addPath(getGitPath(p)));
+                retryingRepositoryOperationFacade.call(checkoutCommand);
+            } catch (GitAPIException e) {
+                logger.error("Failed to restore files in site '{}' paths '{}'", site, ArrayUtils.toString(paths), e);
+            }
+        }
     }
 
     /**
