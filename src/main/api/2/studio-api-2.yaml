@@ -8551,6 +8551,10 @@ components:
         submitter:
           $ref: '#/components/schemas/Person'
           description: user that submitted item for review (if any)
+        dateSubmitted:
+          type: string
+          format: datetime
+          description: timestamp when item was submitted for review (if any)
         commitId:
           type: string
           description: commit id of last modification in the repository for item
@@ -8739,6 +8743,10 @@ components:
             submitter:
               $ref: '#/components/schemas/Person'
               description: user that submitted item for publishing
+            dateSubmitted:
+              type: string
+              format: datetime
+              description: timestamp when item was submitted for review (if any)
             commitId:
               type: string
               description: commit id of last modification in the sandbox repository
