@@ -127,7 +127,7 @@ public class GitCli {
         String errorOutput = IOUtils.toString(p.getErrorStream(), Charset.defaultCharset());
         String stdOutput = IOUtils.toString(processInputStream, Charset.defaultCharset());
 
-        String errorMessage = format("Git command failed with exit value %s on %s:\n\nSTDOUT: %s\nSTDERR: %s", exitValue, directory, stdOutput, errorOutput);
+        String errorMessage = format("Git command failed with exit value '%s' on '%s':\n\nSTDOUT: '%s'\nSTDERR: '%s'", exitValue, directory, stdOutput, errorOutput);
         logger.debug(errorMessage);
 
         throw Optional
@@ -141,7 +141,7 @@ public class GitCli {
         String stdOutput = new String(processInputStream.readNBytes(processInputStream.available()));
         String errorOutput = new String(processErrorStream.readNBytes(processErrorStream.available()));
         destroyProcess(p);
-        String errorMessage = format("Timeout while waiting for git command to exit on '%s'\nSTDOUT: %s\nSTDERR: %s", directory, stdOutput, errorOutput);
+        String errorMessage = format("Timeout while waiting for git command to exit on '%s'\nSTDOUT: '%s'\nSTDERR: '%s'", directory, stdOutput, errorOutput);
         logger.debug(errorMessage);
         throw new GitCliException(errorMessage);
     }
