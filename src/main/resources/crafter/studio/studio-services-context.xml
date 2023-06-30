@@ -909,6 +909,8 @@
         <constructor-arg name="gitProcName" value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.name')}"/>
         <constructor-arg name="gitProcWaitForTimeoutSecs"
                          value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.waitForTimeout')}"/>
+        <constructor-arg name="gitProcDestroyWaitForTimeoutSecs"
+                         value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.destroy.waitForTimeout')}"/>
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
