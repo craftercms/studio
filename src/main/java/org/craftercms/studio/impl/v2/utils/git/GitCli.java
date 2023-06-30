@@ -192,6 +192,25 @@ public class GitCli {
         }
     }
 
+    /**
+     * Remove the given paths from the index and discard changes
+     * @param directory the git repository directory
+     * @param paths the paths to restore
+     * @return the output of the git restore command
+     */
+    public String restore(String directory, String... paths) throws GitCliException {
+        GitCommandLine restoreCl = new GitCommandLine("restore");
+        restoreCl.addParam("--source=HEAD");
+        restoreCl.addParam("--staged");
+        restoreCl.addParam("--worktree");
+        restoreCl.addParams(paths);
+        try {
+            return StringUtils.trim(executeGitCommand(directory, restoreCl));
+        } catch (Exception e) {
+            throw new GitCliException(format("Git restore failed on directory '%s' for paths %s", directory, ArrayUtils.toString(paths)), e);
+        }
+    }
+
     public String commit(String directory, String author, String message, String... paths) throws GitCliException {
         GitCommandLine commitCl = new GitCommandLine("commit");
         GitCommandLine revParseCl = new GitCommandLine("rev-parse", "HEAD");
