@@ -160,11 +160,13 @@
                 SELECT w.submitted_on
                 FROM workflow w
                 WHERE w.item_id = child.id
+                ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = child.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitter,
                COUNT(
                 <choose>
@@ -301,14 +303,16 @@
     <select id="getDetailedItemsByStates" resultMap="DetailedItemMap">
             SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                     (
-                    SELECT w.submitted_on
-                    FROM workflow w
-                    WHERE w.item_id = i.id
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) as submitted_on,
                     (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) AS submitter,
                     (
                         (SELECT schedule
@@ -384,11 +388,13 @@
                         SELECT w.submitted_on
                         FROM workflow w
                         WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) as submitted_on,
                     (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) AS submitter,
                     (
                         (SELECT schedule
@@ -463,11 +469,13 @@
                         SELECT w.submitted_on
                         FROM workflow w
                         WHERE w.item_id = i1.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) as submitted_on,
                     (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i1.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                         ) AS submitter,
                     (
                         (SELECT schedule
@@ -541,11 +549,13 @@
                         SELECT w.submitted_on
                         FROM workflow w
                         WHERE w.item_id = i3.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) as submitted_on,
                     (
                         SELECT w.submitter_id
                         FROM workflow w
                         WHERE w.item_id = i3.id
+                        ORDER BY w.id DESC LIMIT 0, 1
                     ) AS submitter,
                     (
                         (SELECT schedule
@@ -618,11 +628,13 @@
                     SELECT w.submitted_on
                     FROM workflow w
                     WHERE w.item_id = i.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = i.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) AS submitter,
                COUNT(DISTINCT i3.id) AS children_count
         FROM item i
@@ -646,11 +658,13 @@
                     SELECT w.submitted_on
                     FROM workflow w
                     WHERE w.item_id = i1.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = i1.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) AS submitter,
                COUNT(DISTINCT i5.id ) AS children_count
         FROM item i1
@@ -671,11 +685,13 @@
                     SELECT w.submitted_on
                     FROM workflow w
                     WHERE w.item_id = i3.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = i3.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) AS submitter,
                COUNT(DISTINCT i6.id) AS children_count
         FROM item i3
@@ -701,11 +717,13 @@
                     SELECT w.submitted_on
                     FROM workflow w
                     WHERE w.item_id = item.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitted_on,
                 (
                     SELECT w.submitter_id
                     FROM workflow w
                     WHERE w.item_id = item.id
+                    ORDER BY w.id DESC LIMIT 0, 1
                 ) as submitter,
                COUNT(child.id) AS children_count
         FROM item
