@@ -247,6 +247,7 @@
             state = #{state},
             submitter_id = #{submitterId},
             submitter_comment = #{submitterComment},
+            reviewer_id = #{reviewerId},
             notify_submitter = #{notifySubmitter},
             schedule = #{schedule},
             publishing_package_id = #{publishingPackageId}
