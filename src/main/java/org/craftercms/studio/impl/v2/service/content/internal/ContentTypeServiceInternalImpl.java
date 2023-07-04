@@ -128,59 +128,75 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
                 .replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
         String configFileFullPath = siteConfigPath + FILE_SEPARATOR + getConfigFileName();
 
-        // TODO: SJ: Add general lock service lock around this key to avoid having more than one thread do this work
         var cacheKey = configurationService.getCacheKey(siteId, null, configFileFullPath,
                 null, "object");
         ContentTypeConfigTO contentTypeConfig = cache.getIfPresent(cacheKey);
-        if (contentTypeConfig == null) {
-            try {
-                logger.debug("Cache miss for key '{}'", cacheKey);
-
-                if (contentService.contentExists(siteId, configFileFullPath)) {
-                    Document document = configurationService.getConfigurationAsDocument(siteId, null,
-                            configFileFullPath, null);
-                    Element root = document.getRootElement();
-                    String name = root.valueOf("@name");
-                    contentTypeConfig = new ContentTypeConfigTO();
-                    contentTypeConfig.setName(name);
-                    contentTypeConfig.setLabel(root.valueOf("label"));
-                    String imageThumbnail=root.valueOf("image-thumbnail");
-                    if (imageThumbnail != null) {
-                        contentTypeConfig.setImageThumbnail(imageThumbnail);
-                    }
-                    contentTypeConfig.setForm(root.valueOf("form"));
-                    boolean previewable = ContentFormatUtils.getBooleanValue(root.valueOf("previewable"));
-                    contentTypeConfig.setFormPath(root.valueOf("form-path"));
-                    contentTypeConfig.setPreviewable(previewable);
-                    contentTypeConfig.setModelInstancePath(root.valueOf("model-instance-path"));
-                    boolean contentAsFolder = ContentFormatUtils.getBooleanValue(root.valueOf("content-as-folder"));
-                    contentTypeConfig.setContentAsFolder(contentAsFolder);
-                    boolean useRoundedFolder = ContentFormatUtils.getBooleanValue(root.valueOf("use-rounded-folder"));
-                    contentTypeConfig.setUseRoundedFolder(useRoundedFolder);
-                    List<String> pathIncludes = getPaths(root, "paths/includes/pattern");
-                    if (pathIncludes.size() == 0) {
-                        // if no configuration, include every path
-                        pathIncludes.add(".*");
-                    }
-                    contentTypeConfig.setPathIncludes(pathIncludes);
-                    List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
-                    contentTypeConfig.setPathExcludes(pathExcludes);
-                    loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
-                    loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
-                    loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
-                    contentTypeConfig.setLastUpdated(DateUtils.getCurrentTime());
-                    contentTypeConfig.setType(getContentTypeTypeByName(name));
-                    boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
-                    contentTypeConfig.setQuickCreate(quickCreate);
-                    contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
-
-                    cache.put(cacheKey, contentTypeConfig);
-                }
-            } catch (ServiceLayerException e) {
-                logger.error("No content type configuration document found in site '{}' at '{}'",
-                        siteId, configFileFullPath, e);
-            }
+        if (contentTypeConfig != null) {
+            return contentTypeConfig;
         }
+
+        try {
+            logger.debug("Cache miss for key '{}'", cacheKey);
+            if (!contentService.contentExists(siteId, configFileFullPath)) {
+                return contentTypeConfig;
+            }
+
+            contentTypeConfig = buildContentTypeConfig(siteId, configFileFullPath);
+            cache.put(cacheKey, contentTypeConfig);
+        } catch (ServiceLayerException e) {
+            logger.error("No content type configuration document found in site '{}' at '{}'",
+                    siteId, configFileFullPath, e);
+        }
+
+        return contentTypeConfig;
+    }
+
+    /**
+     * Create a content type configuration object from configuration path
+     * @param siteId site identifier
+     * @param configFileFullPath configuration path
+     * @return {@link ContentTypeConfigTO} instance
+     * @throws ServiceLayerException
+     */
+    private ContentTypeConfigTO buildContentTypeConfig(String siteId, String configFileFullPath) throws ServiceLayerException {
+        Document document = configurationService.getConfigurationAsDocument(siteId, null,
+                configFileFullPath, null);
+        ContentTypeConfigTO contentTypeConfig = new ContentTypeConfigTO();
+
+        Element root = document.getRootElement();
+        String name = root.valueOf("@name");
+        contentTypeConfig.setName(name);
+        contentTypeConfig.setLabel(root.valueOf("label"));
+        String imageThumbnail=root.valueOf("image-thumbnail");
+        if (imageThumbnail != null) {
+            contentTypeConfig.setImageThumbnail(imageThumbnail);
+        }
+        contentTypeConfig.setForm(root.valueOf("form"));
+        boolean previewable = ContentFormatUtils.getBooleanValue(root.valueOf("previewable"));
+        contentTypeConfig.setFormPath(root.valueOf("form-path"));
+        contentTypeConfig.setPreviewable(previewable);
+        contentTypeConfig.setModelInstancePath(root.valueOf("model-instance-path"));
+        boolean contentAsFolder = ContentFormatUtils.getBooleanValue(root.valueOf("content-as-folder"));
+        contentTypeConfig.setContentAsFolder(contentAsFolder);
+        boolean useRoundedFolder = ContentFormatUtils.getBooleanValue(root.valueOf("use-rounded-folder"));
+        contentTypeConfig.setUseRoundedFolder(useRoundedFolder);
+        List<String> pathIncludes = getPaths(root, "paths/includes/pattern");
+        if (pathIncludes.size() == 0) {
+            // if no configuration, include every path
+            pathIncludes.add(".*");
+        }
+        contentTypeConfig.setPathIncludes(pathIncludes);
+        List<String> pathExcludes = getPaths(root, "paths/excludes/pattern");
+        contentTypeConfig.setPathExcludes(pathExcludes);
+        loadRoles(contentTypeConfig, root.selectNodes("allowed-roles/role"));
+        loadDeleteDependencies(contentTypeConfig, root.selectNodes("delete-dependencies/delete-dependency"));
+        loadCopyDependencyPatterns(contentTypeConfig, root.selectNodes("copy-dependencies/copy-dependency"));
+        contentTypeConfig.setLastUpdated(DateUtils.getCurrentTime());
+        contentTypeConfig.setType(getContentTypeTypeByName(name));
+        boolean quickCreate = ContentFormatUtils.getBooleanValue(root.valueOf(QUICK_CREATE));
+        contentTypeConfig.setQuickCreate(quickCreate);
+        contentTypeConfig.setQuickCreatePath(root.valueOf(QUICK_CREATE_PATH));
+
         return contentTypeConfig;
     }
 
@@ -241,10 +257,9 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
 
     @Override
     public ImmutablePair<String, Resource> getContentTypePreviewImage(String siteId,
-                                                                      @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
-
+                  @ValidateSecurePathParam String contentTypeId) throws ServiceLayerException {
         String filename = getContentTypePreviewImageFilename(siteId, contentTypeId);
-        boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined"); // form-definition could have undefined value for imageThumbnail
+        boolean hasPreviewImage = isNotEmpty(filename) && !filename.equals("undefined");
         if (hasPreviewImage) {
             String previewImagePath = UrlUtils.concat(getContentTypePath(contentTypeId), filename);
             return (new ImmutablePair(previewImagePath, contentService.getContentAsResource(siteId, previewImagePath)));
@@ -304,27 +319,29 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
      * @throws SiteNotFoundException
      */
     protected List<ContentTypeConfigTO> getAllContentTypes(String siteId) throws SiteNotFoundException {
-        String contentTypesRootPath = getSiteContentTypesConfigPath().replaceAll(PATTERN_SITE, siteId);
-
-        RepositoryItem[] folders = contentRepository.getContentChildren(siteId, contentTypesRootPath);
         List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
 
-        if (folders != null) {
-            for (int i = 0; i < folders.length; i++) {
-                String configPath =
-                        folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
-                if (contentService.contentExists(siteId, configPath)) {
-                    ContentTypeConfigTO config =
-                            reloadConfiguration(siteId, configPath.replace(contentTypesRootPath, "")
-                                    .replace(FILE_SEPARATOR + getConfigFileName(), ""));
-                    if (config != null) {
-                        contentTypes.add(config);
-                    }
-                }
-
-                reloadContentTypeConfigForChildren(siteId, folders[i], contentTypes);
-            }
+        String contentTypesRootPath = getSiteContentTypesConfigPath().replaceAll(PATTERN_SITE, siteId);
+        RepositoryItem[] folders = contentRepository.getContentChildren(siteId, contentTypesRootPath);
+        if (folders == null) {
+            return contentTypes;
         }
+
+        for (int i = 0; i < folders.length; i++) {
+            String configPath =
+                    folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
+            if (contentService.contentExists(siteId, configPath)) {
+                ContentTypeConfigTO config =
+                        reloadConfiguration(siteId, configPath.replace(contentTypesRootPath, "")
+                                .replace(FILE_SEPARATOR + getConfigFileName(), ""));
+                if (config != null) {
+                    contentTypes.add(config);
+                }
+            }
+
+            reloadContentTypeConfigForChildren(siteId, folders[i], contentTypes);
+        }
+
         return contentTypes;
     }
 
@@ -341,23 +358,27 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         String fullPath = node.path + FILE_SEPARATOR + node.name;
         logger.debug("Get Content Type Config from site '{}' for children path '{}'", siteId, fullPath);
         RepositoryItem[] folders = contentRepository.getContentChildren(siteId, fullPath);
-        if (folders != null) {
-            for (int i = 0; i < folders.length; i++) {
-                if (folders[i].isFolder) {
-                    String configPath =
-                            folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
-                    if (contentService.contentExists(siteId, configPath)) {
-                        ContentTypeConfigTO config = reloadConfiguration(siteId, configPath
-                                        .replace(contentTypesRootPath, "")
-                                        .replace(FILE_SEPARATOR + getConfigFileName(), ""));
-                        if (config != null) {
-                            contentTypes.add(config);
-                        }
-                    }
-                    // traverse the children file-folder structure
-                    reloadContentTypeConfigForChildren(siteId, folders[i], contentTypes);
+        if (folders == null) {
+            return;
+        }
+
+        for (int i = 0; i < folders.length; i++) {
+            if (!folders[i].isFolder) {
+                continue;
+            }
+
+            String configPath =
+                    folders[i].path + FILE_SEPARATOR + folders[i].name + FILE_SEPARATOR + getConfigFileName();
+            if (contentService.contentExists(siteId, configPath)) {
+                ContentTypeConfigTO config = reloadConfiguration(siteId, configPath
+                        .replace(contentTypesRootPath, "")
+                        .replace(FILE_SEPARATOR + getConfigFileName(), ""));
+                if (config != null) {
+                    contentTypes.add(config);
                 }
             }
+            // traverse the children file-folder structure
+            reloadContentTypeConfigForChildren(siteId, folders[i], contentTypes);
         }
     }
 
@@ -383,40 +404,43 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         Set<String> userRoles = securityService.getUserRoles(siteId, user);
         List<ContentTypeConfigTO> allContentTypes = getAllContentTypes(siteId);
 
-        if (CollectionUtils.isNotEmpty(allContentTypes)) {
-            List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
-            for (ContentTypeConfigTO contentTypeConfig : allContentTypes) {
-                // check if the path matches one of includes paths
-                if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())) {
-                    for (String pathIncludes : contentTypeConfig.getPathIncludes()) {
-                        if (relativePath.matches(pathIncludes)) {
-                            logger.trace("In site '{}' path '{}' matches '{}'", siteId, relativePath, pathIncludes);
-                            boolean isMatch = true;
-                            if (contentTypeConfig.getPathExcludes() != null) {
-                                for (String excludePath : contentTypeConfig.getPathExcludes()) {
-                                    if (relativePath.matches(excludePath)) {
-                                        logger.trace("In site '{}' path '{}' matches an exclude path '{}'",
-                                                siteId, relativePath, excludePath);
-                                        isMatch = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (isMatch) {
-                                // if a match is found, populate the content type information
-                                addContentTypes(userRoles, contentTypeConfig, contentTypes);
-                            }
-                        }
-                    }
-                } else if (CollectionUtils.isEmpty(contentTypeConfig.getPathExcludes())) {
-                    addContentTypes(userRoles, contentTypeConfig, contentTypes);
-                }
-            }
-            return contentTypes;
-        } else {
+        if (CollectionUtils.isEmpty(allContentTypes)) {
             logger.error("No content type path configuration is found for site '{}'", siteId);
             return null;
         }
+
+        List<ContentTypeConfigTO> contentTypes = new ArrayList<>();
+        for (ContentTypeConfigTO contentTypeConfig : allContentTypes) {
+            // check if the path matches one of includes paths
+            if (CollectionUtils.isNotEmpty(contentTypeConfig.getPathIncludes())) {
+                for (String pathIncludes : contentTypeConfig.getPathIncludes()) {
+                    if (!relativePath.matches(pathIncludes)) {
+                        continue;
+                    }
+
+                    logger.trace("In site '{}' path '{}' matches '{}'", siteId, relativePath, pathIncludes);
+                    boolean isMatch = true;
+                    if (contentTypeConfig.getPathExcludes() != null) {
+                        for (String excludePath : contentTypeConfig.getPathExcludes()) {
+                            if (relativePath.matches(excludePath)) {
+                                logger.trace("In site '{}' path '{}' matches an exclude path '{}'",
+                                        siteId, relativePath, excludePath);
+                                isMatch = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (isMatch) {
+                        // if a match is found, populate the content type information
+                        addContentTypes(userRoles, contentTypeConfig, contentTypes);
+                    }
+                }
+            } else if (CollectionUtils.isEmpty(contentTypeConfig.getPathExcludes())) {
+                addContentTypes(userRoles, contentTypeConfig, contentTypes);
+            }
+        }
+
+        return contentTypes;
     }
 
     /**
@@ -498,19 +522,19 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
      * @return list of paths
      */
     private List<String> getPaths(Element root, String path) {
-        List<String> paths;
         List<Node> nodes = root.selectNodes(path);
-        if (nodes != null && nodes.size() > 0) {
-            paths = new ArrayList<>(nodes.size());
-            for (Node node : nodes) {
-                String role = node.getText();
-                if (!isEmpty(role)) {
-                    paths.add(role);
-                }
-            }
-        } else {
-            paths = new ArrayList<>();
+        if (CollectionUtils.isEmpty(nodes)) {
+            return new ArrayList<>();
         }
+
+        List<String> paths = new ArrayList<>(nodes.size());
+        for (Node node : nodes) {
+            String role = node.getText();
+            if (!isEmpty(role)) {
+                paths.add(role);
+            }
+        }
+
         return paths;
     }
 
@@ -520,17 +544,17 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
      * @param nodes list of {@link Node} to load role
      */
     protected void loadRoles(ContentTypeConfigTO config, List<Node> nodes) {
-        Set<String> roles = null;
-        if (nodes != null && nodes.size() > 0) {
-            roles = new HashSet<>(nodes.size());
-            for (Node node : nodes) {
-                String role = node.getText();
-                if (!isEmpty(role)) {
-                    roles.add(role);
-                }
+        if (CollectionUtils.isEmpty(nodes)) {
+            config.setAllowedRoles(new HashSet<>());
+            return;
+        }
+
+        Set<String> roles = new HashSet<>(nodes.size());
+        for (Node node : nodes) {
+            String role = node.getText();
+            if (!isEmpty(role)) {
+                roles.add(role);
             }
-        } else {
-            roles = new HashSet<>();
         }
         config.setAllowedRoles(roles);
     }
@@ -542,27 +566,33 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
      * @param nodes
      */
     protected void loadDeleteDependencies(ContentTypeConfigTO contentTypeConfig, List<Node> nodes) {
-        List<DeleteDependencyConfigTO> deleteConfigs = new ArrayList<>();
-        if (nodes != null) {
-            for (Node node : nodes) {
-                Node patternNode = node.selectSingleNode("pattern");
-                Node removeFolderNode = node.selectSingleNode("remove-empty-folder");
-                if (patternNode!=null) {
-                    String pattern = patternNode.getText();
-                    String removeEmptyFolder = removeFolderNode.getText();
-                    boolean isRemoveEmptyFolder=false;
-                    if (removeEmptyFolder != null) {
-                        isRemoveEmptyFolder = Boolean.parseBoolean(removeEmptyFolder);
-                    }
-                    if (isNotEmpty(pattern)) {
-                        DeleteDependencyConfigTO deleteConfigTO =
-                                new DeleteDependencyConfigTO(pattern, isRemoveEmptyFolder);
-                        deleteConfigs.add(deleteConfigTO);
-                    }
-                }
-            }
-            contentTypeConfig.setDeleteDependencies(deleteConfigs);
+        if (CollectionUtils.isEmpty(nodes)) {
+            contentTypeConfig.setDeleteDependencies(new ArrayList<>());
+            return;
         }
+
+        List<DeleteDependencyConfigTO> deleteConfigs = new ArrayList<>();
+        for (Node node : nodes) {
+            Node patternNode = node.selectSingleNode("pattern");
+            Node removeFolderNode = node.selectSingleNode("remove-empty-folder");
+            if (patternNode == null) {
+                continue;
+            }
+
+            String pattern = patternNode.getText();
+            String removeEmptyFolder = removeFolderNode.getText();
+            boolean isRemoveEmptyFolder = false;
+            if (removeEmptyFolder != null) {
+                isRemoveEmptyFolder = Boolean.parseBoolean(removeEmptyFolder);
+            }
+            if (isNotEmpty(pattern)) {
+                DeleteDependencyConfigTO deleteConfigTO =
+                        new DeleteDependencyConfigTO(pattern, isRemoveEmptyFolder);
+                deleteConfigs.add(deleteConfigTO);
+            }
+        }
+
+        contentTypeConfig.setDeleteDependencies(deleteConfigs);
     }
 
     /**
@@ -571,21 +601,25 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
      * @param copyDependencyNodes list of copy dependency nodes
      */
     protected void loadCopyDependencyPatterns(ContentTypeConfigTO config, List<Node> copyDependencyNodes) {
+        if (CollectionUtils.isEmpty(copyDependencyNodes)) {
+            config.setCopyDepedencyPattern(new ArrayList<>());
+            return;
+        }
+
         List<CopyDependencyConfigTO> copyConfig = new ArrayList<>();
-        if (copyDependencyNodes != null) {
-            for (Node copyDependency : copyDependencyNodes) {
-                Node patternNode = copyDependency.selectSingleNode("pattern");
-                Node targetNode = copyDependency.selectSingleNode("target");
-                if (patternNode!=null && targetNode!=null) {
-                    String pattern = patternNode.getText();
-                    String target = targetNode.getText();
-                    if (isNotEmpty(pattern) && isNotEmpty(target)) {
-                        CopyDependencyConfigTO copyDependencyConfigTO  = new CopyDependencyConfigTO(pattern,target);
-                        copyConfig.add(copyDependencyConfigTO);
-                    }
+        for (Node copyDependency : copyDependencyNodes) {
+            Node patternNode = copyDependency.selectSingleNode("pattern");
+            Node targetNode = copyDependency.selectSingleNode("target");
+            if (patternNode != null && targetNode != null) {
+                String pattern = patternNode.getText();
+                String target = targetNode.getText();
+                if (isNotEmpty(pattern) && isNotEmpty(target)) {
+                    CopyDependencyConfigTO copyDependencyConfigTO  = new CopyDependencyConfigTO(pattern,target);
+                    copyConfig.add(copyDependencyConfigTO);
                 }
             }
         }
+
         config.setCopyDepedencyPattern(copyConfig);
     }
 
@@ -601,11 +635,13 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     private String getContentTypeTypeByName(String name) {
         if (Pattern.matches("/component/.*?", name)) {
             return "component";
-        } else if (Pattern.matches("/page/.*?", name))
-            return "page";
-        else {
-            return "unknown";
         }
+
+        if (Pattern.matches("/page/.*?", name)) {
+            return "page";
+        }
+
+        return "unknown";
     }
 
     protected String getContentTypePath(String contentType) {
