@@ -8526,8 +8526,8 @@ components:
               * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
               * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
-          type: string
-          description: username of user that locked item for editing
+          $ref: '#/components/schemas/Person'
+          description: user that locked item for editing
         localeCode:
           type: string
           description: locale of content item
@@ -8535,19 +8535,26 @@ components:
           type: string
           description: ID of content item that is original for translation that current item represents
         creator:
-          type: string
-          description: username of user that created item
+          $ref: '#/components/schemas/Person'
+          description: user that created the item
         dateCreated:
           type: string
           format: datetime
           description: timestamp when item was created
         modifier:
-          type: string
-          description: username of last user that modified item
+          $ref: '#/components/schemas/Person'
+          description: last user that modified item
         dateModified:
           type: string
           format: datetime
           description: timestamp when was item last modified
+        submitter:
+          $ref: '#/components/schemas/Person'
+          description: user that submitted item for review (if any)
+        dateSubmitted:
+          type: string
+          format: datetime
+          description: timestamp when item was submitted for review (if any)
         commitId:
           type: string
           description: commit id of last modification in the repository for item
@@ -8673,8 +8680,8 @@ components:
               * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
               * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
-          type: string
-          description: username of user that locked item for editing
+          $ref: '#/components/schemas/Person'
+          description: user that locked item for editing
         localeCode:
           type: string
           description: locale of content item
@@ -8720,19 +8727,26 @@ components:
           description: metadata of content item version stored in sandbox repository
           properties:
             creator:
-              type: string
-              description: username of user that created item
+              $ref: '#/components/schemas/Person'
+              description: user that created the item
             dateCreated:
               type: string
               format: datetime
               description: timestamp when item was created
             modifier:
-              type: string
-              description: username of last user that modified sandbox version of item
+              $ref: '#/components/schemas/Person'
+              description: last user that modified sandbox version of item
             dateModified:
               type: string
               format: datetime
               description: timestamp when was item last modified in sandbox
+            submitter:
+              $ref: '#/components/schemas/Person'
+              description: user that submitted item for publishing
+            dateSubmitted:
+              type: string
+              format: datetime
+              description: timestamp when item was submitted for review (if any)
             commitId:
               type: string
               description: commit id of last modification in the sandbox repository

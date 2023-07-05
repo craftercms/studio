@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.dal;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.craftercms.studio.model.rest.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,14 +38,16 @@ public class Item {
     private String previewUrl;
     private long state;
     private Long lockedBy;
-    private String lockOwner;
+    private Person lockOwner;
     private Long createdBy = null;
-    private String creator;
+    private Person creator;
     private ZonedDateTime createdOn;
     private Long lastModifiedBy = null;
-    private String modifier;
+    private Person modifier;
     private ZonedDateTime lastModifiedOn;
     private ZonedDateTime lastPublishedOn;
+    private Person submitter;
+    private ZonedDateTime submittedOn;
     private String label;
     private String contentTypeId;
     private String systemType;
@@ -78,6 +81,8 @@ public class Item {
         modifier = builder.modifier;
         lastModifiedOn = builder.lastModifiedOn;
         lastPublishedOn = builder.lastPublishedOn;
+        submitter = builder.submitter;
+        submittedOn = builder.submittedOn;
         label = builder.label;
         contentTypeId = builder.contentTypeId;
         systemType = builder.systemType;
@@ -150,11 +155,11 @@ public class Item {
         this.lockedBy = lockedBy;
     }
 
-    public String getLockOwner() {
+    public Person getLockOwner() {
         return lockOwner;
     }
 
-    public void setLockOwner(String lockOwner) {
+    public void setLockOwner(Person lockOwner) {
         this.lockOwner = lockOwner;
     }
 
@@ -166,11 +171,11 @@ public class Item {
         this.createdBy = createdBy;
     }
 
-    public String getCreator() {
+    public Person getCreator() {
         return creator;
     }
 
-    public void setCreator(String creator) {
+    public void setCreator(Person creator) {
         this.creator = creator;
     }
 
@@ -190,11 +195,11 @@ public class Item {
         this.lastModifiedBy = lastModifiedBy;
     }
 
-    public String getModifier() {
+    public Person getModifier() {
         return modifier;
     }
 
-    public void setModifier(String modifier) {
+    public void setModifier(Person modifier) {
         this.modifier = modifier;
     }
 
@@ -212,6 +217,22 @@ public class Item {
 
     public void setLastPublishedOn(ZonedDateTime lastPublishedOn) {
         this.lastPublishedOn = lastPublishedOn;
+    }
+
+    public Person getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(Person submitter) {
+        this.submitter = submitter;
+    }
+
+    public ZonedDateTime getSubmittedOn() {
+        return submittedOn;
+    }
+
+    public void setSubmittedOn(ZonedDateTime submittedOn) {
+        this.submittedOn = submittedOn;
     }
 
     public String getLabel() {
@@ -347,6 +368,8 @@ public class Item {
         instance.lastModifiedBy = item.getLastModifiedBy();
         instance.modifier = item.getModifier();
         instance.lastModifiedOn = item.getLastModifiedOn();
+        instance.submitter = item.getSubmitter();
+        instance.submittedOn = item.getSubmittedOn();
         instance.lastPublishedOn = item.getLastPublishedOn();
         instance.label = item.getLabel();
         instance.contentTypeId = item.getContentTypeId();
@@ -374,14 +397,16 @@ public class Item {
         private String previewUrl;
         private long state;
         private Long lockedBy;
-        private String lockOwner;
+        private Person lockOwner;
         private Long createdBy;
-        private String creator;
+        private Person creator;
         private ZonedDateTime createdOn;
         private Long lastModifiedBy;
-        private String modifier;
+        private Person modifier;
         private ZonedDateTime lastModifiedOn;
         private ZonedDateTime lastPublishedOn;
+        public Person submitter;
+        public ZonedDateTime submittedOn;
         private String label;
         private String contentTypeId;
         private String systemType;
@@ -415,6 +440,8 @@ public class Item {
             clone.modifier = item.modifier;
             clone.lastModifiedOn = item.lastModifiedOn;
             clone.lastPublishedOn = item.lastPublishedOn;
+            clone.submitter = item.submitter;
+            clone.submittedOn = item.submittedOn;
             clone.label = item.label;
             clone.contentTypeId = item.contentTypeId;
             clone.systemType = item.systemType;
@@ -467,7 +494,7 @@ public class Item {
             return this;
         }
 
-        public Builder withLockOwner(String lockOwner) {
+        public Builder withLockOwner(Person lockOwner) {
             this.lockOwner = lockOwner;
             return this;
         }
@@ -477,7 +504,7 @@ public class Item {
             return this;
         }
 
-        public Builder withCreator(String creator) {
+        public Builder withCreator(Person creator) {
             this.creator = creator;
             return this;
         }
@@ -492,7 +519,7 @@ public class Item {
             return this;
         }
 
-        public Builder withModifier(String modifier) {
+        public Builder withModifier(Person modifier) {
             this.modifier = modifier;
             return this;
         }

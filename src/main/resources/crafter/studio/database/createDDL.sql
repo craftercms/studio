@@ -105,7 +105,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.1.3', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.1.4', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -447,6 +447,7 @@ CREATE TABLE IF NOT EXISTS workflow
     `state`                 VARCHAR(16)     NOT NULL,
     `submitter_id`          BIGINT(20)      NULL,
     `submitter_comment`     TEXT            NULL,
+    `submitted_on`          TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP,
     `reviewer_id`           BIGINT(20)      NULL,
     `reviewer_comment`      TEXT            NULL,
     `schedule`              TIMESTAMP       NULL,
