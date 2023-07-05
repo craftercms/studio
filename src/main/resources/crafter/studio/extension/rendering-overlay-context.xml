@@ -202,7 +202,6 @@
     <!-- Plugins -->
     <bean class="org.craftercms.studio.controller.web.v1.PluginController">
         <constructor-arg name="configurationService" ref="configurationService"/>
-        <constructor-arg name="cacheControl" ref="cacheControl"/>
     </bean>
 
     <bean id="loggersController" class="org.craftercms.studio.controller.rest.v2.LoggerController">
