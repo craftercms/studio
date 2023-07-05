@@ -65,6 +65,12 @@
         <result property="avatar" column="avatar" />
     </resultMap>
 
+    <select id="getPerson" resultMap="PersonMap">
+        SELECT u.*
+        FROM user u
+        WHERE u.id = #{id}
+    </select>
+
     <select id="getAllUsersForSite" parameterType="java.util.Map" resultMap="UserMap">
         SELECT u.*
         FROM ((`user` u INNER JOIN `group_user` gu ON gu.user_id = u.id)

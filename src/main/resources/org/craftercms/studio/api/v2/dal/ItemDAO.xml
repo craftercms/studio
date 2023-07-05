@@ -27,14 +27,12 @@
         <result property="previewUrl" column="preview_url" />
         <result property="state" column="state" />
         <result property="lockedBy" column="locked_by" />
-        <result property="lockOwner" column="lock_owner" />
         <result property="createdBy" column="created_by" />
-        <result property="creator" column="creator" />
         <result property="createdOn" column="created_on" />
         <result property="lastModifiedBy" column="last_modified_by" />
-        <result property="modifier" column="modifier" />
         <result property="lastModifiedOn" column="last_modified_on" />
         <result property="lastPublishedOn" column="last_published_on" />
+        <result property="submittedOn" column="submitted_on" />
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
@@ -49,6 +47,14 @@
         <result property="ignoredAsInt" column="ignored" />
         <result property="childrenCount" column="children_count" />
         <result property="previousPath" column="previous_path" />
+        <association property="modifier" column="modifier"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="creator" column="creator"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="lockOwner" column="lock_owner"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="submitter" column="submitter"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
 
     <resultMap id="DetailedItemMap" type="org.craftercms.studio.api.v2.dal.DetailedItem">
@@ -59,14 +65,12 @@
         <result property="previewUrl" column="preview_url" />
         <result property="state" column="state" />
         <result property="lockedBy" column="locked_by" />
-        <result property="lockOwner" column="lock_owner" />
         <result property="createdBy" column="created_by" />
-        <result property="creator" column="creator" />
         <result property="createdOn" column="created_on" />
         <result property="lastModifiedBy" column="last_modified_by" />
-        <result property="modifier" column="modifier" />
         <result property="lastModifiedOn" column="last_modified_on" />
         <result property="lastPublishedOn" column="last_published_on" />
+        <result property="submittedOn" column="submitted_on" />
         <result property="label" column="label" />
         <result property="contentTypeId" column="content_type_id" />
         <result property="systemType" column="system_type" />
@@ -88,6 +92,14 @@
         <result property="liveUsername" column="live_username" />
         <result property="liveCommitId" column="live_commit_id" />
         <result property="childrenCount" column="children_count" />
+        <association property="modifier" column="modifier"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="submitter" column="submitter"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="creator" column="creator"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
+        <association property="lockOwner" column="lock_owner"
+                     select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
     </resultMap>
 
     <insert id="upsertEntry" parameterType="org.craftercms.studio.api.v2.dal.Item">
@@ -143,7 +155,19 @@
     </sql>
 
     <select id="getChildrenByPath" resultMap="ItemMap">
-        SELECT child.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+        SELECT child.*, child.locked_by AS lock_owner, child.created_by AS creator, child.last_modified_by AS modifier,
+                (
+                SELECT w.submitted_on
+                FROM workflow w
+                WHERE w.item_id = child.id
+                ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitted_on,
+                (
+                    SELECT w.submitter_id
+                    FROM workflow w
+                    WHERE w.item_id = child.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitter,
                COUNT(
                 <choose>
                     <!-- if filtering by types, then narrow down the count -->
@@ -161,9 +185,6 @@
         FROM item child
             LEFT JOIN item parent ON child.parent_id = parent.id
             LEFT JOIN item grand_child ON grand_child.parent_id = child.id
-            LEFT JOIN user u1 ON child.locked_by = u1.id
-            LEFT JOIN user u2 ON child.created_by = u2.id
-            LEFT JOIN user u3 ON child.last_modified_by = u3.id
         WHERE parent.site_id = #{siteId}
         AND (parent.path = #{path} OR parent.path = CONCAT(#{path}, '/index.xml'))
         AND (parent.system_type != #{systemTypeFolder}
@@ -219,7 +240,7 @@
     </select>
 
     <select id="getItemById" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, u1.id AS lock_owner, u2.id AS creator, u3.id AS modifier,
                    w1.schedule AS staging_scheduleddate, staging1.published_on AS staging_published_on,
                    staging1.username AS staging_username, staging1.commit_id AS staging_commit_id,
                    w2.schedule AS live_scheduleddate, live1.published_on AS live_published_on,
@@ -280,7 +301,19 @@
     </select>
 
     <select id="getDetailedItemsByStates" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
+                    (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) as submitted_on,
+                    (
+                        SELECT w.submitter_id
+                        FROM workflow w
+                        WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) AS submitter,
                     (
                         (SELECT schedule
                         FROM workflow w
@@ -321,9 +354,6 @@
                     COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
-                LEFT OUTER JOIN user u2 ON i.created_by = u2.id
-                LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -353,7 +383,19 @@
     </select>
 
     <select id="getItemByPath" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
+                    (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) as submitted_on,
+                    (
+                        SELECT w.submitter_id
+                        FROM workflow w
+                        WHERE w.item_id = i.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) AS submitter,
                     (
                         (SELECT schedule
                         FROM workflow w
@@ -394,9 +436,6 @@
                     COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
-                LEFT OUTER JOIN user u2 ON i.created_by = u2.id
-                LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -425,7 +464,19 @@
     </select>
 
     <select id="getItemByPathPreferContent" resultMap="DetailedItemMap">
-            (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+            (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
+                    (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i1.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) as submitted_on,
+                    (
+                        SELECT w.submitter_id
+                        FROM workflow w
+                        WHERE w.item_id = i1.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                        ) AS submitter,
                     (
                         (SELECT schedule
                         FROM workflow w
@@ -465,9 +516,6 @@
                     COUNT(DISTINCT i5.id) AS children_count
             FROM item i1 INNER join site s1 ON i1.site_id = s1.id
                 LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-                LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
-                LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
-                LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -496,7 +544,19 @@
                     (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
              GROUP BY i1.id)
             UNION
-            (select i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
+            (select i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
+                    (
+                        SELECT w.submitted_on
+                        FROM workflow w
+                        WHERE w.item_id = i3.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) as submitted_on,
+                    (
+                        SELECT w.submitter_id
+                        FROM workflow w
+                        WHERE w.item_id = i3.id
+                        ORDER BY w.id DESC LIMIT 0, 1
+                    ) AS submitter,
                     (
                         (SELECT schedule
                         FROM workflow w
@@ -535,9 +595,6 @@
                     COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
                 LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
-                LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
-                LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
                 LEFT OUTER JOIN (
                     SELECT pr3.*
                     FROM publish_request pr3 INNER JOIN site s5 ON pr3.site = s5.site_id
@@ -566,13 +623,22 @@
     </select>
 
     <select id="getSandboxItemsById" resultMap="ItemMap">
-        SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+        SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
+                (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitted_on,
+                (
+                    SELECT w.submitter_id
+                    FROM workflow w
+                    WHERE w.item_id = i.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) AS submitter,
                COUNT(DISTINCT i3.id) AS children_count
         FROM item i
             LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-            LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
-            LEFT OUTER JOIN user u2 ON i.created_by = u2.id
-            LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
         WHERE i.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -587,13 +653,22 @@
     <select id="getSandboxItemsByIdPreferContent" resultMap="ItemMap">
         SELECT tbl.*
         FROM (
-        (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+        (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
+                (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i1.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitted_on,
+                (
+                    SELECT w.submitter_id
+                    FROM workflow w
+                    WHERE w.item_id = i1.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) AS submitter,
                COUNT(DISTINCT i5.id ) AS children_count
         FROM item i1
-            LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-            LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
-            LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
-            LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id, item i2
+            LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id, item i2
         WHERE i2.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -605,13 +680,22 @@
             (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
         GROUP BY i1.id)
         UNION
-        (SELECT i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
+        (SELECT i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
+                (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = i3.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitted_on,
+                (
+                    SELECT w.submitter_id
+                    FROM workflow w
+                    WHERE w.item_id = i3.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) AS submitter,
                COUNT(DISTINCT i6.id) AS children_count
         FROM item i3
             LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-            LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
-            LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
-            LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
         WHERE i3.id IN
         <foreach collection="itemIds" item="id" index="index" open="(" close=")" separator=",">
             #{id}
@@ -628,13 +712,22 @@
     </select>
 
     <select id="getSandboxItemsByPath" resultMap="ItemMap">
-        SELECT item.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+        SELECT item.*, item.locked_by AS lock_owner, item.created_by AS creator, item.last_modified_by AS modifier,
+                (
+                    SELECT w.submitted_on
+                    FROM workflow w
+                    WHERE w.item_id = item.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitted_on,
+                (
+                    SELECT w.submitter_id
+                    FROM workflow w
+                    WHERE w.item_id = item.id
+                    ORDER BY w.id DESC LIMIT 0, 1
+                ) as submitter,
                COUNT(child.id) AS children_count
         FROM item
             LEFT JOIN item child ON child.parent_id = item.id
-            LEFT JOIN user u1 ON item.locked_by = u1.id
-            LEFT JOIN user u2 ON item.created_by = u2.id
-            LEFT JOIN user u3 ON item.last_modified_by = u3.id
         WHERE item.site_id = #{siteId} AND item.ignored = 0
         <if test="preferContent">
             AND (item.system_type != #{systemTypeFolder}
@@ -661,7 +754,7 @@
     </select>
 
     <select id="getItemBySiteIdAndPath" resultMap="DetailedItemMap">
-            SELECT i.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+            SELECT i.*, i.locked_by AS lock_owner, i.created_by AS creator, i.last_modified_by AS modifier,
                 (
                     (SELECT schedule
                     FROM workflow w
@@ -703,9 +796,6 @@
                    COUNT(DISTINCT i3.id) AS children_count
             FROM item i INNER JOIN site s1 ON i.site_id = s1.id
                 LEFT OUTER JOIN item i3 ON i.id = i3.parent_id
-                LEFT OUTER JOIN user u1 ON i.locked_by = u1.id
-                LEFT OUTER JOIN user u2 ON i.created_by = u2.id
-                LEFT OUTER JOIN user u3 ON i.last_modified_by = u3.id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -734,7 +824,7 @@
     </select>
 
     <select id="getItemBySiteIdAndPathPreferContent" resultMap="DetailedItemMap">
-            (SELECT i1.*, u1.username AS lock_owner, u2.username AS creator, u3.username AS modifier,
+            (SELECT i1.*, i1.locked_by AS lock_owner, i1.created_by AS creator, i1.last_modified_by AS modifier,
                     (
                         (SELECT schedule
                         FROM workflow w
@@ -776,9 +866,6 @@
                     COUNT(DISTINCT i5.id) AS children_count
             FROM item i1 INNER JOIN site s1 ON i1.site_id = s1.id
                 LEFT OUTER JOIN item i5 ON i1.id = i5.parent_id
-                LEFT OUTER JOIN user u1 ON i1.locked_by = u1.id
-                LEFT OUTER JOIN user u2 ON i1.created_by = u2.id
-                LEFT OUTER JOIN user u3 ON i1.last_modified_by = u3.id
                 LEFT OUTER JOIN (
                     SELECT pr1.*
                     FROM publish_request pr1 INNER JOIN site s2 ON pr1.site = s2.site_id
@@ -808,7 +895,7 @@
                 (SELECT * FROM item i10 WHERE i10.site_id = i5.site_id AND i10.path = concat(i5.path, '/index.xml')))
             GROUP BY i1.id)
             UNION
-            (SELECT i3.*, u4.username AS lock_owner, u5.username AS creator, u6.username AS modifier,
+            (SELECT i3.*, i3.locked_by AS lock_owner, i3.created_by AS creator, i3.last_modified_by AS modifier,
                     (
                         (SELECT schedule
                         FROM workflow w
@@ -850,9 +937,6 @@
                     COUNT(DISTINCT i6.id) AS children_count
             FROM item i3 INNER JOIN site s4 ON i3.site_id = s4.id
                 LEFT OUTER JOIN item i6 ON i3.id = i6.parent_id
-                LEFT OUTER JOIN user u4 ON i3.locked_by = u4.id
-                LEFT OUTER JOIN user u5 ON i3.created_by = u5.id
-                LEFT OUTER JOIN user u6 ON i3.last_modified_by = u6.id
                 LEFT OUTER JOIN (
                     SELECT pr3.*
                     FROM publish_request pr3 INNER JOIN site s5 ON pr3.site = s5.site_id
