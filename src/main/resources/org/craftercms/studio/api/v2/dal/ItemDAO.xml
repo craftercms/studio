@@ -212,6 +212,9 @@
                 ORDER BY IF(FIELD(child.system_type, 'folder')=0,1,0), FIELD(child.system_type, 'folder'),
                     child.label ${order}, child.path ${order}
             </when>
+            <when test="sortStrategy == 'lastUpdate'">
+                ORDER BY child.last_modified_on ${order}, child.label ${order}, child.path ${order}
+            </when>
             <otherwise>
                 ORDER BY child.label ${order}, child.path ${order}
             </otherwise>
