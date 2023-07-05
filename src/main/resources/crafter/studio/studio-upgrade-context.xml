@@ -99,9 +99,11 @@
     </bean>
 
     <bean id="configurationVersionProvider" parent="xmlVersionProvider"
-          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlStreamVersionProvider">
         <constructor-arg name="defaultVersion"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_FILE)}"/>
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_FILE)}"/>
+        <constructor-arg name="versionElementName"
+                    value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_XML_CONFIG_VERSION_ELEM_NAME)}"/>
     </bean>
 
     <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,8 @@ import java.beans.ConstructorProperties;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.List;
+
+import static java.lang.String.format;
 
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.VersionProvider} for XML files.
@@ -98,32 +100,46 @@ public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
         String site = context.getTarget();
         String filePath = getFilePath((StudioUpgradeContext) context);
         String currentVersion = defaultVersion;
-        if(!contentRepository.contentExists(site, "/config/studio")) {
+        if (!contentRepository.contentExists(site, "/config/studio")) {
             String firstCommit = contentRepository.getRepoFirstCommitId(site);
             if (StringUtils.isNotEmpty(firstCommit)) {
                 throw new UpgradeNotSupportedException("Site '" + site + "' from 2.5.x can't be automatically upgraded");
             }
-        } else if(!contentRepository.contentExists(site, filePath)) {
+        } else if (!contentRepository.contentExists(site, filePath)) {
             logger.debug("Missing file '{}' in site '{}'", filePath, site);
             if (skipIfMissing) {
                 return SKIP;
-            } else {
-                return defaultVersion;
             }
+            return defaultVersion;
         } else {
-            try(InputStream is = contentRepository.getContent(site, filePath)) {
-                SAXReader reader = new SAXReader();
-                Document document = reader.read(is);
-
-                String fileVersion = XmlUtils.selectSingleNodeValue(document, xpath);
-                if(StringUtils.isNotEmpty(fileVersion)) {
-                    currentVersion = fileVersion;
-                }
+            try {
+                currentVersion = getVersionFromFile(site, filePath);
             } catch (Exception e) {
-                throw new UpgradeException("Error reading version from file " + filePath + " in site " + site, e);
+                throw new UpgradeException(format("Error reading version from file '%s' in site '%s'", filePath, site), e);
             }
         }
         return currentVersion;
+    }
+
+    /**
+     * Get the version from the XML file.
+     * This method assumes the file existence has been checked previously.
+     * @param site Site name
+     * @param filePath Path of the file containing the version
+     * @return the version of the file, as found in the XML file &lt;version&gt; tag
+     * @throws UpgradeException if there is an error reading the file
+     */
+    protected String getVersionFromFile(String site, String filePath) throws Exception {
+        try (InputStream is = contentRepository.getContent(site, filePath)) {
+            SAXReader reader = new SAXReader();
+            Document document = reader.read(is);
+
+            String fileVersion = XmlUtils.selectSingleNodeValue(document, xpath);
+            if (StringUtils.isNotEmpty(fileVersion)) {
+                return fileVersion;
+            }
+        }
+        return defaultVersion;
     }
 
     @Override

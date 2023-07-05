@@ -243,6 +243,7 @@ public interface StudioConfiguration {
     String UPGRADE_VERSION_TEMPLATE = "studio.upgrade.versionTemplate";
     String UPGRADE_VERSION_DEFAULT = "studio.upgrade.versionDefault";
     String UPGRADE_VERSION_XPATH = "studio.upgrade.versionXPath";
+    String UPGRADE_XML_CONFIG_VERSION_ELEM_NAME = "studio.upgrade.versionElemName";
     String UPGRADE_DEFAULT_VERSION_SITE = "studio.upgrade.defaultVersion.site";
     String UPGRADE_DEFAULT_VERSION_FILE = "studio.upgrade.defaultVersion.file";
     String UPGRADE_CONFIGURATION_FILE = "studio.upgrade.configurationFile";
