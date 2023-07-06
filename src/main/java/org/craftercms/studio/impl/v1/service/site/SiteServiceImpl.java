@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.site;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -130,6 +131,10 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
+    private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
+    private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
+    private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
+    private final static String SQL_SCRIPT_SUFFIX = ".sql";
 
     protected Deployer deployer;
     protected ContentService contentService;
@@ -371,12 +376,14 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
 
+        Path createdFileScriptPath = null;
+        Path updateParentIdScriptPath = null;
         // TODO: SJ: Refactor to avoid string literals
         try {
-            String createdFileScriptFilename = "createdFiles_" + UUID.randomUUID();
-            Path createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, ".sql");
-            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
-            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
+            String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
+            createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
+            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
+            updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
             for (String key : createdFiles.keySet()) {
                 String path = key;
                 if (StringUtils.equals("D", createdFiles.get(path))) {
@@ -443,6 +450,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             }
         } catch (IOException e) {
             logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
+        } finally {
+            if (createdFileScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
+                FileUtils.deleteQuietly(createdFileScriptPath.toFile());
+            }
+            if (updateParentIdScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
+                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
+            }
         }
     }
 
@@ -967,17 +983,28 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
+        Path repoOperationsScriptPath = null;
+        Path updateParentIdScriptPath = null;
         try {
-            String repoOperationsScriptFilename = "repoOperations_" + UUID.randomUUID();
-            Path repoOperationsScriptPath = Files.createTempFile(repoOperationsScriptFilename, ".sql");
-            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
-            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
+            String repoOperationsScriptFilename = REPO_OPERATIONS_SCRIPT_PREFIX + UUID.randomUUID();
+            repoOperationsScriptPath = Files.createTempFile(repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
+            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
+            updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
             toReturn = processRepoOperations(site, repoOperationsDelta, repoOperationsScriptPath,
                     updateParentIdScriptPath);
             studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
         } catch (IOException e) {
             logger.error("Failed to create the database script for processing the created files in site '{}'", site);
+        } finally {
+            if (repoOperationsScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", repoOperationsScriptPath);
+                FileUtils.deleteQuietly(repoOperationsScriptPath.toFile());
+            }
+            if (updateParentIdScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
+                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
+            }
         }
 
         if (logger.isDebugEnabled()) {
