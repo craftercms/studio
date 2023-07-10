@@ -514,11 +514,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void reloadRepository(String siteId) {
-        localRepositoryV1.reloadRepository(siteId);
-    }
-
-    @Override
     public void cleanupRepositories(String siteId) {
         localRepositoryV1.cleanupRepositories(siteId);
     }
