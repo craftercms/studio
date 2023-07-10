@@ -42,12 +42,12 @@ public class GeneralLockServiceImpl implements GeneralLockService {
         if (logger.isDebugEnabled()) {
             logger.debug("Thread '{}' will attempt to lock object '{}'", Thread.currentThread().getName(), objectId);
         }
-        synchronized (this) {
-            if (nodeLocks.containsKey(objectId)) {
-                nodeLock = nodeLocks.get(objectId);
-            } else {
-                nodeLock = new ReentrantLock();
-                nodeLocks.put(objectId, nodeLock);
+        if (nodeLocks.containsKey(objectId)) {
+            // No need to synchronize if the lock already exists
+            nodeLock = nodeLocks.get(objectId);
+        } else {
+            synchronized (this) {
+                nodeLock = nodeLocks.computeIfAbsent(objectId, id -> new ReentrantLock());
             }
         }
         if (logger.isTraceEnabled()) {
