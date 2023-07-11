@@ -1121,8 +1121,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         LsRemoteCommand lsRemoteCommand = git.lsRemote();
         lsRemoteCommand.setRemote(remote);
-        // TODO: SJ: Clean up string literals
-        Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
+        Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
         try {
             helper.setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername, remotePassword,
                     remoteToken, remotePrivateKey, tempKey, false);
@@ -1199,7 +1198,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
                         FetchCommand fetchCommand = git.fetch().setRemote(conf.getName());
                         if (remoteRepository != null) {
-                            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
+                            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
                             try {
                                 helper.setAuthenticationForCommand(fetchCommand,
                                         remoteRepository.getAuthenticationType(),
@@ -1315,7 +1314,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
                     Constants.R_HEADS +  remoteBranch);
             pushCommand.setRefSpecs(r);
-            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(),".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(),TMP_FILE_SUFFIX);
             try {
                 helper.setAuthenticationForCommand(pushCommand, remoteRepository.getAuthenticationType(),
                         remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
@@ -1368,7 +1367,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             pullCommand.setRemote(remoteRepository.getRemoteName());
             // Set branch remoteBranch
             pullCommand.setRemoteBranchName(remoteBranch);
-            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(),".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(),TMP_FILE_SUFFIX);
             try {
                 helper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                         remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),

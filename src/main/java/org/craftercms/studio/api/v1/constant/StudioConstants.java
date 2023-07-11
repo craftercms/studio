@@ -238,6 +238,10 @@ public final class StudioConstants {
 
     public static final String STUDIO_TEMPORARY_ROOT_DIR = "studio";
 
+    // File extensions
+    public final static String SQL_SCRIPT_SUFFIX = ".sql";
+    public final static String TMP_FILE_SUFFIX = ".tmp";
+
     private StudioConstants() {
     }
 }

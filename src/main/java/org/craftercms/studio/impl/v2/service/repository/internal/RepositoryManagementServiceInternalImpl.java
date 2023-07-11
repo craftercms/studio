@@ -74,8 +74,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.PATTERN_SITE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_SANDBOX_REPOSITORY_GIT_LOCK;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
@@ -264,7 +263,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         RemoteRepository remoteRepository = getRemoteRepository(siteId, conf.getName());
         if (remoteRepository != null) {
-            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
             FetchCommand fetchCommand = git.fetch().setRemote(conf.getName());
             gitRepositoryHelper.setAuthenticationForCommand(fetchCommand,
                     remoteRepository.getAuthenticationType(), remoteRepository.getRemoteUsername(),
@@ -383,7 +382,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             pullCommand.setRemote(remoteRepository.getRemoteName());
             logger.trace("Set the JGit pull command branch to '{}' in site '{}'", remoteBranch, siteId);
             pullCommand.setRemoteBranchName(remoteBranch);
-            tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
+            tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
             gitRepositoryHelper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);
@@ -531,7 +530,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
             r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
                     Constants.R_HEADS +  remoteBranch);
             pushCommand.setRefSpecs(r);
-            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
             gitRepositoryHelper.setAuthenticationForCommand(pushCommand, remoteRepository.getAuthenticationType(),
                     remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
                     remoteRepository.getRemoteToken(), remoteRepository.getRemotePrivateKey(), tempKey, true);

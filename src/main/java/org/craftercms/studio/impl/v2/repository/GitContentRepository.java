@@ -2031,7 +2031,7 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public void populateGitLog(String siteId) throws GitAPIException, IOException {
         String repoLockKey = helper.getSandboxRepoLockKey(siteId);
-        Path script  = Files.createTempFile(getStudioTemporaryFilesRoot(), "studio-gitlog-", ".sql");
+        Path script  = Files.createTempFile(getStudioTemporaryFilesRoot(), "studio-gitlog-", SQL_SCRIPT_SUFFIX);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(repoLockKey);
         try (Git git = Git.wrap(repo)) {

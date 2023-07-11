@@ -135,7 +135,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
     private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
     private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
-    private final static String SQL_SCRIPT_SUFFIX = ".sql";
 
     protected Deployer deployer;
     protected ContentService contentService;
