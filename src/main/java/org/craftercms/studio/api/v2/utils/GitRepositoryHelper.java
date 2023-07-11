@@ -134,6 +134,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_CREATE
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_SANDBOX_BRANCH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.REPO_IGNORE_FILES;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_BIG_FILE_THRESHOLD_DEFAULT;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.CONFIG_PARAMETER_COMPRESSION;
@@ -331,7 +332,7 @@ public class GitRepositoryHelper implements DisposableBean {
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         LsRemoteCommand lsRemoteCommand = git.lsRemote();
         lsRemoteCommand.setRemote(remote);
-        final Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        final Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
         setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername,
                 remotePassword, remoteToken, remotePrivateKey, tempKey, false);
         retryingRepositoryOperationFacade.call(lsRemoteCommand);
@@ -877,7 +878,7 @@ public class GitRepositoryHelper implements DisposableBean {
         String gitLockKey = SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, siteId);
         generalLockService.lock(gitLockKey);
         try {
-            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), ".tmp");
             try {
                 setAuthenticationForCommand(cloneCommand, authenticationType, remoteUsername, remotePassword,
                         remoteToken, remotePrivateKey, tempKey, false);

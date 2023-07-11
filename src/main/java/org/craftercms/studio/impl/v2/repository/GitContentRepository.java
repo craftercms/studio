@@ -104,6 +104,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -2030,7 +2031,7 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public void populateGitLog(String siteId) throws GitAPIException, IOException {
         String repoLockKey = helper.getSandboxRepoLockKey(siteId);
-        Path script  = Files.createTempFile("studio-gitlog-", ".sql");
+        Path script  = Files.createTempFile(getStudioTemporaryFilesRoot(), "studio-gitlog-", ".sql");
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(repoLockKey);
         try (Git git = Git.wrap(repo)) {

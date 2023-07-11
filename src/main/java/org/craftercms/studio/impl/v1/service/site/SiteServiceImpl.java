@@ -115,6 +115,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
@@ -380,10 +381,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Path updateParentIdScriptPath = null;
         // TODO: SJ: Refactor to avoid string literals
         try {
+            Path studioTempDir = getStudioTemporaryFilesRoot();
             String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
-            createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
+            createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
             String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
-            updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
+            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
             for (String key : createdFiles.keySet()) {
                 String path = key;
                 if (StringUtils.equals("D", createdFiles.get(path))) {
@@ -986,10 +988,11 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Path repoOperationsScriptPath = null;
         Path updateParentIdScriptPath = null;
         try {
+            Path studioTempDir = getStudioTemporaryFilesRoot();
             String repoOperationsScriptFilename = REPO_OPERATIONS_SCRIPT_PREFIX + UUID.randomUUID();
-            repoOperationsScriptPath = Files.createTempFile(repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
+            repoOperationsScriptPath = Files.createTempFile(studioTempDir, repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
             String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
-            updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
+            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
             toReturn = processRepoOperations(site, repoOperationsDelta, repoOperationsScriptPath,
                     updateParentIdScriptPath);
             studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());

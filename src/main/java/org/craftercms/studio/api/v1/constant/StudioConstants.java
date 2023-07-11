@@ -236,6 +236,8 @@ public final class StudioConstants {
     public static final String SITE_PUBLISHED_REPOSITORY_GIT_LOCK = "{site}_PUBLISHED_REPOSITORY_GIT_LOCK";
     public static final String STUDIO_CLOCK_EXECUTOR_SITE_LOCK = "{site}_STUDIO_CLOCK_EXECUTOR_SITE_LOCK";
 
+    public static final String STUDIO_TEMPORARY_ROOT_DIR = "studio";
+
     private StudioConstants() {
     }
 }
