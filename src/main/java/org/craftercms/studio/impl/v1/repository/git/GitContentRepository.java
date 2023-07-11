@@ -1438,13 +1438,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         }
     }
 
-    @Override
-    public void reloadRepository(String siteId) {
-        // TODO: SJ: What's the purpose of this method?
-        helper.removeSandbox(siteId);
-        helper.getRepository(siteId, SANDBOX);
-    }
-
     protected void cleanup(String siteId, GitRepositories repository) {
         // TODO: SJ: Rename this to indicate what it actually does, garbage collect git
         Repository sandbox = helper.getRepository(siteId, repository);
