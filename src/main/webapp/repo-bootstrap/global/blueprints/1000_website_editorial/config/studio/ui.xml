@@ -273,7 +273,7 @@
                     <configuration>
                         <title id="launcher.siteSectionTitle">
                             <defaultMessage>
-                                <![CDATA[Site <muted>• {siteName}</muted>]]></defaultMessage>
+                                <![CDATA[Project <muted>• {siteName}</muted>]]></defaultMessage>
                         </title>
                         <widgets>
                             <widget id="craftercms.components.LauncherLinkTile">
