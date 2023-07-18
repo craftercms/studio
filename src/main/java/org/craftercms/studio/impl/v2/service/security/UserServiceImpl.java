@@ -311,6 +311,7 @@ public class UserServiceImpl implements UserService {
                     site.setUuid(siteFeed.getSiteUuid());
                     site.setName(siteFeed.getName());
                     site.setDesc(siteFeed.getDescription());
+                    site.setState(siteFeed.getState());
 
                     sites.add(site);
                 } catch (SiteNotFoundException e) {

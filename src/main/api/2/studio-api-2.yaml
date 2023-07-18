@@ -7489,6 +7489,9 @@ components:
         siteId:
           type: string
           description: 'Site ID, unique and immutable'
+        state:
+          type: string
+          description: 'Site state, one of: INITIALIZING, READY, DELETING, DELETED'
         uuid:
           type: string
           description: Site UUID unique and immutable
