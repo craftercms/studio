@@ -168,6 +168,13 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
+    @ExceptionHandler(InvalidSiteStateException.class)
+    @ResponseStatus(BAD_REQUEST)
+    public ResponseBody handleInvalidSiteStateException(HttpServletRequest request, InvalidSiteStateException e) {
+        ApiResponse response = new ApiResponse(ApiResponse.INVALID_SITE_STATE);
+        return handleExceptionInternal(request, e, response);
+    }
+
     @ExceptionHandler(MarketplaceNotInitializedException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseBody handleMarketplaceNotInitializedException(HttpServletRequest request,

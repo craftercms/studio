@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
@@ -107,5 +108,10 @@ public class SitesServiceImpl implements SitesService {
     public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
+    }
+
+    @Override
+    public void checkSiteState(final String siteId, final String state) throws InvalidSiteStateException, SiteNotFoundException {
+        sitesServiceInternal.checkSiteState(siteId, state);
     }
 }

@@ -20,13 +20,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
@@ -40,8 +43,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SitesServiceInternalImpl implements SitesService {
@@ -167,36 +173,32 @@ public class SitesServiceInternalImpl implements SitesService {
         retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.clearPublishingLockForSite(siteId));
     }
 
-    public void setDescriptorReader(PluginDescriptorReader descriptorReader) {
-        this.descriptorReader = descriptorReader;
+    @Override
+    public void checkSiteState(final String siteId, final String requiredState) throws InvalidSiteStateException, SiteNotFoundException {
+        SiteFeed site = siteFeedMapper.getSite(Map.of(SITE_ID, siteId));
+        if (site == null) {
+            throw new SiteNotFoundException(siteId);
+        }
+        if (!requiredState.equals(site.getState())) {
+            throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",
+                    siteId, site.getState(), requiredState));
+        }
     }
 
-    public ContentRepository getContentRepository() {
-        return contentRepository;
+    public void setDescriptorReader(PluginDescriptorReader descriptorReader) {
+        this.descriptorReader = descriptorReader;
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
 
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
 
-    public SiteFeedMapper getSiteFeedMapper() {
-        return siteFeedMapper;
-    }
-
     public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
         this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public RetryingDatabaseOperationFacade getRetryingDatabaseOperationFacade() {
-        return retryingDatabaseOperationFacade;
     }
 
     public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {

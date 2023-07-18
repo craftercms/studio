@@ -20,10 +20,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.craftercms.commons.aop.AopUtils;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -31,8 +28,6 @@ import org.springframework.core.annotation.Order;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-
-import static java.lang.String.format;
 
 /**
  * Handles the {@link RequireSiteState} annotation.
@@ -44,10 +39,10 @@ public class RequireSiteStateAnnotationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RequireSiteStateAnnotationHandler.class);
 
-    private final SiteService siteService;
+    private final SitesService sitesService;
 
-    public RequireSiteStateAnnotationHandler(final SiteService sitesService) {
-        this.siteService = sitesService;
+    public RequireSiteStateAnnotationHandler(final SitesService sitesService) {
+        this.sitesService = sitesService;
     }
 
     // This method matches:
@@ -64,14 +59,7 @@ public class RequireSiteStateAnnotationHandler {
         if (siteId != null) {
             RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);
             String requiredState = annotation.value();
-            SiteFeed site = siteService.getSite(siteId);
-            if (site == null) {
-                throw new SiteNotFoundException(siteId);
-            }
-            if (!requiredState.equals(site.getState())) {
-                throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",
-                        siteId, site.getState(), requiredState));
-            }
+            sitesService.checkSiteState(siteId, requiredState);
         } else {
             logger.debug("Method '{}.{}' is annotated with @RequireSiteReady but does not have a @SiteId parameter. " +
                     "This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
