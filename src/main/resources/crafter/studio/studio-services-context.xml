@@ -1628,7 +1628,7 @@
     </bean>
 
     <bean id="requireSiteReadyHandler"
-          class="org.craftercms.studio.api.v2.annotation.RequireSiteReadyAnnotationHandler">
+          class="org.craftercms.studio.api.v2.annotation.RequireSiteStateAnnotationHandler">
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
     </bean>
 

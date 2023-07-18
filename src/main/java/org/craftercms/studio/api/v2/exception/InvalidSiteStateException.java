@@ -19,12 +19,17 @@ package org.craftercms.studio.api.v2.exception;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
 /**
- * Exception to be thrown when an operation is attempted on a site with state other than READY.
+ * Exception to be thrown when an operation is attempted on a site with an unsupported state
  */
-public class SiteNotReadyException extends ServiceLayerException {
+public class InvalidSiteStateException extends ServiceLayerException {
     private final String siteId;
 
-    public SiteNotReadyException(String siteId) {
+    public InvalidSiteStateException(String siteId) {
+        this.siteId = siteId;
+    }
+
+    public InvalidSiteStateException(String siteId, String message) {
+        super(message);
         this.siteId = siteId;
     }
 

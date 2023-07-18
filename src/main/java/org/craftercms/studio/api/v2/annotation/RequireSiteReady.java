@@ -17,13 +17,20 @@
 package org.craftercms.studio.api.v2.annotation;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
+
 /**
- * Indicates that the annotated method requires the site state to be READY.
- * Annotated method should take a String parameter annotated with {@link SiteId} annotation.
- * If the site is not ready, {@link org.craftercms.studio.api.v2.exception.SiteNotReadyException} will be thrown.
+ * {@link RequireSiteState} specialization that requires the site state to be 'READY'.
  */
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Inherited
+@Retention(RUNTIME)
+@Target({METHOD, ElementType.TYPE})
+@RequireSiteState(STATE_READY)
 public @interface RequireSiteReady {
 }

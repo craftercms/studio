@@ -13,28 +13,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.craftercms.studio.api.v2.annotation;
 
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
-import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 /**
- * Annotation to mark the parameter containing the value of the site id
- *
- * @author joseross
- * @since 4.0.0
+ * Indicates that the annotated method requires the site state to match
+ * the state specified in the annotation value.
+ * Annotated method should take a String parameter annotated with {@link SiteId} annotation.
+ * If the site is not ready, {@link org.craftercms.studio.api.v2.exception.InvalidSiteStateException} will be thrown.
  */
 @Inherited
-@Target({PARAMETER, ANNOTATION_TYPE})
 @Retention(RUNTIME)
-@ProtectedResourceId(SITE_ID_RESOURCE_ID)
-public @interface SiteId {
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface RequireSiteState {
+
+    /**
+     * The required site state
+     */
+    String value();
 }

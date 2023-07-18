@@ -21,43 +21,56 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.exception.SiteNotReadyException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.Order;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
+import static java.lang.String.format;
 
 /**
- * Handles the {@link RequireSiteReady} annotation.
- * Checks if the site is ready before executing the annotated method.
+ * Handles the {@link RequireSiteState} annotation.
+ * Checks if the site state is supported for the requested operation before executing the annotated method.
  */
 @Aspect
 @Order(10)
-public class RequireSiteReadyAnnotationHandler {
+public class RequireSiteStateAnnotationHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(RequireSiteReadyAnnotationHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(RequireSiteStateAnnotationHandler.class);
 
     private final SiteService siteService;
 
-    public RequireSiteReadyAnnotationHandler(final SiteService sitesService) {
+    public RequireSiteStateAnnotationHandler(final SiteService sitesService) {
         this.siteService = sitesService;
     }
 
-    @Around("@within(org.craftercms.studio.api.v2.annotation.RequireSiteReady) || " +
-            "@annotation(org.craftercms.studio.api.v2.annotation.RequireSiteReady)")
-    public Object checkSiteReadiness(ProceedingJoinPoint pjp) throws Throwable {
+    // This method matches:
+    // - methods declared on classes annotated with RequireSiteState
+    // - methods annotated with RequireSiteState
+    // - methods meta-annotated with RequireSiteState (only one level deep). e.g.: @RequireSiteReady, which is annotated with @RequireSiteState
+    @Around("@within(RequireSiteState) || " +
+            "@annotation(RequireSiteState) || " +
+            "execution(@(@RequireSiteState *) * *(..))")
+    public Object checkSiteState(ProceedingJoinPoint pjp) throws Throwable {
         Method method = AopUtils.getActualMethod(pjp);
         String siteId = getSiteId(pjp, method);
 
         if (siteId != null) {
+            RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);
+            String requiredState = annotation.value();
             SiteFeed site = siteService.getSite(siteId);
-            if (site == null || !STATE_READY.equals(site.getState())) {
-                throw new SiteNotReadyException(siteId);
+            if (site == null) {
+                throw new SiteNotFoundException(siteId);
+            }
+            if (!requiredState.equals(site.getState())) {
+                throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",
+                        siteId, site.getState(), requiredState));
             }
         } else {
             logger.debug("Method '{}.{}' is annotated with @RequireSiteReady but does not have a @SiteId parameter. " +
