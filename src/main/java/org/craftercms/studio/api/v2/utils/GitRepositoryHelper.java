@@ -112,6 +112,7 @@ import java.util.concurrent.Callable;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.GLOBAL;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.PUBLISHED;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
@@ -425,10 +426,12 @@ public class GitRepositoryHelper implements DisposableBean {
 
     public RevTree getTreeForCommit(Repository repository, String commitId) throws IOException {
         ObjectId commitObjectId = repository.resolve(commitId);
+        return getTreeForCommit(repository, commitObjectId);
+    }
 
+    public RevTree getTreeForCommit(Repository repository, ObjectId commitId) throws IOException {
         try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(commitObjectId);
-
+            RevCommit commit = revWalk.parseCommit(commitId);
             // and using commit's tree find the path
             RevTree tree = commit.getTree();
             return tree;
@@ -436,17 +439,8 @@ public class GitRepositoryHelper implements DisposableBean {
     }
 
     public RevTree getTreeForLastCommit(Repository repository) throws IOException {
-        // TODO: JM: Make this method call getTreeForCommit(Repository repository, String commitId)
         ObjectId lastCommitId = repository.resolve(HEAD);
-
-        // a RevWalk allows to walk over commits based on some filtering
-        try (RevWalk revWalk = new RevWalk(repository)) {
-            RevCommit commit = revWalk.parseCommit(lastCommitId);
-
-            // and using commit's tree find the path
-            RevTree tree = commit.getTree();
-            return tree;
-        }
+        return getTreeForCommit(repository, lastCommitId);
     }
 
     public List<String> getFilesInCommit(Repository repository, RevCommit commit) {
@@ -999,15 +993,6 @@ public class GitRepositoryHelper implements DisposableBean {
         }
     }
 
-    public void removeSandbox(String siteId) {
-        String cacheKey = getRepoCacheKey(siteId, SANDBOX);
-        Repository repo = repositoryCache.getIfPresent(cacheKey);
-        if (repo != null) {
-            repositoryCache.invalidate(cacheKey);
-            repo.close();
-        }
-    }
-
     // --------------------------------------------------------------------------------------------
     // TODO: Refactor this because it is just copy from V1
     /**
@@ -1206,53 +1191,97 @@ public class GitRepositoryHelper implements DisposableBean {
         return result;
     }
 
+    /**
+     * Commit files to a site SANDBOX git repository (or GLOBAL if site is empty)
+     * @param repo the repository
+     * @param site the site
+     * @param comment the commit message
+     * @param user author of the commit
+     * @param paths the paths to commit
+     * @return commit id
+     */
     public String commitFiles(Repository repo, String site, String comment, PersonIdent user, String... paths) {
+        if (!ArrayUtils.isNotEmpty(paths)) {
+            return null;
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("Commit files to git in site '{}' paths '{}', gitCliEnabled is '{}'", site,
+                         ArrayUtils.toString(paths), gitCliEnabled);
+        }
+
+        String gitLockKey = getSandboxRepoLockKey(site, true);
+        generalLockService.lock(gitLockKey);
         String commitId = null;
+        try {
+            if (gitCliEnabled) {
+                String author = user.getName() + " <" + user.getEmailAddress() + ">";
 
-        if (ArrayUtils.isNotEmpty(paths)) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Commit files to git in site '{}' paths '{}', gitCliEnabled is '{}'", site,
-                             ArrayUtils.toString(paths), gitCliEnabled);
-            }
-
-            String gitLockKey = getSandboxRepoLockKey(site);
-            generalLockService.lock(gitLockKey);
-            try {
-                if (gitCliEnabled) {
-                    String author = user.getName() + " <" + user.getEmailAddress() + ">";
-
-                    commitId = retryingRepositoryOperationFacade.call(
-                            () -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
-                                                author, comment, getGitPaths(paths)));
+                commitId = retryingRepositoryOperationFacade.call(
+                        () -> gitCli.commit(repo.getWorkTree().getAbsolutePath(),
+                                            author, comment, getGitPaths(paths)));
+                // Check if commit id matches jgit
+                ObjectId jgitHead = repo.resolve(HEAD);
+                if (StringUtils.equals(jgitHead.getName(), commitId)) {
+                    logger.debug("JGit HEAD '{}' matches CGit's '{}', will not rebuild JGit repository", jgitHead.getName(), commitId);
                 } else {
-                    try (Git git = new Git(repo)) {
-                        CommitCommand commitCommand = git.commit()
-                                                         .setAuthor(user)
-                                                         .setCommitter(user)
-                                                         .setMessage(comment);
-                        Arrays.stream(paths).forEach(p -> commitCommand.setOnly(getGitPath(p)));
-                        RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
-                        commitId = commit.getName();
-                    }
+                    logger.warn("JGit HEAD '{}' does not match CGit's '{}', will rebuild JGit repository", jgitHead.getName(), commitId);
+                    reloadSiteRepository(site, SANDBOX);
                 }
-            } catch (Exception e) {
-                Throwable cause = ExceptionUtils.getRootCause(e);
-                if (cause instanceof NoChangesToCommitException ||
-                    (cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
-                    // we should ignore empty commit errors
-                    logger.debug("No changes were committed to git in site '{}' paths '{}'", site,
-                                 ArrayUtils.toString(paths));
-                } else {
-                    restorePaths(repo, site, paths);
-                    logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
-                                 ArrayUtils.toString(paths), e);
+            } else {
+                try (Git git = new Git(repo)) {
+                    CommitCommand commitCommand = git.commit()
+                                                     .setAuthor(user)
+                                                     .setCommitter(user)
+                                                     .setMessage(comment);
+                    Arrays.stream(paths).forEach(p -> commitCommand.setOnly(getGitPath(p)));
+                    RevCommit commit = retryingRepositoryOperationFacade.call(commitCommand);
+                    commitId = commit.getName();
                 }
-            } finally {
-                generalLockService.unlock(gitLockKey);
             }
+        } catch (Exception e) {
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause instanceof NoChangesToCommitException ||
+                (cause instanceof JGitInternalException && "no changes".equalsIgnoreCase(cause.getMessage()))) {
+                // we should ignore empty commit errors
+                logger.debug("No changes were committed to git in site '{}' paths '{}'", site,
+                             ArrayUtils.toString(paths));
+            } else {
+                restorePaths(repo, site, paths);
+                logger.error("Failed to commit files to git in site '{}' paths '{}'", site,
+                             ArrayUtils.toString(paths), e);
+            }
+        } finally {
+            generalLockService.unlock(gitLockKey);
         }
 
         return commitId;
+    }
+
+    /**
+     * Refresh the repository cache for the given site and repository type. <br/>
+     * <strong>Note:</strong> consumers of this method should use generalLockService to prevent concurrent access to the repository
+     *
+     * @param site     the site id, or empty for global
+     * @param repoType the repository type. When site is empty, repoType GLOBAL will be assumed
+     */
+    private void reloadSiteRepository(final String site, final GitRepositories repoType) {
+        String cacheKey;
+        GitRepositories actualRepoType = repoType;
+        if (isEmpty(site)) {
+            cacheKey = getRepoCacheKey(EMPTY, GLOBAL);
+            actualRepoType = GLOBAL;
+        } else {
+            cacheKey = getRepoCacheKey(site, repoType);
+        }
+
+        logger.debug("Remove repository '{}' from cache", cacheKey);
+        Repository repo = repositoryCache.getIfPresent(cacheKey);
+        if (repo != null) {
+            repositoryCache.invalidate(cacheKey);
+            repo.close();
+        }
+        logger.debug("Reload repository '{}' and add it to cache", cacheKey);
+        repositoryCache.put(cacheKey, getRepository(site, actualRepoType));
     }
 
     /**

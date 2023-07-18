@@ -225,12 +225,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void reloadRepository(String siteId) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default void cleanupRepositories(String siteId) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
