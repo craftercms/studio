@@ -16,12 +16,10 @@
 
 package org.craftercms.studio.api.v2.exception;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-
 /**
  * Exception to be thrown when an operation is attempted on a site with an unsupported state
  */
-public class InvalidSiteStateException extends ServiceLayerException {
+public class InvalidSiteStateException extends RuntimeException {
     private final String siteId;
 
     public InvalidSiteStateException(String siteId) {

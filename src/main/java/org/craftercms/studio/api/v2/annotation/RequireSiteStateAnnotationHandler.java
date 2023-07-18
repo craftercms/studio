@@ -47,9 +47,12 @@ public class RequireSiteStateAnnotationHandler {
 
     // This method matches:
     // - methods declared on classes annotated with RequireSiteState
+    // - methods declared on classes meta-annotated with RequireSiteState (only one level deep). e.g.: @RequireSiteReady, which is annotated with @RequireSiteState
     // - methods annotated with RequireSiteState
-    // - methods meta-annotated with RequireSiteState (only one level deep). e.g.: @RequireSiteReady, which is annotated with @RequireSiteState
+    // - methods meta-annotated with RequireSiteState (only one level deep)
     @Around("@within(RequireSiteState) || " +
+            "within(@RequireSiteState *) || " +
+            "within(@(@RequireSiteState *) *) || " +
             "@annotation(RequireSiteState) || " +
             "execution(@(@RequireSiteState *) * *(..))")
     public Object checkSiteState(ProceedingJoinPoint pjp) throws Throwable {
@@ -58,6 +61,9 @@ public class RequireSiteStateAnnotationHandler {
 
         if (siteId != null) {
             RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);
+            if (annotation == null) {
+                annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireSiteState.class);
+            }
             String requiredState = annotation.value();
             sitesService.checkSiteState(siteId, requiredState);
         } else {

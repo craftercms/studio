@@ -17,6 +17,8 @@ package org.craftercms.studio.impl.v2.service.monitor;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 
 import java.beans.ConstructorProperties;
@@ -40,8 +42,9 @@ public class MonitorServiceImpl implements MonitorService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_VIEW_LOGS, acceptManagementToken = true)
-    public List<Map<String, Object>> getLogEvents(final String siteId, final long since) {
+    public List<Map<String, Object>> getLogEvents(@SiteId final String siteId, final long since) {
         return monitorServiceInternal.getLogEvents(siteId, since);
     }
 }

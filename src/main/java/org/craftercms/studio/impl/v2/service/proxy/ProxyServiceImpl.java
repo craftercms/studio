@@ -22,6 +22,8 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.proxy.ProxyService;
 import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.springframework.http.ResponseEntity;
@@ -50,16 +52,18 @@ public class ProxyServiceImpl implements ProxyService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = StudioPermissionsConstants.PERMISSION_VIEW_LOGS)
     public ResponseEntity<Object> getSiteLogEvents(final String body,
-                                                   @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId,
+                                                   @SiteId final String siteId,
                                                    final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         return proxyEngine(body, siteId, request);
     }
 
     @Override
     @Valid
-    public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @ValidateStringParam final String siteId,
+    @RequireSiteReady
+    public ResponseEntity<Object> proxyEngine(final String body, @NotEmpty @SiteId final String siteId,
                                               final HttpServletRequest request) throws URISyntaxException, SiteNotFoundException {
         siteService.checkSiteExists(siteId);
 

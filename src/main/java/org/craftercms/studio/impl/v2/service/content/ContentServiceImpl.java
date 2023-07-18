@@ -75,7 +75,6 @@ import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
@@ -103,8 +102,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, path);
         List<String> childItems = new ArrayList<>();
@@ -115,8 +115,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-    public List<String> getChildItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<String> getChildItems(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         List<String> subtreeItems = contentServiceInternal.getSubtreeItems(siteId, paths);
@@ -128,8 +129,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_DELETE)
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public boolean deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
@@ -146,8 +148,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-    public boolean deleteContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID)String siteId,
+    public boolean deleteContent(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                  String submissionComment)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
@@ -199,8 +202,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Item getItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public Item getItem(@SiteId String siteId,
                         @ProtectedResourceId(PATH_RESOURCE_ID)  String path, boolean flatten)
             throws SiteNotFoundException, ContentNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -214,8 +218,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Document getItemDescriptor(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public Document getItemDescriptor(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean flatten)
             throws SiteNotFoundException, ContentNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -234,8 +239,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
-    public DetailedItem getItemByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public DetailedItem getItemByPath(@SiteId String siteId,
                                       @ProtectedResourceId(PATH_RESOURCE_ID) String path, boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -244,8 +250,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
-    public List<SandboxItem> getSandboxItemsByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<SandboxItem> getSandboxItemsByPath(@SiteId String siteId,
                                                    @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                                    boolean preferContent)
             throws ServiceLayerException, UserNotFoundException {
@@ -254,8 +261,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public void lockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void lockContent(@SiteId String siteId,
                             @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
@@ -283,8 +291,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = PermissionOrOwnership.class, action = PERMISSION_ITEM_UNLOCK)
-    public void unlockContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void unlockContent(@SiteId String siteId,
                               @ProtectedResourceId(PATH_RESOURCE_ID) String path)
             throws ContentNotFoundException, ContentAlreadyUnlockedException, SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -311,16 +320,18 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Optional<Resource> getContentByCommitId(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public Optional<Resource> getContentByCommitId(@SiteId String siteId,
                                                    @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                                    String commitId) throws ContentNotFoundException {
         return contentServiceInternal.getContentByCommitId(siteId, path, commitId);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_WRITE)
-    public boolean renameContent(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
+    public boolean renameContent(@SiteId String site,
                                  @ProtectedResourceId(PATH_RESOURCE_ID) String path, String name)
      throws ServiceLayerException, UserNotFoundException{
         logger.debug("rename path {} to new name {} for site {}", path, name, site);
