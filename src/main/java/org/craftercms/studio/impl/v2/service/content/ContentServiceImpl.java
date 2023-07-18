@@ -35,6 +35,8 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
@@ -61,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.NonNull;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -183,8 +186,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = "get_children")
-    public GetChildrenResult getChildrenByPath(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_CHILDREN)
+    public GetChildrenResult getChildrenByPath(@SiteId String siteId,
                                                @ProtectedResourceId(PATH_RESOURCE_ID) String path, String locale,
                                                String keyword, List<String> systemTypes, List<String> excludes,
                                                String sortStrategy, String order, int offset, int limit)
@@ -332,7 +336,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 

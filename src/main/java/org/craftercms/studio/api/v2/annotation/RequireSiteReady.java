@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,25 +13,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.craftercms.studio.api.v2.annotation;
 
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-
 /**
- * Annotation to mark the parameter containing the value of the site id
- *
- * @author joseross
- * @since 4.0.0
+ * Indicates that the annotated method requires the site state to be READY.
+ * Annotated method should take a String parameter annotated with {@link SiteId} annotation.
+ * If the site is not ready, {@link org.craftercms.studio.api.v2.exception.SiteNotReadyException} will be thrown.
  */
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
-@ProtectedResourceId(SITE_ID_RESOURCE_ID)
-public @interface SiteId {
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface RequireSiteReady {
 }
