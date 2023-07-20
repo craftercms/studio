@@ -17,7 +17,7 @@
 package org.craftercms.studio.api.v2.event.site;
 
 import org.craftercms.studio.api.v2.event.BroadcastEvent;
-import org.craftercms.studio.api.v2.event.StudioEvent;
+import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.model.rest.Person;
 import org.springframework.security.core.Authentication;
 
@@ -27,21 +27,14 @@ import org.springframework.security.core.Authentication;
  * @author jmendeza
  * @since 4.1.2
  */
-public abstract class SiteLifecycleEvent extends StudioEvent implements BroadcastEvent {
-
-    protected final String siteId;
+public abstract class SiteLifecycleEvent extends SiteAwareEvent implements BroadcastEvent {
 
     public SiteLifecycleEvent(Authentication authentication, String siteId) {
-        super(Person.from(authentication));
-        this.siteId = siteId;
+        super(Person.from(authentication), siteId);
     }
 
     public SiteLifecycleEvent(final String siteId) {
-        this.siteId = siteId;
-    }
-
-    public String getSiteId() {
-        return siteId;
+        super(siteId);
     }
 
     @Override

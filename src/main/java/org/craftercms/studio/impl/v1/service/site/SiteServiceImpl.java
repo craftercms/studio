@@ -62,7 +62,6 @@ import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
-import org.craftercms.studio.api.v2.event.site.SiteCreatingEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -229,7 +228,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         String siteUuid = UUID.randomUUID().toString();
 
         String creator = securityService.getCurrentUser();
-        applicationContext.publishEvent(new SiteCreatingEvent(securityService.getAuthentication(), siteId));
 
         // Create the site in the preview deployer
         logger.info("Create the deployer targets for site '{}'", siteName);
