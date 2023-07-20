@@ -661,7 +661,6 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
-    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
     public void invalidateConfiguration(@SiteId String siteId) {
         logger.debug("Invalidate configuration cache in site '{}'", siteId);
