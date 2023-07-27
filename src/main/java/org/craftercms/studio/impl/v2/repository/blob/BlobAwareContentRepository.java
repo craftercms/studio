@@ -535,8 +535,9 @@ public class BlobAwareContentRepository implements ContentRepository,
         List<DeploymentItemTO> localItems = new LinkedList<>();
         try {
             for (DeploymentItemTO item : deploymentItems) {
-                if (pointersExist(site, item.getPath()) &&
-                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()))) {
+                boolean pointerExists = pointersExist(site, item.getPath()) &&
+                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()));
+                if (pointerExists || item.isDelete() || item.isMove()) {
                     logger.trace("Look for the blob store for the item at site '{}' path '{}'", site, item);
                     StudioBlobStore store = getBlobStore(site, item.getPath());
                     if (store != null) {
