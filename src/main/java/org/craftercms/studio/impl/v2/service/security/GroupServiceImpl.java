@@ -36,11 +36,13 @@ import org.craftercms.studio.api.v2.service.security.internal.GroupServiceIntern
 import org.craftercms.studio.api.v2.service.security.internal.OrganizationServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.model.rest.UserResponse;
 
 import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
@@ -185,9 +187,10 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_GROUPS)
-    public List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
+    public List<UserResponse> getGroupMembers(long groupId, int offset, int limit, String sort)
             throws ServiceLayerException, GroupNotFoundException {
-        return groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
+        List<User> users = groupServiceInternal.getGroupMembers(groupId, offset, limit, sort);
+        return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
 
     @Override
@@ -198,7 +201,7 @@ public class GroupServiceImpl implements GroupService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_GROUPS)
-    public List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+    public List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
         List<User> users = groupServiceInternal.addGroupMembers(groupId, userIds, usernames);
         Group group = groupServiceInternal.getGroup(groupId);
@@ -220,7 +223,7 @@ public class GroupServiceImpl implements GroupService {
         auditLog.setPrimaryTargetType(TARGET_TYPE_GROUP);
         auditLog.setPrimaryTargetValue(group.getGroupName());
         auditServiceInternal.insertAuditLog(auditLog);
-        return users;
+        return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
 
     @Override
@@ -231,9 +234,9 @@ public class GroupServiceImpl implements GroupService {
         generalLockService.lock(REMOVE_SYSTEM_ADMIN_MEMBER_LOCK);
         try {
             if (group.getGroupName().equals(SYSTEM_ADMIN_GROUP)) {
-                List<User> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
+                List<UserResponse> members = getGroupMembers(groupId, 0, Integer.MAX_VALUE, StringUtils.EMPTY);
                 if (CollectionUtils.isNotEmpty(members)) {
-                    List<User> membersAfterRemove = new ArrayList<>(members);
+                    List<UserResponse> membersAfterRemove = new ArrayList<>(members);
                     members.forEach(m -> {
                         if (CollectionUtils.isNotEmpty(userIds)) {
                             if (userIds.contains(m.getId())) {

@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.rest.UserResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
@@ -66,6 +67,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -99,16 +101,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-    public List<User> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
+    public List<UserResponse> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException {
         List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
-        return userServiceInternal.getAllUsersForSite(orgId, groupNames, keyword, offset, limit, sort);
+        List<User> users = userServiceInternal.getAllUsersForSite(orgId, groupNames, keyword, offset, limit, sort);
+        return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
-    public List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException {
-        return userServiceInternal.getAllUsers(keyword, offset, limit, sort);
+    public List<UserResponse> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException {
+        List<User> users = userServiceInternal.getAllUsers(keyword, offset, limit, sort);
+        return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
 
     @Override
@@ -125,7 +129,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_USERS)
-    public User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
+    public UserResponse createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
         try {
             entitlementValidator.validateEntitlement(EntitlementType.USER, 1);
         } catch (EntitlementException e) {
@@ -142,7 +146,7 @@ public class UserServiceImpl implements UserService {
         auditLog.setPrimaryTargetType(TARGET_TYPE_USER);
         auditLog.setPrimaryTargetValue(user.getUsername());
         auditServiceInternal.insertAuditLog(auditLog);
-        return toRet;
+        return new UserResponse(toRet);
     }
 
     @Override
@@ -262,7 +266,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_UPDATE_USERS)
-    public List<User> enableUsers(List<Long> userIds, List<String> usernames,
+    public List<UserResponse> enableUsers(List<Long> userIds, List<String> usernames,
                                   boolean enabled) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         checkExternallyManagedUsers(userIds, usernames);
 
@@ -289,7 +293,8 @@ public class UserServiceImpl implements UserService {
         }
         auditLog.setParameters(parameters);
         auditServiceInternal.insertAuditLog(auditLog);
-        return users;
+
+        return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
 
     @Override
@@ -482,7 +487,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User changePassword(String username, String current, String newPassword)
+    public UserResponse changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
             AuthenticationException, UserNotFoundException {
         AuthenticatedUser currentUser = getCurrentUser();
@@ -491,13 +496,14 @@ public class UserServiceImpl implements UserService {
         }
         boolean success = userServiceInternal.changePassword(username, current, newPassword);
         if (success) {
-            return userServiceInternal.getUserByIdOrUsername(-1, username);
+            User user = userServiceInternal.getUserByIdOrUsername(-1, username);
+            return new UserResponse(user);
         }
         throw new ServiceLayerException("Failed to change password");
     }
 
     @Override
-    public User setPassword(String token, String newPassword) throws UserNotFoundException,
+    public UserResponse setPassword(String token, String newPassword) throws UserNotFoundException,
             UserExternallyManagedException, ServiceLayerException {
         if (!validateToken(token)) {
             return null;
@@ -512,7 +518,7 @@ public class UserServiceImpl implements UserService {
         }
         boolean success = userServiceInternal.setUserPassword(username, newPassword);
         if (success) {
-            return user;
+            return new UserResponse(user);
         }
         return null;
     }
