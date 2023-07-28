@@ -855,9 +855,9 @@ paths:
     post:
       tags:
         - users
-      summary: Change password for user
+      summary: Reset password for user
       description: 'Required Permission: "UPDATE_USERS"'
-      operationId: setUserPassword
+      operationId: resetUserPassword
       parameters:
         - name: id
           in: path
@@ -866,7 +866,7 @@ paths:
           schema:
             type: string
       requestBody:
-        description: request body to change password
+        description: request body to reset password for user
         required: true
         content:
           application/json:
@@ -908,7 +908,7 @@ paths:
         - users
       summary: Change password for user
       description: 'Required Permission: "ANONYMOUS"'
-      operationId: settUserPassword
+      operationId: setUserPassword
       requestBody:
         description: request body to change password
         required: true
