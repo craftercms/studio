@@ -2116,13 +2116,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 logger.error("Failed to extract the dependencies for reverted content at " +
                         "site '{}' path '{}' version '{}'", site, path, version);
             }
-            // Update the database with the commitId for the target item
-
-            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
-
-            itemServiceInternal.updateCommitId(site, path, commitId);
 
             String username = securityService.getCurrentUser();
+            // Update the database for the target item
+            itemServiceInternal.persistItemAfterWrite(site, path, username, commitId, true);
+
+
             // This is not required, the current user is already loaded in memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
