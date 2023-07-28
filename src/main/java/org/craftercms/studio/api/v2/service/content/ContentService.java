@@ -37,6 +37,15 @@ import java.util.Optional;
 public interface ContentService {
 
     /**
+     * Check the existent of a content path
+     * @param siteId site identifier
+     * @param path content path
+     * @return true if the content exists, false otherwise
+     * @throws SiteNotFoundException
+     */
+    boolean contentExists(String siteId, String path) throws SiteNotFoundException;
+
+    /**
      * Get list of content types marked as quick creatable for given site
      *
      * @param siteId site id to use

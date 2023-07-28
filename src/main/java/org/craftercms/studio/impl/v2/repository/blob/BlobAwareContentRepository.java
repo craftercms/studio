@@ -358,7 +358,7 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public RepositoryItem[] getContentChildren(String site, String path) {
-        RepositoryItem[] children = localRepositoryV1.getContentChildren(site, path);
+        RepositoryItem[] children = localRepositoryV2.getContentChildren(site, path);
         return Stream.of(children)
                 .peek(item -> item.name = getOriginalPath(item.name))
                 .collect(toList())

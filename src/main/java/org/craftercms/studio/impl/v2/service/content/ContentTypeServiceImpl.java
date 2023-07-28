@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.service.content;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -23,16 +24,20 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
+import java.util.List;
 
+import static java.lang.String.format;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_UNKNOWN;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Default implementation for {@link ContentTypeService}
@@ -41,12 +46,33 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
  * @since 4.0
  */
 public class ContentTypeServiceImpl implements ContentTypeService {
-
     protected final ContentTypeServiceInternal contentTypeServiceInternal;
+    protected final SiteService siteService;
 
-    @ConstructorProperties({"contentTypeServiceInternal"})
-    public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal) {
+    @ConstructorProperties({"contentTypeServiceInternal", "siteService"})
+    public ContentTypeServiceImpl(ContentTypeServiceInternal contentTypeServiceInternal, SiteService siteService) {
         this.contentTypeServiceInternal = contentTypeServiceInternal;
+        this.siteService = siteService;
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public ContentTypeConfigTO getContentType(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                              String contentTypeId) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+        if (StringUtils.isEmpty(contentTypeId) || StringUtils.equalsIgnoreCase(contentTypeId, CONTENT_TYPE_UNKNOWN)) {
+            throw new ServiceLayerException(format("Invalid content type Id '%s'", contentTypeId));
+        }
+
+        return contentTypeServiceInternal.loadContentTypeConfiguration(siteId, contentTypeId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public List<ContentTypeConfigTO> getContentTypes(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String path)
+            throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+        return contentTypeServiceInternal.getContentTypes(siteId, path);
     }
 
     /**

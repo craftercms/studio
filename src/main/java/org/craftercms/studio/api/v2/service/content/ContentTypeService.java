@@ -20,8 +20,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
+
+import java.util.List;
 
 /**
  * Defines all operations related to content-types
@@ -30,6 +33,26 @@ import org.springframework.core.io.Resource;
  * @since 4.0
  */
 public interface ContentTypeService {
+
+    /**
+     * Get a content type item by content type ID
+     * @param siteId site identifier
+     * @param contentTypeId content type identifier
+     * @return {@link ContentTypeConfigTO} object of the given content type
+     *
+     * @throws ServiceLayerException
+     */
+    ContentTypeConfigTO getContentType(String siteId, String contentTypeId) throws ServiceLayerException;
+
+    /**
+     * Get list of content type items by site and optional a relative path
+     * @param siteId site identifier
+     * @param path path to filter content type
+     * @return List of {@link ContentTypeConfigTO} objects of the content types
+
+     * @throws ServiceLayerException
+     */
+    List<ContentTypeConfigTO> getContentTypes(String siteId, String path) throws ServiceLayerException;
 
     /**
      * Finds all items related to a given content-type

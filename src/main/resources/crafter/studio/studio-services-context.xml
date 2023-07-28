@@ -525,11 +525,12 @@
 
     <bean id="contentTypeServiceInternal"
           class="org.craftercms.studio.impl.v2.service.content.internal.ContentTypeServiceInternalImpl" >
-        <constructor-arg name="cstudioContentTypeService" ref="cstudioContentTypeService" />
         <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
         <constructor-arg name="configurationService" ref="configurationService"/>
         <constructor-arg name="itemDao" ref="itemDao"/>
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
         <constructor-arg name="contentTypeBasePathPattern"
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
         <constructor-arg name="contentTypeDefinitionFilename"
@@ -544,6 +545,7 @@
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.previewImage.xpath')}" />
         <constructor-arg name="defaultPreviewImagePath"
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.defaultPreviewImagePath')}" />
+        <constructor-arg name="cache" ref="configurationCache" />
 
         <!-- TODO: Break circular dependency with this bean -->
         <property name="contentService" ref="contentService"/>
@@ -551,6 +553,7 @@
 
     <bean id="contentTypeService" class="org.craftercms.studio.impl.v2.service.content.ContentTypeServiceImpl">
         <constructor-arg name="contentTypeServiceInternal" ref="contentTypeServiceInternal"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">

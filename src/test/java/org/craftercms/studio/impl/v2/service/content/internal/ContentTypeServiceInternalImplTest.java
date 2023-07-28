@@ -16,11 +16,14 @@
 
 package org.craftercms.studio.impl.v2.service.content.internal;
 
+import com.google.common.cache.Cache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v1.to.ContentTypeConfigTO;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -33,6 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -62,6 +66,13 @@ public class ContentTypeServiceInternalImplTest {
     private ContentService contentService;
     @Mock
     Resource resource;
+
+    @Mock
+    StudioConfiguration studioConfiguration;
+
+    @Mock
+    Cache<String, ContentTypeConfigTO> cache;
+
     @InjectMocks
     private ContentTypeServiceInternalImpl service;
 
@@ -81,6 +92,17 @@ public class ContentTypeServiceInternalImplTest {
 
         when(configurationService.getConfigurationAsDocument(SITE_ID, null, CONTENT_TYPE_DEFINITION_PATH_WITHOUT_IMAGE, null))
                 .thenReturn(getDocumentWithoutPreviewImage());
+
+        // for get content types test cases
+        when(studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_PATH))
+                .thenReturn("/config/studio/content-types/{content-type}");
+        when(studioConfiguration.getProperty(CONFIGURATION_SITE_CONTENT_TYPES_CONFIG_FILE_NAME))
+                .thenReturn("config.xml");
+        when(contentService.contentExists(SITE_ID, "/config/studio/content-types/page/home/config.xml"))
+                .thenReturn(true);
+        when(configurationService.getConfigurationAsDocument(SITE_ID, null,
+                "/config/studio/content-types/page/home/config.xml", null))
+                .thenReturn(getHomeContentTypeConfig());
     }
 
     private Document getDocumentWithPreviewImage() {
@@ -100,6 +122,29 @@ public class ContentTypeServiceInternalImplTest {
         return document;
     }
 
+    private Document getHomeContentTypeConfig() {
+        Document document = DocumentHelper.createDocument();
+        Element root = document.addElement("content-type");
+        root.addAttribute("name", "/page/home");
+        root.addAttribute("is-wcm-type", "true");
+        root.addElement("label").addText("Home");
+        root.addElement("form").addText("/page/home");
+        root.addElement("form-path").addText("simple");
+        root.addElement("model-instance-path").addText("NOT-USED-BY-SIMPLE-FORM-ENGINE");
+        root.addElement("file-extension").addText("xml");
+        root.addElement("content-as-folder").addText("true");
+        root.addElement("previewable").addText("true");
+        root.addElement("quickCreate").addText("false");
+        root.addElement("quickCreatePath").addText("");
+        root.addElement("noThumbnail").addText("false");
+        root.addElement("image-thumbnail").addText("page-home.png");
+        Element paths = root.addElement("paths");
+        Element excludes = paths.addElement("excludes");
+        excludes.addElement("pattern").addText("^/site/.*");
+
+        return document;
+    }
+
     @Test
     public void getPreviewImageReturnResource() throws ServiceLayerException {
         ImmutablePair<String, Resource> pair = service.getContentTypePreviewImage(SITE_ID, CONTENT_TYPE);
@@ -111,5 +156,15 @@ public class ContentTypeServiceInternalImplTest {
     public void getDefaultPreviewImage() throws ServiceLayerException {
         ImmutablePair<String, Resource> pair = service.getContentTypePreviewImage(SITE_ID, CONTENT_TYPE_WITHOUT_IMAGE);
         assertEquals(pair.getKey(), CONTENT_TYPE_DEFAULT_PREVIEW_IMAGE_PATH);
+    }
+
+    @Test
+    public void testLoadContentTypeConfiguration() throws ServiceLayerException {
+        ContentTypeConfigTO result = service.loadContentTypeConfiguration(SITE_ID, "/page/home");
+        assertEquals("/page/home", result.getForm());
+        assertEquals(true, result.isContentAsFolder());
+        assertEquals("page-home.png", result.getImageThumbnail());
+        assertEquals(1, result.getPathExcludes().size());
+        assertEquals("^/site/.*", result.getPathExcludes().get(0));
     }
 }
