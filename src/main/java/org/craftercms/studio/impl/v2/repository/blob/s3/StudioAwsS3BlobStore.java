@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.repository.blob.s3;
 
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
@@ -385,9 +386,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
                 logger.trace("Move content in site '{}' from '{}' to '{}'",
                         site, getFullKey(envMapping, item.getOldPath()), getFullKey(envMapping, item.getPath()));
                 try {
-                    copyFile(envMapping.target, getKey(envMapping, item.getOldPath()), envMapping.target,
+                    copyFile(previewMapping.target, getKey(previewMapping, item.getPath()), envMapping.target,
                             getKey(envMapping, item.getPath()), COPY_PART_SIZE, getClient());
-                    getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
+                    if (!StringUtils.equals(item.getOldPath(), item.getPath())) {
+                        getClient().deleteObject(envMapping.target, getKey(envMapping, item.getOldPath()));
+                    }
                 } catch (Exception e) {
                     logger.error("Failed to move content in site '{}' from '{}' to '{}'",
                             site,
