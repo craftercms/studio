@@ -28,6 +28,7 @@ import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -79,7 +80,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
 
     protected UpgradePipelineFactory<String> bpPipelineFactory;
 
-    protected Resource configurationFile;
+    protected YamlConfigurationProvider configurationProvider;
 
     protected DataSource dataSource;
     protected DbIntegrityValidator integrityValidator;
@@ -88,12 +89,12 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
     protected InstanceService instanceService;
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    @ConstructorProperties({"dbVersionProvider", "dbPipelineFactory", "bpPipelineFactory", "configurationFile",
+    @ConstructorProperties({"dbVersionProvider", "dbPipelineFactory", "bpPipelineFactory", "configurationProvider",
             "dataSource", "integrityValidator", "contentRepository", "studioConfiguration", "instanceService",
             "retryingRepositoryOperationFacade"})
     public StudioUpgradeManagerImpl(VersionProvider dbVersionProvider,
                                     UpgradePipelineFactory<String> dbPipelineFactory,
-                                    UpgradePipelineFactory<String> bpPipelineFactory, Resource configurationFile,
+                                    UpgradePipelineFactory<String> bpPipelineFactory, YamlConfigurationProvider configurationProvider,
                                     DataSource dataSource, DbIntegrityValidator integrityValidator,
                                     ContentRepository contentRepository, StudioConfiguration studioConfiguration,
                                     InstanceService instanceService,
@@ -101,7 +102,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         this.dbVersionProvider = dbVersionProvider;
         this.dbPipelineFactory = dbPipelineFactory;
         this.bpPipelineFactory = bpPipelineFactory;
-        this.configurationFile = configurationFile;
+        this.configurationProvider = configurationProvider;
         this.dataSource = dataSource;
         this.integrityValidator = integrityValidator;
         this.contentRepository = contentRepository;
@@ -169,7 +170,7 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
         var site = context.getTarget();
         logger.info("Check for upgrades to configuration in site '{}'", site);
 
-        HierarchicalConfiguration config = loadUpgradeConfiguration();
+        HierarchicalConfiguration config = configurationProvider.getConfiguration();
         List<HierarchicalConfiguration> managedFiles = config.childConfigurationsAt(CONFIG_KEY_CONFIGURATIONS);
         String configPath = null;
 
@@ -291,16 +292,6 @@ public class StudioUpgradeManagerImpl extends AbstractUpgradeManager<String> imp
             logger.error("Failed to connect to the database to perform integrity validation", e);
             throw new UpgradeException("Failed to connect to the database to perform integrity validation", e);
         }
-    }
-
-    protected HierarchicalConfiguration loadUpgradeConfiguration() throws UpgradeException {
-        YamlConfiguration configuration = new YamlConfiguration();
-        try (InputStream is = configurationFile.getInputStream()) {
-            configuration.read(is);
-        } catch (Exception e) {
-            throw new UpgradeException("Failed to read configuration file", e);
-        }
-        return configuration;
     }
 
 }

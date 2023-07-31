@@ -15,13 +15,14 @@
  */
 package org.craftercms.studio.impl.v2.upgrade.pipeline;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.upgrade.UpgradeConfigurationProvider;
 import org.craftercms.commons.upgrade.UpgradePipeline;
 import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.exception.UpgradeException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
-import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
 
@@ -37,9 +38,9 @@ public class ConfigurationUpgradePipelineFactoryImpl extends PrototypeUpgradePip
     public static final String CONFIG_PIPELINE_SUFFIX = ".pipeline";
 
     @ConstructorProperties({"configurationFile", "versionProvider", "pipelinePrototype"})
-    public ConfigurationUpgradePipelineFactoryImpl(Resource configurationFile, VersionProvider<String> versionProvider,
+    public ConfigurationUpgradePipelineFactoryImpl(UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider, VersionProvider<String> versionProvider,
                                                    String pipelinePrototype) {
-        super(null, configurationFile, versionProvider, pipelinePrototype);
+        super(null, configurationProvider, versionProvider, pipelinePrototype);
     }
 
     @Override
