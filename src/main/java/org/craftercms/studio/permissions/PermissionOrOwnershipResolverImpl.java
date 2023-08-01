@@ -73,8 +73,8 @@ public class PermissionOrOwnershipResolverImpl implements PermissionResolver<Str
 
         PermissionOrOwnership permission = new PermissionOrOwnership();
         permission.setAllowedActions(allowedActions);
-        if (Objects.nonNull(item)) {
-            permission.setOwner(username.equals(item.getLockOwner()));
+        if (Objects.nonNull(item) && Objects.nonNull(item.getLockOwner())) {
+            permission.setOwner(username.equals(item.getLockOwner().getUsername()));
         }
 
         return permission;
