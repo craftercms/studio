@@ -133,6 +133,7 @@ public class PublishingManagerImpl implements PublishingManager {
         DeploymentItemTO deploymentItem = new DeploymentItemTO();
         deploymentItem.setSite(item.getSite());
         deploymentItem.setPath(item.getPath());
+        deploymentItem.setOldPath(item.getOldPath());
         deploymentItem.setCommitId(item.getCommitId());
         deploymentItem.setPackageId(item.getPackageId());
 

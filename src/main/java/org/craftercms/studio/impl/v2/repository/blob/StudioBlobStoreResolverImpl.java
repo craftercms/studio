@@ -149,6 +149,10 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         logger.debug("Look up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
         try {
             HierarchicalConfiguration config = getConfiguration(site);
+            if (config == null || config.isEmpty()) {
+                logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
+                return null;
+            }
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
             if (isNotEmpty(storeId)) {
                 BlobStore blobStore = getBlobStore(site, storeId, config);
@@ -159,10 +163,9 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
                             site, Arrays.toString(paths)));
                 }
                 return blobStore;
-            } else {
-                logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
-                return null;
             }
+            logger.debug("No blob store found in site '{}' for paths '{}'", site, paths);
+            return null;
         } catch (ExecutionException e) {
             logger.error("Failed to look up the blob store for site '{}'", site, e);
             throw new ServiceLayerException(format("Failed to look up the blob store for site '%s'", site), e);

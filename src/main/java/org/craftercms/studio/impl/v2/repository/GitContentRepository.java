@@ -99,6 +99,7 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
@@ -938,7 +939,8 @@ public class GitContentRepository implements ContentRepository {
                     }
 
                     if (deploymentItem.isDelete()) {
-                        String deletePath = helper.getGitPath(deploymentItem.getPath());
+                        // If old path exists, that means the item has not been published after rename, delete the old path instead
+                        String deletePath = helper.getGitPath(defaultIfEmpty(deploymentItem.getOldPath(), deploymentItem.getPath()));
                         boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
                         RmCommand rmCommand = git.rm().addFilepattern(deletePath).setCached(false);
                         retryingRepositoryOperationFacade.call(rmCommand);
