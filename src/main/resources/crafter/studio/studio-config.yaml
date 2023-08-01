@@ -395,6 +395,18 @@ studio.security.token.cleanup.cron: 0 * * * * ?
 # The path of the folder used for the SSH configuration
 studio.security.ssh.config: ./ssh
 
+# Whether to enable user account locking after failed login attempts
+studio.security.login.lock.enabled: true
+# Maximum number of tracked usernames for failed login attempts
+studio.security.login.lock.maxTrackedUsernames: 10000
+# User login will be restricted after failed login attempts
+# The lock time period will be calculated as follows:
+#  min( baseTimeSeconds ^ (failedAttempts - 1), maxTimeSeconds )
+# Time in seconds to lock the user out after the maximum number of failed login attempts
+studio.security.login.lock.baseTimeSeconds: 2
+# Maximum time in seconds to lock the user out after a failed login attempt
+studio.security.login.lock.maxTimeSeconds: 3600
+
 ###############################################################
 ##               Page Navigation Order Service               ##
 ###############################################################
