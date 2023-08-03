@@ -23,9 +23,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 
 import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.Collections;
 import java.util.Map;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.time.LocalDateTime.now;
 
 /**
@@ -79,6 +84,18 @@ public class LoginAttemptManagerImpl implements LoginAttemptManager {
     }
 
     @Override
+    public long getUserLockTimeLeftSeconds(final String username) {
+        if (!enabled) {
+            return 0;
+        }
+        LoginFailure loginFailure = loginFailures.get(username);
+        if (loginFailure != null) {
+            return max(now().until(loginFailure.lockedUntil, ChronoUnit.SECONDS), 0);
+        }
+        return 0;
+    }
+
+    @Override
     public void loginSucceeded(final String username) {
         if (enabled) {
             logger.debug("User '{}' logged in successfully, will remove from login failures map", username);
@@ -93,7 +110,7 @@ public class LoginAttemptManagerImpl implements LoginAttemptManager {
         }
         LoginFailure failure = loginFailures.computeIfAbsent(username, k -> new LoginFailure());
         // Exponential backoff
-        long lockTimeSeconds = (long) Math.min(Math.pow(baseTimeSeconds, failure.attempts), maxTimeSeconds);
+        long lockTimeSeconds = (long) min(Math.pow(baseTimeSeconds, failure.attempts), maxTimeSeconds);
         failure.lockedUntil = now().plusSeconds(lockTimeSeconds);
         logger.warn("User '{}' login has failed. Locked for {} seconds until '{}'", username, lockTimeSeconds, failure.lockedUntil);
         failure.attempts++;

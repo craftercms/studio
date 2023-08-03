@@ -34,6 +34,14 @@ public interface LoginAttemptManager {
     boolean isUserLocked(String username);
 
     /**
+     * Get the number of seconds left for the user to be unlocked, or 0 if the user is not locked.
+     *
+     * @param username the username
+     * @return the number of seconds left for the user to be unlocked, or 0 if the user is not locked.
+     */
+    long getUserLockTimeLeftSeconds(String username);
+
+    /**
      * Notify this manager that a login attempt has succeeded for the given user.
      *
      * @param username the username

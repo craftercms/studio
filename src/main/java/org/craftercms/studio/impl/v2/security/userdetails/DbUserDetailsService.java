@@ -17,7 +17,7 @@ package org.craftercms.studio.impl.v2.security.userdetails;
 
 import org.craftercms.studio.api.v2.dal.UserDAO;
 import org.craftercms.studio.api.v2.security.LoginAttemptManager;
-import org.springframework.security.authentication.LockedException;
+import org.craftercms.studio.api.v2.security.authentication.LockedException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -48,8 +48,10 @@ public class DbUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (loginAttemptManager.isUserLocked(username)) {
-            throw new LockedException(String.format("User '%s' is temporarily locked out", username));
+            throw new LockedException(String.format("User '%s' is temporarily locked out", username),
+                    loginAttemptManager.getUserLockTimeLeftSeconds(username));
         }
+
         UserDetails user = userDao.getUserByIdOrUsername(Map.of(USER_ID, -1, USERNAME, username));
         if (user != null) {
             return user;
