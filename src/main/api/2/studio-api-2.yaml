@@ -3750,6 +3750,7 @@ paths:
                     Possible values:
                       - alphabetical (default)
                       - foldersFirst (order by: folders alphabetical, files alphabetical)
+                      - lastUpdated (order by: dateModified)
                   type: string
                 order:
                   description: order for sort strategy ascending or descending (ASC / DESC)
