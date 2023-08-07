@@ -1123,6 +1123,7 @@
         AND s.deleted = 0
         AND i.ignored = 0
         AND i.previous_path = #{previousPath}
+        AND (i.state &amp; #{newMask}) = 0
     </select>
 
     <update id="updateCommitId">
