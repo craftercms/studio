@@ -19,6 +19,8 @@ package org.craftercms.studio.impl.v2.upgrade.pipeline;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.upgrade.UpgradeConfigurationProvider;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.UpgradePipeline;
 import org.craftercms.commons.upgrade.VersionProvider;
@@ -43,9 +45,9 @@ public class PrototypeUpgradePipelineFactoryImpl extends DefaultUpgradePipelineF
     protected String pipelinePrototype;
 
     @ConstructorProperties({"pipelineName", "configurationFile", "versionProvider", "pipelinePrototype"})
-    public PrototypeUpgradePipelineFactoryImpl(String pipelineName, Resource configurationFile,
+    public PrototypeUpgradePipelineFactoryImpl(String pipelineName, UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
                                                VersionProvider<String> versionProvider, String pipelinePrototype) {
-        super(pipelineName, configurationFile, versionProvider);
+        super(pipelineName, configurationProvider, versionProvider);
         this.pipelinePrototype = pipelinePrototype;
     }
 
