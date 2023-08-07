@@ -329,7 +329,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -381,7 +381,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -507,7 +507,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -538,7 +538,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   users:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -571,7 +571,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -645,7 +645,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -691,7 +691,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -735,7 +735,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -934,7 +934,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1283,7 +1283,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7376,7 +7376,7 @@ components:
         - enabled
         - externallyManaged
 
-    User:
+    UserResponse:
       type: object
       properties:
         id:
@@ -7386,9 +7386,6 @@ components:
         username:
           type: string
           description: Username, unique
-        password:
-          type: string
-          description: User's password (not returned to caller)
         firstName:
           type: string
           description: User's first name
@@ -7407,7 +7404,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
@@ -7446,7 +7442,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
