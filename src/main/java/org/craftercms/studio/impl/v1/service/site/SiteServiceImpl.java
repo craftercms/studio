@@ -60,8 +60,9 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
-import org.craftercms.studio.api.v2.event.site.SiteDeleteEvent;
-import org.craftercms.studio.api.v2.event.site.SiteEvent;
+import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
+import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
+import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -316,7 +317,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             setSiteState(siteId, STATE_READY);
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
-                applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+                applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
                 setSiteState(siteId, STATE_INITIALIZING);
                 logger.warn("Failed to sync site content to preview for site '{}' ID '{}'. While site creation was " +
@@ -745,7 +746,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         logger.info("Sync site '{}' to preview", siteId);
         setSiteState(siteId, STATE_READY);
         try {
-            applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+            applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
         } catch (Exception e) {
             setSiteState(siteId, STATE_INITIALIZING);
             // TODO: SJ: This seems to leave the site in a bad state, review
@@ -765,6 +766,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         boolean success = true;
         logger.info("Delete site '{}'", siteId);
         try {
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.deleteSite(siteId, STATE_DELETING));
+            applicationContext.publishEvent(new SiteDeletingEvent(securityService.getAuthentication(), siteId));
             logger.debug("Disable publishing for site '{}' prior to deleting it", siteId);
             enablePublishing(siteId, false);
         } catch (SiteNotFoundException e) {
@@ -817,7 +820,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             contentRepository.removeRemoteRepositoriesForSite(siteId);
             auditServiceInternal.deleteAuditLogForSite(siteFeed.getId());
             insertDeleteSiteAuditLog(siteId, siteFeed.getName());
-            applicationContext.publishEvent(new SiteDeleteEvent(siteFeed.getSiteId(), siteFeed.getSiteUuid()));
+            applicationContext.publishEvent(new SiteDeletedEvent(securityService.getAuthentication(), siteFeed.getSiteId(), siteFeed.getSiteUuid()));
         } catch (Exception e) {
             success = false;
             logger.error("Failed to delete the database records for site '{}'", siteId, e);

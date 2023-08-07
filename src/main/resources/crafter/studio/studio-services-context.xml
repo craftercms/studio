@@ -1629,5 +1629,10 @@
     <bean id="loggerServiceInternal" class="org.craftercms.studio.impl.v2.service.log.internal.Log4jLoggerServiceImpl">
     </bean>
 
+    <bean id="requireSiteReadyHandler"
+          class="org.craftercms.studio.api.v2.annotation.RequireSiteStateAnnotationHandler">
+        <constructor-arg name="sitesService" ref="sitesService"/>
+    </bean>
+
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>
 </beans>

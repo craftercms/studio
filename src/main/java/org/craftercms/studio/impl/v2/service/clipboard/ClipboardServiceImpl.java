@@ -22,6 +22,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.clipboard.internal.ClipboardServiceInternal;
 import org.craftercms.studio.model.clipboard.Operation;
@@ -54,8 +56,9 @@ public class ClipboardServiceImpl implements ClipboardService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public List<String> pasteItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<String> pasteItems(@SiteId String siteId,
                                    Operation operation,
                                    @ProtectedResourceId(PATH_RESOURCE_ID) String targetPath,
                                    PasteItem item) throws ServiceLayerException, UserNotFoundException {
@@ -64,8 +67,9 @@ public class ClipboardServiceImpl implements ClipboardService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_WRITE)
-    public String duplicateItem(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public String duplicateItem(@SiteId String siteId,
                                 @ProtectedResourceId(PATH_RESOURCE_ID)
                                 String path)
             throws ServiceLayerException, UserNotFoundException {

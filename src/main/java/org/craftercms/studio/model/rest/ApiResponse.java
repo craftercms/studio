@@ -70,6 +70,8 @@ public class ApiResponse {
             "Check if you sent in the right Site Id", StringUtils.EMPTY);
     public static final ApiResponse SITE_ALREADY_EXISTS = new ApiResponse(5001, "Site already exists",
             "Try a different site name", StringUtils.EMPTY);
+    public static final ApiResponse INVALID_SITE_STATE = new ApiResponse(5002, "Invalid site state",
+            "Requested site is not in the required state for this operation", StringUtils.EMPTY);
 
     // 6000 - 7000
     public static final ApiResponse USER_NOT_FOUND = new ApiResponse(6000, "User not found",

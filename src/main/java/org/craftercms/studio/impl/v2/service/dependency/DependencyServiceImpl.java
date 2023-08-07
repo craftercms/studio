@@ -22,6 +22,8 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
 import org.craftercms.studio.permissions.CompositePermission;
@@ -46,8 +48,9 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<String> getSoftDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<String> getSoftDependencies(@SiteId String siteId,
                                             @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths)
             throws ServiceLayerException {
         siteService.checkSiteExists(siteId);
@@ -57,18 +60,20 @@ public class DependencyServiceImpl implements DependencyService {
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<String> getHardDependencies(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String site,
-                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
-        siteService.checkSiteExists(site);
-        return dependencyServiceInternal.getHardDependencies(site, paths);
-    }
-
-    @Override
+    @RequireSiteReady
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-    public List<String> getDependentItems(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<String> getDependentItems(@SiteId String siteId,
                                           @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         return dependencyServiceInternal.getDependentItems(siteId, paths);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public List<String> getHardDependencies(@SiteId String site,
+                                            @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths) throws ServiceLayerException {
+        siteService.checkSiteExists(site);
+        return dependencyServiceInternal.getHardDependencies(site, paths);
     }
 }

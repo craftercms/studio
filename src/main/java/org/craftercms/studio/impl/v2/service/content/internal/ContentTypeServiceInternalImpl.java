@@ -50,12 +50,8 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.RegExUtils.replaceAll;
-import static org.apache.commons.lang3.StringUtils.equalsAnyIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_COMPONENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_PAGE;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_SCRIPT;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
 
 public class ContentTypeServiceInternalImpl implements ContentTypeServiceInternal {
