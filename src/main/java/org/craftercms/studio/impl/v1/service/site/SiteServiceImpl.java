@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.site;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -59,8 +60,9 @@ import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
-import org.craftercms.studio.api.v2.event.site.SiteDeleteEvent;
-import org.craftercms.studio.api.v2.event.site.SiteEvent;
+import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
+import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
+import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -114,6 +116,7 @@ import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
@@ -130,6 +133,9 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
+    private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
+    private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
+    private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
 
     protected Deployer deployer;
     protected ContentService contentService;
@@ -311,7 +317,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             setSiteState(siteId, STATE_READY);
             // Now that everything is created, we can sync the preview deployer with the new content
             try {
-                applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+                applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
             } catch (Exception e) {
                 setSiteState(siteId, STATE_INITIALIZING);
                 logger.warn("Failed to sync site content to preview for site '{}' ID '{}'. While site creation was " +
@@ -371,12 +377,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
 
+        Path createdFileScriptPath = null;
+        Path updateParentIdScriptPath = null;
         // TODO: SJ: Refactor to avoid string literals
         try {
-            String createdFileScriptFilename = "createdFiles_" + UUID.randomUUID();
-            Path createdFileScriptPath = Files.createTempFile(createdFileScriptFilename, ".sql");
-            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
-            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
+            Path studioTempDir = getStudioTemporaryFilesRoot();
+            String createdFileScriptFilename = CREATED_FILES_SCRIPT_PREFIX + UUID.randomUUID();
+            createdFileScriptPath = Files.createTempFile(studioTempDir, createdFileScriptFilename, SQL_SCRIPT_SUFFIX);
+            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
+            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
             for (String key : createdFiles.keySet()) {
                 String path = key;
                 if (StringUtils.equals("D", createdFiles.get(path))) {
@@ -443,6 +452,15 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             }
         } catch (IOException e) {
             logger.error("Failed to create the database script file for processingCreatedFiles in site '{}'", siteId, e);
+        } finally {
+            if (createdFileScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", createdFileScriptPath);
+                FileUtils.deleteQuietly(createdFileScriptPath.toFile());
+            }
+            if (updateParentIdScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
+                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
+            }
         }
     }
 
@@ -728,7 +746,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         logger.info("Sync site '{}' to preview", siteId);
         setSiteState(siteId, STATE_READY);
         try {
-            applicationContext.publishEvent(new SiteEvent(securityService.getAuthentication(), siteId));
+            applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
         } catch (Exception e) {
             setSiteState(siteId, STATE_INITIALIZING);
             // TODO: SJ: This seems to leave the site in a bad state, review
@@ -748,6 +766,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         boolean success = true;
         logger.info("Delete site '{}'", siteId);
         try {
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.deleteSite(siteId, STATE_DELETING));
+            applicationContext.publishEvent(new SiteDeletingEvent(securityService.getAuthentication(), siteId));
             logger.debug("Disable publishing for site '{}' prior to deleting it", siteId);
             enablePublishing(siteId, false);
         } catch (SiteNotFoundException e) {
@@ -800,7 +820,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             contentRepository.removeRemoteRepositoriesForSite(siteId);
             auditServiceInternal.deleteAuditLogForSite(siteFeed.getId());
             insertDeleteSiteAuditLog(siteId, siteFeed.getName());
-            applicationContext.publishEvent(new SiteDeleteEvent(siteFeed.getSiteId(), siteFeed.getSiteUuid()));
+            applicationContext.publishEvent(new SiteDeletedEvent(securityService.getAuthentication(), siteFeed.getSiteId(), siteFeed.getSiteUuid()));
         } catch (Exception e) {
             success = false;
             logger.error("Failed to delete the database records for site '{}'", siteId, e);
@@ -967,17 +987,29 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
         long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
+        Path repoOperationsScriptPath = null;
+        Path updateParentIdScriptPath = null;
         try {
-            String repoOperationsScriptFilename = "repoOperations_" + UUID.randomUUID();
-            Path repoOperationsScriptPath = Files.createTempFile(repoOperationsScriptFilename, ".sql");
-            String updateParentIdScriptFilename = "updateParentId_" + UUID.randomUUID();
-            Path updateParentIdScriptPath = Files.createTempFile(updateParentIdScriptFilename, ".sql");
+            Path studioTempDir = getStudioTemporaryFilesRoot();
+            String repoOperationsScriptFilename = REPO_OPERATIONS_SCRIPT_PREFIX + UUID.randomUUID();
+            repoOperationsScriptPath = Files.createTempFile(studioTempDir, repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
+            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
+            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
             toReturn = processRepoOperations(site, repoOperationsDelta, repoOperationsScriptPath,
                     updateParentIdScriptPath);
             studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
             studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
         } catch (IOException e) {
             logger.error("Failed to create the database script for processing the created files in site '{}'", site);
+        } finally {
+            if (repoOperationsScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", repoOperationsScriptPath);
+                FileUtils.deleteQuietly(repoOperationsScriptPath.toFile());
+            }
+            if (updateParentIdScriptPath != null) {
+                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
+                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
+            }
         }
 
         if (logger.isDebugEnabled()) {

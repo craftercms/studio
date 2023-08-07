@@ -31,6 +31,8 @@ import org.craftercms.studio.api.v1.exception.AssetProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
+
 /**
  * Base class for {@link AssetProcessor}s.
  *
@@ -84,7 +86,7 @@ public abstract class AbstractAssetProcessor implements AssetProcessor {
     }
 
     private Path createTmpFile(String repoPath) throws IOException {
-        return Files.createTempFile(FilenameUtils.getBaseName(repoPath), "." + FilenameUtils.getExtension(repoPath));
+        return Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(repoPath), "." + FilenameUtils.getExtension(repoPath));
     }
 
     protected String getOutputRepoPath(ProcessorConfiguration config, Matcher inputPathMatcher) {

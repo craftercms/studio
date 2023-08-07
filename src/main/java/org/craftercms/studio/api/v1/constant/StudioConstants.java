@@ -236,6 +236,12 @@ public final class StudioConstants {
     public static final String SITE_PUBLISHED_REPOSITORY_GIT_LOCK = "{site}_PUBLISHED_REPOSITORY_GIT_LOCK";
     public static final String STUDIO_CLOCK_EXECUTOR_SITE_LOCK = "{site}_STUDIO_CLOCK_EXECUTOR_SITE_LOCK";
 
+    public static final String STUDIO_TEMPORARY_ROOT_DIR = "studio";
+
+    // File extensions
+    public final static String SQL_SCRIPT_SUFFIX = ".sql";
+    public final static String TMP_FILE_SUFFIX = ".tmp";
+
     private StudioConstants() {
     }
 }

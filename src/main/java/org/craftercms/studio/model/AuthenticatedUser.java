@@ -41,7 +41,6 @@ public class AuthenticatedUser extends User {
         setExternallyManaged(user.isExternallyManaged());
         setTimezone(user.getTimezone());
         setLocale(user.getLocale());
-        setRecordLastUpdated(getRecordLastUpdated());
     }
 
     public AuthenticationType getAuthenticationType() {

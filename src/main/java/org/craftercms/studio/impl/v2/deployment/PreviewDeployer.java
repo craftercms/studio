@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -17,7 +17,7 @@ package org.craftercms.studio.impl.v2.deployment;
 
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
-import org.craftercms.studio.api.v2.event.site.SiteEvent;
+import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -56,7 +56,7 @@ public class PreviewDeployer extends AbstractDeployer {
 
 
     @EventListener
-    public void onSiteCreateComplete(SiteEvent event) {
+    public void onSiteCreateComplete(SiteReadyEvent event) {
         doPreviewSync(event.getSiteId(), true);
     }
 

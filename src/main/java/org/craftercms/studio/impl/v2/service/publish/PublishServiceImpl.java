@@ -18,7 +18,6 @@ package org.craftercms.studio.impl.v2.service.publish;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -27,6 +26,8 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishingPackageNotFoundException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
@@ -54,10 +55,10 @@ import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKA
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY_WITH_ERRORS;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+@RequireSiteReady
 public class PublishServiceImpl implements PublishService {
 
     private PublishServiceInternal publishServiceInternal;
@@ -72,7 +73,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public int getPublishingPackagesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String environment,
+    public int getPublishingPackagesTotal(@SiteId String siteId, String environment,
                                           String path, List<String> states)
             throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -81,7 +82,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public List<PublishingPackage> getPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<PublishingPackage> getPublishingPackages(@SiteId String siteId,
                                                          String environment, String path, List<String> states,
                                                          int offset, int limit) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -90,7 +91,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_GET_PUBLISHING_QUEUE)
-    public PublishingPackageDetails getPublishingPackageDetails(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public PublishingPackageDetails getPublishingPackageDetails(@SiteId String siteId,
                                                                 String packageId) throws SiteNotFoundException, PublishingPackageNotFoundException {
         siteService.checkSiteExists(siteId);
         PublishingPackageDetails publishingPackageDetails = publishServiceInternal.getPublishingPackageDetails(siteId, packageId);
@@ -103,7 +104,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CANCEL_PUBLISH)
-    public void cancelPublishingPackages(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void cancelPublishingPackages(@SiteId String siteId,
                                          List<String> packageIds) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
         SiteFeed siteFeed = siteService.getSite(siteId);
@@ -222,7 +223,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public RepositoryChanges publishAll(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String publishingTarget, String comment)
+    public RepositoryChanges publishAll(@SiteId String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
 
@@ -265,7 +266,7 @@ public class PublishServiceImpl implements PublishService {
     @Override
     @HasAnyPermissions(type = DefaultPermission.class, actions = {PERMISSION_PUBLISH, PERMISSION_CONTENT_READ})
     public List<PublishingTarget> getAvailablePublishingTargets(
-            @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+            @SiteId String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         var availablePublishingTargets = new ArrayList<PublishingTarget>();
         var liveTarget = new PublishingTarget();
@@ -281,7 +282,7 @@ public class PublishServiceImpl implements PublishService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public boolean isSitePublished(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+    public boolean isSitePublished(@SiteId String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         return publishServiceInternal.isSitePublished(siteId);
     }

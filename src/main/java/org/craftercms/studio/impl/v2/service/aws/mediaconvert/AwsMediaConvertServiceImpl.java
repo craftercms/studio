@@ -32,6 +32,8 @@ import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
@@ -160,8 +162,9 @@ public class AwsMediaConvertServiceImpl extends AbstractAwsService<MediaConvertP
      * {@inheritDoc}
      */
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_WRITE)
-    public MediaConvertResult uploadVideo(@ValidateStringParam @ProtectedResourceId("siteId") final String site,
+    public MediaConvertResult uploadVideo(@SiteId final String site,
                                           @ValidateStringParam final String inputProfileId,
                                           @ValidateStringParam final String outputProfileId,
                                           @ValidateStringParam final String filename,

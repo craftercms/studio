@@ -177,7 +177,7 @@ public class GroupsController {
      * @return Response containing list od users
      */
     @GetMapping(PATH_PARAM_ID + MEMBERS)
-    public PaginatedResultList<User> getGroupMembers(
+    public PaginatedResultList<UserResponse> getGroupMembers(
             @PathVariable(REQUEST_PARAM_ID) int groupId,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_LIMIT, required = false, defaultValue = "10") int limit,
@@ -186,9 +186,9 @@ public class GroupsController {
             throws ServiceLayerException, GroupNotFoundException {
 
         int total = groupService.getGroupMembersTotal(groupId);
-        List<User> users = groupService.getGroupMembers(groupId, offset, limit, sort);
+        List<UserResponse> users = groupService.getGroupMembers(groupId, offset, limit, sort);
 
-        PaginatedResultList<User> result = new PaginatedResultList<>();
+        PaginatedResultList<UserResponse> result = new PaginatedResultList<>();
         result.setResponse(OK);
         result.setTotal(total);
         result.setOffset(offset);
@@ -205,16 +205,16 @@ public class GroupsController {
      * @return Response object
      */
     @PostMapping(value = PATH_PARAM_ID + MEMBERS, consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResultList<User> addGroupMembers(@PathVariable(REQUEST_PARAM_ID) int groupId,
+    public ResultList<UserResponse> addGroupMembers(@PathVariable(REQUEST_PARAM_ID) int groupId,
                                             @RequestBody AddGroupMembers addGroupMembers)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException {
 
         ValidationUtils.validateAddGroupMembers(addGroupMembers);
 
-        List<User> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getIds(),
+        List<UserResponse> addedUsers = groupService.addGroupMembers(groupId, addGroupMembers.getIds(),
                 addGroupMembers.getUsernames());
 
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserResponse> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_USERS, addedUsers);
         return result;

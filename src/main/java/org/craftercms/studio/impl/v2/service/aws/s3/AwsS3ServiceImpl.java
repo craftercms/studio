@@ -32,6 +32,8 @@ import org.craftercms.studio.api.v1.exception.AwsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.aws.AbstractAwsService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.aws.s3.AwsS3Service;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.service.aws.AwsUtils;
@@ -112,8 +114,9 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_WRITE)
-    public S3Item uploadItem(@ValidateStringParam @ProtectedResourceId("siteId") String siteId,
+    public S3Item uploadItem(@SiteId String siteId,
                              @ValidateStringParam String profileId,
                              @ValidateStringParam String path,
                              @ValidateStringParam String filename,
@@ -135,8 +138,9 @@ public class AwsS3ServiceImpl extends AbstractAwsService<S3Profile> implements A
      * {@inheritDoc}
      */
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_S3_READ)
-    public List<S3Item> listItems(@ValidateStringParam @ProtectedResourceId("siteId") String siteId,
+    public List<S3Item> listItems(@SiteId String siteId,
                                   @ValidateStringParam String profileId,
                                   @ValidateStringParam String path,
                                   @ValidateStringParam String type) throws AwsException,
