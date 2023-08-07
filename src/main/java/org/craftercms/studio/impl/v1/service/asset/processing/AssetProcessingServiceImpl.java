@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.springframework.beans.factory.annotation.Required;
 
 import static java.lang.String.format;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 
 /**
  * Default implementation of {@link AssetProcessingService}.
@@ -178,7 +179,7 @@ public class AssetProcessingServiceImpl implements AssetProcessingService {
 
     private Asset createAssetFromInputStream(String repoPath, InputStream in) throws AssetProcessingException {
         try {
-            Path tmpFile = Files.createTempFile(FilenameUtils.getBaseName(repoPath), "." +
+            Path tmpFile = Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(repoPath), "." +
                     FilenameUtils.getExtension(repoPath));
 
             try (OutputStream out = Files.newOutputStream(tmpFile)) {
