@@ -212,6 +212,9 @@
                 ORDER BY IF(FIELD(child.system_type, 'folder')=0,1,0), FIELD(child.system_type, 'folder'),
                     child.label ${order}, child.path ${order}
             </when>
+            <when test="sortStrategy == 'lastUpdate'">
+                ORDER BY child.last_modified_on ${order}, child.label ${order}, child.path ${order}
+            </when>
             <otherwise>
                 ORDER BY child.label ${order}, child.path ${order}
             </otherwise>
@@ -1034,7 +1037,7 @@
         SET path = #{newPath},
             i.state = (i.state | #{onStatesBitMap}) &amp; ~#{offStatesBitMap},
             i.preview_url = REPLACE(i.preview_url, #{oldPreviewUrl}, #{newPreviewUrl}),
-            i.previous_path = IFNULL(#{oldPath}, i.path)
+            i.previous_path = IFNULL(i.previous_path, #{oldPath})
         <if test="label != null">
             , i.label = #{label}
         </if>
@@ -1123,6 +1126,7 @@
         AND s.deleted = 0
         AND i.ignored = 0
         AND i.previous_path = #{previousPath}
+        AND (i.state &amp; #{newMask}) = 0
     </select>
 
     <update id="updateCommitId">

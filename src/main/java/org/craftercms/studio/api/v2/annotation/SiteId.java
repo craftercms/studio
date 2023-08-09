@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,10 +15,16 @@
  */
 package org.craftercms.studio.api.v2.annotation;
 
-import java.lang.annotation.ElementType;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 /**
  * Annotation to mark the parameter containing the value of the site id
@@ -26,7 +32,9 @@ import java.lang.annotation.Target;
  * @author joseross
  * @since 4.0.0
  */
-@Target(ElementType.PARAMETER)
-@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Target({PARAMETER, ANNOTATION_TYPE})
+@Retention(RUNTIME)
+@ProtectedResourceId(SITE_ID_RESOURCE_ID)
 public @interface SiteId {
 }

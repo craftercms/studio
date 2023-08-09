@@ -235,7 +235,7 @@ public interface ContentService {
      * @return content type
      * @throws DocumentException on failure to retrieve the content type from xml (when applicable)
      */
-    String getItemContentType(String site, String path) throws DocumentException;
+    String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException;
 
     /**
      * get the version history for an item

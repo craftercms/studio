@@ -144,16 +144,8 @@ public class SecurityServiceImpl implements SecurityService {
         this.availableActionsResolver = availableActionsResolver;
     }
 
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
-
     public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
-    }
-
-    public StudioConfiguration getStudioConfiguration() {
-        return studioConfiguration;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

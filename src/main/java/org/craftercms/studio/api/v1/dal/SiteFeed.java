@@ -22,6 +22,7 @@ public class SiteFeed {
 
     public static final String STATE_INITIALIZING = "INITIALIZING";
     public static final String STATE_READY = "READY";
+    public static final String STATE_DELETING = "DELETING";
     public static final String STATE_DELETED = "DELETED";
 
     protected long id;

@@ -1040,8 +1040,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                    contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
+                commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
                 // This write is performed after processing the commitIds so we don't miss any commit
                 if (movedDocument != null) {
                     writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
@@ -1842,7 +1842,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public String getItemContentType(String site, String path) throws DocumentException {
+    public String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException {
+        siteService.checkSiteExists(site);
         List<Item> items = itemServiceInternal.getItems(site, List.of(path), false);
         if (CollectionUtils.isEmpty(items)) {
             return getContentTypeClass(site, path);
@@ -2116,13 +2117,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 logger.error("Failed to extract the dependencies for reverted content at " +
                         "site '{}' path '{}' version '{}'", site, path, version);
             }
-            // Update the database with the commitId for the target item
-
-            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
-
-            itemServiceInternal.updateCommitId(site, path, commitId);
 
             String username = securityService.getCurrentUser();
+            // Update the database for the target item
+            itemServiceInternal.persistItemAfterWrite(site, path, username, commitId, true);
+
+
             // This is not required, the current user is already loaded in memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
@@ -2676,8 +2676,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
+            commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));

@@ -18,11 +18,12 @@ package org.craftercms.studio.impl.v2.service.search;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.search.SearchService;
 import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInternal;
 import org.craftercms.studio.model.search.SearchParams;
@@ -33,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_SEARCH;
 
 /**
@@ -66,8 +66,9 @@ public class SearchServiceImpl implements SearchService {
      * {@inheritDoc}
      */
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
-    public SearchResult search(@ProtectedResourceId(SITE_ID_RESOURCE_ID) final String siteId, final SearchParams params)
+    public SearchResult search(@SiteId final String siteId, final SearchParams params)
             throws AuthenticationException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
         String user = securityService.getCurrentUser();

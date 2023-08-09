@@ -39,6 +39,10 @@
         <constructor-arg name="accessTokenService" ref="accessTokenService"/>
     </bean>
 
+    <bean id="loginAttemptListener" class="org.craftercms.studio.impl.v2.security.listener.LoginAttemptListener">
+        <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
+    </bean>
+
     <!-- Users -->
 
     <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
@@ -50,7 +54,7 @@
 
     <bean id="studioUserDetailsService" class="org.craftercms.studio.impl.v2.security.userdetails.DbUserDetailsService">
         <constructor-arg name="userDao" ref="userDao"/>
-        <constructor-arg name="cache" ref="userDetailsCache"/>
+        <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
     </bean>
 
     <bean id="daoAuthenticationUserDetailsService"
@@ -78,6 +82,17 @@
 
     <bean id="sessionExpiredStrategy"
           class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>
+
+    <bean id="loginAttemptManager" class="org.craftercms.studio.impl.v2.security.LoginAttemptManagerImpl">
+        <constructor-arg name="maxTrackedUsernames"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.maxTrackedUsernames')}"/>
+        <constructor-arg name="baseTimeSeconds"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.baseTimeSeconds')}"/>
+        <constructor-arg name="maxTimeSeconds"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.maxTimeSeconds')}"/>
+        <constructor-arg name="enabled"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.enabled')}"/>
+    </bean>
 
     <!-- Permissions -->
 
