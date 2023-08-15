@@ -280,7 +280,7 @@ public class ContentController {
         return responseBody;
     }
 
-    @GetMapping(value = "/item_history")
+    @GetMapping(value = ITEM_HISTORY)
     public ResultList<ItemVersion> getHistory(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
                                               @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path) throws ServiceLayerException {
         ResultList<ItemVersion> result = new ResultList<>();

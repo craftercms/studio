@@ -52,6 +52,7 @@ public final class RequestMappingConstants {
     public static final String ITEM_UNLOCK_BY_PATH = "/item_unlock_by_path";
     public static final String GET_CONTENT_BY_COMMIT_ID = "/get_content_by_commit_id";
     public static final String RENAME = "/rename";
+    public static final String ITEM_HISTORY = "/item_history";
 
     /** Groups controller */
     public static final String GROUPS = "/groups";
