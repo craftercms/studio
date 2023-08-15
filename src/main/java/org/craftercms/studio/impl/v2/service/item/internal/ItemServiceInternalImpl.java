@@ -431,7 +431,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean previousPathExists(String siteId, String path) {
-        return itemDao.countPreviousPaths(siteId, path) > 0;
+        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -13,42 +13,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.craftercms.studio.model.rest;
+
 import org.craftercms.studio.api.v2.dal.User;
 
 /**
- Represents a {@link User} that has been authenticated.
- *
- * @author avasquez
+ Represents a {@link User} with only the necessary fields that are required to be sent in the response
  */
-public class AuthenticatedUser extends User {
-
-    private static final long serialVersionUID = -4678834461080865934L;
-
-    @JsonProperty("authenticationType")
-    private AuthenticationType authenticationType;
-
-    public AuthenticatedUser(User user) {
+public class UserResponse extends User {
+    public UserResponse(User user) {
         setId(user.getId());
         setUsername(user.getUsername());
         setEmail(user.getEmail());
         setFirstName(user.getFirstName());
         setLastName(user.getLastName());
         setEnabled(user.isEnabled());
-        setDeleted(user.isDeleted());
         setExternallyManaged(user.isExternallyManaged());
-        setTimezone(user.getTimezone());
-        setLocale(user.getLocale());
     }
-
-    public AuthenticationType getAuthenticationType() {
-        return authenticationType;
-    }
-
-    public void setAuthenticationType(AuthenticationType authenticationType) {
-        this.authenticationType = authenticationType;
-    }
-
 }

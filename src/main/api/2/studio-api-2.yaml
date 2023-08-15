@@ -329,7 +329,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -381,7 +381,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -507,7 +507,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -538,7 +538,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   users:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -571,7 +571,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -645,7 +645,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -691,7 +691,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -735,7 +735,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -853,9 +853,9 @@ paths:
     post:
       tags:
         - users
-      summary: Change password for user
+      summary: Reset password for user
       description: 'Required Permission: "UPDATE_USERS"'
-      operationId: setUserPassword
+      operationId: resetUserPassword
       parameters:
         - name: id
           in: path
@@ -864,7 +864,7 @@ paths:
           schema:
             type: string
       requestBody:
-        description: request body to change password
+        description: request body to reset password for user
         required: true
         content:
           application/json:
@@ -906,7 +906,7 @@ paths:
         - users
       summary: Change password for user
       description: 'Required Permission: "ANONYMOUS"'
-      operationId: settUserPassword
+      operationId: setUserPassword
       requestBody:
         description: request body to change password
         required: true
@@ -934,7 +934,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1283,7 +1283,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3750,6 +3750,7 @@ paths:
                     Possible values:
                       - alphabetical (default)
                       - foldersFirst (order by: folders alphabetical, files alphabetical)
+                      - lastUpdated (order by: dateModified)
                   type: string
                 order:
                   description: order for sort strategy ascending or descending (ASC / DESC)
@@ -7375,7 +7376,7 @@ components:
         - enabled
         - externallyManaged
 
-    User:
+    UserResponse:
       type: object
       properties:
         id:
@@ -7385,9 +7386,6 @@ components:
         username:
           type: string
           description: Username, unique
-        password:
-          type: string
-          description: User's password (not returned to caller)
         firstName:
           type: string
           description: User's first name
@@ -7406,7 +7404,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
@@ -7445,7 +7442,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email

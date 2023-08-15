@@ -32,6 +32,8 @@ import org.craftercms.studio.impl.v2.upgrade.StudioUpgradeContext;
 
 import javax.sql.DataSource;
 
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
+
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that updates multiple files using
  * an XSLT template.
@@ -72,7 +74,7 @@ public class BatchXsltFileUpgradeOperation extends AbstractXsltFileUpgradeOperat
             paths.forEach(path -> {
                 logger.debug("Execute the XSLT template against site '{}' path '{}'", site, path);
                 try {
-                    Path temp = Files.createTempFile("upgrade-manager", "xslt");
+                    Path temp = Files.createTempFile(getStudioTemporaryFilesRoot(), "upgrade-manager", "xslt");
                     try {
                         OutputStream os = Files.newOutputStream(temp);
                         executeTemplate(context, repository.relativize(path).toString(), os);

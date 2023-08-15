@@ -99,11 +99,13 @@ import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
@@ -938,7 +940,8 @@ public class GitContentRepository implements ContentRepository {
                     }
 
                     if (deploymentItem.isDelete()) {
-                        String deletePath = helper.getGitPath(deploymentItem.getPath());
+                        // If old path exists, that means the item has not been published after rename, delete the old path instead
+                        String deletePath = helper.getGitPath(defaultIfEmpty(deploymentItem.getOldPath(), deploymentItem.getPath()));
                         boolean isPage = deletePath.endsWith(FILE_SEPARATOR + INDEX_FILE);
                         RmCommand rmCommand = git.rm().addFilepattern(deletePath).setCached(false);
                         retryingRepositoryOperationFacade.call(rmCommand);
@@ -2030,7 +2033,7 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public void populateGitLog(String siteId) throws GitAPIException, IOException {
         String repoLockKey = helper.getSandboxRepoLockKey(siteId);
-        Path script  = Files.createTempFile("studio-gitlog-", ".sql");
+        Path script  = Files.createTempFile(getStudioTemporaryFilesRoot(), "studio-gitlog-", SQL_SCRIPT_SUFFIX);
         Repository repo = helper.getRepository(siteId, SANDBOX);
         generalLockService.lock(repoLockKey);
         try (Git git = Git.wrap(repo)) {
