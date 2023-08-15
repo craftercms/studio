@@ -766,7 +766,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         boolean success = true;
         logger.info("Delete site '{}'", siteId);
         try {
-            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.deleteSite(siteId, STATE_DELETING));
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, STATE_DELETING));
             applicationContext.publishEvent(new SiteDeletingEvent(securityService.getAuthentication(), siteId));
             logger.debug("Disable publishing for site '{}' prior to deleting it", siteId);
             enablePublishing(siteId, false);
