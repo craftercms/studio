@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
@@ -277,5 +278,15 @@ public class ContentController {
         result.setResponse(OK);
         responseBody.setResult(result);
         return responseBody;
+    }
+
+    @GetMapping(value = "/item_history")
+    public ResultList<ItemVersion> getHistory(@ValidSiteId @RequestParam(value = REQUEST_PARAM_SITEID) String siteId,
+                                              @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path) throws ServiceLayerException {
+        ResultList<ItemVersion> result = new ResultList<>();
+        result.setResponse(OK);
+        result.setEntities(RESULT_KEY_ITEMS, contentService.getContentVersionHistory(siteId, path));
+
+        return result;
     }
 }

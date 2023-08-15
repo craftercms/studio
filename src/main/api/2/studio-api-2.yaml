@@ -4204,6 +4204,51 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/item_history:
+    get:
+      tags:
+        - content
+      summary: Get history for a content item
+      description: 'Required permission "content_read"'
+      operationId: getItemHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of the content
+          required: true
+          schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dependency/dependencies:
     post:
       tags:
@@ -9216,6 +9261,33 @@ components:
               type: boolean
               description: if true, the logger will be created in case it does not exist yet.
                 If false, a 404 status code will be returned if logger is not in the registry.
+
+    ItemVersion:
+      type: object
+      properties:
+        versionNumber:
+          type: string
+          description: the commit id
+        path:
+          type: string
+          description: the path of the item
+        oldPath:
+          type: string
+          description: the old path of the item (will be the same as path if the item has not been renamed)
+        author:
+          type: string
+          description: the author of the commit
+        comment:
+          type: string
+          description: the comment of the commit
+        reversible:
+          type: boolean
+          description: true if a revert to this version will be allowed
+        modifiedDate:
+          type: string
+          format: date-time
+          description: the date of the commit
+
   responses:
     NotFound:
       description: Resource not found

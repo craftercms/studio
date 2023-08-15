@@ -24,6 +24,8 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.model.history.ItemVersion;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -41,6 +43,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 
+import java.io.IOException;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -265,6 +268,15 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     public Optional<Resource> getContentByCommitId(String siteId, String path, String commitId)
             throws ContentNotFoundException {
         return contentRepository.getContentByCommitId(siteId, path, commitId);
+    }
+
+    @Override
+    public List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException {
+        try {
+            return contentRepository.getContentItemHistory(siteId, path);
+        } catch (IOException | GitAPIException e) {
+            throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
+        }
     }
 
     public void setContentRepository(ContentRepository contentRepository) {
