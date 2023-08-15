@@ -15,12 +15,11 @@
  */
 package org.craftercms.studio.impl.v2.event;
 
-import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -41,14 +40,14 @@ public class EventBroadcaster {
     protected SimpMessagingTemplate messagingTemplate;
 
     @Order
-    @EventListener
+    @EventListener(condition = "!(#event instanceof T(org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent))")
     public void publishSiteEvent(final SiteAwareEvent event) {
         publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
     }
 
     @Order
-    @EventListener(condition = "!(#event instanceof T(org.craftercms.studio.api.v2.event.SiteAwareEvent))")
-    public void publishGlobalEvent(final BroadcastEvent event) {
+    @EventListener
+    public void publishGlobalEvent(final SiteLifecycleEvent event) {
         publishEvent(event, DESTINATION_ROOT);
     }
 
