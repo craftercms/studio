@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.api.v2.annotation;
 
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -59,13 +60,17 @@ public class RequireSiteStateAnnotationHandler {
         Method method = AopUtils.getActualMethod(pjp);
         String siteId = getSiteId(pjp, method);
 
-        if (siteId != null) {
+        if (StringUtils.isNotEmpty(siteId)) {
             RequireSiteState annotation = AnnotationUtils.findAnnotation(method, RequireSiteState.class);
             if (annotation == null) {
                 annotation = AnnotationUtils.findAnnotation(method.getDeclaringClass(), RequireSiteState.class);
             }
-            String requiredState = annotation.value();
-            sitesService.checkSiteState(siteId, requiredState);
+            if (annotation != null) {
+                String requiredState = annotation.value();
+                sitesService.checkSiteState(siteId, requiredState);
+            } else {
+                logger.debug("Unable to find RequireSiteState annotation on method '{}.{}'. ", method.getDeclaringClass().getName(), method.getName());
+            }
         } else {
             logger.debug("Method '{}.{}' is annotated with @RequireSiteReady but does not have a @SiteId parameter. " +
                     "This annotation will be ignored.", method.getDeclaringClass().getName(), method.getName());
