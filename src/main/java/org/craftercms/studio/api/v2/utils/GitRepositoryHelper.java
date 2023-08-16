@@ -34,7 +34,6 @@ import org.craftercms.commons.git.utils.AuthenticationType;
 import org.craftercms.commons.git.utils.TypeBasedAuthConfiguratorBuilder;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
-import org.craftercms.studio.api.v1.exception.CommitNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
@@ -435,17 +434,10 @@ public class GitRepositoryHelper implements DisposableBean {
         RevWalk rw = new RevWalk(repository);
         try (Git git = new Git(repository)) {
             RevCommit commit = rw.parseCommit(commitId);
-            AbstractTreeIterator parentCommitTreeParser;
-            if (commit.getParentCount() > 0) {
-                RevCommit parent = repository.parseCommit(commit.getParent(0).getId());
-                parentCommitTreeParser = prepareTreeParser(repository, parent.getName());
-            } else {
-                parentCommitTreeParser = new EmptyTreeIterator();
-            }
 
             // Diff the two commit Ids
             DiffCommand diffCommand = git.diff()
-                    .setOldTree(parentCommitTreeParser)
+                    .setOldTree(getParentCommitTreeParser(repository, commit))
                     .setNewTree(prepareTreeParser(repository, commit.getName()))
                     .setPathFilter(FollowFilter.create(gitPath, repository.getConfig().get(DiffConfig.KEY)));
             List<DiffEntry> diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
@@ -454,7 +446,7 @@ public class GitRepositoryHelper implements DisposableBean {
                 // With FollowFilter it does not return a DiffEntry for the first commit (ADD)
                 // TODO: JM: Investigate if there is a better way to do this
                 diffCommand = git.diff()
-                        .setOldTree(parentCommitTreeParser)
+                        .setOldTree(getParentCommitTreeParser(repository, commit))
                         .setNewTree(prepareTreeParser(repository, commit.getName()))
                         .setPathFilter(PathFilter.create(gitPath));
                 diffEntries = retryingRepositoryOperationFacade.call(diffCommand);
@@ -467,6 +459,21 @@ public class GitRepositoryHelper implements DisposableBean {
         } finally {
             rw.dispose();
         }
+    }
+
+    /**
+     * Get a tree parser for the parent of the given commit, or {@link EmptyTreeIterator} if the commit is initial.
+     *
+     * @param repository the repository
+     * @param commit     the commit
+     * @return the tree parser for the parent commit, or {@link EmptyTreeIterator} if the commit is initial
+     * @throws IOException if an error occurred while creating and configuring the tree parser
+     */
+    private AbstractTreeIterator getParentCommitTreeParser(Repository repository, RevCommit commit) throws IOException {
+        if (commit.getParentCount() > 0) {
+            return prepareTreeParser(repository, commit.getParent(0).getId().getName());
+        }
+        return new EmptyTreeIterator();
     }
 
     public List<String> getFilesInCommit(Repository repository, RevCommit commit) {

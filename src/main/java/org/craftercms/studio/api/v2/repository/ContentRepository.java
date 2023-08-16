@@ -457,7 +457,8 @@ public interface ContentRepository {
     void checkContentExists(String site, String path) throws ServiceLayerException;
 
     /**
-     * Get the history of a content item
+     * Get the history of a content item. <br/>
+     * <strong>Note:</strong> the results of this method are not guaranteed when the path does not currently exist in the repository.
      * @param site site id
      * @param path path of the content item
      * @return list of item versions

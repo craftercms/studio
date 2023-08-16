@@ -30,7 +30,7 @@ public class ItemVersion {
     private String oldPath;
     private String author;
     private String comment;
-    private boolean reversible;
+    private boolean revertible;
     private ZonedDateTime modifiedDate;
 
     public ZonedDateTime getModifiedDate() {
@@ -65,12 +65,12 @@ public class ItemVersion {
         this.comment = comment;
     }
 
-    public boolean isReversible() {
-        return reversible;
+    public boolean isRevertible() {
+        return revertible;
     }
 
-    public void setReversible(boolean reversible) {
-        this.reversible = reversible;
+    public void setRevertible(boolean revertible) {
+        this.revertible = revertible;
     }
 
     public String getPath() {

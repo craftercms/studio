@@ -9280,7 +9280,7 @@ components:
         comment:
           type: string
           description: the comment of the commit
-        reversible:
+        revertible:
           type: boolean
           description: true if a revert to this version will be allowed
         modifiedDate:

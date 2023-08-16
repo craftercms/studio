@@ -69,10 +69,7 @@ import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.FollowFilter;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -2069,10 +2066,12 @@ public class GitContentRepository implements ContentRepository {
             final RevWalk revWalk = new RevWalk(git.getRepository());
             revWalk.setTreeFilter(FollowFilter.create(gitPath, diffConfig));
             revWalk.markStart(revWalk.parseCommit(repo.resolve(HEAD)));
+            revWalk.sort(RevSort.TOPO);
             String currentPath = gitPath;
-            boolean reversible = true;
+            boolean revertible = true;
             for (RevCommit revCommit : revWalk) {
                 ItemVersion version = new ItemVersion();
+                version.setRevertible(revertible);
                 version.setPath(currentPath);
                 version.setVersionNumber(revCommit.getName());
                 version.setAuthor(revCommit.getAuthorIdent().getName());
@@ -2086,7 +2085,7 @@ public class GitContentRepository implements ContentRepository {
                             currentPath = null;
                         } else {
                             currentPath = diffEntry.getOldPath();
-                            reversible = false;
+                            revertible = false;
                         }
                     }
                 } catch (NoChangesForPathException e) {
@@ -2094,7 +2093,6 @@ public class GitContentRepository implements ContentRepository {
                 }
                 // Set this after the diff entry is retrieved, so that the old path is set correctly
                 version.setOldPath(currentPath);
-                version.setReversible(reversible);
                 versionHistory.add(version);
             }
         } finally {
