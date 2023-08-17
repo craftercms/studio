@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
+import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
@@ -58,17 +59,17 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.RingBuffer;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.*;
 import org.eclipse.jgit.revwalk.filter.*;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.TreeWalk;
@@ -2051,6 +2052,53 @@ public class GitContentRepository implements ContentRepository {
             Files.deleteIfExists(script);
             generalLockService.unlock(repoLockKey);
         }
+    }
+
+    @Override
+    public List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException {
+        List<ItemVersion> versionHistory = new ArrayList<>();
+        final String gitPath = helper.getGitPath(path);
+        String repoLockKey = helper.getSandboxRepoLockKey(site);
+        Repository repo = helper.getRepository(site, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            DiffConfig diffConfig = repo.getConfig().get(DiffConfig.KEY);
+            final RevWalk revWalk = new RevWalk(git.getRepository());
+            revWalk.setTreeFilter(FollowFilter.create(gitPath, diffConfig));
+            revWalk.markStart(revWalk.parseCommit(repo.resolve(HEAD)));
+            revWalk.sort(RevSort.TOPO);
+            String currentPath = gitPath;
+            boolean revertible = true;
+            for (RevCommit revCommit : revWalk) {
+                ItemVersion version = new ItemVersion();
+                version.setRevertible(revertible);
+                version.setPath(currentPath);
+                version.setVersionNumber(revCommit.getName());
+                version.setAuthor(revCommit.getAuthorIdent().getName());
+                version.setModifiedDate(
+                        Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
+                version.setComment(revCommit.getFullMessage());
+                try {
+                    DiffEntry diffEntry = helper.getDiffEntry(repo, revCommit, currentPath);
+                    if (!StringUtils.equals(currentPath, diffEntry.getOldPath())) {
+                        if (StringUtils.equals(diffEntry.getOldPath(), DiffEntry.DEV_NULL)) {
+                            currentPath = null;
+                        } else {
+                            currentPath = diffEntry.getOldPath();
+                            revertible = false;
+                        }
+                    }
+                } catch (NoChangesForPathException e) {
+                    logger.error("Failed to get diff entry for path '{}' in commit '{}'", currentPath, revCommit.getName(), e);
+                }
+                // Set this after the diff entry is retrieved, so that the old path is set correctly
+                version.setOldPath(currentPath);
+                versionHistory.add(version);
+            }
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+        return versionHistory;
     }
 
     public void setHelper(GitRepositoryHelper helper) {

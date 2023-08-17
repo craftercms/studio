@@ -52,6 +52,7 @@ import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -344,6 +345,15 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                                          @ValidateSecurePathParam String path)
         throws ContentNotFoundException {
         return contentServiceV1.getContentAsResource(site, path);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public List<ItemVersion> getContentVersionHistory(@SiteId String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws ServiceLayerException {
+        siteService.checkSiteExists(siteId);
+        contentServiceV1.checkContentExists(siteId, path);
+        return contentServiceInternal.getContentVersionHistory(siteId, path);
     }
 
     @Override

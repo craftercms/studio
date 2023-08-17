@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.content.internal;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
@@ -165,4 +166,14 @@ public interface ContentServiceInternal {
     List<DetailedItem> getItemsByStates(String siteId, long statesBitMap,
                                         List<String> systemTypes, List<SortField> sortFields,
                                         int offset, int limit) throws UserNotFoundException, ServiceLayerException;
+
+    /**
+     * Get the version history for a given content item.
+     *
+     * @param siteId the site id
+     * @param path   the content path
+     * @return the list of versions
+     * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
+     */
+    List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
 }

@@ -22,6 +22,7 @@ import org.apache.commons.text.StringEscapeUtils
 
 def site = request.getParameter("site")
 def path = request.getParameter("path")
+def oldPath = request.getParameter("oldPath") ?: path
 def version = request.getParameter("version")
 def versionTO = request.getParameter("versionTO")
 def escaped = request.getParameter("escaped")
@@ -33,13 +34,13 @@ String revised = "UNSET"
 model.version = version
 model.versionTO = versionTO
 
-if([Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } == false && !versionTO) {
+if(![Collection, Object[]].any { it.isAssignableFrom(version.getClass()) } && !versionTO) {
 	original = ContentServices.getContent(site, path, false, null, context)
 	revised = ContentServices.getContentVersionAtPath(site, path, version, context)
 }
 else {
 	original = ContentServices.getContentVersionAtPath(site, path, version, context)
-	revised = ContentServices.getContentVersionAtPath(site, path, versionTO, context)
+	revised = ContentServices.getContentVersionAtPath(site, oldPath, versionTO, context)
 }
 
 if(!escaped){
