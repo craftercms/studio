@@ -85,7 +85,6 @@ public class EmailForgotPasswordTaskFactory implements ForgotPasswordTaskFactory
         this.template = freeMarkerConfig.getObject().getConfiguration().getTemplate(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
         RequestContext context = RequestContext.getCurrent();
         HttpServletRequest request = context.getRequest();
-        // TODO: JM: This needs to be fixed so the authoring URL does not come from the user request
         authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "");
     }
 
