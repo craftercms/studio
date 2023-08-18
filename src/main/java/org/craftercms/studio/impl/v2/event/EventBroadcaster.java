@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.impl.v2.event;
 
-import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +40,20 @@ public class EventBroadcaster {
     protected SimpMessagingTemplate messagingTemplate;
 
     @Order
+    @EventListener(condition = "!(#event instanceof T(org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent))")
+    public void publishSiteEvent(final SiteAwareEvent event) {
+        publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
+    }
+
+    @Order
     @EventListener
-    public void publishEvent(BroadcastEvent event) {
+    public void publishGlobalEvent(final SiteLifecycleEvent event) {
+        publishEvent(event, DESTINATION_ROOT);
+    }
+
+    private void publishEvent(final Object event, final String destination) {
         logger.debug("Broadcast event '{}'", event);
         long startTime = System.currentTimeMillis();
-        String destination = DESTINATION_ROOT;
-        if (event instanceof SiteAwareEvent) {
-            destination += "/" + ((SiteAwareEvent) event).getSiteId();
-        }
         messagingTemplate.convertAndSend(destination, event);
         if (logger.isTraceEnabled()) {
             long total = System.currentTimeMillis() - startTime;

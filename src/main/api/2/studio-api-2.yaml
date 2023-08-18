@@ -329,7 +329,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -381,7 +381,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -507,7 +507,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -538,7 +538,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   users:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -571,7 +571,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -645,7 +645,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -691,7 +691,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -735,7 +735,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -934,7 +934,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1283,7 +1283,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -3750,6 +3750,7 @@ paths:
                     Possible values:
                       - alphabetical (default)
                       - foldersFirst (order by: folders alphabetical, files alphabetical)
+                      - lastUpdated (order by: dateModified)
                   type: string
                 order:
                   description: order for sort strategy ascending or descending (ASC / DESC)
@@ -4192,6 +4193,51 @@ paths:
                   content:
                     type: string
                     description: requested content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/item_history:
+    get:
+      tags:
+        - content
+      summary: Get history for a content item
+      description: 'Required permission "content_read"'
+      operationId: getItemHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of the content
+          required: true
+          schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemVersion'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -7375,7 +7421,7 @@ components:
         - enabled
         - externallyManaged
 
-    User:
+    UserResponse:
       type: object
       properties:
         id:
@@ -7385,9 +7431,6 @@ components:
         username:
           type: string
           description: Username, unique
-        password:
-          type: string
-          description: User's password (not returned to caller)
         firstName:
           type: string
           description: User's first name
@@ -7406,7 +7449,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
@@ -7445,7 +7487,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
@@ -7489,6 +7530,9 @@ components:
         siteId:
           type: string
           description: 'Site ID, unique and immutable'
+        state:
+          type: string
+          description: 'Site state, one of: INITIALIZING, READY, DELETING, DELETED'
         uuid:
           type: string
           description: Site UUID unique and immutable
@@ -9217,6 +9261,33 @@ components:
               type: boolean
               description: if true, the logger will be created in case it does not exist yet.
                 If false, a 404 status code will be returned if logger is not in the registry.
+
+    ItemVersion:
+      type: object
+      properties:
+        versionNumber:
+          type: string
+          description: the commit id
+        path:
+          type: string
+          description: the path of the item
+        oldPath:
+          type: string
+          description: the old path of the item (will be the same as path if the item has not been renamed)
+        author:
+          type: string
+          description: the author of the commit
+        comment:
+          type: string
+          description: the comment of the commit
+        revertible:
+          type: boolean
+          description: true if a revert to this version will be allowed
+        modifiedDate:
+          type: string
+          format: date-time
+          description: the date of the commit
+
   responses:
     NotFound:
       description: Resource not found

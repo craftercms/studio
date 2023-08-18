@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.OrganizationNotFoundException;
+import org.craftercms.studio.model.rest.UserResponse;
 
 import java.util.List;
 
@@ -121,7 +122,7 @@ public interface GroupService {
      * @throws ServiceLayerException general service error
      * @throws GroupNotFoundException group not found
      */
-    List<User> getGroupMembers(long groupId, int offset, int limit, String sort)
+    List<UserResponse> getGroupMembers(long groupId, int offset, int limit, String sort)
             throws ServiceLayerException, GroupNotFoundException;
 
     /**
@@ -147,7 +148,7 @@ public interface GroupService {
      * @throws GroupNotFoundException group not found
      * @throws AuthenticationException authentication error
      */
-    List<User> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
+    List<UserResponse> addGroupMembers(long groupId, List<Long> userIds, List<String> usernames)
             throws ServiceLayerException, UserNotFoundException, GroupNotFoundException, AuthenticationException;
 
     /**

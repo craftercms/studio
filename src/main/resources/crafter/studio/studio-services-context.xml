@@ -37,6 +37,8 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
     </bean>
 
+    <bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
+
     <bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
 
     <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
@@ -1625,6 +1627,11 @@
     </bean>
 
     <bean id="loggerServiceInternal" class="org.craftercms.studio.impl.v2.service.log.internal.Log4jLoggerServiceImpl">
+    </bean>
+
+    <bean id="requireSiteReadyHandler"
+          class="org.craftercms.studio.api.v2.annotation.RequireSiteStateAnnotationHandler">
+        <constructor-arg name="sitesService" ref="sitesService"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

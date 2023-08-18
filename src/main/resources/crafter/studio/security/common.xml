@@ -202,6 +202,21 @@
                     <constructor-arg index="0" value="SAMEORIGIN"/>
                 </bean>
                 <bean class="org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter"/>
+                <bean class="org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter"/>
+                <bean class="org.springframework.security.web.header.writers.ContentSecurityPolicyHeaderWriter">
+                    <constructor-arg value="#{studioConfiguration.getProperty('studio.security.headers.contentSecurityPolicy.value')}"/>
+                    <property name="reportOnly" value="#{studioConfiguration.getProperty('studio.security.headers.contentSecurityPolicy.reportOnly')}"/>
+                </bean>
+                <bean class="org.springframework.security.web.header.writers.StaticHeadersWriter">
+                    <constructor-arg name="headers">
+                        <list>
+                            <bean class="org.springframework.security.web.header.Header">
+                                <constructor-arg name="headerName" value="X-Permitted-Cross-Domain-Policies"/>
+                                <constructor-arg name="headerValues" value="#{studioConfiguration.getProperty('studio.security.headers.permittedCrossDomainPolicies.value')}"/>
+                            </bean>
+                        </list>
+                    </constructor-arg>
+                </bean>
             </list>
         </constructor-arg>
     </bean>
