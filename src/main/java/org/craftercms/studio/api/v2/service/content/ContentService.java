@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -189,4 +190,14 @@ public interface ContentService {
      */
     Resource getContentAsResource(String site, String path) throws ContentNotFoundException;
 
+
+    /**
+     * Get the version history for a given content item.
+     *
+     * @param siteId the site id
+     * @param path   the content path
+     * @return the list of versions
+     * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
+     */
+    List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
 }

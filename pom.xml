@@ -292,6 +292,12 @@
         </dependency>
 
         <!-- testing -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit.junit</artifactId>
+            <version>${jgit.version}</version>
+        </dependency>
+
         <!-- Tomcat EL -->
         <dependency>
             <groupId>org.apache.tomcat</groupId>
