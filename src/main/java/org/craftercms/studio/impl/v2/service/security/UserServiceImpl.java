@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.security;
 
-import freemarker.template.Template;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,7 +24,6 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.http.RequestContext;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
@@ -47,30 +45,26 @@ import org.craftercms.studio.api.v2.service.security.internal.GroupServiceIntern
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.security.password.EmailForgotPasswordTaskFactory;
+import org.craftercms.studio.impl.v2.security.password.ForgotPasswordTaskFactory;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
 import org.craftercms.studio.model.rest.UserResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfig;
 
-import javax.mail.internet.MimeMessage;
-import javax.servlet.http.HttpServletRequest;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.REMOVE_SYSTEM_ADMIN_MEMBER_LOCK;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_GROUP;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -81,6 +75,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 public class UserServiceImpl implements UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final String TOKEN_DELIMITER = "|";
 
     private UserServiceInternal userServiceInternal;
     private ConfigurationService configurationService;
@@ -91,13 +86,12 @@ public class UserServiceImpl implements UserService {
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
-    private ObjectFactory<FreeMarkerConfig> freeMarkerConfig;
-    private JavaMailSender emailService;
-    private JavaMailSender emailServiceNoAuth;
     private InstanceService instanceService;
     private TextEncryptor encryptor;
     private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
     private SessionRegistry sessionRegistry;
+    private TaskExecutor taskExecutor;
+    private ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory;
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
@@ -401,33 +395,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean forgotPassword(String username) throws ServiceLayerException, UserNotFoundException,
-            UserExternallyManagedException {
-        logger.debug("Get the user profile for username '{}'", username);
-        User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        if (user.isExternallyManaged()) {
-            throw new UserExternallyManagedException();
+    public void forgotPassword(String username) {
+        try {
+            ForgotPasswordTaskFactory taskFactory = forgotPasswordTaskFactory.getObject();
+            taskExecutor.execute(taskFactory.prepareTask(username));
+        } catch (Exception e) {
+            logger.error("Failed to get forgot password task for username '{}'", username, e);
         }
-        if (user.getEmail() == null) {
-            logger.info("Failed to send forgot password email to username '{}' because that user " +
-                    "does not have an email address in the system", username);
-            throw new ServiceLayerException(format("Failed to send forgot password email to username " +
-                    "'%s' because that user does not have an email address in the system", username));
-        }
+    }
 
-        String email = user.getEmail();
-
-        logger.debug("Create a forgot password security token for username '{}'", username);
+    @Override
+    public String getForgotPasswordToken(final String username) {
         long timestamp = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(
-                Long.parseLong(studioConfiguration .getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
+                Long.parseLong(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_TOKEN_TIMEOUT)));
         String salt = studioConfiguration.getProperty(SECURITY_CIPHER_SALT);
         String studioId = instanceService.getInstanceId();
-        // TODO: SJ: Avoid string literals
-        String token = username + "|" + studioId + "|" + timestamp + "|" + salt;
-        String hashedToken = encryptToken(token);
-        logger.debug("Send username '{}' the forgot password email to '{}'", username, email);
-        sendForgotPasswordEmail(email, hashedToken);
-        return true;
+        String token = joinWith(TOKEN_DELIMITER, username, studioId, timestamp, salt);
+
+        return encryptToken(token);
     }
 
     private String encryptToken(String token) {
@@ -447,43 +432,6 @@ public class UserServiceImpl implements UserService {
         } catch (CryptoException e) {
             logger.error("Failed to decrypt the forgot password token", e);
             return null;
-        }
-    }
-
-    private void sendForgotPasswordEmail(String emailAddress, String token) {
-        try {
-            Template emailTemplate = freeMarkerConfig.getObject().getConfiguration().getTemplate(
-                    studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_EMAIL_TEMPLATE));
-
-            Writer out = new StringWriter();
-            Map<String, Object> model = new HashMap<>();
-            RequestContext context = RequestContext.getCurrent();
-            HttpServletRequest request = context.getRequest();
-            String authoringUrl = request.getRequestURL().toString().replace(request.getPathInfo(), "");
-            String serviceUrl = studioConfiguration.getProperty(SECURITY_RESET_PASSWORD_SERVICE_URL);
-            model.put("authoringUrl", authoringUrl);
-            model.put("serviceUrl", serviceUrl);
-            model.put("token", token);
-            if (emailTemplate != null) {
-                emailTemplate.process(model, out);
-            }
-
-            MimeMessage mimeMessage = emailService.createMimeMessage();
-            MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-
-            messageHelper.setFrom(studioConfiguration.getProperty(MAIL_FROM_DEFAULT));
-            messageHelper.setTo(emailAddress);
-            messageHelper.setSubject(studioConfiguration.getProperty(SECURITY_FORGOT_PASSWORD_MESSAGE_SUBJECT));
-            messageHelper.setText(out.toString(), true);
-            logger.info("Send the password recovery email to '{}'", emailAddress);
-            if (isAuthenticatedSMTP()) {
-                emailService.send(mimeMessage);
-            } else {
-                emailServiceNoAuth.send(mimeMessage);
-            }
-            logger.info("Successfully sent the password recovery email to '{}'", emailAddress);
-        } catch (Exception e) {
-            logger.error("Failed to send the password recovery email to '{}'", emailAddress, e);
         }
     }
 
@@ -538,7 +486,7 @@ public class UserServiceImpl implements UserService {
 
     protected boolean validateDecryptedToken(String decryptedToken)
             throws UserNotFoundException, ServiceLayerException, UserExternallyManagedException {
-        StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+        StringTokenizer tokenElements = new StringTokenizer(decryptedToken, TOKEN_DELIMITER);
         if (tokenElements.countTokens() != 4) {
             logger.warn("Failed to validate forgot password token. Found '{}' elements when expecting 4.",
                     tokenElements.countTokens());
@@ -581,7 +529,7 @@ public class UserServiceImpl implements UserService {
         String toRet = StringUtils.EMPTY;
         String decryptedToken = decryptToken(token);
         if (StringUtils.isNotEmpty(decryptedToken)) {
-            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, "|");
+            StringTokenizer tokenElements = new StringTokenizer(decryptedToken, TOKEN_DELIMITER);
             if (tokenElements.countTokens() == 4) {
                 toRet = tokenElements.nextToken();
             }
@@ -660,10 +608,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private boolean isAuthenticatedSMTP() {
-        return Boolean.parseBoolean(studioConfiguration.getProperty(MAIL_SMTP_AUTH));
-    }
-
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
     }
@@ -699,17 +643,6 @@ public class UserServiceImpl implements UserService {
     public void setAuditServiceInternal(AuditServiceInternal auditServiceInternal) {
         this.auditServiceInternal = auditServiceInternal;
     }
-    public void setFreeMarkerConfig(ObjectFactory<FreeMarkerConfig> freeMarkerConfig) {
-        this.freeMarkerConfig = freeMarkerConfig;
-    }
-
-    public void setEmailService(JavaMailSender emailService) {
-        this.emailService = emailService;
-    }
-
-    public void setEmailServiceNoAuth(JavaMailSender emailServiceNoAuth) {
-        this.emailServiceNoAuth = emailServiceNoAuth;
-    }
 
     public void setInstanceService(InstanceService instanceService) {
         this.instanceService = instanceService;
@@ -727,4 +660,11 @@ public class UserServiceImpl implements UserService {
         this.sessionRegistry = sessionRegistry;
     }
 
+    public void setTaskExecutor(final TaskExecutor taskExecutor) {
+        this.taskExecutor = taskExecutor;
+    }
+
+    public void setForgotPasswordTaskFactory(final ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory) {
+        this.forgotPasswordTaskFactory = forgotPasswordTaskFactory;
+    }
 }

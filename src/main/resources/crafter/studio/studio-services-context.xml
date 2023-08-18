@@ -397,13 +397,12 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
-        <property name="emailService" ref="mailSender"/>
-        <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
         <property name="instanceService" ref="instanceService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="securityServiceV2" ref="studio.securityService" />
         <property name="sessionRegistry" ref="sessionRegistry"/>
+        <property name="forgotPasswordTaskFactory" ref="forgotPasswordTaskFactory"/>
+        <property name="taskExecutor" ref="studioTaskExecutor"/>
     </bean>
 
     <bean id="userServiceInternal"
