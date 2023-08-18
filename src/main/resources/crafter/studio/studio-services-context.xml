@@ -402,7 +402,14 @@
         <property name="securityServiceV2" ref="studio.securityService" />
         <property name="sessionRegistry" ref="sessionRegistry"/>
         <property name="forgotPasswordTaskFactory" ref="forgotPasswordTaskFactory"/>
-        <property name="taskExecutor" ref="studioTaskExecutor"/>
+        <property name="taskExecutor" ref="forgotPasswordTaskExecutor"/>
+    </bean>
+
+    <bean id="forgotPasswordTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
+        <property name="corePoolSize" value="5"/>
+        <property name="maxPoolSize" value="10"/>
+        <property name="queueCapacity" value="25"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="false" />
     </bean>
 
     <bean id="userServiceInternal"
