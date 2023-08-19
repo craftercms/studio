@@ -405,7 +405,7 @@ public class UsersController {
             throws ServiceLayerException {
         try {
             userService.forgotPassword(username);
-        } catch (UserExternallyManagedException | UserNotFoundException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to process forgot password for user '{}'", username, e);
         }
         ResultOne<String> result = new ResultOne<>();

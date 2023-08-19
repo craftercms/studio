@@ -17,11 +17,7 @@
 package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
@@ -103,14 +99,18 @@ public interface UserService {
      * Forgot password feature for given username
      *
      * @param username user that forgot password
-     * @return true if success
      *
      * @throws ServiceLayerException general service error
-     * @throws UserNotFoundException user not found
-     * @throws UserExternallyManagedException user is externally managed
      */
-    boolean forgotPassword(String username)
-            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException;
+    void forgotPassword(String username)
+            throws ServiceLayerException;
+
+    /**
+     * Get aforgot password token for given username
+     * @param username
+     * @return
+     */
+    String getForgotPasswordToken(String username);
 
     /**
      * User changes password
