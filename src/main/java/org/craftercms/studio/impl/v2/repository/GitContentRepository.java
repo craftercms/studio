@@ -2074,7 +2074,7 @@ public class GitContentRepository implements ContentRepository {
                 version.setRevertible(revertible);
                 version.setPath(currentPath);
                 version.setVersionNumber(revCommit.getName());
-                version.setAuthor(revCommit.getAuthorIdent().getName());
+                version.setCommitter(revCommit.getAuthorIdent().getName());
                 version.setModifiedDate(
                         Instant.ofEpochSecond(revCommit.getCommitTime()).atZone(UTC));
                 version.setComment(revCommit.getFullMessage());
