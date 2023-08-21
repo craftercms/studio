@@ -16,6 +16,8 @@
 
 package org.craftercms.studio.model.history;
 
+import org.craftercms.studio.model.rest.Person;
+
 import java.time.ZonedDateTime;
 
 /**
@@ -28,7 +30,11 @@ public class ItemVersion {
     private String path;
     // oldPath will be the same as path, unless the item has been renamed
     private String oldPath;
-    private String author;
+    // Committer comes from the log command
+    private String committer;
+    // Author corresponds to the Studio user. This field is
+    // null when the commit was not made via Studio API.
+    private Person author;
     private String comment;
     private boolean revertible;
     private ZonedDateTime modifiedDate;
@@ -41,12 +47,12 @@ public class ItemVersion {
         this.modifiedDate = modifiedDate;
     }
 
-    public String getAuthor() {
-        return author;
+    public String getCommitter() {
+        return committer;
     }
 
-    public void setAuthor(String author) {
-        this.author = author;
+    public void setCommitter(String committer) {
+        this.committer = committer;
     }
 
     public String getVersionNumber() {
@@ -87,5 +93,13 @@ public class ItemVersion {
 
     public void setOldPath(String oldPath) {
         this.oldPath = oldPath;
+    }
+
+    public Person getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Person author) {
+        this.author = author;
     }
 }

@@ -529,6 +529,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="contentTypeServiceInternal"

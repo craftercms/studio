@@ -9274,9 +9274,12 @@ components:
         oldPath:
           type: string
           description: the old path of the item (will be the same as path if the item has not been renamed)
-        author:
+        committer:
           type: string
-          description: the author of the commit
+          description: the committer of the commit according to git log
+        author:
+          $ref: '#/components/schemas/Person'
+          description: corresponds to the Studio user author of the commit (if any)
         comment:
           type: string
           description: the comment of the commit
