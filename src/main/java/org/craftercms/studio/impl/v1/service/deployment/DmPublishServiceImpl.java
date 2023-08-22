@@ -139,14 +139,11 @@ public class DmPublishServiceImpl extends AbstractRegistrableService implements 
             logger.debug("Process bulk publish dependencies in site '{}' path '{}'", site, childPath);
             if (processedPaths.add(childHash)) {
                 List<String> pathsToPublish = new ArrayList<>();
-                List<String> candidatesToPublish = new ArrayList<>();
                 pathsToPublish.add(childPath);
-                candidatesToPublish.addAll(itemServiceInternal.getSameCommitItems(site, childPath));
-                candidatesToPublish.addAll(dependencyService.getPublishingDependencies(site, childPath));
-                for (String pathToAdd : candidatesToPublish) {
-                    String hash = DigestUtils.md2Hex(pathToAdd);
+                for (String publishDependency : dependencyService.getPublishingDependencies(site, childPath)) {
+                    String hash = DigestUtils.md2Hex(publishDependency);
                     if (processedPaths.add(hash)) {
-                        pathsToPublish.add(pathToAdd);
+                        pathsToPublish.add(publishDependency);
                     }
                 }
                 String aprover = securityService.getCurrentUser();

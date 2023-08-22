@@ -127,7 +127,9 @@
         translation_source_id = #{translationSourceId},
         size = #{size},
         parent_id = #{parentId},
+        <if test="commitId != null">
         commit_id = #{commitId},
+        </if>
         previous_path = #{previousPath},
         ignored = #{ignoredAsInt}
     </insert>
@@ -1150,16 +1152,6 @@
         </foreach>
         AND (i.path = #{path} or i.path like #{likePath})
         AND (i.state &amp; #{inProgressMask}) &gt; 0
-    </select>
-
-    <select id="getSameCommitItems" resultType="String">
-        SELECT i2.path
-        FROM site s INNER JOIN item i1 ON i1.site_id = s.id
-            INNER JOIN item i2 ON s.id = i2.site_id AND i1.commit_id = i2.commit_id
-        WHERE s.site_id = #{siteId}
-        AND s.deleted = 0
-        AND i1.ignored = 0
-        AND i1.path = #{path}
     </select>
 
     <update id="updateLastPublishedOn">
