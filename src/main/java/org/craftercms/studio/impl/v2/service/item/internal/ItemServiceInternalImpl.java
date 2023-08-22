@@ -620,11 +620,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     }
 
     @Override
-    public List<String> getSameCommitItems(String siteId, String path) {
-        return itemDao.getSameCommitItems(siteId, path);
-    }
-
-    @Override
     public void updateLastPublishedOn(String siteId, String path, ZonedDateTime lastPublishedOn) {
         retryingDatabaseOperationFacade.retry(() -> itemDao.updateLastPublishedOn(siteId, path, lastPublishedOn));
     }

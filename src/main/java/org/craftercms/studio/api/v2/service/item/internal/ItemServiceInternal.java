@@ -494,14 +494,6 @@ public interface ItemServiceInternal {
     List<String> getChangeSetForSubtree(String siteId, String path);
 
     /**
-     * Get items edited on same commit id for given item
-     * @param siteId site identifier
-     * @param path path of content item
-     * @return list of items paths
-     */
-    List<String> getSameCommitItems(String siteId, String path);
-
-    /**
      * Update last published date for item
      * @param siteId site identifier
      * @param path path of the item

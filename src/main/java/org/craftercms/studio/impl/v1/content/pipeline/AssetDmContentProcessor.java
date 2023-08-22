@@ -170,11 +170,7 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
                 }
                 // Item
                 // TODO: get local code with API 2
-                String commitId = result.getCommitId();
-                if (StringUtils.isEmpty(commitId)) {
-                    commitId = contentRepository.getRepoLastCommitId(site);
-                }
-                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, commitId, unlock);
+                itemServiceInternal.persistItemAfterWrite(site, contentPath, user, result.getCommitId(), unlock);
                 assetInfo.setFileExtension(ext);
                 return assetInfo;
             } else {
