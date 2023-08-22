@@ -354,6 +354,7 @@
     <bean id="configurationService"
           class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
         <property name="contentService" ref="cstudioContentService" />
+        <property name="contentServiceV2" ref="contentService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
