@@ -28,13 +28,15 @@ def studioConfigurationSB = context.applicationContext.get("studioConfiguration"
 def passwordRequirementsMinComplexity = studioConfigurationSB
         .getProperty(SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY).toInteger()
 
+def loginAttemptManager = context.applicationContext.get('loginAttemptManager')
+
 if (params.error) {
     def lastException = request.getSession().getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION)
     if (lastException != null) {
         LockedException lockedException = ExceptionUtils.getThrowableOfType(lastException, LockedException.class);
         if (lockedException != null) {
             model.errorMessage = lockedException.message
-            model.lockedTimeSeconds = lockedException.lockedTimeSeconds
+            model.lockedTimeSeconds = loginAttemptManager.getUserLockTimeLeftSeconds(lockedException.username)
         }
     }
 }

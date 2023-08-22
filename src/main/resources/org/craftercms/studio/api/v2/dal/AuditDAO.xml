@@ -34,6 +34,7 @@
         <result property="actorId" column="actor_id" />
         <result property="actorDetails" column="actor_details" />
         <result property="clusterNodeId" column="cluster_node_id" />
+        <result property="commitId" column="commit_id" />
 
         <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
             <result property="targetId" column="target_id"/>
@@ -221,10 +222,10 @@
     <insert id="insertAuditLog" parameterType="org.craftercms.studio.api.v2.dal.AuditLog" useGeneratedKeys="true"
             keyProperty="id">
         INSERT INTO audit (organization_id, site_id, operation, operation_timestamp, origin, primary_target_id,
-        primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details, cluster_node_id)
+        primary_target_type, primary_target_subtype, primary_target_value, actor_id, actor_details, cluster_node_id, commit_id)
         VALUES (#{organizationId}, #{siteId}, #{operation}, IFNULL(#{operationTimestamp}, CURRENT_TIMESTAMP), #{origin},
         #{primaryTargetId}, #{primaryTargetType}, #{primaryTargetSubtype}, #{primaryTargetValue}, #{actorId},
-        #{actorDetails}, #{clusterNodeId});
+        #{actorDetails}, #{clusterNodeId}, #{commitId});
     </insert>
 
     <insert id="insertAuditLogParams" parameterType="java.util.Map">
@@ -390,6 +391,15 @@
             </otherwise>
         </choose>
         LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="getCommitAuthor" parameterType="java.util.Map"
+            resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap">
+        SELECT u.*
+        FROM audit a
+        INNER JOIN user u on u.username = a.actor_id
+        WHERE a.commit_id = #{commitId}
+        AND origin = 'API'
     </select>
 
     <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">

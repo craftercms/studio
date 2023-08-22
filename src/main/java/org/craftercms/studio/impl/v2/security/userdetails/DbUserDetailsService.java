@@ -48,7 +48,7 @@ public class DbUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         if (loginAttemptManager.isUserLocked(username)) {
-            throw new LockedException(String.format("User '%s' is temporarily locked out", username),
+            throw new LockedException(username, String.format("User '%s' is temporarily locked out", username),
                     loginAttemptManager.getUserLockTimeLeftSeconds(username));
         }
 

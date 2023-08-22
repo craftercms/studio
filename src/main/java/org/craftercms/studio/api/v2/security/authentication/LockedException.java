@@ -25,13 +25,19 @@ import org.springframework.security.authentication.AccountStatusException;
  */
 public class LockedException extends AccountStatusException {
     private final long lockedTimeSeconds;
+    private final String username;
 
-    public LockedException(String msg, long lockedTimeSeconds) {
+    public LockedException(String username, String msg, long lockedTimeSeconds) {
         super(msg);
         this.lockedTimeSeconds = lockedTimeSeconds;
+        this.username = username;
     }
 
     public long getLockedTimeSeconds() {
         return lockedTimeSeconds;
+    }
+
+    public String getUsername() {
+        return username;
     }
 }
