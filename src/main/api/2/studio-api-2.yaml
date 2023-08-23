@@ -8341,24 +8341,7 @@ components:
           type: array
           description: list of versions
           items:
-            $ref: '#/components/schemas/ContentItemVersion'
-
-    ContentItemVersion:
-      type: object
-      properties:
-        versionNumber:
-          type: string
-          description: version label
-        lastModifiedDate:
-          type: string
-          format: datetime
-          description: last modified date and time of version
-        lastModifier:
-          type: string
-          description: user that modified item
-        comment:
-          type: string
-          description: commit message
+            $ref: '#/components/schemas/ItemVersion'
 
     ContentItem:
       type: object

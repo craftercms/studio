@@ -119,19 +119,17 @@ public class ConfigurationController {
     }
 
     @GetMapping("/get_configuration_history")
-    public ResponseBody getConfigurationHistory(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
+    public ResultOne<ConfigurationHistory> getConfigurationHistory(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
                                                 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
                                                 @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
                                                 @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
-            throws SiteNotFoundException, ContentNotFoundException {
+            throws ServiceLayerException {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 
-        ResponseBody responseBody = new ResponseBody();
         ResultOne<ConfigurationHistory> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_HISTORY, history);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping("translation")

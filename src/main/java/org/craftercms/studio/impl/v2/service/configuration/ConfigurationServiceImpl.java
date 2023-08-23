@@ -37,11 +37,9 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
@@ -102,6 +100,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
 
     private ContentService contentService;
+    private org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
@@ -576,7 +575,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                                         String module,
                                                         @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                                         String environment)
-            throws SiteNotFoundException, ContentNotFoundException {
+            throws ServiceLayerException {
         siteService.checkSiteExists(siteId);
         String configPath;
         if (!isEmpty(environment)) {
@@ -601,17 +600,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         }
         ConfigurationHistory configurationHistory = new ConfigurationHistory();
         configurationHistory.setItem(contentService.getContentItem(siteId, configPath));
-        List<ContentItemVersion> versions = new ArrayList<>();
-        VersionTO[] versionTOS = contentService.getContentItemVersionHistory(siteId, configPath);
-        for (VersionTO v : versionTOS) {
-            ContentItemVersion civ = new ContentItemVersion();
-            civ.setVersionNumber(v.getVersionNumber());
-            civ.setComment(v.getComment());
-            civ.setLastModifiedDate(v.getLastModifiedDate());
-            civ.setLastModifier(v.getLastModifier());
-            versions.add(civ);
-        }
-        configurationHistory.setVersions(versions);
+        configurationHistory.setVersions(contentServiceV2.getContentVersionHistory(siteId, configPath));
         return configurationHistory;
     }
 
@@ -783,6 +772,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public void setContentServiceV2(final org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+        this.contentServiceV2 = contentServiceV2;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
