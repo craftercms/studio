@@ -17,14 +17,14 @@
 package org.craftercms.studio.model.rest;
 
 import org.craftercms.studio.api.v1.to.ContentItemTO;
-import org.craftercms.studio.api.v2.dal.ContentItemVersion;
+import org.craftercms.studio.model.history.ItemVersion;
 
 import java.util.List;
 
 public class ConfigurationHistory {
 
     private ContentItemTO item;
-    private List<ContentItemVersion> versions;
+    private List<ItemVersion> versions;
 
     public ContentItemTO getItem() {
         return item;
@@ -34,11 +34,11 @@ public class ConfigurationHistory {
         this.item = item;
     }
 
-    public List<ContentItemVersion> getVersions() {
+    public List<ItemVersion> getVersions() {
         return versions;
     }
 
-    public void setVersions(List<ContentItemVersion> versions) {
+    public void setVersions(List<ItemVersion> versions) {
         this.versions = versions;
     }
 }

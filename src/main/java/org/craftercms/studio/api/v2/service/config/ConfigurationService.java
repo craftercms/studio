@@ -149,7 +149,7 @@ public interface ConfigurationService {
      * @return configuration history
      */
     ConfigurationHistory getConfigurationHistory(String siteId, String module, String path, String environment)
-            throws SiteNotFoundException, ContentNotFoundException;
+            throws ServiceLayerException;
 
     /**
      * Write configuration file within global repo
