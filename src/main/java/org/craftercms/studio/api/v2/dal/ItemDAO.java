@@ -393,14 +393,6 @@ public interface ItemDAO {
                                         @Param(IN_PROGRESS_MASK) long inProgressMask);
 
     /**
-     * Get items edited on same commit id for given item
-     * @param siteId site identifier
-     * @param path path of content item
-     * @return list of items paths
-     */
-    List<String> getSameCommitItems(@Param(SITE_ID) String siteId, @Param(PATH) String path);
-
-    /**
      * Update last published date for item
      * @param siteId site identifier
      * @param path path of the item
