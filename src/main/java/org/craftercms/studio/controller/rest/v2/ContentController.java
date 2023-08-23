@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.dependency.DependencyService;
 import org.craftercms.studio.api.v2.service.workflow.WorkflowService;
+import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.Result;
@@ -259,12 +260,12 @@ public class ContentController {
                                                          @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
             throws ServiceLayerException, UserNotFoundException {
-        DetailedItem item = contentService.getItemByPath(siteId, path, true);
         Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
 
+        String mimeType = StudioUtils.getMimeType(path);
         return ResponseEntity
                 .ok()
-                .contentType(MediaType.parseMediaType(item.getMimeType()))
+                .contentType(MediaType.parseMediaType(mimeType))
                 .body(resource);
     }
 

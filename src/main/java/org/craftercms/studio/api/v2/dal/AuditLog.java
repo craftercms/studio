@@ -35,6 +35,7 @@ public class AuditLog {
     private String actorDetails;
     private String clusterNodeId;
     private List<AuditLogParameter> parameters;
+    private String commitId;
 
     public long getId() {
         return id;
@@ -154,5 +155,13 @@ public class AuditLog {
 
     public void setParameters(List<AuditLogParameter> parameters) {
         this.parameters = parameters;
+    }
+
+    public String getCommitId() {
+        return commitId;
+    }
+
+    public void setCommitId(String commitId) {
+        this.commitId = commitId;
     }
 }

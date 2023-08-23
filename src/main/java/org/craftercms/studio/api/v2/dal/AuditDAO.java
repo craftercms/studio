@@ -17,10 +17,12 @@
 package org.craftercms.studio.api.v2.dal;
 
 import org.apache.ibatis.annotations.Param;
+import org.craftercms.studio.model.rest.Person;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.COMMIT_ID;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface AuditDAO {
@@ -62,4 +64,18 @@ public interface AuditDAO {
      * @param siteId site id
      */
     void deleteAuditLogForSite(@Param(SITE_ID) long siteId);
+
+    /**
+     * Gets the author of a commit.
+     * This will retrieve a {@link Person} object from the database when
+     * the commit was created by Studio, meaning the following conditions are met:
+     * <ul>
+     *     <li>There is an audit entry for the given commit id</li>
+     *     <li>AND the audit entry origin is API</li>
+     * </ul>
+     *
+     * @param commitId
+     * @return the {@link Person} author or the commit, if found, null otherwise.
+     */
+    Person getCommitAuthor(@Param(COMMIT_ID) String commitId);
 }
