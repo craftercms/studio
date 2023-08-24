@@ -642,16 +642,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo) {
-        return localRepositoryV2.getOperations(site, commitIdFrom, commitIdTo).stream()
-                .peek(operation -> {
-                    operation.setPath(getOriginalPath(operation.getPath()));
-                    operation.setMoveToPath(getOriginalPath(operation.getMoveToPath()));
-                })
-                .collect(toList());
-    }
-
-    @Override
     public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         return localRepositoryV2.getOperationsFromDelta(site, commitIdFrom, commitIdTo).stream()
                 .peek(operation -> {
@@ -736,11 +726,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public void itemUnlock(String site, String path) {
         localRepositoryV2.itemUnlock(site, path);
-    }
-
-    @Override
-    public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
-        localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
     }
 
     @Override

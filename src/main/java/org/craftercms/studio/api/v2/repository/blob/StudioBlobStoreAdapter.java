@@ -252,12 +252,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
@@ -361,11 +355,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default void itemUnlock(String site, String path) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
         throw new UnsupportedOperationException();
     }
 

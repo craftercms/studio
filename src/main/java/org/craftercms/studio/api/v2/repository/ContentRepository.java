@@ -61,16 +61,6 @@ public interface ContentRepository {
      * @param commitIdTo   commit ID to end at
      * @return commit ID of current HEAD, updated operationsSinceCommit
      */
-    List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo);
-
-    /**
-     * Get a list of operations since the commit ID provided (compare that commit to HEAD)
-     *
-     * @param site         site to use
-     * @param commitIdFrom commit ID to start at
-     * @param commitIdTo   commit ID to end at
-     * @return commit ID of current HEAD, updated operationsSinceCommit
-     */
     List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo);
 
     /**
@@ -97,14 +87,6 @@ public interface ContentRepository {
      * @param commitId commit id
      */
     void markGitLogVerifiedProcessed(String siteId, String commitId);
-
-    /**
-     * Mark Git logs as verified
-     *
-     * @param siteId   site identifier
-     * @param commitIds list of commit ids
-     */
-    void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds);
 
     /**
      * Insert Git Log
