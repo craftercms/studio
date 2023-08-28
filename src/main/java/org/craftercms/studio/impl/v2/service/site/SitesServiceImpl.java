@@ -24,8 +24,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
@@ -76,8 +79,9 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_EDIT_SITE)
-    public void updateSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String name, String description)
+    public void updateSite(@SiteId String siteId, String name, String description)
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException {
         if (isBlank(name) && isBlank(description)) {
             throw new InvalidParametersException("The request needs to include a name or a description");
@@ -99,8 +103,9 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
-    public PublishStatus getPublishingStatus(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+    public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
         PublishingProgressObserver publishingProgressObserver =
@@ -116,8 +121,9 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
-    public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
+    public void clearPublishingLock(@SiteId String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
     }
@@ -126,5 +132,10 @@ public class SitesServiceImpl implements SitesService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
     public void enablePublishing(String siteId, boolean enabled) {
         sitesServiceInternal.enablePublishing(siteId, enabled);
+    }
+
+    @Override
+    public void checkSiteState(final String siteId, final String state) throws InvalidSiteStateException, SiteNotFoundException {
+        sitesServiceInternal.checkSiteState(siteId, state);
     }
 }

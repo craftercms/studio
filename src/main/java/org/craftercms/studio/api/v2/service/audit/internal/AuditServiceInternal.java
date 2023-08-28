@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.audit.internal;
 
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditLog;
+import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -156,4 +157,17 @@ public interface AuditServiceInternal {
      * @param siteId site id
      */
     void deleteAuditLogForSite(long siteId);
+
+    /**
+     * Get author of the commit.
+     * This will look in the audit data and retrieve a Person when:
+     * <ul>
+     *     <li>There is an audit entry for the given commit id</li>
+     *     <li>AND the audit entry origin is API</li>
+     * </ul>
+     *
+     * @param commitId commit id
+     * @return author of the commit, if found, otherwise null
+     */
+    Person getAuthor(String commitId);
 }

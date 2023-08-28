@@ -20,7 +20,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.plugin.model.Version;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
@@ -30,6 +29,8 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.marketplace.MarketplaceException;
 import org.craftercms.studio.api.v2.service.marketplace.MarketplaceService;
@@ -42,7 +43,6 @@ import java.beans.ConstructorProperties;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
@@ -80,14 +80,15 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_LIST_PLUGINS)
-    public List<PluginRecord> getInstalledPlugins(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId)
+    public List<PluginRecord> getInstalledPlugins(@SiteId String siteId)
             throws MarketplaceException {
         return marketplaceServiceInternal.getInstalledPlugins(siteId);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
-    public void installPlugin(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void installPlugin(@SiteId String siteId,
                               String pluginId, Version pluginVersion, Map<String, String> parameters)
             throws MarketplaceException {
         marketplaceServiceInternal.installPlugin(siteId, pluginId, pluginVersion, parameters);
@@ -95,45 +96,51 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     @Override
     @Valid
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_INSTALL_PLUGINS)
-    public void copyPlugin(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void copyPlugin(@SiteId String siteId,
                            @ValidateSecurePathParam String path,
                            Map<String, String> parameters) throws MarketplaceException {
         marketplaceServiceInternal.copyPlugin(siteId, path, parameters);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_PLUGINS)
-    public void removePlugin(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String pluginId, boolean force)
+    public void removePlugin(@SiteId String siteId, String pluginId, boolean force)
             throws ServiceLayerException {
         marketplaceServiceInternal.removePlugin(siteId, pluginId, force);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_PLUGINS)
-    public List<String> getPluginUsage(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String pluginId)
+    public List<String> getPluginUsage(@SiteId String siteId, String pluginId)
             throws ServiceLayerException {
         return marketplaceServiceInternal.getPluginUsage(siteId, pluginId);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public HierarchicalConfiguration<?> getPluginConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public HierarchicalConfiguration<?> getPluginConfiguration(@SiteId String siteId,
                                                                String pluginId)
             throws ConfigurationException {
         return marketplaceServiceInternal.getPluginConfiguration(siteId, pluginId);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public String getPluginConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public String getPluginConfigurationAsString(@SiteId String siteId,
                                                  String pluginId) throws ContentNotFoundException {
         return marketplaceServiceInternal.getPluginConfigurationAsString(siteId, pluginId);
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
-    public void writePluginConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void writePluginConfiguration(@SiteId String siteId,
                                          String pluginId, String content)
             throws UserNotFoundException, ServiceLayerException {
         marketplaceServiceInternal.writePluginConfiguration(siteId, pluginId, content);

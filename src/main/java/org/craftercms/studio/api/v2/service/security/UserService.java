@@ -17,14 +17,11 @@
 package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
-import org.craftercms.studio.api.v1.exception.security.PasswordDoesNotMatchException;
-import org.craftercms.studio.api.v1.exception.security.UserAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.security.UserExternallyManagedException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.Site;
+import org.craftercms.studio.model.rest.UserResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +40,7 @@ public interface UserService {
      * @return requested page of list of users
      * @throws ServiceLayerException
      */
-    List<User> getAllUsersForSite(long orgId, String site, String keyword, int offset, int limit, String sort)
+    List<UserResponse> getAllUsersForSite(long orgId, String site, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException;
 
     /**
@@ -55,7 +52,7 @@ public interface UserService {
      * @return requested page of list of users
      * @throws ServiceLayerException
      */
-    List<User> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
+    List<UserResponse> getAllUsers(String keyword, int offset, int limit, String sort) throws ServiceLayerException;
 
     /**
      * Get total number of users for site filtered by keyword
@@ -75,7 +72,7 @@ public interface UserService {
      */
     int getAllUsersTotal(String keyword) throws ServiceLayerException;
 
-    User createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
+    UserResponse createUser(User user) throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException;
 
     void updateUser(User user) throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
 
@@ -84,7 +81,7 @@ public interface UserService {
 
     User getUserByIdOrUsername(long userId, String username) throws ServiceLayerException, UserNotFoundException;
 
-    List<User> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
+    List<UserResponse> enableUsers(List<Long> userIds, List<String> usernames, boolean enabled)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException;
 
     List<Site> getUserSites(long userId, String username) throws ServiceLayerException, UserNotFoundException;
@@ -102,14 +99,18 @@ public interface UserService {
      * Forgot password feature for given username
      *
      * @param username user that forgot password
-     * @return true if success
      *
      * @throws ServiceLayerException general service error
-     * @throws UserNotFoundException user not found
-     * @throws UserExternallyManagedException user is externally managed
      */
-    boolean forgotPassword(String username)
-            throws ServiceLayerException, UserNotFoundException, UserExternallyManagedException;
+    void forgotPassword(String username)
+            throws ServiceLayerException;
+
+    /**
+     * Get aforgot password token for given username
+     * @param username
+     * @return
+     */
+    String getForgotPasswordToken(String username);
 
     /**
      * User changes password
@@ -125,7 +126,7 @@ public interface UserService {
      * @throws AuthenticationException authentication error
      * @throws UserNotFoundException user not found
      */
-    User changePassword(String username, String current, String newPassword)
+    UserResponse changePassword(String username, String current, String newPassword)
             throws PasswordDoesNotMatchException, UserExternallyManagedException, ServiceLayerException,
             AuthenticationException, UserNotFoundException;
 
@@ -140,7 +141,7 @@ public interface UserService {
      * @throws UserExternallyManagedException user is externally managed
      * @throws ServiceLayerException general service error
      */
-    User setPassword(String token, String newPassword)
+    UserResponse setPassword(String token, String newPassword)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException;
 
     /**
@@ -171,7 +172,7 @@ public interface UserService {
             ServiceLayerException;
 
     /**
-     * Get the properties for the given site & the current user
+     * Get the properties for the given site &amp; the current user
      * @param siteId the id of the site
      * @return the current properties
      * @throws ServiceLayerException if there is any error fetching the properties
@@ -179,7 +180,7 @@ public interface UserService {
     Map<String, Map<String, String>> getUserProperties(String siteId) throws ServiceLayerException;
 
     /**
-     * Update or add properties for the given site & the current user
+     * Update or add properties for the given site &amp; the current user
      * @param siteId the id of the site
      * @param propertiesToUpdate the properties to update or add
      * @return the updated properties
@@ -189,7 +190,7 @@ public interface UserService {
             throws ServiceLayerException;
 
     /**
-     * Delete properties for the given site & current user
+     * Delete properties for the given site &amp; current user
      * @param siteId the id of the site
      * @param propertiesToDelete the list of keys to delete
      * @return the updated properties

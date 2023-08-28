@@ -365,13 +365,6 @@ public interface ContentRepository {
     void resetStagingRepository(String siteId) throws ServiceLayerException;
 
     /**
-     * Reload repository for given site
-     *
-     * @param siteId site identifier
-     */
-    void reloadRepository(String siteId);
-
-    /**
      * Performs a cleanup all repositories for the given site
      * @param siteId site identifier
      */

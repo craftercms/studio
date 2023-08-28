@@ -94,7 +94,7 @@ public class UsersController {
      * @return Response containing list of users
      */
     @GetMapping
-    public PaginatedResultList<User> getAllUsers(
+    public PaginatedResultList<UserResponse> getAllUsers(
             @ValidSiteId @RequestParam(value = REQUEST_PARAM_SITE_ID, required = false) String siteId,
             @EsapiValidatedParam(type = SEARCH_KEYWORDS) @RequestParam(value = REQUEST_PARAM_KEYWORD, required = false) String keyword,
             @PositiveOrZero @RequestParam(value = REQUEST_PARAM_OFFSET, required = false, defaultValue = "0") int offset,
@@ -102,7 +102,7 @@ public class UsersController {
             @SqlSort(columns = USER_SORT_COLUMNS) @RequestParam(value = REQUEST_PARAM_SORT, required = false,
                     defaultValue = "id asc") String sort)
             throws ServiceLayerException {
-        List<User> users;
+        List<UserResponse> users;
         int total;
         if (isEmpty(siteId)) {
             total = userService.getAllUsersTotal(keyword);
@@ -112,7 +112,7 @@ public class UsersController {
             users = userService.getAllUsersForSite(DEFAULT_ORGANIZATION_ID, siteId, keyword, offset, limit, sort);
         }
 
-        PaginatedResultList<User> result = new PaginatedResultList<>();
+        PaginatedResultList<UserResponse> result = new PaginatedResultList<>();
         result.setTotal(total);
         result.setOffset(offset);
         result.setLimit(CollectionUtils.isEmpty(users) ? 0 : users.size());
@@ -129,10 +129,10 @@ public class UsersController {
      */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(consumes = APPLICATION_JSON_VALUE)
-    public ResultOne<User> createUser(@Valid @RequestBody CreateUserRequest user)
+    public ResultOne<UserResponse> createUser(@Valid @RequestBody CreateUserRequest user)
             throws UserAlreadyExistsException, ServiceLayerException, AuthenticationException {
-        User newUser = userService.createUser(buildUser(user));
-        ResultOne<User> result = new ResultOne<>();
+        UserResponse newUser = userService.createUser(buildUser(user));
+        ResultOne<UserResponse> result = new ResultOne<>();
         result.setResponse(CREATED);
         result.setEntity(RESULT_KEY_USER, newUser);
         return result;
@@ -169,14 +169,14 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(consumes = APPLICATION_JSON_VALUE)
-    public ResultOne<User> updateUser(@Valid @RequestBody UpdateUserRequest user)
+    public ResultOne<UserResponse> updateUser(@Valid @RequestBody UpdateUserRequest user)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         User userRequest = buildUser(user);
         userService.updateUser(userRequest);
 
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserResponse> result = new ResultOne<>();
         result.setResponse(OK);
-        result.setEntity(RESULT_KEY_USER, userRequest);
+        result.setEntity(RESULT_KEY_USER, new UserResponse(userRequest));
         return result;
     }
 
@@ -210,7 +210,7 @@ public class UsersController {
      * @return Response containing user
      */
     @GetMapping(value = PATH_PARAM_ID, consumes = ALL_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResultOne<User> getUser(@PathVariable(REQUEST_PARAM_ID) String userId)
+    public ResultOne<UserResponse> getUser(@PathVariable(REQUEST_PARAM_ID) String userId)
             throws ServiceLayerException, UserNotFoundException, ValidationException {
         int uId = -1;
         String username = StringUtils.EMPTY;
@@ -222,9 +222,9 @@ public class UsersController {
         }
         User user = userService.getUserByIdOrUsername(uId, username);
 
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserResponse> result = new ResultOne<>();
         result.setResponse(OK);
-        result.setEntity(RESULT_KEY_USER, user);
+        result.setEntity(RESULT_KEY_USER, new UserResponse(user));
         return result;
     }
 
@@ -235,13 +235,13 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = ENABLE, consumes = APPLICATION_JSON_VALUE)
-    public ResultList<User> enableUsers(@Valid @RequestBody EnableUsers enableUsers)
+    public ResultList<UserResponse> enableUsers(@Valid @RequestBody EnableUsers enableUsers)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
-        List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
+        List<UserResponse> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), true);
 
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserResponse> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_USERS, users);
         return result;
@@ -254,13 +254,13 @@ public class UsersController {
      * @return Response object
      */
     @PatchMapping(value = DISABLE, consumes = APPLICATION_JSON_VALUE)
-    public ResultList<User> disableUsers(@Valid @RequestBody EnableUsers enableUsers)
+    public ResultList<UserResponse> disableUsers(@Valid @RequestBody EnableUsers enableUsers)
             throws ServiceLayerException, UserNotFoundException, AuthenticationException, UserExternallyManagedException {
         ValidationUtils.validateEnableUsers(enableUsers);
 
-        List<User> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);
+        List<UserResponse> users = userService.enableUsers(enableUsers.getIds(), enableUsers.getUsernames(), false);
 
-        ResultList<User> result = new ResultList<>();
+        ResultList<UserResponse> result = new ResultList<>();
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_USERS, users);
         return result;
@@ -401,12 +401,14 @@ public class UsersController {
     }
 
     @GetMapping(FORGOT_PASSWORD)
-    public ResultOne<String> forgotPassword(@NotBlank @EsapiValidatedParam(type = USERNAME) @RequestParam(value = REQUEST_PARAM_USERNAME) String username)
-            throws ServiceLayerException {
+    public ResultOne<String> forgotPassword(@NotBlank @RequestParam(value = REQUEST_PARAM_USERNAME) String username) {
         try {
+            ValidationUtils.validateValue(new EsapiValidator(USERNAME), username, REQUEST_PARAM_USERNAME);
             userService.forgotPassword(username);
-        } catch (UserExternallyManagedException | UserNotFoundException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to process forgot password for user '{}'", username, e);
+        } catch (ValidationException e) {
+            logger.error("Validation error while processing forgot password for user '{}'", username, e);
         }
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
@@ -415,20 +417,20 @@ public class UsersController {
     }
 
     @PostMapping(ME + CHANGE_PASSWORD)
-    public ResultOne<User> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest)
+    public ResultOne<UserResponse> changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest)
             throws PasswordDoesNotMatchException, ServiceLayerException, UserExternallyManagedException,
             AuthenticationException, UserNotFoundException {
-        User user = userService.changePassword(changePasswordRequest.getUsername(),
+        UserResponse user = userService.changePassword(changePasswordRequest.getUsername(),
                 changePasswordRequest.getCurrent(), changePasswordRequest.getNewPassword());
 
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserResponse> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_USER, user);
         result.setResponse(OK);
         return result;
     }
 
     @PostMapping(SET_PASSWORD)
-    public ResultOne<User> setPassword(@Valid @RequestBody SetPasswordRequest setPasswordRequest)
+    public ResultOne<UserResponse> setPassword(@Valid @RequestBody SetPasswordRequest setPasswordRequest)
             throws UserNotFoundException, UserExternallyManagedException, ServiceLayerException {
         int delay = studioConfiguration.getProperty(SECURITY_SET_PASSWORD_DELAY, Integer.class);
         try {
@@ -436,9 +438,9 @@ public class UsersController {
         } catch (InterruptedException e) {
             logger.debug("Interrupted while delaying request by '{}' seconds", delay, e);
         }
-        User user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
+        UserResponse user = userService.setPassword(setPasswordRequest.getToken(), setPasswordRequest.getNewPassword());
 
-        ResultOne<User> result = new ResultOne<>();
+        ResultOne<UserResponse> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_USER, user);
         result.setResponse(OK);
         return result;

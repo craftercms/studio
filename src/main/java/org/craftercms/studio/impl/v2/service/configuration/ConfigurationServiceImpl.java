@@ -37,9 +37,9 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v1.to.VersionTO;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.ContentItemVersion;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
@@ -100,6 +100,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
 
     private ContentService contentService;
+    private org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
     private SiteService siteService;
@@ -196,8 +197,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
-    public String getConfigurationAsString(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public String getConfigurationAsString(@SiteId String siteId,
                                            String module,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                            String environment) throws ContentNotFoundException {
@@ -344,8 +346,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
-    public void writeConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void writeConfiguration(@SiteId String siteId,
                                    String module,
                                    @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                    String environment,
@@ -408,8 +411,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public Resource getPluginFile(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public Resource getPluginFile(@SiteId String siteId,
                                   String pluginId,
                                   String type,
                                   String name,
@@ -565,12 +569,13 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
-    public ConfigurationHistory getConfigurationHistory(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public ConfigurationHistory getConfigurationHistory(@SiteId String siteId,
                                                         String module,
                                                         @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                                         String environment)
-            throws SiteNotFoundException, ContentNotFoundException {
+            throws ServiceLayerException {
         siteService.checkSiteExists(siteId);
         String configPath;
         if (!isEmpty(environment)) {
@@ -595,17 +600,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         }
         ConfigurationHistory configurationHistory = new ConfigurationHistory();
         configurationHistory.setItem(contentService.getContentItem(siteId, configPath));
-        List<ContentItemVersion> versions = new ArrayList<>();
-        VersionTO[] versionTOS = contentService.getContentItemVersionHistory(siteId, configPath);
-        for (VersionTO v : versionTOS) {
-            ContentItemVersion civ = new ContentItemVersion();
-            civ.setVersionNumber(v.getVersionNumber());
-            civ.setComment(v.getComment());
-            civ.setLastModifiedDate(v.getLastModifiedDate());
-            civ.setLastModifier(v.getLastModifier());
-            versions.add(civ);
-        }
-        configurationHistory.setVersions(versions);
+        configurationHistory.setVersions(contentServiceV2.getContentVersionHistory(siteId, configPath));
         return configurationHistory;
     }
 
@@ -621,9 +616,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    @RequireSiteReady
     @SuppressWarnings("rawtypes")
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
-    public TranslationConfiguration getTranslationConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
+    public TranslationConfiguration getTranslationConfiguration(@SiteId String siteId) throws ServiceLayerException {
         siteService.checkSiteExists(siteId);
         TranslationConfiguration translationConfiguration = new TranslationConfiguration();
         if (contentService.contentExists(siteId, translationConfig)) {
@@ -655,7 +651,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
-    public void invalidateConfiguration(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) {
+    public void invalidateConfiguration(@SiteId String siteId) {
         logger.debug("Invalidate configuration cache in site '{}'", siteId);
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
@@ -668,6 +664,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     // Moved from SiteServiceImpl to be able to properly cache the object
+    // TODO: JM: Remove unused method?
     @Override
     @SuppressWarnings("unchecked")
     public Map<String, Object> legacyGetConfiguration(String site, String path) throws ServiceLayerException {
@@ -775,6 +772,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
 
     public void setContentService(ContentService contentService) {
         this.contentService = contentService;
+    }
+
+    public void setContentServiceV2(final org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
+        this.contentServiceV2 = contentServiceV2;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

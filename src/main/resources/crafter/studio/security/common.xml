@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -39,6 +39,10 @@
         <constructor-arg name="accessTokenService" ref="accessTokenService"/>
     </bean>
 
+    <bean id="loginAttemptListener" class="org.craftercms.studio.impl.v2.security.listener.LoginAttemptListener">
+        <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
+    </bean>
+
     <!-- Users -->
 
     <bean id="passwordEncoder" class="org.craftercms.studio.impl.v2.security.crypto.PasswordEncoder"/>
@@ -50,7 +54,7 @@
 
     <bean id="studioUserDetailsService" class="org.craftercms.studio.impl.v2.security.userdetails.DbUserDetailsService">
         <constructor-arg name="userDao" ref="userDao"/>
-        <constructor-arg name="cache" ref="userDetailsCache"/>
+        <constructor-arg name="loginAttemptManager" ref="loginAttemptManager"/>
     </bean>
 
     <bean id="daoAuthenticationUserDetailsService"
@@ -78,6 +82,17 @@
 
     <bean id="sessionExpiredStrategy"
           class="org.craftercms.studio.impl.v2.security.web.session.StatusCodeSessionInformationExpiredStrategy"/>
+
+    <bean id="loginAttemptManager" class="org.craftercms.studio.impl.v2.security.LoginAttemptManagerImpl">
+        <constructor-arg name="maxTrackedUsernames"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.maxTrackedUsernames')}"/>
+        <constructor-arg name="baseTimeSeconds"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.baseTimeSeconds')}"/>
+        <constructor-arg name="maxTimeSeconds"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.maxTimeSeconds')}"/>
+        <constructor-arg name="enabled"
+                         value="#{studioConfiguration.getProperty('studio.security.login.lock.enabled')}"/>
+    </bean>
 
     <!-- Permissions -->
 
@@ -187,6 +202,21 @@
                     <constructor-arg index="0" value="SAMEORIGIN"/>
                 </bean>
                 <bean class="org.springframework.security.web.header.writers.XContentTypeOptionsHeaderWriter"/>
+                <bean class="org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter"/>
+                <bean class="org.springframework.security.web.header.writers.ContentSecurityPolicyHeaderWriter">
+                    <constructor-arg value="#{studioConfiguration.getProperty('studio.security.headers.contentSecurityPolicy.value')}"/>
+                    <property name="reportOnly" value="#{studioConfiguration.getProperty('studio.security.headers.contentSecurityPolicy.reportOnly')}"/>
+                </bean>
+                <bean class="org.springframework.security.web.header.writers.StaticHeadersWriter">
+                    <constructor-arg name="headers">
+                        <list>
+                            <bean class="org.springframework.security.web.header.Header">
+                                <constructor-arg name="headerName" value="X-Permitted-Cross-Domain-Policies"/>
+                                <constructor-arg name="headerValues" value="#{studioConfiguration.getProperty('studio.security.headers.permittedCrossDomainPolicies.value')}"/>
+                            </bean>
+                        </list>
+                    </constructor-arg>
+                </bean>
             </list>
         </constructor-arg>
     </bean>
@@ -222,4 +252,23 @@
 
     <bean id="studio.loginPageFilter"
         class="org.craftercms.studio.impl.v2.security.LoginPageFilter" />
+
+    <!--  Forgot Password  -->
+    <!-- Implemented as an ObjectFactoryCreatingFactoryBean so we can easily create
+     new tasks programmatically as needed -->
+    <bean id="forgotPasswordTaskFactory"
+          class="org.springframework.beans.factory.config.ObjectFactoryCreatingFactoryBean">
+        <property name="targetBeanName" value="forgotPasswordTask"/>
+    </bean>
+    <!-- 'prototype' so we get a new object every time -->
+    <bean id="forgotPasswordTask" class="org.craftercms.studio.impl.v2.security.password.EmailForgotPasswordTaskFactory"
+          scope="prototype">
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+        <constructor-arg name="userService" ref="userService"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
+        <constructor-arg name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory"/>
+        <constructor-arg name="emailService" ref="mailSender"/>
+        <constructor-arg name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
+    </bean>
+
 </beans>

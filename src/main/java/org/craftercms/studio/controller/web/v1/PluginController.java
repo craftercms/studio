@@ -49,12 +49,9 @@ public class PluginController {
      */
     protected final ConfigurationService configurationService;
 
-    protected final CacheControl cacheControl;
-
-    @ConstructorProperties({"configurationService", "cacheControl"})
-    public PluginController(ConfigurationService configurationService, CacheControl cacheControl) {
+    @ConstructorProperties({"configurationService"})
+    public PluginController(ConfigurationService configurationService) {
         this.configurationService = configurationService;
-        this.cacheControl = cacheControl;
     }
 
     /**
@@ -74,7 +71,6 @@ public class PluginController {
 
         return ResponseEntity
                 .ok()
-                .cacheControl(cacheControl)
                 .header(HttpHeaders.CONTENT_TYPE, contentType)
                 .body(resource);
     }

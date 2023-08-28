@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
@@ -383,6 +384,23 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
+    public List<ItemVersion> getContentItemHistory(String site, String path) {
+        logger.debug("Get version history for site '{}' path '{}'", site, path);
+        try {
+            if (pointersExist(site, path)) {
+                StudioBlobStore store = getBlobStore(site, path);
+                if (store != null) {
+                    return localRepositoryV2.getContentItemHistory(site, getPointerPath(site, path));
+                }
+            }
+            return localRepositoryV2.getContentItemHistory(site, path);
+        } catch (Exception e) {
+            logger.error("Failed to get version history for site '{}' path '{}'", site, path, e);
+            return null;
+        }
+    }
+
+    @Override
     public String createVersion(String site, String path, boolean majorVersion) {
         return localRepositoryV1.createVersion(site, path, majorVersion);
     }
@@ -514,11 +532,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void reloadRepository(String siteId) {
-        localRepositoryV1.reloadRepository(siteId);
-    }
-
-    @Override
     public void cleanupRepositories(String siteId) {
         localRepositoryV1.cleanupRepositories(siteId);
     }
@@ -540,8 +553,9 @@ public class BlobAwareContentRepository implements ContentRepository,
         List<DeploymentItemTO> localItems = new LinkedList<>();
         try {
             for (DeploymentItemTO item : deploymentItems) {
-                if (pointersExist(site, item.getPath()) &&
-                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()))) {
+                boolean pointerExists = pointersExist(site, item.getPath()) &&
+                        (isEmpty(item.getOldPath()) || pointersExist(site, item.getOldPath()));
+                if (pointerExists || item.isDelete() || item.isMove()) {
                     logger.trace("Look for the blob store for the item at site '{}' path '{}'", site, item);
                     StudioBlobStore store = getBlobStore(site, item.getPath());
                     if (store != null) {

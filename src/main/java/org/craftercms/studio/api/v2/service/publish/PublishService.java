@@ -155,7 +155,7 @@ public interface PublishService {
     boolean isSitePublished(String siteId) throws SiteNotFoundException;
 
     /**
-     * Publishes all changes for the given site & target
+     * Publishes all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target

@@ -37,6 +37,8 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
     </bean>
 
+    <bean id="temporaryFilesCleanupTask" class="org.craftercms.studio.impl.v2.event.TemporaryFilesDirStartupTask"/>
+
     <bean id="bootstrapManager" class="org.craftercms.studio.impl.v2.utils.spring.context.BootstrapManager"/>
 
     <bean id="cstudioServicesManager" class="org.craftercms.studio.api.v1.service.ServicesManager" />
@@ -352,6 +354,7 @@
     <bean id="configurationService"
           class="org.craftercms.studio.impl.v2.service.configuration.ConfigurationServiceImpl">
         <property name="contentService" ref="cstudioContentService" />
+        <property name="contentServiceV2" ref="contentService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
@@ -395,13 +398,19 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="freeMarkerConfig" ref="crafter.freeMarkerConfigFactory" />
-        <property name="emailService" ref="mailSender"/>
-        <property name="emailServiceNoAuth" ref="mailSenderNoAuth"/>
         <property name="instanceService" ref="instanceService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="securityServiceV2" ref="studio.securityService" />
         <property name="sessionRegistry" ref="sessionRegistry"/>
+        <property name="forgotPasswordTaskFactory" ref="forgotPasswordTaskFactory"/>
+        <property name="taskExecutor" ref="forgotPasswordTaskExecutor"/>
+    </bean>
+
+    <bean id="forgotPasswordTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">
+        <property name="corePoolSize" value="5"/>
+        <property name="maxPoolSize" value="10"/>
+        <property name="queueCapacity" value="25"/>
+        <property name="waitForTasksToCompleteOnShutdown" value="false" />
     </bean>
 
     <bean id="userServiceInternal"
@@ -525,6 +534,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="semanticsAvailableActionsResolver" ref="studio.semanticsAvailableActionsResolver" />
+        <property name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="contentTypeServiceInternal"
@@ -909,6 +919,8 @@
         <constructor-arg name="gitProcName" value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.name')}"/>
         <constructor-arg name="gitProcWaitForTimeoutSecs"
                          value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.waitForTimeout')}"/>
+        <constructor-arg name="gitProcDestroyWaitForTimeoutSecs"
+                         value="#{studioConfiguration.getProperty('studio.repo.git.cli.process.destroy.waitForTimeout')}"/>
     </bean>
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
@@ -1627,6 +1639,11 @@
     </bean>
 
     <bean id="loggerServiceInternal" class="org.craftercms.studio.impl.v2.service.log.internal.Log4jLoggerServiceImpl">
+    </bean>
+
+    <bean id="requireSiteReadyHandler"
+          class="org.craftercms.studio.api.v2.annotation.RequireSiteStateAnnotationHandler">
+        <constructor-arg name="sitesService" ref="sitesService"/>
     </bean>
 
     <import resource="classpath:crafter/studio/studio-security-context.xml"/>

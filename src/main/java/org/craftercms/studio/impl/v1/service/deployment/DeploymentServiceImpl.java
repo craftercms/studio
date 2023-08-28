@@ -293,6 +293,8 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     workflow.setReviewerId(reviewer.getId());
                     workflow.setPublishingPackageId(packageId);
                     if (insert) {
+                        // If new, the submitter is the current user as well
+                        workflow.setSubmitterId(reviewer.getId());
                         workflowServiceInternal.insertWorkflow(workflow);
                     } else {
                         workflowServiceInternal.updateWorkflow(workflow);

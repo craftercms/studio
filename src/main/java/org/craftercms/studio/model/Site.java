@@ -22,6 +22,7 @@ public class Site implements Entity {
     private String uuid;
     private String name;
     private String desc;
+    private String state;
 
     public String getSiteId() {
         return siteId;
@@ -55,4 +56,11 @@ public class Site implements Entity {
         this.desc = desc;
     }
 
+    public void setState(final String state) {
+        this.state = state;
+    }
+
+    public String getState() {
+        return state;
+    }
 }

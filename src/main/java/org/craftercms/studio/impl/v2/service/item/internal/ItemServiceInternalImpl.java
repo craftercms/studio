@@ -431,7 +431,7 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
 
     @Override
     public boolean previousPathExists(String siteId, String path) {
-        return itemDao.countPreviousPaths(siteId, path) > 0;
+        return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
     }
 
     @Override
@@ -455,11 +455,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
         String likePath = path + (path.endsWith(FILE_SEPARATOR) ? "" : FILE_SEPARATOR) + "%";
         return itemDao.getChangeSetForSubtree(siteId, path, likePath,
                 List.of(CONTENT_TYPE_FOLDER, CONTENT_TYPE_UNKNOWN), IN_PROGRESS_MASK);
-    }
-
-    @Override
-    public List<String> getSameCommitItems(String siteId, String path) {
-        return itemDao.getSameCommitItems(siteId, path);
     }
 
     @Override

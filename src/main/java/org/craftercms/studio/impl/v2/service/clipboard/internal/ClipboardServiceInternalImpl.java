@@ -150,7 +150,7 @@ public class ClipboardServiceInternalImpl implements ClipboardServiceInternal, A
     }
 
     /**
-     * Get the parent url: for folders & components it's just parent, for pages it's the parent of the parent.
+     * Get the parent url: for folders &amp; components it's just parent, for pages it's the parent of the parent.
      * e.g.:
      * /site/website/articles/page1/index.xml -> /site/website/articles
      * /site/components/posts/january/clickbait.xml -> /site/components/posts/january

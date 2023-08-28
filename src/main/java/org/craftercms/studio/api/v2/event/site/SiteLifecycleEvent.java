@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,34 +16,34 @@
 
 package org.craftercms.studio.api.v2.event.site;
 
+import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.model.rest.Person;
+import org.springframework.security.core.Authentication;
 
 /**
- * Triggered where a site is deleted
+ * Base class for site lifecycle events
  *
  * @author jmendeza
- * @since 4.0.3
+ * @since 4.1.2
  */
-public class SiteDeleteEvent extends SiteAwareEvent {
+public abstract class SiteLifecycleEvent extends SiteAwareEvent implements BroadcastEvent {
 
-    private final String siteUuid;
-
-    public SiteDeleteEvent(final String siteId, final String siteUuid) {
-        super(siteId);
-        this.siteUuid = siteUuid;
+    public SiteLifecycleEvent(Authentication authentication, String siteId) {
+        super(Person.from(authentication), siteId);
     }
 
-    public String getSiteUuid() {
-        return siteUuid;
+    public SiteLifecycleEvent(final String siteId) {
+        super(siteId);
     }
 
     @Override
     public String toString() {
-        return "SiteDeleteEvent{" +
+        return getClass().getSimpleName() + "{" +
                 "siteId='" + siteId + '\'' +
-                "siteUuid='" + siteUuid + '\'' +
+                ", user='" + user + '\'' +
                 ", timestamp=" + timestamp +
-                ", user=" + user +
+                ", eventType='" + getEventType() + '\'' +
                 '}';
     }
 }

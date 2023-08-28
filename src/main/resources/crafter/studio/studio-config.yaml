@@ -95,6 +95,8 @@ studio.repo.git.cli.enabled: true
 studio.repo.git.cli.process.name: git
 # Timeout in seconds when waiting for the Git CLI process to finish
 studio.repo.git.cli.process.waitForTimeout: 300
+# Timeout in seconds when waiting for the Git CLI process to finish after destroying the process forcibly
+studio.repo.git.cli.process.destroy.waitForTimeout: 60
 
 ############################################################
 ##                       Blob Store                       ##
@@ -350,8 +352,14 @@ studio.security.encryption.delay: 1
 studio.security.encryption.maxLength: 4096
 # If the secure headers should be written for every request
 studio.security.headers.enabled: true
+# Value for the Content-Security-Policy header
+studio.security.headers.contentSecurityPolicy.value: default-src 'unsafe-inline'
+# Set to true to enable the Content-Security-Policy-Report-Only header (this will report in the user agent console instead of actually blocking the requests)
+studio.security.headers.contentSecurityPolicy.reportOnly: true
 # Indicates if HTTP Basic auth should be enabled for the API
 studio.security.http.basic.enabled: false
+# Value for the X-PERMITTED-CROSS-DOMAIN-POLICIES header
+studio.security.headers.permittedCrossDomainPolicies.value: none
 
 # The maximum number of users to keep in the cache
 studio.security.db.cache.maxSize: 20
@@ -392,6 +400,18 @@ studio.security.token.cleanup.cron: 0 * * * * ?
 
 # The path of the folder used for the SSH configuration
 studio.security.ssh.config: ./ssh
+
+# Whether to enable user account locking after failed login attempts
+studio.security.login.lock.enabled: true
+# Maximum number of tracked usernames for failed login attempts
+studio.security.login.lock.maxTrackedUsernames: 10000
+# User login will be restricted after failed login attempts
+# The lock time period will be calculated as follows:
+#  min( baseTimeSeconds ^ (failedAttempts - 1), maxTimeSeconds )
+# Time in seconds to lock the user out after the maximum number of failed login attempts
+studio.security.login.lock.baseTimeSeconds: 2
+# Maximum time in seconds to lock the user out after a failed login attempt
+studio.security.login.lock.maxTimeSeconds: 3600
 
 ###############################################################
 ##               Page Navigation Order Service               ##
@@ -587,6 +607,8 @@ studio.upgrade.versionFile: /config/studio/studio_version.xml
 studio.upgrade.versionDefault: classpath:crafter/studio/upgrade/studio_version.xml
 # XPath for querying the version
 studio.upgrade.versionXPath: '/*[1]/version'
+# XML element name for querying the version from XML files
+studio.upgrade.versionElemName: "version"
 # Default version for sites when there is none (avoid any upgrade)
 studio.upgrade.defaultVersion.site: 3.0.x
 # Default version for files when there is none (the format is: <crafter major>.<crafter minor>.<file version>)
@@ -810,6 +832,7 @@ studio.search.facets:
         to: now/d-8d
       - label: over-a-year-ago
         to: now/d-365d
+studio.search.keyword.split.regex: "[!@#$%&\\*\\s\\(\\)\\'\\\"]+"
 
 ################################################################
 ##                           AWS                              ##
@@ -939,7 +962,7 @@ studio.cache.assets.enabled: true
 # The max age in seconds that the browser should cache responses for requests matching `studio.cache.assets.maxAge.includeUrls`
 studio.cache.assets.maxAge: 3600
 # The urls that should include max-age=<studio.cache.assets.maxAge> in Cache-Control header. Other urls will be set to default max-age=0, must-revalidate
-studio.cache.assets.maxAge.includeUrls: /static-assets/**,/1/plugin/file/**
+studio.cache.assets.maxAge.includeUrls: /static-assets/**
 
 ##################################################
 ##             Forwarded Headers                ##

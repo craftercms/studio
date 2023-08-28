@@ -22,6 +22,7 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 
 import java.util.List;
 
@@ -121,4 +122,14 @@ public interface SitesService {
      * @throws SiteNotFoundException if the site doesn't exist
      */
     void deleteSite(String siteId) throws ServiceLayerException;
+
+    /*
+     * Check if current site state is matches the given state
+     *
+     * @param siteId site id
+     * @param state  desired state
+     * @throws InvalidSiteStateException if the site state doesn't match the given state
+     * @throws SiteNotFoundException if the site doesn't exist
+     */
+    void checkSiteState(String siteId, String state) throws InvalidSiteStateException, SiteNotFoundException;
 }

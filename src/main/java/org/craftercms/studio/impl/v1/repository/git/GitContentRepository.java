@@ -48,11 +48,14 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
+import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
+import org.eclipse.jgit.revwalk.FollowFilter;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -84,6 +87,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ListBranchCommand.ListMode.REMOTE;
@@ -1120,8 +1124,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             throws CryptoException, IOException, ServiceLayerException, GitAPIException {
         LsRemoteCommand lsRemoteCommand = git.lsRemote();
         lsRemoteCommand.setRemote(remote);
-        // TODO: SJ: Clean up string literals
-        Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+        Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
         try {
             helper.setAuthenticationForCommand(lsRemoteCommand, authenticationType, remoteUsername, remotePassword,
                     remoteToken, remotePrivateKey, tempKey, false);
@@ -1198,7 +1201,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                         RemoteRepository remoteRepository = remoteRepositoryDAO.getRemoteRepository(params);
                         FetchCommand fetchCommand = git.fetch().setRemote(conf.getName());
                         if (remoteRepository != null) {
-                            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(), ".tmp");
+                            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(), TMP_FILE_SUFFIX);
                             try {
                                 helper.setAuthenticationForCommand(fetchCommand,
                                         remoteRepository.getAuthenticationType(),
@@ -1314,7 +1317,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             r = r.setSourceDestination(Constants.R_HEADS + repo.getBranch(),
                     Constants.R_HEADS +  remoteBranch);
             pushCommand.setRefSpecs(r);
-            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(),TMP_FILE_SUFFIX);
             try {
                 helper.setAuthenticationForCommand(pushCommand, remoteRepository.getAuthenticationType(),
                         remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
@@ -1367,7 +1370,7 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
             pullCommand.setRemote(remoteRepository.getRemoteName());
             // Set branch remoteBranch
             pullCommand.setRemoteBranchName(remoteBranch);
-            Path tempKey = Files.createTempFile(UUID.randomUUID().toString(),".tmp");
+            Path tempKey = Files.createTempFile(getStudioTemporaryFilesRoot(), UUID.randomUUID().toString(),TMP_FILE_SUFFIX);
             try {
                 helper.setAuthenticationForCommand(pullCommand, remoteRepository.getAuthenticationType(),
                         remoteRepository.getRemoteUsername(), remoteRepository.getRemotePassword(),
@@ -1436,13 +1439,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-    }
-
-    @Override
-    public void reloadRepository(String siteId) {
-        // TODO: SJ: What's the purpose of this method?
-        helper.removeSandbox(siteId);
-        helper.getRepository(siteId, SANDBOX);
     }
 
     protected void cleanup(String siteId, GitRepositories repository) {

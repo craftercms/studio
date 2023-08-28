@@ -96,6 +96,7 @@ public class PostActivityProcessor extends BaseContentProcessor {
                 auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
                 auditLog.setPrimaryTargetValue(uri);
                 auditLog.setPrimaryTargetSubtype(contentService.getContentTypeClass(site, uri));
+                auditLog.setCommitId(result.getCommitId());
                 auditServiceInternal.insertAuditLog(auditLog);
 
                 User u = userServiceInternal.getUserByIdOrUsername(-1, user);

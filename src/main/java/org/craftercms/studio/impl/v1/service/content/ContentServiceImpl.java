@@ -69,6 +69,7 @@ import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
+import org.craftercms.studio.model.rest.Person;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -93,6 +94,7 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.isNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -653,7 +655,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String commitId = _contentRepository.createFolder(site, path, name);
         if (commitId != null) {
             Item parentItem = itemServiceInternal.getItem(site, path, true);
-            if (Objects.isNull(parentItem)) {
+            if (isNull(parentItem)) {
                 parentItem = createMissingParentItem(site, path, commitId);
             }
             itemServiceInternal.persistItemAfterCreateFolder(site, folderPath, name, securityService.getCurrentUser(),
@@ -685,7 +687,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String ancestorPath = ContentUtils.getParentUrl(parentPath);
         String name = ContentUtils.getPageName(parentPath);
         Item ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
-        if (Objects.isNull(ancestor)) {
+        if (isNull(ancestor)) {
             createMissingParentItem(site, ancestorPath, commitId);
             ancestor = itemServiceInternal.getItem(site, ancestorPath, true);
         }
@@ -1038,8 +1040,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 updateChildrenOnMove(site, fromPath, movePath);
                 for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                     itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                    contentRepository.insertGitLog(site, entry.getValue(), 1, 1);
                 }
+                commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
                 // This write is performed after processing the commitIds so we don't miss any commit
                 if (movedDocument != null) {
                     writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
@@ -1840,7 +1842,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
-    public String getItemContentType(String site, String path) throws DocumentException {
+    public String getItemContentType(String site, String path) throws DocumentException, SiteNotFoundException {
+        siteService.checkSiteExists(site);
         List<Item> items = itemServiceInternal.getItems(site, List.of(path), false);
         if (CollectionUtils.isEmpty(items)) {
             return getContentTypeClass(site, path);
@@ -1986,11 +1989,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (metadata != null) {
             // Set the lock owner to empty string if we get a null to not confuse the UI, or set it to what's in the
             // database if it's not null
-            if (isEmpty(metadata.getLockOwner())) {
+            if (isNull(metadata.getLockOwner())) {
                 item.setLockOwner("");
             } else {
-                item.setLockOwner(metadata.getLockOwner());
+                item.setLockOwner(metadata.getLockOwner().getUsername());
             }
+
 
             // Set the scheduled date
             if (workflowItem != null && workflowItem.getSchedule() != null) {
@@ -1998,15 +2002,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 item.setScheduledDate(workflowItem.getSchedule());
             }
 
+            Person modifier = metadata.getModifier();
+            String modifierUsername = modifier != null ? modifier.getUsername() : null;
             // Set the modifier (user) if known
-            if (isEmpty(metadata.getModifier())) {
+            if (isEmpty(modifierUsername)) {
                 item.setUser("");
                 item.setUserLastName("");
                 item.setUserFirstName("");
             } else {
-                User u = userServiceInternal.getUserByIdOrUsername(-1, metadata.getModifier());
-                item.user = metadata.getModifier();
-                item.setUser(metadata.getModifier());
+                User u = userServiceInternal.getUserByIdOrUsername(-1, modifierUsername);
+                item.user = modifierUsername;
+                item.setUser(modifierUsername);
                 item.userFirstName = u.getFirstName();
                 item.setUserFirstName(u.getFirstName());
                 item.userLastName = u.getLastName();
@@ -2111,13 +2117,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 logger.error("Failed to extract the dependencies for reverted content at " +
                         "site '{}' path '{}' version '{}'", site, path, version);
             }
-            // Update the database with the commitId for the target item
-
-            itemServiceInternal.updateStateBits(site, path, SAVE_AND_CLOSE_ON_MASK, SAVE_AND_CLOSE_OFF_MASK);
-
-            itemServiceInternal.updateCommitId(site, path, commitId);
 
             String username = securityService.getCurrentUser();
+            // Update the database for the target item
+            itemServiceInternal.persistItemAfterWrite(site, path, username, commitId, true);
+
+
             // This is not required, the current user is already loaded in memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
             SiteFeed siteFeed = siteService.getSite(site);
@@ -2625,9 +2630,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public boolean renameContent(@ValidateStringParam String site,
-                                @ValidateSecurePathParam String path,
-                                @ValidateStringParam String name)
+    @ValidateAction(type = Type.RENAME)
+    public boolean renameContent(@ValidateStringParam @SiteId String site,
+                                @ValidateSecurePathParam @ActionTargetPath String path,
+                                @ValidateStringParam @ActionTargetFilename String name)
             throws ServiceLayerException, UserNotFoundException {
         boolean toRet = false;
 
@@ -2670,8 +2676,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             for (Map.Entry<String, String> entry : commitIds.entrySet()) {
                 itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                contentRepository.insertGitLog(site, entry.getValue(), 1);
             }
+            commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
 
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));

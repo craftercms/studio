@@ -24,6 +24,9 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.model.history.ItemVersion;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -41,6 +44,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.core.io.Resource;
 import org.springframework.util.MimeType;
 
+import java.io.IOException;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -64,6 +68,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private SemanticsAvailableActionsResolver semanticsAvailableActionsResolver;
+    private AuditServiceInternal auditServiceInternal;
 
     @Override
     public List<String> getSubtreeItems(String siteId, String path) {
@@ -137,6 +142,25 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     @Override
     public long getContentSize(String siteId, String path) {
         return contentRepository.getContentSize(siteId, path);
+    }
+
+    @Override
+    public List<DetailedItem> getItemsByStates(String siteId, long statesBitMap, List<String> systemTypes, List<SortField> sortFields, int offset, int limit) throws UserNotFoundException, ServiceLayerException {
+        Map<String, String> params = new HashMap<>();
+        params.put(SITE_ID, siteId);
+        SiteFeed siteFeed = siteFeedMapper.getSite(params);
+        String stagingEnv = servicesConfig.getStagingEnvironment(siteId);
+        String liveEnv = servicesConfig.getLiveEnvironment(siteId);
+        List<org.craftercms.studio.api.v2.dal.DetailedItem> items = itemDao.getDetailedItemsByStates(siteFeed.getId(), statesBitMap,
+                CONTENT_TYPE_FOLDER, COMPLETED,
+                systemTypes, mapSortFields(sortFields, ItemDAO.DETAILED_ITEM_SORT_FIELD_MAP), stagingEnv, liveEnv, offset, limit);
+        List<DetailedItem> result = new ArrayList<>();
+        for (org.craftercms.studio.api.v2.dal.DetailedItem item : items) {
+            DetailedItem detailedItem = DetailedItem.getInstance(item);
+            populateDetailedItemPropertiesFromRepository(siteId, detailedItem);
+            result.add(detailedItem);
+        }
+        return result;
     }
 
     @Override
@@ -248,6 +272,21 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
         return contentRepository.getContentByCommitId(siteId, path, commitId);
     }
 
+    @Override
+    public List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException {
+        try {
+            List<ItemVersion> history = contentRepository.getContentItemHistory(siteId, path);
+            for (ItemVersion itemVersion : history) {
+                if (itemVersion.getVersionNumber() != null) {
+                    itemVersion.setAuthor(auditServiceInternal.getAuthor(itemVersion.getVersionNumber()));
+                }
+            }
+            return history;
+        } catch (IOException | GitAPIException e) {
+            throw new ServiceLayerException(format("Error getting content version history for site '%s' path '%s'", siteId, path), e);
+        }
+    }
+
     public void setContentRepository(ContentRepository contentRepository) {
         this.contentRepository = contentRepository;
     }
@@ -274,5 +313,9 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
 
     public void setSemanticsAvailableActionsResolver(SemanticsAvailableActionsResolver semanticsAvailableActionsResolver) {
         this.semanticsAvailableActionsResolver = semanticsAvailableActionsResolver;
+    }
+
+    public void setAuditServiceInternal(final AuditServiceInternal auditServiceInternal) {
+        this.auditServiceInternal = auditServiceInternal;
     }
 }

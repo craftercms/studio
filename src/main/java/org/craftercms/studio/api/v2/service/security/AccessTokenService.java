@@ -52,7 +52,7 @@ public interface AccessTokenService {
     void updateRefreshToken(Authentication auth, HttpServletResponse response);
 
     /**
-     * Creates the access & refresh tokens for the given authentication
+     * Creates the access &amp; refresh tokens for the given authentication
      * @param auth the current authentication
      * @param response the response
      * @return the access token

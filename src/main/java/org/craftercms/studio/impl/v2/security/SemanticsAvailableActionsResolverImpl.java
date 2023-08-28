@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.model.rest.Person;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.util.List;
@@ -80,12 +81,16 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, item.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
+        Person lockOwner = item.getLockOwner();
+        String lockOwnerUsername = lockOwner != null ? lockOwner.getUsername() : null;
         long workflowStateBitmap = getPossibleActionsForItemState(item.getState(),
-                StringUtils.equals(username, item.getLockOwner()));
+                StringUtils.equals(username, lockOwnerUsername));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
+        Person modifier = item.getModifier();
+        String modifierUsername = modifier != null ? modifier.getUsername() : null;
         return applySpecialUseCaseFilters(username, siteId, item.getPath(), item.getMimeType(),
-                item.getSystemType(), item.getContentTypeId(), item.getModifier(), item.getState(), result);
+                item.getSystemType(), item.getContentTypeId(), modifierUsername, item.getState(), result);
     }
 
     @Override
@@ -93,12 +98,16 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             throws ServiceLayerException, UserNotFoundException {
         long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, detailedItem.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
+        Person lockOwner = detailedItem.getLockOwner();
+        String lockOwnerUsername = lockOwner != null ? lockOwner.getUsername() : null;
         long workflowStateBitmap = getPossibleActionsForItemState(detailedItem.getState(),
-                StringUtils.equals(username, detailedItem.getLockOwner()));
+                StringUtils.equals(username, lockOwnerUsername));
 
         long result = (userPermissionsBitmap & systemTypeBitmap) & workflowStateBitmap;
+        Person modifier = detailedItem.getSandbox().getModifier();
+        String modifierUsername = modifier != null ? modifier.getUsername() : null;
         return applySpecialUseCaseFilters(username, siteId, detailedItem.getPath(), detailedItem.getMimeType(),
-                detailedItem.getSystemType(), detailedItem.getContentTypeId(), detailedItem.getSandbox().getModifier(),
+                detailedItem.getSystemType(), detailedItem.getContentTypeId(), modifierUsername,
                 detailedItem.getState(),
                 result);
     }

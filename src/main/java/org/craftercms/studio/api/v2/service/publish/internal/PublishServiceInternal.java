@@ -243,13 +243,13 @@ public interface PublishServiceInternal {
      * @param activityAction the activity action to filter
      * @param publishState  the publishing state to filter
      * @param publishAction the publishing action to filter
-     * @return number of newly created <nd published items
+     * @return number of newly created and published items
      */
     int getNumberOfPublishedItemsByState(String siteId, int days, String activityAction, String publishState,
                                          String publishAction);
 
     /**
-     * Publishes all changes for the given site & target
+     * Publishes all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target

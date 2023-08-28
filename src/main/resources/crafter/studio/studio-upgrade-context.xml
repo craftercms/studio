@@ -19,6 +19,11 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="upgradeConfigurationProvider" class="org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider">
+        <constructor-arg name="configurationFile"
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>
+    </bean>
+
     <bean id="upgradeManager" class="org.craftercms.studio.impl.v2.upgrade.StudioUpgradeManagerImpl">
         <constructor-arg name="dataSource" ref="dataSource"/>
         <constructor-arg name="integrityValidator" ref="crafter.databaseValidator"/>
@@ -26,8 +31,7 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="instanceService" ref="instanceService"/>
 
-        <constructor-arg name="configurationFile"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>
+        <constructor-arg name="configurationProvider" ref="upgradeConfigurationProvider"/>
 
         <constructor-arg name="dbVersionProvider" ref="dbVersionProvider"/>
         <constructor-arg name="dbPipelineFactory">
@@ -71,8 +75,7 @@
 
     <bean id="pipelineFactory" abstract="true">
         <constructor-arg name="pipelinePrototype" value="defaultPipeline"/>
-        <constructor-arg name="configurationFile"
-        value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_CONFIGURATION_FILE)}"/>
+        <constructor-arg name="configurationProvider" ref="upgradeConfigurationProvider"/>
         <property name="pipelinePrefix"
                   value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_PIPELINE_PREFIX)}"/>
     </bean>
@@ -99,9 +102,11 @@
     </bean>
 
     <bean id="configurationVersionProvider" parent="xmlVersionProvider"
-          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlFileVersionProvider">
+          class="org.craftercms.studio.impl.v2.upgrade.providers.XmlStreamVersionProvider">
         <constructor-arg name="defaultVersion"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_FILE)}"/>
+                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_DEFAULT_VERSION_FILE)}"/>
+        <constructor-arg name="versionElementName"
+                    value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).UPGRADE_XML_CONFIG_VERSION_ELEM_NAME)}"/>
     </bean>
 
     <bean id="sitePipelineFactory" scope="prototype" parent="pipelineFactory"

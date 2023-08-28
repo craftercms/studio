@@ -31,6 +31,7 @@ public class Workflow {
     private String state;
     private Long submitterId;
     private String submitterComment;
+    private ZonedDateTime submittedOn;
     private Long reviewerId;
     private String reviewerComment;
     private int notifySubmitter;
@@ -83,6 +84,14 @@ public class Workflow {
 
     public void setSubmitterComment(String submitterComment) {
         this.submitterComment = submitterComment;
+    }
+
+    public ZonedDateTime getSubmittedOn() {
+        return submittedOn;
+    }
+
+    public void setSubmittedOn(ZonedDateTime submittedOn) {
+        this.submittedOn = submittedOn;
     }
 
     public Long getReviewerId() {

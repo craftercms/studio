@@ -172,7 +172,7 @@
       $(function () {
         const sub = craftercms.xb?.contentController?.operations$.subscribe((op) => {
           if (op.type === 'UPDATE_FIELD_VALUE_OPERATION') {
-            self.updateItem(op.args);
+            self.updateItem(op.payload);
           }
         });
       })

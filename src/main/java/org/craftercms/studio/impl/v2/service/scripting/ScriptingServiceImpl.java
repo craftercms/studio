@@ -18,6 +18,8 @@ package org.craftercms.studio.impl.v2.service.scripting;
 import groovy.util.ResourceException;
 import groovy.util.ScriptException;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.scripting.ScriptingService;
 import org.craftercms.studio.api.v2.service.scripting.internal.ScriptingServiceInternal;
@@ -44,7 +46,8 @@ public class ScriptingServiceImpl implements ScriptingService {
 
     @Override
     @Valid
-    public Object executeRestScript(String siteId, @ValidateSecurePathParam String path,
+    @RequireSiteReady
+    public Object executeRestScript(@SiteId String siteId, @ValidateSecurePathParam String path,
                                     HttpServletRequest request, HttpServletResponse response)
             throws ResourceException, ScriptException, ConfigurationException {
         return scriptingServiceInternal.executeRestScript(siteId, path, request, response);

@@ -21,6 +21,7 @@ import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.studio.api.v1.constant.StudioConstants;
+import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
@@ -29,11 +30,14 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
-import org.craftercms.studio.api.v2.event.site.SiteDeleteEvent;
+import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
@@ -56,10 +60,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
@@ -270,8 +276,20 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             retryingDatabaseOperationFacade.retry(() -> siteDao.completeSiteDelete(siteId));
             insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_DELETE);
             logger.info("Site '{}' deleted", siteId);
-            applicationContext.publishEvent(new SiteDeleteEvent(siteId, site.getSiteUuid()));
+            applicationContext.publishEvent(new SiteDeletedEvent(siteId, site.getSiteUuid()));
         }, "Failed to complete the site '%s' deletion", siteId, exceptions);
+    }
+
+    @Override
+    public void checkSiteState(final String siteId, final String requiredState) throws InvalidSiteStateException, SiteNotFoundException {
+        SiteFeed site = siteFeedMapper.getSite(Map.of(SITE_ID, siteId));
+        if (site == null) {
+            throw new SiteNotFoundException(siteId);
+        }
+        if (!requiredState.equals(site.getState())) {
+            throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",
+                    siteId, site.getState(), requiredState));
+        }
     }
 
     /**

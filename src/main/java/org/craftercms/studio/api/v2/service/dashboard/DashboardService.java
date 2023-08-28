@@ -187,6 +187,7 @@ public interface DashboardService {
      * @param approver         approver user to filter by
      * @param dateFrom         lower boundary to filter by date-time range
      * @param dateTo           upper boundary to filter by date-time range
+     * @param sortFields      list of sort fields
      * @param systemTypes    list of system types to filter
      * @param sortFields       list of sort fields
      * @param offset           offset of the first result item

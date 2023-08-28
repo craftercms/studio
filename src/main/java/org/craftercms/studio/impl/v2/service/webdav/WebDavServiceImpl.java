@@ -26,12 +26,13 @@ import org.craftercms.commons.config.profiles.webdav.WebDavProfile;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.WebDavException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.webdav.WebDavItem;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.webdav.WebDavService;
 import org.craftercms.studio.impl.v1.util.config.profiles.SiteAwareConfigProfileLoader;
 import org.slf4j.Logger;
@@ -49,6 +50,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.craftercms.commons.file.stores.WebDavUtils.createClient;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WEBDAV_READ;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WEBDAV_WRITE;
 import static org.springframework.util.MimeTypeUtils.ALL_VALUE;
 
 /**
@@ -92,9 +95,10 @@ public class WebDavServiceImpl implements WebDavService {
      */
     @Override
     @Valid
-    @HasPermission(type = DefaultPermission.class, action = "webdav_read")
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WEBDAV_READ)
     public List<WebDavItem> list(@ValidateStringParam
-                                 @ProtectedResourceId("siteId") final String siteId,
+                                 @SiteId final String siteId,
                                  @ValidateStringParam final String profileId,
                                  @ValidateStringParam final String path,
                                  @ValidateStringParam final String type) throws WebDavException, SiteNotFoundException, ConfigurationProfileNotFoundException {
@@ -171,8 +175,9 @@ public class WebDavServiceImpl implements WebDavService {
      */
     @Override
     @Valid
-    @HasPermission(type = DefaultPermission.class, action = "webdav_write")
-    public WebDavItem upload(@ValidateStringParam @ProtectedResourceId("siteId") final String siteId,
+    @RequireSiteReady
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WEBDAV_WRITE)
+    public WebDavItem upload(@SiteId final String siteId,
                              @ValidateStringParam final String profileId,
                              @ValidateStringParam final String path,
                              @ValidateStringParam final String filename,

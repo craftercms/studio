@@ -33,6 +33,8 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.publish.PublishEvent;
 import org.craftercms.studio.api.v2.event.workflow.WorkflowEvent;
@@ -74,6 +76,7 @@ import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESO
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
+@RequireSiteReady
 public class WorkflowServiceImpl implements WorkflowService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkflowServiceImpl.class);
@@ -97,7 +100,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public int getItemStatesTotal(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public int getItemStatesTotal(@SiteId String siteId,
                                   @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         return itemServiceInternal.getItemStatesTotal(siteId, path, states, null);
@@ -105,7 +108,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getItemStates(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<SandboxItem> getItemStates(@SiteId String siteId,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path, Long states,
                                            int offset, int limit) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -116,7 +119,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_SET_ITEM_STATES)
-    public void updateItemStates(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void updateItemStates(@SiteId String siteId,
                                  @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths, boolean clearSystemProcessing,
                                  boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -125,7 +128,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_SET_ITEM_STATES)
-    public void updateItemStatesByQuery(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path,
+    public void updateItemStatesByQuery(@SiteId String siteId, @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                         Long states, boolean clearSystemProcessing,
                                         boolean clearUserLocked, Boolean live, Boolean staged, Boolean isNew, Boolean modified) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
@@ -135,7 +138,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
-    public List<SandboxItem> getWorkflowAffectedPaths(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public List<SandboxItem> getWorkflowAffectedPaths(@SiteId String siteId,
                                                       @ProtectedResourceId(PATH_RESOURCE_ID)
                                                       String path) throws UserNotFoundException, ServiceLayerException {
         siteService.checkSiteExists(siteId);
@@ -190,7 +193,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_READ)
-    public void requestPublish(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void requestPublish(@SiteId String siteId,
                                @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                                List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                                String comment, boolean sendEmailNotifications)
@@ -335,7 +338,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void publish(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void publish(@SiteId String siteId,
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                         String comment) throws ServiceLayerException, UserNotFoundException, DeploymentException {
@@ -437,7 +440,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void approve(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void approve(@SiteId String siteId,
                         @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                         List<String> optionalDependencies, String publishingTarget, ZonedDateTime schedule,
                         String comment) throws UserNotFoundException, ServiceLayerException, DeploymentException {
@@ -527,7 +530,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_PUBLISH)
-    public void reject(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void reject(@SiteId String siteId,
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                        String comment) throws ServiceLayerException, DeploymentException, UserNotFoundException {
         // Create submission package
@@ -618,7 +621,7 @@ public class WorkflowServiceImpl implements WorkflowService, ApplicationContextA
 
     @Override
     @HasPermission(type = CompositePermission.class, action = PERMISSION_CONTENT_DELETE)
-    public void delete(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+    public void delete(@SiteId String siteId,
                        @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
                        List<String> optionalDependencies, String comment)
             throws DeploymentException, ServiceLayerException, UserNotFoundException {

@@ -50,3 +50,5 @@ BEGIN
         DELETE FROM audit WHERE site_id = id;
     END IF;
 END ;
+
+UPDATE `_meta` SET `version` = '4.2.0' ;

@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.springframework.core.io.Resource;
 
@@ -52,6 +53,12 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     @Override
     default VersionTO[] getContentVersionHistory(String site, String path) {
         // This should be handled by the local repository
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default List<ItemVersion> getContentItemHistory(String site, String path) {
+        // TODO: Segregate the interfaces properly
         throw new UnsupportedOperationException();
     }
 
@@ -220,12 +227,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default void resetStagingRepository(String siteId) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void reloadRepository(String siteId) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }

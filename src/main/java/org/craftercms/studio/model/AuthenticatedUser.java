@@ -33,7 +33,6 @@ public class AuthenticatedUser extends User {
     public AuthenticatedUser(User user) {
         setId(user.getId());
         setUsername(user.getUsername());
-        setPassword(user.getPassword());
         setEmail(user.getEmail());
         setFirstName(user.getFirstName());
         setLastName(user.getLastName());
@@ -42,7 +41,6 @@ public class AuthenticatedUser extends User {
         setExternallyManaged(user.isExternallyManaged());
         setTimezone(user.getTimezone());
         setLocale(user.getLocale());
-        setRecordLastUpdated(getRecordLastUpdated());
     }
 
     public AuthenticationType getAuthenticationType() {

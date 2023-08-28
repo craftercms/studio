@@ -329,7 +329,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -381,7 +381,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -507,7 +507,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -538,7 +538,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   users:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -571,7 +571,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -645,7 +645,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -691,7 +691,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -735,7 +735,7 @@ paths:
                   users:
                     type: array
                     items:
-                      $ref: '#/components/schemas/User'
+                      $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -853,9 +853,9 @@ paths:
     post:
       tags:
         - users
-      summary: Change password for user
+      summary: Reset password for user
       description: 'Required Permission: "UPDATE_USERS"'
-      operationId: setUserPassword
+      operationId: resetUserPassword
       parameters:
         - name: id
           in: path
@@ -864,7 +864,7 @@ paths:
           schema:
             type: string
       requestBody:
-        description: request body to change password
+        description: request body to reset password for user
         required: true
         content:
           application/json:
@@ -906,7 +906,7 @@ paths:
         - users
       summary: Change password for user
       description: 'Required Permission: "ANONYMOUS"'
-      operationId: settUserPassword
+      operationId: setUserPassword
       requestBody:
         description: request body to change password
         required: true
@@ -934,7 +934,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1283,7 +1283,7 @@ paths:
                   response:
                     $ref: '#/components/schemas/ApiResponse'
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: '#/components/schemas/UserResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1817,7 +1817,44 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
+  /cluster/mode:
+    get:
+      tags:
+        - cluster
+      summary: Get the local Studio instance cluster mode
+      description: 'Required Permission: "read_cluster"'
+      operationId: getClusterMode
+      parameters:
+        - name: token
+          in: query
+          description: Management token - not required for authenticated users
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  mode:
+                    type: string
+                    enum:
+                      - PRIMARY
+                      - REPLICA
+                      - UNKNOWN
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /sites/available_blueprints:
     get:
       tags:
@@ -3746,6 +3783,7 @@ paths:
                     Possible values:
                       - alphabetical (default)
                       - foldersFirst (order by: folders alphabetical, files alphabetical)
+                      - lastUpdated (order by: dateModified)
                   type: string
                 order:
                   description: order for sort strategy ascending or descending (ASC / DESC)
@@ -4188,6 +4226,51 @@ paths:
                   content:
                     type: string
                     description: requested content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /content/item_history:
+    get:
+      tags:
+        - content
+      summary: Get history for a content item
+      description: 'Required permission "content_read"'
+      operationId: getItemHistory
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: path of the content
+          required: true
+          schema:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ItemVersion'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -5368,6 +5451,8 @@ paths:
           schema:
             type: integer
         - name: sort
+          schema:
+            type: string
           in: query
           description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
           Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
@@ -5375,6 +5460,8 @@ paths:
           in: query
           description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
           Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -5487,10 +5574,14 @@ paths:
           in: query
           description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
           Multiple fields are separated by commas. Example: `dateModified asc, label desc`. Supported fields: `id` `dateModified` `label`. Default `dateModified desc`"
+          schema:
+            type: string
         - name: itemType
           in: query
           description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
           Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -5584,10 +5675,14 @@ paths:
           in: query
           description: "The fields to use for sorting, plus the `asc` or `desc` keyword case-insensitive.
           Multiple fields are separated by commas. Example: `dateScheduled asc, label desc`. Supported fields: `id` `dateScheduled` `label`. Default `dateScheduled desc`"
+          schema:
+            type: string
         - name: itemType
           in: query
           description: "The system types to filter the results by. Multiple types are separated by commas. Example: `renderingTemplate, asset`
           Supported values: `asset` `component` `content type` `document` `file` `folder` `levelDescriptor` `page` `renderingTemplate` `script` `taxonomy`"
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -7359,7 +7454,7 @@ components:
         - enabled
         - externallyManaged
 
-    User:
+    UserResponse:
       type: object
       properties:
         id:
@@ -7369,9 +7464,6 @@ components:
         username:
           type: string
           description: Username, unique
-        password:
-          type: string
-          description: User's password (not returned to caller)
         firstName:
           type: string
           description: User's first name
@@ -7390,7 +7482,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
@@ -7429,7 +7520,6 @@ components:
       required:
         - id
         - username
-        - password
         - firstName
         - lastName
         - email
@@ -7473,6 +7563,9 @@ components:
         siteId:
           type: string
           description: 'Site ID, unique and immutable'
+        state:
+          type: string
+          description: 'Site state, one of: INITIALIZING, READY, DELETING, DELETED'
         uuid:
           type: string
           description: Site UUID unique and immutable
@@ -8281,24 +8374,7 @@ components:
           type: array
           description: list of versions
           items:
-            $ref: '#/components/schemas/ContentItemVersion'
-
-    ContentItemVersion:
-      type: object
-      properties:
-        versionNumber:
-          type: string
-          description: version label
-        lastModifiedDate:
-          type: string
-          format: datetime
-          description: last modified date and time of version
-        lastModifier:
-          type: string
-          description: user that modified item
-        comment:
-          type: string
-          description: commit message
+            $ref: '#/components/schemas/ItemVersion'
 
     ContentItem:
       type: object
@@ -8510,8 +8586,8 @@ components:
               * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
               * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
-          type: string
-          description: username of user that locked item for editing
+          $ref: '#/components/schemas/Person'
+          description: user that locked item for editing
         localeCode:
           type: string
           description: locale of content item
@@ -8519,19 +8595,26 @@ components:
           type: string
           description: ID of content item that is original for translation that current item represents
         creator:
-          type: string
-          description: username of user that created item
+          $ref: '#/components/schemas/Person'
+          description: user that created the item
         dateCreated:
           type: string
           format: datetime
           description: timestamp when item was created
         modifier:
-          type: string
-          description: username of last user that modified item
+          $ref: '#/components/schemas/Person'
+          description: last user that modified item
         dateModified:
           type: string
           format: datetime
           description: timestamp when was item last modified
+        submitter:
+          $ref: '#/components/schemas/Person'
+          description: user that submitted item for review (if any)
+        dateSubmitted:
+          type: string
+          format: datetime
+          description: timestamp when item was submitted for review (if any)
         commitId:
           type: string
           description: commit id of last modification in the repository for item
@@ -8657,8 +8740,8 @@ components:
               * `BIT ORDER (little-endian)`: 25, `FLAG`: Translation Pending, `DESCRIPTION`: This item is a translation of another and it’s pending translation
               * `BIT ORDER (little-endian)`: 26, `FLAG`: Translation in Progress, `DESCRIPTION`: This item is a translation of another and is currently being translated
         lockOwner:
-          type: string
-          description: username of user that locked item for editing
+          $ref: '#/components/schemas/Person'
+          description: user that locked item for editing
         localeCode:
           type: string
           description: locale of content item
@@ -8704,19 +8787,26 @@ components:
           description: metadata of content item version stored in sandbox repository
           properties:
             creator:
-              type: string
-              description: username of user that created item
+              $ref: '#/components/schemas/Person'
+              description: user that created the item
             dateCreated:
               type: string
               format: datetime
               description: timestamp when item was created
             modifier:
-              type: string
-              description: username of last user that modified sandbox version of item
+              $ref: '#/components/schemas/Person'
+              description: last user that modified sandbox version of item
             dateModified:
               type: string
               format: datetime
               description: timestamp when was item last modified in sandbox
+            submitter:
+              $ref: '#/components/schemas/Person'
+              description: user that submitted item for publishing
+            dateSubmitted:
+              type: string
+              format: datetime
+              description: timestamp when item was submitted for review (if any)
             commitId:
               type: string
               description: commit id of last modification in the sandbox repository
@@ -9187,6 +9277,36 @@ components:
               type: boolean
               description: if true, the logger will be created in case it does not exist yet.
                 If false, a 404 status code will be returned if logger is not in the registry.
+
+    ItemVersion:
+      type: object
+      properties:
+        versionNumber:
+          type: string
+          description: the commit id
+        path:
+          type: string
+          description: the path of the item
+        oldPath:
+          type: string
+          description: the old path of the item (will be the same as path if the item has not been renamed)
+        committer:
+          type: string
+          description: the committer of the commit according to git log
+        author:
+          $ref: '#/components/schemas/Person'
+          description: corresponds to the Studio user author of the commit (if any)
+        comment:
+          type: string
+          description: the comment of the commit
+        revertible:
+          type: boolean
+          description: true if a revert to this version will be allowed
+        modifiedDate:
+          type: string
+          format: date-time
+          description: the date of the commit
+
   responses:
     NotFound:
       description: Resource not found

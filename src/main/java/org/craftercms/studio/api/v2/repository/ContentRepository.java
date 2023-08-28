@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
+import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.core.io.Resource;
@@ -398,7 +399,7 @@ public interface ContentRepository {
     void initialPublish(String siteId) throws SiteNotFoundException;
 
     /**
-     * Publishes all changes for the given site & target
+     * Publishes all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -407,7 +408,7 @@ public interface ContentRepository {
     RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) throws ServiceLayerException;
 
     /**
-     * Prepares the repository to publish all changes for the given site & target
+     * Prepares the repository to publish all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -417,7 +418,7 @@ public interface ContentRepository {
     RepositoryChanges preparePublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
 
     /**
-     * Performs the actual publish of all changes for the given site & target
+     * Performs the actual publish of all changes for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -429,7 +430,7 @@ public interface ContentRepository {
             throws ServiceLayerException;
 
     /**
-     * Performs the cleanup after a failed publish all operation for the given site & target
+     * Performs the cleanup after a failed publish all operation for the given site &amp; target
      *
      * @param siteId the id of the site
      * @param publishingTarget the publishing target
@@ -460,4 +461,15 @@ public interface ContentRepository {
      * @return true if successful, false otherwise
      */
     boolean deleteSite(String siteId);
+
+    /*
+     * Get the history of a content item. <br/>
+     * <strong>Note:</strong> the results of this method are not guaranteed when the path does not currently exist in the repository.
+     * @param site site id
+     * @param path path of the content item
+     * @return list of item versions
+     * @throws IOException if there is any error reading the git log or getting diffs between commits
+     * @throws GitAPIException if there is any error while executing git commands
+     */
+    List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException;
 }

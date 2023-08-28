@@ -35,7 +35,8 @@ public interface ProxyService {
      * @param siteId  ID of the crafter site
      * @param request the request
      * @return response from Crafter Engine
-     * @throws URISyntaxException, if request URI is not valid
+     * @throws URISyntaxException if request URI is not valid
+     * @throws SiteNotFoundException if site is not found
      */
     ResponseEntity<Object> proxyEngine(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
 
@@ -47,7 +48,8 @@ public interface ProxyService {
      * @param siteId  ID of the crafter site
      * @param request the request
      * @return response from Crafter Engine
-     * @throws URISyntaxException, if request URI is not valid
+     * @throws URISyntaxException if request URI is not valid
+     * @throws SiteNotFoundException if site is not found
      */
     ResponseEntity<Object> getSiteLogEvents(String body, String siteId, HttpServletRequest request) throws URISyntaxException, SiteNotFoundException;
 }
