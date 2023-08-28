@@ -52,7 +52,6 @@ public class DetailedItem {
     private Long translationSourceId = null;
     private long size;
     private Long parentId = null;
-    private String commitId;
     private long availableActions;
     private String previousPath;
     private int ignoredAsInt;
@@ -97,7 +96,6 @@ public class DetailedItem {
         translationSourceId = builder.translationSourceId;
         size = builder.size;
         parentId = builder.parentId;
-        commitId = builder.commitId;
         availableActions = builder.availableActions;
         previousPath = builder.previousPath;
         ignoredAsInt = builder.ignoredAsInt;
@@ -305,14 +303,6 @@ public class DetailedItem {
         this.parentId = parentId;
     }
 
-    public String getCommitId() {
-        return commitId;
-    }
-
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
-    }
-
     public long getAvailableActions() {
         return availableActions;
     }
@@ -447,7 +437,6 @@ public class DetailedItem {
         instance.translationSourceId = item.getTranslationSourceId();
         instance.size = item.getSize();
         instance.parentId = item.getParentId();
-        instance.commitId = item.getCommitId();
         instance.availableActions = item.getAvailableActions();
         instance.previousPath = item.getPreviousPath();
         instance.ignoredAsInt = item.getIgnoredAsInt();
@@ -483,7 +472,6 @@ public class DetailedItem {
         private Long translationSourceId;
         private long size;
         private Long parentId = null;
-        private String commitId;
         private Long availableActions;
         private String previousPath;
         private int ignoredAsInt;
@@ -526,7 +514,6 @@ public class DetailedItem {
             clone.translationSourceId = item.translationSourceId;
             clone.size = item.size;
             clone.parentId = item.parentId;
-            clone.commitId = item.commitId;
             clone.availableActions = item.availableActions;
             clone.previousPath = item.previousPath;
             clone.ignoredAsInt = item.ignoredAsInt;
@@ -661,11 +648,6 @@ public class DetailedItem {
 
         public Builder withParentId(Long parentId) {
             this.parentId = parentId;
-            return this;
-        }
-
-        public Builder withCommitId(String commitId) {
-            this.commitId = commitId;
             return this;
         }
 

@@ -288,7 +288,6 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                 studioConfiguration.getProperty(StudioConfiguration.SANDBOX_PATH)).toFile();
         Item item = itemServiceInternal.instantiateItem(site, path)
-                .withCommitId(commitId)
                 .withLastModifiedOn(folder.lastModified() > 0 ?
                         ZonedDateTime.from(Instant.ofEpochMilli(folder.lastModified()).atZone(UTC)) : null)
                 .withLabel(name)
@@ -310,7 +309,6 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         }
 
         Item item = itemServiceInternal.instantiateItem(site, path)
-                .withCommitId(commitId)
                 .withPreviewUrl(itemServiceInternal.getBrowserUrl(site, path))
                 .withLastModifiedOn(file.lastModified() > 0 ?
                         ZonedDateTime.from(Instant.ofEpochMilli(file.lastModified()).atZone(UTC)) : null)

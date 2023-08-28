@@ -440,12 +440,7 @@ public class PublishingManagerImpl implements PublishingManager {
             missingItem.setOldPath(oldPath);
             missingItem.setAction(PublishRequest.Action.MOVE);
         }
-        String commitId = it.getCommitId();
-        if (isNotEmpty(commitId)) {
-            missingItem.setCommitId(commitId);
-        } else {
-            missingItem.setCommitId(contentRepository.getRepoLastCommitId(site));
-        }
+        missingItem.setCommitId(contentRepository.getRepoLastCommitId(site));
 
         String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
         missingItem.setContentTypeClass(contentTypeClass);

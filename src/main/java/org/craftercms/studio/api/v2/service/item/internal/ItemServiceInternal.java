@@ -277,14 +277,6 @@ public interface ItemServiceInternal {
     boolean previousPathExists(String siteId, String path);
 
     /**
-     * Update commit id for item
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param commitId commit id
-     */
-    void updateCommitId(String siteId, String path, String commitId);
-
-    /**
      * Get mandatory parents for publishing for given site and list of paths
      * @param siteId site identifier
      * @param paths list of paths

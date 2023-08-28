@@ -623,7 +623,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         result = StringUtils.isNotEmpty(commitId);
 
         if (result) {
-            itemServiceInternal.updateCommitId(site, path, commitId);
             contentRepository.insertGitLog(site, commitId, 1, 1);
             siteService.updateLastCommitId(site, commitId);
         }
@@ -1038,9 +1037,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 Long parentId = newParent != null ? newParent.getId() : null;
                 updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
                 updateChildrenOnMove(site, fromPath, movePath);
-                for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                    itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                }
                 commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
                 // This write is performed after processing the commitIds so we don't miss any commit
                 if (movedDocument != null) {
@@ -2672,10 +2668,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             if (isFolder) {
                 updateChildrenOnMove(site, path, targetPath);
-            }
-
-            for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
             }
             commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
             siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));

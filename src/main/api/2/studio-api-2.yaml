@@ -8582,9 +8582,6 @@ components:
           type: string
           format: datetime
           description: timestamp when item was submitted for review (if any)
-        commitId:
-          type: string
-          description: commit id of last modification in the repository for item
         sizeInBytes:
           type: integer
           format: int64
@@ -8774,9 +8771,6 @@ components:
               type: string
               format: datetime
               description: timestamp when item was submitted for review (if any)
-            commitId:
-              type: string
-              description: commit id of last modification in the sandbox repository
             sizeInBytes:
               type: integer
               format: int64

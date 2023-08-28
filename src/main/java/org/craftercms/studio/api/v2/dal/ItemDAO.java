@@ -370,14 +370,6 @@ public interface ItemDAO {
     int countPreviousPaths(@Param(SITE_ID) String siteId, @Param(PREVIOUS_PATH) String previousPath, @Param(NEW_MASK) long newMask);
 
     /**
-     * Update commit id for item
-     * @param siteId site identifier
-     * @param path path of the item
-     * @param commitId commit id
-     */
-    void updateCommitId(@Param(SITE_ID) String siteId, @Param(PATH) String path, @Param(COMMIT_ID) String commitId);
-
-    /**
      * Get change set for subtree
      * @param siteId site identifier
      * @param path path of subtree root

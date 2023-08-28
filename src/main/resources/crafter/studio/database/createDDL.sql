@@ -408,7 +408,6 @@ CREATE TABLE IF NOT EXISTS `item` (
   `translation_source_id`   BIGINT          NULL,
   `size`                    BIGINT          NULL,
   `parent_id`               BIGINT          NULL,
-  `commit_id`               VARCHAR(128)    NULL,
   `previous_path`           VARCHAR(2048)   NULL,
   `ignored`                 INT             NOT NULL    DEFAULT 0,
   PRIMARY KEY (`id`),
