@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -33,6 +33,7 @@ import java.beans.ConstructorProperties;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_SEARCH;
 
@@ -70,13 +71,8 @@ public class SearchServiceImpl implements SearchService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_SEARCH)
     public SearchResult search(@SiteId final String siteId, final SearchParams params)
             throws AuthenticationException, ServiceLayerException {
-        siteService.checkSiteExists(siteId);
-        String user = securityService.getCurrentUser();
-        if (isEmpty(user)) {
-            throw new AuthenticationException("User is not authenticated");
-        }
         // TODO: Get allowed paths from the security service
-        List<String> allowedPaths = Collections.emptyList();
+        List<String> allowedPaths = emptyList();
         return searchServiceInternal.search(siteId, allowedPaths, params);
     }
 

@@ -832,6 +832,7 @@ studio.search.facets:
         to: now/d-8d
       - label: over-a-year-ago
         to: now/d-365d
+studio.search.keyword.split.regex: "[!@#$%&\\*\\s\\(\\)\\'\\\"]+"
 
 ################################################################
 ##                           AWS                              ##
