@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
@@ -439,6 +438,13 @@ public interface ContentRepository {
     void checkContentExists(String site, String path) throws ServiceLayerException;
 
     /**
+     * Deletes the underlying git repositories for a site
+     * @param siteId the id of the site
+     * @return true if successful, false otherwise
+     */
+    boolean deleteSite(String siteId);
+
+    /*
      * Get the history of a content item. <br/>
      * <strong>Note:</strong> the results of this method are not guaranteed when the path does not currently exist in the repository.
      * @param site site id

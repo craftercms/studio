@@ -35,7 +35,9 @@ public interface SecurityService {
 	 * Returns the username of the current user OR NULL if no user is authenticated
      *
      * @return  current user
+     * @deprecated use {@link org.craftercms.studio.api.v2.service.security.SecurityService#getCurrentUser()} instead
 	 */
+    @Deprecated
 	String getCurrentUser();
 
     /**

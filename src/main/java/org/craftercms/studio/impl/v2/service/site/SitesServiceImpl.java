@@ -20,6 +20,7 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -90,6 +91,18 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
+    public void deleteSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
+        checkSiteExists(siteId);
+        sitesServiceInternal.deleteSite(siteId);
+    }
+
+    @Override
+    public boolean exists(String siteId) {
+        return sitesServiceInternal.exists(siteId);
+    }
+
+    @Override
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
     public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
@@ -113,6 +126,12 @@ public class SitesServiceImpl implements SitesService {
     public void clearPublishingLock(@SiteId String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_START_STOP_PUBLISHER)
+    public void enablePublishing(String siteId, boolean enabled) {
+        sitesServiceInternal.enablePublishing(siteId, enabled);
     }
 
     @Override

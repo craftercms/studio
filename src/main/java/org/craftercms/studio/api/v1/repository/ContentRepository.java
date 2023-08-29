@@ -214,7 +214,9 @@ public interface ContentRepository {
      *
      * @param siteId site to delete
      * @return true if successful, false otherwise
+     * @deprecated use {@link org.craftercms.studio.api.v2.repository.ContentRepository#deleteSite(String)} instead
      */
+    @Deprecated
     boolean deleteSite(String siteId);
 
     /**
