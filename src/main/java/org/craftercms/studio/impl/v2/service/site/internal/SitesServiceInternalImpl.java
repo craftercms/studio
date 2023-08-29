@@ -20,12 +20,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.deployment.Deployer;
+import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
+import org.craftercms.studio.api.v2.exception.CompositeException;
+import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
@@ -33,10 +42,19 @@ import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 
+import java.beans.ConstructorProperties;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,18 +64,51 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
-public class SitesServiceInternalImpl implements SitesService {
+public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
 
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
-    private PluginDescriptorReader descriptorReader;
-    private ContentRepository contentRepository;
-    private StudioConfiguration studioConfiguration;
-    private SiteFeedMapper siteFeedMapper;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final PluginDescriptorReader descriptorReader;
+    private final ContentRepository contentRepositoryV1;
+    private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
+    private final StudioConfiguration studioConfiguration;
+    private final SiteFeedMapper siteFeedMapper;
+    private final SiteDAO siteDao;
+    private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final Deployer deployer;
+    private final ConfigurationService configurationService;
+    private final SecurityService securityService;
+    private final AuditServiceInternal auditServiceInternal;
+    private ApplicationContext applicationContext;
+
+    @ConstructorProperties({"descriptorReader", "contentRepositoryV1",
+            "studioConfiguration", "siteFeedMapper",
+            "siteDao", "retryingDatabaseOperationFacade",
+            "deployer", "contentRepository",
+            "configurationService", "securityService",
+            "auditServiceInternal"})
+    public SitesServiceInternalImpl(final PluginDescriptorReader descriptorReader, final ContentRepository contentRepositoryV1,
+                                    final StudioConfiguration studioConfiguration, final SiteFeedMapper siteFeedMapper,
+                                    final SiteDAO siteDao, final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+                                    final Deployer deployer, final org.craftercms.studio.api.v2.repository.ContentRepository contentRepository,
+                                    final ConfigurationService configurationService, final SecurityService securityService,
+                                    final AuditServiceInternal auditServiceInternal) {
+        this.descriptorReader = descriptorReader;
+        this.contentRepositoryV1 = contentRepositoryV1;
+        this.studioConfiguration = studioConfiguration;
+        this.siteFeedMapper = siteFeedMapper;
+        this.siteDao = siteDao;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+        this.deployer = deployer;
+        this.contentRepository = contentRepository;
+        this.configurationService = configurationService;
+        this.securityService = securityService;
+        this.auditServiceInternal = auditServiceInternal;
+    }
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -107,8 +158,8 @@ public class SitesServiceInternalImpl implements SitesService {
     @Override
     public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
-        if (contentRepository.contentExists(id, descriptorPath)) {
-            try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
+        if (contentRepositoryV1.contentExists(id, descriptorPath)) {
+            try (InputStream is = contentRepositoryV1.getContent(id, descriptorPath)) {
                 return loadDescriptor(is);
             } catch (Exception e) {
                 logger.error("Failed to get site blueprint descriptor for site '{}'", id, e);
@@ -118,19 +169,19 @@ public class SitesServiceInternalImpl implements SitesService {
     }
 
     protected RepositoryItem[] getBlueprintsFolders() {
-        return contentRepository.getContentChildren(
-            StringUtils.EMPTY, studioConfiguration.getProperty(BLUE_PRINTS_PATH));
+        return contentRepositoryV1.getContentChildren(
+                StringUtils.EMPTY, studioConfiguration.getProperty(BLUE_PRINTS_PATH));
     }
 
     protected Path getBlueprintPath(RepositoryItem folder) {
         return Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-            studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), folder.path, folder.name,
-            studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
+                studioConfiguration.getProperty(StudioConfiguration.GLOBAL_REPO_PATH), folder.path, folder.name,
+                studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME)).toAbsolutePath();
     }
 
     protected PluginDescriptor loadDescriptor(InputStream is) {
         try {
-           return descriptorReader.read(is);
+            return descriptorReader.read(is);
         } catch (PluginException e) {
             logger.error("Failed to load descriptor", e);
         }
@@ -162,14 +213,71 @@ public class SitesServiceInternalImpl implements SitesService {
     }
 
     @Override
-    public PublishStatus getPublishingStatus(String siteId) {
-        int ttl = studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
-        return siteFeedMapper.getPublishingStatus(siteId, ttl);
+    public boolean exists(String siteId) {
+        return siteDao.exists(siteId);
     }
 
     @Override
-    public void clearPublishingLock(String siteId) {
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.clearPublishingLockForSite(siteId));
+    public void deleteSite(final String siteId) throws ServiceLayerException {
+        logger.info("Delete site '{}'", siteId);
+        Site site = siteDao.getSite(siteId);
+
+        List<Exception> exceptions = new ArrayList<>();
+        startSiteDelete(site);
+
+        logger.debug("Delete deployer targets for site '{}'", siteId);
+        deleteDeployerTargets(siteId, exceptions);
+
+        logger.debug("Delete site content repository for site '{}'", siteId);
+        deleteSiteRepositories(siteId, exceptions);
+
+        logger.debug("Clear configuration cache for site '{}'", siteId);
+        clearConfigurationCache(siteId, exceptions);
+
+        logger.debug("Delete database records for site '{}'", siteId);
+        deleteSiteRelatedDBItems(siteId, exceptions);
+
+        // Don't update site record if there are any exceptions
+        if (exceptions.isEmpty()) {
+            completeSiteDelete(site, exceptions);
+        }
+        if (!exceptions.isEmpty()) {
+            throw new CompositeException(format("Failed to delete site '%s'", siteId), exceptions);
+        }
+    }
+
+    /**
+     * Utility method to try a block of code, and then add to a list of exceptions if an exception is thrown during the execution
+     *
+     * @param operation          {@link Runnable} to execute
+     * @param errorMessageFormat error message format, to be use with String.format and siteId parameter
+     * @param siteId             siteId to use in the error message
+     * @param exceptions         list of exceptions to add to if an exception is thrown
+     */
+    private void tryOperation(Runnable operation, String errorMessageFormat, String siteId, List<Exception> exceptions) {
+        try {
+            operation.run();
+        } catch (Exception e) {
+            logger.error(format(errorMessageFormat, siteId), e);
+            exceptions.add(new ServiceLayerException(format(errorMessageFormat, siteId), e));
+        }
+    }
+
+    /**
+     * Mark the site as DELETED, insert audit log and publish site delete event
+     *
+     * @param site       site to delete
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void completeSiteDelete(final Site site, final List<Exception> exceptions) {
+        String siteId = site.getSiteId();
+        tryOperation(() -> {
+            logger.debug("Mark the site '{}' as DELETED", siteId);
+            retryingDatabaseOperationFacade.retry(() -> siteDao.completeSiteDelete(siteId));
+            insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_DELETE);
+            logger.info("Site '{}' deleted", siteId);
+            applicationContext.publishEvent(new SiteDeletedEvent(siteId, site.getSiteUuid()));
+        }, "Failed to complete the site '%s' deletion", siteId, exceptions);
     }
 
     @Override
@@ -184,23 +292,133 @@ public class SitesServiceInternalImpl implements SitesService {
         }
     }
 
-    public void setDescriptorReader(PluginDescriptorReader descriptorReader) {
-        this.descriptorReader = descriptorReader;
+    /**
+     * Delete the site-related db records. e.g.: dependencies, items, publish_request, etc.
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void deleteSiteRelatedDBItems(final String siteId, final List<Exception> exceptions) {
+        tryOperation(() -> siteDao.deleteSiteRelatedItems(siteId), "Failed to delete the database records for site '%s'", siteId, exceptions);
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
+    /**
+     * Invalidate the configuration cache for the site
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void clearConfigurationCache(String siteId, List<Exception> exceptions) {
+        tryOperation(() -> configurationService.invalidateConfiguration(siteId),
+                "Failed to clear configuration cache for site '%s'", siteId, exceptions);
     }
 
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
+    /**
+     * Delete the site content repositories
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void deleteSiteRepositories(String siteId, List<Exception> exceptions) {
+        tryOperation(() -> contentRepository.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
     }
 
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
+    /**
+     * Delete the deployer targets
+     *
+     * @param siteId     site id
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
+     */
+    private void deleteDeployerTargets(final String siteId, final List<Exception> exceptions) {
+        tryOperation(() -> deployer.deleteTargets(siteId), "Failed to delete deployer targets for site '%s'", siteId, exceptions);
     }
 
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    /**
+     * Start the site delete process. This marks the site as DELETING and disables publishing and destroys the site preview context.
+     *
+     * @param site site to delete
+     */
+    private void startSiteDelete(final Site site) {
+        String siteId = site.getSiteId();
+        insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
+        retryingDatabaseOperationFacade.retry(() -> siteDao.startSiteDelete(siteId));
+        try {
+            // Disable publishing
+            logger.debug("Disable publishing for site '{}'", siteId);
+            enablePublishing(siteId, false);
+        } catch (Exception e) {
+            logger.error("Failed to disable publishing for site '{}'", siteId, e);
+        }
+
+        try {
+            // Destroy site preview context
+            logger.debug("Destroy site preview context for site '{}'", siteId);
+            destroySitePreviewContext(siteId);
+        } catch (Exception e) {
+            logger.error("Failed to destroy site preview context for site '{}'", siteId, e);
+        }
+    }
+
+    /**
+     * Insert delete site audit log entry
+     *
+     * @param siteId    the site id (String id)
+     * @param siteName  the site name
+     * @param operation the operation to record: OPERATION_START_DELETE or OPERATION_DELETE
+     */
+    private void insertDeleteSiteAuditLog(String siteId, String siteName, String operation) {
+        Site globalSite = siteDao.getSite(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE));
+        String user = securityService.getCurrentUser();
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(operation);
+        auditLog.setSiteId(globalSite.getId());
+        auditLog.setActorId(user);
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteName);
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    /**
+     * Call the engine API to destroy the site preview context
+     *
+     * @param siteId site id
+     * @throws ServiceLayerException if the request fails or response status code is not 200
+     */
+    protected void destroySitePreviewContext(String siteId) throws ServiceLayerException {
+        String requestUrl = studioConfiguration.getProperty(CONFIGURATION_SITE_PREVIEW_DESTROY_CONTEXT_URL)
+                .replaceAll(StudioConstants.CONFIG_SITENAME_VARIABLE, siteId);
+
+        try {
+            HttpResponse<String> response = HttpClient.newHttpClient().send(HttpRequest.newBuilder()
+                    .uri(URI.create(requestUrl))
+                    .build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new ServiceLayerException(format("Failed to destroy site preview context for site '%s'", siteId));
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new ServiceLayerException(format("Failed to destroy site preview context for site '%s'", siteId), e);
+        }
+    }
+
+    @Override
+    public void enablePublishing(String siteId, boolean enabled) {
+        retryingDatabaseOperationFacade.retry(() -> siteDao.enablePublishing(siteId, enabled));
+    }
+
+    @Override
+    public PublishStatus getPublishingStatus(String siteId) {
+        int ttl = studioConfiguration.getProperty(PUBLISHING_SITE_LOCK_TTL, Integer.class);
+        return siteFeedMapper.getPublishingStatus(siteId, ttl);
+    }
+
+    @Override
+    public void clearPublishingLock(String siteId) {
+        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.clearPublishingLockForSite(siteId));
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

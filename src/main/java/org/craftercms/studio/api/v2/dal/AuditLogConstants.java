@@ -23,6 +23,7 @@ public abstract class AuditLogConstants {
     /** Operation **/
     public static final String OPERATION_CREATE = "CREATE";
     public static final String OPERATION_UPDATE = "UPDATE";
+    public static final String OPERATION_START_DELETE = "START_DELETE";
     public static final String OPERATION_DELETE = "DELETE";
     public static final String OPERATION_MOVE = "MOVE";
     public static final String OPERATION_ADD_MEMBERS = "ADD_MEMBERS";

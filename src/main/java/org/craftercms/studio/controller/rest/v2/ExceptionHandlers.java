@@ -243,6 +243,20 @@ public class ExceptionHandlers {
         return handleExceptionInternal(request, e, response);
     }
 
+    @ExceptionHandler(CompositeException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ResponseBody handleCompositeException(HttpServletRequest request, CompositeException compositeException) {
+        ApiResponse response = new ApiResponse(ApiResponse.INTERNAL_SYSTEM_FAILURE);
+        String message = response.getMessage() + ": " + compositeException.getMessage() +
+                ". Caused by: [" +
+                compositeException.getExceptions().stream()
+                        .map(Throwable::getMessage)
+                        .collect(Collectors.joining(", "))
+                + "]";
+        response.setMessage(message);
+        return handleExceptionInternal(request, compositeException, response);
+    }
+
     @ExceptionHandler(OrganizationNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseBody handleOrganizationNotFoundException(HttpServletRequest request,

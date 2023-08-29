@@ -449,7 +449,7 @@ public class BlobAwareContentRepository implements ContentRepository,
 
     @Override
     public boolean deleteSite(String siteId) {
-        return localRepositoryV1.deleteSite(siteId);
+        return localRepositoryV2.deleteSite(siteId);
     }
 
     @Override
