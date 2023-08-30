@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,16 +16,6 @@
 
 package org.craftercms.studio.impl.v2.service.search.internal;
 
-import org.opensearch.client.opensearch._types.SortOrder;
-import org.opensearch.client.opensearch._types.aggregations.*;
-import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
-import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
-import org.opensearch.client.opensearch._types.query_dsl.RangeQuery;
-import org.opensearch.client.opensearch._types.query_dsl.TextQueryType;
-import org.opensearch.client.opensearch.core.SearchRequest;
-import org.opensearch.client.opensearch.core.SearchResponse;
-import org.opensearch.client.opensearch.core.search.Highlight;
-import org.opensearch.client.json.JsonData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -41,8 +31,18 @@ import org.craftercms.studio.api.v2.service.search.internal.SearchServiceInterna
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.service.search.PermissionAwareSearchService;
 import org.craftercms.studio.model.search.*;
-import org.springframework.beans.factory.annotation.Required;
+import org.opensearch.client.json.JsonData;
+import org.opensearch.client.opensearch._types.SortOrder;
+import org.opensearch.client.opensearch._types.aggregations.*;
+import org.opensearch.client.opensearch._types.query_dsl.BoolQuery;
+import org.opensearch.client.opensearch._types.query_dsl.MatchQuery;
+import org.opensearch.client.opensearch._types.query_dsl.RangeQuery;
+import org.opensearch.client.opensearch._types.query_dsl.TextQueryType;
+import org.opensearch.client.opensearch.core.SearchRequest;
+import org.opensearch.client.opensearch.core.SearchResponse;
+import org.opensearch.client.opensearch.core.search.Highlight;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 /**
  * Default implementation of {@link SearchServiceInternal}
@@ -152,17 +153,17 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
     /**
      * The Search service
      */
-    protected PermissionAwareSearchService searchService;
+    protected final PermissionAwareSearchService searchService;
 
     /**
      * The Studio configuration
      */
-    protected StudioConfiguration studioConfiguration;
+    protected final StudioConfiguration studioConfiguration;
 
     /**
      * The site configuration
      */
-    protected ServicesConfig servicesConfig;
+    protected final ServicesConfig servicesConfig;
 
     /**
      * Configurations for facets
@@ -173,69 +174,13 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
      * Configurations for types
      */
     protected Map<String, HierarchicalConfiguration<ImmutableNode>> types;
+    private String keywordSplitRegex;
 
-    @Required
-    public void setPathFieldName(final String pathFieldName) {
-        this.pathFieldName = pathFieldName;
-    }
-
-    @Required
-    public void setInternalNameFieldName(final String internalNameFieldName) {
-        this.internalNameFieldName = internalNameFieldName;
-    }
-
-    @Required
-    public void setLastEditFieldName(final String lastEditFieldName) {
-        this.lastEditFieldName = lastEditFieldName;
-    }
-
-    @Required
-    public void setLastEditorFieldName(final String lastEditorFieldName) {
-        this.lastEditorFieldName = lastEditorFieldName;
-    }
-
-    @Required
-    public void setSizeFieldName(final String sizeFieldName) {
-        this.sizeFieldName = sizeFieldName;
-    }
-
-    @Required
-    public void setMimeTypeName(final String mimeTypeName) {
-        this.mimeTypeName = mimeTypeName;
-    }
-
-    @Required
-    public void setDefaultType(final String defaultType) {
-        this.defaultType = defaultType;
-    }
-
-    @Required
-    public void setHighlightFields(final String[] highlightFields) {
-        this.highlightFields = highlightFields;
-    }
-
-    @Required
-    public void setSnippetSize(final int snippetSize) {
-        this.snippetSize = snippetSize;
-    }
-
-    @Required
-    public void setNumberOfSnippets(final int numberOfSnippets) {
-        this.numberOfSnippets = numberOfSnippets;
-    }
-
-    @Required
-    public void setSearchService(final PermissionAwareSearchService searchService) {
+    @ConstructorProperties({"searchService", "studioConfiguration", "servicesConfig"})
+    public SearchServiceInternalImpl(final PermissionAwareSearchService searchService, final StudioConfiguration studioConfiguration,
+                                     final ServicesConfig servicesConfig) {
         this.searchService = searchService;
-    }
-
-    @Required
-    public void setStudioConfiguration(final StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    @Required
-    public void setServicesConfig(final ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
     }
 
@@ -246,6 +191,21 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
         loadFieldsFromGlobalConfiguration();
         loadTypesFromGlobalConfiguration();
         loadFacetsFromGlobalConfiguration();
+        loadConfigsFromGlobalConfiguration();
+    }
+
+    private void loadConfigsFromGlobalConfiguration() {
+        this.pathFieldName = studioConfiguration.getProperty(SEARCH_PATH_FIELD_NAME);
+        this.internalNameFieldName = studioConfiguration.getProperty(SEARCH_INTERNAL_NAME_FIELD_NAME);
+        this.lastEditFieldName = studioConfiguration.getProperty(SEARCH_LAST_EDIT_FIELD_NAME);
+        this.lastEditorFieldName = studioConfiguration.getProperty(SEARCH_LAST_EDITOR_FIELD_NAME);
+        this.sizeFieldName = studioConfiguration.getProperty(SEARCH_SIZE_FIELD_NAME);
+        this.mimeTypeName = studioConfiguration.getProperty(SEARCH_MIME_TYPE_FIELD_NAME);
+        this.highlightFields = studioConfiguration.getArray(SEARCH_HIGHLIGHT_FIELDS, String.class);
+        this.snippetSize = studioConfiguration.getProperty(SEARCH_SNIPPETS_SIZE, Integer.class);
+        this.numberOfSnippets = studioConfiguration.getProperty(SEARCH_NUMBER_OF_SNIPPETS, Integer.class);
+        this.defaultType = studioConfiguration.getProperty(SEARCH_DEFAULT_TYPE);
+        this.keywordSplitRegex = studioConfiguration.getProperty(SEARCH_KEYWORD_SPLIT_REGEX);
     }
 
     protected String addBoosting(String field, float boosting) {
@@ -532,7 +492,7 @@ public class SearchServiceInternalImpl implements SearchServiceInternal {
                     )
                 );
 
-                String[] keywords = rawKeywords.split("\\s");
+                String[] keywords = rawKeywords.split(keywordSplitRegex);
                 if (ArrayUtils.isNotEmpty(keywords)) {
                     for (String keyword : keywords) {
                         queryBuilder
