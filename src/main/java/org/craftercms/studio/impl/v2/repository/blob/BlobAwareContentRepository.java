@@ -48,6 +48,7 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -479,11 +480,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
-        return localRepositoryV1.getEditCommitIds(site, path, commitIdFrom, commitIdTo);
-    }
-
-    @Override
     public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                              String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceLayerException {
@@ -782,5 +778,10 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
         return localRepositoryV2.getCommitIdsBetween(siteId, commitFrom, commitTo);
+    }
+
+    @Override
+    public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
+        return localRepositoryV2.getIntroducedCommits(site, baseCommit, commitId);
     }
 }

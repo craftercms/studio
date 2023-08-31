@@ -19,26 +19,24 @@ package org.craftercms.studio.impl.v2.job;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v2.dal.RepoOperation;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.dal.Site;
-import org.craftercms.studio.api.v2.dal.SiteDAO;
-import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
+import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.String.format;
-import static org.apache.commons.collections.ListUtils.subtract;
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 
 public class StudioSyncRepositoryTask extends StudioClockTask {
 
@@ -75,7 +73,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                     Thread.currentThread().getId());
             String siteState = siteService.getSiteState(site);
             if (StringUtils.equals(siteState, STATE_READY)) {
-                applicationContext.publishEvent(new RepoSyncEvent(site));
+                applicationContext.publishEvent(new SyncFromRepoEvent(site));
             }
         } catch (Exception e) {
             logger.error("Failed to sync the database from the repository in site '{}'", site, e);
@@ -83,7 +81,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     }
 
     @EventListener
-    protected void syncRepoListener(RepoSyncEvent event) throws ServiceLayerException {
+    protected void syncRepoListener(SyncFromRepoEvent event) throws ServiceLayerException {
         syncRepository(event.getSiteId());
     }
 
@@ -111,20 +109,13 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             } catch (IOException e) {
                 throw new ServiceLayerException(format("Failed to get unprocessed commits to sync repository for site '%s'", siteId), e);
             }
-            // Change getAuditedCommitsAfter to get take a list of commits and return the ones that are already audited
-            List<String> auditedCommits = auditServiceInternal.getAuditedCommitsAfter(siteId, lastProcessedCommit);
-            if (isEmpty(subtract(unprocessedCommits, auditedCommits))) {
-                // This means all commits after lastProcessedCommit were created by Studio
-                updateLastCommitId(siteId, lastCommitInRepo);
-                return;
-            }
 
             String currentLastProcessedCommit = lastProcessedCommit;
             String lastUnprocessedCommit = null;
             for (String commitId : unprocessedCommits) {
-                if (auditedCommits.contains(commitId)) {
+                if (auditServiceInternal.isAudited(site.getId(), commitId)) {
                     if (lastUnprocessedCommit != null) {
-                        ingestChanges(siteId, currentLastProcessedCommit, lastUnprocessedCommit);
+                        ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
                         lastUnprocessedCommit = null;
                     }
                     updateLastCommitId(siteId, commitId);
@@ -134,7 +125,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 }
             }
             if (lastUnprocessedCommit != null) {
-                ingestChanges(siteId, currentLastProcessedCommit, lastUnprocessedCommit);
+                ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
                 updateLastCommitId(siteId, lastUnprocessedCommit);
             }
         } finally {
@@ -146,22 +137,51 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         retryingDatabaseOperationFacade.retry(() -> siteDao.updateLastCommitId(siteId, commitId));
     }
 
-    private void ingestChanges(final String siteId, final String commitFrom, final String commitTo) {
+    private void ingestChanges(final Site site, final String commitFrom, final String commitTo) {
         // This should compare the given commit id to its parent (or empty tree if no parent)
         // Then ingest the changes into the item table
-        List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(siteId, commitFrom, commitTo);
+        List<RepoOperation> operationsFromDelta = contentRepository.getOperationsFromDelta(site.getSiteId(), commitFrom, commitTo);
         // TODO: Process operations
-        auditChangesFromGit(siteId, commitFrom, commitTo);
+        auditChangesFromGit(site, commitFrom, commitTo);;
     }
 
-    private void auditChangesFromGit(String siteId, String commitFrom, String commitTo) {
-        // TODO: Audit changes
-        // Store an audit entry for commitTo, indicating that the commit (and changes introduced by it)
-        // was not created by studio
-        // This method should check if commitTo is a merge, and if so, store the list of commits introduced by the merge
-        // as the audit parameters
-        // The list of commits should correspond to the list of commits between commitTo and the base of commitFrom & commitTo
-        // following the path of the commitTo second parent
+    /**
+     * Creates an audit log entry indicating the sync of git history up from commitFrom up to commitTo <br/>
+     * It will add as audit log parameters any commit between commitFrom and commitTo.
+     *
+     * @param site       The site being synced
+     * @param commitFrom The last previously synced commit id
+     * @param commitTo   The new synced commit id
+     */
+    private void auditChangesFromGit(final Site site, final String commitFrom, final String commitTo) {
+        AuditLog auditLogEntry = auditServiceInternal.createAuditLogEntry();
+        auditLogEntry.setSiteId(site.getId());
+        auditLogEntry.setOperation(OPERATION_GIT_CHANGES);
+        auditLogEntry.setOrigin(ORIGIN_GIT);
+        auditLogEntry.setCommitId(commitTo);
+        auditLogEntry.setActorId(ACTOR_ID_GIT);
+        auditLogEntry.setActorDetails(ACTOR_ID_GIT);
+        auditLogEntry.setPrimaryTargetId(site.getSiteId());
+        auditLogEntry.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLogEntry.setPrimaryTargetValue(site.getName());
+
+        try {
+            List<String> commitIds = contentRepository.getIntroducedCommits(site.getSiteId(), commitFrom, commitTo);
+            List<AuditLogParameter> auditParameters = new ArrayList<>();
+            for (String commitId : commitIds) {
+                AuditLogParameter auditParameter = new AuditLogParameter();
+                auditParameter.setTargetId(commitId);
+                auditParameter.setTargetType(TARGET_TYPE_SYNCED_COMMIT);
+                auditParameter.setTargetValue(commitId);
+                auditParameters.add(auditParameter);
+            }
+            auditLogEntry.setParameters(auditParameters);
+        } catch (IOException | GitAPIException e) {
+            logger.error("Failed to calculate introduced commits for site '{}' from commit '{}' to commit '{}'",
+                    site.getSiteId(), commitFrom, commitTo, e);
+        }
+
+        auditServiceInternal.insertAuditLog(auditLogEntry);
     }
 
 }

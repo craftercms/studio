@@ -129,14 +129,6 @@ public interface SiteService {
     SiteBlueprintTO[] getAvailableBlueprints();
 
     /**
-     * Synchronize Database with repository
-     *
-     * @param site site id
-     * @throws SiteNotFoundException site not found
-     */
-    void syncRepository(String site) throws SiteNotFoundException;
-
-    /**
      * Rebuild database for site
      *
      * @param site site id

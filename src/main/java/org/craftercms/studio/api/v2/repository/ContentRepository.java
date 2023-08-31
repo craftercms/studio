@@ -356,11 +356,23 @@ public interface ContentRepository {
      * Get the commits between two commit ids.
      * This method must start in the commitTo and go back until it finds commitFrom.
      * The actual result must be equivalent to <code>git log --first-parent --reverse commitFrom..commitTo</code>
-     * @param siteId site id
+     *
+     * @param siteId     site id
      * @param commitFrom the older commit id
-     * @param commitTo the newer commit id
+     * @param commitTo   the newer commit id
      * @return list of commit ids between commitFrom (not included) and commitTo (inclusive)
      * @throws IOException if there is any error reading the git log
      */
     List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException;
+
+    /**
+     * Get the new commits introduced by <code>commitId</code> into <code>baseCommit</code>.<br/>
+     * This method assumes that baseCommit is an ancestor of commitId's first parent.
+     * Result will be equivalent to <code>git log baseCommit..commitId</code>
+     *
+     * @param site       site id
+     * @param baseCommit the commit id to compare against
+     * @param commitId   the commit id to compare
+     */
+    List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException;
 }

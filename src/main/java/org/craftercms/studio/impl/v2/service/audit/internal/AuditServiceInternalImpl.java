@@ -192,8 +192,8 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     }
 
     @Override
-    public List<String> getAuditedCommitsAfter(String siteId, String lastProcessedCommit) {
-        return auditDao.getAuditedCommitsAfter(siteId, lastProcessedCommit);
+    public boolean isAudited(long siteId, String commitId) {
+        return auditDao.isAudited(siteId, commitId);
     }
 
     public void setAuditDao(AuditDAO auditDao) {

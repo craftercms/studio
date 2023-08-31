@@ -19,12 +19,12 @@ package org.craftercms.studio.api.v2.event.site;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 
 /**
- * Event fired to request a repository sync.
+ * Event fired to request a 'sync database from repo'.
  *
  * @since 4.1.2
  */
-public class RepoSyncEvent extends SiteAwareEvent {
-    public RepoSyncEvent(final String siteId) {
+public class SyncFromRepoEvent extends SiteAwareEvent {
+    public SyncFromRepoEvent(final String siteId) {
         super(siteId);
     }
 }

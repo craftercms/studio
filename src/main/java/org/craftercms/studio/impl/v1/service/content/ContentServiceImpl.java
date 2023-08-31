@@ -51,7 +51,7 @@ import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
-import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -666,7 +666,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
-            applicationContext.publishEvent(new RepoSyncEvent(site));
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
             toRet = true;
         }
@@ -719,7 +719,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         if (StringUtils.isNotEmpty(commitId)) {
-            applicationContext.publishEvent(new RepoSyncEvent(site));
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
         }
 
         applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
@@ -1034,7 +1034,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 if (movedDocument != null) {
                     writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
                 }
-                applicationContext.publishEvent(new RepoSyncEvent(site));
+                applicationContext.publishEvent(new SyncFromRepoEvent(site));
             } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
@@ -2127,7 +2127,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Item item = itemServiceInternal.getItem(site, path);
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
                     DateUtils.getCurrentTime(), item, null);
-            applicationContext.publishEvent(new RepoSyncEvent(site));
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
 
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
 
@@ -2664,7 +2664,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             if (isFolder) {
                 updateChildrenOnMove(site, path, targetPath);
             }
-            applicationContext.publishEvent(new RepoSyncEvent(site));
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
 
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
             toRet = true;

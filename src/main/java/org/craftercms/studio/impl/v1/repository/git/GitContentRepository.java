@@ -956,56 +956,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
-        List<String> commitIds = new ArrayList<>();
-        String gitLockKey = helper.getSandboxRepoLockKey(site);
-        generalLockService.lock(gitLockKey);
-        try {
-            // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-            Repository repo = helper.getRepository(site, SANDBOX);
-            if (StringUtils.isEmpty(commitIdFrom)) {
-                commitIdFrom = getRepoFirstCommitId(site);
-            }
-            if (StringUtils.isEmpty(commitIdTo)) {
-                commitIdTo = getRepoLastCommitId(site);
-            }
-            ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-            ObjectId objCommitIdTo = repo.resolve(commitIdTo);
-
-            try (Git git = new Git(repo)) {
-
-                // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                // let's do it
-                if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                    // Compare HEAD with commitId we're given
-                    // Get list of commits between commitId and HEAD in chronological order
-
-                    // Get the log of all the commits between commitId and head
-                    LogCommand logCommand = git.log()
-                            .addPath(helper.getGitPath(path))
-                            .addRange(objCommitIdFrom, objCommitIdTo);
-                    Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-
-                    // Reverse orders of commits
-                    Iterator<RevCommit> iterator = commits.iterator();
-                    while (iterator.hasNext()) {
-
-                        RevCommit commit = iterator.next();
-                        commitIds.add(0, commit.getId().getName());
-                    }
-                }
-            }
-        } catch (IOException | GitAPIException e) {
-            logger.error("Failed to get operations from site '{}' path '{}' from commit ID '{}' to " +
-                    "commit ID '{}'", site, path, commitIdFrom, commitIdTo, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
-        return commitIds;
-    }
-
-    @Override
     public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)

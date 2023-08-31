@@ -41,7 +41,7 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
-import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -465,7 +465,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         }
         generateAuditLog(siteId, configPath, currentUser, commitId);
         dependencyService.upsertDependencies(siteId, configPath);
-        applicationContext.publishEvent(new RepoSyncEvent(siteId));
+        applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
     }
 
     protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {

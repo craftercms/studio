@@ -145,7 +145,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected DeploymentService deploymentService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
-//    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected StudioUpgradeManager upgradeManager;

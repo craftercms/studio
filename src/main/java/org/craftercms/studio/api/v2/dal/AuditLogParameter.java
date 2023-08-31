@@ -61,6 +61,7 @@ public class AuditLogParameter {
         return targetSubtype;
     }
 
+    // TODO: JM: This is never used. Remove column from the database ?
     public void setTargetSubtype(String targetSubtype) {
         this.targetSubtype = targetSubtype;
     }

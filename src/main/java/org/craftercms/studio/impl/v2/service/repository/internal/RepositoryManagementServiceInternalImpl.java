@@ -32,7 +32,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -409,7 +409,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 logger.info("Git pull in site '{}' returned '{}'", siteId, pullResultMessage);
             }
             if (pullResult.isSuccessful()) {
-                applicationContext.publishEvent(new RepoSyncEvent(siteId));
+                applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
                 List<String> newMergedCommits = extractCommitIdsFromPullResult(repo, pullResult);
                 return MergeResult.from(pullResult, newMergedCommits);
             } else if (conflictNotificationEnabled()) {

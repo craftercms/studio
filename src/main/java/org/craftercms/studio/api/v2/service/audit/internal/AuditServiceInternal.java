@@ -113,5 +113,11 @@ public interface AuditServiceInternal {
      */
     Person getAuthor(String commitId);
 
-    List<String> getAuditedCommitsAfter(String siteId, String lastProcessedCommit);
+    /**
+     * Check if a commit has been audited.
+     * @param siteId site id
+     * @param commitId commit id
+     * @return true if there is an audit entry for the given commit id, otherwise false
+     */
+    boolean isAudited(long siteId, String commitId);
 }

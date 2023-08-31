@@ -64,6 +64,9 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.AmbiguousObjectException;
+import org.eclipse.jgit.errors.IncorrectObjectTypeException;
+import org.eclipse.jgit.errors.MissingObjectException;
 import org.eclipse.jgit.errors.StopWalkException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
@@ -1787,6 +1790,25 @@ public class GitContentRepository implements ContentRepository {
             for (RevCommit revCommit : revWalk) {
                 result.add(revCommit.getName());
             }
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
+        List<String> result = new ArrayList<>();
+        String repoLockKey = helper.getSandboxRepoLockKey(site);
+        Repository repo = helper.getRepository(site, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            RevCommit revCommitBase  = repo.parseCommit(repo.resolve(baseCommit));
+            RevCommit revCommit = repo.parseCommit(repo.resolve(commitId));
+
+            git.log().addRange(revCommitBase, revCommit).call().forEach(commit->{
+                result.add(commit.getName());
+            });
         } finally {
             generalLockService.unlock(repoLockKey);
         }

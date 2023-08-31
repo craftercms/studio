@@ -67,6 +67,11 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
+    default List<String> getIntroducedCommits(String site, String baseCommit, String commitId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     default String createVersion(String site, String path, boolean majorVersion) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
@@ -147,12 +152,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default String getRepoFirstCommitId(String site) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
         // This should be handled by the local repository
         throw new UnsupportedOperationException();
     }
@@ -295,5 +294,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     default boolean publishedRepositoryExists(String siteId) {
         throw new UnsupportedOperationException();
     }
+
 
 }

@@ -281,12 +281,10 @@
         AND origin = 'API'
     </select>
 
-    <select id="getAuditedCommitsAfter" parameterType="java.util.Map"
-            resultType="java.lang.String">
-        SELECT a.commit_id
-        FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE s.site_id = #{siteId}
-        AND a.id &gt; (SELECT id FROM audit WHERE commit_id = #{commitId})
+    <select id="isAudited" parameterType="java.util.Map" resultType="boolean">
+        SELECT count(1)
+        FROM audit a
+        WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </select>
 
     <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">

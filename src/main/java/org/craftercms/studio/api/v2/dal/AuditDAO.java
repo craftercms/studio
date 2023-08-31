@@ -61,5 +61,12 @@ public interface AuditDAO {
      */
     Person getCommitAuthor(@Param(COMMIT_ID) String commitId);
 
-    List<String> getAuditedCommitsAfter(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String lastProcessedCommit);
+    /**
+     * Checks if a commit has been audited.
+     *
+     * @param siteId   site id
+     * @param commitId commit id
+     * @return true if an entry exists in audit table for the given commit id, false otherwise.
+     */
+    boolean isAudited(@Param(SITE_ID) long siteId, @Param(COMMIT_ID) String commitId);
 }

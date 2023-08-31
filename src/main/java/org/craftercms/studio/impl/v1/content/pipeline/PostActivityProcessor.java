@@ -27,7 +27,7 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Item;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -108,7 +108,7 @@ public class PostActivityProcessor extends BaseContentProcessor implements Appli
                 activityStreamServiceInternal.insertActivity(siteFeed.getId(), u.getId(), activityType,
                         DateUtils.getCurrentTime(), item, null);
             }
-            applicationContext.publishEvent(new RepoSyncEvent(site));
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
         }
     }
 
