@@ -2521,44 +2521,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/rebuild_database:
-    post:
-      tags:
-        - repository
-      summary: Rebuild Crafter Studio’s database and object state with the underlying repository
-      description: 'Required permission "rebuild_database"'
-      operationId: rebuildDatabase
-      requestBody:
-        description: rebuild database request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: Site ID
-              required:
-                - siteId
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
   /repository/remove_remote:
     post:

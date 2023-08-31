@@ -76,7 +76,6 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
-import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -144,7 +143,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected SecurityService securityService;
     protected DeploymentService deploymentService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
-    protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected StudioUpgradeManager upgradeManager;
@@ -882,12 +880,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
-    public void rebuildDatabase(@ValidateStringParam String site) {
-        rebuildRepositoryMetadata.execute(site);
-    }
-
-    @Override
-    @Valid
     public void updateLastCommitId(@ValidateStringParam String site,
                                    @ValidateStringParam String commitId) {
         Map<String, Object> params = new HashMap<>();
@@ -1547,10 +1539,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setDmPageNavigationOrderService(DmPageNavigationOrderService dmPageNavigationOrderService) {
         this.dmPageNavigationOrderService = dmPageNavigationOrderService;
-    }
-
-    public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) {
-        this.rebuildRepositoryMetadata = rebuildRepositoryMetadata;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

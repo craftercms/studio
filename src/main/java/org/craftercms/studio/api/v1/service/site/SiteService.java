@@ -128,13 +128,6 @@ public interface SiteService {
      */
     SiteBlueprintTO[] getAvailableBlueprints();
 
-    /**
-     * Rebuild database for site
-     *
-     * @param site site id
-     */
-    void rebuildDatabase(String site);
-
     void updateLastCommitId(String site, String commitId);
 
     /**

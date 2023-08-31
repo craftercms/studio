@@ -45,8 +45,6 @@ public interface RepositoryManagementService {
             throws InvalidRemoteUrlException, ServiceLayerException,
             InvalidRemoteRepositoryCredentialsException, RemoteRepositoryNotFoundException;
 
-    void rebuildDatabase(String siteId) throws SiteNotFoundException;
-
     boolean removeRemote(String siteId, String remoteName)
             throws SiteNotFoundException, RemoteNotRemovableException;
 

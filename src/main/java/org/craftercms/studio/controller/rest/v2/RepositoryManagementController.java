@@ -120,16 +120,6 @@ public class RepositoryManagementController {
         return result;
     }
 
-    @PostMapping(REBUILD_DATABASE)
-    public Result rebuildDatabase(@Valid @RequestBody RebuildDatabaseRequest rebuildDatabaseRequest)
-            throws SiteNotFoundException {
-        repositoryManagementService.rebuildDatabase(rebuildDatabaseRequest.getSiteId());
-
-        Result result = new Result();
-        result.setResponse(OK);
-        return result;
-    }
-
     @PostMapping(REMOVE_REMOTE)
     public Result removeRemote(HttpServletResponse response, @Valid @RequestBody RemoveRemoteRequest removeRemoteRequest)
             throws SiteNotFoundException, RemoteNotRemovableException {

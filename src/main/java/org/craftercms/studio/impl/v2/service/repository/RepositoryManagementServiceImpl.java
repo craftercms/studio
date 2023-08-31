@@ -130,13 +130,6 @@ public class RepositoryManagementServiceImpl implements RepositoryManagementServ
     }
 
     @Override
-    @HasPermission(type = DefaultPermission.class, action = PERMISSION_REBUILD_DATABASE)
-    public void rebuildDatabase(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
-        siteService.rebuildDatabase(siteId);
-    }
-
-    @Override
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_REMOVE_REMOTE)
     public boolean removeRemote(@SiteId String siteId, String remoteName)
             throws SiteNotFoundException, RemoteNotRemovableException {
