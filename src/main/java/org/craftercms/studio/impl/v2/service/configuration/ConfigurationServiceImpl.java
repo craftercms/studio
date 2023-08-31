@@ -41,6 +41,7 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
+import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -454,15 +455,17 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
+        String commitId = contentRepository.getRepoLastCommitId(siteId);
         try {
             itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                    contentRepository.getRepoLastCommitId(siteId), true);
+                    commitId, true);
             contentService.notifyContentEvent(siteId, configPath);
         } catch (XmlFileParseException e) {
             logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
         }
-        generateAuditLog(siteId, configPath, currentUser);
+        generateAuditLog(siteId, configPath, currentUser, commitId);
         dependencyService.upsertDependencies(siteId, configPath);
+        applicationContext.publishEvent(new RepoSyncEvent(siteId));
     }
 
     protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {
@@ -542,10 +545,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 String configPath = Paths.get(configBasePath, path).toString();
                 contentService.writeContent(siteId, configPath, content);
                 String currentUser = securityService.getCurrentUser();
+                String commitId = contentRepository.getRepoLastCommitId(siteId);
                 itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                        contentRepository.getRepoLastCommitId(siteId), true);
+                        commitId, true);
                 contentService.notifyContentEvent(siteId, configPath);
-                generateAuditLog(siteId, configPath, currentUser);
+                generateAuditLog(siteId, configPath, currentUser, commitId);
                 dependencyService.upsertDependencies(siteId, configPath);
             } else {
                 writeDefaultConfiguration(siteId, module, path, content);
@@ -555,7 +559,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         }
     }
 
-    private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
+    private void generateAuditLog(String siteId, String path, String user, String commitId) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
@@ -565,6 +569,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(path);
         auditLog.setPrimaryTargetSubtype(CONTENT_TYPE_CONFIGURATION);
+        auditLog.setCommitId(commitId);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -611,7 +616,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         contentService.writeContent(EMPTY, path, validate(content, path));
         contentService.notifyContentEvent(EMPTY, path);
         String currentUser = securityService.getCurrentUser();
-        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
+        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser, null);
         invalidateCache(path);
     }
 

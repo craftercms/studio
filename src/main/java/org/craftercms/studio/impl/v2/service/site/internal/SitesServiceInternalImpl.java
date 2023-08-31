@@ -32,12 +32,10 @@ import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.dal.PublishStatus;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
@@ -64,6 +62,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -289,6 +288,24 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         if (!requiredState.equals(site.getState())) {
             throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",
                     siteId, site.getState(), requiredState));
+        }
+    }
+
+    @Override
+    public Site getSite(String siteId) {
+        return siteDao.getSite(siteId);
+    }
+
+    @Override
+    public boolean checkSiteUuid(final String siteId, final String siteUuid) {
+        try {
+            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
+            return Files.readAllLines(path).stream()
+                    .anyMatch(siteUuid::equals);
+        } catch (IOException e) {
+            logger.info("Invalid site UUID in site '{}'", siteId);
+            return false;
         }
     }
 

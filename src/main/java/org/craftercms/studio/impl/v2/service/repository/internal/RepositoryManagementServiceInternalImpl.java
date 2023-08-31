@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.event.site.RepoSyncEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
@@ -57,7 +58,11 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.lang.NonNull;
 
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
@@ -79,7 +84,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.LOCK_FILE;
 
-public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal {
+public class RepositoryManagementServiceInternalImpl implements RepositoryManagementServiceInternal, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryManagementServiceInternalImpl.class);
 
@@ -101,6 +106,7 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     protected TaskExecutor taskExecutor;
+    private ApplicationContext applicationContext;
 
     @Override
     public boolean addRemote(String siteId, RemoteRepository remoteRepository)
@@ -403,37 +409,8 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
                 logger.info("Git pull in site '{}' returned '{}'", siteId, pullResultMessage);
             }
             if (pullResult.isSuccessful()) {
-                List<String> newMergedCommits = extractCommitIdsFromPullResult(siteId, repo, pullResult);
-                if (isNotEmpty(newMergedCommits)) {
-                    String lastCommitId = contentRepository.getRepoLastCommitId(siteId);
-                    contentRepositoryV2.upsertGitLogList(siteId, List.of(lastCommitId), false, false);
-                    List<String> commitIds = new LinkedList<>();
-                    logger.debug("Actual commits pulled for site '{}':", siteId);
-                    int cnt = 0;
-                    for (String commitId : newMergedCommits) {
-                        logger.debug(commitId);
-                        if (!StringUtils.equals(lastCommitId, commitId)) {
-                            commitIds.add(commitId);
-                            if (cnt++ >= batchSizeGitLog) {
-                                contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
-                                cnt = 0;
-                                commitIds.clear();
-                            }
-                        }
-                    }
-                    if (isNotEmpty(commitIds)) {
-                        contentRepositoryV2.upsertGitLogList(siteId, commitIds, true, true);
-                    }
-                    siteService.updateLastCommitId(siteId, lastCommitId);
-                    taskExecutor.execute(() -> {
-                        try {
-                            String lastProcessedCommit = siteService.getLastVerifiedGitlogCommitId(siteId);
-                            siteService.syncDatabaseWithRepo(siteId, lastProcessedCommit);
-                        } catch (ServiceLayerException e) {
-                            logger.error("Failed to sync database with repo for site '{}'", siteId, e);
-                        }
-                    });
-                }
+                applicationContext.publishEvent(new RepoSyncEvent(siteId));
+                List<String> newMergedCommits = extractCommitIdsFromPullResult(repo, pullResult);
                 return MergeResult.from(pullResult, newMergedCommits);
             } else if (conflictNotificationEnabled()) {
                 List<String> conflictFiles = new LinkedList<>();
@@ -471,43 +448,18 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         return MergeResult.failed();
     }
 
-    private List<String> extractCommitIdsFromPullResult(String siteId, Repository repo, PullResult pullResult) {
+    private List<String> extractCommitIdsFromPullResult(Repository repo, PullResult pullResult) {
         List<String> commitIds = new LinkedList<>();
         ObjectId[] mergedCommits = pullResult.getMergeResult().getMergedCommits();
         for (ObjectId mergedCommit : mergedCommits) {
             try {
                 RevCommit revCommit = repo.parseCommit(mergedCommit);
-                commitIds.addAll(processCommitId(siteId, revCommit));
+                commitIds.add(revCommit.getName());
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Failed to parse commit '{}'", mergedCommit.getName(), e);
             }
         }
         return commitIds;
-    }
-
-    private Set<String> processCommitId(String siteId, RevCommit revCommit) {
-        Set<String> toRet = new HashSet<>();
-        Queue<RevCommit> commitIdsQueue = new LinkedList<>();
-        commitIdsQueue.offer(revCommit);
-        while (!commitIdsQueue.isEmpty()) {
-            RevCommit rc = commitIdsQueue.poll();
-            if (Objects.nonNull(rc)) {
-                String cId = rc.getName();
-                if (!toRet.contains(cId)) {
-                    GitLog gitLog = contentRepositoryV2.getGitLog(siteId, cId);
-                    if (Objects.isNull(gitLog)) {
-                        RevCommit[] parents = rc.getParents();
-                        if (Objects.nonNull(parents) && parents.length > 0) {
-                            for (RevCommit parent : parents) {
-                                commitIdsQueue.offer(parent);
-                            }
-                        }
-                        toRet.add(cId);
-                    }
-                }
-            }
-        }
-        return toRet;
     }
 
     @Override
@@ -956,5 +908,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
 
     public void setTaskExecutor(TaskExecutor taskExecutor) {
         this.taskExecutor = taskExecutor;
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

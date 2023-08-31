@@ -77,7 +77,6 @@ import org.craftercms.studio.api.v2.upgrade.StudioUpgradeManager;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
-import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -146,7 +145,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected DeploymentService deploymentService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected RebuildRepositoryMetadata rebuildRepositoryMetadata;
-    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
+//    protected SyncDatabaseWithRepository syncDatabaseWithRepository;
     protected GroupServiceInternal groupServiceInternal;
     protected UserServiceInternal userServiceInternal;
     protected StudioUpgradeManager upgradeManager;
@@ -293,10 +292,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
                 processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
 
-                contentRepositoryV2.insertGitLog(siteId, lastCommitId, 1, 1);
                 updateLastCommitId(siteId, lastCommitId);
-                updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-                updateLastSyncedGitlogCommitId(siteId, lastCommitId);
 
                 logger.info("Reload the site configuration for site '{}'", siteName);
             } catch (Exception e) {
@@ -725,11 +721,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
             insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
             processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
-            contentRepositoryV2.populateGitLog(siteId);
 
             updateLastCommitId(siteId, lastCommitId);
-            updateLastVerifiedGitlogCommitId(siteId, lastCommitId);
-            updateLastSyncedGitlogCommitId(siteId, firstCommitId);
 
             logger.info("Load the configuration for site '{}'", siteId);
         } catch (Exception e) {
@@ -816,7 +809,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             deploymentService.deleteDeploymentDataForSite(siteId);
             itemServiceInternal.deleteItemsForSite(siteFeed.getId());
             dmPageNavigationOrderService.deleteSequencesForSite(siteId);
-            contentRepository.deleteGitLogForSite(siteId);
             contentRepository.removeRemoteRepositoriesForSite(siteId);
             auditServiceInternal.deleteAuditLogForSite(siteFeed.getId());
             insertDeleteSiteAuditLog(siteId, siteFeed.getName());
@@ -891,18 +883,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
-    public void syncRepository(@ValidateStringParam String site) throws SiteNotFoundException {
-        checkSiteExists(site);
-        String lastDbCommitId = siteFeedMapper.getLastCommitId(site);
-        if (lastDbCommitId != null) {
-            syncDatabaseWithRepository.execute(site, lastDbCommitId);
-        } else {
-            rebuildDatabase(site);
-        }
-    }
-
-    @Override
-    @Valid
     public void rebuildDatabase(@ValidateStringParam String site) {
         rebuildRepositoryMetadata.execute(site);
     }
@@ -918,33 +898,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    public void updateLastVerifiedGitlogCommitId(String site, String commitId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", site);
-        params.put("commitId", commitId);
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateLastVerifiedGitlogCommitId(params));
-    }
-
-    @Override
-    public void updateLastSyncedGitlogCommitId(String site, String commitId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", site);
-        params.put("commitId", commitId);
-        retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.updateLastSyncedGitlogCommitId(params));
-    }
-
-    @Override
     @Valid
     public boolean syncDatabaseWithRepo(@ValidateStringParam String site,
                                         @ValidateStringParam String fromCommitId) {
-        return syncDatabaseWithRepo(site, fromCommitId, true);
-    }
-
-    @Override
-    @Valid
-    public boolean syncDatabaseWithRepo(@ValidateStringParam String site,
-                                        @ValidateStringParam String fromCommitId,
-                                        boolean generateAuditLog) {
         // TODO: Switch to new item table instead of using old state and metadata - Dejan
         // TODO: Remove references to old data layer - Dejan
         long startSyncRepoMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
@@ -961,9 +917,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         }
         if (CollectionUtils.isEmpty(repoOperationsDelta)) {
             logger.debug("The database is up to date with the repository in site '{}'", site);
-            contentRepositoryV2.markGitLogVerifiedProcessed(site, fromCommitId);
             updateLastCommitId(site, repoLastCommitId);
-            updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
             return toReturn;
         }
 
@@ -1025,7 +979,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         // Update database
         logger.debug("Update the last commit id '{}' in site '{}'", repoLastCommitId, site);
         updateLastCommitId(site, repoLastCommitId);
-        updateLastVerifiedGitlogCommitId(site, repoLastCommitId);
         if (logger.isDebugEnabled()) {
             logger.debug("Update the database finished in '{}' milliseconds",
                     (System.currentTimeMillis() - startUpdateDBMark));
@@ -1540,16 +1493,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
-    public String getLastCommitId(String siteId) {
-        return siteFeedMapper.getLastCommitId(siteId);
-    }
-
-    @Override
-    public String getLastVerifiedGitlogCommitId(String siteId) {
-        return siteFeedMapper.getLastVerifiedGitlogCommitId(siteId);
-    }
-
-    @Override
     public List<String> getAllCreatedSites() {
         return siteFeedMapper.getAllCreatedSites(STATE_READY);
     }
@@ -1574,26 +1517,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setPublishedRepoCreated(siteId));
     }
 
-    @Override
-    public String getLastSyncedGitlogCommitId(String siteId) {
-        return siteFeedMapper.getLastSyncedGitlogCommitId(siteId);
-    }
-
     public List<String> getDefaultGroups() {
         return Arrays.asList(studioConfiguration.getProperty(CONFIGURATION_DEFAULT_GROUPS).split(","));
-    }
-
-    @Override
-    public boolean checkSiteUuid(final String siteId, final String siteUuid) {
-        try {
-            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
-                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
-            return Files.readAllLines(path).stream()
-                    .anyMatch(siteUuid::equals);
-        } catch (IOException e) {
-            logger.info("Invalid site UUID in site '{}'", siteId);
-            return false;
-        }
     }
 
     @Override
@@ -1627,10 +1552,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setRebuildRepositoryMetadata(RebuildRepositoryMetadata rebuildRepositoryMetadata) {
         this.rebuildRepositoryMetadata = rebuildRepositoryMetadata;
-    }
-
-    public void setSyncDatabaseWithRepository(SyncDatabaseWithRepository syncDatabaseWithRepository) {
-        this.syncDatabaseWithRepository = syncDatabaseWithRepository;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

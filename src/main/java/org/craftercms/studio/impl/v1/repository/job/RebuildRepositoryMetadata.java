@@ -129,13 +129,6 @@ public class RebuildRepositoryMetadata {
             logger.error("Failed to delete the item data for site '{}'", site, e);
         }
 
-        try {
-            logger.debug("Delete the git log data for site '{}'", site);
-            contentRepository.deleteGitLogForSite(site);
-        } catch (Exception e) {
-            logger.error("Failed to delete the git log data for site '{}'", site, e);
-        }
-
         return true;
     }
 

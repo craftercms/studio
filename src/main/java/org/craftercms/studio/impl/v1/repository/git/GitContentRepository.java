@@ -106,7 +106,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ServletContext ctx;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
-    protected GitLogDAO gitLogDao;
     protected RemoteRepositoryDAO remoteRepositoryDAO;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
@@ -1007,44 +1006,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public void insertFullGitLog(String siteId, int processed) {
-        List<GitLog> gitLogs = new ArrayList<>();
-        String gitLockKey = helper.getSandboxRepoLockKey(siteId);
-        Repository repo = helper.getRepository(siteId, SANDBOX);
-        generalLockService.lock(gitLockKey);
-
-        try (Git git = new Git(repo)) {
-            LogCommand logCommand = git.log();
-            Iterable<RevCommit> logs = retryingRepositoryOperationFacade.call(logCommand);
-            for (RevCommit rev : logs) {
-                GitLog gitLog = new GitLog();
-                gitLog.setCommitId(rev.getId().getName());
-                gitLog.setProcessed(processed);
-                gitLog.setSiteId(siteId);
-                gitLogs.add(gitLog);
-            }
-        } catch (GitAPIException e) {
-            logger.error("Failed to get the full git log from site '{}'", siteId, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        params.put("gitLogs", gitLogs);
-        params.put("processed", 1);
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertGitLogList(params));
-    }
-
-
-    @Override
-    public void deleteGitLogForSite(String siteId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.deleteGitLogForSite(params));
-    }
-
-    @Override
     public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
@@ -1500,14 +1461,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public GitLogDAO getGitLogDao() {
-        return gitLogDao;
-    }
-
-    public void setGitLogDao(GitLogDAO gitLogDao) {
-        this.gitLogDao = gitLogDao;
     }
 
     public RemoteRepositoryDAO getRemoteRepositoryDAO() {

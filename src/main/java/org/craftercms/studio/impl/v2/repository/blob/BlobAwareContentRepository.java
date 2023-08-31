@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
@@ -49,7 +48,6 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.impl.v1.repository.git.GitContentRepository;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -486,16 +484,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void insertFullGitLog(String siteId, int processed) {
-        localRepositoryV1.insertFullGitLog(siteId, processed);
-    }
-
-    @Override
-    public void deleteGitLogForSite(String siteId) {
-        localRepositoryV1.deleteGitLogForSite(siteId);
-    }
-
-    @Override
     public boolean addRemote(String siteId, String remoteName, String remoteUrl, String authenticationType,
                              String remoteUsername, String remotePassword, String remoteToken, String remotePrivateKey)
             throws InvalidRemoteUrlException, ServiceLayerException {
@@ -615,26 +603,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public GitLog getGitLog(String siteId, String commitId) {
-        return localRepositoryV2.getGitLog(siteId, commitId);
-    }
-
-    @Override
-    public void markGitLogVerifiedProcessed(String siteId, String commitId) {
-        localRepositoryV2.markGitLogVerifiedProcessed(siteId, commitId);
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed) {
-        localRepositoryV2.insertGitLog(siteId, commitId, processed);
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed, int audited) {
-        localRepositoryV2.insertGitLog(siteId, commitId, processed, audited);
-    }
-
-    @Override
     public List<String> getSubtreeItems(String site, String path) {
         return localRepositoryV2.getSubtreeItems(site, path).stream()
                 .map(this::getOriginalPath)
@@ -683,39 +651,9 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void markGitLogAudited(String siteId, String commitId) {
-        localRepositoryV2.markGitLogAudited(siteId, commitId);
-    }
-
-    @Override
-    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
-        localRepositoryV2.updateGitlog(siteId, lastProcessedCommitId, batchSize);
-    }
-
-    @Override
-    public List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
-        return localRepositoryV2.getUnauditedCommits(siteId, batchSize);
-    }
-
-    @Override
-    public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        return localRepositoryV2.getUnprocessedCommits(siteId, marker);
-    }
-
-    @Override
     public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
                                                                  String environment, String path) {
         return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
-    }
-
-    @Override
-    public int countUnprocessedCommits(String siteId, long marker) {
-        return localRepositoryV2.countUnprocessedCommits(siteId, marker);
-    }
-
-    @Override
-    public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        localRepositoryV2.markGitLogProcessedBeforeMarker(siteId, marker, processed);
     }
 
     @Override
@@ -726,11 +664,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public void itemUnlock(String site, String path) {
         localRepositoryV2.itemUnlock(site, path);
-    }
-
-    @Override
-    public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
-        localRepositoryV2.upsertGitLogList(siteId, commitIds, processed, audited);
     }
 
     @Override
@@ -847,8 +780,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void populateGitLog(String siteId) throws GitAPIException, IOException {
-        localRepositoryV2.populateGitLog(siteId);
+    public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
+        return localRepositoryV2.getCommitIdsBetween(siteId, commitFrom, commitTo);
     }
-
 }

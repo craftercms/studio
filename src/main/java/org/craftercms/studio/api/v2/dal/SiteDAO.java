@@ -66,4 +66,8 @@ public interface SiteDAO {
      * @return the {@link Site} object
      */
     Site getSite(@Param(SITE_ID) String siteId);
+
+    String getLastCommitId(@Param(SITE_ID) String siteId);
+
+    void updateLastCommitId(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String commitId);
 }

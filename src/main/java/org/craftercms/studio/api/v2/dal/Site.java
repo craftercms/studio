@@ -33,13 +33,11 @@ public class Site {
     protected String lastCommitId;
     protected int publishingEnabled;
     protected String publishingStatus;
-    protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
     protected int publishedRepoCreated;
     protected String publishingLockOwner;
     protected ZonedDateTime publishingLockHeartbeat;
     protected String state;
-    protected String lastSyncedGitlogCommitId;
 
     public long getId() {
         return id;
@@ -113,14 +111,6 @@ public class Site {
         this.publishingStatus = publishingStatus;
     }
 
-    public String getLastVerifiedGitlogCommitId() {
-        return lastVerifiedGitlogCommitId;
-    }
-
-    public void setLastVerifiedGitlogCommitId(String lastVerifiedGitlogCommitId) {
-        this.lastVerifiedGitlogCommitId = lastVerifiedGitlogCommitId;
-    }
-
     public String getSandboxBranch() {
         return sandboxBranch;
     }
@@ -175,13 +165,5 @@ public class Site {
 
     public void setState(String state) {
         this.state = state;
-    }
-
-    public String getLastSyncedGitlogCommitId() {
-        return lastSyncedGitlogCommitId;
-    }
-
-    public void setLastSyncedGitlogCommitId(String lastSyncedGitlogCommitId) {
-        this.lastSyncedGitlogCommitId = lastSyncedGitlogCommitId;
     }
 }

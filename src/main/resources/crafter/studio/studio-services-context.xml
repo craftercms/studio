@@ -59,7 +59,7 @@
         <property name="securityService" ref="cstudioSecurityService" />
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="dmContentLifeCycleService" ref="cstudioContentLifeCycleService"/>
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
+        <property name="siteService" ref="sitesService" />
         <property name="contentItemIdGenerator" ref="cstudioContentIdGenerator" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="dependencyDiffService" ref="cstudioDependencyDiffService" />
@@ -72,6 +72,7 @@
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <property name="contentServiceV2" ref="contentService"/>
+        <property name="generalLockService" ref="cstudioGeneralLockService" />
     </bean>
 
     <bean id="studioDependencyService" class="org.craftercms.studio.impl.v1.service.dependency.DependencyServiceImpl">
@@ -104,7 +105,6 @@
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="dmPageNavigationOrderService" ref="cstudioPageNavOrderService"/>
         <property name="rebuildRepositoryMetadata" ref="studioRebuildRepositoryMetadata"/>
-        <property name="syncDatabaseWithRepository" ref="studioSyncDatabaseWithRepository" />
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="deployer" ref="allDeployers"/>
         <property name="entitlementValidator" ref="crafter.entitlementValidator"/>
@@ -452,7 +452,6 @@
         <constructor-arg name="sitesServiceInternal" ref="sitesServiceInternal"/>
         <constructor-arg name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <constructor-arg name="contentRepository" ref="contentRepository" />
-        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
     </bean>
 
     <bean id="pluginDescriptorReader" class="org.craftercms.commons.plugin.impl.PluginDescriptorReaderImpl"/>
@@ -762,7 +761,6 @@
                value-type="org.craftercms.studio.api.v2.job.SiteJob">
         <ref bean="studio.clockSyncRepositoryTask" />
         <ref bean="studio.clockPublisherTask" />
-        <ref bean="studio.clockAuditLogProcessingTask" />
     </util:list>
 
     <bean id="studio.clockTaskBase" abstract="true" class="org.craftercms.studio.impl.v2.job.StudioClockTask">
@@ -774,6 +772,11 @@
     <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask" parent="studio.clockTaskBase">
         <property name="executeEveryNCycles"
                          value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
+        <constructor-arg name="sitesService" ref="sitesServiceInternal" />
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
+        <constructor-arg name="siteDao" ref="siteDao" />
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" parent="studio.clockTaskBase">
@@ -788,17 +791,6 @@
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal"/>
-    </bean>
-
-    <bean id="studio.clockAuditLogProcessingTask" class="org.craftercms.studio.impl.v2.job.StudioAuditLogProcessingTask" parent="studio.clockTaskBase">
-        <property name="executeEveryNCycles"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_EXECUTE_EVERY_N_CYCLES)}" />
-        <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="batchSizeGitLog"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
-        <property name="batchSizeAudited"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED)}" />
-        <property name="contentService" ref="cstudioContentService" />
     </bean>
 
     <util:list id="crafter.jobTriggers">
@@ -882,9 +874,7 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
-        <property name="gitLogDao" ref="gitLogDao" />
         <property name="securityService" ref="cstudioSecurityService" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
@@ -895,7 +885,6 @@
 
     <bean id="gitContentRepositoryV2" class="org.craftercms.studio.impl.v2.repository.GitContentRepository">
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="gitLogDao" ref="gitLogDao" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
         <property name="encryptor" ref="internalTextEncryptor"/>
@@ -912,7 +901,6 @@
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="scriptRunnerFactory" ref="studio.dbScriptRunner"/>
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
     </bean>
 
     <bean id="studio.gitCli" class="org.craftercms.studio.impl.v2.utils.git.GitCli">
@@ -1348,11 +1336,6 @@
         <property name="publishRequestMapper" ref="publishRequestMapper" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
-    </bean>
-
-    <bean id="studioSyncDatabaseWithRepository" class="org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository">
-        <property name="siteService" ref="cstudioSiteServiceSimple"/>
-        <property name="taskExecutor" ref="studioTaskExecutor" />
     </bean>
 
     <bean id="studioTaskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" destroy-method="shutdown">

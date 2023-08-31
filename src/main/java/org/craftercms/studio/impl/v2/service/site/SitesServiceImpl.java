@@ -27,6 +27,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -47,15 +48,13 @@ public class SitesServiceImpl implements SitesService {
     private final SitesService sitesServiceInternal;
     private final PublishingProgressServiceInternal publishingProgressServiceInternal;
     private final ContentRepository contentRepository;
-    private final SiteService siteService;
 
-    @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository", "siteService"})
+    @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository"})
     public SitesServiceImpl(final SitesService sitesServiceInternal, final PublishingProgressServiceInternal publishingProgressServiceInternal,
-                            final ContentRepository contentRepository, final SiteService siteService) {
+                            final ContentRepository contentRepository) {
         this.sitesServiceInternal = sitesServiceInternal;
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
         this.contentRepository = contentRepository;
-        this.siteService = siteService;
     }
 
     @Override
@@ -86,7 +85,7 @@ public class SitesServiceImpl implements SitesService {
         if (isBlank(name) && isBlank(description)) {
             throw new InvalidParametersException("The request needs to include a name or a description");
         }
-        siteService.checkSiteExists(siteId);
+        checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
     }
 
@@ -106,7 +105,7 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
     public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
+        checkSiteExists(siteId);
         PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
         PublishingProgressObserver publishingProgressObserver =
                 publishingProgressServiceInternal.getPublishingProgress(siteId);
@@ -124,7 +123,7 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
     public void clearPublishingLock(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
+        checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 
@@ -137,5 +136,15 @@ public class SitesServiceImpl implements SitesService {
     @Override
     public void checkSiteState(final String siteId, final String state) throws InvalidSiteStateException, SiteNotFoundException {
         sitesServiceInternal.checkSiteState(siteId, state);
+    }
+
+    @Override
+    public Site getSite(String siteId) {
+        return sitesServiceInternal.getSite(siteId);
+    }
+
+    @Override
+    public boolean checkSiteUuid(String siteId, String siteUuid) {
+        return sitesServiceInternal.checkSiteUuid(siteId, siteUuid);
     }
 }

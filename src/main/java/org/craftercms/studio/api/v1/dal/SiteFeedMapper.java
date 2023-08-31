@@ -79,10 +79,6 @@ public interface SiteFeedMapper {
      */
     void updatePublishingStatus(@Param(SITE_ID) String siteId, @Param(PUBLISHING_STATUS) String status);
 
-    void updateLastVerifiedGitlogCommitId(Map params);
-
-    void updateLastSyncedGitlogCommitId(Map params);
-
     List<SiteFeed> getDeletedSites();
 
     /**
@@ -100,27 +96,6 @@ public interface SiteFeedMapper {
      * @return the number of changed rows
      */
     int updateSite(@Param(SITE_ID) String siteId, @Param(NAME) String name, @Param(DESC) String description);
-
-    /**
-     * Get last commit id for local studio node
-     * @param siteId site identifier
-     * @return commit id
-     */
-    String getLastCommitId(@Param(SITE_ID) String siteId);
-
-    /**
-     * Get last verified  git log commit id for local studio node
-     * @param siteId site identifier
-     * @return commit id
-     */
-    String getLastVerifiedGitlogCommitId(@Param(SITE_ID) String siteId);
-
-    /**
-     * Get last verified  git log commit id for local studio node
-     * @param siteId site identifier
-     * @return commit id
-     */
-    String getLastSyncedGitlogCommitId(@Param(SITE_ID) String siteId);
 
     void setSiteState(@Param(SITE_ID) String siteId, @Param(STATE) String state);
 

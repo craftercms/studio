@@ -490,10 +490,4 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public void populateGitLog(String siteId) {
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
 }

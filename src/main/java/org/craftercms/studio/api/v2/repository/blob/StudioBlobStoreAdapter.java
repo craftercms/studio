@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -59,6 +58,11 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     @Override
     default List<ItemVersion> getContentItemHistory(String site, String path) {
         // TODO: Segregate the interfaces properly
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    default List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) {
         throw new UnsupportedOperationException();
     }
 
@@ -166,18 +170,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void insertFullGitLog(String siteId, int processed) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void deleteGitLogForSite(String siteId) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default boolean createSiteCloneRemote(String siteId, String sandboxBranch, String remoteName, String remoteUrl,
                                           String remoteBranch, boolean singleBranch, String authenticationType,
                                           String remoteUsername, String remotePassword, String remoteToken,
@@ -258,30 +250,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default GitLog getGitLog(String siteId, String commitId) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void markGitLogVerifiedProcessed(String siteId, String commitId) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void insertGitLog(String siteId, String commitId, int processed) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void insertGitLog(String siteId, String commitId, int processed, int audited) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default List<PublishingHistoryItem> getPublishingHistory(String siteId, String environment, String path,
                                                              String publisher, ZonedDateTime fromDate, ZonedDateTime toDate,
                                                              int limit) {
@@ -308,43 +276,8 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
     }
 
     @Override
-    default void markGitLogAudited(String siteId, String commitId) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     default DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
                                                                  String environment, String path) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default int countUnprocessedCommits(String siteId, long marker) {
-        // This should be handled by the local repository
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
         throw new UnsupportedOperationException();
     }
 
@@ -355,11 +288,6 @@ public interface StudioBlobStoreAdapter extends StudioBlobStore {
 
     @Override
     default void itemUnlock(String site, String path) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    default void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
         throw new UnsupportedOperationException();
     }
 

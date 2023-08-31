@@ -27,17 +27,13 @@
         <result property="name" column="name"/>
         <result property="description" column="description"/>
         <result property="deleted" column="deleted" javaType="Integer" jdbcType="INTEGER"/>
-        <result property="lastCommitId" column="last_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="publishingEnabled" column="publishing_enabled" javaType="Integer" jdbcType="INTEGER"/>
         <result property="publishingStatus" column="publishing_status" jdbcType="VARCHAR" javaType="String"/>
-        <result property="lastVerifiedGitlogCommitId" column="last_verified_gitlog_commit_id" jdbcType="VARCHAR" javaType="String"/>
         <result property="sandboxBranch" column="sandbox_branch"/>
         <result property="publishedRepoCreated" column="published_repo_created" javaType="Integer" jdbcType="INTEGER" />
         <result property="publishingLockOwner" column="publishing_lock_owner" />
         <result property="publishingLockHeartbeat" column="publishing_lock_heartbeat" />
         <result property="state" column="state" />
-        <result property="lastSyncedGitlogCommitId" column="last_synced_gitlog_commit_id" jdbcType="VARCHAR"
-                javaType="String"/>
     </resultMap>
 
     <resultMap id="PublishStatusMap" type="org.craftercms.studio.api.v2.dal.PublishStatus">
@@ -55,10 +51,7 @@
         <parameter property="name" jdbcType="VARCHAR"/>
         <parameter property="description" jdbcType="VARCHAR"/>
         <parameter property="deleted" jdbcType="INTEGER"/>
-        <parameter property="lastCommitId" jdbcType="VARCHAR"/>
         <parameter property="publishingEnabled" jdbcType="INTEGER"/>
-        <parameter property="lastVerifiedGitlogCommitId" jdbcType="VARCHAR" />
-        <parameter property="lastSyncedGitlogCommitId" jdbcType="VARCHAR" />
         <parameter property="sandboxBranch" jdbcType="VARCHAR"/>
         <parameter property="publishedRepoCreated" jdbcType="INTEGER" />
         <parameter property="publishingLockOwner" jdbcType="VARCHAR" />
@@ -92,24 +85,6 @@
     <update id="updateLastCommitId" parameterType="java.util.Map">
         UPDATE site SET last_commit_id = #{lastCommitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
-
-    <select id="getLastCommitId" resultType="java.lang.String">
-        SELECT s.last_commit_id
-        FROM site s
-        WHERE s.site_id = #{siteId} AND s.deleted = 0
-    </select>
-
-    <select id="getLastVerifiedGitlogCommitId" resultType="java.lang.String">
-        SELECT s.last_verified_gitlog_commit_id
-        FROM site s
-        WHERE s.site_id = #{siteId} AND s.deleted = 0
-    </select>
-
-    <select id="getLastSyncedGitlogCommitId" resultType="java.lang.String">
-        SELECT s.last_synced_gitlog_commit_id
-        FROM site s
-        WHERE s.site_id = #{siteId} AND s.deleted = 0
-    </select>
 
     <select id="exists" parameterType="java.lang.String" resultType="int">
         SELECT count(1) FROM site WHERE site_id = #{siteId} AND deleted = 0
@@ -164,14 +139,6 @@
     <update id="updatePublishingStatus" parameterType="java.util.Map">
         UPDATE site SET publishing_status = #{publishingStatus}
         WHERE site_id = #{siteId} AND deleted = 0
-    </update>
-
-    <update id="updateLastVerifiedGitlogCommitId" parameterType="java.util.Map">
-        UPDATE site SET last_verified_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId} AND deleted = 0
-    </update>
-
-    <update id="updateLastSyncedGitlogCommitId" parameterType="java.util.Map">
-        UPDATE site SET last_synced_gitlog_commit_id = #{commitId} WHERE site_id = #{siteId} AND deleted = 0
     </update>
 
     <select id="getDeletedSites" resultMap="SiteFeedMap">

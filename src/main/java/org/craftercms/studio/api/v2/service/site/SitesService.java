@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 
@@ -96,6 +97,15 @@ public interface SitesService {
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
     /**
+     * Checks if the currently existent site with the given ID also has the same siteUuid.
+     *
+     * @param siteId   ID of the site to test
+     * @param siteUuid site UUID
+     * @return true if the site UUID file exists and contains the same siteUUID value, false otherwise
+     */
+    boolean checkSiteUuid(String siteId, String siteUuid);
+
+    /**
      * Enables/disables publishing for the given site
      * @param siteId the site id
      * @param enabled true to enable publishing, false to disable
@@ -132,4 +142,11 @@ public interface SitesService {
      * @throws SiteNotFoundException if the site doesn't exist
      */
     void checkSiteState(String siteId, String state) throws InvalidSiteStateException, SiteNotFoundException;
+
+    /**
+     * Get a site object from DB
+     * @param siteId site id
+     * @return site object
+     */
+    Site getSite(String siteId);
 }

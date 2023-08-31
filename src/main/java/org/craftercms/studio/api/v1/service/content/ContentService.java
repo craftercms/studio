@@ -353,9 +353,6 @@ public interface ContentService {
 
     String getContentTypeClass(String site, String uri);
 
-    ResultTO processContent(String id, InputStream input, boolean isXml, Map<String, String> params,
-                            String contentChainForm) throws ServiceLayerException, UserNotFoundException;
-
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
     void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;

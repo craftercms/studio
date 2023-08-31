@@ -17,7 +17,6 @@
 package org.craftercms.studio.impl.v2.repository;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NotFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
@@ -31,7 +30,6 @@ import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.constant.GitRepositories;
 import org.craftercms.studio.api.v1.dal.PublishRequest;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -57,7 +55,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.impl.v2.utils.RingBuffer;
 import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
@@ -67,6 +64,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
 import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.errors.StopWalkException;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
 import org.eclipse.jgit.revwalk.*;
@@ -77,7 +75,6 @@ import org.eclipse.jgit.treewalk.filter.PathFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
-import org.springframework.dao.DuplicateKeyException;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -95,7 +92,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
@@ -104,15 +100,14 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
-import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.insertGitLogRow;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
-import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.*;
 import static org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode.TRACK;
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.*;
 import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 import static org.eclipse.jgit.revwalk.RevSort.REVERSE;
+import static org.eclipse.jgit.revwalk.RevSort.TOPO_KEEP_BRANCH_TOGETHER;
 
 public class GitContentRepository implements ContentRepository {
 
@@ -120,7 +115,6 @@ public class GitContentRepository implements ContentRepository {
 
     private GitRepositoryHelper helper;
     private StudioConfiguration studioConfiguration;
-    private GitLogDAO gitLogDao;
     private UserServiceInternal userServiceInternal;
     private RemoteRepositoryDAO remoteRepositoryDAO;
     private TextEncryptor encryptor;
@@ -134,7 +128,6 @@ public class GitContentRepository implements ContentRepository {
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
-    private SiteFeedMapper siteFeedMapper;
 
     private ServicesConfig servicesConfig;
 
@@ -431,59 +424,6 @@ public class GitContentRepository implements ContentRepository {
                     size, ((System.currentTimeMillis() - startMark) / 1000));
         }
         return toReturn;
-    }
-
-    @Override
-    public GitLog getGitLog(String siteId, String commitId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        params.put("commitId", commitId);
-        return gitLogDao.getGitLog(params);
-    }
-
-    @Override
-    public void markGitLogVerifiedProcessed(String siteId, String commitId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        params.put("commitId", commitId);
-        params.put("processed", 1);
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessed(params));
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed) {
-        String lockKey = "GitLogLock:" + siteId;
-        generalLockService.lock(lockKey);
-        try {
-            insertGitLog(siteId, commitId, processed, 0);
-        } finally {
-            generalLockService.unlock(lockKey);
-        }
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed, int audited) {
-        String lockKey = "GitLogLock";
-        generalLockService.lock(lockKey);
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        params.put("commitId", commitId);
-        params.put("processed", processed);
-        params.put("audited", audited);
-        try {
-            retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertGitLog(params));
-        } catch (DuplicateKeyException e) {
-            logger.debug("Failed to insert commit id '{}' in site '{}' into" +
-                    " the gitlog table, because it's a duplicate entry. Marking it as unprocessed so it can be" +
-                    " processed by the sync database task.", commitId, siteId);
-            HashMap<String,Object> markLogProcessedParams = new HashMap<>();
-            markLogProcessedParams.put("siteId", siteId);
-            markLogProcessedParams.put("commitId", commitId);
-            markLogProcessedParams.put("processed", 0);
-            retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessed(markLogProcessedParams));
-        } finally {
-            generalLockService.unlock(lockKey);
-        }
     }
 
     @Override
@@ -1375,96 +1315,6 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void markGitLogAudited(String siteId, String commitId) {
-        // TODO: SJ: Refactor to not use string literals
-        String lockKey = "GitLogLock:" + siteId;
-        generalLockService.lock(lockKey);
-        try {
-            retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogAudited(siteId, commitId, 1));
-        } finally {
-            generalLockService.unlock(lockKey);
-        }
-    }
-
-    @Override
-    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
-        RingBuffer<RevCommit> commitIds = new RingBuffer<>(batchSize);
-        Repository repository = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
-        if (repository != null) {
-            // TODO: SJ: Refactor to not use string literals
-            String lockKey = "GitLogLock" + siteId;
-            generalLockService.lock(lockKey);
-            try {
-                ObjectId objCommitIdFrom = repository.resolve(lastProcessedCommitId);
-                ObjectId objCommitIdTo = repository.resolve(HEAD);
-
-                logger.debug("Update the git log in site '{}' from commit ID '{}' to commit ID '{}'",
-                            siteId, objCommitIdFrom.getName(), objCommitIdTo.getName());
-                try (Git git = new Git(repository)) {
-                    // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                    // let's do it
-                    if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                        // Get the log of all the commits between commitId and head
-                        LogCommand logCommand = git.log();
-                        Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-                        ObjectId nextCommitId;
-                        String commitId;
-
-                        for (RevCommit commit : commits) {
-                            if (StringUtils.equals(commit.getId().getName(), lastProcessedCommitId)) {
-                                break;
-                            }
-                            commitIds.write(commit);
-                        }
-
-                        List<String> batch = new ArrayList<>();
-                        RevCommit current = commitIds.read();
-                        String commitMessage = studioConfiguration.getProperty(REPO_SYNC_DB_COMMIT_MESSAGE_NO_PROCESSING);
-                        while (current != null) {
-                            nextCommitId = current.getId();
-                            commitId = nextCommitId.getName();
-                            if (StringUtils.contains(current.getFullMessage(), commitMessage)) {
-                                logger.debug("Skip the processing of commit ID '{}' in site '{}' because it's " +
-                                        "marked not to be processed", commitId, siteId);
-                            } else {
-                                batch.add(0, commitId);
-                            }
-                            current = commitIds.read();
-                        }
-
-                        if (batch.size() > 0) {
-                            retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertIgnoreGitLogList(siteId, batch));
-                            siteService.updateLastSyncedGitlogCommitId(siteId, batch.get(batch.size() - 1));
-                            logger.debug("Inserted '{}' git commits into the git log table for site '{}'",
-                                    batch.size(), siteId);
-                        } else {
-                            siteService.updateLastSyncedGitlogCommitId(siteId, objCommitIdTo.getName());
-                        }
-                    }
-                } catch (GitAPIException e) {
-                    logger.error("Failed to get the commit IDs in site '{}' from commit ID '{}' to HEAD",
-                            siteId, lastProcessedCommitId, e);
-                }
-            } catch (IOException e) {
-                logger.error("Failed to get the commit IDs in site '{}' from commit ID '{}' to HEAD",
-                        siteId, lastProcessedCommitId, e);
-            } finally {
-                generalLockService.unlock(lockKey);
-            }
-        }
-    }
-
-    @Override
-    public List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
-        return gitLogDao.getUnauditedCommits(siteId, batchSize);
-    }
-
-    @Override
-    public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        return gitLogDao.getUnprocessedCommitsSinceMarker(siteId, marker);
-    }
-
-    @Override
     public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repoType,
                                                                  String environment, String path) {
         DetailedItem.Environment environmentData = new DetailedItem.Environment();
@@ -1528,16 +1378,6 @@ public class GitContentRepository implements ContentRepository {
             environment.setDateScheduled(publishRequestDao.getScheduledDateForEnvironment(siteId, path, branch,
                     PublishRequest.State.READY_FOR_LIVE, DateUtils.getCurrentTime()));
         }
-    }
-
-    @Override
-    public int countUnprocessedCommits(String siteId, long marker) {
-        return gitLogDao.countUnprocessedCommitsSinceMarker(siteId, marker);
-    }
-
-    @Override
-    public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.markGitLogProcessedBeforeMarker(siteId, marker, processed, 0));
     }
 
     @Override
@@ -1625,11 +1465,6 @@ public class GitContentRepository implements ContentRepository {
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-    }
-
-    @Override
-    public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.upsertGitLogList(siteId, commitIds, processed ? 1 : 0, audited ? 1 : 0));
     }
 
     @Override
@@ -1875,29 +1710,6 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public void populateGitLog(String siteId) throws GitAPIException, IOException {
-        String repoLockKey = helper.getSandboxRepoLockKey(siteId);
-        Path script  = Files.createTempFile(getStudioTemporaryFilesRoot(), "studio-gitlog-", SQL_SCRIPT_SUFFIX);
-        Repository repo = helper.getRepository(siteId, SANDBOX);
-        generalLockService.lock(repoLockKey);
-        try (Git git = Git.wrap(repo)) {
-            Iterable<RevCommit> gitLog = git.log().call();
-            Iterator<RevCommit> commits = gitLog.iterator();
-            StudioDBScriptRunner scriptRunner = scriptRunnerFactory.getDBScriptRunner();
-            RevCommit commit;
-            while (commits.hasNext()) {
-                commit = commits.next();
-                String sql = insertGitLogRow(siteId, commit.getName(), true, !commits.hasNext());
-                Files.writeString(script, sql, APPEND);
-            }
-            scriptRunner.execute(script.toFile());
-        } finally {
-            Files.deleteIfExists(script);
-            generalLockService.unlock(repoLockKey);
-        }
-    }
-
-    @Override
     public List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException {
         List<ItemVersion> versionHistory = new ArrayList<>();
         final String gitPath = helper.getGitPath(path);
@@ -1944,16 +1756,49 @@ public class GitContentRepository implements ContentRepository {
         return versionHistory;
     }
 
+    @Override
+    public List<String> getCommitIdsBetween(final String site, final String commitFrom, final String commitTo) throws IOException {
+        List<String> result = new ArrayList<>();
+        String repoLockKey = helper.getSandboxRepoLockKey(site);
+        Repository repo = helper.getRepository(site, SANDBOX);
+        generalLockService.lock(repoLockKey);
+        try (Git git = Git.wrap(repo)) {
+            // git log --first-parent --reverse commitFrom..commitTo
+            RevWalk revWalk = new RevWalk(git.getRepository());
+            revWalk.setFirstParent(true);
+            revWalk.markStart(revWalk.parseCommit(repo.resolve(commitTo)));
+            revWalk.setRevFilter(new RevFilter() {
+                @Override
+                public boolean include(RevWalk walker, RevCommit commit) throws StopWalkException {
+                    if (!commit.getName().equals(commitFrom)) {
+                        return true;
+                    }
+                    throw StopWalkException.INSTANCE;
+                }
+
+                @Override
+                public RevFilter clone() {
+                    return this;
+                }
+            });
+            revWalk.sort(TOPO_KEEP_BRANCH_TOGETHER);
+            revWalk.sort(REVERSE, true);
+
+            for (RevCommit revCommit : revWalk) {
+                result.add(revCommit.getName());
+            }
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+        return result;
+    }
+
     public void setHelper(GitRepositoryHelper helper) {
         this.helper = helper;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setGitLogDao(GitLogDAO gitLogDao) {
-        this.gitLogDao = gitLogDao;
     }
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
@@ -2006,10 +1851,6 @@ public class GitContentRepository implements ContentRepository {
 
     public void setPublishingProgressServiceInternal(PublishingProgressServiceInternal publishingProgressServiceInternal) {
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
-    }
-
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

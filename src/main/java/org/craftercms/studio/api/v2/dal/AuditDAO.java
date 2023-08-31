@@ -27,10 +27,6 @@ import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 
 public interface AuditDAO {
 
-    List<AuditLog> getAuditLogForSite(Map params);
-
-    int getAuditLogForSiteTotal(Map params);
-
     List<AuditLog> getAuditLog(Map params);
 
     int getAuditLogTotal(Map params);
@@ -44,20 +40,6 @@ public interface AuditDAO {
     List<AuditLog> selectUserFeedEntriesHideLive(Map params);
 
     List<AuditLog> selectUserFeedEntries(Map params);
-
-    /**
-     * Get total number of records for audit dashboard
-     * @param params SQL query parameters
-     * @return total number of records
-     */
-    int getAuditDashboardTotal(Map params);
-
-    /**
-     * Get records for audit dashboard content
-     * @param params SQL query parameters
-     * @return records for audit dashboard
-     */
-    List<AuditLog> getAuditDashboard(Map params);
 
     /**
      * Delete audit log for site
@@ -78,4 +60,6 @@ public interface AuditDAO {
      * @return the {@link Person} author or the commit, if found, null otherwise.
      */
     Person getCommitAuthor(@Param(COMMIT_ID) String commitId);
+
+    List<String> getAuditedCommitsAfter(@Param(SITE_ID) String siteId, @Param(COMMIT_ID) String lastProcessedCommit);
 }
