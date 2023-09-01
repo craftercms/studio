@@ -774,8 +774,6 @@
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
-        <constructor-arg name="configurationPatterns"
-                         value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <constructor-arg name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
         <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
         <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>

@@ -246,7 +246,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                         taskExecutor.execute(() -> {
                                     try {
                                         processFolder(siteName, FILE_SEPARATOR + pathString,
-                                                ObjectId.toString(commit), nameString);
+                                                nameString);
                                     } catch (IOException e) {
                                         logger.error("Failed to process file '{}' in site '{}'", pathString,
                                                 siteName, e);
@@ -262,7 +262,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
                             taskExecutor.execute(() -> {
                                 try {
                                     processFile(siteName, FILE_SEPARATOR + pathString,
-                                            ObjectId.toString(commit), nameString);
+                                            nameString);
                                 } catch (DocumentException | IOException e) {
                                     logger.error("Failed to process file '{}' in site '{}'", pathString,
                                             siteName, e);
@@ -281,7 +281,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         return gitRepositoryHelper.getRepository(site, GitRepositories.SANDBOX);
     }
 
-    private void processFolder(String site, String path, String commitId,
+    private void processFolder(String site, String path,
                                String name) throws IOException {
         logger.debug("Process the folder '{}' in site '{}'", path, site);
         File folder = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
@@ -296,7 +296,7 @@ public final class PopulateItemTableUpgradeOperation extends DbScriptUpgradeOper
         itemServiceInternal.upsertEntry(item);
     }
 
-    private void processFile(String site, String path, String commitId,
+    private void processFile(String site, String path,
                              String name) throws DocumentException, IOException {
         logger.debug("Process the file '{}' in site '{}'", path, site);
         File file = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),

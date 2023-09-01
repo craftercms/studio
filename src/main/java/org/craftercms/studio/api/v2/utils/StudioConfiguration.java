@@ -151,6 +151,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_PUBLISHING_BLACKLIST_REGEX = "studio.configuration.publishing.blacklist.regex";
     String CONFIGURATION_DEFAULT_TIME_ZONE = "studio.configuration.defaultTimeZone";
 
+    String CONFIGURATION_PATH_PATTERNS = "studio.configuration.cache.site.patterns";
+
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
     String IMPORT_XML_CHAIN_NAME = "studio.import.xmlChainName";

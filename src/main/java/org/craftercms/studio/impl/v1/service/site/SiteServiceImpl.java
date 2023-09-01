@@ -281,7 +281,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                 logger.debug("Add audit log to site '{}'", siteName);
                 insertCreateSiteAuditLog(siteId, siteName, blueprintId, creator);
 
-                processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+                processCreatedFiles(siteId, createdFiles, creator, now);
 
                 updateLastCommitId(siteId, lastCommitId);
 
@@ -344,7 +344,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     private void processCreatedFiles(String siteId, Map<String, String> createdFiles, String creator,
-                                     ZonedDateTime now, String lastCommitId) {
+                                     ZonedDateTime now) {
         long startProcessCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
         SiteFeed siteFeed;
         try {
@@ -408,7 +408,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                         StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
                     previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
                 }
-                processAncestors(siteFeed.getId(), path, userObj.getId(), now, lastCommitId, createdFileScriptPath);
+                processAncestors(siteFeed.getId(), path, userObj.getId(), now, createdFileScriptPath);
                 long state = NEW.value;
                 if (disabled) {
                     state = state | DISABLED.value;
@@ -421,7 +421,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                             null, userObj.getId(), now, userObj.getId(), now, null, label, contentTypeId,
                             contentService.getContentTypeClass(siteId, path),
                             StudioUtils.getMimeType(FilenameUtils.getName(path)), Locale.US.toString(), null,
-                            contentRepositoryV2.getContentSize(siteId, path), null, lastCommitId, null).getBytes(UTF_8),
+                            contentRepositoryV2.getContentSize(siteId, path), null, null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createdFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
 
@@ -451,7 +451,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         }
     }
 
-    private void processAncestors(long siteId, String path, long userId, ZonedDateTime now, String commitId,
+    private void processAncestors(long siteId, String path, long userId, ZonedDateTime now,
                                   Path createFileScriptPath) throws IOException {
         Path p = Paths.get(path);
         List<Path> parts = new LinkedList<>();
@@ -465,7 +465,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
                     currentPath = currentPath + FILE_SEPARATOR + ancestor;
                     Files.write(createFileScriptPath, insertItemRow(siteId, currentPath, null, NEW.value, null, userId
                             , now, userId, now, null, ancestor.toString(), null, CONTENT_TYPE_FOLDER, null,
-                            Locale.US.toString(), null, 0L, null, commitId, null).getBytes(UTF_8),
+                            Locale.US.toString(), null, 0L, null, null).getBytes(UTF_8),
                             StandardOpenOption.APPEND);
                     Files.write(createFileScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                 }
@@ -700,7 +700,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             addDefaultGroupsForNewSite();
 
             String lastCommitId = contentRepositoryV2.getRepoLastCommitId(siteId);
-            String firstCommitId = contentRepositoryV2.getRepoFirstCommitId(siteId);
 
             long startGetChangeSetCreatedFilesMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L ;
             Map<String, String> createdFiles =
@@ -711,7 +710,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             }
 
             insertCreateSiteAuditLog(siteId, siteId, remoteName + "/" + remoteBranch, creator);
-            processCreatedFiles(siteId, createdFiles, creator, now, lastCommitId);
+            processCreatedFiles(siteId, createdFiles, creator, now);
 
             updateLastCommitId(siteId, lastCommitId);
 
