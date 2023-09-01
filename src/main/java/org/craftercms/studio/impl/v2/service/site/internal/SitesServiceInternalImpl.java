@@ -297,6 +297,16 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     }
 
     @Override
+    public void updateLastCommitId(String siteId, String commitId) {
+        siteDao.updateLastCommitId(siteId, commitId);
+    }
+
+    @Override
+    public String getLastCommitId(String siteId) {
+        return siteDao.getLastCommitId(siteId);
+    }
+
+    @Override
     public boolean checkSiteUuid(final String siteId, final String siteUuid) {
         try {
             Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),

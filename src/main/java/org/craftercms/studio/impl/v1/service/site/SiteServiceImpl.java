@@ -16,7 +16,6 @@
 
 package org.craftercms.studio.impl.v1.service.site;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -32,7 +31,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -59,7 +57,6 @@ import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
-import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteDeletingEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
@@ -110,12 +107,12 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
-import static org.craftercms.studio.api.v2.dal.ItemState.*;
+import static org.craftercms.studio.api.v2.dal.ItemState.DISABLED;
+import static org.craftercms.studio.api.v2.dal.ItemState.NEW;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY;
 import static org.craftercms.studio.api.v2.utils.SqlStatementGeneratorUtils.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
-import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.IGNORE_FILES;
 import static org.craftercms.studio.impl.v2.utils.PluginUtils.validatePluginParameters;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_SITE;
@@ -133,7 +130,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     private final static Logger logger = LoggerFactory.getLogger(SiteServiceImpl.class);
     private final static String UPDATE_PARENT_ID_SCRIPT_PREFIX = "updateParentId_";
     private final static String CREATED_FILES_SCRIPT_PREFIX = "createdFiles_";
-    private final static String REPO_OPERATIONS_SCRIPT_PREFIX = "repoOperations_";
 
     protected Deployer deployer;
     protected ContentService contentService;
@@ -158,8 +154,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     protected SiteFeedMapper siteFeedMapper;
 
     protected EntitlementValidator entitlementValidator;
-
-    protected String[] configurationPatterns;
 
     protected StudioDBScriptRunnerFactory studioDBScriptRunnerFactory;
     protected DependencyServiceInternal dependencyServiceInternal;
@@ -890,398 +884,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     @Override
     @Valid
-    public boolean syncDatabaseWithRepo(@ValidateStringParam String site,
-                                        @ValidateStringParam String fromCommitId) {
-        // TODO: Switch to new item table instead of using old state and metadata - Dejan
-        // TODO: Remove references to old data layer - Dejan
-        long startSyncRepoMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        boolean toReturn = true;
-
-        String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
-        long startGetOperationsFromDeltaMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        List<RepoOperation> repoOperationsDelta = contentRepositoryV2.getOperationsFromDelta(site, fromCommitId,
-                repoLastCommitId);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Get Repo Operations from delta finished in '{}' milliseconds",
-                    (System.currentTimeMillis() - startGetOperationsFromDeltaMark));
-            logger.debug("The number of repo operations from delta is '{}'", repoOperationsDelta.size());
-        }
-        if (CollectionUtils.isEmpty(repoOperationsDelta)) {
-            logger.debug("The database is up to date with the repository in site '{}'", site);
-            updateLastCommitId(site, repoLastCommitId);
-            return toReturn;
-        }
-
-        logger.info("Sync the database with the repository in site '{}' starting at commit ID '{}'",
-                site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId));
-        logger.debug("The operations to sync for site '{}' are", site);
-        for (RepoOperation repoOperation : repoOperationsDelta) {
-            RepoOperation.Action action = repoOperation.getAction();
-            if (action == RepoOperation.Action.DELETE) {
-                logger.warn("\tSite '{}' Operation '{}' path '{}'",
-                        site, action, repoOperation.getPath());
-            } else if (action == RepoOperation.Action.CREATE) {
-                logger.info("\tSite '{}' Operation '{}' path '{}'",
-                        site, action, repoOperation.getPath());
-            } else {
-                logger.debug("\tSite '{}' Operation '{}' path '{}'",
-                        site, action, repoOperation.getPath());
-            }
-
-        }
-
-        long startUpdateDBMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        StudioDBScriptRunner studioDBScriptRunner = studioDBScriptRunnerFactory.getDBScriptRunner();
-        Path repoOperationsScriptPath = null;
-        Path updateParentIdScriptPath = null;
-        try {
-            Path studioTempDir = getStudioTemporaryFilesRoot();
-            String repoOperationsScriptFilename = REPO_OPERATIONS_SCRIPT_PREFIX + UUID.randomUUID();
-            repoOperationsScriptPath = Files.createTempFile(studioTempDir, repoOperationsScriptFilename, SQL_SCRIPT_SUFFIX);
-            String updateParentIdScriptFilename = UPDATE_PARENT_ID_SCRIPT_PREFIX + UUID.randomUUID();
-            updateParentIdScriptPath = Files.createTempFile(studioTempDir, updateParentIdScriptFilename, SQL_SCRIPT_SUFFIX);
-            toReturn = processRepoOperations(site, repoOperationsDelta, repoOperationsScriptPath,
-                    updateParentIdScriptPath);
-            studioDBScriptRunner.execute(repoOperationsScriptPath.toFile());
-            studioDBScriptRunner.execute(updateParentIdScriptPath.toFile());
-        } catch (IOException e) {
-            logger.error("Failed to create the database script for processing the created files in site '{}'", site);
-        } finally {
-            if (repoOperationsScriptPath != null) {
-                logger.debug("Deleting temporary file '{}'", repoOperationsScriptPath);
-                FileUtils.deleteQuietly(repoOperationsScriptPath.toFile());
-            }
-            if (updateParentIdScriptPath != null) {
-                logger.debug("Deleting temporary file '{}'", updateParentIdScriptPath);
-                FileUtils.deleteQuietly(updateParentIdScriptPath.toFile());
-            }
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Database update completed in '{}' milliseconds",
-                    (System.currentTimeMillis() - startUpdateDBMark));
-        }
-
-        // At this point we have attempted to process all operations, some may have failed
-        // We will update the lastCommitId of the database ignoring errors if any
-        logger.debug("Done syncing repo operations to the database with a result of '{}'", toReturn);
-        logger.debug("Sync the database lastCommitId for site '{}'", site);
-
-        // Update database
-        logger.debug("Update the last commit id '{}' in site '{}'", repoLastCommitId, site);
-        updateLastCommitId(site, repoLastCommitId);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Update the database finished in '{}' milliseconds",
-                    (System.currentTimeMillis() - startUpdateDBMark));
-        }
-
-        logger.info("Done syncing the database with the git repository for site '{}' starting at commit ID '{}' " +
-                "with a final result of '{}'",
-                site, (StringUtils.isEmpty(fromCommitId) ? "none (empty repo)" : fromCommitId), toReturn);
-        logger.info("The last commit ID for site '{}' is now '{}'", site, repoLastCommitId);
-
-        if (!toReturn) {
-            // Some operations failed during sync database from repo
-            // Must log and make some noise here, this isn't great
-            logger.error("Some operations failed to sync to the database for site '{}', see prior errors", site);
-        }
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Sync database from repo finished in '{}' milliseconds", (System.currentTimeMillis() - startSyncRepoMark));
-        }
-
-        // Sync all preview deployers
-        try {
-            logger.debug("Sync preview for site '{}'", site);
-            applicationContext.publishEvent(new RepositoryEvent(site));
-        } catch (Exception e) {
-            logger.error("Failed to sync preview for site '{}'", site, e);
-        }
-        return toReturn;
-    }
-
-    private boolean processRepoOperations(String siteId, List<RepoOperation> repoOperations,
-                                          Path repoOperationsScriptPath, Path updateParentIdScriptPath) throws IOException {
-        boolean toReturn = true;
-        long startProcessRepoOperationMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0L;
-        SiteFeed siteFeed;
-        try {
-            siteFeed = getSite(siteId);
-        } catch (SiteNotFoundException e) {
-            logger.error("Failed to process repo operations in site '{}'. Site not found.", siteId, e);
-            return false;
-        }
-
-        User userObj = null;
-        Map<String, User> cachedUsers = new HashMap<>();
-        try {
-            cachedUsers.put(GIT_REPO_USER_USERNAME, userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME));
-        } catch (UserNotFoundException | ServiceLayerException e) {
-            logger.error("Failed to process repo operations in site '{}'. git_repo_user should be in the the database",
-                    siteId,e);
-        }
-
-        String label;
-        String contentTypeId;
-        String previewUrl;
-        boolean disabled;
-        long state;
-        long onStateBitMap;
-        long offStateBitmap;
-        for (RepoOperation repoOperation : repoOperations) {
-            switch (repoOperation.getAction()) {
-                case CREATE:
-                case COPY:
-                    if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                        userObj = cachedUsers.get(repoOperation.getAuthor());
-                    } else {
-                        try {
-                            userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                        } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User '{}' not found while processing operations in site '{}'",
-                                    repoOperation.getAuthor(), siteId, e);
-                        }
-                    }
-                    if (Objects.isNull(userObj)) {
-                        userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                    }
-                    label = FilenameUtils.getName(repoOperation.getPath());
-                    contentTypeId = StringUtils.EMPTY;
-                    disabled = false;
-                    if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
-                        try {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
-                            if (contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
-                            }
-                        } catch (DocumentException e) {
-                            logger.error("Failed to extract metadata from the XML site '{}' path '{}'",
-                                    siteId, repoOperation.getPath(), e);
-                        }
-                    }
-                    previewUrl = null;
-                    if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
-                            StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
-                        previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
-                    }
-                    processAncestors(siteFeed.getId(), repoOperation.getPath(), userObj.getId(),
-                            repoOperation.getDateTime(), repoOperation.getCommitId(), repoOperationsScriptPath);
-                    state = NEW.value;
-                    if (disabled) {
-                        state = state | DISABLED.value;
-                    }
-
-                    if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(),
-                                updateParentIdScriptPath);
-                    } else {
-                        Files.write(repoOperationsScriptPath, insertItemRow(siteFeed.getId(),
-                                repoOperation.getPath(), previewUrl, state, null, userObj.getId(),
-                                repoOperation.getDateTime(), userObj.getId(), repoOperation.getDateTime(),
-                                null, label, contentTypeId,
-                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-                                Locale.US.toString(), null,
-                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()), null,
-                                repoOperation.getCommitId(), null).getBytes(UTF_8), StandardOpenOption.APPEND);
-                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        logger.debug("Extract dependencies from site '{}' path '{}'",
-                                siteId, repoOperation.getPath());
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getPath(),
-                                updateParentIdScriptPath);
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null,
-                                repoOperationsScriptPath);
-                    }
-                    break;
-
-                case UPDATE:
-                    if (!ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath()))) {
-                        if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                            userObj = cachedUsers.get(repoOperation.getAuthor());
-                        } else {
-                            try {
-                                userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                            } catch (UserNotFoundException | ServiceLayerException e) {
-                                logger.debug("User '{}' not found while processing operations in site '{}'",
-                                        repoOperation.getAuthor(), siteId, e);
-                            }
-                        }
-                        if (Objects.isNull(userObj)) {
-                            userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                        }
-                        label = FilenameUtils.getName(repoOperation.getPath());
-                        contentTypeId = StringUtils.EMPTY;
-                        disabled = false;
-                        if (StringUtils.endsWith(repoOperation.getPath(), XML_PATTERN)) {
-                            try {
-                                Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getPath());
-                                if (contentDoc != null) {
-                                    Element rootElement = contentDoc.getRootElement();
-                                    String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                    if (isNotEmpty(internalName)) {
-                                        label = internalName;
-                                    }
-                                    contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                    disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
-                                }
-                            } catch (DocumentException e) {
-                                logger.error("Failed to extract metadata from the XML site '{}' path '{}'",
-                                        siteId, repoOperation.getPath(), e);
-                            }
-                        }
-                        previewUrl = null;
-                        if (StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) ||
-                                StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_ASSETS)) {
-                            previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getPath());
-                        }
-                        onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
-                        offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
-                        if (disabled) {
-                            onStateBitMap = onStateBitMap | DISABLED.value;
-                        } else {
-                            offStateBitmap = offStateBitmap | DISABLED.value;
-                        }
-
-                        Files.write(repoOperationsScriptPath, updateItemRow(siteFeed.getId(),
-                                repoOperation.getPath(), previewUrl, onStateBitMap, offStateBitmap, userObj.getId(),
-                                repoOperation.getDateTime(), label, contentTypeId,
-                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
-                                repoOperation.getCommitId()).getBytes(UTF_8), StandardOpenOption.APPEND);
-                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        logger.debug("Extract dependencies from site '{}' path '{}'",
-                                siteId, repoOperation.getPath());
-                        addDependenciesScriptSnippets(siteId, repoOperation.getPath(), null, repoOperationsScriptPath);
-                    }
-                    break;
-                case DELETE:
-                    String folder = FILE_SEPARATOR + FilenameUtils.getPathNoEndSeparator(repoOperation.getPath());
-                    boolean folderExists = contentRepositoryV2.contentExists(siteId, folder);
-
-                    // If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
-                    if (folderExists && StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
-                            StringUtils.endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
-                        Files.write(repoOperationsScriptPath,
-                                updateDeletedPageChildren(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
-                    }
-
-                    Files.write(repoOperationsScriptPath,
-                            deleteItemRow(siteFeed.getId(), repoOperation.getPath()).getBytes(UTF_8),
-                            StandardOpenOption.APPEND);
-                    if (!folderExists) {
-                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        Files.write(repoOperationsScriptPath,
-                                deleteItemRow(siteFeed.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
-                    }
-                    Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                    Files.write(repoOperationsScriptPath,
-                            deleteDependencyRows(siteId, repoOperation.getPath()).getBytes(UTF_8),
-                            StandardOpenOption.APPEND);
-                    Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                    break;
-
-                case MOVE:
-                    if (cachedUsers.containsKey(repoOperation.getAuthor())) {
-                        userObj = cachedUsers.get(repoOperation.getAuthor());
-                    } else {
-                        try {
-                            userObj = userServiceInternal.getUserByIdOrUsername(-1, repoOperation.getAuthor());
-                        } catch (UserNotFoundException | ServiceLayerException e) {
-                            logger.debug("User '{}' not found while processing operations in site '{}'",
-                                    repoOperation.getAuthor(), siteId, e);
-                        }
-                    }
-                    if (Objects.isNull(userObj)) {
-                        userObj = cachedUsers.get(GIT_REPO_USER_USERNAME);
-                    }
-                    label = FilenameUtils.getName(repoOperation.getMoveToPath());
-                    contentTypeId = StringUtils.EMPTY;
-                    disabled = false;
-                    if (StringUtils.endsWith(repoOperation.getMoveToPath(), XML_PATTERN)) {
-                        try {
-                            Document contentDoc = contentService.getContentAsDocument(siteId, repoOperation.getMoveToPath());
-                            if (contentDoc != null) {
-                                Element rootElement = contentDoc.getRootElement();
-                                String internalName = rootElement.valueOf(DOCUMENT_ELM_INTERNAL_TITLE);
-                                if (isNotEmpty(internalName)) {
-                                    label = internalName;
-                                }
-                                contentTypeId = rootElement.valueOf(DOCUMENT_ELM_CONTENT_TYPE);
-                                disabled = Boolean.parseBoolean(rootElement.valueOf(DOCUMENT_ELM_DISABLED));
-                            }
-                        } catch (DocumentException e) {
-                            logger.error("Failed to extact metadata from the XML site '{}' path '{}'",
-                                    siteId, repoOperation.getMoveToPath(), e);
-                        }
-                    }
-                    previewUrl = null;
-                    if (StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_PAGES) ||
-                            StringUtils.startsWith(repoOperation.getMoveToPath(), ROOT_PATTERN_ASSETS)) {
-                        previewUrl = itemServiceInternal.getBrowserUrl(siteId, repoOperation.getMoveToPath());
-                    }
-                    processAncestors(siteFeed.getId(), repoOperation.getMoveToPath(), userObj.getId(),
-                            repoOperation.getDateTime(), repoOperation.getCommitId(), repoOperationsScriptPath);
-                    onStateBitMap = SAVE_AND_CLOSE_ON_MASK;
-                    offStateBitmap = SAVE_AND_CLOSE_OFF_MASK;
-                    if (disabled) {
-                        onStateBitMap = onStateBitMap | DISABLED.value;
-                    } else {
-                        offStateBitmap = offStateBitmap | DISABLED.value;
-                    }
-                    if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getPath())) ||
-                            ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(repoOperation.getMoveToPath()))) {
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(),
-                                updateParentIdScriptPath);
-                    } else {
-                        Files.write(repoOperationsScriptPath, moveItemRow(siteId, repoOperation.getPath(),
-                                repoOperation.getMoveToPath(), onStateBitMap, offStateBitmap).getBytes(UTF_8),
-                                StandardOpenOption.APPEND);
-                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        Files.write(repoOperationsScriptPath, updateItemRow(siteFeed.getId(),
-                                repoOperation.getPath(), previewUrl, onStateBitMap, offStateBitmap, userObj.getId(),
-                                repoOperation.getDateTime(), label, contentTypeId,
-                                contentService.getContentTypeClass(siteId, repoOperation.getPath()),
-                                StudioUtils.getMimeType(FilenameUtils.getName(repoOperation.getPath())),
-                                contentRepositoryV2.getContentSize(siteId, repoOperation.getPath()),
-                                repoOperation.getCommitId()).getBytes(UTF_8), StandardOpenOption.APPEND);
-                        Files.write(repoOperationsScriptPath, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
-                        addUpdateParentIdScriptSnippets(siteFeed.getId(), repoOperation.getMoveToPath(), updateParentIdScriptPath);
-                        addDependenciesScriptSnippets(siteId, repoOperation.getMoveToPath(),
-                                repoOperation.getPath(), repoOperationsScriptPath);
-                    }
-                    invalidateConfigurationCacheIfRequired(siteId, repoOperation.getMoveToPath());
-                    break;
-
-                default:
-                    logger.error("Failed to process unknown repo operation '{}' in site '{}'",
-                            siteId, repoOperation.getAction());
-                    toReturn = false;
-                    break;
-            }
-            invalidateConfigurationCacheIfRequired(siteId, repoOperation.getPath());
-        }
-        if (logger.isDebugEnabled()) {
-            logger.debug("Completed processing repo operations in site '{}'. Processing finished in '{}' milliseconds",
-                    siteId, (System.currentTimeMillis() - startProcessRepoOperationMark));
-        }
-        return toReturn;
-    }
-
-    protected void invalidateConfigurationCacheIfRequired(String siteId, String path) {
-        if (RegexUtils.matchesAny(path, configurationPatterns)) {
-            configurationService.invalidateConfiguration(siteId, path);
-        }
-    }
-
-    @Override
-    @Valid
     public boolean exists(@ValidateStringParam String site) {
         return siteFeedMapper.exists(site) > 0;
     }
@@ -1583,10 +1185,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public void setConfigurationPatterns(String[] configurationPatterns) {
-        this.configurationPatterns = configurationPatterns;
     }
 
     public void setWorkflowServiceInternal(WorkflowServiceInternal workflowServiceInternal) {

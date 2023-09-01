@@ -148,5 +148,21 @@ public interface SitesService {
      * @param siteId site id
      * @return site object
      */
-    Site getSite(String siteId);
+    Site getSite(String siteId) throws SiteNotFoundException;
+
+    /**
+     * Update a site's last commit id
+     *
+     * @param siteId   site id
+     * @param commitId commit id
+     */
+    void updateLastCommitId(String siteId, String commitId);
+
+    /**
+     * Get the last commit id for the given site
+     *
+     * @param siteId site id
+     * @return the last commit id
+     */
+    String getLastCommitId(String siteId);
 }

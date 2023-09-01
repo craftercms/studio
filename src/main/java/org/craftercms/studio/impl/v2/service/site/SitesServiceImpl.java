@@ -139,8 +139,21 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
-    public Site getSite(String siteId) {
-        return sitesServiceInternal.getSite(siteId);
+    public Site getSite(String siteId) throws SiteNotFoundException{
+        if (exists(siteId)) {
+            return sitesServiceInternal.getSite(siteId);
+        }
+        throw new SiteNotFoundException(siteId);
+    }
+
+    @Override
+    public void updateLastCommitId(String siteId, String commitId) {
+        sitesServiceInternal.updateLastCommitId(siteId, commitId);
+    }
+
+    @Override
+    public String getLastCommitId(String siteId) {
+        return sitesServiceInternal.getLastCommitId(siteId);
     }
 
     @Override

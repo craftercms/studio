@@ -111,17 +111,6 @@ public interface SiteService {
     boolean deleteSite(String siteId);
 
     /**
-     * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
-     * and manipulates the underlying repository directly.
-     *
-     * @param siteId       site to sync
-     * @param fromCommitId commit ID to start at and sync up until current commit
-     * @return true if successful, false otherwise
-     * @throws SiteNotFoundException site not found
-     */
-    boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws ServiceLayerException;
-
-    /**
      * get a list of available blueprints
      *
      * @return list of blueprints

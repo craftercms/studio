@@ -115,8 +115,6 @@
         <property name="configurationService" ref="configurationService" />
         <property name="contentRepositoryV2" ref="contentRepository" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="configurationPatterns"
-                  value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="studioDBScriptRunner" ref="studio.dbScriptRunner" />
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
@@ -768,14 +766,22 @@
         <property name="contentRepository" ref="contentRepository"/>
     </bean>
 
-    <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask" parent="studio.clockTaskBase">
+    <bean id="studio.clockSyncRepositoryTask" class="org.craftercms.studio.impl.v2.job.StudioSyncRepositoryTask"
+          parent="studio.clockTaskBase">
         <property name="executeEveryNCycles"
-                         value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}" />
-        <constructor-arg name="sitesService" ref="sitesServiceInternal" />
-        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService" />
-        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
-        <constructor-arg name="siteDao" ref="siteDao" />
-        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_SYNC_REPOSITORY_EXECUTE_EVERY_N_CYCLES)}"/>
+        <constructor-arg name="sitesService" ref="sitesServiceInternal"/>
+        <constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
+        <constructor-arg name="configurationPatterns"
+                         value="#{studioConfiguration.getArray('studio.configuration.cache.site.patterns', T(java.lang.String))}"/>
+        <constructor-arg name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
+        <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
+        <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
+        <constructor-arg name="itemServiceInternal" ref="itemServiceInternal"/>
+        <constructor-arg name="contentService" ref="cstudioContentService"/>
+        <constructor-arg name="configurationService" ref="configurationService"/>
     </bean>
 
     <bean id="studio.clockPublisherTask" class="org.craftercms.studio.impl.v2.job.StudioPublisherTask" parent="studio.clockTaskBase">
