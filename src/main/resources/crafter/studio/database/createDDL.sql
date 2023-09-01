@@ -124,9 +124,6 @@ BEGIN
         -- sequences
         DELETE FROM navigation_order_sequence WHERE site = siteId;
 
-        -- git log
-        DELETE FROM gitlog WHERE site_id = siteId;
-
         -- remote repositories
         DELETE FROM remote_repository WHERE site_id = siteId;
 
@@ -142,7 +139,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.1', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -251,13 +248,11 @@ CREATE TABLE IF NOT EXISTS `site` (
   `system`                          INT           NOT NULL DEFAULT 0,
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
   `publishing_status`               VARCHAR(20)   NULL,
-  `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       TIMESTAMP      NULL,
   `state`                           VARCHAR(50)   NOT NULL DEFAULT 'INITIALIZING',
-  `last_synced_gitlog_commit_id`   VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
@@ -500,20 +495,6 @@ CREATE TABLE IF NOT EXISTS workflow
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS gitlog
-(
-  `id`          BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `site_id`     VARCHAR(50)   NOT NULL,
-  `commit_id`   VARCHAR(50)   NOT NULL,
-  `processed`   INT           NOT NULL DEFAULT 0,
-  `audited`     INT           NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`),
-  INDEX `gitlog_site_idx` (`site_id` ASC)
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS remote_repository
 (

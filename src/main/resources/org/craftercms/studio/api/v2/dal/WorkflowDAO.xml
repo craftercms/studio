@@ -66,7 +66,6 @@
             <result property="translationSourceId" column="item_translation_source_id" />
             <result property="size" column="item_size" />
             <result property="parentId" column="item_parent_id" />
-            <result property="commitId" column="item_commit_id" />
             <association property="modifier" column="item_modifier"
                          select="org.craftercms.studio.api.v2.dal.UserDAO.getPerson"/>
             <association property="creator" column="item_creator"
@@ -123,8 +122,7 @@
             item.locale_code as item_locale_code,
             item.translation_source_id as item_translation_source_id,
             item.size as item_size,
-            item.parent_id as item_parent_id,
-            item.commit_id as item_commit_id
+            item.parent_id as item_parent_id
         FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
                       left outer join user u1 on item.locked_by = u1.id
                       left outer join user u2 on item.created_by = u2.id
@@ -184,8 +182,7 @@
             item.locale_code as item_locale_code,
             item.translation_source_id as item_translation_source_id,
             item.size as item_size,
-            item.parent_id as item_parent_id,
-            item.commit_id as item_commit_id
+            item.parent_id as item_parent_id
         FROM workflow INNER JOIN item ON workflow.item_id = item.id INNER JOIN site ON item.site_id = site.id
             left outer join user u1 on item.locked_by = u1.id
             left outer join user u2 on item.created_by = u2.id
