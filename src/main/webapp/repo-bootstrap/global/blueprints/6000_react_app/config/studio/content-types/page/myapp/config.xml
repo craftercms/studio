@@ -1,0 +1,13 @@
+<content-type name="/page/myapp" is-wcm-type="true">
+	<label>My App</label>
+	<form>/page/myapp</form>
+	<form-path>simple</form-path>
+	<model-instance-path>NOT-USED-BY-SIMPLE-FORM-ENGINE</model-instance-path>
+	<file-extension>xml</file-extension>
+	<content-as-folder>true</content-as-folder>
+	<previewable>true</previewable>
+	<quickCreate>false</quickCreate>
+	<quickCreatePath></quickCreatePath>
+	<noThumbnail>false</noThumbnail>
+	<image-thumbnail>image.jpg</image-thumbnail>
+</content-type>

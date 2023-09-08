@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<page>
+	<content-type>/page/myapp</content-type>
+	<display-template>/templates/web/myapp.ftl</display-template>
+	<no-template-required>true</no-template-required>
+	<merge-strategy>inherit-levels</merge-strategy>
+	<placeInNav>false</placeInNav>
+	<file-name>index.xml</file-name>
+	<internal-name>Home</internal-name>
+	<orderDefault_f>-1</orderDefault_f>
+	<objectGroupId>8d7f</objectGroupId>
+	<objectId>8d7f21fa-5e09-00aa-8340-853b7db302da</objectId>
+	<folder-name/>
+	<createdDate>2023-09-08T04:22:05.987Z</createdDate>
+	<createdDate_dt>2023-09-08T04:22:05.987Z</createdDate_dt>
+	<lastModifiedDate>2023-09-08T04:22:05.987Z</lastModifiedDate>
+	<lastModifiedDate_dt>2023-09-08T04:22:05.987Z</lastModifiedDate_dt>
+	<navLabel>Home</navLabel>
+</page>

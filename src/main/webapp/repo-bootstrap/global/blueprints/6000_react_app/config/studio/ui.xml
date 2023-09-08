@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<siteUi>
+    <version>4.1.0</version>
+    <widget id="craftercms.components.ToolsPanel">
+        <configuration>
+            <widgets>
+                <widget id="craftercms.components.ToolsPanelEmbeddedAppViewButton">
+                    <configuration>
+                        <title id="words.dashboard" defaultMessage="Dashboard"/>
+                        <icon id="@mui/icons-material/DashboardRounded"/>
+                        <widget id="craftercms.components.SiteDashboard"/>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <id>Pages</id>
+                        <label>Pages</label>
+                        <icon id="@mui/icons-material/DescriptionOutlined"/>
+                        <rootPath>/site/website/index.xml</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <id>Components</id>
+                        <label>Components</label>
+                        <icon id="craftercms.icons.Component"/>
+                        <rootPath>/site/components</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <id>StaticAssets</id>
+                        <label>Static Assets</label>
+                        <icon id="@mui/icons-material/ImageOutlined"/>
+                        <rootPath>/static-assets</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <label>Templates</label>
+                        <icon id="@mui/icons-material/InsertDriveFileOutlined"/>
+                        <rootPath>/templates</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.PathNavigatorTree">
+                    <configuration>
+                        <label>Scripts</label>
+                        <icon id="@mui/icons-material/CodeRounded"/>
+                        <rootPath>/scripts</rootPath>
+                        <locale>en</locale>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelEmbeddedAppViewButton">
+                    <permittedRoles>
+                        <role>admin</role>
+                        <role>developer</role>
+                    </permittedRoles>
+                    <configuration>
+                        <title id="siteTools.title" defaultMessage="Project Tools"/>
+                        <icon id="@mui/icons-material/ConstructionRounded"/>
+                        <widget id="craftercms.components.EmbeddedSiteTools"/>
+                    </configuration>
+                </widget>
+            </widgets>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.ICEToolsPanel">
+        <configuration>
+            <widgets>
+                <widget id="craftercms.components.PaddingModeSwitchListItem">
+                    <configuration>
+                        <disabled>false</disabled>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewSearchPanel.title" defaultMessage="Search"/>
+                        <icon id="@mui/icons-material/SearchRounded"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewSearchPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewComponentsPanel.title"
+                               defaultMessage="Add Components"/>
+                        <icon id="@mui/icons-material/ExtensionOutlined"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewComponentsPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewBrowseComponentsPanel.title"
+                               defaultMessage="Browse Components"/>
+                        <icon id="@mui/icons-material/ExtensionOutlined"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewBrowseComponentsPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewDropTargetsPanel.title"
+                               defaultMessage="Component Drop Targets"/>
+                        <icon id="@mui/icons-material/ExtensionOutlined"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewDropTargetsPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewAssetsPanel.title" defaultMessage="Assets"/>
+                        <icon id="@mui/icons-material/ImageOutlined"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewAssetsPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewAudiencesPanel.title"
+                               defaultMessage="Audience Targeting"/>
+                        <icon id="@mui/icons-material/EmojiPeopleRounded"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewAudiencesPanel">
+                                <configuration>
+                                    <fields>
+                                        <segment>
+                                            <id>segment</id>
+                                            <name>Segment</name>
+                                            <description>User segment.
+                                            </description>
+                                            <type>dropdown</type>
+                                            <defaultValue>anonymous
+                                            </defaultValue>
+                                            <values>
+                                                <value>
+                                                    <label>Guy
+                                                    </label>
+                                                    <value>guy
+                                                    </value>
+                                                </value>
+                                                <value>
+                                                    <label>Gal
+                                                    </label>
+                                                    <value>gal
+                                                    </value>
+                                                </value>
+                                                <value>
+                                                    <label>
+                                                        Anonymous
+                                                    </label>
+                                                    <value>
+                                                        anonymous
+                                                    </value>
+                                                </value>
+                                            </values>
+                                            <helpText>Setting the segment
+                                                will change content
+                                                targeting to the
+                                                audience selected.
+                                            </helpText>
+                                        </segment>
+                                        <name>
+                                            <id>name</id>
+                                            <name>Name</name>
+                                            <description>User's first and
+                                                last name.
+                                            </description>
+                                            <type>input</type>
+                                            <helpText>Enter user's first and
+                                                last name.
+                                            </helpText>
+                                        </name>
+                                    </fields>
+                                </configuration>
+                            </widget>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewPageExplorerPanel.title"
+                               defaultMessage="Page Explorer"/>
+                        <icon id="craftercms.icons.PageExplorer"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewPageExplorerPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="previewSimulatorPanel.title"
+                               defaultMessage="Device Simulator"/>
+                        <icon id="@mui/icons-material/DevicesRounded"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewSimulatorPanel">
+                                <configuration>
+                                    <devices>
+                                        <device>
+                                            <title>smartPhone</title>
+                                            <width>375</width>
+                                            <height>667</height>
+                                        </device>
+                                        <device>
+                                            <title>tablet</title>
+                                            <width>768</width>
+                                            <height>1024</height>
+                                        </device>
+                                    </devices>
+                                </configuration>
+                            </widget>
+                        </widgets>
+                    </configuration>
+                </widget>
+                <widget id="craftercms.components.ToolsPanelPageButton">
+                    <configuration>
+                        <target id="icePanel"/>
+                        <title id="words.settings" defaultMessage="Settings"/>
+                        <icon id="@mui/icons-material/SettingsOutlined"/>
+                        <widgets>
+                            <widget id="craftercms.components.PreviewSettingsPanel"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+            </widgets>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.Launcher">
+        <configuration>
+            <widgets>
+                <widget id="craftercms.components.LauncherSection">
+                    <configuration>
+                        <title id="launcher.siteSectionTitle">
+                            <defaultMessage>
+                                <![CDATA[Project <muted>• {siteName}</muted>]]></defaultMessage>
+                        </title>
+                        <widgets>
+                            <widget id="craftercms.components.LauncherLinkTile">
+                                <configuration>
+                                    <title id="words.dashboard"
+                                           defaultMessage="Dashboard"/>
+                                    <systemLinkId>siteDashboardDialog</systemLinkId>
+                                    <icon id="@mui/icons-material/DashboardRounded"/>
+                                </configuration>
+                            </widget>
+                            <widget id="craftercms.components.LauncherLinkTile">
+                                <configuration>
+                                    <title id="words.preview"
+                                           defaultMessage="Preview"/>
+                                    <systemLinkId>preview</systemLinkId>
+                                    <icon id="craftercms.icons.Preview"/>
+                                </configuration>
+                            </widget>
+                            <widget id="craftercms.components.LauncherLinkTile">
+                                <permittedRoles>
+                                    <role>admin</role>
+                                    <role>developer</role>
+                                </permittedRoles>
+                                <configuration>
+                                    <title id="siteTools.title"
+                                           defaultMessage="Project Tools"/>
+                                    <systemLinkId>siteToolsDialog</systemLinkId>
+                                    <icon id="@mui/icons-material/ConstructionRounded"/>
+                                </configuration>
+                            </widget>
+                            <widget id="craftercms.components.LauncherLinkTile">
+                                <configuration>
+                                    <title id="words.search"
+                                           defaultMessage="Search"/>
+                                    <systemLinkId>siteSearchDialog</systemLinkId>
+                                    <icon id="@mui/icons-material/SearchRounded"/>
+                                </configuration>
+                            </widget>
+                            <widget id="craftercms.components.LauncherPublishingStatusTile"/>
+                        </widgets>
+                    </configuration>
+                </widget>
+            </widgets>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.PreviewToolbar">
+        <configuration>
+            <leftSection>
+                <widgets>
+                    <widget id="craftercms.components.SiteSwitcherSelect"/>
+                    <widget id="craftercms.components.QuickCreate"/>
+                </widgets>
+            </leftSection>
+            <middleSection>
+                <widgets>
+                    <widget id="craftercms.components.PreviewAddressBar"/>
+                </widgets>
+            </middleSection>
+            <rightSection>
+                <widgets>
+                    <widget id="craftercms.components.EditModesSwitcher"/>
+                    <widget id="craftercms.components.PublishingStatusButton">
+                        <configuration>
+                            <variant>icon</variant>
+                        </configuration>
+                    </widget>
+                    <widget id="craftercms.components.WidgetDialogIconButton">
+                        <configuration>
+                            <title id="words.search" defaultMessage="Search"/>
+                            <icon id="@mui/icons-material/SearchRounded"/>
+                            <widget id="craftercms.components.Search">
+                                <configuration>
+                                    <embedded>true</embedded>
+                                </configuration>
+                            </widget>
+                        </configuration>
+                    </widget>
+                </widgets>
+            </rightSection>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.Dashboard">
+        <configuration>
+            <mainSection>
+                <widgets>
+                    <widget id="craftercms.components.MyRecentActivityDashlet"/>
+                    <widget id="craftercms.components.UnpublishedDashlet"/>
+                    <widget id="craftercms.components.PendingApprovalDashlet"/>
+                    <widget id="craftercms.components.ScheduledDashlet"/>
+                    <widget id="craftercms.components.RecentlyPublishedDashlet"/>
+                    <widget id="craftercms.components.ExpiringDashlet"/>
+                </widgets>
+            </mainSection>
+        </configuration>
+    </widget>
+    <widget id="craftercms.components.TinyMCE">
+        <configuration>
+            <setups>
+                <setup id="generic">
+                    <!-- Configuration options: https://www.tiny.cloud/docs/configure/ -->
+                    <!-- Plugins: https://www.tiny.cloud/docs/plugins/opensource/ -->
+                    <tinymceOptions>
+                        <![CDATA[
+              {
+                "menubar": true,
+                "theme": "silver",
+                "plugins": "print preview searchreplace autolink directionality visualblocks visualchars fullscreen image link media template codesample table charmap hr pagebreak nonbreaking anchor toc insertdatetime advlist lists wordcount textpattern help acecode paste",
+                "extended_valid_elements": "",
+                "valid_children": "",
+                "toolbar1": "formatselect | bold italic strikethrough forecolor backcolor | link | alignleft aligncenter alignright alignjustify | numlist bullist outdent indent | removeformat",
+                "code_editor_wrap": false,
+                "toolbar_sticky": true,
+                "image_advtab": true,
+                "encoding": "xml",
+                "relative_urls": false,
+                "remove_script_host": false,
+                "convert_urls": false,
+                "remove_trailing_brs": false,
+                "media_live_embeds": true,
+                "autoresize_on_init": false,
+                "autoresize_bottom_margin": 0,
+                "menu": {
+                    "tools": { "title": "Tools", "items": "tinymcespellchecker code acecode wordcount" }
+                },
+                "automatic_uploads": true,
+                "file_picker_types":  "image media file",
+                "paste_data_images": true,
+                "templates": [],
+                "content_css": [],
+                "content_style": "body {}",
+                "contextmenu": false
+              }
+            ]]>
+                    </tinymceOptions>
+                </setup>
+            </setups>
+        </configuration>
+    </widget>
+    <references>
+        <reference id="craftercms.siteTools">
+            <tools>
+                <tool>
+                    <title id="dropTargetsMessages.contentTypes" defaultMessage="Content Types"/>
+                    <icon id="@mui/icons-material/WidgetsOutlined"/>
+                    <url>content-types</url>
+                    <widget id="craftercms.components.ContentTypeManagement"/>
+                </tool>
+                <tool>
+                    <title id="GlobalMenu.EncryptionToolEntryLabel"
+                           defaultMessage="Encryption Tool"/>
+                    <icon id="@mui/icons-material/LockOutlined"/>
+                    <url>encrypt-tool</url>
+                    <widget id="craftercms.components.SiteEncryptTool"/>
+                </tool>
+                <tool>
+                    <title id="words.configuration" defaultMessage="Configuration"/>
+                    <icon id="@mui/icons-material/SettingsApplicationsOutlined"/>
+                    <url>configuration</url>
+                    <widget id="craftercms.components.SiteConfigurationManagement"/>
+                </tool>
+                <tool>
+                    <title id="GlobalMenu.AuditEntryLabel" defaultMessage="Audit"/>
+                    <icon id="@mui/icons-material/SubjectRounded"/>
+                    <url>audit</url>
+                    <widget id="craftercms.components.SiteAuditManagement"/>
+                </tool>
+                <tool>
+                    <title id="workflowStates.title" defaultMessage="Workflow States"/>
+                    <icon id="@mui/icons-material/SettingsOutlined"/>
+                    <url>item-states</url>
+                    <widget id="craftercms.components.WorkflowStateManagement"/>
+                </tool>
+                <tool>
+                    <title id="GlobalMenu.LogConsoleEntryLabel" defaultMessage="Log Console"/>
+                    <icon id="@mui/icons-material/FormatAlignCenterRounded"/>
+                    <url>log</url>
+                    <widget id="craftercms.components.LogConsole">
+                        <configuration>
+                            <logType>preview</logType>
+                        </configuration>
+                    </widget>
+                </tool>
+                <tool>
+                    <title id="words.publishing" defaultMessage="Publishing"/>
+                    <icon id="@mui/icons-material/CloudUploadOutlined"/>
+                    <url>publishing</url>
+                    <widget id="craftercms.components.PublishingDashboard"/>
+                </tool>
+                <tool>
+                    <title id="words.git" defaultMessage="Git"/>
+                    <icon id="craftercms.icons.Git"/>
+                    <url>git</url>
+                    <widget id="craftercms.components.GitManagement"/>
+                </tool>
+                <tool>
+                    <title>GraphQL</title>
+                    <icon id="craftercms.icons.GraphQL"/>
+                    <url>graphiql</url>
+                    <widget id="craftercms.components.SiteGraphiQL"/>
+                </tool>
+                <tool>
+                    <title id="PluginManagement.title" defaultMessage="Plugin Management"/>
+                    <icon id="@mui/icons-material/ExtensionOutlined"/>
+                    <url>plugins</url>
+                    <widget id="craftercms.components.PluginManagement"/>
+                </tool>
+            </tools>
+        </reference>
+        <reference id="craftercms.freemarkerCodeSnippets">
+            <contentVariable label="Content variable">
+                <value><![CDATA[${contentModel.VARIABLE_NAME}]]></value>
+            </contentVariable>
+            <requestParameter label="Request parameter">
+                <value><![CDATA[${RequestParameters["PARAM_NAME"]!"DEFAULT"}]]></value>
+            </requestParameter>
+            <crafterSupportMacros label="Crafter support macros">
+                <value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />]]></value>
+            </crafterSupportMacros>
+            <transformPathToUrl label="Transform PATH to URL">
+                <value>
+                    <![CDATA[${urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)}]]></value>
+            </transformPathToUrl>
+            <renderComponentsList label="Render list of components">
+                <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as module>
+	<@renderComponent component=module />
+</#list>]]></value>
+            </renderComponentsList>
+            <iterateItemsListLoadContentItem label="Iterate over a list of items and load content item">
+                <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as myItem>
+	<#assign myContentItem =  siteItemService.getSiteItem(myItem.key) />
+	${myContentItem.variableName}
+</#list>]]></value>
+            </iterateItemsListLoadContentItem>
+            <iterateRepeatGroup label="Iterate over repeat group">
+                <value><![CDATA[<#list contentModel.VARIABLE_NAME.item as row>
+	${row.VARIABLE_NAME}
+</#list>]]></value>
+            </iterateRepeatGroup>
+            <fremarkerValueAssignment label="Freemarker value assignment">
+                <value><![CDATA[<#assign imageSource = contentModel.image!"" />]]></value>
+            </fremarkerValueAssignment>
+            <freemarkerIf label="Freemarker value IF">
+                <value><![CDATA[<#if CONDITION>
+	...
+</#if>]]></value>
+            </freemarkerIf>
+            <freemarkerLoop label="Freemarker value LOOP">
+                <value><![CDATA[<#list ARRAY as value>
+	${value_index}: ${value}
+</#list>]]></value>
+            </freemarkerLoop>
+            <freemarkerFragmentInclude label="Freemarker Fragment include">
+                <value><![CDATA[<#include "/templates/PATH" />]]></value>
+            </freemarkerFragmentInclude>
+            <freemarkerLibraryImport label="Freemarker Library import">
+                <value><![CDATA[<#import "/templates/PATH" as NAMESPACE />]]></value>
+            </freemarkerLibraryImport>
+            <htmlPage label="HTML Page">
+                <value><![CDATA[<#import "/templates/system/common/crafter.ftl" as crafter />
+<!doctype html>
+<html lang="en">
+  <head>
+    <#-- Insert your head markup here -->
+    <@crafter.head />
+  </head>
+  <body>
+    <@crafter.body_top />
+    <#-- Insert your body markup  here -->
+    <@crafter.body_bottom />
+  </body>
+</html>]]></value>
+            </htmlPage>
+            <specificHTMLTag label="Field (Specific HTML Tag)">
+                <value>
+                    <![CDATA[<@crafter.DESIRED_TAG $field="FIELD_ID">${contentModel.FIELD_ID}</@crafter.DESIRED_TAG>]]></value>
+            </specificHTMLTag>
+            <renderComponentCollection label="Render Component Collection">
+                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderComponentCollection&check_keywords=yes&area=default -->
+<@crafter.renderComponentCollection $field="features_o" $containerAttributes={ "class": "features-container" } $itemAttributes={ "data-custom-attribute": "true" } />]]></value>
+            </renderComponentCollection>
+            <renderRepeatGroup label="Render Repeat Group">
+                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=renderRepeatCollection&check_keywords=yes&area=default -->
+<@crafter.renderRepeatGroup
+  $field="VARIABLE_NAME"
+  $containerAttributes={'attr': 'value'};
+  item, index
+>
+  <@crafter.div
+    $field="sections_o.section_html"
+    $index=index
+  >
+    ${item.itemField}
+  </@crafter.div>
+</@crafter.renderRepeatGroup>]]></value>
+            </renderRepeatGroup>
+            <navigation label="Navigation">
+                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.navigation&check_keywords=yes&area=default -->
+<@crafter.navigation
+  showNavElement=false
+  url="NAVIGATION_URL"
+  containerElementClass="container-class"
+  itemWrapperClass="item-wrapper-class"
+  itemClass="item-class"
+  depth=2
+/>]]></value>
+            </navigation>
+            <breadcrumb label="Breadcrumb">
+                <value><![CDATA[<#-- Macro docs @ https://docs.craftercms.org/en/4.0/search.html?q=crafter.breadcrumb&check_keywords=yes&area=default -->
+<@crafter.breadcrumb
+  url=contentModel.storeUrl
+  containerElementClass="container-element-class"
+  itemWrapperClass="item-wrapper-class"
+  navElementAttributes={ "data-custom-attribute": "true" }
+/>]]></value>
+            </breadcrumb>
+        </reference>
+        <reference id="craftercms.groovyCodeSnippets">
+            <accessContentModel label="Access Content variable">
+                <value><![CDATA[contentModel.VARIABLE_NAME]]></value>
+            </accessContentModel>
+            <accessTemplateodel label="Access Template variable">
+                <value><![CDATA[templateModel]]></value>
+            </accessTemplateodel>
+            <currentSiteId label="Current Site ID">
+                <value><![CDATA[siteContext.siteName]]></value>
+            </currentSiteId>
+            <requestParameters label="Request Parameters">
+                <value><![CDATA[params]]></value>
+            </requestParameters>
+            <cookies label="Cookies">
+                <value><![CDATA[cookies]]></value>
+            </cookies>
+            <httpRequest label="HTTP Request">
+                <value><![CDATA[request]]></value>
+            </httpRequest>
+            <httpResponse label="HTTP Response">
+                <value><![CDATA[response]]></value>
+            </httpResponse>
+            <session label="Session">
+                <value><![CDATA[session]]></value>
+            </session>
+            <transformPathToUrl label="Transform PATH to URL">
+                <value>
+                    <![CDATA[urlTransformationService.transform('storeUrlToRenderUrl', STORE_URL)]]></value>
+            </transformPathToUrl>
+            <userProfile label="User Profile">
+                <value><![CDATA[profile]]></value>
+            </userProfile>
+            <currentAuthentication label="Current Authentication">
+                <value><![CDATA[authentication]]></value>
+            </currentAuthentication>
+            <logInfo label="Log an INFO">
+                <value><![CDATA[logger.info('MY MESSAGE')]]></value>
+            </logInfo>
+            <logError label="Log an ERROR">
+                <value><![CDATA[logger.error('MY MESSAGE')]]></value>
+            </logError>
+            <searchService label="Search Service">
+                <value><![CDATA[searchService]]></value>
+            </searchService>
+            <siteItemService label="Site Item Service">
+                <value><![CDATA[siteItemService]]></value>
+            </siteItemService>
+            <profileService label="Profile Service">
+                <value><![CDATA[profileService]]></value>
+            </profileService>
+            <getSpringBean label="Get Spring Bean">
+                <value><![CDATA[applicationContext.get("SPRING_BEAN_NAME")]]></value>
+            </getSpringBean>
+        </reference>
+    </references>
+</siteUi>

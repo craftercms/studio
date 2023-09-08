@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!--
+    This file configures the list of configurations available in the SiteConfig section for this site/blueprint.
+
+    For every configuration you'd like to make editable, you need:
+        <file>
+            <module />
+            <path />
+            <title />
+            <description />
+            <samplePath />
+        </file>
+
+    The elements are:
+    - module: CrafterCMS module
+    - path: the path to the file. This path is rooted in /config/<module> off the base of the site/blueprint
+    - title: the title of this file. This should be a key into the string-table in Studio's localization string table
+        "base.js", if no entry is found, Studio will use the string you have here as is
+    - description: the description of this file.  This should be a key into the string-table in Studio's localization
+        string table "base.js", if no entry is found, Studio will use the string you have here as is
+    - samplePath: the path to a sample file to help the user update the file
+-->
+<config>
+    <version>4.0.3</version>
+    <files>
+        <file>
+            <module>studio</module>
+            <path>site-config.xml</path>
+            <title>confTabSiteConfiguration</title>
+            <description>confTabSiteConfigurationDesc</description>
+            <samplePath>sample-site-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>workflow/notification-config.xml</path>
+            <title>confTabNotificationConf</title>
+            <description>confTabNotificationConfDesc</description>
+            <samplePath>sample-notification-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>permission-mappings-config.xml</path>
+            <title>confTabPermissionsMappings</title>
+            <description>confTabPermissionsMappingsDesc</description>
+            <samplePath>sample-permission-mappings-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>role-mappings-config.xml</path>
+            <title>confTabRoleMappings</title>
+            <description>confTabRoleMappingsDesc</description>
+            <samplePath>sample-role-mappings-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>administration/site-config-tools.xml</path>
+            <title>confTabSiteConf</title>
+            <description>confTabSiteConfDesc</description>
+            <samplePath>sample-site-config-tools.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>administration/config-list.xml</path>
+            <title>confTabConfigurations</title>
+            <description>confTabConfDesc</description>
+            <samplePath>sample-config-list.xml</samplePath>
+        </file>
+        <file>
+            <module>engine</module>
+            <path>site-config.xml</path>
+            <title>confTabEngineSiteConfiguration</title>
+            <description>confTabEngineSiteConfigurationDesc</description>
+            <samplePath>sample-engine-site-config.xml</samplePath>
+        </file>
+        <file>
+            <module>engine</module>
+            <path>application-context.xml</path>
+            <title>confTabEngineSiteAppContextConfiguration</title>
+            <description>confTabEngineSiteAppContextConfigurationDesc</description>
+            <samplePath>sample-engine-application-context.xml</samplePath>
+        </file>
+        <file>
+            <module>engine</module>
+            <path>urlrewrite.xml</path>
+            <title>confTabEngineUrlRewriteConf</title>
+            <description>confTabEngineUrlRewriteConfDesc</description>
+            <samplePath>sample-urlrewrite.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>dependency/resolver-config.xml</path>
+            <title>confTabDependencyResolverConf</title>
+            <description>confTabDependencyResolverConfDesc</description>
+            <samplePath>sample-resolver-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>aws/aws.xml</path>
+            <title>confTabAWSProfiles</title>
+            <description>confTabAWSProfilesDesc</description>
+            <samplePath>sample-aws.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>box/box.xml</path>
+            <title>confTabBoxProfiles</title>
+            <description>confTabBoxProfilesDesc</description>
+            <samplePath>sample-box.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>webdav/webdav.xml</path>
+            <title>confTabWebDAVProfiles</title>
+            <description>confTabWebDAVProfilesDesc</description>
+            <samplePath>sample-webdav.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>asset-processing/asset-processing-config.xml</path>
+            <title>confTabAssetProcessing</title>
+            <description>confTabAssetProcessingDesc</description>
+            <samplePath>sample-asset-processing-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>blob-stores-config.xml</path>
+            <title>confTabBlobStores</title>
+            <description>confTabBlobStoresDesc</description>
+            <samplePath>sample-blob-stores-config.xml</samplePath>
+        </file>
+        <file>
+            <module>engine</module>
+            <path>proxy-config.xml</path>
+            <title>confTabProxyConfig</title>
+            <description>confTabProxyConfigDesc</description>
+            <samplePath>sample-proxy-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>translation-config.xml</path>
+            <title>confTabTranslationConf</title>
+            <description>confTabTranslationConfDesc</description>
+            <samplePath>sample-translation-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>site-policy-config.xml</path>
+            <title>confTabSitePolicyConf</title>
+            <description>confTabSitePolicyConfDesc</description>
+            <samplePath>sample-site-policy-config.xml</samplePath>
+        </file>
+        <file>
+            <module>studio</module>
+            <path>ui.xml</path>
+            <title>confTabUiConf</title>
+            <description>confTabUiConfDesc</description>
+            <samplePath>sample-ui.xml</samplePath>
+        </file>
+    </files>
+</config>

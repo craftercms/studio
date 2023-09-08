@@ -707,6 +707,12 @@
                             <filtering>false</filtering>
                             <targetPath>default-site/static-assets/images/blueprints/website_editorial</targetPath>
                         </resource>
+                        <!-- react app blueprint -->
+                        <resource>
+                            <directory>src/main/webapp/repo-bootstrap/global/blueprints/6000_react_app/static-assets/images/screenshots</directory>
+                            <filtering>false</filtering>
+                            <targetPath>default-site/static-assets/images/blueprints/react_app</targetPath>
+                        </resource>
 
                     </webResources>
                 </configuration>

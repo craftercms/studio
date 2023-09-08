@@ -1,0 +1,42 @@
+# This file describes a plugin for use in CrafterCMS
+
+# The version of the format for this file
+descriptorVersion: 2
+
+# Describe the plugin
+plugin:
+  type: blueprint
+  id: org.craftercms.blueprint.react
+  name: React Blueprint
+  tags:
+    - blueprint
+    - website
+  version:
+    major: 1
+    minor: 0
+    patch: 0
+  description: |
+    Simple React blueprint
+  website:
+    name: React Blueprint
+    url: https://craftercms.org
+  media:
+    screenshots:
+      - title: Home Page
+        description: Screenshot of the homepage
+        url: /studio/static-assets/images/blueprints/react_app/bp_react.png
+  developer:
+    company:
+      name: CrafterCMS
+      email: info@craftercms.com
+      url: https://craftercms.com/
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  crafterCmsVersions:
+    - major: 4
+      minor: 1
+      patch: 2
+  crafterCmsEditions:
+    - community
+    - enterprise
