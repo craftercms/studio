@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v2.exception.UpgradeException;
 import org.craftercms.studio.impl.v2.upgrade.operations.AbstractUpgradeOperation;
 import org.springframework.beans.factory.annotation.Required;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.NodeTuple;
@@ -86,8 +87,8 @@ public abstract class AbstractPluginDescriptorUpgradeOperation extends AbstractU
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
             options.setPrettyFlow(true);
             Yaml yaml = new Yaml(
-                    new DisableClassLoadingConstructor(),
-                    new Representer() {
+                    new DisableClassLoadingConstructor(new LoaderOptions()),
+                    new Representer(options) {
                         @Override
                         protected NodeTuple representJavaBeanProperty(final Object javaBean, final Property property,
                                                                       final Object propertyValue, final Tag customTag) {

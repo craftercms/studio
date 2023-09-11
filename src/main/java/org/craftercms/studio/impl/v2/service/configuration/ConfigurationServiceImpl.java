@@ -60,6 +60,7 @@ import org.dom4j.io.SAXReader;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
@@ -323,7 +324,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 case "yaml":
                 case "yml":
                     try {
-                        Yaml yaml = new Yaml(new DisableClassLoadingConstructor());
+                        Yaml yaml = new Yaml(new DisableClassLoadingConstructor(new LoaderOptions()));
                         Map<String, Object> map = (Map<String, Object>) yaml.load(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
                         throw new InvalidConfigurationException("Invalid YAML file", e);
