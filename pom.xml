@@ -517,6 +517,16 @@
         </dependency>
 
         <!-- Tinify -->
+	<dependency>
+            <groupId>com.squareup.okio</groupId><!-- Override -->
+            <artifactId>okio-jvm</artifactId>
+            <version>${okio.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okio</groupId><!-- Override -->
+            <artifactId>okio</artifactId>
+            <version>${okio.version}</version>
+        </dependency>
         <dependency>
 	    <groupId>com.squareup.okhttp3</groupId><!-- Override to address an issue with Tinify's dependencies -->
             <artifactId>okhttp</artifactId>
