@@ -21,8 +21,10 @@ import org.craftercms.studio.model.AuthenticatedUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 /**
  * Listener that handles login attempts and adds a delay to the response.<br/>
@@ -43,8 +45,10 @@ public class LoginAttemptListener {
     @EventListener
     public void handleSuccessfulAttempt(AuthenticationSuccessEvent event) {
         logger.debug("Login success for user {}", event.getAuthentication().getPrincipal());
-        AuthenticatedUser user = (AuthenticatedUser) event.getAuthentication().getPrincipal();
-        loginAttemptManager.loginSucceeded(user.getUsername());
+        if (!(event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken)) {
+            AuthenticatedUser user = (AuthenticatedUser) event.getAuthentication().getPrincipal();
+            loginAttemptManager.loginSucceeded(user.getUsername());
+        }
     }
 
     @EventListener
