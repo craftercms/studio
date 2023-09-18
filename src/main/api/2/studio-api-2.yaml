@@ -14,7 +14,7 @@ info:
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
   description: CrafterCMS - Studio
-  url: 'https://docs.craftercms.org/current/developers/projects/studio/index.html'
+  url: 'https://docs.craftercms.org/current/reference/modules/studio/index.html'
 tags:
   - name: groups
     description: Group management operations
@@ -8341,24 +8341,7 @@ components:
           type: array
           description: list of versions
           items:
-            $ref: '#/components/schemas/ContentItemVersion'
-
-    ContentItemVersion:
-      type: object
-      properties:
-        versionNumber:
-          type: string
-          description: version label
-        lastModifiedDate:
-          type: string
-          format: datetime
-          description: last modified date and time of version
-        lastModifier:
-          type: string
-          description: user that modified item
-        comment:
-          type: string
-          description: commit message
+            $ref: '#/components/schemas/ItemVersion'
 
     ContentItem:
       type: object
@@ -9274,9 +9257,12 @@ components:
         oldPath:
           type: string
           description: the old path of the item (will be the same as path if the item has not been renamed)
-        author:
+        committer:
           type: string
-          description: the author of the commit
+          description: the committer of the commit according to git log
+        author:
+          $ref: '#/components/schemas/Person'
+          description: corresponds to the Studio user author of the commit (if any)
         comment:
           type: string
           description: the comment of the commit

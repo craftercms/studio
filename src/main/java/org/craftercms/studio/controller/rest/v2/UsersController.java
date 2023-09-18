@@ -401,12 +401,14 @@ public class UsersController {
     }
 
     @GetMapping(FORGOT_PASSWORD)
-    public ResultOne<String> forgotPassword(@NotBlank @EsapiValidatedParam(type = USERNAME) @RequestParam(value = REQUEST_PARAM_USERNAME) String username)
-            throws ServiceLayerException {
+    public ResultOne<String> forgotPassword(@NotBlank @RequestParam(value = REQUEST_PARAM_USERNAME) String username) {
         try {
+            ValidationUtils.validateValue(new EsapiValidator(USERNAME), username, REQUEST_PARAM_USERNAME);
             userService.forgotPassword(username);
-        } catch (UserExternallyManagedException | UserNotFoundException e) {
+        } catch (ServiceLayerException e) {
             logger.error("Failed to process forgot password for user '{}'", username, e);
+        } catch (ValidationException e) {
+            logger.error("Validation error while processing forgot password for user '{}'", username, e);
         }
         ResultOne<String> result = new ResultOne<>();
         result.setEntity(RESULT_KEY_MESSAGE, "If the user exists, a password recovery email has been sent to them.");
