@@ -115,7 +115,7 @@ public class SitePolicyAspect {
         var results = policyService.validate(siteId, List.of(action));
 
         if (results.stream().anyMatch(not(ValidationResult::isAllowed))) {
-            throw new ValidationException();
+            throw new ValidationException("Requested action is not allowed by site policy");
         }
 
         var modified = results.stream()
