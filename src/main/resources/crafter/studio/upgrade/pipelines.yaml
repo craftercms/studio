@@ -556,6 +556,14 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file
+      - currentVersion: 4.1.5
+        nextVersion: 4.1.6
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                dest: configuration/samples/sample-ui.xml
+            commitDetails: Add sample file for ui.xml
 
   # Pipeline to upgrade site repositories
   site:
@@ -1281,4 +1289,10 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.0.xslt
             commitDetails: Update the UI to use 'PathNavigatorTree' and new Dashboard widgets
+      - currentVersion: 4.1.0
+        nextVersion: 4.1.1
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.1.xslt
+            commitDetails:
 
