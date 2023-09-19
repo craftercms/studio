@@ -157,6 +157,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     public final static String INTERNAL_NAME_MODIFIER_PATTERN = "\\s\\(Copy \\d+\\)";
     public final static String INTERNAL_NAME_MODIFIER_FORMAT = "%s (Copy %s)";
 
+    @Deprecated
     @Override
     @Valid
     public boolean contentExists(@ValidateStringParam String site,

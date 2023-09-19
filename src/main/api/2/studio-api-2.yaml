@@ -3850,6 +3850,49 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/exists:
+    get:
+      tags:
+        - content
+      summary: Check the existent of a content path
+      description: 'Required permission "content_read"'
+      operationId: contentExists
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: item path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  exists:
+                      type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/item_by_path:
     get:
       tags:
