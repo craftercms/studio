@@ -64,7 +64,7 @@ public interface DependencyService {
      * @param paths list of paths to get dependent items for
      * @return list of paths dependent on given paths
      */
-    List<String> getDependentItems(String siteId, List<String> paths) throws SiteNotFoundException;
+    List<String> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
 
     /**
      * Get all items that depend on this item

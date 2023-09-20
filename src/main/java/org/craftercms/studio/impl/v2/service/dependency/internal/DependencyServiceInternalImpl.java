@@ -186,7 +186,7 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<String> getDependentItems(String siteId, List<String> paths) {
+    public List<String> getDependentPaths(String siteId, List<String> paths) {
         if (CollectionUtils.isEmpty(paths)) {
             return new ArrayList<>();
         }

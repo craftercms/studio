@@ -84,7 +84,7 @@ public interface DependencyServiceInternal {
      * @param paths list of paths to get dependent items for
      * @return list of paths dependent on given paths
      */
-    List<String> getDependentItems(String siteId, List<String> paths);
+    List<String> getDependentPaths(String siteId, List<String> paths);
 
     /**
      * Get list of paths of content items that are dependent on given path
