@@ -114,7 +114,7 @@ public class ContentController {
     @PostMapping(GET_DELETE_PACKAGE)
     public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
-        List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
+        List<String> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<>();
         result.setResponse(OK);

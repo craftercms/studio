@@ -4379,6 +4379,54 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /dependency/dependent_items:
+    get:
+      tags:
+        - dependent_items
+      summary: Get list of dependent items for given content path
+      description: 'Required permission "content_read"'
+      operationId: getDependentItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                path:
+                  description: Content path to get dependencies for
+                  type: string
+              required:
+                - siteId
+                - path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DependencyItem'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /marketplace/search:
     get:
@@ -8566,6 +8614,24 @@ components:
         - children
         - publishingTarget
 
+
+    DependencyItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: content item ID
+        label:
+          type: string
+          description: user friendly display name for content item
+        path:
+          type: string
+          description: path where content item is stored inside repository (with filename)
+      required:
+        - id
+        - label
+        - path
 
     SandboxItem:
       type: object

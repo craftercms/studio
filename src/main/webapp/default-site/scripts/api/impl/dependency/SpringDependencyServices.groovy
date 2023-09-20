@@ -79,6 +79,7 @@ class SpringDependencyServices {
         return springBackendService.getDependencies(site, requestBody, deleteDependencies);
     }
 
+    @Deprecated
     def getDependantItems(site, path) {
         def springBackendService = this.context.applicationContext.get(DEPENDENCY_SERVICES_BEAN);
         def springBackendContentService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN);

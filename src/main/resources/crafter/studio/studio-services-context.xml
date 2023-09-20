@@ -570,6 +570,7 @@
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
