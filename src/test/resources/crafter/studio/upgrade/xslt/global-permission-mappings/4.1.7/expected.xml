@@ -48,7 +48,6 @@
                 <permission>folder_create</permission>
                 <permission>publish</permission>
                 <permission>create_site</permission>
-                <permission>duplicate_site</permission>
                 <permission>read_groups</permission>
                 <permission>create_groups</permission>
                 <permission>update_groups</permission>
@@ -103,6 +102,7 @@
                 <permission>commit_resolution</permission>
                 <permission>cancel_failed_pull</permission>
                 <permission>publish_clear_lock</permission>
+                <permission>duplicate_site</permission>
             </allowed-permissions>
         </rule>
     </role>
