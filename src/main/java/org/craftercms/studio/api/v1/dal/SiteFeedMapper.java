@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -139,6 +139,16 @@ public interface SiteFeedMapper {
      */
     void clearPublishingLockForSite(@Param(SITE_ID) String siteId);
 
+    /**
+     * Duplicate a site in the database
+     *
+     * @param sourceSiteId  the id of the site to duplicate
+     * @param siteId        the id of the new site
+     * @param name          the name of the new site
+     * @param description   the description of the new site
+     * @param sandboxBranch the sandbox branch of the new site
+     * @param siteUuid      the uuid of the new site
+     */
     void duplicate(@Param(SOURCE_SITE_ID) String sourceSiteId, @Param(SITE_ID) String siteId,
                    @Param(NAME) String name, @Param(DESC) String description,
                    @Param(SANDBOX_BRANCH) String sandboxBranch, @Param(UUID) String siteUuid);

@@ -156,11 +156,26 @@ public class PreviewDeployer extends AbstractDeployer {
                                   .replaceAll(CONFIG_SITEENV_VARIABLE, environment);
     }
 
-    public void duplicateTarget(String sourceSiteId, String siteId) throws RestClientException {
+    /**
+     * Call Crafter Deployer API to duplicate the site targets (both authoring and preview)
+     *
+     * @param sourceSiteId the site to duplicate from
+     * @param siteId       the new site id
+     * @throws RestClientException if an error occurs while calling Deployer API
+     */
+    public void duplicateTargets(String sourceSiteId, String siteId) throws RestClientException {
         doDuplicateTarget(sourceSiteId, siteId, ENV_AUTHORING);
         doDuplicateTarget(sourceSiteId, siteId, ENV_PREVIEW);
     }
 
+    /**
+     * Call Deployer API to duplicate a given target
+     *
+     * @param sourceSiteId the site to duplicate from
+     * @param siteId       the new site id
+     * @param env          the target environment, e.g.: authoring
+     * @throws RestClientException if an error occurs while calling Deployer API
+     */
     private void doDuplicateTarget(String sourceSiteId, String siteId, String env) throws RestClientException {
         String requestUrl = studioConfiguration.getProperty(PREVIEW_DUPLICATE_TARGET_URL);
         DuplicateTargetRequest requestBody = new DuplicateTargetRequest(sourceSiteId, siteId, env);

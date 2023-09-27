@@ -133,9 +133,4 @@ public class SitesServiceImpl implements SitesService {
         }
         sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch);
     }
-
-    @Override
-    public void addSiteUuidFile(String site, String siteUuid) throws IOException {
-        sitesServiceInternal.addSiteUuidFile(site, siteUuid);
-    }
 }

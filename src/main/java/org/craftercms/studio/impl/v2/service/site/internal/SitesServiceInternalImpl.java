@@ -66,7 +66,7 @@ public class SitesServiceInternalImpl implements SitesService {
     private final SiteFeedMapper siteFeedMapper;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final SiteServiceImpl siteServiceV1;
-    private PreviewDeployer previewDeployer;
+    private final PreviewDeployer previewDeployer;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
             "contentRepositoryV2",
@@ -237,13 +237,11 @@ public class SitesServiceInternalImpl implements SitesService {
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
 
             // Duplicate site in deployer
-            previewDeployer.duplicateTarget(sourceSiteId, siteId);
+            previewDeployer.duplicateTargets(sourceSiteId, siteId);
 
             // Set site state to READY
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
-            if (publishingEnabled) {
-                siteServiceV1.enablePublishing(sourceSiteId, true);
-            }
+            siteServiceV1.enablePublishing(siteId, true);
         } catch (ServiceLayerException ex) {
             siteServiceV1.deleteSite(siteId);
             throw ex;
@@ -259,8 +257,14 @@ public class SitesServiceInternalImpl implements SitesService {
         }
     }
 
-    @Override
-    public void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
+    /**
+     * Add a file containing the site uuid in the site folder
+     *
+     * @param site     site id
+     * @param siteUuid site uuid
+     * @throws IOException if the file cannot be written
+     */
+    private void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
         Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
                 studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
                 StudioConstants.SITE_UUID_FILENAME);

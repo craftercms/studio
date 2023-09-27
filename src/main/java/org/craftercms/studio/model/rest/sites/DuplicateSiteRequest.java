@@ -21,6 +21,9 @@ import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+/**
+ * Holds the parameters to a duplicate site request
+ */
 public class DuplicateSiteRequest {
     @ValidSiteId
     private String sourceSiteId;
