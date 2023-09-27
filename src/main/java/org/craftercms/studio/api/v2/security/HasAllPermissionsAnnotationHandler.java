@@ -15,14 +15,6 @@
  */
 package org.craftercms.studio.api.v2.security;
 
-import java.beans.ConstructorProperties;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -30,11 +22,15 @@ import org.craftercms.commons.aop.AopUtils;
 import org.craftercms.commons.security.exception.PermissionException;
 import org.craftercms.commons.security.permissions.PermissionEvaluator;
 import org.craftercms.commons.security.permissions.annotations.AbstractPermissionAnnotationHandler;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResource;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.springframework.core.annotation.Order;
+
+import java.beans.ConstructorProperties;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Aspect that handles {@link org.craftercms.studio.api.v2.security.HasAllPermissions} annotations,
@@ -67,9 +63,9 @@ public class HasAllPermissionsAnnotationHandler extends AbstractPermissionAnnota
         String[] actions = hasAllPermissions.actions();
         PermissionEvaluator permissionEvaluator = permissionEvaluators.get(type);
 
-        Object securedResource = getAnnotatedProtectedResource(method, pjp);
+        Object securedResource = getAnnotatedProtectedResource(method, pjp.getArgs());
         if (securedResource == null) {
-            securedResource = getAnnotatedProtectedResourceIds(method, pjp);
+            securedResource = getAnnotatedProtectedResourceIds(method, pjp.getArgs());
         }
 
         if (permissionEvaluator == null) {
@@ -86,13 +82,12 @@ public class HasAllPermissionsAnnotationHandler extends AbstractPermissionAnnota
 
         if (allowed) {
             return pjp.proceed();
-        } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append("User ").append(securityService.getCurrentUser())
-                    .append(" does not have all of the requested permissions ")
-                    .append(Stream.of(actions).collect(Collectors.joining(",","[","]")));
-
-            throw new ActionsDeniedException(sb.toString());
         }
+        StringBuilder sb = new StringBuilder();
+        sb.append("User ").append(securityService.getCurrentUser())
+                .append(" does not have all of the requested permissions ")
+                .append(Stream.of(actions).collect(Collectors.joining(",","[","]")));
+
+        throw new ActionsDeniedException(sb.toString());
     }
 }
