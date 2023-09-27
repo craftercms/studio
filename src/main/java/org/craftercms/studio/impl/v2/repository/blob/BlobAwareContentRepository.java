@@ -401,6 +401,11 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
+    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException {
+        localRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+    }
+
+    @Override
     public String createVersion(String site, String path, boolean majorVersion) {
         return localRepositoryV1.createVersion(site, path, majorVersion);
     }

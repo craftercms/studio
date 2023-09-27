@@ -17,12 +17,15 @@
 package org.craftercms.studio.api.v2.service.site;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface SitesService {
@@ -90,4 +93,9 @@ public interface SitesService {
      * @throws SiteNotFoundException if the site doesn't exist
      */
     void checkSiteState(String siteId, String state) throws InvalidSiteStateException, SiteNotFoundException;
+
+    void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch)
+            throws ServiceLayerException;
+
+    void addSiteUuidFile(String site, String siteUuid) throws IOException;
 }

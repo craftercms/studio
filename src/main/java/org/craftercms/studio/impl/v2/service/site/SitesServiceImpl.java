@@ -19,7 +19,7 @@ package org.craftercms.studio.impl.v2.service.site;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -29,16 +29,17 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 
 import java.beans.ConstructorProperties;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class SitesServiceImpl implements SitesService {
@@ -118,5 +119,23 @@ public class SitesServiceImpl implements SitesService {
     @Override
     public void checkSiteState(final String siteId, final String state) throws InvalidSiteStateException, SiteNotFoundException {
         sitesServiceInternal.checkSiteState(siteId, state);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
+            PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
+    public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch)
+            throws ServiceLayerException {
+        siteService.checkSiteExists(sourceSiteId);
+        if (siteService.exists(siteId)) {
+            throw new SiteAlreadyExistsException(siteId);
+        }
+        sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch);
+    }
+
+    @Override
+    public void addSiteUuidFile(String site, String siteUuid) throws IOException {
+        sitesServiceInternal.addSiteUuidFile(site, siteUuid);
     }
 }

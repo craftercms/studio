@@ -28,6 +28,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.springframework.core.annotation.Order;
 
+import java.beans.ConstructorProperties;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -47,8 +48,14 @@ public class HasAnyPermissionsAnnotationHandler {
     private static final String ERROR_KEY_EVALUATOR_NOT_FOUND = "security.permission.evaluatorNotFound";
     private static final String ERROR_KEY_EVALUATION_FAILED = "security.permission.evaluationFailed";
 
-    protected Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators;
-    protected SecurityService securityService;
+    protected final Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators;
+    protected final SecurityService securityService;
+
+    @ConstructorProperties({"permissionEvaluators", "securityService"})
+    public HasAnyPermissionsAnnotationHandler(Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators, SecurityService securityService) {
+        this.permissionEvaluators = permissionEvaluators;
+        this.securityService = securityService;
+    }
 
     @Around("@within(org.craftercms.studio.api.v2.security.HasAnyPermissions) || " +
             "@annotation(org.craftercms.studio.api.v2.security.HasAnyPermissions)")
@@ -135,21 +142,5 @@ public class HasAnyPermissionsAnnotationHandler {
         }
 
         return resourceIds;
-    }
-
-    public Map<Class<?>, PermissionEvaluator<?, ?>> getPermissionEvaluators() {
-        return permissionEvaluators;
-    }
-
-    public void setPermissionEvaluators(Map<Class<?>, PermissionEvaluator<?, ?>> permissionEvaluators) {
-        this.permissionEvaluators = permissionEvaluators;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
     }
 }

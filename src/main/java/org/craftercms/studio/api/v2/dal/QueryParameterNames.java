@@ -56,14 +56,13 @@ public final class  QueryParameterNames {
 
     /* Sites */
     public static final String SITE_ID = "siteId";
-
+    public static final String SOURCE_SITE_ID = "sourceSiteId";
     public static final String LOCK_OWNER_ID = "lockOwnerId";
-
     public static final String TTL = "ttl";
-
     public static final String NAME = "name";
-
     public static final String DESC = "description";
+    public static final String SANDBOX_BRANCH = "sandboxBranch";
+    public static final String UUID = "uuid";
 
 
     public static final String PUBLISHING_STATUS = "publishingStatus";

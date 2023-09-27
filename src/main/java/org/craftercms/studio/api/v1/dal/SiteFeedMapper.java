@@ -22,12 +22,7 @@ import org.craftercms.studio.api.v2.dal.PublishStatus;
 import java.util.List;
 import java.util.Map;
 
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.DESC;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.NAME;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.PUBLISHING_STATUS;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.STATE;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.TTL;
+import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
 public interface SiteFeedMapper {
 
@@ -143,4 +138,8 @@ public interface SiteFeedMapper {
      * @param siteId site identifier
      */
     void clearPublishingLockForSite(@Param(SITE_ID) String siteId);
+
+    void duplicate(@Param(SOURCE_SITE_ID) String sourceSiteId, @Param(SITE_ID) String siteId,
+                   @Param(NAME) String name, @Param(DESC) String description,
+                   @Param(SANDBOX_BRANCH) String sandboxBranch, @Param(UUID) String siteUuid);
 }

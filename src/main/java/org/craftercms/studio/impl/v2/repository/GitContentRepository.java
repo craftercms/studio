@@ -47,6 +47,7 @@ import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.core.ContextManager;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PublishedRepositoryNotFoundException;
+import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
 import org.craftercms.studio.api.v2.exception.git.NoChangesForPathException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
@@ -2098,6 +2099,40 @@ public class GitContentRepository implements ContentRepository {
             generalLockService.unlock(repoLockKey);
         }
         return versionHistory;
+    }
+
+    @Override
+    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException {
+        String repoLockKey = helper.getSandboxRepoLockKey(sourceSiteId);
+        generalLockService.lock(repoLockKey);
+
+        try {
+            Path sourceSandboxPath = helper.buildRepoPath(SANDBOX, sourceSiteId);
+            Path destSandboxPath = helper.buildRepoPath(SANDBOX, siteId);
+            if (destSandboxPath.toFile().exists()) {
+                logger.warn("Deleting existing sandbox repository for site '{}'", siteId);
+                FileUtils.deleteDirectory(destSandboxPath.toFile());
+            }
+            FileUtils.copyDirectory(sourceSandboxPath.toFile(), destSandboxPath.toFile());
+            // Cache the repo and checkout the sandbox branch
+            helper.getRepository(siteId, SANDBOX, sandboxBranch);
+
+            if (publishedRepositoryExists(sourceSiteId)) {
+                Path sourcePublishedPath = helper.buildRepoPath(PUBLISHED, sourceSiteId);
+                Path destPublishedPath = helper.buildRepoPath(PUBLISHED, siteId);
+                if (destPublishedPath.toFile().exists()) {
+                    if (destSandboxPath.toFile().exists()) {
+                        logger.warn("Deleting existing published repository for site '{}'", siteId);
+                        FileUtils.deleteDirectory(destPublishedPath.toFile());
+                    }
+                    FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
+                    // Cache the repo
+                    helper.getRepository(siteId, PUBLISHED);
+                }
+            }
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
     }
 
     public void setHelper(GitRepositoryHelper helper) {

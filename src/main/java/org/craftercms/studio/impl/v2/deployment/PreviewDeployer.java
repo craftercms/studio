@@ -18,6 +18,7 @@ package org.craftercms.studio.impl.v2.deployment;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
+import org.craftercms.studio.model.deployer.DuplicateTargetRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -155,4 +156,20 @@ public class PreviewDeployer extends AbstractDeployer {
                                   .replaceAll(CONFIG_SITEENV_VARIABLE, environment);
     }
 
+    public void duplicateTarget(String sourceSiteId, String siteId) throws RestClientException {
+        doDuplicateTarget(sourceSiteId, siteId, ENV_AUTHORING);
+        doDuplicateTarget(sourceSiteId, siteId, ENV_PREVIEW);
+    }
+
+    private void doDuplicateTarget(String sourceSiteId, String siteId, String env) throws RestClientException {
+        String requestUrl = studioConfiguration.getProperty(PREVIEW_DUPLICATE_TARGET_URL);
+        DuplicateTargetRequest requestBody = new DuplicateTargetRequest(sourceSiteId, siteId, env);
+        RequestEntity<DuplicateTargetRequest> requestEntity = RequestEntity.post(URI.create(requestUrl))
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(requestBody);
+
+        logger.debug("Call duplicate target API. From site '{}' to site '{}' publishing target '{}'",
+                sourceSiteId, siteId, env);
+        restTemplate.exchange(requestEntity, Map.class);
+    }
 }

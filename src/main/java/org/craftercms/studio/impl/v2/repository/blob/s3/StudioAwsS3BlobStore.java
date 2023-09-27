@@ -32,6 +32,7 @@ import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.*;
@@ -496,4 +497,9 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) {
+        // TODO: implement
+        throw new UnsupportedOperationException();
+    }
 }

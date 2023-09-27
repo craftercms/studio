@@ -36,6 +36,7 @@ import org.craftercms.studio.model.rest.ApiResponse;
 import org.craftercms.studio.model.rest.Result;
 import org.craftercms.studio.model.rest.ResultList;
 import org.craftercms.studio.model.rest.marketplace.CreateSiteRequest;
+import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 import org.craftercms.studio.model.rest.sites.UpdateSiteRequest;
 import org.craftercms.studio.model.rest.sites.ValidatePolicyRequest;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,7 @@ import java.util.List;
 
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_BLUEPRINTS;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.RESULT_KEY_RESULTS;
+import static org.craftercms.studio.model.rest.ApiResponse.OK;
 
 @Validated
 @RestController
@@ -80,7 +82,7 @@ public class SitesController {
         }
         ResultList<PluginDescriptor> result = new ResultList<>();
         result.setEntities(RESULT_KEY_BLUEPRINTS, blueprintDescriptors);
-        result.setResponse(ApiResponse.OK);
+        result.setResponse(OK);
         return result;
     }
 
@@ -104,7 +106,7 @@ public class SitesController {
         sitesService.updateSite(siteId, request.getName(), request.getDescription());
 
         var result = new Result();
-        result.setResponse(ApiResponse.OK);
+        result.setResponse(OK);
 
         return result;
     }
@@ -116,8 +118,21 @@ public class SitesController {
         List<ValidationResult> results = policyService.validate(siteId, request.getActions());
 
         var result = new ResultList<ValidationResult>();
-        result.setResponse(ApiResponse.OK);
+        result.setResponse(OK);
         result.setEntities(RESULT_KEY_RESULTS, results);
+        return result;
+    }
+
+    @PostMapping("/duplicate")
+    @ResponseStatus(code = HttpStatus.CREATED)
+    public Result duplicateSite(@Valid @RequestBody DuplicateSiteRequest request)
+            throws ServiceLayerException {
+        sitesService.duplicate(request.getSourceSiteId(), request.getSiteId(),
+                request.getSiteName(), request.getDescription(),
+                request.getSandboxBranch());
+
+        Result result = new Result();
+        result.setResponse(OK);
         return result;
     }
 }

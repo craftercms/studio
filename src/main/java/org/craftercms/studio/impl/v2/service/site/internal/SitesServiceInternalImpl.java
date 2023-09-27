@@ -20,8 +20,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
@@ -31,9 +33,12 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v1.service.site.SiteServiceImpl;
+import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.beans.ConstructorProperties;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +48,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -53,11 +59,34 @@ public class SitesServiceInternalImpl implements SitesService {
 
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
-    private PluginDescriptorReader descriptorReader;
-    private ContentRepository contentRepository;
-    private StudioConfiguration studioConfiguration;
-    private SiteFeedMapper siteFeedMapper;
-    private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final PluginDescriptorReader descriptorReader;
+    private final ContentRepository contentRepository;
+    private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
+    private final StudioConfiguration studioConfiguration;
+    private final SiteFeedMapper siteFeedMapper;
+    private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    private final SiteServiceImpl siteServiceV1;
+    private PreviewDeployer previewDeployer;
+
+    @ConstructorProperties({"descriptorReader", "contentRepository",
+            "contentRepositoryV2",
+            "studioConfiguration", "siteFeedMapper",
+            "retryingDatabaseOperationFacade", "siteServiceV1",
+            "previewDeployer"})
+    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
+                                    org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                    StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
+                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteServiceImpl siteServiceV1,
+                                    PreviewDeployer previewDeployer) {
+        this.descriptorReader = descriptorReader;
+        this.contentRepository = contentRepository;
+        this.contentRepositoryV2 = contentRepositoryV2;
+        this.studioConfiguration = studioConfiguration;
+        this.siteFeedMapper = siteFeedMapper;
+        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+        this.siteServiceV1 = siteServiceV1;
+        this.previewDeployer = previewDeployer;
+    }
 
     @Override
     public List<PluginDescriptor> getAvailableBlueprints() {
@@ -184,23 +213,58 @@ public class SitesServiceInternalImpl implements SitesService {
         }
     }
 
-    public void setDescriptorReader(PluginDescriptorReader descriptorReader) {
-        this.descriptorReader = descriptorReader;
+    @Override
+    public void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch)
+            throws ServiceLayerException {
+        if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
+            throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
+        }
+
+        boolean publishingEnabled = siteServiceV1.isPublishingEnabled(sourceSiteId);
+        try {
+            // Lock source site
+            if (publishingEnabled) {
+                siteServiceV1.enablePublishing(sourceSiteId, false);
+            }
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_LOCKED));
+
+            // Copy site repos in disk
+            contentRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+
+            String siteUuid = UUID.randomUUID().toString();
+            addSiteUuidFile(siteId, siteUuid);
+            // Create site in db (site state is INITIALIZING) and copy all db data
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
+
+            // Duplicate site in deployer
+            previewDeployer.duplicateTarget(sourceSiteId, siteId);
+
+            // Set site state to READY
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
+            if (publishingEnabled) {
+                siteServiceV1.enablePublishing(sourceSiteId, true);
+            }
+        } catch (ServiceLayerException ex) {
+            siteServiceV1.deleteSite(siteId);
+            throw ex;
+        } catch (Exception ex) {
+            siteServiceV1.deleteSite(siteId);
+            throw new ServiceLayerException(format("Failed to duplicate site '%s' into '%s'", sourceSiteId, siteId), ex);
+        } finally {
+            // Unlock source site
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_READY));
+            if (publishingEnabled) {
+                siteServiceV1.enablePublishing(sourceSiteId, true);
+            }
+        }
     }
 
-    public void setContentRepository(ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
-    public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
-        this.studioConfiguration = studioConfiguration;
-    }
-
-    public void setSiteFeedMapper(SiteFeedMapper siteFeedMapper) {
-        this.siteFeedMapper = siteFeedMapper;
-    }
-
-    public void setRetryingDatabaseOperationFacade(RetryingDatabaseOperationFacade retryingDatabaseOperationFacade) {
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
+    @Override
+    public void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
+        Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
+                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+                StudioConstants.SITE_UUID_FILENAME);
+        String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+        Files.write(path, toWrite.getBytes());
     }
 }
