@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressS
 import org.craftercms.studio.api.v2.service.site.SitesService;
 
 import java.beans.ConstructorProperties;
-import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 

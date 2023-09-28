@@ -265,8 +265,8 @@ public class SitesServiceInternalImpl implements SitesService {
      * @throws IOException if the file cannot be written
      */
     private void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
-        Path path = Paths.get(studioConfiguration.getProperty(StudioConfiguration.REPO_BASE_PATH),
-                studioConfiguration.getProperty(StudioConfiguration.SITES_REPOS_PATH), site,
+        Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                studioConfiguration.getProperty(SITES_REPOS_PATH), site,
                 StudioConstants.SITE_UUID_FILENAME);
         String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
         Files.write(path, toWrite.getBytes());

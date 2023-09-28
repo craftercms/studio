@@ -23,9 +23,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
-import org.craftercms.studio.model.rest.sites.DuplicateSiteRequest;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface SitesService {
