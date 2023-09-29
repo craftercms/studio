@@ -212,8 +212,10 @@ public class SiteServiceImpl implements SiteService {
     protected DependencyServiceInternal dependencyServiceInternal;
     protected RetryingOperationFacade retryingOperationFacade;
 
-    public SiteServiceImpl(StudioClusterUtils studioClusterUtils) {
+    public SiteServiceImpl(StudioClusterUtils studioClusterUtils, ClusterDAO clusterDao, RetryingOperationFacade retryingOperationFacade) {
         this.studioClusterUtils = studioClusterUtils;
+        this.clusterDao = clusterDao;
+        this.retryingOperationFacade = retryingOperationFacade;
     }
 
     @Override
@@ -1921,10 +1923,6 @@ public class SiteServiceImpl implements SiteService {
         return clusterDao;
     }
 
-    public void setClusterDao(ClusterDAO clusterDao) {
-        this.clusterDao = clusterDao;
-    }
-
     public StudioDBScriptRunnerFactory getStudioDBScriptRunner() {
         return studioDBScriptRunnerFactory;
     }
@@ -1943,9 +1941,5 @@ public class SiteServiceImpl implements SiteService {
 
     public RetryingOperationFacade getRetryingOperationFacade() {
         return retryingOperationFacade;
-    }
-
-    public void setRetryingOperationFacade(RetryingOperationFacade retryingOperationFacade) {
-        this.retryingOperationFacade = retryingOperationFacade;
     }
 }
