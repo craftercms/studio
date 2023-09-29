@@ -253,7 +253,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             logger.debug("No blob store configuration found for site '{}', " +
                     "will write '{}' to the local repository", site, path);
             return localRepositoryV1.writeContent(site, path, content);
-        } catch (RepositoryLockedException e) {
+        } catch (RepositoryLockedException | ServiceLayerException e) {
             logger.error("Failed to write content to site '{}' path '{}'", site, path, e);
             throw e;
         } catch (Exception e) {

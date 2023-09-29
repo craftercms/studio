@@ -187,28 +187,24 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
     protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, InputStream input,
                                           String user, boolean unlock, ResultTO result)
             throws ServiceLayerException {
-        ContentItemTO fileItem;
+        if (parentItem == null) {
+            throw new ContentNotFoundException(format("The parent item at '%s' doesn't exist in site '%s'",
+                    parentItem.getUri(), site));
+        }
+        String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
+        itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
+        try {
+            contentService.writeContent(site, itemPath, input);
+            String commitId = contentRepository.getRepoLastCommitId(site);
+            result.setCommitId(commitId);
 
-        if (parentItem != null) {
-            String itemPath = parentItem.getUri() + FILE_SEPARATOR + fileName;
-            itemPath = itemPath.replaceAll(FILE_SEPARATOR + FILE_SEPARATOR, FILE_SEPARATOR);
-            try {
-                contentService.writeContent(site, itemPath, input);
-                String commitId = contentRepository.getRepoLastCommitId(site);
-                result.setCommitId(commitId);
-
-                // Item
-                // TODO: get locale code with API 2
-                String parentItemPath =
-                        ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
-                Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
-                itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
-                contentService.notifyContentEvent(site, itemPath);
-            } catch (Exception e) {
-                logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
-            } finally {
-                IOUtils.closeQuietly(input);
-            }
+            // Item
+            // TODO: get locale code with API 2
+            String parentItemPath =
+                    ContentUtils.getParentUrl(itemPath.replace(FILE_SEPARATOR + INDEX_FILE, ""));
+            Item parent = itemServiceInternal.getItem(site, parentItemPath, true);
+            itemServiceInternal.persistItemAfterCreate(site, itemPath, user, commitId, unlock, parent.getId());
+            contentService.notifyContentEvent(site, itemPath);
 
             // unlock the content upon save
             if (unlock) {
@@ -216,13 +212,14 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             } else {
                 contentRepository.lockItem(site, itemPath);
             }
-
-            fileItem = contentService.getContentItem(site, itemPath, 0);
-            return fileItem;
-        } else {
-            throw new ContentNotFoundException(format("The parent item at '%s' doesn't exist in site '%s'",
-                    parentItem.getUri(), site));
+        } catch (Exception e) {
+            logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
+            throw new ServiceLayerException(String.format("Failed to create a new file in site '%s' name '%s'", site, fileName), e);
+        } finally {
+            IOUtils.closeQuietly(input);
         }
+
+        return contentService.getContentItem(site, itemPath, 0);
     }
 
 

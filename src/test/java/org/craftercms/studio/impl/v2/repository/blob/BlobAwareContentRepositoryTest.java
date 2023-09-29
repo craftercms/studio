@@ -177,7 +177,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void deleteFileTest() {
+    public void deleteFileTest() throws ServiceLayerException {
         when(store.deleteContent(SITE, ORIGINAL_PATH, USER)).thenReturn(EMPTY);
 
         proxy.deleteContent(SITE, ORIGINAL_PATH, USER);
@@ -187,7 +187,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void deleteRemoteFolderTest() {
+    public void deleteRemoteFolderTest() throws ServiceLayerException {
         proxy.deleteContent(SITE, FOLDER_PATH, USER);
 
         verify(store).deleteContent(SITE, FOLDER_PATH, USER);
@@ -195,7 +195,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void deleteLocalFolderTest() {
+    public void deleteLocalFolderTest() throws ServiceLayerException {
         proxy.deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
 
         verify(store, never()).deleteContent(SITE, LOCAL_FOLDER_PATH, USER);
@@ -203,7 +203,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void deleteContentFailTest() {
+    public void deleteContentFailTest() throws ServiceLayerException {
         when(store.deleteContent(SITE, ORIGINAL_PATH, USER)).thenReturn(null);
 
         proxy.deleteContent(SITE, ORIGINAL_PATH, USER);
@@ -212,7 +212,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void moveFileTest() {
+    public void moveFileTest() throws ServiceLayerException {
         proxy.moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH);
 
         verify(store).moveContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH, null);
@@ -220,7 +220,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void moveFolderTest() {
+    public void moveFolderTest() throws ServiceLayerException {
         proxy.moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
         verify(store).moveContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH, null);
@@ -228,7 +228,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void copyFileTest() {
+    public void copyFileTest() throws ServiceLayerException {
         when(store.copyContent(SITE, ORIGINAL_PATH, NEW_FILE_PATH)).thenReturn(EMPTY);
         when(localV1.contentExists(SITE, POINTER_PATH)).thenReturn(true);
 
@@ -239,7 +239,7 @@ public class BlobAwareContentRepositoryTest {
     }
 
     @Test
-    public void copyFolderTest() {
+    public void copyFolderTest() throws ServiceLayerException {
         proxy.copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);
 
         verify(store).copyContent(SITE, FOLDER_PATH, NEW_FOLDER_PATH);

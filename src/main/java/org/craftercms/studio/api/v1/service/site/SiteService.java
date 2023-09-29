@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
 
 import java.util.List;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+import org.craftercms.studio.model.site.SiteDetails;
 
 /**
  * Note: consider renaming
@@ -247,13 +249,23 @@ public interface SiteService {
             ServiceLayerException;
 
     /**
-     * Get site details
+     * Get site feed for given site
      *
      * @param siteId site id
-     * @return site details
+     * @return SiteFeed object for the requested site
      * @throws SiteNotFoundException site not found
      */
     SiteFeed getSite(String siteId) throws SiteNotFoundException;
+
+    /**
+     * Get site details.
+     * This will include the site feed info and the blob store configuration details
+     *
+     * @param siteId site id
+     * @return SiteDetails object for the requested site
+     * @throws ServiceLayerException if an error occurs while retrieving the site details
+     */
+    SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException;
 
     /**
      * Check if publishing is enabled for given site

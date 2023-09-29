@@ -42,8 +42,7 @@ import java.util.stream.Stream;
 import static com.rometools.utils.Strings.isNotEmpty;
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_ID;
-import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
+import static org.craftercms.commons.file.blob.BlobStore.*;
 
 /**
  * Implementation of {@link StudioBlobStoreResolver}
