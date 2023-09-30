@@ -393,6 +393,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) {
+        // If store is in readonly mode, nothing to do here.
+        if (readOnly) {
+            logger.warn("Publish request ignored in blobstore '{}' because it is readonly", id);
+            return;
+        }
+
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping envMapping = getMapping(environment);
         logger.debug("Publish content in site '{}' from bucket '{}' to bucket '{}'",
@@ -456,6 +462,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public void initialPublish(String siteId) {
+        // If store is in readonly mode, nothing to do here.
+        if (readOnly) {
+            logger.warn("Initial publish request ignored in blobstore '{}' because it is readonly", id);
+            return;
+        }
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
 
@@ -476,18 +487,25 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
+        // If store is in readonly mode, nothing to do here.
+        if (readOnly) {
+            logger.warn("'Complete publish all' request ignored in blobstore '{}' because it is readonly", id);
+            return;
+        }
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 
@@ -495,6 +513,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
         for (String updatedPath : changes.getUpdatedPaths()) {
             try {
+                // TODO: check if readonly? Or just ignore?
                 copyFile(previewMapping.target, getKey(previewMapping, updatedPath), targetMapping.target,
                         getKey(targetMapping, updatedPath), COPY_PART_SIZE, getClient());
             } catch (Exception e) {
@@ -517,18 +536,21 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public void cancelPublishAll(String siteId, String publishingTarget) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void populateGitLog(String siteId) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) {
+        // TODO: segregate these interfaces properly
         throw new UnsupportedOperationException();
     }
 }

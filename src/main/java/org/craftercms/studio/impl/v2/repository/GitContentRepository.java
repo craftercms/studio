@@ -2120,14 +2120,12 @@ public class GitContentRepository implements ContentRepository {
                 Path sourcePublishedPath = helper.buildRepoPath(PUBLISHED, sourceSiteId);
                 Path destPublishedPath = helper.buildRepoPath(PUBLISHED, siteId);
                 if (destPublishedPath.toFile().exists()) {
-                    if (destSandboxPath.toFile().exists()) {
-                        logger.warn("Deleting existing published repository for site '{}'", siteId);
-                        FileUtils.deleteDirectory(destPublishedPath.toFile());
-                    }
-                    FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
-                    // Cache the repo
-                    helper.getRepository(siteId, PUBLISHED);
+                    logger.warn("Deleting existing published repository for site '{}'", siteId);
+                    FileUtils.deleteDirectory(destPublishedPath.toFile());
                 }
+                FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
+                // Cache the repo
+                helper.getRepository(siteId, PUBLISHED);
             }
         } finally {
             generalLockService.unlock(repoLockKey);
