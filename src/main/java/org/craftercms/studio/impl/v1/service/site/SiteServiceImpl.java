@@ -1440,7 +1440,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
 
-        String configLocation = studioConfiguration.getProperty("studio.blob.config.path");
+        String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
 
         HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, CONFIG_PATH_ROOT + MODULE_STUDIO + FILE_SEPARATOR + configLocation);
 

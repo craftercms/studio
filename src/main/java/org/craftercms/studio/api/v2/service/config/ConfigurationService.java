@@ -25,7 +25,6 @@ import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -219,5 +218,11 @@ public interface ConfigurationService {
      */
     void invalidateConfiguration(String siteId);
 
+    /**
+     * Update blob stores configuration to make all blobStores read-only
+     *
+     * @param siteId the id of the site
+     * @throws ServiceLayerException if an error occurs while reading or writing the configuration
+     */
     void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
 }

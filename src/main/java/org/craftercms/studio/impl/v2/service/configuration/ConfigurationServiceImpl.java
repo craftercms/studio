@@ -102,6 +102,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
     public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
 
+    private static final String READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION = "/crafter/studio/utils/readonly-blob-stores.xslt";
+
     private ContentService contentService;
     private org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
     private StudioConfiguration studioConfiguration;
@@ -666,9 +668,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     public void makeBlobStoresReadOnly(final String siteId) throws ServiceLayerException {
         try {
             String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
-            String configLocation = studioConfiguration.getProperty("studio.blob.config.path");
+            String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ClassPathResource templateResource = new ClassPathResource("/crafter/studio/utils/readonly-blob-stores.xslt");
+            ClassPathResource templateResource = new ClassPathResource(READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION);
             try (InputStream templateInputStream = templateResource.getInputStream()) {
                 XsltUtils.executeTemplate(templateInputStream, null, null,
                         IOUtils.toInputStream(getConfigurationAsString(siteId, MODULE_STUDIO, configLocation, environment)), out);

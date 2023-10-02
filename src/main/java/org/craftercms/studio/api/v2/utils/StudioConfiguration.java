@@ -321,6 +321,9 @@ public interface StudioConfiguration {
     String SEARCH_DEFAULT_TYPE = "studio.search.default.type";
     String SEARCH_KEYWORD_SPLIT_REGEX = "studio.search.keyword.split.regex";
 
+    // Blob
+    String BLOB_STORES_CONFIG_PATH = "studio.blob.config.path";
+
     void loadConfig();
 
     String getProperty(String key);
