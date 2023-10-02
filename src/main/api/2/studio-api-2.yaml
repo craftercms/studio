@@ -9313,19 +9313,19 @@ components:
       properties:
         sourceSiteId:
           type: string
-          description: the id of the site to be duplicated
+          description: The ID of the site to be duplicated
         siteName:
           type: string
-          description: the name of the new site
+          description: The name of the new site
         siteId:
           type: string
-          description: the id of the new site
+          description: The ID of the new site
         description:
           type: string
-          description: the description of the new site
+          description: The description of the new site
         sandboxBranch:
           type: string
-          description: the sandbox branch to be used in the new site sandbox repository
+          description: The sandbox branch to be used in the new site sandbox repository
 
   responses:
     NotFound:
