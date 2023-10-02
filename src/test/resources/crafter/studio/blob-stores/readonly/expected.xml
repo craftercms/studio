@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License version 3 as published by
+  ~ the Free Software Foundation.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+<blobStores>
+    <blobStore>
+        <id>s3-store</id>
+        <readOnly>true</readOnly>
+        <type>s3BlobStore</type>
+        <pattern>/static-assets/s3/.*</pattern>
+        <mappings>
+            <mapping>
+                <publishingTarget>preview</publishingTarget>
+                <storeTarget>my-authoring-bucket</storeTarget>
+                <prefix>sandbox</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>staging</publishingTarget>
+                <storeTarget>my-authoring-bucket</storeTarget>
+                <prefix>staging</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>live</publishingTarget>
+                <storeTarget>my-delivery-bucket</storeTarget>
+            </mapping>
+        </mappings>
+        <configuration>
+            <credentials>
+                <accessKey>xxxxxxxxx</accessKey>
+                <secretKey>xxxxxxxxx</secretKey>
+            </credentials>
+            <region>us-west-1</region>
+            <pathStyleAccess>true</pathStyleAccess>
+        </configuration>
+    </blobStore>
+
+    <blobStore>
+        <id>my-s3-store</id>
+        <readOnly>true</readOnly>
+        <type>s3BlobStore</type>
+        <pattern>/static-assets/s3/.*</pattern>
+        <mappings>
+            <mapping>
+                <publishingTarget>preview</publishingTarget>
+                <storeTarget>my-authoring-bucket-2</storeTarget>
+                <prefix>sandbox</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>staging</publishingTarget>
+                <storeTarget>my-authoring-bucket-2</storeTarget>
+                <prefix>staging</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>live</publishingTarget>
+                <storeTarget>my-delivery-bucket-2</storeTarget>
+            </mapping>
+        </mappings>
+        <configuration>
+            <credentials>
+                <accessKey>xxxxxxxxx</accessKey>
+                <secretKey>xxxxxxxxx</secretKey>
+            </credentials>
+            <region>us-west-1</region>
+            <pathStyleAccess>true</pathStyleAccess>
+        </configuration>
+    </blobStore>
+
+    <blobStore>
+        <id>another-s3-store</id>
+        <readOnly>true</readOnly>
+        <type>s3BlobStore</type>
+        <pattern>/static-assets/s3/.*</pattern>
+        <mappings>
+            <mapping>
+                <publishingTarget>preview</publishingTarget>
+                <storeTarget>my-authoring-bucket-3</storeTarget>
+                <prefix>sandbox</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>staging</publishingTarget>
+                <storeTarget>my-authoring-bucket-3</storeTarget>
+                <prefix>staging</prefix>
+            </mapping>
+            <mapping>
+                <publishingTarget>live</publishingTarget>
+                <storeTarget>my-delivery-bucket-3</storeTarget>
+            </mapping>
+        </mappings>
+        <configuration>
+            <credentials>
+                <accessKey>xxxxxxxxx</accessKey>
+                <secretKey>xxxxxxxxx</secretKey>
+            </credentials>
+            <region>us-west-1</region>
+            <pathStyleAccess>true</pathStyleAccess>
+        </configuration>
+    </blobStore>
+
+</blobStores>

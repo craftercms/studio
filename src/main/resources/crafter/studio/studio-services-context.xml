@@ -466,6 +466,7 @@
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="siteServiceV1" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >

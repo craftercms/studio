@@ -37,6 +37,11 @@ public class DuplicateSiteRequest {
     private String description;
     @Size(max = 255)
     private String sandboxBranch;
+    /**
+     * If true, the blob stores will be read only
+     * If false, the blob stores will retain the same configuration as the source site
+     */
+    private boolean readOnlyBlobStores = true;
 
     public String getSourceSiteId() {
         return sourceSiteId;
@@ -76,5 +81,13 @@ public class DuplicateSiteRequest {
 
     public void setSandboxBranch(String sandboxBranch) {
         this.sandboxBranch = sandboxBranch;
+    }
+
+    public boolean isReadOnlyBlobStores() {
+        return readOnlyBlobStores;
+    }
+
+    public void setReadOnlyBlobStores(boolean readOnlyBlobStores) {
+        this.readOnlyBlobStores = readOnlyBlobStores;
     }
 }

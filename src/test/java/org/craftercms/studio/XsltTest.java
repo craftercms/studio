@@ -265,6 +265,12 @@ public class XsltTest {
                     new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.1.7/input.xml"),
                     new ClassPathResource("crafter/studio/upgrade/xslt/global-permission-mappings/4.1.7/expected.xml"),
                     emptyMap()
+            },
+            new Object[] {
+                    new ClassPathResource("/crafter/studio/utils/readonly-blob-stores.xslt"),
+                    new ClassPathResource("crafter/studio/blob-stores/readonly/input.xml"),
+                    new ClassPathResource("crafter/studio/blob-stores/readonly/expected.xml"),
+                    emptyMap()
             }
         };
     }

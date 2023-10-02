@@ -124,12 +124,12 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
             PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
-    public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch)
+    public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException {
         siteService.checkSiteExists(sourceSiteId);
         if (siteService.exists(siteId)) {
             throw new SiteAlreadyExistsException(siteId);
         }
-        sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch);
+        sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
     }
 }

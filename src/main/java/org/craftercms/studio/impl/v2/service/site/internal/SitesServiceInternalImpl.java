@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.site.internal;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.plugin.PluginDescriptorReader;
 import org.craftercms.commons.plugin.exception.PluginException;
@@ -26,22 +27,25 @@ import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.service.site.SiteServiceImpl;
 import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
+import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 
+import javax.xml.transform.TransformerException;
 import java.beans.ConstructorProperties;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,6 +56,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
@@ -67,17 +72,18 @@ public class SitesServiceInternalImpl implements SitesService {
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final SiteServiceImpl siteServiceV1;
     private final PreviewDeployer previewDeployer;
+    private final ConfigurationService configurationService;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
             "contentRepositoryV2",
             "studioConfiguration", "siteFeedMapper",
             "retryingDatabaseOperationFacade", "siteServiceV1",
-            "previewDeployer"})
+            "previewDeployer", "configurationService"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteServiceImpl siteServiceV1,
-                                    PreviewDeployer previewDeployer) {
+                                    PreviewDeployer previewDeployer, ConfigurationService configurationService) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
         this.contentRepositoryV2 = contentRepositoryV2;
@@ -86,6 +92,7 @@ public class SitesServiceInternalImpl implements SitesService {
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.siteServiceV1 = siteServiceV1;
         this.previewDeployer = previewDeployer;
+        this.configurationService = configurationService;
     }
 
     @Override
@@ -214,7 +221,7 @@ public class SitesServiceInternalImpl implements SitesService {
     }
 
     @Override
-    public void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch)
+    public void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException {
         if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
             throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
@@ -238,6 +245,11 @@ public class SitesServiceInternalImpl implements SitesService {
 
             // Duplicate site in deployer
             previewDeployer.duplicateTargets(sourceSiteId, siteId);
+
+            // read-only blobstores
+            if (readOnlyBlobStores) {
+                configurationService.makeBlobStoresReadOnly(siteId);
+            }
 
             // Set site state to READY
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));

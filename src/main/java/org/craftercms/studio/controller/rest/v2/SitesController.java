@@ -129,7 +129,7 @@ public class SitesController {
             throws ServiceLayerException {
         sitesService.duplicate(request.getSourceSiteId(), request.getSiteId(),
                 request.getSiteName(), request.getDescription(),
-                request.getSandboxBranch());
+                request.getSandboxBranch(), request.isReadOnlyBlobStores());
 
         Result result = new Result();
         result.setResponse(OK);

@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
+import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.*;
@@ -57,12 +58,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -656,6 +659,25 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+    public void makeBlobStoresReadOnly(final String siteId) throws ServiceLayerException {
+        try {
+            String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+            String configLocation = studioConfiguration.getProperty("studio.blob.config.path");
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ClassPathResource templateResource = new ClassPathResource("/crafter/studio/utils/readonly-blob-stores.xslt");
+            try (InputStream templateInputStream = templateResource.getInputStream()) {
+                XsltUtils.executeTemplate(templateInputStream, null, null,
+                        IOUtils.toInputStream(getConfigurationAsString(siteId, MODULE_STUDIO, configLocation, environment)), out);
+            }
+
+            writeConfiguration(siteId, MODULE_STUDIO, configLocation, environment, new ByteArrayInputStream(out.toByteArray()));
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Failed to make make blob stores read only for site '%s'", siteId), e);
+        }
     }
 
     protected void invalidateCache(String key) {

@@ -18,7 +18,6 @@ package org.craftercms.studio.api.v2.service.config;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.model.config.TranslationConfiguration;
@@ -26,6 +25,7 @@ import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +127,7 @@ public interface ConfigurationService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * Get a a file from a plugin
+     * Get a file from a plugin
      * @param siteId the id of site
      * @param pluginId the id of the plugin
      * @param type the type of plugin
@@ -219,4 +219,5 @@ public interface ConfigurationService {
      */
     void invalidateConfiguration(String siteId);
 
+    void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
 }
