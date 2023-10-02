@@ -17,14 +17,17 @@
 package org.craftercms.studio.impl.v2.security;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.file.PathUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v2.dal.Item;
+import org.craftercms.studio.api.v2.dal.QueryParameterNames;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
@@ -39,29 +42,13 @@ import org.craftercms.studio.model.rest.content.DetailedItem;
 
 import java.util.List;
 
+import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.TOP_LEVEL_FOLDERS;
 import static org.craftercms.studio.api.v2.dal.ItemState.USER_LOCKED;
 import static org.craftercms.studio.api.v2.dal.ItemState.isInWorkflow;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_COPY;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_CUT;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE_CONTROLLER;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DELETE_TEMPLATE;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_DUPLICATE;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT_CONTROLLER;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_EDIT_TEMPLATE;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_READ_VERSION_HISTORY;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_RENAME;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_REVERT;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.CONTENT_UPLOAD;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.ITEM_UNLOCK;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_APPROVE;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_REJECT;
-import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.PUBLISH_SCHEDULE;
+import static org.craftercms.studio.api.v2.security.ContentItemAvailableActionsConstants.*;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForItemState;
 import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsConstants.getPossibleActionsForObject;
 
@@ -143,10 +130,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             result &= ~CONTENT_RENAME;
         }
 
-        if (studioBlobStoreResolver.isBlob(siteId, itemPath)) {
-            result &= ~CONTENT_READ_VERSION_HISTORY;
-            result &= ~CONTENT_REVERT;
-        }
+        result = applyBlobStoreFilters(siteId, itemPath, itemSystemType, result);
 
         if ((result & CONTENT_EDIT) > 0 && (!contentServiceInternal.isEditable(itemPath, itemMimeType))) {
             result &= ~CONTENT_EDIT;
@@ -183,6 +167,34 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
             String templatePath = contentTypeServiceInternal.getContentTypeTemplatePath(siteId, itemContentTypeId);
             result = checkActionForDependency(siteId, username, templatePath, result,
                     CONTENT_EDIT_TEMPLATE, CONTENT_EDIT, CONTENT_DELETE_TEMPLATE, CONTENT_DELETE);
+        }
+
+        return result;
+    }
+
+    private long applyBlobStoreFilters(final String siteId, final String itemPath, String itemSystemType, final long availableActions) throws ServiceLayerException {
+        long result = availableActions;
+
+        if (studioBlobStoreResolver.isBlob(siteId, itemPath)) {
+            result &= ~CONTENT_READ_VERSION_HISTORY;
+            result &= ~CONTENT_REVERT;
+        }
+
+        String blobStorePath = itemPath;
+        if ("folder".equals(itemSystemType)) {
+            blobStorePath = appendIfMissing(itemPath, "/");
+        }
+        StudioBlobStore blobStore = studioBlobStoreResolver.getByPaths(siteId, blobStorePath);
+        if (blobStore != null && blobStore.isReadOnly()) {
+            result &= ~CONTENT_DELETE;
+            result &= ~CONTENT_EDIT;
+            result &= ~CONTENT_DUPLICATE;
+            result &= ~CONTENT_CUT;
+            result &= ~CONTENT_PASTE;
+            result &= ~CONTENT_UPLOAD;
+            result &= ~CONTENT_CREATE;
+            result &= ~CONTENT_RENAME;
+            result &= ~FOLDER_CREATE;
         }
 
         return result;

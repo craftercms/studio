@@ -136,7 +136,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
     }
 
     @Override
-    public BlobStore getByPaths(String site, String... paths)
+    public StudioBlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException {
 
         if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
@@ -154,7 +154,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
             }
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
             if (isNotEmpty(storeId)) {
-                BlobStore blobStore = getBlobStore(site, storeId, config);
+                StudioBlobStore blobStore = getBlobStore(site, storeId, config);
                 // We have to compare each one to know if the exception should be thrown
                 if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
                     logger.error("Unsupported operation in site '{}' paths '{}'", site, Arrays.toString(paths));

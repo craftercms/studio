@@ -105,6 +105,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         }
     }
 
+    @Override
+    public boolean isReadOnly() {
+        return readOnly;
+    }
+
     // Start API 1
 
     @Override
