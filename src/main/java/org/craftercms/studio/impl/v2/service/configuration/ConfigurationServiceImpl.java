@@ -274,6 +274,29 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     @Override
+    public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException {
+        String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+        String cacheKey = getCacheKey(siteId, module, path, environment);
+        HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
+        if (config != null) {
+            return config;
+        }
+        try {
+            String fullConfigurationPath = getConfigurationPath(siteId, module, path, environment);
+            logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
+            if (contentService.contentExists(siteId, fullConfigurationPath)) {
+                config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, fullConfigurationPath));
+                configurationCache.put(cacheKey, config);
+            }
+            return config;
+        } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
+            logger.error("Failed to load configuration from site '{}' module '{}' env '{}' path '{}'", siteId, module, environment, path, e);
+            throw new ConfigurationException(format("Failed to load configuration from site " +
+                    "'%s' module '%s' env '%s' path '%s'", siteId, module, environment, path), e);
+        }
+    }
+
+    @Override
     public HierarchicalConfiguration<?> getGlobalXmlConfiguration(String path) throws ConfigurationException {
         var cacheKey = path + ":commons";
         HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);

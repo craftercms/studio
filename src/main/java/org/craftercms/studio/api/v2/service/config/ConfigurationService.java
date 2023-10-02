@@ -88,6 +88,17 @@ public interface ConfigurationService {
     HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException;
 
     /**
+     * Reads a configuration for the current environment, or fallback to the default environment if the file is missing
+     *
+     * @param siteId the id of the site
+     * @param module the module
+     * @param path   the path of the file
+     * @return the configuration object
+     * @throws ConfigurationException if there is any error reading or parsing the file
+     */
+    HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException;
+
+    /**
      * Reads a configuration file using Apache Commons Configuration
      * @param path the path of the file
      * @return the configuration object
