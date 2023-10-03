@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
@@ -70,7 +71,7 @@ public class SitesServiceInternalImpl implements SitesService {
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private final SiteServiceImpl siteServiceV1;
+    private final SiteService siteServiceV1;
     private final PreviewDeployer previewDeployer;
     private final ConfigurationService configurationService;
 
@@ -82,7 +83,7 @@ public class SitesServiceInternalImpl implements SitesService {
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
-                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteServiceImpl siteServiceV1,
+                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
                                     PreviewDeployer previewDeployer, ConfigurationService configurationService) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
@@ -276,7 +277,7 @@ public class SitesServiceInternalImpl implements SitesService {
      * @param siteUuid site uuid
      * @throws IOException if the file cannot be written
      */
-    private void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
+    protected void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
         Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
                 studioConfiguration.getProperty(SITES_REPOS_PATH), site,
                 StudioConstants.SITE_UUID_FILENAME);
