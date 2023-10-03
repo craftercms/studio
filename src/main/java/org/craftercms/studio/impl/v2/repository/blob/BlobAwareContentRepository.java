@@ -43,6 +43,7 @@ import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
+import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
@@ -282,7 +283,7 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) {
+    public String deleteContent(String site, String path, String approver) throws ServiceLayerException {
         logger.debug("Delete content in site '{}' path '{}'", site, path);
         try {
             StudioBlobStore store = getBlobStore(site, path);
@@ -297,9 +298,11 @@ public class BlobAwareContentRepository implements ContentRepository,
             logger.debug("No blob store configuration found for site '{}', " +
                     "will delete '{}' in the local repository", site, path);
             return localRepositoryV1.deleteContent(site, path, approver);
+        } catch (ServiceLayerException ex) {
+            throw ex;
         } catch (Exception e) {
             logger.error("Failed to delete content in site '{}' path '{}'", site, path, e);
-            return null;
+            throw new ServiceLayerException(format("Failed to delete content in site '%s' path '%s'", site, path), e);
         }
     }
 

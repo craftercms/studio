@@ -50,7 +50,7 @@ CREATE PROCEDURE duplicate_site(IN sourceSiteId VARCHAR(50),
                                     IN uuid VARCHAR(2000))
 BEGIN
     INSERT INTO site (id, site_uuid, site_id, name, description, deleted, last_commit_id, system, publishing_enabled, publishing_status, last_verified_gitlog_commit_id, sandbox_branch, published_repo_created, publishing_lock_owner, publishing_lock_heartbeat, state, last_synced_gitlog_commit_id)
-        SELECT null, uuid, siteId, name, description, s.deleted, s.last_commit_id, s.system, 1, 'ready', s.last_verified_gitlog_commit_id, IFNULL(sandboxBranch, 'master'), s.published_repo_created, s.publishing_lock_owner, s.publishing_lock_heartbeat, 'INITIALIZING', s.last_synced_gitlog_commit_id FROM site s WHERE s.site_id = sourceSiteId;
+        SELECT null, uuid, siteId, name, description, s.deleted, s.last_commit_id, s.system, 1, 'ready', s.last_verified_gitlog_commit_id, IFNULL(sandboxBranch, 'master'), s.published_repo_created, s.publishing_lock_owner, s.publishing_lock_heartbeat, 'INITIALIZING', s.last_synced_gitlog_commit_id FROM site s WHERE s.site_id = sourceSiteId AND s.deleted = 0;
 
     INSERT INTO remote_repository (id, site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
         SELECT null, siteId, r.remote_name, r.remote_url, r.authentication_type, r.remote_username, r.remote_password, r.remote_token, r.remote_private_key FROM remote_repository r WHERE r.site_id = sourceSiteId;
