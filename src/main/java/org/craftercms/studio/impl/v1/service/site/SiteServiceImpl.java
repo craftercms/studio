@@ -33,7 +33,6 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
-import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
@@ -1461,7 +1460,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         List<? extends HierarchicalConfiguration<?>> blobStores = xmlConfiguration.configurationsAt(CONFIG_KEY_STORE);
         return blobStores.stream().map(store -> {
             String id = store.getString(CONFIG_KEY_ID);
-            String type = store.getString(BlobStore.CONFIG_KEY_TYPE);
+            String type = store.getString(CONFIG_KEY_TYPE);
             String pattern = store.getString(CONFIG_KEY_PATTERN);
             boolean readOnly = store.getBoolean(CONFIG_KEY_READ_ONLY, false);
 
