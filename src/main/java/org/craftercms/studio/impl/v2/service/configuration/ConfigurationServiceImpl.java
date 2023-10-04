@@ -692,11 +692,18 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         try {
             String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
             String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
+
+            String blobConfigsContent = getEnvironmentConfiguration(siteId, MODULE_STUDIO, configLocation, environment);
+            if (blobConfigsContent == null) {
+                logger.debug("Blob stores configuration not found for site '{}'", siteId);
+                return;
+            }
+
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             ClassPathResource templateResource = new ClassPathResource(READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION);
             try (InputStream templateInputStream = templateResource.getInputStream()) {
                 XsltUtils.executeTemplate(templateInputStream, null, null,
-                        IOUtils.toInputStream(getConfigurationAsString(siteId, MODULE_STUDIO, configLocation, environment)), out);
+                        IOUtils.toInputStream(blobConfigsContent), out);
             }
 
             writeConfiguration(siteId, MODULE_STUDIO, configLocation, environment, new ByteArrayInputStream(out.toByteArray()));
