@@ -25,8 +25,6 @@ import org.craftercms.studio.api.v1.exception.ContentProcessException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
@@ -39,6 +37,8 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.impl.v1.util.ContentFormatUtils;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 
 import java.io.InputStream;
@@ -214,7 +214,7 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             }
         } catch (Exception e) {
             logger.error("Failed to create a new file in site '{}' name '{}'", site, fileName, e);
-            throw new ServiceLayerException(String.format("Failed to create a new file in site '%s' name '%s'", site, fileName), e);
+            throw new ServiceLayerException(format("Failed to create a new file in site '%s' name '%s'", site, fileName), e);
         } finally {
             IOUtils.closeQuietly(input);
         }

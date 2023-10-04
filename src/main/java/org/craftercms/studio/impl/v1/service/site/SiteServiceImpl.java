@@ -1458,7 +1458,7 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             return Collections.emptyList();
         }
 
-        List<? extends HierarchicalConfiguration<?>> blobStores = xmlConfiguration.configurationsAt(BlobStore.CONFIG_KEY_STORE);
+        List<? extends HierarchicalConfiguration<?>> blobStores = xmlConfiguration.configurationsAt(CONFIG_KEY_STORE);
         return blobStores.stream().map(store -> {
             String id = store.getString(CONFIG_KEY_ID);
             String type = store.getString(BlobStore.CONFIG_KEY_TYPE);
