@@ -28,9 +28,11 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -38,6 +40,10 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.lang.NonNull;
 
 import java.beans.ConstructorProperties;
 import java.io.FileReader;
@@ -56,7 +62,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
-public class SitesServiceInternalImpl implements SitesService {
+public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
 
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
@@ -69,17 +75,21 @@ public class SitesServiceInternalImpl implements SitesService {
     private final SiteService siteServiceV1;
     private final PreviewDeployer previewDeployer;
     private final ConfigurationService configurationService;
+    private final SecurityService securityService;
+    private ApplicationContext applicationContext;
 
     @ConstructorProperties({"descriptorReader", "contentRepository",
             "contentRepositoryV2",
             "studioConfiguration", "siteFeedMapper",
             "retryingDatabaseOperationFacade", "siteServiceV1",
-            "previewDeployer", "configurationService"})
+            "previewDeployer", "configurationService",
+            "securityService"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
-                                    PreviewDeployer previewDeployer, ConfigurationService configurationService) {
+                                    PreviewDeployer previewDeployer, ConfigurationService configurationService,
+                                    SecurityService securityService) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
         this.contentRepositoryV2 = contentRepositoryV2;
@@ -89,6 +99,7 @@ public class SitesServiceInternalImpl implements SitesService {
         this.siteServiceV1 = siteServiceV1;
         this.previewDeployer = previewDeployer;
         this.configurationService = configurationService;
+        this.securityService = securityService;
     }
 
     @Override
@@ -250,6 +261,7 @@ public class SitesServiceInternalImpl implements SitesService {
             // Set site state to READY
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
             siteServiceV1.enablePublishing(siteId, true);
+            applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
         } catch (ServiceLayerException ex) {
             siteServiceV1.deleteSite(siteId);
             throw ex;
@@ -278,5 +290,10 @@ public class SitesServiceInternalImpl implements SitesService {
                 StudioConstants.SITE_UUID_FILENAME);
         String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
         Files.write(path, toWrite.getBytes());
+    }
+
+    @Override
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
