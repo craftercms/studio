@@ -564,6 +564,15 @@ pipelines:
               - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
                 dest: configuration/samples/sample-ui.xml
             commitDetails: Add sample file for ui.xml
+      - currentVersion: 4.1.6
+        nextVersion: 4.1.7
+        operations:
+          - type: dbScriptUpgrader
+            filename: 4.1.x/upgrade-4.1.6-to-4.1.7.sql
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.1.x/4.1.7/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permission get_children
 
   # Pipeline to upgrade site repositories
   site:

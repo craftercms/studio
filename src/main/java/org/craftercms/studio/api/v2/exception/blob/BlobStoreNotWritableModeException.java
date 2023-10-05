@@ -14,25 +14,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.studio.api.v2.exception.security;
+package org.craftercms.studio.api.v2.exception.blob;
 
-import org.craftercms.commons.security.exception.PermissionException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 
-public class ActionsDeniedException extends PermissionException {
+/**
+ * Exception to be thrown when a write operation is attempted on a
+ * blob store configured in read-only mode.
+ */
+public class BlobStoreNotWritableModeException extends ServiceLayerException {
 
-    public ActionsDeniedException() {
-        super();
-    }
-
-    public ActionsDeniedException(Throwable e) {
-        super(e);
-    }
-
-    public ActionsDeniedException(String message) {
+    public BlobStoreNotWritableModeException(String message) {
         super(message);
-    }
-
-    public ActionsDeniedException(String message, Exception e) {
-        super(message, e);
     }
 }

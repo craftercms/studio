@@ -474,6 +474,8 @@ studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/dep
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create_if_not_exists
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
+# Preview duplicate target URL
+studio.preview.duplicateTargetUrl: http://localhost:9191/api/1/target/duplicate
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
 studio.preview.repoUrl: ${env:CRAFTER_DATA_DIR}/repos/sites/{siteName}/sandbox
 # Name of template to use with the deployer for preview

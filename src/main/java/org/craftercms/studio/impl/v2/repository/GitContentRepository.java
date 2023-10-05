@@ -2100,6 +2100,38 @@ public class GitContentRepository implements ContentRepository {
         return versionHistory;
     }
 
+    @Override
+    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException {
+        String repoLockKey = helper.getSandboxRepoLockKey(sourceSiteId);
+        generalLockService.lock(repoLockKey);
+
+        try {
+            Path sourceSandboxPath = helper.buildRepoPath(SANDBOX, sourceSiteId);
+            Path destSandboxPath = helper.buildRepoPath(SANDBOX, siteId);
+            if (destSandboxPath.toFile().exists()) {
+                logger.warn("Deleting existing sandbox repository for site '{}'", siteId);
+                FileUtils.deleteDirectory(destSandboxPath.toFile());
+            }
+            FileUtils.copyDirectory(sourceSandboxPath.toFile(), destSandboxPath.toFile());
+            // Cache the repo and checkout the sandbox branch
+            helper.getRepository(siteId, SANDBOX, sandboxBranch);
+
+            if (publishedRepositoryExists(sourceSiteId)) {
+                Path sourcePublishedPath = helper.buildRepoPath(PUBLISHED, sourceSiteId);
+                Path destPublishedPath = helper.buildRepoPath(PUBLISHED, siteId);
+                if (destPublishedPath.toFile().exists()) {
+                    logger.warn("Deleting existing published repository for site '{}'", siteId);
+                    FileUtils.deleteDirectory(destPublishedPath.toFile());
+                }
+                FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
+                // Cache the repo
+                helper.getRepository(siteId, PUBLISHED);
+            }
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
+    }
+
     public void setHelper(GitRepositoryHelper helper) {
         this.helper = helper;
     }
