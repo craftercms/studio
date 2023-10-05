@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Studio API v2
-  version: '4.0.3.0'
+  version: '4.0.7.0'
   title: Crafter Studio
   termsOfService: ''
   contact:
@@ -14,7 +14,7 @@ info:
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
   description: CrafterCMS - Studio
-  url: 'https://docs.craftercms.org/current/reference/modules/studio/index.html'
+  url: 'https://docs.craftercms.org/en/4.0/developers/projects/studio/index.html'
 tags:
   - name: groups
     description: Group management operations
