@@ -32,6 +32,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_CREATE_GROUPS = "create_groups";
     public static final String PERMISSION_CREATE_USERS = "create_users";
     public static final String PERMISSION_CREATE_SITE = "create-site";
+    public static final String PERMISSION_DUPLICATE_SITE = "duplicate_site";
     public static final String PERMISSION_DELETE_CLUSTER = "delete_cluster";
     public static final String PERMISSION_CONTENT_DELETE = "content_delete";
     public static final String PERMISSION_DELETE_GROUPS = "delete_groups";

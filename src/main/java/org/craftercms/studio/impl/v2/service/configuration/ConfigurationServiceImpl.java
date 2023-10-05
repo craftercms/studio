@@ -49,6 +49,7 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
+import org.craftercms.studio.impl.v2.utils.XsltUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
 import org.craftercms.studio.model.rest.ConfigurationHistory;
 import org.dom4j.*;
@@ -57,12 +58,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
 import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -98,6 +101,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     /* Translation Config */
     public static final String CONFIG_KEY_TRANSLATION_DEFAULT_LOCALE = "defaultLocaleCode";
     public static final String CONFIG_KEY_TRANSLATION_LOCALES = "localeCodes.localeCode";
+
+    private static final String READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION = "/crafter/studio/utils/readonly-blob-stores.xslt";
 
     private ContentService contentService;
     private StudioConfiguration studioConfiguration;
@@ -264,6 +269,29 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
             }
         }
         return config;
+    }
+
+    @Override
+    public HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException {
+        String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+        String cacheKey = getCacheKey(siteId, module, path, environment);
+        HierarchicalConfiguration<?> config = (HierarchicalConfiguration<?>) configurationCache.getIfPresent(cacheKey);
+        if (config != null) {
+            return config;
+        }
+        try {
+            String fullConfigurationPath = getConfigurationPath(siteId, module, path, environment);
+            logger.debug("Cache miss in site '{}' cache key '{}'", siteId, cacheKey);
+            if (contentService.contentExists(siteId, fullConfigurationPath)) {
+                config = configurationReader.readXmlConfiguration(contentService.getContent(siteId, fullConfigurationPath));
+                configurationCache.put(cacheKey, config);
+            }
+            return config;
+        } catch (ContentNotFoundException | org.craftercms.commons.config.ConfigurationException e) {
+            logger.error("Failed to load configuration from site '{}' module '{}' env '{}' path '{}'", siteId, module, environment, path, e);
+            throw new ConfigurationException(format("Failed to load configuration from site " +
+                    "'%s' module '%s' env '%s' path '%s'", siteId, module, environment, path), e);
+        }
     }
 
     @Override
@@ -660,6 +688,32 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         configurationCache.asMap().keySet().stream()
                 .filter(key -> startsWithIgnoreCase(key, siteId + ":"))
                 .forEach(this::invalidateCache);
+    }
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_WRITE_CONFIGURATION)
+    public void makeBlobStoresReadOnly(final String siteId) throws ServiceLayerException {
+        try {
+            String environment = studioConfiguration.getProperty(CONFIGURATION_ENVIRONMENT_ACTIVE);
+            String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
+
+            String blobConfigsContent = getEnvironmentConfiguration(siteId, MODULE_STUDIO, configLocation, environment);
+            if (blobConfigsContent == null) {
+                logger.debug("Blob stores configuration not found for site '{}'", siteId);
+                return;
+            }
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ClassPathResource templateResource = new ClassPathResource(READ_ONLY_BLOB_STORES_TEMPLATE_LOCATION);
+            try (InputStream templateInputStream = templateResource.getInputStream()) {
+                XsltUtils.executeTemplate(templateInputStream, null, null,
+                        IOUtils.toInputStream(blobConfigsContent), out);
+            }
+
+            writeConfiguration(siteId, MODULE_STUDIO, configLocation, environment, new ByteArrayInputStream(out.toByteArray()));
+        } catch (Exception e) {
+            throw new ServiceLayerException(format("Failed to make make blob stores read only for site '%s'", siteId), e);
+        }
     }
 
     protected void invalidateCache(String key) {

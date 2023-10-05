@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -55,14 +55,13 @@ public final class  QueryParameterNames {
 
     /* Sites */
     public static final String SITE_ID = "siteId";
-
+    public static final String SOURCE_SITE_ID = "sourceSiteId";
     public static final String LOCK_OWNER_ID = "lockOwnerId";
-
     public static final String TTL = "ttl";
-
     public static final String NAME = "name";
-
     public static final String DESC = "description";
+    public static final String SANDBOX_BRANCH = "sandboxBranch";
+    public static final String UUID = "uuid";
 
 
     public static final String PUBLISHING_STATUS = "publishingStatus";

@@ -1957,6 +1957,40 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/duplicate:
+    post:
+      tags:
+        - sites
+      summary: Duplicates a site
+      operationId: duplicateSite
+      requestBody:
+        description: Duplicate site request information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DuplicateSiteRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -7366,7 +7400,6 @@ components:
       required:
         - id
         - name
-        -
     UpdateGroupRequest:
       type: object
       properties:
@@ -9098,6 +9131,30 @@ components:
               type: boolean
               description: if true, the logger will be created in case it does not exist yet.
                 If false, a 404 status code will be returned if logger is not in the registry.
+
+    DuplicateSiteRequest:
+      type: object
+      properties:
+        sourceSiteId:
+          type: string
+          description: The ID of the site to be duplicated
+        siteName:
+          type: string
+          description: The name of the new site
+        siteId:
+          type: string
+          description: The ID of the new site
+        description:
+          type: string
+          description: The description of the new site
+        sandboxBranch:
+          type: string
+          description: The sandbox branch to be used in the new site sandbox repository
+        readOnlyBlobStores:
+          type: boolean
+          description: If true, the blob stores will be read-only in the copied site.
+          default: true
+
   responses:
     NotFound:
       description: Resource not found

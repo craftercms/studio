@@ -1,0 +1,74 @@
+/*
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 3 as published by
+ * the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package org.craftercms.studio.impl.v2.service.site;
+
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.*;
+
+@RunWith(MockitoJUnitRunner.class)
+public class SitesServiceImplTest {
+
+    private static final String EXISTING_SITE_ID = "existing-site";
+    private static final String NON_EXISTING_SITE_ID = "non-existing-site";
+    private static final String SOURCE_SITE_ID = "original";
+    private static final String NEW_SITE_ID = "the-copy";
+
+    @Mock
+    SiteService siteServiceV1;
+    @Mock
+    SitesServiceInternalImpl sitesServiceInternal;
+    @InjectMocks
+    SitesServiceImpl sitesService;
+
+    @Before
+    public void setUp() throws SiteNotFoundException {
+        doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
+        when(siteServiceV1.exists(EXISTING_SITE_ID)).thenReturn(true);
+    }
+
+    @Test
+    public void duplicateNonExistentSiteTest() {
+        assertThrows(SiteNotFoundException.class, () ->
+                sitesService.duplicate(NON_EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
+    }
+
+    @Test
+    public void duplicateIntoAlreadyExistentSite() {
+        assertThrows(SiteAlreadyExistsException.class, () ->
+                sitesService.duplicate(SOURCE_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
+    }
+
+
+    @Test
+    public void duplicateSiteTest() throws ServiceLayerException {
+        sitesService.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+
+        verify(sitesServiceInternal).duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+    }
+}

@@ -17,6 +17,7 @@
 package org.craftercms.studio.impl.v1.service.site;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -55,6 +56,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
@@ -76,9 +78,12 @@ import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.impl.v1.repository.job.RebuildRepositoryMetadata;
 import org.craftercms.studio.impl.v1.repository.job.SyncDatabaseWithRepository;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.craftercms.studio.model.blobstore.BlobStoreDetails;
+import org.craftercms.studio.model.site.SiteDetails;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +102,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -104,6 +110,7 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.commons.file.blob.BlobStore.*;
 import static org.craftercms.studio.api.v1.constant.DmConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v1.constant.StudioXmlConstants.*;
@@ -1427,6 +1434,56 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
         } else {
             throw new SiteNotFoundException();
         }
+    }
+
+    @Override
+    public SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
+        checkSiteExists(siteId);
+        Map<String, Object> params = new HashMap<>();
+        params.put("siteId", siteId);
+
+        String configLocation = studioConfiguration.getProperty(BLOB_STORES_CONFIG_PATH);
+        HierarchicalConfiguration<?> xmlConfiguration = configurationService.getXmlConfiguration(siteId, MODULE_STUDIO, configLocation);
+
+        List<BlobStoreDetails> storeDetails = getBlobStoreDetails(xmlConfiguration);
+        return new SiteDetails(siteFeedMapper.getSite(params), storeDetails);
+    }
+
+    /**
+     * Reads blob-stores-config.xml and returns a list of BlobStoreDetails
+     * @param xmlConfiguration the blob-stores-config.xml configuration
+     * @return a list of BlobStoreDetails
+     */
+    @NotNull
+    private static List<BlobStoreDetails> getBlobStoreDetails(HierarchicalConfiguration<?> xmlConfiguration) {
+        if (xmlConfiguration == null) {
+            return Collections.emptyList();
+        }
+
+        List<? extends HierarchicalConfiguration<?>> blobStores = xmlConfiguration.configurationsAt(CONFIG_KEY_STORE);
+        return blobStores.stream().map(store -> {
+            String id = store.getString(CONFIG_KEY_ID);
+            String type = store.getString(CONFIG_KEY_TYPE);
+            String pattern = store.getString(CONFIG_KEY_PATTERN);
+            boolean readOnly = store.getBoolean(CONFIG_KEY_READ_ONLY, false);
+
+            List<BlobStoreDetails.Mapping> mappings = store.configurationsAt(CONFIG_KEY_MAPPING).stream()
+                    .map(mapping -> {
+                        String publishingTarget = mapping.getString(CONFIG_KEY_MAPPING_PUBLISHING_TARGET);
+                        String storeTarget = mapping.getString(CONFIG_KEY_MAPPING_STORE_TARGET);
+                        String prefix = mapping.getString(CONFIG_KEY_MAPPING_PREFIX);
+                        return new BlobStoreDetails.Mapping(publishingTarget, storeTarget, prefix);
+                    }).collect(Collectors.toList());
+
+            BlobStoreDetails details = new BlobStoreDetails();
+            details.setId(id);
+            details.setPattern(pattern);
+            details.setType(type);
+            details.setReadOnly(readOnly);
+            details.setMappings(mappings);
+
+            return details;
+        }).collect(Collectors.toList());
     }
 
     @Override
