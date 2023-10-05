@@ -459,11 +459,14 @@
 
     <bean id="sitesServiceInternal"
           class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
-        <property name="descriptorReader" ref="pluginDescriptorReader"/>
-        <property name="contentRepository" ref="contentRepository" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="siteFeedMapper" ref="siteFeedMapper" />
-        <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="siteServiceV1" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="configurationService" ref="configurationService" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >

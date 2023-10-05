@@ -35,4 +35,10 @@ public interface StudioBlobStore extends BlobStore, ContentRepository,
      */
     Blob getReference(String path);
 
+    /**
+     * Indicate if the store is read only
+     * @return true if the store is read only
+     */
+    boolean isReadOnly();
+
 }
