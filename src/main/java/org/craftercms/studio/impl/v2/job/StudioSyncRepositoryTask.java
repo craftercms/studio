@@ -161,15 +161,19 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
 
             String currentLastProcessedCommit = lastProcessedCommit;
             String lastUnprocessedCommit = null;
+            // This loop will iterate throw commits and find commit sequences that are not audited yet
             for (String commitId : unprocessedCommits) {
                 if (auditServiceInternal.isAudited(site.getId(), commitId)) {
+                    // If commit is already audited, ingest the changes in between, if any
                     if (lastUnprocessedCommit != null) {
                         ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
                         lastUnprocessedCommit = null;
                     }
+                    // Move site.commitId to the current commit
                     updateLastCommitId(siteId, commitId);
                     currentLastProcessedCommit = commitId;
                 } else {
+                    // Continue until we find a commit that is already in the audit table
                     lastUnprocessedCommit = commitId;
                 }
             }
