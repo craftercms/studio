@@ -148,6 +148,10 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         logger.debug("Look up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
         try {
             HierarchicalConfiguration config = getConfiguration(site);
+            if (config == null || config.isEmpty()) {
+                logger.debug("No blob store found in site '{}'", site);
+                return null;
+            }
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
             if (isNotEmpty(storeId)) {
                 StudioBlobStore blobStore = getBlobStore(site, storeId, config);
