@@ -9328,7 +9328,7 @@ components:
           description: The sandbox branch to be used in the new site sandbox repository
         readOnlyBlobStores:
           type: boolean
-          description: If true, the blob stores will be read-only, otherwise they will remain the same as the source site.
+          description: If true, the blob stores will be read-only in the copied site.
           default: true
 
   responses:
