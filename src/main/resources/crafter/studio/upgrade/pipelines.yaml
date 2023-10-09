@@ -572,7 +572,7 @@ pipelines:
           - type: xsltFileUpgrader
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.1.x/4.1.7/system/global-permission-mappings-config.xslt
-            commitDetails: Add new permission get_children
+            commitDetails: Add new permission duplicate_site
 
   # Pipeline to upgrade site repositories
   site:
