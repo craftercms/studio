@@ -64,7 +64,6 @@ import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
-import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SOURCE_SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SitesServiceInternalImpl implements SitesService, ApplicationContextAware {
@@ -240,6 +239,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
             throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
         }
+        logger.info("Site duplicate from '{}' to '{}' - START", sourceSiteId, siteId);
 
         boolean publishingEnabled = siteServiceV1.isPublishingEnabled(sourceSiteId);
         try {
@@ -250,18 +250,22 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_LOCKED));
 
             // Copy site repos in disk
+            logger.debug("Duplicate site repos in disk from '{}' to '{}'", sourceSiteId, siteId);
             contentRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
 
             String siteUuid = UUID.randomUUID().toString();
             addSiteUuidFile(siteId, siteUuid);
             // Create site in db (site state is INITIALIZING) and copy all db data
+            logger.debug("Duplicate site DB data from '{}' to '{}'", sourceSiteId, siteId);
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
 
             // Duplicate site in deployer
+            logger.debug("Duplicate site deployer targets from '{}' to '{}'", sourceSiteId, siteId);
             previewDeployer.duplicateTargets(sourceSiteId, siteId);
 
             // read-only blobstores
             if (readOnlyBlobStores) {
+                logger.debug("Make blobstores read-only for duplicate site '{}'", siteId);
                 configurationService.makeBlobStoresReadOnly(siteId);
             }
 
@@ -271,6 +275,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
             siteServiceV1.enablePublishing(siteId, true);
             applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
+            logger.info("Site duplicate from '{}' to '{}' - COMPLETE", sourceSiteId, siteId);
         } catch (ServiceLayerException ex) {
             siteServiceV1.deleteSite(siteId);
             throw ex;
