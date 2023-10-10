@@ -467,6 +467,7 @@
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="siteServiceV1" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="configurationService" ref="configurationService" />
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
