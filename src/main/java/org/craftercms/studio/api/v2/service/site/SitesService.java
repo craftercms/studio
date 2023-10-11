@@ -17,6 +17,7 @@
 package org.craftercms.studio.api.v2.service.site;
 
 import org.craftercms.commons.plugin.model.PluginDescriptor;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
@@ -79,4 +80,17 @@ public interface SitesService {
      * @param siteId site identifier
      */
     void clearPublishingLock(String siteId) throws SiteNotFoundException;
+    /**
+     * Duplicate a site
+     *
+     * @param sourceSiteId       the id of the site to duplicate
+     * @param siteId             the id of the new site
+     * @param siteName           the name of the new site
+     * @param description        the description of the new site
+     * @param sandboxBranch      the sandbox branch to use
+     * @param readOnlyBlobStores whether the blob stores should be read only
+     * @throws ServiceLayerException if there is an error duplicating the site
+     */
+    void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException;
 }

@@ -42,8 +42,7 @@ import java.util.stream.Stream;
 import static com.rometools.utils.Strings.isNotEmpty;
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_ID;
-import static org.craftercms.commons.file.blob.BlobStore.CONFIG_KEY_PATTERN;
+import static org.craftercms.commons.file.blob.BlobStore.*;
 
 /**
  * Implementation of {@link StudioBlobStoreResolver}
@@ -137,7 +136,7 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
     }
 
     @Override
-    public BlobStore getByPaths(String site, String... paths)
+    public StudioBlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException {
 
         if (Stream.of(paths).noneMatch(p -> RegexUtils.matchesAny(p, interceptedPaths))) {
@@ -149,9 +148,13 @@ public class StudioBlobStoreResolverImpl extends BlobStoreResolverImpl implement
         logger.debug("Look up the blob store in site '{}' for paths '{}'", site, Arrays.toString(paths));
         try {
             HierarchicalConfiguration config = getConfiguration(site);
+            if (config == null || config.isEmpty()) {
+                logger.debug("No blob store found in site '{}'", site);
+                return null;
+            }
             String storeId = findStoreId(config, store -> paths[0].matches(store.getString(CONFIG_KEY_PATTERN)));
             if (isNotEmpty(storeId)) {
-                BlobStore blobStore = getBlobStore(site, storeId, config);
+                StudioBlobStore blobStore = getBlobStore(site, storeId, config);
                 // We have to compare each one to know if the exception should be thrown
                 if (!Stream.of(paths).allMatch(blobStore::isCompatible)) {
                     logger.error("Unsupported operation in site '{}' paths '{}'", site, Arrays.toString(paths));

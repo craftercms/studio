@@ -20,12 +20,14 @@ import org.craftercms.commons.plugin.model.PluginDescriptor;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
 import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -107,5 +109,17 @@ public class SitesServiceImpl implements SitesService {
     public void clearPublishingLock(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
+    }
+
+    @Override
+    @HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
+            PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
+    public void duplicate(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException {
+        siteService.checkSiteExists(sourceSiteId);
+        if (siteService.exists(siteId)) {
+            throw new SiteAlreadyExistsException(siteId);
+        }
+        sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
     }
 }

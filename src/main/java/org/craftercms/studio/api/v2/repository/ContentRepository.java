@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -453,4 +453,18 @@ public interface ContentRepository {
      * @throws ServiceLayerException if no content is found at the given path
      */
     void checkContentExists(String site, String path) throws ServiceLayerException;
+
+    /**
+     * Create copies of the source site's repositories.
+     * This method will copy sandbox and published (if exists) repositories under a new directory
+     * with the new site id.
+     * For sandbox repository, a new branch will be created (from the currently checked-out branch)
+     * with the given sandbox branch name if it does not exist.
+     *
+     * @param sourceSiteId  source site id
+     * @param siteId        new site id
+     * @param sandboxBranch sandbox branch name
+     * @throws IOException if there is any error while copying the directories
+     */
+    void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException;
 }

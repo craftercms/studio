@@ -17,7 +17,10 @@ package org.craftercms.studio.impl.v2.repository.blob.s3;
 
 import com.amazonaws.services.s3.model.*;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.ArrayUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.file.blob.Blob;
 import org.craftercms.commons.file.blob.exception.BlobStoreException;
 import org.craftercms.commons.file.blob.impl.s3.AwsS3BlobStore;
@@ -25,6 +28,7 @@ import org.craftercms.studio.api.v1.exception.BlobNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
+import org.craftercms.studio.api.v2.exception.blob.BlobStoreNotWritableModeException;
 import org.craftercms.studio.api.v2.repository.RepositoryChanges;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreAdapter;
@@ -39,6 +43,7 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.studio.impl.v1.service.aws.AwsUtils.*;
 
 /**
@@ -55,8 +60,29 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     protected ServicesConfig servicesConfig;
 
+    protected boolean readOnly;
+
     public StudioAwsS3BlobStore(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
+    }
+
+    @Override
+    public void doInit(HierarchicalConfiguration<ImmutableNode> config) throws ConfigurationException {
+        super.doInit(config);
+        readOnly = getBooleanProperty(config, CONFIG_KEY_READ_ONLY, false);
+    }
+
+
+    /**
+     * Checks that the blob store is in writable mode (readOnly = false) and throws
+     * an exception if it is not.
+     *
+     * @throws BlobStoreNotWritableModeException is the blob store is in read-only mode
+     */
+    protected void checkReadWriteMode() throws ServiceLayerException {
+        if (readOnly) {
+            throw new BlobStoreNotWritableModeException(format("BlobStore '%s' is in read-only mode", id));
+        }
     }
 
     protected boolean isFolder(String path) {
@@ -76,6 +102,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
         } catch (Exception e) {
             throw new BlobStoreException("Error creating reference for content at " + getFullKey(mapping, path), e);
         }
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
     // Start API 1
@@ -138,7 +169,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String writeContent(String site, String path, InputStream content) {
+    public String writeContent(String site, String path, InputStream content) throws ServiceLayerException {
+        checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Upload content to site '{}' path '{}'", site, getFullKey(previewMapping, path));
         try {
@@ -154,13 +186,15 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String createFolder(String site, String path, String name) {
+    public String createFolder(String site, String path, String name) throws ServiceLayerException {
+        checkReadWriteMode();
         // Do nothing, S3 has no folders
         return OK;
     }
 
     @Override
-    public String deleteContent(String site, String path, String approver) {
+    public String deleteContent(String site, String path, String approver) throws ServiceLayerException {
+        checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Delete content at site '{}' path '{}'", site, getFullKey(previewMapping, path));
         if (!isFolder(path)) {
@@ -210,7 +244,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) {
+    public Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException {
+        checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Move content in site '{}' from '{}' to '{}'", site,
                 getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
@@ -292,7 +327,8 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public String copyContent(String site, String fromPath, String toPath) {
+    public String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException {
+        checkReadWriteMode();
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Copy content in site '{}' from '{}' to '{}'",
                 site, getFullKey(previewMapping, fromPath), getFullKey(previewMapping, toPath));
@@ -361,6 +397,12 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     @Override
     public void publish(String site, String sandboxBranch, List<DeploymentItemTO> deploymentItems, String environment,
                         String author, String comment) {
+        // If store is in readonly mode, nothing to do here.
+        if (readOnly) {
+            logger.warn("Publish request ignored in blobstore '{}' because it is readonly", id);
+            return;
+        }
+
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping envMapping = getMapping(environment);
         logger.debug("Publish content in site '{}' from bucket '{}' to bucket '{}'",
@@ -422,6 +464,11 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public void initialPublish(String siteId) {
+        // If store is in readonly mode, nothing to do here.
+        if (readOnly) {
+            logger.warn("Initial publish request ignored in blobstore '{}' because it is readonly", id);
+            return;
+        }
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping liveMapping = getMapping(servicesConfig.getLiveEnvironment(siteId));
 
@@ -442,18 +489,25 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public RepositoryChanges publishAll(String siteId, String publishingTarget, String comment) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public RepositoryChanges preparePublishAll(String siteId, String publishingTarget) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void completePublishAll(String siteId, String publishingTarget, RepositoryChanges changes, String comment) {
+        // If store is in readonly mode, nothing to do here.
+        if (readOnly) {
+            logger.warn("'Complete publish all' request ignored in blobstore '{}' because it is readonly", id);
+            return;
+        }
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         Mapping targetMapping = getMapping(publishingTarget);
 
@@ -483,14 +537,21 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
 
     @Override
     public void cancelPublishAll(String siteId, String publishingTarget) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void populateGitLog(String siteId) {
+        // TODO: segregate these interfaces properly
         // this method should not be called
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) {
+        // TODO: segregate these interfaces properly
+        throw new UnsupportedOperationException();
+    }
 }

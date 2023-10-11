@@ -89,6 +89,17 @@ public interface ConfigurationService {
     HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String path) throws ConfigurationException;
 
     /**
+     * Reads a configuration for the current environment, or fallback to the default environment if the file is missing
+     *
+     * @param siteId the id of the site
+     * @param module the module
+     * @param path   the path of the file
+     * @return the configuration object
+     * @throws ConfigurationException if there is any error reading or parsing the file
+     */
+    HierarchicalConfiguration<?> getXmlConfiguration(String siteId, String module, String path) throws ConfigurationException;
+
+    /**
      * Reads a configuration file using Apache Commons Configuration
      * @param path the path of the file
      * @return the configuration object
@@ -127,7 +138,7 @@ public interface ConfigurationService {
             throws ServiceLayerException, UserNotFoundException;
 
     /**
-     * Get a a file from a plugin
+     * Get a file from a plugin
      * @param siteId the id of site
      * @param pluginId the id of the plugin
      * @param type the type of plugin
@@ -219,4 +230,11 @@ public interface ConfigurationService {
      */
     void invalidateConfiguration(String siteId);
 
+    /**
+     * Update blob stores configuration to make all blobStores read-only
+     *
+     * @param siteId the id of the site
+     * @throws ServiceLayerException if an error occurs while reading or writing the configuration
+     */
+    void makeBlobStoresReadOnly(String siteId) throws ServiceLayerException;
 }

@@ -52,7 +52,7 @@ public interface StudioBlobStoreResolver extends BlobStoreResolver {
      * @return the blob store object
      * @throws ServiceLayerException if there is any error looking up the stores
      */
-    BlobStore getByPaths(String site, String... paths)
+    StudioBlobStore getByPaths(String site, String... paths)
             throws ServiceLayerException;
 
     /**

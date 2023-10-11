@@ -103,7 +103,7 @@ class SpringSiteServices {
 
     def getSite(siteId) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.getSite(siteId)
+        return springBackedService.getSiteDetails(siteId)
     }
 
     def addRemote(siteId, remoteName, remoteUrl, authenticationType, remoteUsername, remotePassword,

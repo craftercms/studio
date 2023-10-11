@@ -47,8 +47,7 @@
                 <permission>content_write</permission>
                 <permission>folder_create</permission>
                 <permission>publish</permission>
-                <permission>create-site</permission>
-                <permission>duplicate_site</permission>
+                <permission>create_site</permission>
                 <permission>read_groups</permission>
                 <permission>create_groups</permission>
                 <permission>update_groups</permission>
@@ -69,8 +68,8 @@
                 <permission>push_to_remote</permission>
                 <permission>rebuild_database</permission>
                 <permission>remove_remote</permission>
-                <permission>S3 Read</permission>
-                <permission>S3 Write</permission>
+                <permission>s3_read</permission>
+                <permission>s3_write</permission>
                 <permission>content_delete</permission>
                 <permission>webdav_read</permission>
                 <permission>webdav_write</permission>
@@ -84,7 +83,7 @@
                 <permission>list_plugins</permission>
                 <permission>install_plugins</permission>
                 <permission>remove_plugins</permission>
-                <permission>site_delete</permission>
+                <permission>delete_site</permission>
                 <permission>unlock_repository</permission>
                 <permission>item_unlock</permission>
                 <permission>publish_status</permission>
@@ -93,6 +92,17 @@
                 <permission>view_logs</permission>
                 <permission>view_log_levels</permission>
                 <permission>configure_log_levels</permission>
+                <permission>content_create</permission>
+                <permission>get_publishing_queue</permission>
+                <permission>cancel_publish</permission>
+                <permission>change_content_type</permission>
+                <permission>site_status</permission>
+                <permission>resolve_conflict</permission>
+                <permission>site_diff_conflicted_file</permission>
+                <permission>commit_resolution</permission>
+                <permission>cancel_failed_pull</permission>
+                <permission>publish_clear_lock</permission>
+                <permission>duplicate_site</permission>
             </allowed-permissions>
         </rule>
     </role>

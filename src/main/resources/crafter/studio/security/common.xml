@@ -123,7 +123,7 @@
 
     <bean id="crafter.HasPermissionAnnotationHandler"
           class="org.craftercms.commons.security.permissions.annotations.HasPermissionAnnotationHandler">
-        <property name="permissionEvaluators">
+        <constructor-arg name="permissionEvaluators">
             <map>
                 <entry key="org.craftercms.commons.security.permissions.DefaultPermission"
                        value-ref="crafter.studioPermissionEvaluator"/>
@@ -132,34 +132,34 @@
                 <entry key="org.craftercms.studio.permissions.PermissionOrOwnership"
                        value-ref="crafter.studioPermissionOrOwnershipEvaluator"/>
             </map>
-        </property>
-        <property name="managementToken" value="#{studioConfiguration.getProperty('studio.configuration.management.authorizationToken')}" />
+        </constructor-arg>
+        <constructor-arg name="managementToken" value="#{studioConfiguration.getProperty('studio.configuration.management.authorizationToken')}" />
     </bean>
 
     <bean id="studio.HasAnyPermissionsAnnotationHandler"
           class="org.craftercms.studio.api.v2.security.HasAnyPermissionsAnnotationHandler">
-        <property name="permissionEvaluators">
+        <constructor-arg name="permissionEvaluators">
             <map>
                 <entry key="org.craftercms.commons.security.permissions.DefaultPermission"
                        value-ref="crafter.studioPermissionEvaluator"/>
                 <entry key="org.craftercms.studio.permissions.CompositePermission"
                        value-ref="crafter.studioCompositePermissionEvaluator"/>
             </map>
-        </property>
-        <property name="securityService" ref="cstudioSecurityService" />
+        </constructor-arg>
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <bean id="studio.HasAllPermissionsAnnotationHandler"
           class="org.craftercms.studio.api.v2.security.HasAllPermissionsAnnotationHandler">
-        <property name="permissionEvaluators">
+        <constructor-arg name="permissionEvaluators">
             <map>
                 <entry key="org.craftercms.commons.security.permissions.DefaultPermission"
                        value-ref="crafter.studioPermissionEvaluator"/>
                 <entry key="org.craftercms.studio.permissions.CompositePermission"
                        value-ref="crafter.studioCompositePermissionEvaluator"/>
             </map>
-        </property>
-        <property name="securityService" ref="cstudioSecurityService" />
+        </constructor-arg>
+        <constructor-arg name="securityService" ref="cstudioSecurityService" />
     </bean>
 
     <!-- CORS -->
