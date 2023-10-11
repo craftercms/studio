@@ -573,6 +573,14 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.1.x/4.1.7/system/global-permission-mappings-config.xslt
             commitDetails: Add new permission duplicate_site
+      - currentVersion: 4.1.7
+        nextVersion: 4.1.8
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
+                dest: /configuration/samples/sample-engine-site-config.xml
+            commitDetails: Update engine sample authentication config
 
   # Pipeline to upgrade site repositories
   site:
