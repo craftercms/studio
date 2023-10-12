@@ -35,6 +35,7 @@ import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITENAME_VARIABLE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PREVIEW_DUPLICATE_TARGET_URL;
 
@@ -63,12 +64,12 @@ public abstract class AbstractDeployer implements Deployer {
             throws IllegalStateException, RestClientException {
         String requestUrl = getCreateTargetUrl();
         Map<String, Object> requestBody = getCreateTargetRequestBody(site, environment, template,
-                                                                     replace, disableDeployCron, localRepoPath,
-                                                                     repoUrl, additionalParams);
+                replace, disableDeployCron, localRepoPath,
+                repoUrl, additionalParams);
         try {
             RequestEntity<Map<String, Object>> requestEntity = RequestEntity.post(new URI(requestUrl))
-                                                                            .contentType(MediaType.APPLICATION_JSON)
-                                                                            .body(requestBody);
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody);
 
             logger.debug("Call create target API '{}' for site '{}' publishing target '{}'",
                     requestEntity, site, environment);
@@ -86,8 +87,8 @@ public abstract class AbstractDeployer implements Deployer {
 
         try {
             RequestEntity<Void> requestEntity = RequestEntity.post(new URI(requestUrl))
-                                                             .contentType(MediaType.APPLICATION_JSON)
-                                                             .build();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .build();
 
             logger.debug("Call delete target API '{}' for site '{}' publishing target '{}'",
                     requestEntity, site, environment);
@@ -111,7 +112,7 @@ public abstract class AbstractDeployer implements Deployer {
         requestBody.put("template_name", template);
         requestBody.put("replace", replace);
         requestBody.put("disable_deploy_cron", disableDeployCron);
-        
+
         if (StringUtils.isNotEmpty(localRepoPath)) {
             requestBody.put("local_repo_path", localRepoPath);
         }
@@ -128,7 +129,7 @@ public abstract class AbstractDeployer implements Deployer {
     protected void addAdditionalParams(Map<String, Object> params,
                                        HierarchicalConfiguration<ImmutableNode> additionalParams) {
         addChildParams(params, additionalParams.getNodeModel().getNodeHandler().getRootNode(),
-                       additionalParams.getInterpolator());
+                additionalParams.getInterpolator());
     }
 
     protected void addChildParams(Map<String, Object> childParams, ImmutableNode parentNode,
@@ -171,8 +172,8 @@ public abstract class AbstractDeployer implements Deployer {
      * @throws RestClientException if an error occurs while calling Deployer API
      */
     protected void doDuplicateTarget(String sourceSiteId, String siteId, String env) throws RestClientException {
-        String requestUrl = studioConfiguration.getProperty(PREVIEW_DUPLICATE_TARGET_URL);
-        DuplicateTargetRequest requestBody = new DuplicateTargetRequest(sourceSiteId, siteId, env);
+        String requestUrl = getDuplicateTargetUrl(sourceSiteId, env);
+        DuplicateTargetRequest requestBody = new DuplicateTargetRequest(siteId);
         RequestEntity<DuplicateTargetRequest> requestEntity = RequestEntity.post(URI.create(requestUrl))
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(requestBody);
@@ -182,7 +183,14 @@ public abstract class AbstractDeployer implements Deployer {
         restTemplate.exchange(requestEntity, Map.class);
     }
 
+    protected String getDuplicateTargetUrl(String sourceSiteId, String env) {
+        return studioConfiguration.getProperty(PREVIEW_DUPLICATE_TARGET_URL)
+                .replaceAll(CONFIG_SITENAME_VARIABLE, sourceSiteId)
+                .replaceAll(CONFIG_SITEENV_VARIABLE, env);
+    }
+
     protected abstract String getCreateTargetUrl();
+
     protected abstract String getDeleteTargetUrl(String site, String environment);
 
 }
