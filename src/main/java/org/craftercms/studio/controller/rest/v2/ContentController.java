@@ -269,18 +269,9 @@ public class ContentController {
     @GetMapping(PATH_PARAM_SITE)
     public ResponseEntity<Resource> getContent(@ValidSiteId @PathVariable(value = REQUEST_PARAM_SITE) String siteId,
                                           @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
-                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID, required = false) String commitId)
+                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID, required = false, defaultValue = HEAD) String commitId)
             throws ServiceLayerException, UserNotFoundException {
-        if (commitId == null) {
-            commitId = HEAD;
-        }
-        Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
-
-        String mimeType = StudioUtils.getMimeType(path);
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.parseMediaType(mimeType))
-                .body(resource);
+        return responseWithContentByCommitId(siteId, path, commitId);
     }
 
     @Valid
@@ -290,13 +281,7 @@ public class ContentController {
                                                          @ValidExistingContentPath @RequestParam(value = REQUEST_PARAM_PATH) String path,
                                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(value = REQUEST_PARAM_COMMIT_ID) String commitId)
             throws ServiceLayerException, UserNotFoundException {
-        Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
-
-        String mimeType = StudioUtils.getMimeType(path);
-        return ResponseEntity
-                .ok()
-                .contentType(MediaType.parseMediaType(mimeType))
-                .body(resource);
+        return responseWithContentByCommitId(siteId, path, commitId);
     }
 
     @PostMapping(value = RENAME, consumes = APPLICATION_JSON_VALUE)
@@ -319,5 +304,23 @@ public class ContentController {
         result.setEntities(RESULT_KEY_ITEMS, contentService.getContentVersionHistory(siteId, path));
 
         return result;
+    }
+
+    /**
+     * Response with content by commit id
+     * @param siteId site Id
+     * @param path path to get
+     * @param commitId commit id to get
+     * @return response entity with content as resource
+     * @throws ServiceLayerException
+     */
+    private ResponseEntity<Resource> responseWithContentByCommitId(String siteId, String path, String commitId) throws ServiceLayerException {
+        Resource resource = contentService.getContentByCommitId(siteId, path, commitId).orElseThrow();
+
+        String mimeType = StudioUtils.getMimeType(path);
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.parseMediaType(mimeType))
+                .body(resource);
     }
 }

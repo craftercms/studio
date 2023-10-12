@@ -4237,7 +4237,7 @@ paths:
       tags:
         - content
       summary: Get content for a path
-      description: 'Required permission "content_read" and additional "content_write" if edit parameter is `true`'
+      description: 'Required permission "content_read"'
       operationId: getContent
       parameters:
         - name: siteId
