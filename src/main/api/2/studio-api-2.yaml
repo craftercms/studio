@@ -4254,7 +4254,7 @@ paths:
             type: string
         - name: commitId
           in: query
-          description: commit id of the content version
+          description: commit id of the content version, default HEAD
           required: false
           schema:
             type: string
