@@ -19,7 +19,6 @@ package org.craftercms.studio.impl.v2.service.audit;
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
@@ -39,7 +38,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.rometools.utils.Strings.isNotEmpty;
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_AUDIT_LOG;
 
 public class AuditServiceImpl implements AuditService {
