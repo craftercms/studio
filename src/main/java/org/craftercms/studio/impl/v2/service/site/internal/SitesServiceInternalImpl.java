@@ -298,7 +298,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
      * @param siteId       the new site id
      * @param siteName     the new site name
      */
-    private void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
+    protected void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
         SiteFeed globalSiteFeed = siteFeedMapper.getSite(Map.of(SITE_ID, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)));
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_DUPLICATE);
