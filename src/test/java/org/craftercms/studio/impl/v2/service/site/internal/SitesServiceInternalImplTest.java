@@ -21,11 +21,11 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
-import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +54,7 @@ public class SitesServiceInternalImplTest {
     @Mock
     SiteService siteServiceV1;
     @Mock
-    PreviewDeployer previewDeployer;
+    Deployer deployer;
     @Spy
     RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
     @Mock
@@ -111,7 +111,7 @@ public class SitesServiceInternalImplTest {
         verify(sitesServiceInternal).addSiteUuidFile(eq(NEW_SITE_ID), any());
         verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq("main_branch"), any());
 
-        verify(previewDeployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
+        verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
         verify(siteServiceV1).enablePublishing(NEW_SITE_ID, true);
 
         verify(siteServiceV1).enablePublishing(SOURCE_SITE_ID, false);
@@ -120,7 +120,7 @@ public class SitesServiceInternalImplTest {
 
     @Test
     public void duplicateSiteErrorTest() {
-        doThrow(new RestClientException("test")).when(previewDeployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
+        doThrow(new RestClientException("test")).when(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
 
         assertThrows(ServiceLayerException.class, () ->
                 sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
