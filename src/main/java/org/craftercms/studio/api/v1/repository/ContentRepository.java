@@ -85,7 +85,7 @@ public interface ContentRepository {
      * @param name a folder name to create
      * @return Commit Id if successful, null otherwise
      */
-    String createFolder(String site, String path, String name);
+    String createFolder(String site, String path, String name) throws ServiceLayerException;
 
     /**
      * delete content
@@ -95,7 +95,7 @@ public interface ContentRepository {
      * @param approver user that approves delete content
      * @return Commit ID if successful, null otherwise
      */
-    String deleteContent(String site, String path, String approver);
+    String deleteContent(String site, String path, String approver) throws ServiceLayerException;
 
     /**
      * move content from PathA to pathB
@@ -105,7 +105,7 @@ public interface ContentRepository {
      * @param toPath   target path
      * @return Commit ID if successful, null otherwise
      */
-    default Map<String, String> moveContent(String site, String fromPath, String toPath) {
+    default Map<String, String> moveContent(String site, String fromPath, String toPath) throws ServiceLayerException {
         return moveContent(site, fromPath, toPath, null);
     }
 
@@ -119,7 +119,7 @@ public interface ContentRepository {
      * @return Commit ID if successful, empty string otherwise
      */
     // TODO: SJ: Should refactor to be from path to path without the newName param
-    Map<String, String> moveContent(String site, String fromPath, String toPath, String newName);
+    Map<String, String> moveContent(String site, String fromPath, String toPath, String newName) throws ServiceLayerException;
 
     /**
      * copy content from PathA to pathB
@@ -129,7 +129,7 @@ public interface ContentRepository {
      * @param toPath   target path
      * @return Commit ID if successful, empty string otherwise
      */
-    String copyContent(String site, String fromPath, String toPath);
+    String copyContent(String site, String fromPath, String toPath) throws ServiceLayerException;
 
     /**
      * get immediate children for path

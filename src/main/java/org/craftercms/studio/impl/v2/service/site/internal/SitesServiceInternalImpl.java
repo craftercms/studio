@@ -28,18 +28,18 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
-import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
+import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
+import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.dal.PublishStatus;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
-import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
+import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -61,6 +61,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -73,38 +74,42 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final static Logger logger = LoggerFactory.getLogger(SitesServiceInternalImpl.class);
 
     private final PluginDescriptorReader descriptorReader;
-    private final ContentRepository contentRepositoryV1;
-    private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepository;
+    private final ContentRepository contentRepository;
+    private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
     private final SiteDAO siteDao;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    private final Deployer deployer;
+    private final SiteService siteServiceV1;
+    private final PreviewDeployer previewDeployer;
     private final ConfigurationService configurationService;
     private final SecurityService securityService;
     private final AuditServiceInternal auditServiceInternal;
     private ApplicationContext applicationContext;
 
-    @ConstructorProperties({"descriptorReader", "contentRepositoryV1",
+    @ConstructorProperties({"descriptorReader", "contentRepository",
+            "contentRepositoryV2",
             "studioConfiguration", "siteFeedMapper",
-            "siteDao", "retryingDatabaseOperationFacade",
-            "deployer", "contentRepository",
-            "configurationService", "securityService",
-            "auditServiceInternal"})
-    public SitesServiceInternalImpl(final PluginDescriptorReader descriptorReader, final ContentRepository contentRepositoryV1,
-                                    final StudioConfiguration studioConfiguration, final SiteFeedMapper siteFeedMapper,
-                                    final SiteDAO siteDao, final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-                                    final Deployer deployer, final org.craftercms.studio.api.v2.repository.ContentRepository contentRepository,
-                                    final ConfigurationService configurationService, final SecurityService securityService,
-                                    final AuditServiceInternal auditServiceInternal) {
+            "siteDao",
+            "retryingDatabaseOperationFacade", "siteServiceV1",
+            "previewDeployer", "configurationService",
+            "securityService", "auditServiceInternal"})
+    public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
+                                    org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
+                                    StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
+                                    SiteDAO siteDao,
+                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
+                                    PreviewDeployer previewDeployer, ConfigurationService configurationService,
+                                    SecurityService securityService, AuditServiceInternal auditServiceInternal) {
         this.descriptorReader = descriptorReader;
-        this.contentRepositoryV1 = contentRepositoryV1;
+        this.contentRepository = contentRepository;
+        this.contentRepositoryV2 = contentRepositoryV2;
         this.studioConfiguration = studioConfiguration;
         this.siteFeedMapper = siteFeedMapper;
         this.siteDao = siteDao;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
-        this.deployer = deployer;
-        this.contentRepository = contentRepository;
+        this.siteServiceV1 = siteServiceV1;
+        this.previewDeployer = previewDeployer;
         this.configurationService = configurationService;
         this.securityService = securityService;
         this.auditServiceInternal = auditServiceInternal;
@@ -158,8 +163,8 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public PluginDescriptor getSiteBlueprintDescriptor(final String id) {
         String descriptorPath = studioConfiguration.getProperty(REPO_BLUEPRINTS_DESCRIPTOR_FILENAME);
-        if (contentRepositoryV1.contentExists(id, descriptorPath)) {
-            try (InputStream is = contentRepositoryV1.getContent(id, descriptorPath)) {
+        if (contentRepositoryV2.contentExists(id, descriptorPath)) {
+            try (InputStream is = contentRepository.getContent(id, descriptorPath)) {
                 return loadDescriptor(is);
             } catch (Exception e) {
                 logger.error("Failed to get site blueprint descriptor for site '{}'", id, e);
@@ -169,7 +174,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     }
 
     protected RepositoryItem[] getBlueprintsFolders() {
-        return contentRepositoryV1.getContentChildren(
+        return contentRepository.getContentChildren(
                 StringUtils.EMPTY, studioConfiguration.getProperty(BLUE_PRINTS_PATH));
     }
 
@@ -320,7 +325,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
      * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
      */
     private void deleteSiteRepositories(String siteId, List<Exception> exceptions) {
-        tryOperation(() -> contentRepository.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
+        tryOperation(() -> contentRepositoryV2.deleteSite(siteId), "Failed to delete site content repository for site '%s'", siteId, exceptions);
     }
 
     /**
@@ -330,7 +335,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
      * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
      */
     private void deleteDeployerTargets(final String siteId, final List<Exception> exceptions) {
-        tryOperation(() -> deployer.deleteTargets(siteId), "Failed to delete deployer targets for site '%s'", siteId, exceptions);
+        tryOperation(() -> previewDeployer.deleteTargets(siteId), "Failed to delete deployer targets for site '%s'", siteId, exceptions);
     }
 
     /**
@@ -415,6 +420,106 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @Override
     public void clearPublishingLock(String siteId) {
         retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.clearPublishingLockForSite(siteId));
+    }
+
+    @Override
+    public void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException {
+        if (isNotEmpty(siteName) && siteFeedMapper.isNameUsed(siteId, siteName)) {
+            throw new SiteAlreadyExistsException(format("A site with name '%s' already exists", siteName));
+        }
+        logger.info("Site duplicate from '{}' to '{}' - START", sourceSiteId, siteId);
+
+        boolean publishingEnabled = siteServiceV1.isPublishingEnabled(sourceSiteId);
+        try {
+            // Lock source site
+            if (publishingEnabled) {
+                siteServiceV1.enablePublishing(sourceSiteId, false);
+            }
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_LOCKED));
+
+            // Copy site repos in disk
+            logger.debug("Duplicate site repos in disk from '{}' to '{}'", sourceSiteId, siteId);
+            contentRepositoryV2.duplicateSite(sourceSiteId, siteId, sandboxBranch);
+
+            String siteUuid = UUID.randomUUID().toString();
+            addSiteUuidFile(siteId, siteUuid);
+            // Create site in db (site state is INITIALIZING) and copy all db data
+            logger.debug("Duplicate site DB data from '{}' to '{}'", sourceSiteId, siteId);
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, siteUuid));
+
+            // Duplicate site in deployer
+            logger.debug("Duplicate site deployer targets from '{}' to '{}'", sourceSiteId, siteId);
+            previewDeployer.duplicateTargets(sourceSiteId, siteId);
+
+            // read-only blobstores
+            if (readOnlyBlobStores) {
+                logger.debug("Make blobstores read-only for duplicate site '{}'", siteId);
+                configurationService.makeBlobStoresReadOnly(siteId);
+            }
+
+            auditSiteDuplicate(sourceSiteId, siteId, siteName);
+
+            // Set site state to READY
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
+            siteServiceV1.enablePublishing(siteId, true);
+            applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
+            logger.info("Site duplicate from '{}' to '{}' - COMPLETE", sourceSiteId, siteId);
+        } catch (ServiceLayerException ex) {
+            deleteSite(siteId);
+            throw ex;
+        } catch (Exception ex) {
+            deleteSite(siteId);
+            throw new ServiceLayerException(format("Failed to duplicate site '%s' into '%s'", sourceSiteId, siteId), ex);
+        } finally {
+            // Unlock source site
+            retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(sourceSiteId, SiteFeed.STATE_READY));
+            if (publishingEnabled) {
+                siteServiceV1.enablePublishing(sourceSiteId, true);
+            }
+        }
+    }
+
+    /**
+     * Creates an audit log entry for the site duplication operation, including the source site as audit params
+     *
+     * @param sourceSiteId the source site id
+     * @param siteId       the new site id
+     * @param siteName     the new site name
+     */
+    protected void auditSiteDuplicate(final String sourceSiteId, final String siteId, final String siteName) {
+        SiteFeed globalSiteFeed = siteFeedMapper.getSite(Map.of(SITE_ID, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE)));
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_DUPLICATE);
+        auditLog.setSiteId(globalSiteFeed.getId());
+        auditLog.setActorId(securityService.getCurrentUser());
+        auditLog.setPrimaryTargetId(siteId);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_SITE);
+        auditLog.setPrimaryTargetValue(siteName);
+        List<AuditLogParameter> auditLogParameters = new ArrayList<>();
+        AuditLogParameter auditLogParameter = new AuditLogParameter();
+        auditLogParameter.setTargetId(siteId);
+        auditLogParameter.setTargetType(TARGET_TYPE_SOURCE_SITE);
+        auditLogParameter.setTargetValue(sourceSiteId);
+        auditLogParameters.add(auditLogParameter);
+
+        auditLog.setParameters(auditLogParameters);
+        auditServiceInternal.insertAuditLog(auditLog);
+    }
+
+    /**
+     * Add a file containing the site uuid in the site folder
+     *
+     * @param site     site id
+     * @param siteUuid site uuid
+     * @throws IOException if the file cannot be written
+     */
+    protected void addSiteUuidFile(final String site, final String siteUuid) throws IOException {
+        Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                studioConfiguration.getProperty(SITES_REPOS_PATH), site,
+                StudioConstants.SITE_UUID_FILENAME);
+        String toWrite = StudioConstants.SITE_UUID_FILE_COMMENT + "\n" + siteUuid;
+        Files.write(path, toWrite.getBytes());
     }
 
     @Override

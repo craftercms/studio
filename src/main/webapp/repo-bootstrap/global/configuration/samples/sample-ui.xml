@@ -15,6 +15,12 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <siteUi>
+    <widget
+            id="craftercms.components.Preview"
+            initialEditModeOn="true"
+            initialHighlightMode="all"
+            xbDetectionTimeoutMs="5000"
+    />
     <widget id="craftercms.components.ToolsPanel">
         <configuration>
             <widgets>

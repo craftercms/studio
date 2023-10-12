@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 
@@ -250,7 +251,9 @@ public class AuditServiceInternalImpl implements AuditServiceInternal {
     public AuditLog getAuditLogEntry(final String siteId, final long auditLogId) {
         Map<String, Object> params = new HashMap<>();
         params.put(ID, auditLogId);
-        params.put(SITE_ID, siteId);
+        if (!isEmpty(siteId)) {
+            params.put(SITE_ID, siteId);
+        }
         return auditDao.getAuditLogEntry(params);
     }
 
