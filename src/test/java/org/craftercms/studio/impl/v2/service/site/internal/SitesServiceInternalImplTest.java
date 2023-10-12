@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.site.internal;
 import org.craftercms.studio.api.v1.dal.SiteFeedMapper;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
+import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
@@ -32,6 +33,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 import org.springframework.web.client.RestClientException;
 
 import java.io.IOException;
@@ -61,6 +63,10 @@ public class SitesServiceInternalImplTest {
     ConfigurationService configurationService;
     @Mock
     StudioConfiguration studioConfiguration;
+    @Mock
+    SecurityService securityService;
+    @Mock
+    ApplicationContext applicationContext;
     @Spy
     @InjectMocks
     SitesServiceInternalImpl sitesServiceInternal;
@@ -72,6 +78,9 @@ public class SitesServiceInternalImplTest {
 
         doNothing().when(sitesServiceInternal).addSiteUuidFile(anyString(), anyString());
         doCallRealMethod().when(retryingDatabaseOperationFacade).retry(any(Runnable.class));
+
+        doNothing().when(sitesServiceInternal).auditSiteDuplicate(anyString(), anyString(), anyString());
+        sitesServiceInternal.setApplicationContext(applicationContext);
     }
 
     @Test
