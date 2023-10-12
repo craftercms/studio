@@ -183,6 +183,13 @@ public abstract class AbstractDeployer implements Deployer {
         restTemplate.exchange(requestEntity, Map.class);
     }
 
+    /**
+     * Get the URL of the Deployer API to duplicate a given target
+     *
+     * @param sourceSiteId the site to duplicate from
+     * @param env          the target environment, e.g.: authoring
+     * @return the URL of the Deployer API to duplicate a given target
+     */
     protected String getDuplicateTargetUrl(String sourceSiteId, String env) {
         return studioConfiguration.getProperty(PREVIEW_DUPLICATE_TARGET_URL)
                 .replaceAll(CONFIG_SITENAME_VARIABLE, sourceSiteId)
