@@ -48,7 +48,7 @@ public class SitesServiceImplTest {
 
     @BeforeEach
     public void setUp() throws SiteNotFoundException {
-        MockitoAnnotations.openMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
         doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
         when(siteServiceV1.exists(EXISTING_SITE_ID)).thenReturn(true);
     }
