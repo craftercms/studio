@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.deployment;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.repository.RepositoryEvent;
 import org.craftercms.studio.api.v2.event.site.SiteEvent;
-import org.craftercms.studio.model.deployer.DuplicateTargetRequest;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -54,6 +54,10 @@ public class PreviewDeployer extends AbstractDeployer {
 
     private final static String ENV_PREVIEW = "preview";
     private final static String ENV_AUTHORING = "authoring";
+
+    public PreviewDeployer(final StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
+    }
 
 
     @EventListener
@@ -156,35 +160,9 @@ public class PreviewDeployer extends AbstractDeployer {
                                   .replaceAll(CONFIG_SITEENV_VARIABLE, environment);
     }
 
-    /**
-     * Call Crafter Deployer API to duplicate the site targets (both authoring and preview)
-     *
-     * @param sourceSiteId the site to duplicate from
-     * @param siteId       the new site id
-     * @throws RestClientException if an error occurs while calling Deployer API
-     */
+    @Override
     public void duplicateTargets(String sourceSiteId, String siteId) throws RestClientException {
         doDuplicateTarget(sourceSiteId, siteId, ENV_AUTHORING);
         doDuplicateTarget(sourceSiteId, siteId, ENV_PREVIEW);
-    }
-
-    /**
-     * Call Deployer API to duplicate a given target
-     *
-     * @param sourceSiteId the site to duplicate from
-     * @param siteId       the new site id
-     * @param env          the target environment, e.g.: authoring
-     * @throws RestClientException if an error occurs while calling Deployer API
-     */
-    private void doDuplicateTarget(String sourceSiteId, String siteId, String env) throws RestClientException {
-        String requestUrl = studioConfiguration.getProperty(PREVIEW_DUPLICATE_TARGET_URL);
-        DuplicateTargetRequest requestBody = new DuplicateTargetRequest(sourceSiteId, siteId, env);
-        RequestEntity<DuplicateTargetRequest> requestEntity = RequestEntity.post(URI.create(requestUrl))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody);
-
-        logger.debug("Call duplicate target API. From site '{}' to site '{}' publishing target '{}'",
-                sourceSiteId, siteId, env);
-        restTemplate.exchange(requestEntity, Map.class);
     }
 }

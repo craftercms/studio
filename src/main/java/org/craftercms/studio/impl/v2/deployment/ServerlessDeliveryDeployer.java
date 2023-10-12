@@ -17,6 +17,7 @@ package org.craftercms.studio.impl.v2.deployment;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.springframework.web.client.RestClientException;
 
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONFIG_SITEENV_VARIABLE;
@@ -30,6 +31,10 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
  * @author avasquez
  */
 public class ServerlessDeliveryDeployer extends AbstractDeployer {
+
+    public ServerlessDeliveryDeployer(StudioConfiguration studioConfiguration) {
+        super(studioConfiguration);
+    }
 
     @Override
     public void createTargets(String site) throws RestClientException {
@@ -51,6 +56,13 @@ public class ServerlessDeliveryDeployer extends AbstractDeployer {
     public void deleteTargets(String site) throws RestClientException {
         if (isServerlessDeliveryEnabled()) {
             doDeleteTarget(site, studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV));
+        }
+    }
+
+    @Override
+    public void duplicateTargets(String sourceSiteId, String siteId) {
+        if (isServerlessDeliveryEnabled()) {
+            doDuplicateTarget(sourceSiteId, siteId, studioConfiguration.getProperty(SERVERLESS_DELIVERY_DEPLOYER_TARGET_ENV));
         }
     }
 
