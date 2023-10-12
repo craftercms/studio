@@ -21,17 +21,16 @@ import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.After;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class SitesServiceImplTest {
 
     private static final String EXISTING_SITE_ID = "existing-site";
@@ -40,16 +39,23 @@ public class SitesServiceImplTest {
     private static final String NEW_SITE_ID = "the-copy";
 
     @Mock
-    SiteService siteServiceV1;
+    protected SiteService siteServiceV1;
     @Mock
-    SitesServiceInternalImpl sitesServiceInternal;
+    protected SitesServiceInternalImpl sitesServiceInternal;
     @InjectMocks
-    SitesServiceImpl sitesService;
+    protected SitesServiceImpl sitesService;
+    private AutoCloseable mocks;
 
-    @Before
+    @BeforeEach
     public void setUp() throws SiteNotFoundException {
+        MockitoAnnotations.openMocks(this);
         doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
         when(siteServiceV1.exists(EXISTING_SITE_ID)).thenReturn(true);
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        mocks.close();
     }
 
     @Test
@@ -59,7 +65,7 @@ public class SitesServiceImplTest {
     }
 
     @Test
-    public void duplicateIntoAlreadyExistentSite() {
+    public void duplicateIntoAlreadyExistentSiteTest() {
         assertThrows(SiteAlreadyExistsException.class, () ->
                 sitesService.duplicate(SOURCE_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
     }
