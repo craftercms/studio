@@ -34,6 +34,7 @@ import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -77,7 +78,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final SiteFeedMapper siteFeedMapper;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final SiteService siteServiceV1;
-    private final PreviewDeployer previewDeployer;
+    private final Deployer deployer;
     private final ConfigurationService configurationService;
     private final SecurityService securityService;
     private final AuditServiceInternal auditServiceInternal;
@@ -87,13 +88,13 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "contentRepositoryV2",
             "studioConfiguration", "siteFeedMapper",
             "retryingDatabaseOperationFacade", "siteServiceV1",
-            "previewDeployer", "configurationService",
+            "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
-                                    PreviewDeployer previewDeployer, ConfigurationService configurationService,
+                                    Deployer deployer, ConfigurationService configurationService,
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
@@ -102,7 +103,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.siteFeedMapper = siteFeedMapper;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.siteServiceV1 = siteServiceV1;
-        this.previewDeployer = previewDeployer;
+        this.deployer = deployer;
         this.configurationService = configurationService;
         this.securityService = securityService;
         this.auditServiceInternal = auditServiceInternal;
@@ -261,7 +262,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
             // Duplicate site in deployer
             logger.debug("Duplicate site deployer targets from '{}' to '{}'", sourceSiteId, siteId);
-            previewDeployer.duplicateTargets(sourceSiteId, siteId);
+            deployer.duplicateTargets(sourceSiteId, siteId);
 
             // read-only blobstores
             if (readOnlyBlobStores) {

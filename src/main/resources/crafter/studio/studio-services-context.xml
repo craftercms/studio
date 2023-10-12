@@ -466,6 +466,7 @@
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="siteServiceV1" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="deployer" ref="allDeployers" />
         <constructor-arg name="configurationService" ref="configurationService" />
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
@@ -1157,20 +1158,20 @@
     <!--          Crafter Deployers             -->
     <!-- ////////////////////////////////////// -->
     <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer">
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer">
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="allDeployers" class="org.craftercms.studio.impl.v2.deployment.CompositeDeployer">
-        <property name="deployers">
+        <constructor-arg name="deployers">
             <list>
                 <ref bean="previewDeployer"/>
                 <ref bean="serverlessDeliveryDeployer"/>
             </list>
-        </property>
+        </constructor-arg>
     </bean>
 
     <!-- ////////////////////////////////////// -->

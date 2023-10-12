@@ -16,10 +16,9 @@
 package org.craftercms.studio.impl.v2.deployment;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.deployment.Deployer;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
@@ -35,10 +34,9 @@ public class CompositeDeployer implements Deployer {
 
     private final static Logger logger = LoggerFactory.getLogger(AbstractDeployer.class);
 
-    private List<Deployer> deployers;
+    private final List<Deployer> deployers;
 
-    @Required
-    public void setDeployers(List<Deployer> deployers) {
+    public CompositeDeployer(final List<Deployer> deployers) {
         this.deployers = deployers;
     }
 
@@ -73,4 +71,12 @@ public class CompositeDeployer implements Deployer {
         }
     }
 
+    @Override
+    public void duplicateTargets(String sourceSiteId, String siteId) {
+        if (CollectionUtils.isNotEmpty(deployers)) {
+            for (Deployer deployer : deployers) {
+                deployer.duplicateTargets(sourceSiteId, siteId);
+            }
+        }
+    }
 }
