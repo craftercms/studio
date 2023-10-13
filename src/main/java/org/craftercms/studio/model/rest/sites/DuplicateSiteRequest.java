@@ -25,8 +25,6 @@ import javax.validation.constraints.Size;
  * Holds the parameters to a duplicate site request
  */
 public class DuplicateSiteRequest {
-    @ValidSiteId
-    private String sourceSiteId;
     @NotBlank
     @Size(max = 255)
     private String siteName;
@@ -42,14 +40,6 @@ public class DuplicateSiteRequest {
      * If false, the blob stores will retain the same configuration as the source site
      */
     private boolean readOnlyBlobStores = true;
-
-    public String getSourceSiteId() {
-        return sourceSiteId;
-    }
-
-    public void setSourceSiteId(String sourceSiteId) {
-        this.sourceSiteId = sourceSiteId;
-    }
 
     public String getSiteName() {
         return siteName;
