@@ -113,7 +113,7 @@ public class SitesController {
 
     @PostMapping("/{siteId}/policy/validate")
     public ResultList<ValidationResult> validatePolicy(@ValidSiteId @PathVariable String siteId,
-                                       @Valid @RequestBody ValidatePolicyRequest request)
+                                                       @Valid @RequestBody ValidatePolicyRequest request)
             throws ConfigurationException, IOException, ContentNotFoundException {
         List<ValidationResult> results = policyService.validate(siteId, request.getActions());
 
@@ -123,11 +123,11 @@ public class SitesController {
         return result;
     }
 
-    @PostMapping("/duplicate")
+    @PostMapping("/{siteId}/duplicate")
     @ResponseStatus(code = HttpStatus.CREATED)
-    public Result duplicateSite(@Valid @RequestBody DuplicateSiteRequest request)
+    public Result duplicateSite(@ValidSiteId @PathVariable("siteId") String sourceSiteId, @Valid @RequestBody DuplicateSiteRequest request)
             throws ServiceLayerException {
-        sitesService.duplicate(request.getSourceSiteId(), request.getSiteId(),
+        sitesService.duplicate(sourceSiteId, request.getSiteId(),
                 request.getSiteName(), request.getDescription(),
                 request.getSandboxBranch(), request.isReadOnlyBlobStores());
 
