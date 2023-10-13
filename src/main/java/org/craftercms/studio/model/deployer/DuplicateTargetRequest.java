@@ -24,25 +24,13 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class DuplicateTargetRequest {
-    private final String sourceSiteName;
     private final String siteName;
-    private final String env;
 
-    public DuplicateTargetRequest(final String sourceSiteId, final String siteId, final String env) {
-        this.sourceSiteName = sourceSiteId;
+    public DuplicateTargetRequest(final String siteId) {
         this.siteName = siteId;
-        this.env = env;
-    }
-
-    public String getSourceSiteName() {
-        return sourceSiteName;
     }
 
     public String getSiteName() {
         return siteName;
-    }
-
-    public String getEnv() {
-        return env;
     }
 }
