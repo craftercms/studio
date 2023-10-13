@@ -132,4 +132,18 @@ public interface SitesService {
      * @throws SiteNotFoundException if the site doesn't exist
      */
     void checkSiteState(String siteId, String state) throws InvalidSiteStateException, SiteNotFoundException;
+
+    /**
+     * Duplicate a site
+     *
+     * @param sourceSiteId       the id of the site to duplicate
+     * @param siteId             the id of the new site
+     * @param siteName           the name of the new site
+     * @param description        the description of the new site
+     * @param sandboxBranch      the sandbox branch to use
+     * @param readOnlyBlobStores whether the blob stores should be read only
+     * @throws ServiceLayerException if there is an error duplicating the site
+     */
+    void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException;
 }

@@ -33,6 +33,7 @@ import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
@@ -163,6 +164,15 @@ public class SecurityServiceImpl implements SecurityService {
         }
 
         return username;
+    }
+
+    @Override
+    public Authentication getAuthentication() {
+        var context = SecurityContextHolder.getContext();
+        if (context != null) {
+            return context.getAuthentication();
+        }
+        return null;
     }
 
     public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {

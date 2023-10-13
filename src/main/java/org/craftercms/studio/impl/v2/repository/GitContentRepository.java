@@ -99,8 +99,7 @@ import static java.nio.file.StandardOpenOption.APPEND;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
 import static org.craftercms.studio.api.v1.constant.GitRepositories.*;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.RepoOperation.Action.*;
@@ -2082,7 +2081,7 @@ public class GitContentRepository implements ContentRepository {
             for (RevCommit revCommit : revWalk) {
                 ItemVersion version = new ItemVersion();
                 version.setRevertible(revertible);
-                version.setPath(currentPath);
+                version.setPath(prependIfMissing(currentPath, FILE_SEPARATOR));
                 version.setVersionNumber(revCommit.getName());
                 version.setCommitter(revCommit.getAuthorIdent().getName());
                 version.setModifiedDate(
@@ -2102,13 +2101,45 @@ public class GitContentRepository implements ContentRepository {
                     logger.error("Failed to get diff entry for path '{}' in commit '{}'", currentPath, revCommit.getName(), e);
                 }
                 // Set this after the diff entry is retrieved, so that the old path is set correctly
-                version.setOldPath(currentPath);
+                version.setOldPath(prependIfMissing(currentPath, FILE_SEPARATOR));
                 versionHistory.add(version);
             }
         } finally {
             generalLockService.unlock(repoLockKey);
         }
         return versionHistory;
+    }
+
+    @Override
+    public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException {
+        String repoLockKey = helper.getSandboxRepoLockKey(sourceSiteId);
+        generalLockService.lock(repoLockKey);
+
+        try {
+            Path sourceSandboxPath = helper.buildRepoPath(SANDBOX, sourceSiteId);
+            Path destSandboxPath = helper.buildRepoPath(SANDBOX, siteId);
+            if (destSandboxPath.toFile().exists()) {
+                logger.warn("Deleting existing sandbox repository for site '{}'", siteId);
+                FileUtils.deleteDirectory(destSandboxPath.toFile());
+            }
+            FileUtils.copyDirectory(sourceSandboxPath.toFile(), destSandboxPath.toFile());
+            // Cache the repo and checkout the sandbox branch
+            helper.getRepository(siteId, SANDBOX, sandboxBranch);
+
+            if (publishedRepositoryExists(sourceSiteId)) {
+                Path sourcePublishedPath = helper.buildRepoPath(PUBLISHED, sourceSiteId);
+                Path destPublishedPath = helper.buildRepoPath(PUBLISHED, siteId);
+                if (destPublishedPath.toFile().exists()) {
+                    logger.warn("Deleting existing published repository for site '{}'", siteId);
+                    FileUtils.deleteDirectory(destPublishedPath.toFile());
+                }
+                FileUtils.copyDirectory(sourcePublishedPath.toFile(), destPublishedPath.toFile());
+                // Cache the repo
+                helper.getRepository(siteId, PUBLISHED);
+            }
+        } finally {
+            generalLockService.unlock(repoLockKey);
+        }
     }
 
     public void setHelper(GitRepositoryHelper helper) {
