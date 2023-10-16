@@ -1033,10 +1033,10 @@ configurations:
               template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.2.xslt
               commitDetails: Change 'Change Content Type' permission to 'change_content_type'
         - currentVersion: 4.1.2
-          nextVersion: 4.2.0
+          nextVersion: 4.2.1
           operations:
             - type: xsltFileUpgrader
-              template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.xslt
+              template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.1.xslt
               commitDetails: Change 'folder_create' permission to 'create_folder'
 
   role-mappings-config:

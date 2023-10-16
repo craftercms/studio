@@ -46,6 +46,7 @@ import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
+import org.springframework.lang.NonNull;
 import org.springframework.util.MimeType;
 
 import java.io.IOException;
@@ -361,7 +362,7 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
     }
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) {
+    public void setApplicationContext(@NonNull ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 

@@ -3797,7 +3797,7 @@ paths:
       tags:
         - content
       summary: Create new folder
-      description: 'Required permission "content_write"'
+      description: 'Required permission "create_folder"'
       operationId: createFolder
       parameters:
         - name: siteId

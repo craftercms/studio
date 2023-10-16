@@ -62,6 +62,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
+import static org.craftercms.studio.model.rest.ApiResponse.FOLDER_CREATION_FAILED;
 import static org.craftercms.studio.model.rest.ApiResponse.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -303,9 +304,9 @@ public class ContentController {
     @PostMapping(value = PATH_PARAM_SITE + FOLDER, consumes = APPLICATION_JSON_VALUE)
     public ResultOne createFolder(@ValidSiteId @PathVariable(value = REQUEST_PARAM_SITE) String siteId,
                                   @Valid @RequestBody CreateFolderRequestBody body) throws UserNotFoundException, ServiceLayerException {
-        contentService.createFolder(siteId, body.getPath(), body.getName());
+        boolean succeeded = contentService.createFolder(siteId, body.getPath(), body.getName());
         var result = new ResultOne();
-        result.setResponse(OK);
+        result.setResponse(succeeded ? OK : FOLDER_CREATION_FAILED);
         return result;
     }
 }
