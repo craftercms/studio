@@ -24,6 +24,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.dal.SiteDAO;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.exception.CompositeException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
@@ -31,7 +32,6 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.dal.RetryingDatabaseOperationFacadeImpl;
-import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,7 +65,7 @@ public class SitesServiceInternalImplTest {
     @Mock
     SiteService siteServiceV1;
     @Mock
-    PreviewDeployer previewDeployer;
+    Deployer deployer;
     @Spy
     RetryingDatabaseOperationFacadeImpl retryingDatabaseOperationFacade;
     @Mock
@@ -129,7 +129,7 @@ public class SitesServiceInternalImplTest {
 
         verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
         verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(previewDeployer, times(1)).deleteTargets(SITE_ID);
+        verify(deployer, times(1)).deleteTargets(SITE_ID);
         verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
         verify(contentRepository, times(1)).deleteSite(SITE_ID);
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
@@ -141,13 +141,13 @@ public class SitesServiceInternalImplTest {
     @Test
     public void deployerDownSiteDeleteTest() throws ServiceLayerException {
         doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
-        doThrow(new RestClientException("Deployer is down")).when(previewDeployer).deleteTargets(SITE_ID);
+        doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
 
         assertThrows(ServiceLayerException.class, () -> sitesServiceInternal.deleteSite(SITE_ID));
 
         verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
         verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(previewDeployer, times(1)).deleteTargets(SITE_ID);
+        verify(deployer, times(1)).deleteTargets(SITE_ID);
         verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
         verify(contentRepository, times(1)).deleteSite(SITE_ID);
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
@@ -159,7 +159,7 @@ public class SitesServiceInternalImplTest {
     @Test
     public void multipleExceptionsSiteDeleteTest() throws ServiceLayerException {
         doNothing().when(sitesServiceInternal).destroySitePreviewContext(SITE_ID);
-        doThrow(new RestClientException("Deployer is down")).when(previewDeployer).deleteTargets(SITE_ID);
+        doThrow(new RestClientException("Deployer is down")).when(deployer).deleteTargets(SITE_ID);
         doThrow(new RuntimeException("Unexpected file system error")).when(contentRepository).deleteSite(SITE_ID);
 
         CompositeException exception = assertThrows(CompositeException.class, () -> sitesServiceInternal.deleteSite(SITE_ID));
@@ -167,7 +167,7 @@ public class SitesServiceInternalImplTest {
 
         verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
         verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(previewDeployer, times(1)).deleteTargets(SITE_ID);
+        verify(deployer, times(1)).deleteTargets(SITE_ID);
         verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
         verify(contentRepository, times(1)).deleteSite(SITE_ID);
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
@@ -186,7 +186,7 @@ public class SitesServiceInternalImplTest {
 
         verify(siteDAO, times(1)).startSiteDelete(SITE_ID);
         verify(siteDAO, times(1)).enablePublishing(SITE_ID, false);
-        verify(previewDeployer, times(1)).deleteTargets(SITE_ID);
+        verify(deployer, times(1)).deleteTargets(SITE_ID);
         verify(sitesServiceInternal, times(1)).destroySitePreviewContext(SITE_ID);
         verify(contentRepository, times(1)).deleteSite(SITE_ID);
         verify(configurationService, times(1)).invalidateConfiguration(SITE_ID);
@@ -223,7 +223,7 @@ public class SitesServiceInternalImplTest {
         verify(sitesServiceInternal).addSiteUuidFile(eq(NEW_SITE_ID), any());
         verify(siteFeedMapper).duplicate(eq(SOURCE_SITE_ID), eq(NEW_SITE_ID), eq("site_name"), eq("The new site"), eq("main_branch"), any());
 
-        verify(previewDeployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
+        verify(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
         verify(siteServiceV1).enablePublishing(NEW_SITE_ID, true);
 
         verify(siteServiceV1).enablePublishing(SOURCE_SITE_ID, false);
@@ -232,7 +232,7 @@ public class SitesServiceInternalImplTest {
 
     @Test
     public void duplicateSiteErrorTest() throws ServiceLayerException {
-        doThrow(new RestClientException("test")).when(previewDeployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
+        doThrow(new RestClientException("test")).when(deployer).duplicateTargets(SOURCE_SITE_ID, NEW_SITE_ID);
 
         assertThrows(ServiceLayerException.class, () ->
                 sitesServiceInternal.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));

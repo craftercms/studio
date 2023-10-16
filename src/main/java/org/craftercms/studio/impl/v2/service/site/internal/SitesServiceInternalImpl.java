@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteDeletedEvent;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.CompositeException;
@@ -39,7 +40,6 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
-import org.craftercms.studio.impl.v2.deployment.PreviewDeployer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -81,7 +81,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final SiteDAO siteDao;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final SiteService siteServiceV1;
-    private final PreviewDeployer previewDeployer;
+    private final Deployer deployer;
     private final ConfigurationService configurationService;
     private final SecurityService securityService;
     private final AuditServiceInternal auditServiceInternal;
@@ -92,14 +92,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             "studioConfiguration", "siteFeedMapper",
             "siteDao",
             "retryingDatabaseOperationFacade", "siteServiceV1",
-            "previewDeployer", "configurationService",
+            "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
                                     SiteDAO siteDao,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
-                                    PreviewDeployer previewDeployer, ConfigurationService configurationService,
+                                    Deployer deployer, ConfigurationService configurationService,
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal) {
         this.descriptorReader = descriptorReader;
         this.contentRepository = contentRepository;
@@ -109,7 +109,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.siteDao = siteDao;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.siteServiceV1 = siteServiceV1;
-        this.previewDeployer = previewDeployer;
+        this.deployer = deployer;
         this.configurationService = configurationService;
         this.securityService = securityService;
         this.auditServiceInternal = auditServiceInternal;
@@ -335,7 +335,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
      * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
      */
     private void deleteDeployerTargets(final String siteId, final List<Exception> exceptions) {
-        tryOperation(() -> previewDeployer.deleteTargets(siteId), "Failed to delete deployer targets for site '%s'", siteId, exceptions);
+        tryOperation(() -> deployer.deleteTargets(siteId), "Failed to delete deployer targets for site '%s'", siteId, exceptions);
     }
 
     /**
@@ -450,7 +450,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
             // Duplicate site in deployer
             logger.debug("Duplicate site deployer targets from '{}' to '{}'", sourceSiteId, siteId);
-            previewDeployer.duplicateTargets(sourceSiteId, siteId);
+            deployer.duplicateTargets(sourceSiteId, siteId);
 
             // read-only blobstores
             if (readOnlyBlobStores) {

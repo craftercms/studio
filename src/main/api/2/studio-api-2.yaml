@@ -2027,12 +2027,18 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /sites/duplicate:
+  /sites/{siteId}/duplicate:
     post:
       tags:
         - sites
       summary: Duplicates a site
       operationId: duplicateSite
+      parameters:
+        - name: siteId
+          in: path
+          schema:
+            type: string
+          required: true
       requestBody:
         description: Duplicate site request information
         required: true
@@ -9453,9 +9459,6 @@ components:
     DuplicateSiteRequest:
       type: object
       properties:
-        sourceSiteId:
-          type: string
-          description: The ID of the site to be duplicated
         siteName:
           type: string
           description: The name of the new site

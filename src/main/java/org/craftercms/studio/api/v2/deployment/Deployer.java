@@ -40,4 +40,12 @@ public interface Deployer {
      */
     void deleteTargets(String site) throws RestClientException;
 
+    /**
+     * Call Crafter Deployer API to duplicate the site targets
+     *
+     * @param sourceSiteId the site to duplicate from
+     * @param siteId       the new site id
+     * @throws RestClientException if an error occurs while calling Deployer API
+     */
+    void duplicateTargets(String sourceSiteId, String siteId);
 }
