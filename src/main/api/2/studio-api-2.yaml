@@ -4254,10 +4254,11 @@ paths:
             type: string
         - name: commitId
           in: query
-          description: commit id of the content version, default HEAD
+          description: commit id of the content version
           required: false
           schema:
             type: string
+            default: HEAD
       responses:
         '200':
           description: OK
