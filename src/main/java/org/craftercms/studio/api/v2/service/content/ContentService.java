@@ -215,9 +215,8 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path The parent folder in which to create a new folder
      * @param name new folder name
-     * @return true if success, otherwise false
-     * @throws UserNotFoundException user not found error
      * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
      */
-    boolean createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException;
+    void createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException;
 }

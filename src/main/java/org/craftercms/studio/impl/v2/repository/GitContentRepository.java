@@ -1355,54 +1355,54 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
-    public String createFolder(String site, String path, String name) {
-        String commitId = null;
-        boolean result;
-        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
+    public String createFolder(String siteId, String path, String name) throws UserNotFoundException, ServiceLayerException {
+        Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
+        String newFolderPath = Paths.get(path, name).toString();
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
 
-            try {
-                // Create basic file
-                File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
+            // Create basic file
+            File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
 
-                // Create parent folders
-                File folder = file.getParentFile();
-                if (folder != null && !folder.exists()) {
-                    folder.mkdirs();
-                }
-
-                // Create the file
-                if (!file.createNewFile()) {
-                    logger.error("Failed to write file to site '{}' path '{}'", site, emptyFilePath);
-                    result = false;
-                } else {
-                    // Add the file to git
-                    result = helper.addFiles(repo, site, emptyFilePath.toString());
-                }
-            } catch (Exception e) {
-                logger.error("Failed to add file to git in site '{}' path '{}'", site, emptyFilePath, e);
-                result = false;
+            // Create parent folders
+            File folder = file.getParentFile();
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
             }
 
-            if (result) {
-                try {
-                    commitId = helper.commitFiles(repo, site,
-                            helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
-                                    .replaceAll(PATTERN_SITE, site)
-                                    .replaceAll(PATTERN_PATH, path + FILE_SEPARATOR + name),
-                            helper.getCurrentUserIdent(),
-                            emptyFilePath.toString());
-                } catch (ServiceLayerException | UserNotFoundException e) {
-                    logger.error("Failed to commit file in site '{}' path '{}'", site, emptyFilePath, e);
-                }
+            // Create the file
+            if (!file.createNewFile()) {
+                logger.error("Failed to write file to site '{}' path '{}'", siteId, emptyFilePath);
+                throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
             }
+
+            // Add the file to git
+            if (!helper.addFiles(repo, siteId, emptyFilePath.toString())) {
+                throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            }
+
+            String commitId = helper.commitFiles(
+                    repo,
+                    siteId,
+                    helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+                            .replaceAll(PATTERN_SITE, siteId)
+                            .replaceAll(PATTERN_PATH, newFolderPath),
+                    helper.getCurrentUserIdent(), emptyFilePath.toString()
+            );
+
+            if (commitId == null) {
+                throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            }
+
+            return commitId;
+        } catch (Exception e) {
+            logger.error("Failed to add file to git in site '{}' path '{}'", siteId, newFolderPath, e);
+            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
         } finally {
             generalLockService.unlock(gitLockKey);
         }
-        return commitId;
     }
 
     @Override

@@ -185,14 +185,13 @@ public interface ContentServiceInternal {
      */
     List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
 
-    /*
-     * Create new folder
+    /**
+     * Create a new folder
      * @param siteId site identifier
      * @param path parent path to create new folder into
-     * @param name new folder name
-     * @return true if success, otherwise false
-     * @throws UserNotFoundException user not found error
+     * @param name folder name to create
      * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
      */
-    boolean createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException;
+    void createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException;
 }

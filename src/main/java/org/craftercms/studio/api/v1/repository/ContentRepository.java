@@ -20,6 +20,7 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
@@ -85,7 +86,7 @@ public interface ContentRepository {
      * @param name a folder name to create
      * @return Commit Id if successful, null otherwise
      */
-    String createFolder(String site, String path, String name) throws ServiceLayerException;
+    String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * delete content

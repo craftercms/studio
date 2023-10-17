@@ -45,6 +45,7 @@ import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
@@ -71,6 +72,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
 import javax.validation.Valid;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -369,14 +372,21 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return contentServiceInternal.getContentVersionHistory(siteId, path);
     }
 
-    @Valid
+
+    @Override
+    @RequireSiteReady
     @ValidateAction(type = Type.CREATE)
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_FOLDER)
-    public boolean createFolder(@ProtectedResourceId(SITE_ID_RESOURCE_ID) @ValidateStringParam @SiteId String siteId,
-                                @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam @ActionTargetPath String path,
-                                @ValidateStringParam @ActionTargetFilename String name) throws ServiceLayerException, UserNotFoundException {
+    public void createFolder(@SiteId String siteId,
+                                @ProtectedResourceId(PATH_RESOURCE_ID) @ActionTargetPath String path,
+                                @ActionTargetFilename String name) throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
-        return contentServiceInternal.createFolder(siteId, path, name);
+        Path newFolderPath = Paths.get(path, name);
+        if (contentServiceInternal.contentExists(siteId, newFolderPath.toString())) {
+            throw new ContentExistException(format("Folder exists at path '%s' site '%s'", newFolderPath, siteId));
+        }
+
+        contentServiceInternal.createFolder(siteId, path, name);
     }
 
     @Override

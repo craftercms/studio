@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.GitLog;
@@ -251,8 +252,10 @@ public interface ContentRepository {
      * @param path parent path to create the folder into
      * @param name folder name
      * @return commit id of the creation
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
      */
-    String createFolder(String site, String path, String name) throws ServiceLayerException;
+    String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 
     /**
      * Get last commit id from repository for given site.

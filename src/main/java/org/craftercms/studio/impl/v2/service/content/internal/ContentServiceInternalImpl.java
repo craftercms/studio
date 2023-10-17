@@ -25,12 +25,12 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.impl.v2.utils.ContentUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
-import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
@@ -50,6 +50,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.util.MimeType;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static java.lang.String.format;
@@ -300,37 +301,32 @@ public class ContentServiceInternalImpl implements ContentServiceInternal, Appli
         }
     }
 
-    public boolean createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
-        String folderPath = path + FILE_SEPARATOR + name;
-        boolean toRet = false;
+    @Override
+    public void createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException {
+        String folderPath = Paths.get(path, name).toString();
         String commitId = contentRepository.createFolder(siteId, path, name);
-        if (commitId != null) {
-            Item parentItem = itemServiceInternal.getItem(siteId, path, true);
-            if (Objects.isNull(parentItem)) {
-                parentItem = createMissingParentItem(siteId, path, commitId);
-            }
-            itemServiceInternal.persistItemAfterCreateFolder(siteId, folderPath, name, securityService.getCurrentUser(),
-                    commitId, parentItem.getId());
-
-            String username = securityService.getCurrentUser();
-            Site site = siteDao.getSite(siteId);
-            AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
-            auditLog.setOperation(OPERATION_CREATE);
-            auditLog.setSiteId(site.getId());
-            auditLog.setActorId(username);
-
-            auditLog.setPrimaryTargetId(siteId + ":" + folderPath);
-            auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
-            auditLog.setPrimaryTargetValue(folderPath);
-            auditServiceInternal.insertAuditLog(auditLog);
-
-            contentRepository.insertGitLog(siteId, commitId, 1, 1);
-            siteDao.updateLastCommitId(siteId, commitId);
-            applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), siteId, folderPath));
-            toRet = true;
+        Item parentItem = itemServiceInternal.getItem(siteId, path, true);
+        if (Objects.isNull(parentItem)) {
+            parentItem = createMissingParentItem(siteId, path, commitId);
         }
+        itemServiceInternal.persistItemAfterCreateFolder(siteId, folderPath, name, securityService.getCurrentUser(),
+                commitId, parentItem.getId());
 
-        return toRet;
+        String username = securityService.getCurrentUser();
+        Site site = siteDao.getSite(siteId);
+        AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
+        auditLog.setOperation(OPERATION_CREATE);
+        auditLog.setSiteId(site.getId());
+        auditLog.setActorId(username);
+
+        auditLog.setPrimaryTargetId(siteId + ":" + folderPath);
+        auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
+        auditLog.setPrimaryTargetValue(folderPath);
+        auditServiceInternal.insertAuditLog(auditLog);
+
+        contentRepository.insertGitLog(siteId, commitId, 1, 1);
+        siteDao.updateLastCommitId(siteId, commitId);
+        applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), siteId, folderPath));
     }
 
     /**
