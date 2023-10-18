@@ -24,7 +24,7 @@
     <bean id="studioMessagingSecurityExpressionHandler"
           class="org.craftercms.studio.impl.v2.utils.spring.security.messaging.StudioSecurityExpressionHandler">
         <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
-        <constructor-arg name="groupServiceInternal" ref="groupServiceInternal"/>
+        <constructor-arg name="securityService" ref="studio.securityService" />
     </bean>
 
     <!-- Main configuration -->

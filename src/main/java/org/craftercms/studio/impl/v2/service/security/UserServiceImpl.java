@@ -31,7 +31,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
@@ -40,6 +39,7 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.exception.security.ActionsDeniedException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.UserService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -82,12 +82,11 @@ public class UserServiceImpl implements UserService {
     private SiteService siteService;
     private EntitlementValidator entitlementValidator;
     private GeneralLockService generalLockService;
-    private SecurityService securityService;
     private StudioConfiguration studioConfiguration;
     private AuditServiceInternal auditServiceInternal;
     private InstanceService instanceService;
     private TextEncryptor encryptor;
-    private org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2;
+    private SecurityService securityService;
     private SessionRegistry sessionRegistry;
     private TaskExecutor taskExecutor;
     private ObjectFactory<ForgotPasswordTaskFactory> forgotPasswordTaskFactory;
@@ -96,7 +95,7 @@ public class UserServiceImpl implements UserService {
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_READ_USERS)
     public List<UserResponse> getAllUsersForSite(long orgId, String siteId, String keyword, int offset, int limit, String sort)
             throws ServiceLayerException {
-        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
+        List<String> groupNames = securityService.getSiteGroups(siteId);
         List<User> users = userServiceInternal.getAllUsersForSite(orgId, groupNames, keyword, offset, limit, sort);
         return users.stream().map(user -> new UserResponse(user)).collect(Collectors.toList());
     }
@@ -296,11 +295,11 @@ public class UserServiceImpl implements UserService {
         List<Site> sites = new ArrayList<>();
         Set<String> allSites = siteService.getAllAvailableSites();
         List<Group> userGroups = userServiceInternal.getUserGroups(userId, username);
-        boolean isSysAdmin = securityService.isSystemAdmin(username);
+        boolean isSysAdmin = userServiceInternal.isSystemAdmin(username);
 
         // Iterate all sites. If the user has any of the site groups, it has access to the site
         for (String siteId : allSites) {
-            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            List<String> siteGroups = securityService.getSiteGroups(siteId);
             if (isSysAdmin || userGroups.stream().anyMatch(userGroup -> siteGroups.contains(userGroup.getGroupName()))) {
                 try {
                     SiteFeed siteFeed = siteService.getSite(siteId);
@@ -339,7 +338,7 @@ public class UserServiceImpl implements UserService {
             return Collections.emptyList();
         }
 
-        if (securityService.isSystemAdmin(username)) {
+        if (userServiceInternal.isSystemAdmin(username)) {
             // If system_admin, return all roles
             Collection<List<String>> roleSets = roleMappings.values();
             for (List<String> roleSet : roleSets) {
@@ -565,7 +564,7 @@ public class UserServiceImpl implements UserService {
             throws ServiceLayerException, UserNotFoundException, ExecutionException {
         String currentUser = securityService.getCurrentUser();
         List<String> roles = getUserSiteRoles(-1, currentUser, site);
-        return securityServiceV2.getUserPermission(site, currentUser, roles);
+        return securityService.getUserPermission(site, currentUser, roles);
     }
 
     @Override
@@ -580,8 +579,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<String> getCurrentUserGlobalPermissions() throws ServiceLayerException, UserNotFoundException, ExecutionException {
         String currentUser = securityService.getCurrentUser();
-        List<String> roles = securityService.getUserGlobalRoles(-1, currentUser);
-        return securityServiceV2.getUserPermission(StringUtils.EMPTY, currentUser, roles);
+        List<String> roles = userServiceInternal.getUserGlobalRoles(-1, currentUser);
+        return securityService.getUserPermission(StringUtils.EMPTY, currentUser, roles);
     }
 
     @Override
@@ -631,10 +630,6 @@ public class UserServiceImpl implements UserService {
         this.generalLockService = generalLockService;
     }
 
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {
         this.studioConfiguration = studioConfiguration;
     }
@@ -651,8 +646,8 @@ public class UserServiceImpl implements UserService {
         this.encryptor = encryptor;
     }
 
-    public void setSecurityServiceV2(org.craftercms.studio.api.v2.service.security.SecurityService securityServiceV2) {
-        this.securityServiceV2 = securityServiceV2;
+    public void setSecurityService(SecurityService securityService) {
+        this.securityService = securityService;
     }
 
     public void setSessionRegistry(SessionRegistry sessionRegistry) {

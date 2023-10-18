@@ -45,6 +45,7 @@ import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -300,6 +301,7 @@ public class ContentController {
         return result;
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = PATH_PARAM_SITE + FOLDER, consumes = APPLICATION_JSON_VALUE)
     public ResultOne createFolder(@ValidSiteId @PathVariable(value = REQUEST_PARAM_SITE) String siteId,
                                   @Valid @RequestBody CreateFolderRequestBody body) throws UserNotFoundException, ServiceLayerException {

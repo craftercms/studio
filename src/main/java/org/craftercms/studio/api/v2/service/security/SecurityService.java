@@ -56,4 +56,12 @@ public interface SecurityService {
      * @return authentication
      */
     Authentication getAuthentication();
+
+    /**
+     * Get list groups for a site
+     * @param siteId site identifier
+     * @return list of groups
+     * @throws ServiceLayerException
+     */
+    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
 }

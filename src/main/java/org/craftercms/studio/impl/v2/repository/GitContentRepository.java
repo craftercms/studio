@@ -1397,9 +1397,11 @@ public class GitContentRepository implements ContentRepository {
             }
 
             return commitId;
+        } catch (ServiceLayerException e) {
+            throw e;
         } catch (Exception e) {
             logger.error("Failed to add file to git in site '{}' path '{}'", siteId, newFolderPath, e);
-            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId), e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }

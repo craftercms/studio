@@ -23,6 +23,7 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
@@ -36,15 +37,10 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
@@ -173,6 +169,20 @@ public class SecurityServiceImpl implements SecurityService {
             return context.getAuthentication();
         }
         return null;
+    }
+
+    @Override
+    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
+        Map<String, List<String>> groupRoleMapping;
+        try {
+            groupRoleMapping = configurationService.getRoleMappings(siteId);
+        } catch (ConfigurationException e) {
+            throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
+        }
+
+        List<String> groups = new ArrayList<>(groupRoleMapping.keySet());
+
+        return groups;
     }
 
     public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {

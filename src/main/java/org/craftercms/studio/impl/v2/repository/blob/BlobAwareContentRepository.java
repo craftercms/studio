@@ -280,7 +280,7 @@ public class BlobAwareContentRepository implements ContentRepository,
         } catch (Exception e) {
             logger.error("Failed to create folder in site '{}' path '{}'", siteId, path, e);
             Path newFolderPath = Paths.get(path, name);
-            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId), e);
         }
     }
 

@@ -19,16 +19,19 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 import com.google.common.cache.Cache;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.crypto.CryptoUtils;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.*;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
+import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
@@ -45,6 +48,7 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SYSTEM_ADMIN_ROLE;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
@@ -55,7 +59,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private static final Logger logger = LoggerFactory.getLogger(UserServiceInternalImpl.class);
 
     private final UserDAO userDao;
-    private final GroupServiceInternal groupServiceInternal;
+    private ConfigurationService configurationService;
     private final StudioConfiguration studioConfiguration;
     private final SiteService siteService;
     private final AccessTokenServiceInternal accessTokenService;
@@ -64,15 +68,15 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private final Cache<String, User> userCache;
     private final Zxcvbn zxcvbn;
 
-    @ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
+    @ConstructorProperties({"userDao", "configurationService", "studioConfiguration", "siteService", "securityService",
             "accessTokenService", "retryingDatabaseOperationFacade", "userCache", "zxcvbn"})
-    public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
+    public UserServiceInternalImpl(UserDAO userDao , ConfigurationService configurationService,
                                    StudioConfiguration studioConfiguration, SiteService siteService,
                                    SecurityService securityService, AccessTokenServiceInternal accessTokenService,
                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
                                    Cache<String, User> userCache, Zxcvbn zxcvbn) {
         this.userDao = userDao;
-        this.groupServiceInternal = groupServiceInternal;
+        this.configurationService = configurationService;
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.securityService = securityService;
@@ -157,7 +161,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
 
     @Override
     public int getAllUsersForSiteTotal(long orgId, String siteId, String keyword) throws ServiceLayerException {
-        List<String> groupNames = groupServiceInternal.getSiteGroups(siteId);
+        List<String> groupNames = securityService.getSiteGroups(siteId);
         try {
             return userDao.getAllUsersForSiteTotal(groupNames, keyword);
         } catch (Exception e) {
@@ -476,10 +480,54 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     }
 
     @Override
-    public boolean isSystemAdmin(String username) {
-        return securityService.isSystemAdmin(username);
+    public boolean isSystemAdmin(@ValidateStringParam String username) {
+        List<String> roles;
+        try {
+            roles = getUserGlobalRoles(-1, username);
+        } catch (UserNotFoundException e) {
+            logger.info("User '{}' is not a site member", username, e);
+            return false;
+        } catch (ServiceLayerException e) {
+            logger.warn("Failed to get site membership for user '{}'", username, e);
+            return false;
+        }
+
+        boolean toRet = false;
+        if (CollectionUtils.isNotEmpty(roles)) {
+            for (String role : roles) {
+                if (StringUtils.equalsIgnoreCase(role, SYSTEM_ADMIN_ROLE)) {
+                    toRet = true;
+                    break;
+                }
+            }
+        }
+        return toRet;
     }
 
+    @Override
+    public List<String> getUserGlobalRoles(long userId, @ValidateStringParam String username)
+            throws ServiceLayerException, UserNotFoundException {
+        List<Group> groups = getUserGroups(userId, username);
+
+        if (CollectionUtils.isEmpty(groups)) {
+            return Collections.emptyList();
+        }
+
+        Map<String, List<String>> roleMappings = configurationService.getGlobalRoleMappings();
+        Set<String> userRoles = new LinkedHashSet<>();
+
+        if (MapUtils.isNotEmpty(roleMappings)) {
+            for (Group group : groups) {
+                String groupName = group.getGroupName();
+                List<String> roles = roleMappings.get(groupName);
+                if (CollectionUtils.isNotEmpty(roles)) {
+                    userRoles.addAll(roles);
+                }
+            }
+        }
+
+        return new ArrayList<>(userRoles);
+    }
 
 
 }

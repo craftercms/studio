@@ -16,9 +16,7 @@
 
 package org.craftercms.studio.impl.v2.service.security.internal;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +28,6 @@ import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.dal.GroupDAO;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
@@ -222,20 +219,6 @@ public class GroupServiceInternalImpl implements GroupServiceInternal {
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
-    }
-
-    @Override
-    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
-        Map<String, List<String>> groupRoleMapping;
-        try {
-            groupRoleMapping = configurationService.getRoleMappings(siteId);
-        } catch (ConfigurationException e) {
-            throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
-        }
-
-        List<String> groups = new ArrayList<>(groupRoleMapping.keySet());
-
-        return groups;
     }
 
     public GroupDAO getGroupDao() {
