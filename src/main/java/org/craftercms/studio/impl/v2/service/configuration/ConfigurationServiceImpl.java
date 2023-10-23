@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.lang.UrlUtils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -516,9 +517,9 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 case "yaml":
                 case "yml":
                     try {
-                        Yaml yaml = new Yaml(new DisableClassLoadingConstructor(new LoaderOptions()));
-                        // The assign is needed to detect invalid files
-                        Map<String, Object> map = yaml.load(new ByteArrayInputStream(bytes));
+                        YamlConfiguration yamlConfig = new YamlConfiguration();
+                        // Read in order to detect invalid files
+                        yamlConfig.read(new ByteArrayInputStream(bytes));
                     } catch (Exception e) {
                         logger.error("Failed to validate the configuration file '{}'", filename, e);
                         throw new InvalidConfigurationException(format("Invalid YAML configuration file '%s'",
