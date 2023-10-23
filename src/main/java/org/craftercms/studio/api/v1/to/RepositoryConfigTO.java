@@ -42,6 +42,10 @@ public class RepositoryConfigTO implements Serializable {
     protected List<String> renderingTemplatePatterns = null;
     /** scripts path patterns **/
     protected List<String> scriptsPatterns = null;
+    /**
+     * Configuration path patterns
+     */
+    protected List<String> configurationPatterns = null;
     /** level descriptors path patterns **/
     protected List<String> levelDescriptorPatterns = null;
 
@@ -184,6 +188,14 @@ public class RepositoryConfigTO implements Serializable {
 
     public List<String> getScriptsPatterns() { return scriptsPatterns; }
     public void setScriptsPatterns(List<String> scriptsPatterns) { this.scriptsPatterns = scriptsPatterns; }
+
+    public List<String> getConfigurationPatterns() {
+        return configurationPatterns;
+    }
+
+    public void setConfigurationPatterns(List<String> configurationPatterns) {
+        this.configurationPatterns = configurationPatterns;
+    }
 
     public List<String> getLevelDescriptorPatterns() {
         return this.levelDescriptorPatterns;

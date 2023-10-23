@@ -318,7 +318,6 @@ public final class ContentItemPossibleActionsConstants {
                 toRet = CONTENT_TYPE;
                 break;
             case CONTENT_TYPE_CONFIGURATION:
-            case CONTENT_TYPE_FILE: // TODO: Fix configuration to be properly detected
                 toRet = CONFIGURATION;
                 break;
             case CONTENT_TYPE_FOLDER:

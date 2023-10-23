@@ -211,6 +211,15 @@ public class ServicesConfigImpl implements ServicesConfig {
     }
 
     @Override
+    public List<String> getConfigurationPatterns(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null && config.getRepositoryConfig() != null) {
+            return config.getRepositoryConfig().getConfigurationPatterns();
+        }
+        return null;
+    }
+
+    @Override
     @Valid
     public List<String> getLevelDescriptorPatterns(@ValidateStringParam String site) {
         SiteConfigTO config = getSiteConfig(site);
