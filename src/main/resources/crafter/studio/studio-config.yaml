@@ -353,7 +353,7 @@ studio.security.encryption.maxLength: 4096
 # If the secure headers should be written for every request
 studio.security.headers.enabled: true
 # Value for the Content-Security-Policy header
-studio.security.headers.contentSecurityPolicy.value: default-src 'unsafe-inline'
+studio.security.headers.contentSecurityPolicy.value: "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *"
 # Set to true to enable the Content-Security-Policy-Report-Only header (this will report in the user agent console instead of actually blocking the requests)
 studio.security.headers.contentSecurityPolicy.reportOnly: true
 # Indicates if HTTP Basic auth should be enabled for the API
@@ -474,6 +474,8 @@ studio.preview.defaultPreviewDeployerUrl: http://localhost:9191/api/1/target/dep
 studio.preview.createTargetUrl: http://localhost:9191/api/1/target/create_if_not_exists
 # Default preview create target URL (can be overridden per site)
 studio.preview.deleteTargetUrl: http://localhost:9191/api/1/target/delete-if-exists/{siteEnv}/{siteName}
+# Preview duplicate target URL
+studio.preview.duplicateTargetUrl: http://localhost:9191/api/1/target/duplicate/{siteEnv}/{siteName}
 # URL to the preview repository (aka Sandbox) where authors save work-in-progress
 studio.preview.repoUrl: ${env:CRAFTER_DATA_DIR}/repos/sites/{siteName}/sandbox
 # Name of template to use with the deployer for preview

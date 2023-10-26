@@ -456,14 +456,17 @@
     <bean id="sitesServiceInternal"
           class="org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl">
         <constructor-arg name="descriptorReader" ref="pluginDescriptorReader"/>
-        <constructor-arg name="contentRepositoryV1" ref="contentRepository" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
+        <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
         <constructor-arg name="siteDao" ref="siteDao" />
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="previewDeployer" ref="allDeployers" />
+        <constructor-arg name="siteServiceV1" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="deployer" ref="allDeployers" />
-        <constructor-arg name="contentRepository" ref="contentRepository" />
         <constructor-arg name="configurationService" ref="configurationService" />
+        <constructor-arg name="auditServiceInternal" ref="auditServiceInternal" />
     </bean>
 
     <bean id="auditService" class="org.craftercms.studio.impl.v2.service.audit.AuditServiceImpl" >
@@ -566,6 +569,7 @@
     <bean id="dependencyService" class="org.craftercms.studio.impl.v2.service.dependency.DependencyServiceImpl">
         <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple" />
+        <constructor-arg name="contentRepository" ref="contentRepository" />
     </bean>
 
     <bean id="dependencyServiceInternal" class="org.craftercms.studio.impl.v2.service.dependency.internal.DependencyServiceInternalImpl">
@@ -1148,20 +1152,20 @@
     <!--          Crafter Deployers             -->
     <!-- ////////////////////////////////////// -->
     <bean id="previewDeployer" class="org.craftercms.studio.impl.v2.deployment.PreviewDeployer">
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="serverlessDeliveryDeployer" class="org.craftercms.studio.impl.v2.deployment.ServerlessDeliveryDeployer">
-        <property name="studioConfiguration" ref="studioConfiguration" />
+        <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
     </bean>
 
     <bean id="allDeployers" class="org.craftercms.studio.impl.v2.deployment.CompositeDeployer">
-        <property name="deployers">
+        <constructor-arg name="deployers">
             <list>
                 <ref bean="previewDeployer"/>
                 <ref bean="serverlessDeliveryDeployer"/>
             </list>
-        </property>
+        </constructor-arg>
     </bean>
 
     <!-- ////////////////////////////////////// -->

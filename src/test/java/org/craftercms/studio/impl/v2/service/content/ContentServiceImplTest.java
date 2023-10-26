@@ -29,12 +29,12 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
+import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.AdditionalMatchers.not;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 public class ContentServiceImplTest {
@@ -61,7 +61,6 @@ public class ContentServiceImplTest {
         mocks = openMocks(this);
         doThrow(new SiteNotFoundException()).when(siteService).checkSiteExists(not(eq(SITE_NAME)));
         doThrow(new ContentNotFoundException()).when(contentServiceV1).checkContentExists(anyString(), not(eq(EXISTING_PATH)));
-
     }
 
     @After
@@ -85,6 +84,20 @@ public class ContentServiceImplTest {
     public void contentHistoryValidParams() throws ServiceLayerException {
         contentService.getContentVersionHistory(SITE_NAME, EXISTING_PATH);
         verify(contentServiceInternal).getContentVersionHistory(SITE_NAME, EXISTING_PATH);
+    }
+
+    @Test
+    public void testContentExits() throws SiteNotFoundException {
+        when(contentServiceInternal.contentExists(SITE_NAME, EXISTING_PATH)).thenReturn(true);
+        boolean result = contentService.contentExists(SITE_NAME, EXISTING_PATH);
+        verify(contentServiceInternal, times(1)).contentExists(SITE_NAME, EXISTING_PATH);
+        assertEquals(true, result);
+    }
+
+    @Test
+    public void testSiteNotFound() {
+        assertThrows(SiteNotFoundException.class, () ->
+                contentService.contentExists(NON_EXISTENT_SITE_NAME, NON_EXISTENT_PATH));
     }
 
 }

@@ -17,34 +17,48 @@
 package org.craftercms.studio.impl.v2.service.site;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.service.site.SitesService;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
 public class SitesServiceImplTest {
 
     private static final String SITE_ID = "site1";
     private static final String NON_EXISTING_SITE_ID = "non-existing-site-id";
+    private static final String EXISTING_SITE_ID = "existing-site";
+    private static final String SOURCE_SITE_ID = "original";
+    private static final String NEW_SITE_ID = "the-copy";
 
+    @Mock
+    protected SiteService siteServiceV1;
     @Mock
     protected SitesService sitesServiceInternal;
     @InjectMocks
     protected SitesServiceImpl sitesService;
+    private AutoCloseable mocks;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    public void setUp() throws SiteNotFoundException {
+        mocks = MockitoAnnotations.openMocks(this);
         when(sitesServiceInternal.exists(NON_EXISTING_SITE_ID)).thenReturn(false);
         when(sitesServiceInternal.exists(SITE_ID)).thenReturn(true);
+        doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
+        when(siteServiceV1.exists(EXISTING_SITE_ID)).thenReturn(true);
+    }
+
+    @AfterEach
+    public void tearDown() throws Exception {
+        mocks.close();
     }
 
     @Test
@@ -54,7 +68,26 @@ public class SitesServiceImplTest {
     }
 
     @Test
-    public void nonExistingSiteDeleteTest() throws ServiceLayerException {
+    public void nonExistingSiteDeleteTest() {
         assertThrows(SiteNotFoundException.class, () -> sitesService.deleteSite(NON_EXISTING_SITE_ID));
+    }
+
+    @Test
+    public void duplicateNonExistentSiteTest() {
+        assertThrows(SiteNotFoundException.class, () ->
+                sitesService.duplicate(NON_EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false));
+    }
+
+    @Test
+    public void duplicateIntoAlreadyExistentSiteTest() {
+        assertThrows(SiteAlreadyExistsException.class, () ->
+                sitesService.duplicate(SOURCE_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
+    }
+
+    @Test
+    public void duplicateSiteTest() throws ServiceLayerException {
+        sitesService.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+
+        verify(sitesServiceInternal).duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
     }
 }

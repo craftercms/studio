@@ -14,7 +14,7 @@ info:
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
   description: CrafterCMS - Studio
-  url: 'https://docs.craftercms.org/current/developers/projects/studio/index.html'
+  url: 'https://docs.craftercms.org/current/reference/modules/studio/index.html'
 tags:
   - name: groups
     description: Group management operations
@@ -2027,6 +2027,46 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /sites/{siteId}/duplicate:
+    post:
+      tags:
+        - sites
+      summary: Duplicates a site
+      operationId: duplicateSite
+      parameters:
+        - name: siteId
+          in: path
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Duplicate site request information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DuplicateSiteRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /search/search:
     post:
       tags:
@@ -3812,6 +3852,49 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/exists:
+    get:
+      tags:
+        - content
+      summary: Check the existent of a content path
+      description: 'Required permission "content_read"'
+      operationId: contentExists
+      parameters:
+        - name: siteId
+          in: query
+          description: site ID
+          required: true
+          schema:
+            type: string
+        - name: path
+          in: query
+          description: item path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  exists:
+                      type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/item_by_path:
     get:
       tags:
@@ -4290,6 +4373,54 @@ paths:
                         type: array
                         items:
                           type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /dependency/dependent_items:
+    get:
+      tags:
+        - dependent_items
+      summary: Get list of dependent items for given content path
+      description: 'Required permission "content_read"'
+      operationId: getDependentItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                path:
+                  description: Content path to get dependencies for
+                  type: string
+              required:
+                - siteId
+                - path
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DependencyItem'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -8486,6 +8617,24 @@ components:
         - publishingTarget
 
 
+    DependencyItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: content item ID
+        label:
+          type: string
+          description: user friendly display name for content item
+        path:
+          type: string
+          description: path where content item is stored inside repository (with filename)
+      required:
+        - id
+        - label
+        - path
+
     SandboxItem:
       type: object
       properties:
@@ -9262,6 +9411,26 @@ components:
           type: string
           format: date-time
           description: the date of the commit
+
+    DuplicateSiteRequest:
+      type: object
+      properties:
+        siteName:
+          type: string
+          description: The name of the new site
+        siteId:
+          type: string
+          description: The ID of the new site
+        description:
+          type: string
+          description: The description of the new site
+        sandboxBranch:
+          type: string
+          description: The sandbox branch to be used in the new site sandbox repository
+        readOnlyBlobStores:
+          type: boolean
+          description: If true, the blob stores will be read-only in the copied site.
+          default: true
 
   responses:
     NotFound:

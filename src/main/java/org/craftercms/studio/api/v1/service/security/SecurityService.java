@@ -44,7 +44,9 @@ public interface SecurityService {
      * Returns the {@link Authentication} for the current user or null if not user is authenticated.
      *
      * @return authentication
+     * @deprecated use {@link org.craftercms.studio.api.v2.service.security.SecurityService#getAuthentication()} instead
      */
+    @Deprecated
     Authentication getAuthentication();
 
     Set<String> getUserRoles(String site);

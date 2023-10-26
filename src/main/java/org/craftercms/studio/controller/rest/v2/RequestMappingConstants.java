@@ -46,6 +46,7 @@ public final class RequestMappingConstants {
     public static final String GET_DESCRIPTOR = "/descriptor";
     public static final String PASTE_ITEMS = "/paste";
     public static final String DUPLICATE_ITEM = "/duplicate";
+    public static final String EXISTS = "/exists";
     public static final String ITEM_BY_PATH = "/item_by_path";
     public static final String SANDBOX_ITEMS_BY_PATH = "/sandbox_items_by_path";
     public static final String ITEM_LOCK_BY_PATH = "/item_lock_by_path";
@@ -112,6 +113,7 @@ public final class RequestMappingConstants {
     /** Dependency Controller */
     public static final String DEPENDENCY = "/dependency";
     public static final String DEPENDENCIES = "/dependencies";
+    public static final String DEPENDENT_ITEMS = "/dependent_items";
 
     /** Workflow Controller */
     public static final String WORKFLOW = "/workflow";

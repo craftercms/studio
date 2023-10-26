@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,9 +16,9 @@
 
 package org.craftercms.studio.api.v2.exception.security;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
+import org.craftercms.commons.security.exception.PermissionException;
 
-public class ActionsDeniedException extends ServiceLayerException {
+public class ActionsDeniedException extends PermissionException {
 
     public ActionsDeniedException() {
         super();

@@ -4,7 +4,7 @@ pipelines:
 
   # Pipeline to upgrade system components (database, global repo, ...)
   system:
-    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || 3.1.30 || >=4.0'
+    requires: '3.1.9 || 3.1.12 || 3.1.15 || 3.1.23 || 3.1.24 || 3.1.25 || 3.1.26 || 3.1.27 || 3.1.28 || 3.1.29 || 3.1.30 || 3.1.31 || >=4.0'
     versions:
       # Entry points for supported 3.1.x versions:
       # 3.1.9
@@ -557,6 +557,31 @@ pipelines:
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file
       - currentVersion: 4.1.5
+        nextVersion: 4.1.6
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-ui.xml
+                dest: configuration/samples/sample-ui.xml
+            commitDetails: Add sample file for ui.xml
+      - currentVersion: 4.1.6
+        nextVersion: 4.1.7
+        operations:
+          - type: dbScriptUpgrader
+            filename: 4.1.x/upgrade-4.1.6-to-4.1.7.sql
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.1.x/4.1.7/system/global-permission-mappings-config.xslt
+            commitDetails: Add new permission duplicate_site
+      - currentVersion: 4.1.7
+        nextVersion: 4.1.8
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-engine-site-config.xml
+                dest: /configuration/samples/sample-engine-site-config.xml
+            commitDetails: Update engine sample authentication config
+      - currentVersion: 4.1.8
         nextVersion: 4.2.0
         operations:
           - type: dbScriptUpgrader
@@ -1291,4 +1316,10 @@ configurations:
           - type: xsltFileUpgrader
             template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.0.xslt
             commitDetails: Update the UI to use 'PathNavigatorTree' and new Dashboard widgets
+      - currentVersion: 4.1.0
+        nextVersion: 4.1.1
+        operations:
+          - type: xsltFileUpgrader
+            template: crafter/studio/upgrade/4.1.x/config/ui/ui-v4.1.1.xslt
+            commitDetails:
 

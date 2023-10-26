@@ -22,6 +22,7 @@ public abstract class AuditLogConstants {
 
     /** Operation **/
     public static final String OPERATION_CREATE = "CREATE";
+    public static final String OPERATION_DUPLICATE = "DUPLICATE";
     public static final String OPERATION_UPDATE = "UPDATE";
     public static final String OPERATION_START_DELETE = "START_DELETE";
     public static final String OPERATION_DELETE = "DELETE";
@@ -70,6 +71,7 @@ public abstract class AuditLogConstants {
     public static final String TARGET_TYPE_ACCESS_TOKEN = "Access Token";
     public static final String TARGET_TYPE_REFRESH_TOKEN = "Refresh Token";
     public static final String TARGET_TYPE_BLUEPRINT = "Blueprint";
+    public static final String TARGET_TYPE_SOURCE_SITE = "Source";
     public static final String TARGET_TYPE_PUBLISHING_PACKAGE = "Publishing Package";
     public static final String TARGET_TYPE_SUBMISSION_COMMENT = "Submission Comment";
     public static final String TARGET_TYPE_REJECTION_COMMENT = "Rejection Comment";

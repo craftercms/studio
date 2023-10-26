@@ -30,6 +30,7 @@ import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
+import org.craftercms.studio.api.v2.security.HasAllPermissions;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressObserver;
 import org.craftercms.studio.api.v2.service.publish.internal.PublishingProgressServiceInternal;
 import org.craftercms.studio.api.v2.service.site.SitesService;
@@ -158,5 +159,18 @@ public class SitesServiceImpl implements SitesService {
     @Override
     public boolean checkSiteUuid(String siteId, String siteUuid) {
         return sitesServiceInternal.checkSiteUuid(siteId, siteUuid);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
+            PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
+    public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
+            throws ServiceLayerException {
+        checkSiteExists(sourceSiteId);
+        if (exists(siteId)) {
+            throw new SiteAlreadyExistsException(siteId);
+        }
+        sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
     }
 }
