@@ -21,7 +21,6 @@ import org.craftercms.studio.api.v2.service.notification.NotificationMessageType
 class SpringSiteServices {
 
     static SITE_SERVICES_BEAN = "cstudioSiteServiceSimple"
-    static NOTIFICATION_SERVICES_BEAN = "cstudioNotificationService"
     static NEW_NOTIFICATION_SERVICES_BEAN = "cstudioNotificationService"
 
     def context = null
@@ -58,11 +57,6 @@ class SpringSiteServices {
     def deleteSite(siteId) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.deleteSite(siteId)
-    }
-
-    def getAvailableBlueprints() {
-        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.getAvailableBlueprints()
     }
 
     def reloadSiteConfiguration(site) {

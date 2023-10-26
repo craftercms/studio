@@ -189,17 +189,6 @@ class ContentServices {
 	//	}
 
 	/**
-	 * unlock a given item
-	 * @param site - the project ID
-	 * @param path - the path of the item to unlock
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static unlockContentItem(site, path, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.unlockContentItem(site, path)
-	}
-
-	/**
 	 * get the version history for an item
 	 * @param site - the project ID
 	 * @param path - the path of the item
