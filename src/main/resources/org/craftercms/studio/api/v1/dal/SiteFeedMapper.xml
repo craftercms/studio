@@ -72,9 +72,9 @@
     </select>
 
     <insert id="createSite" parameterType="org.craftercms.studio.api.v1.dal.SiteFeed" flushCache="true">
-        insert into site (site_uuid, site_id, name, description, deleted, last_commit_id,
+        insert into site (site_uuid, site_id, name, description, deleted,
                           publishing_status, sandbox_branch)
-        values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{deleted}, #{lastCommitId},
+        values (#{siteUuid}, #{siteId}, #{name}, #{description}, #{deleted},
                 #{publishingStatus}, #{sandboxBranch})
     </insert>
 

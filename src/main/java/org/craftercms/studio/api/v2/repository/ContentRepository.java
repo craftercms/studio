@@ -193,10 +193,19 @@ public interface ContentRepository {
     /**
      * Get last commit id from repository for given site.
      *
-     * @param site site id
+     * @param site site id, or null for global repository
      * @return last commit id (current HEAD)
      */
     String getRepoLastCommitId(String site);
+
+    /**
+     * Get last commit id from global repository
+     *
+     * @return last commit id (current HEAD)
+     */
+    default String getGlobalRepoLastCommitId() {
+        return getRepoLastCommitId(null);
+    }
 
     Item getItem(String siteId, String path, boolean flatten);
 
@@ -389,5 +398,4 @@ public interface ContentRepository {
      * @throws IOException if there is any error while copying the directories
      */
     void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException;
-
 }

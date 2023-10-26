@@ -30,7 +30,7 @@ import org.craftercms.studio.api.v1.content.pipeline.PipelineContent;
 import org.craftercms.studio.api.v1.to.ResultTO;
 import org.craftercms.studio.impl.v1.content.pipeline.PipelineContentImpl;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 
 import java.io.InputStream;
 import java.util.Map;

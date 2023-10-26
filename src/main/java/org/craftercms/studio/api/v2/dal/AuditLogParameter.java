@@ -22,7 +22,6 @@ public class AuditLogParameter {
     private long auditId;
     private String targetId;
     private String targetType;
-    private String targetSubtype;
     private String targetValue;
 
     public long getId() {
@@ -55,15 +54,6 @@ public class AuditLogParameter {
 
     public void setTargetType(String targetType) {
         this.targetType = targetType;
-    }
-
-    public String getTargetSubtype() {
-        return targetSubtype;
-    }
-
-    // TODO: JM: This is never used. Remove column from the database ?
-    public void setTargetSubtype(String targetSubtype) {
-        this.targetSubtype = targetSubtype;
     }
 
     public String getTargetValue() {

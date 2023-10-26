@@ -21,8 +21,8 @@ import org.craftercms.core.store.ContentStoreAdapter;
 
 public class StudioCacheContext implements Context {
 
-    private final String CONFIG_CONTEXT = "StudioConfiguration";
-    private final String CONTENT_CONTEXT = "StudioContent";
+    private static final String CONFIG_CONTEXT = "StudioConfiguration";
+    private static final String CONTENT_CONTEXT = "StudioContent";
 
     public StudioCacheContext(String site) {
         this(site, false);

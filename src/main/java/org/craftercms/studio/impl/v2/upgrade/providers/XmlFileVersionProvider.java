@@ -49,8 +49,8 @@ import static java.lang.String.format;
  */
 public class XmlFileVersionProvider extends AbstractVersionProvider<String> {
 
-    private final String XML_TRANSFORMER_FACTORY_CLASS = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
-    private final String XML_FORMATTER_RESOURCE_PATH = "classpath:crafter/studio/upgrade/formatter.xslt";
+    private static final String XML_TRANSFORMER_FACTORY_CLASS = "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl";
+    private static final String XML_FORMATTER_RESOURCE_PATH = "classpath:crafter/studio/upgrade/formatter.xslt";
 
     /**
      * Path of the file containing the version.

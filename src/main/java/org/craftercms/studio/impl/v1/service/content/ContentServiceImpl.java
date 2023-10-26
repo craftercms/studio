@@ -128,7 +128,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
-//    protected SiteService siteService;
     protected SitesService siteService;
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected StudioConfiguration studioConfiguration;

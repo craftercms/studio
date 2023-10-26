@@ -39,7 +39,6 @@
         <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
             <result property="targetId" column="target_id"/>
             <result property="targetType" column="target_type" />
-            <result property="targetSubtype" column="target_subtype" />
             <result property="targetValue" column="target_value"/>
         </collection>
     </resultMap>
@@ -63,7 +62,6 @@
         <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
             <result property="targetId" column="target_id"/>
             <result property="targetType" column="target_type" />
-            <result property="targetSubtype" column="target_subtype" />
             <result property="targetValue" column="target_value"/>
         </collection>
     </resultMap>
@@ -190,9 +188,9 @@
     </insert>
 
     <insert id="insertAuditLogParams" parameterType="java.util.Map">
-        INSERT INTO audit_parameters (audit_id, target_id, target_type, target_subtype, target_value) VALUES
+        INSERT INTO audit_parameters (audit_id, target_id, target_type, target_value) VALUES
         <foreach collection="parameters" item="element" index="index" separator="," >
-            (#{auditId}, #{element.targetId}, #{element.targetType}, #{element.targetSubtype}, #{element.targetValue})
+            (#{auditId}, #{element.targetId}, #{element.targetType}, #{element.targetValue})
         </foreach>
     </insert>
 

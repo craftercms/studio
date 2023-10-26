@@ -233,7 +233,7 @@
 
     <bean id="cstudioDmPublishService" class="org.craftercms.studio.impl.v1.service.deployment.DmPublishServiceImpl"
           parent="cstudioRegistrableService">
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="deploymentService" ref="cstudioDeploymentService"/>
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="contentService" ref="cstudioContentService"/>
@@ -355,7 +355,7 @@
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="configurationReader" ref="crafter.configurationReader"/>
         <property name="translationConfig"
@@ -415,9 +415,9 @@
         <constructor-arg name="groupServiceInternal" ref="groupServiceInternal"/>
         <constructor-arg name="userDao" ref="userDao"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
-        <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
-        <constructor-arg name="cstudioSecurityService" ref="cstudioSecurityService"/>
-        <constructor-arg name="accessTokenServiceInternal" ref="accessTokenServiceInternal"/>
+        <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
+        <constructor-arg name="securityService" ref="cstudioSecurityService"/>
+        <constructor-arg name="accessTokenService" ref="accessTokenServiceInternal"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="userCache" ref="userDetailsCache"/>
         <constructor-arg name="zxcvbn">
@@ -495,16 +495,12 @@
         <property name="remoteRepositoryDao" ref="remoteRepositoryDao" />
         <property name="studioConfiguration" ref="studioConfiguration" />
         <property name="notificationService" ref="cstudioNotificationService" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
-        <property name="contentRepository" ref="contentRepository" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
-        <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
         <property name="contentRepositoryV2" ref="contentRepository" />
-        <property name="batchSizeGitLog"
-                  value="#{studioConfiguration.getProperty(T(org.craftercms.studio.api.v2.utils.StudioConfiguration).CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG)}" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="taskExecutor" ref="studio.clockTaskExecutor" />
@@ -519,7 +515,7 @@
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="contentServiceV1" ref="cstudioContentService" />
     </bean>
@@ -585,7 +581,7 @@
         <property name="publishServiceInternal" ref="publishServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
         <property name="studioUtils" ref="studio.utils" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
@@ -610,7 +606,7 @@
         <constructor-arg name="activityStreamServiceInternal" ref="studio.activityStreamServiceInternal" />
         <constructor-arg name="publishServiceInternal" ref="publishServiceInternal" />
         <constructor-arg name="contentServiceInternal" ref="contentServiceInternal" />
-        <constructor-arg name="securityService" ref="cstudioSecurityService" />
+        <constructor-arg name="securityService" ref="studio.securityService" />
         <constructor-arg name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <constructor-arg name="itemServiceInternal" ref="itemServiceInternal" />
         <constructor-arg name="searchService" ref="searchService" />
@@ -635,7 +631,7 @@
         <property name="dependencyServiceInternal" ref="dependencyServiceInternal" />
         <property name="siteService" ref="cstudioSiteServiceSimple" />
         <property name="auditServiceInternal" ref="auditServiceInternal" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="deploymentService" ref="cstudioDeploymentService" />
@@ -777,7 +773,6 @@
         <constructor-arg name="sitesService" ref="sitesServiceInternal"/>
         <constructor-arg name="generalLockService" ref="cstudioGeneralLockService"/>
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
-        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
         <constructor-arg name="studioDBScriptRunner" ref="studio.dbScriptRunner"/>
         <constructor-arg name="userServiceInternal" ref="userServiceInternal"/>
         <constructor-arg name="dependencyServiceInternal" ref="dependencyServiceInternal"/>
@@ -881,7 +876,7 @@
         <property name="studioConfiguration" ref="studioConfiguration"/>
         <property name="servicesConfig" ref="cstudioServicesConfig"/>
         <property name="remoteRepositoryDAO" ref="remoteRepositoryDao" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="encryptor" ref="internalTextEncryptor"/>
         <property name="contextManager" ref="contextManager"/>
         <property name="generalLockService" ref="cstudioGeneralLockService" />
@@ -902,7 +897,6 @@
         <property name="helper" ref="studio.gitRepositoryHelper" />
         <property name="publishRequestDao" ref="publishRequestDao" />
         <property name="itemServiceInternal" ref="itemServiceInternal" />
-        <property name="studioUtils" ref="studio.utils" />
         <property name="retryingRepositoryOperationFacade" ref="studio.retryingRepositoryOperationFacade" />
         <property name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <property name="publishingProgressServiceInternal" ref="studio.publishingProgressServiceInternal" />
@@ -920,7 +914,7 @@
 
     <bean id="studio.gitRepositoryHelper" class="org.craftercms.studio.api.v2.utils.GitRepositoryHelper">
         <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="securityService" ref="cstudioSecurityService" />
+        <property name="securityService" ref="studio.securityService" />
         <property name="generalLockService" ref="cstudioGeneralLockService" />
         <property name="userServiceInternal" ref="userServiceInternal" />
         <property name="encryptor" ref="internalTextEncryptor" />
@@ -995,7 +989,7 @@
                 <entry key="importContent"><ref bean="cstudioImportContentProcessorPipeline"/></entry>
             </map>
         </property>
-         <property name="securityService" ref="cstudioSecurityService" />
+         <property name="securityService" ref="studio.securityService" />
     </bean>
 
     <!-- ////////////////////////////////////// -->

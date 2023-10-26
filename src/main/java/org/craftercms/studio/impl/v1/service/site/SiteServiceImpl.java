@@ -783,6 +783,9 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             logger.error("Failed to destroy the preview context for site '{}'", siteId, e);
         }
 
+        // clear cache
+        configurationService.invalidateConfiguration(siteId);
+
         try {
             logger.debug("Delete the git repo for site '{}'", siteId);
 
@@ -791,9 +794,6 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
             success = false;
             logger.error("Failed to delete the repository for site '{}'", siteId, e);
         }
-
-        // clear cache
-        configurationService.invalidateConfiguration(siteId);
 
         try {
             // delete database records

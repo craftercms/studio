@@ -305,7 +305,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
 
     @Override
     public void updateLastCommitId(String siteId, String commitId) {
-        siteDao.updateLastCommitId(siteId, commitId);
+        retryingDatabaseOperationFacade.retry(() -> siteDao.updateLastCommitId(siteId, commitId));
     }
 
     @Override

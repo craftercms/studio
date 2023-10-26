@@ -29,8 +29,6 @@ import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.exception.repository.*;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -38,6 +36,7 @@ import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade
 import org.craftercms.studio.api.v2.service.notification.NotificationService;
 import org.craftercms.studio.api.v2.service.repository.MergeResult;
 import org.craftercms.studio.api.v2.service.repository.internal.RepositoryManagementServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -96,13 +95,10 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
     private NotificationService notificationService;
     private SecurityService securityService;
     private UserServiceInternal userServiceInternal;
-    private org.craftercms.studio.api.v1.repository.ContentRepository contentRepository;
     private TextEncryptor encryptor;
     private GeneralLockService generalLockService;
-    private SiteService siteService;
     private GitRepositoryHelper gitRepositoryHelper;
     private ContentRepository contentRepositoryV2;
-    private int batchSizeGitLog = 1000;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     protected TaskExecutor taskExecutor;
@@ -870,10 +866,6 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.userServiceInternal = userServiceInternal;
     }
 
-    public void setContentRepository(org.craftercms.studio.api.v1.repository.ContentRepository contentRepository) {
-        this.contentRepository = contentRepository;
-    }
-
     public void setEncryptor(TextEncryptor encryptor) {
         this.encryptor = encryptor;
     }
@@ -882,20 +874,12 @@ public class RepositoryManagementServiceInternalImpl implements RepositoryManage
         this.generalLockService = generalLockService;
     }
 
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
     public void setGitRepositoryHelper(GitRepositoryHelper gitRepositoryHelper) {
         this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
     public void setContentRepositoryV2(ContentRepository contentRepositoryV2) {
         this.contentRepositoryV2 = contentRepositoryV2;
-    }
-
-    public void setBatchSizeGitLog(int batchSizeGitLog) {
-        this.batchSizeGitLog = batchSizeGitLog;
     }
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {

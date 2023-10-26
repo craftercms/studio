@@ -76,11 +76,6 @@ class SiteServices {
         return siteServicesImpl.getCannedMessage(site,key,locale)
     }
 
-    static rebuildDatabase(context, site) {
-        def siteServicesImpl = ServiceFactory.getSiteServices(context)
-        return siteServicesImpl.rebuildDatabase(site)
-    }
-
     static exists(context, site) {
         def siteServicesImpl = ServiceFactory.getSiteServices(context)
         return siteServicesImpl.exists(site)

@@ -35,7 +35,6 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
@@ -48,6 +47,7 @@ import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
@@ -644,7 +644,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         contentService.writeContent(EMPTY, path, validate(content, path));
         contentService.notifyContentEvent(EMPTY, path);
         String currentUser = securityService.getCurrentUser();
-        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser, null);
+        String commitId = contentRepository.getGlobalRepoLastCommitId();
+        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser, commitId);
         invalidateCache(path);
     }
 
@@ -665,7 +666,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                             config.getList(String.class, CONFIG_KEY_TRANSLATION_LOCALES));
                 }
             } catch (Exception e) {
-                throw new ServiceLayerException(format("Error getting translation config for site '%'" + siteId), e);
+                throw new ServiceLayerException(format("Error getting translation config for site '%s'", siteId), e);
             }
         }
         return translationConfiguration;

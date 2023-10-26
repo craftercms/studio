@@ -55,7 +55,6 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
-import org.craftercms.studio.impl.v2.utils.StudioUtils;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.eclipse.jgit.api.*;
@@ -123,7 +122,6 @@ public class GitContentRepository implements ContentRepository {
     private SiteService siteService;
     private PublishRequestDAO publishRequestDao;
     private ItemServiceInternal itemServiceInternal;
-    private StudioUtils studioUtils;
     private RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
     private RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private PublishingProgressServiceInternal publishingProgressServiceInternal;
@@ -143,7 +141,7 @@ public class GitContentRepository implements ContentRepository {
             rootPath = path;
         }
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
 
             RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(rootPath), tree)) {
@@ -170,7 +168,7 @@ public class GitContentRepository implements ContentRepository {
                     }
                 } else {
                     String gitPath = helper.getGitPath(rootPath);
-                    if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                    if (isEmpty(gitPath) || gitPath.equals(".")) {
                         try (TreeWalk treeWalk = new TreeWalk(repo)) {
                             treeWalk.addTree(tree);
                             treeWalk.setRecursive(true);
@@ -196,11 +194,11 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         List<RepoOperation> operations = new ArrayList<>();
-        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
             try {
                 // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-                boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
+                boolean fromEmptyRepo = isEmpty(commitIdFrom);
                 String firstCommitId = getRepoFirstCommitId(site);
                 if (fromEmptyRepo) {
                     commitIdFrom = firstCommitId;
@@ -331,7 +329,7 @@ public class GitContentRepository implements ContentRepository {
     public String getRepoFirstCommitId(final String site) {
         String toReturn = EMPTY;
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
             generalLockService.lock(gitLockKey);
             try (RevWalk rw = new RevWalk(repository)) {
@@ -413,7 +411,7 @@ public class GitContentRepository implements ContentRepository {
                     break;
             }
             if (repoOperation != null) {
-                repoOperation.setAuthor(StringUtils.isEmpty(author) ? "N/A" : author);
+                repoOperation.setAuthor(isEmpty(author) ? "N/A" : author);
                 toReturn.add(repoOperation);
             }
         }
@@ -563,7 +561,7 @@ public class GitContentRepository implements ContentRepository {
             }
             String path;
             String sandboxBranchName = sandboxBranch;
-            if (StringUtils.isEmpty(sandboxBranchName)) {
+            if (isEmpty(sandboxBranchName)) {
                 sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
             }
 
@@ -1101,7 +1099,7 @@ public class GitContentRepository implements ContentRepository {
     public boolean contentExists(String site, String path) {
         boolean toReturn = false;
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
             if (repo != null ) {
 
                 RevTree tree = helper.getTreeForLastCommit(repo);
@@ -1113,7 +1111,7 @@ public class GitContentRepository implements ContentRepository {
                         tw.close();
                     } else if (tw == null) {
                         String gitPath = helper.getGitPath(path);
-                        if (StringUtils.isEmpty(gitPath) || gitPath.equals(".")) {
+                        if (isEmpty(gitPath) || gitPath.equals(".")) {
                             toReturn = true;
                         }
                     }
@@ -1130,10 +1128,10 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public String getRepoLastCommitId(final String site) {
         String toReturn = EMPTY;
-        String gitLockKey = helper.getSandboxRepoLockKey(site);
+        String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repository = helper.getRepository(site, SANDBOX);
+            Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 ObjectId commitId = repository.resolve(HEAD);
                 if (commitId != null) {
@@ -1159,7 +1157,7 @@ public class GitContentRepository implements ContentRepository {
     public long getContentSize(final String site, final String path) {
         // TODO: SJ: Reconsider this implementation for blob store backed repos
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
             RevTree tree = helper.getTreeForLastCommit(repo);
             try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
                 if (tw != null && tw.getObjectId(0) != null) {
@@ -1180,7 +1178,7 @@ public class GitContentRepository implements ContentRepository {
         String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repository = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            Repository repository = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 ObjectId head = repository.resolve(HEAD);
                 String gitPath = helper.getGitPath(path);
@@ -1209,12 +1207,12 @@ public class GitContentRepository implements ContentRepository {
     public Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo) {
         Map<String, String> changeSet = new TreeMap<>();
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-        Repository repository = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        Repository repository = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
         if (repository != null) {
             generalLockService.lock(gitLockKey);
             try {
                 // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-                boolean fromEmptyRepo = StringUtils.isEmpty(commitIdFrom);
+                boolean fromEmptyRepo = isEmpty(commitIdFrom);
                 String firstCommitId = getRepoFirstCommitId(site);
                 if (fromEmptyRepo) {
                     commitIdFrom = firstCommitId;
@@ -1383,7 +1381,7 @@ public class GitContentRepository implements ContentRepository {
     public String getPreviousCommitId(String siteId, String commitId) {
         String toReturn = EMPTY;
         try {
-            Repository repository = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            Repository repository = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
             if (repository != null) {
                 ObjectId head = repository.resolve(HEAD);
                 try (Git git = new Git(repository)) {
@@ -1414,7 +1412,7 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public void lockItem(String site, String path) {
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
         generalLockService.lock(gitLockKey);
         try (TreeWalk tw = new TreeWalk(repo)) {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -1441,7 +1439,7 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public void itemUnlock(String site, String path) {
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
-        Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+        Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
         generalLockService.lock(gitLockKey);
         try (TreeWalk tw = new TreeWalk(repo)) {
             RevTree tree = helper.getTreeForLastCommit(repo);
@@ -1469,7 +1467,7 @@ public class GitContentRepository implements ContentRepository {
     @Override
     public Optional<Resource> getContentByCommitId(String site, String path, String commitId) {
         try {
-            Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);
             RevTree tree = helper.getTreeForCommit(repo, commitId);
             if (tree != null) {
                 try (TreeWalk tw = TreeWalk.forPath(repo, helper.getGitPath(path), tree)) {
@@ -1885,10 +1883,6 @@ public class GitContentRepository implements ContentRepository {
 
     public void setItemServiceInternal(ItemServiceInternal itemServiceInternal) {
         this.itemServiceInternal = itemServiceInternal;
-    }
-
-    public void setStudioUtils(StudioUtils studioUtils) {
-        this.studioUtils = studioUtils;
     }
 
     public void setRetryingRepositoryOperationFacade(RetryingRepositoryOperationFacade retryingRepositoryOperationFacade) {

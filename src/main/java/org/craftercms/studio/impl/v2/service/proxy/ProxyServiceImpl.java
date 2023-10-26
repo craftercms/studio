@@ -18,8 +18,6 @@ package org.craftercms.studio.impl.v2.service.proxy;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
@@ -33,8 +31,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.beans.ConstructorProperties;
 import java.net.URISyntaxException;
-
-import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 
 /**
  * Default implementation for {@link ProxyService}.

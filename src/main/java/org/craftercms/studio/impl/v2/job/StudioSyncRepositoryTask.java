@@ -81,7 +81,6 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     private final SitesService sitesService;
     private final GeneralLockService generalLockService;
     private final AuditServiceInternal auditServiceInternal;
-    private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final DependencyServiceInternal dependencyServiceInternal;
     private final UserServiceInternal userServiceInternal;
     private final ItemServiceInternal itemServiceInternal;
@@ -93,19 +92,18 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     }
 
     @ConstructorProperties({"sitesService", "generalLockService",
-            "auditServiceInternal", "retryingDatabaseOperationFacade",
+            "auditServiceInternal",
             "studioDBScriptRunnerFactory", "dependencyServiceInternal",
             "userServiceInternal", "itemServiceInternal",
             "contentService", "configurationService"})
     public StudioSyncRepositoryTask(SitesService sitesService, GeneralLockService generalLockService,
-                                    AuditServiceInternal auditServiceInternal, RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
+                                    AuditServiceInternal auditServiceInternal,
                                     StudioDBScriptRunnerFactory studioDBScriptRunnerFactory, DependencyServiceInternal dependencyServiceInternal,
                                     UserServiceInternal userServiceInternal, ItemServiceInternal itemServiceInternal
             , ContentService contentService, ConfigurationService configurationService) {
         this.sitesService = sitesService;
         this.generalLockService = generalLockService;
         this.auditServiceInternal = auditServiceInternal;
-        this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.studioDBScriptRunnerFactory = studioDBScriptRunnerFactory;
         this.dependencyServiceInternal = dependencyServiceInternal;
         this.userServiceInternal = userServiceInternal;
@@ -144,6 +142,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
 
         Site site = sitesService.getSite(siteId);
         if (!sitesService.checkSiteUuid(siteId, site.getSiteUuid())) {
+            logger.warn("Site '{}' has a different UUID than the one in the database. " +
+                    "The site will not be synced with the repository.", siteId);
             return;
         }
         String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
@@ -154,6 +154,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             final String lastCommitInRepo = contentRepository.getRepoLastCommitId(siteId);
             final String lastProcessedCommit = sitesService.getLastCommitId(siteId);
             if (StringUtils.equals(lastCommitInRepo, lastProcessedCommit)) {
+                logger.debug("Site '{}' is already synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
                 return;
             }
             // Some of these (the ones created by Studio APIs) will already be in the audit table
@@ -181,6 +182,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
                 ingestChanges(site, currentLastProcessedCommit, lastUnprocessedCommit);
                 updateLastCommitId(siteId, lastUnprocessedCommit);
             }
+            logger.debug("Site '{}' is now synced with the repository up to commit '{}'", siteId, lastCommitInRepo);
         } catch (UserNotFoundException | GitAPIException | IOException e) {
             throw new ServiceLayerException(format("Failed to sync repository for site '%s'", siteId), e);
         } finally {
@@ -189,7 +191,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
     }
 
     private void updateLastCommitId(String siteId, String commitId) {
-        retryingDatabaseOperationFacade.retry(() -> sitesService.updateLastCommitId(siteId, commitId));
+        sitesService.updateLastCommitId(siteId, commitId);
     }
 
     /**
