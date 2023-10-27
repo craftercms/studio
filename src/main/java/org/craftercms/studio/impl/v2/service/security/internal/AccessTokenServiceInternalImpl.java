@@ -349,9 +349,9 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
             return username;
         } catch (InvalidJwtException | MalformedClaimException e) {
             // someone is trying to use an invalid token!
-            logger.debug("Detected the usage of an invalid JWT '{}'", token, e);
-            logger.warn("Detected the usage of an invalid JWT '{}' message '{}'", token, e.getMessage());
-            createAuditLog("JWT", -1, TARGET_TYPE_ACCESS_TOKEN, token, OPERATION_LOGIN_FAILED);
+            logger.warn("Detected the usage of an invalid JWT. Message '{}'", e.getMessage());
+            logger.debug("Invalid JWT", e);
+            createAuditLog("JWT", -1, TARGET_TYPE_ACCESS_TOKEN, "", OPERATION_LOGIN_FAILED);
         }
         return null;
     }
