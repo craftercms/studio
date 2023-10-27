@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.beans.ConstructorProperties;
 import java.nio.file.Path;
 
+import static java.lang.String.format;
+
 /**
  * Implementation of {@link PolicyValidator} for system restrictions
  *
@@ -49,8 +51,10 @@ public class SystemPolicyValidator implements PolicyValidator {
         // Check if the full path exceeds the limit
         String fullPath = action.getTarget();
         if (fullPath.length() >= fullPathMaxSize) {
-            logger.error("Full path should not exceed '{}'", fullPathMaxSize);
+            String message = format("Full path should not exceed '%s'", fullPathMaxSize);
+            logger.error(message);
             result.setAllowed(false);
+            result.setMessage(message);
             return;
         }
 
@@ -59,8 +63,10 @@ public class SystemPolicyValidator implements PolicyValidator {
         while (path != null && path.getFileName() != null) {
             String filename = path.getFileName().toString();
             if (filename.length() >= filenameMaxSize) {
-                logger.error("Folder names in path should not exceed '{}'", filenameMaxSize);
+                String message = format("Folder names in path should not exceed '%s'", filenameMaxSize);
+                logger.error(message);
                 result.setAllowed(false);
+                result.setMessage(message);
             }
             path = path.getParent();
         }

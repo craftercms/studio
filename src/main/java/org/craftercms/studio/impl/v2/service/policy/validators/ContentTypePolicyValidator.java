@@ -24,6 +24,7 @@ import org.craftercms.studio.model.policy.ValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -64,14 +65,17 @@ public class ContentTypePolicyValidator implements PolicyValidator {
         if (isEmpty(contentType)) {
             logger.debug("Skipping action because there is no Content-Type from action metadata");
             result.setAllowed(false);
+            result.setMessage("There is no Content-Type from action metadata");
             return;
         }
 
         var allowedTypes = permittedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
 
         if (!allowedTypes.contains(contentType)) {
-            logger.error("Content-Type '{}' not allowed", contentType);
+            String message = format("Content-Type '%s' not allowed", contentType);
+            logger.error(message);
             result.setAllowed(false);
+            result.setMessage(message);
         }
     }
 
@@ -88,8 +92,10 @@ public class ContentTypePolicyValidator implements PolicyValidator {
 
         var deniedTypes = deniedConfig.getList(String.class, CONFIG_KEY_CONTENT_TYPES);
         if (deniedTypes.contains(contentType)) {
-            logger.error("Content-Type '{}' not allowed", contentType);
+            String message = format("Content-Type '%s' not allowed", contentType);
+            logger.error(message);
             result.setAllowed(false);
+            result.setMessage(message);
         }
     }
 }
