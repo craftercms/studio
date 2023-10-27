@@ -243,7 +243,6 @@ CREATE TABLE IF NOT EXISTS `audit_parameters` (
     `audit_id`          BIGINT(20) NOT NULL,
     `target_id`         VARCHAR(1024)  NOT NULL,
     `target_type`       VARCHAR(32)   NOT NULL,
-    `target_subtype`    VARCHAR(32)   NULL,
     `target_value`      VARCHAR(1024)  NOT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY `audit_parameters_ix_audit_id` (`audit_id`) REFERENCES `audit` (`id`)

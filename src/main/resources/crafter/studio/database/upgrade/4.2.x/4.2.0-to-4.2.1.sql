@@ -60,5 +60,8 @@ END ;
 
 DROP TABLE IF EXISTS `gitlog` ;
 
+ALTER TABLE `audit_parameters`
+DROP COLUMN `target_subtype` ;
+
 UPDATE `_meta` SET `version` = '4.2.1' ;
 
