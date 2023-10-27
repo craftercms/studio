@@ -20,6 +20,8 @@ import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidConfigurationPath;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
+import javax.validation.constraints.Size;
+
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 
 public class WriteConfigurationRequest {
@@ -32,6 +34,7 @@ public class WriteConfigurationRequest {
     private String path;
     @EsapiValidatedParam(type = ALPHANUMERIC)
     private String environment;
+    @Size(max = 512 * 1024)
     private String content;
 
     public String getSiteId() {

@@ -582,6 +582,14 @@ pipelines:
                 dest: /configuration/samples/sample-engine-site-config.xml
             commitDetails: Update engine sample authentication config
       - currentVersion: 4.1.8
+        nextVersion: 4.1.9
+        operations:
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-studio-config-override.yaml
+                dest: /configuration/samples/sample-studio-config-override.yaml
+            commitDetails: Update sample studio override config file
+      - currentVersion: 4.1.9
         nextVersion: 4.2.0
         operations:
           - type: dbScriptUpgrader
