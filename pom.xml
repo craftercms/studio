@@ -719,7 +719,7 @@
             </activation>
             <properties>
                 <studio.ui.path>target/ui/</studio.ui.path>
-                <studio.ui.version>develop</studio.ui.version><!-- craftercms ui version flag -->
+                <studio.ui.version>support/4.1.x</studio.ui.version><!-- craftercms ui version flag -->
             </properties>
             <build>
                 <plugins>
