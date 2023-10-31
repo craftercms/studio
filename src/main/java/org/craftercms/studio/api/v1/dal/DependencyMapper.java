@@ -53,6 +53,7 @@ public interface DependencyMapper {
 
     List<String> getItemSpecificDependenciesForList(Map params);
 
+    @Deprecated
     List<String> getItemsDependingOn(Map params);
 
     List<Map<String, String>> calculatePublishingDependenciesForList(Map params);

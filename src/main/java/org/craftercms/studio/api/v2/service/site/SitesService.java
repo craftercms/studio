@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -26,7 +26,33 @@ import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 
 import java.util.List;
 
+import static java.lang.String.format;
+
+/**
+ * Site-related operations
+ */
 public interface SitesService {
+
+    /**
+     * Checks if a site exists. If it does not, it throws a {@link SiteNotFoundException}
+     *
+     * @param siteId site ID
+     * @throws SiteNotFoundException if no site is found for the given site ID
+     */
+    default void checkSiteExists(String siteId) throws SiteNotFoundException {
+        if (!exists(siteId)) {
+            throw new SiteNotFoundException(format("Site '%s' not found.", siteId));
+        }
+    }
+
+    /**
+     * Check if site already exists
+     *
+     * @param siteId site ID
+     * @return true if site exists, false otherwise
+     */
+    boolean exists(String siteId);
+
 
     /**
      * Get list of available blueprints
@@ -70,6 +96,13 @@ public interface SitesService {
             throws SiteNotFoundException, SiteAlreadyExistsException, InvalidParametersException;
 
     /**
+     * Enables/disables publishing for the given site
+     * @param siteId the site id
+     * @param enabled true to enable publishing, false to disable
+     */
+    void enablePublishing(String siteId, boolean enabled);
+
+    /**
      * Get publishing status for site
      * @param siteId site identifier
      * @return publishing status
@@ -83,6 +116,14 @@ public interface SitesService {
     void clearPublishingLock(String siteId) throws SiteNotFoundException;
 
     /**
+     * Delete a site from the system
+     *
+     * @param siteId the site id
+     * @throws SiteNotFoundException if the site doesn't exist
+     */
+    void deleteSite(String siteId) throws ServiceLayerException;
+
+    /*
      * Check if current site state is matches the given state
      *
      * @param siteId site id

@@ -111,6 +111,16 @@ public class SitesController {
         return result;
     }
 
+    @DeleteMapping("/{siteId}")
+    public Result deleteSite(@ValidSiteId @PathVariable String siteId)
+            throws ServiceLayerException {
+        sitesService.deleteSite(siteId);
+
+        var result = new Result();
+        result.setResponse(ApiResponse.DELETED);
+        return result;
+    }
+
     @PostMapping("/{siteId}/policy/validate")
     public ResultList<ValidationResult> validatePolicy(@ValidSiteId @PathVariable String siteId,
                                                        @Valid @RequestBody ValidatePolicyRequest request)

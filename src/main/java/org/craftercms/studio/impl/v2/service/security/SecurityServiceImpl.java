@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
@@ -31,6 +32,9 @@ import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -138,6 +142,37 @@ public class SecurityServiceImpl implements SecurityService {
             }
         }
         return permissions;
+    }
+
+    @Override
+    public String getCurrentUser() {
+        String username = null;
+        var context = SecurityContextHolder.getContext();
+
+        if (context != null) {
+            var auth = context.getAuthentication();
+
+            if (auth != null && !(auth instanceof AnonymousAuthenticationToken)) {
+                username = auth.getName();
+            }
+        } else {
+            CronJobContext cronJobContext = CronJobContext.getCurrent();
+
+            if (cronJobContext != null) {
+                username = cronJobContext.getCurrentUser();
+            }
+        }
+
+        return username;
+    }
+
+    @Override
+    public Authentication getAuthentication() {
+        var context = SecurityContextHolder.getContext();
+        if (context != null) {
+            return context.getAuthentication();
+        }
+        return null;
     }
 
     public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {

@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.dependency;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.model.rest.content.DependencyItem;
 
 import java.util.List;
 
@@ -63,5 +64,14 @@ public interface DependencyService {
      * @param paths list of paths to get dependent items for
      * @return list of paths dependent on given paths
      */
-    List<String> getDependentItems(String siteId, List<String> paths) throws SiteNotFoundException;
+    List<String> getDependentPaths(String siteId, List<String> paths) throws SiteNotFoundException;
+
+    /**
+     * Get all items that depend on this item
+     * @param siteId site identifier
+     * @param path path to get dependent items for
+     * @return list of items depending on given item path
+     * @throws ServiceLayerException Internal error, see exception details
+     */
+    List<DependencyItem> getDependentItems(String siteId, String path) throws ServiceLayerException;
 }

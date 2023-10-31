@@ -20,8 +20,8 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.impl.v2.service.site.internal.SitesServiceInternalImpl;
-import org.junit.After;
+import org.craftercms.studio.api.v2.service.site.SitesService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -33,29 +33,43 @@ import static org.mockito.Mockito.*;
 
 public class SitesServiceImplTest {
 
+    private static final String SITE_ID = "site1";
+    private static final String NON_EXISTING_SITE_ID = "non-existing-site-id";
     private static final String EXISTING_SITE_ID = "existing-site";
-    private static final String NON_EXISTING_SITE_ID = "non-existing-site";
     private static final String SOURCE_SITE_ID = "original";
     private static final String NEW_SITE_ID = "the-copy";
 
     @Mock
     protected SiteService siteServiceV1;
     @Mock
-    protected SitesServiceInternalImpl sitesServiceInternal;
+    protected SitesService sitesServiceInternal;
     @InjectMocks
     protected SitesServiceImpl sitesService;
     private AutoCloseable mocks;
 
     @BeforeEach
     public void setUp() throws SiteNotFoundException {
-        MockitoAnnotations.openMocks(this);
+        mocks = MockitoAnnotations.openMocks(this);
+        when(sitesServiceInternal.exists(NON_EXISTING_SITE_ID)).thenReturn(false);
+        when(sitesServiceInternal.exists(SITE_ID)).thenReturn(true);
         doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
         when(siteServiceV1.exists(EXISTING_SITE_ID)).thenReturn(true);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         mocks.close();
+    }
+
+    @Test
+    public void siteDeleteTest() throws ServiceLayerException {
+        sitesService.deleteSite(SITE_ID);
+        verify(sitesServiceInternal).deleteSite(SITE_ID);
+    }
+
+    @Test
+    public void nonExistingSiteDeleteTest() {
+        assertThrows(SiteNotFoundException.class, () -> sitesService.deleteSite(NON_EXISTING_SITE_ID));
     }
 
     @Test
@@ -69,7 +83,6 @@ public class SitesServiceImplTest {
         assertThrows(SiteAlreadyExistsException.class, () ->
                 sitesService.duplicate(SOURCE_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
     }
-
 
     @Test
     public void duplicateSiteTest() throws ServiceLayerException {

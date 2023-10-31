@@ -108,6 +108,7 @@ class ContentServices {
   	 * @param path - the path to check
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
   	 */
+	@Deprecated
 	static doesContentItemExist(site, path, context) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.doesContentItemExist(site, path)

@@ -33,6 +33,11 @@ public class SiteDeletedEvent extends SiteLifecycleEvent {
         this.siteUuid = siteUuid;
     }
 
+    public SiteDeletedEvent(final String siteId, final String siteUuid) {
+        super(siteId);
+        this.siteUuid = siteUuid;
+    }
+
     @Override
     public String getEventType() {
         return "SITE_DELETED_EVENT";
