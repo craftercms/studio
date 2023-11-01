@@ -86,6 +86,16 @@ public class ContentController {
         this.workflowService = workflowService;
     }
 
+    @GetMapping(value = EXISTS, produces = APPLICATION_JSON_VALUE)
+    public ResultOne<Boolean> contentExists(@NotEmpty @ValidSiteId @RequestParam String siteId,
+                                            @ValidExistingContentPath @ValidateSecurePathParam @RequestParam String path)
+            throws SiteNotFoundException {
+        var result = new ResultOne<Boolean>();
+        result.setEntity(RESULT_KEY_EXISTS, contentService.contentExists(siteId, path));
+        result.setResponse(OK);
+        return result;
+    }
+
     @Valid
     @GetMapping(LIST_QUICK_CREATE_CONTENT)
     public ResponseBody listQuickCreateContent(@ValidSiteId @RequestParam(name = "siteId") String siteId)
@@ -104,7 +114,7 @@ public class ContentController {
     @PostMapping(GET_DELETE_PACKAGE)
     public ResponseBody getDeletePackage(@RequestBody @Valid GetDeletePackageRequestBody request) throws SiteNotFoundException {
         List<String> childItems = contentService.getChildItems(request.getSiteId(), request.getPaths());
-        List<String> dependentItems = dependencyService.getDependentItems(request.getSiteId(), request.getPaths());
+        List<String> dependentItems = dependencyService.getDependentPaths(request.getSiteId(), request.getPaths());
         ResponseBody responseBody = new ResponseBody();
         ResultOne<Map<String, List<String>>> result = new ResultOne<>();
         result.setResponse(OK);

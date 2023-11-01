@@ -952,7 +952,7 @@ public class MarketplaceServiceInternalImpl implements MarketplaceServiceInterna
                 .collect(toList());
 
         if (CollectionUtils.isNotEmpty(contentTypePaths)) {
-            dependantItems = new HashSet<>(dependencyService.getDependentItems(siteId, contentTypePaths));
+            dependantItems = new HashSet<>(dependencyService.getDependentPaths(siteId, contentTypePaths));
         }
 
         for(String contentTypePath : contentTypePaths) {
