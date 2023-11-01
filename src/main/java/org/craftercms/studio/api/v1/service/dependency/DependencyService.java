@@ -137,6 +137,7 @@ public interface DependencyService {
 	 * @throws ContentNotFoundException Path doesn't exist
 	 * @throws ServiceLayerException Internal error, see exception details
 	 */
+	@Deprecated
 	Set<String> getItemsDependingOn(String site, String path, int depth)
             throws SiteNotFoundException, ContentNotFoundException, ServiceLayerException;
 

@@ -34,6 +34,7 @@ class DependencyServices {
         return dependencyServiceImpl.getDependencies(site, requestBody, deleteDependencies);
     }
 
+    @Deprecated
     static getDependantItems(context,site,path){
         def dependencyServiceImpl = ServiceFactory.getDependencyServices(context);
         return dependencyServiceImpl.getDependantItems(site, path);

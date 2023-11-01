@@ -18,6 +18,7 @@ package org.craftercms.studio.api.v2.service.security;
 
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -42,4 +43,17 @@ public interface SecurityService {
      * @return list of user permissions
      */
     List<String> getUserPermission(String siteId, String username, List<String> roles) throws ExecutionException;
+
+    /**
+     * Returns the username of the current user
+     * @return username of the current user, or null if no user is authenticated
+     */
+    String getCurrentUser();
+
+    /**
+     * Returns the {@link Authentication} for the current user or null if not user is authenticated.
+     *
+     * @return authentication
+     */
+    Authentication getAuthentication();
 }

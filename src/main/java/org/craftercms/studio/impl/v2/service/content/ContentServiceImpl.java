@@ -76,6 +76,7 @@ import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.permissions.CompositePermissionResolverImpl.PATH_LIST_RESOURCE_ID;
 import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 public class ContentServiceImpl implements ContentService, ApplicationContextAware {
@@ -94,6 +95,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     private GeneralLockService generalLockService;
     private ApplicationContext applicationContext;
     private org.craftercms.studio.api.v1.service.content.ContentService contentServiceV1;
+
+    @Override
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public boolean contentExists(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path) throws SiteNotFoundException {
+        siteService.checkSiteExists(siteId);
+        return contentServiceInternal.contentExists(siteId, path);
+    }
 
     @Override
     // TODO: JM: Should we have a "is member of site" validation here?

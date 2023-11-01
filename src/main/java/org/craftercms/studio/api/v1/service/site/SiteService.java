@@ -113,7 +113,9 @@ public interface SiteService {
      *
      * @param siteId site identifier
      * @return true if successfully deleted, otherwise false
+     * @deprecated use {@link org.craftercms.studio.api.v2.service.site.SitesService#deleteSite(String)} instead
      */
+    @Deprecated
     boolean deleteSite(String siteId);
 
     void updateLastVerifiedGitlogCommitId(String site, String commitId);
