@@ -26,6 +26,7 @@ import org.springframework.util.MimeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -66,8 +67,10 @@ public class MimeTypePolicyValidator implements PolicyValidator {
         if (permittedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
                 .map(MimeType::valueOf)
                 .noneMatch(actionMimeType::isCompatibleWith)) {
-            logger.error("MIME type '{}' not allowed", actionMimeType);
+            String message = format("MIME type '%s' not allowed", actionMimeType);
+            logger.error(message);
             result.setAllowed(false);
+            result.setMessage(message);
         }
     }
 
@@ -81,8 +84,10 @@ public class MimeTypePolicyValidator implements PolicyValidator {
         if (deniedConfig.getList(String.class, CONFIG_KEY_MIME_TYPES).stream()
                 .map(MimeType::valueOf)
                 .anyMatch(actionMimeType::isCompatibleWith)) {
-            logger.error("MIME type '{}' not allowed", actionMimeType);
+            String message = format("MIME type '%s' not allowed", actionMimeType);
+            logger.error(message);
             result.setAllowed(false);
+            result.setMessage(message);
         }
     }
 
