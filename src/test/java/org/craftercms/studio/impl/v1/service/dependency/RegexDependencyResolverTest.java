@@ -109,9 +109,9 @@ public class RegexDependencyResolverTest {
             when(contentService.getContentAsString(SITE_ID, FORM_DEFINITION_PATH)).thenReturn(form);
         }
 
-        when(contentService.contentExists(SITE_ID, PAGE_A_PATH)).thenReturn(true);
-        when(contentService.contentExists(SITE_ID, COMPONENT_A_PATH)).thenReturn(true);
-        when(contentService.contentExists(SITE_ID, COMPONENT_B_PATH)).thenReturn(true);
+        when(contentService.shallowContentExists(SITE_ID, PAGE_A_PATH)).thenReturn(true);
+        when(contentService.shallowContentExists(SITE_ID, COMPONENT_A_PATH)).thenReturn(true);
+        when(contentService.shallowContentExists(SITE_ID, COMPONENT_B_PATH)).thenReturn(true);
 
     }
 
