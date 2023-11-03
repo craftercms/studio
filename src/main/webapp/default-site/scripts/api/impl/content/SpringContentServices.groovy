@@ -72,16 +72,6 @@ class SpringContentServices {
         return springBackedService.getContentAsString(site, path, encoding)
 	}
 
-	/**
-	 * get the actual content at a given path
-	 * @param site - the project ID
-	 * @param path - the path of the content to get
-	 */
-	def getContentAsStream(site, path) {
-        def springBackedService = this.context.applicationContext.get(CONTENT_SERVICES_BEAN)
-        return springBackedService.getContent(site, path)
-	}
-
   	/**
   	 * check if content at path exits
   	 * @param site - the project ID
