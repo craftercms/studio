@@ -195,7 +195,6 @@
                 <permission>remove_plugins</permission>
                 <permission>get_children</permission>
                 <permission>content_search</permission>
-                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
     </role>
@@ -283,7 +282,6 @@
                 <permission>publish_status</permission>
                 <permission>item_unlock</permission>
                 <permission>content_search</permission>
-                <permission>view_logs</permission>
             </allowed-permissions>
         </rule>
     </role>
