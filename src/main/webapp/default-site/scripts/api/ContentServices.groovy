@@ -87,17 +87,6 @@ class ContentServices {
 	 * @param path - the path of the content to get
 	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
 	 */
-	static getContentAsStream(site, path, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.getContentAsStream(site, path)
-	}
-
-	/**
-	 * get the actual content at a given path
-	 * @param site - the project ID
-	 * @param path - the path of the content to get
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
 	static getContentAtPath(context, site, path) {
 		def contentServicesImpl = ServiceFactory.getContentServices(context)
 		return contentServicesImpl.getContentAtPath(site, path)
@@ -188,17 +177,6 @@ class ContentServices {
 	//	 */
 	//	static lockContentItem(site, path, context) {
 	//	}
-
-	/**
-	 * unlock a given item
-	 * @param site - the project ID
-	 * @param path - the path of the item to unlock
-	 * @oaran context - container for passing request, token and other values that may be needed by the implementation
-	 */
-	static unlockContentItem(site, path, context) {
-		def contentServicesImpl = ServiceFactory.getContentServices(context)
-		return contentServicesImpl.unlockContentItem(site, path)
-	}
 
 	/**
 	 * get the version history for an item

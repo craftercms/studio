@@ -35,26 +35,6 @@ class SecurityServices {
 		return ServiceFactory.createContext(applicationContext, request)
 	}
 
-	/**
-	 * get permissions for a user at a given path
-	 * @param site - the project ID
-	 * @param userId - id of user
-	 * @param path - the path to the config
-	 */
-	def getPermissions(site, userId, path) {
-
-	}
-
-	/** 
-	 * authenticate a user. returns ticket
-	 * @param username
-	 * @param password
-	 */
-	static authenticate(context, username, password) {
-		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-		return securityServicesImpl.authenticate(username, password)
-	}
-
 	/** 
 	 * get user profile
 	 * @param username
@@ -78,10 +58,4 @@ class SecurityServices {
 		def securityServicesImpl = ServiceFactory.getSecurityServices(context)
 		return securityServicesImpl.getUserRoles(site)
 	}
-
-    static logout(context) {
-        def securityServicesImpl = ServiceFactory.getSecurityServices(context)
-        return securityServicesImpl.logout();
-    }
-
 }

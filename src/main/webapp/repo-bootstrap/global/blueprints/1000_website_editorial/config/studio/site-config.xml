@@ -174,6 +174,10 @@
                 <pattern>/scripts/([^&lt;"]+)\.groovy</pattern>
             </pattern-group>
 
+            <pattern-group name="config">
+                <pattern>/config/(?!studio/content-types/)([^&lt;"']+)\.xml</pattern>
+            </pattern-group>
+
             <!-- The section below enumerates the mime-types we can preview -->
             <pattern-group name="previewable-mimetypes">
                 <pattern>image/(.*)</pattern>
