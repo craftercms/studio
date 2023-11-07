@@ -61,8 +61,8 @@ public class GitContentRepositoryTest extends BaseRepositoryTestCase {
     @Test
     public void contentHistoryFollowsRenameTest() throws GitAPIException, IOException {
         List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
-        assertEquals("Most recent version name must be the same as the request path", history.get(0).getPath(), RENAMED_2_FILE_NAME);
-        assertEquals("Oldest version name should be the original path", history.get(history.size() - 1).getPath(), ORIGINAL_FILE_NAME);
+        assertEquals("Most recent version name must be the same as the request path", history.get(0).getPath(), "/" + RENAMED_2_FILE_NAME);
+        assertEquals("Oldest version name should be the original path", history.get(history.size() - 1).getPath(), "/" + ORIGINAL_FILE_NAME);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class GitContentRepositoryTest extends BaseRepositoryTestCase {
         List<ItemVersion> history = gitContentRepository.getContentItemHistory(SITE_NAME, RENAMED_2_FILE_NAME);
         boolean renameFound = false;
         for (ItemVersion itemVersion : history) {
-            if (!StringUtils.equals(itemVersion.getPath(), RENAMED_2_FILE_NAME)) {
+            if (!StringUtils.equals(itemVersion.getPath(), "/" + RENAMED_2_FILE_NAME)) {
                 renameFound = true;
             }
             if (renameFound) {

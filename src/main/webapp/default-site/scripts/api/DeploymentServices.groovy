@@ -32,11 +32,6 @@ class DeploymentServices {
         return ServiceFactory.createContext(applicationContext, request)
     }
 
-    static getScheduledItems(context, site, sort, ascending, subSort, subAscending, filterType) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        deploymentServicesImpl.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
-    }
-
     static bulkGoLive(context, site, environment, path, comment) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.bulkGoLive(site, environment, path, comment)
@@ -50,11 +45,6 @@ class DeploymentServices {
     static publishCommits(context, siteId, environment, commitIds, comment) {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.publishCommits(siteId, environment, commitIds, comment)
-    }
-
-    static publishItems(context, site, environment, schedule, paths, submissionComment) {
-        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
-        return deploymentServicesImpl.publishItems(site, environment, schedule, paths, submissionComment)
     }
 
     static resetStagingEnvironment(context, siteId) {

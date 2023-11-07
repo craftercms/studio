@@ -112,6 +112,13 @@ public interface ServicesConfig {
     List<String> getScriptsPatterns(String site);
 
     /**
+     * Get configuration item URI patterns
+     * @param site site identifier
+     * @return configuration items
+     */
+    List<String> getConfigurationPatterns(String site);
+
+    /**
      * get level descriptor item URI patterns
      *
      * @return level descriptor item URI patterns
