@@ -451,7 +451,7 @@ studio.mail.debug: false
 ##                   Studio Jobs                   ##
 #####################################################
 # Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
-studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: true
+studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: false
 # Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
 studio.job.deployment.masterPublishingNode: true
 
