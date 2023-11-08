@@ -792,6 +792,7 @@ public class GitContentRepository implements ContentRepository {
                 sandboxBranchName = studioConfiguration.getProperty(REPO_SANDBOX_BRANCH);
             }
 
+            String sandboxLastCommit;
             try (Git git = new Git(repo)) {
                 String inProgressBranchName = environment + IN_PROGRESS_BRANCH_NAME_SUFFIX;
 
@@ -819,6 +820,9 @@ public class GitContentRepository implements ContentRepository {
                             .setRemoteBranchName(sandboxBranchName)
                             .setStrategy(THEIRS);
                     retryingRepositoryOperationFacade.call(pullCommand);
+
+                    sandboxLastCommit = repo.resolve(HEAD).getName();
+                    logger.debug("Publishing from HEAD '{}' in site '{}'", sandboxLastCommit, site);
                 } catch (RefNotFoundException e) {
                     logger.error("Failed to checkout published/master and to pull content from sandbox " +
                             "in site '{}'", site, e);
@@ -881,7 +885,6 @@ public class GitContentRepository implements ContentRepository {
                 Set<String> deployedCommits = new HashSet<>();
                 Set<String> deployedPackages = new HashSet<>();
                 logger.debug("Checkout deployed files started for site '{}'", site);
-                AddCommand addCommand = git.add();
                 String currentPackageId = deploymentItems.get(0).getPackageId();
                 // TODO: SJ: Review the following code and refactor for better performance
                 // TODO: The logic should be something like:
@@ -889,6 +892,9 @@ public class GitContentRepository implements ContentRepository {
                 // TODO:   skip this file
                 // TODO: If the commit ID is null, use HEAD
                 // TODO: Publish the file
+
+                CheckoutCommand checkout = git.checkout();
+                checkout.setStartPoint(sandboxLastCommit);
                 for (DeploymentItemTO deploymentItem : deploymentItems) {
                     commitId = deploymentItem.getCommitId();
                     path = helper.getGitPath(deploymentItem.getPath());
@@ -924,9 +930,7 @@ public class GitContentRepository implements ContentRepository {
                     logger.debug("Publish to the temporary branch path '{}' site '{}' commit ID '{}'",
                             path, site, commitId);
 
-                    CheckoutCommand checkout = git.checkout();
-                    checkout.setStartPoint(commitId).addPath(path);
-                    retryingRepositoryOperationFacade.call(checkout);
+                    checkout.addPath(path);
 
                     if (deploymentItem.isMove()) {
                         if (!StringUtils.equals(deploymentItem.getPath(), deploymentItem.getOldPath())) {
@@ -951,7 +955,6 @@ public class GitContentRepository implements ContentRepository {
                         deployedPackages.add(deploymentItem.getPackageId());
                     }
 
-                    addCommand.addFilepattern(path);
                     itemServiceInternal.updateLastPublishedOn(site, deploymentItem.getPath(),
                             DateUtils.getCurrentTime());
 
@@ -963,6 +966,8 @@ public class GitContentRepository implements ContentRepository {
                     }
                 } // end of for loop
 
+                retryingRepositoryOperationFacade.call(checkout);
+
                 // All deployable files are now checked out in the temporary in-progress publishing branch
                 logger.debug("Checkout deployed files completed for site '{}'", site);
 
@@ -971,10 +976,6 @@ public class GitContentRepository implements ContentRepository {
 
                 User user = userServiceInternal.getUserByIdOrUsername(-1, author);
                 PersonIdent authorIdent = helper.getAuthorIdent(user);
-
-                logger.debug("Git add all published items started in site '{}'", site);
-                retryingRepositoryOperationFacade.call(addCommand);
-                logger.debug("Git add all published items completed in site '{}'", site);
 
                 commitMessage = commitMessage.replace("{username}", author);
                 commitMessage =

@@ -178,7 +178,7 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     public void setPublishedState(String site, String environment, List<PublishRequest> items) {
         boolean isLive = isLiveEnv(site, environment);
-        items.forEach(publishRequest -> {
+        items.parallelStream().forEach(publishRequest -> {
             String path = publishRequest.getPath();
             Workflow workflowEntry =
                     workflowServiceInternal.getWorkflowEntry(site, path, publishRequest.getPackageId());
@@ -305,11 +305,11 @@ public class PublishingManagerImpl implements PublishingManager {
                                    @ValidateStringParam String environment,
                                    List<PublishRequest> processedItems) {
         ZonedDateTime publishedOn = DateUtils.getCurrentTime();
-        for (PublishRequest item : processedItems) {
+        processedItems.parallelStream().forEach(item-> {
             item.setState(PublishRequest.State.COMPLETED);
             item.setPublishedOn(publishedOn);
             retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.markItemCompleted(item));
-        }
+        });
     }
 
     @Override
