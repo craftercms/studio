@@ -9121,6 +9121,9 @@ components:
               modifiedValue:
                 type: string
                 description: The adjusted value if available
+              message:
+                type: string
+                description: A detail message for the validation result
 
     PasteItem:
       type: object

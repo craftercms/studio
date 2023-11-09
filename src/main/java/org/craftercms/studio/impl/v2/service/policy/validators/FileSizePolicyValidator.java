@@ -23,6 +23,7 @@ import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
@@ -50,6 +51,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
             if (value.longValue() < minSize) {
                 logger.error("File size should be at least '{}' for action '{}'", minSize, action);
                 result.setAllowed(false);
+                result.setMessage(format("File size should be at least '%s' bytes", minSize));
                 return;
             }
         } else {
@@ -63,6 +65,7 @@ public class FileSizePolicyValidator implements PolicyValidator {
             if (value.longValue() > maxSize) {
                 logger.error("File size should be less than '{}' for action '{}'", maxSize, action);
                 result.setAllowed(false);
+                result.setMessage(format("File size should be less than '%s' bytes", maxSize));
             }
         } else {
             logger.debug("No max size found, skip action '{}'", action);

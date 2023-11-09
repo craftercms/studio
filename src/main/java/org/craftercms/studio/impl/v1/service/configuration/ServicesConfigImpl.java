@@ -63,6 +63,7 @@ public class ServicesConfigImpl implements ServicesConfig {
 	protected static final String PATTERN_DOCUMENT = "document";
     protected static final String PATTERN_RENDERING_TEMPLATE = "rendering-template";
     protected static final String PATTERN_SCRIPTS = "scripts";
+    protected static final String PATTERN_CONFIGURATION = "config";
     protected static final String PATTERN_LEVEL_DESCRIPTOR = "level-descriptor";
     protected static final String PATTERN_PREVIEWABLE_MIMETYPES = "previewable-mimetypes";
 
@@ -206,6 +207,15 @@ public class ServicesConfigImpl implements ServicesConfig {
         SiteConfigTO config = getSiteConfig(site);
         if (config != null && config.getRepositoryConfig() != null) {
             return config.getRepositoryConfig().getScriptsPatterns();
+        }
+        return null;
+    }
+
+    @Override
+    public List<String> getConfigurationPatterns(String site) {
+        SiteConfigTO config = getSiteConfig(site);
+        if (config != null && config.getRepositoryConfig() != null) {
+            return config.getRepositoryConfig().getConfigurationPatterns();
         }
         return null;
     }
@@ -513,6 +523,8 @@ public class ServicesConfigImpl implements ServicesConfig {
                             repo.setLevelDescriptorPatterns(patterns);
                         } else if (patternKey.equals(PATTERN_PREVIEWABLE_MIMETYPES)) {
                             repo.setPreviewableMimetypesPaterns(patterns);
+                        } else if (patternKey.equals(PATTERN_CONFIGURATION)) {
+                            repo.setConfigurationPatterns(patterns);
                         } else {
                             LOGGER.error("Unknown pattern key: " + patternKey + " is provided in " + site.getName());
                         }

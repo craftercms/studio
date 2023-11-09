@@ -41,10 +41,6 @@
     </parent>
 
     <properties>
-        <!-- Overrides are listed here -->
-        <exec.maven.version>1.5.0</exec.maven.version>
-        <frontend.maven.version>1.7.6</frontend.maven.version>
-
         <studio.ui.path>../studio-ui/</studio.ui.path>
     </properties>
 
@@ -297,6 +293,26 @@
             <artifactId>org.eclipse.jgit.junit</artifactId>
             <version>${jgit.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit.vintage.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.support</groupId>
+            <artifactId>testng-engine</artifactId>
+            <version>${testng.engine.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 
         <!-- Tomcat EL -->
         <dependency>
@@ -704,6 +720,11 @@
 
                     </webResources>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.version}</version>
             </plugin>
         </plugins>
     </build>

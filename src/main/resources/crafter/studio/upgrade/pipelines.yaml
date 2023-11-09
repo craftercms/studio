@@ -871,6 +871,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.0.x/config/site-config/site-config-v4.0.1.2.xslt
               commitDetails: Adding Scripts and Taxonomies to folders list
+        - currentVersion: 4.0.1.2
+          nextVersion: 4.2.0.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.2.x/config/site-config/site-config-v4.2.0.0.xslt
+              commitDetails: Add Component type pattern
 
   permission-mappings-config:
     module: studio

@@ -23,26 +23,6 @@ package org.craftercms.studio.model.policy;
  */
 public class ValidationResult {
 
-    public static ValidationResult allowed(Action action) {
-        return allowedWithModifications(action, null);
-    }
-
-    public static ValidationResult allowedWithModifications(Action action, String modifiedValue) {
-        ValidationResult result = new ValidationResult();
-        result.allowed = true;
-        result.target = action.target;
-        result.type = action.type;
-        result.modifiedValue = modifiedValue;
-        return result;
-    }
-
-    public static ValidationResult notAllowed(Action action) {
-        ValidationResult result = new ValidationResult();
-        result.target = action.target;
-        result.type = action.type;
-        return result;
-    }
-
     /**
      * The type of the action
      */
@@ -62,6 +42,31 @@ public class ValidationResult {
      * Indicates the modified target if there is one
      */
     protected String modifiedValue;
+
+    /**
+     * Validation detail message
+     */
+    protected String message;
+
+    public static ValidationResult allowed(Action action) {
+        return allowedWithModifications(action, null);
+    }
+
+    public static ValidationResult allowedWithModifications(Action action, String modifiedValue) {
+        ValidationResult result = new ValidationResult();
+        result.allowed = true;
+        result.target = action.target;
+        result.type = action.type;
+        result.modifiedValue = modifiedValue;
+        return result;
+    }
+
+    public static ValidationResult notAllowed(Action action) {
+        ValidationResult result = new ValidationResult();
+        result.target = action.target;
+        result.type = action.type;
+        return result;
+    }
 
     public Type getType() {
         return type;
@@ -95,4 +100,11 @@ public class ValidationResult {
         this.modifiedValue = modifiedValue;
     }
 
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
 }

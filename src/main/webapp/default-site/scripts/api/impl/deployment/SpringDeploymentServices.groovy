@@ -31,12 +31,6 @@ class SpringDeploymentServices {
         this.context = context
     }
 
-    def getScheduledItems(site, sort, ascending, subSort, subAscending, filterType) {
-
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.getScheduledItems(site, sort, ascending, subSort, subAscending, filterType)
-    }
-
     def syncAllContentToPreview(site) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.syncAllContentToPreview(site, false)
@@ -55,11 +49,6 @@ class SpringDeploymentServices {
     def publishCommits(siteId, environment, commitIds, comment) {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.publishCommits(siteId, environment, commitIds, comment)
-    }
-
-    def publishItems(site, environment, schedule, paths, submissionComment) {
-        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
-        return springBackedService.publishItems(site, environment, schedule, paths, submissionComment)
     }
 
     def resetStagingEnvironment(siteId) {

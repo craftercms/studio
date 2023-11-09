@@ -2267,6 +2267,8 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             return CONTENT_TYPE_TAXONOMY;
         } else if (matchesPatterns(uri, servicesConfig.getScriptsPatterns(site))) {
             return CONTENT_TYPE_SCRIPT;
+        } else if (matchesPatterns(uri, servicesConfig.getConfigurationPatterns(site))) {
+            return CONTENT_TYPE_CONFIGURATION;
         }
 
         return CONTENT_TYPE_FILE;

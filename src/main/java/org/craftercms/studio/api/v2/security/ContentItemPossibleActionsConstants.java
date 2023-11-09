@@ -24,7 +24,6 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONFIG_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_CONTENT_TYPE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_DOCUMENT;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FORM_DEFINITION;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_GROUP;
@@ -318,7 +317,6 @@ public final class ContentItemPossibleActionsConstants {
                 toRet = CONTENT_TYPE;
                 break;
             case CONTENT_TYPE_CONFIGURATION:
-            case CONTENT_TYPE_FILE: // TODO: Fix configuration to be properly detected
                 toRet = CONFIGURATION;
                 break;
             case CONTENT_TYPE_FOLDER:
