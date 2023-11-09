@@ -548,7 +548,6 @@ public class GitContentRepository implements ContentRepository {
         if (CollectionUtils.isEmpty(deploymentItems)) {
             return;
         }
-        String commitId = EMPTY;
         String gitLockKey = helper.getPublishedRepoLockKey(site);
         generalLockService.lock(gitLockKey);
         try {
@@ -655,7 +654,6 @@ public class GitContentRepository implements ContentRepository {
                     throw e;
                 }
 
-                Set<String> deployedCommits = new HashSet<>();
                 Set<String> deployedPackages = new HashSet<>();
                 logger.debug("Checkout deployed files started for site '{}'", site);
                 String currentPackageId = deploymentItems.get(0).getPackageId();
@@ -669,39 +667,11 @@ public class GitContentRepository implements ContentRepository {
                 CheckoutCommand checkout = git.checkout();
                 checkout.setStartPoint(sandboxLastCommit);
                 for (DeploymentItemTO deploymentItem : deploymentItems) {
-                    commitId = deploymentItem.getCommitId();
                     path = helper.getGitPath(deploymentItem.getPath());
-                    // If the commit ID is null OR the commit ID doesn't exist in the published repo
-                    if (Objects.isNull(commitId) || !commitIdExists(site, PUBLISHED, commitId)) {
-                        // If the content exists in the sandbox repository
-                        // TODO: The contentExists call is expensive, review
-                        // TODO: Why check the sandbox and not published/master from which we would be publishing
-                        if (contentExists(site, path)) {
-                            if (Objects.isNull(commitId)) {
-                                logger.warn("Commit ID is null for path '{}' site '{}'. This git repository " +
-                                        "may have been reset externally at some point.", path, site);
-                            } else {
-                                logger.warn("Commit ID '{}' in the database doesn't exist for " +
-                                                "path '{}' site '{}' in the git repository. " +
-                                                "This git repository may have been reset at some point.",
-                                        commitId, path, site);
-                            }
-                            // Log that we're publishing from HEAD
-                            logger.info("The commit ID for path '{}' site '{}' is null, using HEAD instead",
-                                    path, site);
-                            // Set the commit ID to head
-                            commitId = getRepoLastCommitId(site);
-                        } else {
-                            // The content doesn't exist in the sandbox, skip publishing it
-                            logger.warn("Path '{}' in site '{}' doesn't exist in git, skip " +
-                                    "the publishing of this item.", path, site);
-                            continue;
-                        }
-                    }
                     // The commit ID is not null and the content exists in the published repository OR
                     // The commit ID was null and it was set to HEAD to avoid the null issue
                     logger.debug("Publish to the temporary branch path '{}' site '{}' commit ID '{}'",
-                            path, site, commitId);
+                            path, site, sandboxLastCommit);
 
                     checkout.addPath(path);
 
@@ -723,7 +693,6 @@ public class GitContentRepository implements ContentRepository {
                         Path parentToDelete = Paths.get(path).getParent();
                         deleteParentFolder(git, parentToDelete, isPage);
                     }
-                    deployedCommits.add(commitId);
                     String packageId = deploymentItem.getPackageId();
                     if (StringUtils.isNotEmpty(packageId)) {
                         deployedPackages.add(deploymentItem.getPackageId());
@@ -758,15 +727,11 @@ public class GitContentRepository implements ContentRepository {
                                         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HHmmssSSSX")));
                 commitMessage = commitMessage.replace("{source}", "UI");
                 commitMessage = commitMessage.replace("{message}", comment);
-                StringBuilder sb = new StringBuilder();
-                for (String c : deployedCommits) {
-                    sb.append(c).append(" ");
-                }
                 StringBuilder sbPackage = new StringBuilder();
                 for (String p : deployedPackages) {
                     sbPackage.append(p).append(" ");
                 }
-                commitMessage = commitMessage.replace("{commit_id}", sb.toString().trim());
+                commitMessage = commitMessage.replace("{commit_id}", sandboxLastCommit);
                 commitMessage = commitMessage.replace("{package_id}", sbPackage.toString().trim());
 
                 String prologue = studioConfiguration.getProperty(REPO_COMMIT_MESSAGE_PROLOGUE);
@@ -822,10 +787,10 @@ public class GitContentRepository implements ContentRepository {
                 }
             }
         } catch (Exception e) {
-            logger.error("Failed to publish site '{}' to publishing target '{}' commit ID is '{}'",
-                    site, environment, commitId, e);
+            logger.error("Failed to publish site '{}' to publishing target '{}'",
+                    site, environment, e);
             throw new DeploymentException(format("Failed to publish site '%s' to publishing target " +
-                            "'%s' commit ID is '%s'", site, environment, commitId), e);
+                            "'%s'", site, environment), e);
         } finally {
             generalLockService.unlock(gitLockKey);
         }

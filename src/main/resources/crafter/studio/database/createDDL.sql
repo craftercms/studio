@@ -290,7 +290,6 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `contenttypeclass`  VARCHAR(20)  NULL,
   `submission_type`   VARCHAR(32)  NULL,
   `submissioncomment` TEXT         NULL,
-  `commit_id`         VARCHAR(50)  NULL,
   `package_id`         VARCHAR(50)  NULL,
   `label`             VARCHAR(256) NULL,
   `published_on`      TIMESTAMP     NULL,

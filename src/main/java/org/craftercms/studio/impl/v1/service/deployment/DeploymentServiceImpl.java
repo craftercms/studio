@@ -223,7 +223,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
         String packageId = UUID.randomUUID().toString();
 
         Map<String, Object> params = null;
-        String repoLastCommitId = contentRepository.getRepoLastCommitId(site);
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
                 PublishRequest publishRequest = new PublishRequest();
@@ -234,11 +233,10 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     params.put("environment", environment);
                     params.put("state", PublishRequest.State.READY_FOR_LIVE);
                     params.put("path", path);
-                    params.put("commitId", repoLastCommitId);
                     if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info("The publishRequest in site '{}' path '{}' with commit ID '{}' has already been " +
+                        logger.info("The publishRequest in site '{}' path '{}' has already been " +
                                 "queued for publishing to the target '{}'. Will not add again.",
-                                site, path, repoLastCommitId, environment);
+                                site, path, environment);
                     } else {
                         publishRequest.setId(++CTED_AUTOINCREMENT);
                         publishRequest.setSite(site);
@@ -251,7 +249,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             String oldPath = it.getPreviousPath();
                             publishRequest.setOldPath(oldPath);
                         }
-                        publishRequest.setCommitId(repoLastCommitId);
 
                         String contentTypeClass = contentService.getContentTypeClass(site, path);
                         publishRequest.setContentTypeClass(contentTypeClass);
@@ -340,7 +337,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             String oldPath = it.getPreviousPath();
                             item.setOldPath(oldPath);
                         }
-                        item.setCommitId(contentRepository.getRepoLastCommitId(site));
                     }
                     String contentTypeClass = contentService.getContentTypeClass(site, path);
                     item.setContentTypeClass(contentTypeClass);
@@ -355,10 +351,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                             deleteFolder(site, path.replace(FILE_SEPARATOR + DmConstants.INDEX_FILE,
                                     ""), approver);
                         }
-                    }
-                    String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                    if (StringUtils.isNotEmpty(lastRepoCommitId)) {
-                        item.setCommitId(lastRepoCommitId);
                     }
                 } else {
                     RepositoryItem[] children = contentRepository.getContentChildren(site, path);
@@ -695,15 +687,14 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                         ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getPath()))) {
                     continue;
                 }
-                logger.debug("Create a publish request in site '{}' target '{}' commit ID '{}' operation '{}'",
-                        site, environment, commitId, op.getAction());
+                logger.debug("Create a publish request in site '{}' target '{}' operation '{}'",
+                        site, environment, op.getAction());
                 PublishRequest item = new PublishRequest();
                 item.setId(++CTED_AUTOINCREMENT);
                 item.setSite(site);
                 item.setEnvironment(environment);
                 item.setScheduledDate(scheduledDate);
                 item.setState(PublishRequest.State.READY_FOR_LIVE);
-                item.setCommitId(commitId);
                 item.setUser(approver);
                 item.setPackageId(packageId);
                 item.setSubmissionComment(comment);
@@ -740,9 +731,9 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                                 op.getAction(), site, environment, commitId);
                         continue;
                 }
-                logger.debug("\tPublish request TO for site '{}' path '{}' commit ID '{}' operation '{}' " +
+                logger.debug("\tPublish request TO for site '{}' path '{}' operation '{}' " +
                         "target '{}' is ready",
-                        item.getSite(), item.getPath(), item.getCommitId(), item.getAction(), item.getEnvironment());
+                        item.getSite(), item.getPath(), item.getAction(), item.getEnvironment());
                 newItems.add(item);
             }
         }

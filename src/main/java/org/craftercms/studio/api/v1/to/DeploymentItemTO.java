@@ -24,7 +24,6 @@ public class DeploymentItemTO implements Serializable {
 
     protected String site;
     protected String path;
-    protected String commitId;
     protected String packageId;
     protected boolean move;
     protected boolean delete;
@@ -44,14 +43,6 @@ public class DeploymentItemTO implements Serializable {
 
     public void setPath(String path) {
         this.path = path;
-    }
-
-    public String getCommitId() {
-        return commitId;
-    }
-
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
     }
 
     public String getPackageId() {
@@ -89,20 +80,18 @@ public class DeploymentItemTO implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof DeploymentItemTO)) return false;
-        DeploymentItemTO that = (DeploymentItemTO) o;
+        if (!(o instanceof DeploymentItemTO that)) return false;
         return move == that.move &&
                 delete == that.delete &&
                 Objects.equals(site, that.site) &&
                 Objects.equals(path, that.path) &&
-                Objects.equals(commitId, that.commitId) &&
                 Objects.equals(packageId, that.packageId) &&
                 Objects.equals(oldPath, that.oldPath);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(site, path, commitId, packageId, move, delete, oldPath);
+        return Objects.hash(site, path, packageId, move, delete, oldPath);
     }
 
     @Override

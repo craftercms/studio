@@ -468,7 +468,6 @@ public class BlobAwareContentRepository implements ContentRepository,
         DeploymentItemTO pointer = new DeploymentItemTO();
         pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
         pointer.setSite(item.getSite());
-        pointer.setCommitId(item.getCommitId());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
         pointer.setOldPath(isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));

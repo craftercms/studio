@@ -45,7 +45,6 @@ import org.springframework.context.event.EventListener;
 
 import java.beans.ConstructorProperties;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -367,11 +366,11 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
      */
     private ItemMetadata getItemMetadata(String siteId, String path) {
         ItemMetadata result = new ItemMetadata(path);
-        if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES) ||
-                StringUtils.startsWith(path, ROOT_PATTERN_ASSETS)) {
+        if (startsWith(path, ROOT_PATTERN_PAGES) ||
+                startsWith(path, ROOT_PATTERN_ASSETS)) {
             result.previewUrl = itemServiceInternal.getBrowserUrl(siteId, path);
         }
-        if (!StringUtils.endsWith(path, XML_PATTERN)) {
+        if (!endsWith(path, XML_PATTERN)) {
             return result;
         }
         try {
@@ -494,8 +493,8 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
         boolean folderExists = contentRepository.contentExists(site.getSiteId(), folder);
 
         // If the folder exists and the deleted file is the index file, then we need to update the parent id for the children
-        if (folderExists && StringUtils.startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
-                StringUtils.endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
+        if (folderExists && startsWith(repoOperation.getPath(), ROOT_PATTERN_PAGES) &&
+                endsWith(repoOperation.getPath(), SLASH_INDEX_FILE)) {
             Files.write(repoOperationsScriptPath,
                     updateDeletedPageChildren(site.getId(), folder).getBytes(UTF_8), StandardOpenOption.APPEND);
         }
@@ -541,7 +540,7 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
 
         List<Path> parts = new LinkedList<>();
         p.getParent().iterator().forEachRemaining(parts::add);
-        String currentPath = StringUtils.EMPTY;
+        String currentPath = EMPTY;
         for (Path ancestor : parts) {
             if (isNotEmpty(ancestor.toString())) {
                 currentPath = currentPath + FILE_SEPARATOR + ancestor;
@@ -570,21 +569,21 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
             logger.debug("Dependency resolver for site '{}' path '{}' finished in '{}' milliseconds",
                     siteId, path, (System.currentTimeMillis() - startDependencyResolver));
         }
-        if (StringUtils.isEmpty(oldPath)) {
-            Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(StandardCharsets.UTF_8),
+        if (isEmpty(oldPath)) {
+            Files.write(file, deleteDependencySourcePathRows(siteId, path).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
-            Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
         } else {
-            Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(StandardCharsets.UTF_8),
+            Files.write(file, deleteDependencySourcePathRows(siteId, oldPath).getBytes(UTF_8),
                     StandardOpenOption.APPEND);
-            Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+            Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
         }
         if (nonNull(dependencies) && !dependencies.isEmpty()) {
             for (Map.Entry<String, Set<String>> entry : dependencies.entrySet()) {
                 for (String targetPath : entry.getValue()) {
                     Files.write(file, insertDependencyRow(siteId, path, targetPath, entry.getKey())
-                            .getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
-                    Files.write(file, "\n\n".getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
+                            .getBytes(UTF_8), StandardOpenOption.APPEND);
+                    Files.write(file, "\n\n".getBytes(UTF_8), StandardOpenOption.APPEND);
                 }
             }
         }
@@ -602,15 +601,15 @@ public class StudioSyncRepositoryTask extends StudioClockTask {
      */
     private void addUpdateParentIdScriptSnippets(long siteId, String path, Path updateParentIdScriptPath) throws IOException {
         String parentPath = FilenameUtils.getPrefix(path) +
-                FilenameUtils.getPathNoEndSeparator(StringUtils.replace(path, SLASH_INDEX_FILE, ""));
+                FilenameUtils.getPathNoEndSeparator(replace(path, SLASH_INDEX_FILE, ""));
         if (isEmpty(parentPath) || StringUtils.equals(parentPath, path)) {
             return;
         }
         addUpdateParentIdScriptSnippets(siteId, parentPath, updateParentIdScriptPath);
-        if (StringUtils.endsWith(path, SLASH_INDEX_FILE)) {
-            addUpdateParentIdScriptSnippets(siteId, StringUtils.replace(path,
+        if (endsWith(path, SLASH_INDEX_FILE)) {
+            addUpdateParentIdScriptSnippets(siteId, replace(path,
                     "/index.xml", ""), updateParentIdScriptPath);
-            if (StringUtils.startsWith(path, ROOT_PATTERN_PAGES)) {
+            if (startsWith(path, ROOT_PATTERN_PAGES)) {
                 Files.write(updateParentIdScriptPath, updateNewPageChildren(siteId, path).getBytes(UTF_8),
                         StandardOpenOption.APPEND);
             }

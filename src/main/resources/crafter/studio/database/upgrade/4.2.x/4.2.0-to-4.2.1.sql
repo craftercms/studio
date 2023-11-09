@@ -21,6 +21,10 @@ ALTER TABLE `site`
 ALTER TABLE `item`
     DROP COLUMN `commit_id` ;
 
+ALTER TABLE `publish_request`
+    DROP COLUMN `commit_id` ;
+
+
 -- Remove gitlog table reference from this procedure
 DROP PROCEDURE IF EXISTS deleteSiteRelatedItems ;
 

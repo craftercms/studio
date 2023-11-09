@@ -32,7 +32,6 @@
         <result property="action" column="action"/>
         <result property="contentTypeClass" column="contenttypeclass"/>
         <result property="submissionComment" column="submissioncomment"/>
-        <result property="commitId" column="commit_id"/>
         <result property="packageId" column="package_id"/>
         <result property="label" column="label" />
         <result property="publishedOn" column="published_on" />
@@ -141,7 +140,7 @@
 
     <select id="getDeploymentHistory" resultMap="PublishRequestMap">
         SELECT id, site, environment, path, oldpath, username, scheduleddate, state, action,
-        contenttypeclass, submissioncomment, commit_id, package_id, label,
+        contenttypeclass, submissioncomment, package_id, label,
         IFNULL(published_on, scheduleddate) as published_on
         FROM publish_request
         WHERE site = #{siteId}
