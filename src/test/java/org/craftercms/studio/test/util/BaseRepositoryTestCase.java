@@ -24,10 +24,7 @@ import org.eclipse.jgit.junit.RepositoryTestCase;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.junit.After;
 import org.junit.Before;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockMakers;
-import org.mockito.Spy;
+import org.mockito.*;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -43,9 +40,8 @@ public abstract class BaseRepositoryTestCase extends RepositoryTestCase {
     @Mock(mockMaker = MockMakers.SUBCLASS)
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
-    @Spy
     @InjectMocks
-    protected GitRepositoryHelper helper;
+    protected GitRepositoryHelper helper = Mockito.spy(GitRepositoryHelper.class);
 
     private AutoCloseable mocks;
 
