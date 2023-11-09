@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.impl.v1.service.deployment;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -33,7 +32,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.PublishingManager;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.ItemState;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.Workflow;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
@@ -45,22 +43,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Objects.isNull;
 import static org.apache.commons.lang3.StringUtils.*;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.CONTENT_TYPE_FOLDER;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.PROCESSING;
 import static org.craftercms.studio.api.v1.dal.PublishRequest.State.READY_FOR_LIVE;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_PUBLISHING_BLACKLIST_REGEX;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED;
 import static org.craftercms.studio.impl.v1.util.ContentUtils.matchesPatterns;
 
 public class PublishingManagerImpl implements PublishingManager {
@@ -179,7 +176,7 @@ public class PublishingManagerImpl implements PublishingManager {
     @Override
     public void setPublishedState(String site, String environment, List<PublishRequest> items) {
         boolean isLive = isLiveEnv(site, environment);
-        items.forEach(publishRequest -> {
+        items.parallelStream().forEach(publishRequest -> {
             String path = publishRequest.getPath();
             Workflow workflowEntry =
                     workflowServiceInternal.getWorkflowEntry(site, path, publishRequest.getPackageId());
@@ -306,11 +303,11 @@ public class PublishingManagerImpl implements PublishingManager {
                                    @ValidateStringParam String environment,
                                    List<PublishRequest> processedItems) {
         ZonedDateTime publishedOn = DateUtils.getCurrentTime();
-        for (PublishRequest item : processedItems) {
+        processedItems.parallelStream().forEach(item-> {
             item.setState(PublishRequest.State.COMPLETED);
             item.setPublishedOn(publishedOn);
             retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.markItemCompleted(item));
-        }
+        });
     }
 
     @Override
@@ -337,137 +334,11 @@ public class PublishingManagerImpl implements PublishingManager {
 
     @Override
     @Valid
-    public void markItemsBlocked(@ValidateStringParam String site,
-                                 @ValidateStringParam String environment,
-                                 List<PublishRequest> copyToEnvironmentItems) {
-        for (PublishRequest item : copyToEnvironmentItems) {
-            item.setState(PublishRequest.State.BLOCKED);
-            retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.updateItemDeploymentState(item));
-        }
-    }
-
-    @Override
-    public List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item,
-                                                               Set<String> pathsToDeploy,
-                                                               Set<String> missingDependenciesPaths)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException {
-        List<DeploymentItemTO> mandatoryDependencies = new ArrayList<>();
-        String site = item.getSite();
-        String path = item.getPath();
-
-        if (StringUtils.equals(item.getAction(), PublishRequest.Action.NEW) ||
-                StringUtils.equals(item.getAction(), PublishRequest.Action.MOVE)) {
-            if (matchesPatterns(path, servicesConfig.getPagePatterns(site))) {
-                Path p = Paths.get(path);
-                List<Path> parts = new LinkedList<>();
-                if (Objects.nonNull(p.getParent())) {
-                    p.getParent().iterator().forEachRemaining(parts::add);
-                }
-                List<String> ancestors = new LinkedList<>();
-                if (CollectionUtils.isNotEmpty(parts)) {
-                    StringBuilder sbAncestor = new StringBuilder();
-                    for (Path ancestor : parts) {
-                        if (isNotEmpty(ancestor.toString())) {
-                            sbAncestor.append(FILE_SEPARATOR).append(ancestor);
-                            ancestors.add(0, sbAncestor.toString());
-                        }
-                    }
-                }
-
-                if (CollectionUtils.isNotEmpty(ancestors)) {
-                    Iterator<String> ancestorIterator = ancestors.iterator();
-                    boolean breakLoop = false;
-                    while (!breakLoop && ancestorIterator.hasNext()) {
-                        String anc = ancestorIterator.next();
-                        Item it = itemServiceInternal.getItem(site, anc, true);
-                        if (Objects.nonNull(it) && !StringUtils.equals(it.getSystemType(), CONTENT_TYPE_FOLDER) &&
-                                (ItemState.isNew(it.getState()) || isNotEmpty(it.getPreviousPath())) &&
-                                !missingDependenciesPaths.contains(it.getPath()) &&
-                                !pathsToDeploy.contains(it.getPath())) {
-                            deploymentService.cancelWorkflow(site, it.getPath());
-                            missingDependenciesPaths.add(it.getPath());
-                            PublishRequest parentItem = createMissingItem(site, it.getPath(), item);
-                            DeploymentItemTO parentDeploymentItem = processItem(parentItem);
-                            mandatoryDependencies.add(parentDeploymentItem);
-                            mandatoryDependencies.addAll(
-                                    processMandatoryDependencies(parentItem, pathsToDeploy, missingDependenciesPaths));
-                        }
-                    }
-                }
-            }
-
-            if (!isEnablePublishingWithoutDependencies()) {
-                List<String> dependentPaths = dependencyService.getPublishingDependencies(site, path);
-                for (String dependentPath : dependentPaths) {
-                    // TODO: SJ: This bypasses the Content Service, fix
-                    Item it = itemServiceInternal.getItem(site, dependentPath);
-                    if (ItemState.isNew(it.getState()) || isNotEmpty(it.getPreviousPath())) {
-                        if (!StringUtils.equals(it.getSystemType(), CONTENT_TYPE_FOLDER) &&
-                                !missingDependenciesPaths.contains(dependentPath) &&
-                                !pathsToDeploy.contains(dependentPath)) {
-                            deploymentService.cancelWorkflow(site, dependentPath);
-                            missingDependenciesPaths.add(dependentPath);
-                            PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
-                            DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);
-                            if (Objects.nonNull(dependentDeploymentItem)) {
-                                mandatoryDependencies.add(dependentDeploymentItem);
-                            }
-                            mandatoryDependencies.addAll(
-                                    processMandatoryDependencies(dependentItem, pathsToDeploy, missingDependenciesPaths));
-                        }
-                    }
-                }
-            }
-        }
-
-        return mandatoryDependencies;
-    }
-
-    private PublishRequest createMissingItem(String site, String itemPath, PublishRequest item) {
-        PublishRequest missingItem = new PublishRequest();
-        missingItem.setSite(site);
-        missingItem.setEnvironment(item.getEnvironment());
-        missingItem.setPath(itemPath);
-        missingItem.setScheduledDate(item.getScheduledDate());
-        missingItem.setState(item.getState());
-        Item it = itemServiceInternal.getItem(site, itemPath);
-        if (ItemState.isNew(it.getState())) {
-            missingItem.setAction(PublishRequest.Action.NEW);
-        }
-
-        if (isNotEmpty(it.getPreviousPath())) {
-            String oldPath = it.getPreviousPath();
-            missingItem.setOldPath(oldPath);
-            missingItem.setAction(PublishRequest.Action.MOVE);
-        }
-        missingItem.setCommitId(contentRepository.getRepoLastCommitId(site));
-
-        String contentTypeClass = contentService.getContentTypeClass(site, itemPath);
-        missingItem.setContentTypeClass(contentTypeClass);
-        missingItem.setUser(item.getUser());
-        missingItem.setSubmissionComment(item.getSubmissionComment());
-        missingItem.setPackageId(item.getPackageId());
-        return missingItem;
-    }
-
-    @Override
-    @Valid
     public boolean isPublishingBlocked(@ValidateStringParam String site) {
         Map<String, Object> params = new HashMap<>();
         params.put("site", site);
         params.put("now", DateUtils.getCurrentTime());
         params.put("state", PublishRequest.State.BLOCKED);
-        int result = publishRequestMapper.isPublishingBlocked(params);
-        return result > 0;
-    }
-
-    @Override
-    @Valid
-    public boolean hasPublishingQueuePackagesReady(@ValidateStringParam String site) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("site", site);
-        params.put("now", DateUtils.getCurrentTime());
-        params.put("state", READY_FOR_LIVE);
         int result = publishRequestMapper.isPublishingBlocked(params);
         return result > 0;
     }
@@ -510,12 +381,6 @@ public class PublishingManagerImpl implements PublishingManager {
         params.put(PROCESSING_STATE, PROCESSING);
         params.put(READY_STATE, READY_FOR_LIVE);
         retryingDatabaseOperationFacade.retry(() -> publishRequestMapper.resetProcessingQueue(params));
-    }
-
-    public boolean isEnablePublishingWithoutDependencies() {
-        boolean toReturn = Boolean.parseBoolean(studioConfiguration.getProperty(
-                PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED));
-        return toReturn;
     }
 
     public void setContentService(ContentService contentService) {

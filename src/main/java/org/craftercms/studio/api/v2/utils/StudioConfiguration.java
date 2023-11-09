@@ -161,10 +161,6 @@ public interface StudioConfiguration {
     /** Notification Service */
     String NOTIFICATION_CONFIGURATION_FILE = "studio.notification.configurationFile";
     String NOTIFICATION_TIMEZONE = "studio.notification.timezone";
-
-    /** Workflow Service */
-    String WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.workflow.publishingWithoutDependencies.enabled";
-
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
 
@@ -203,11 +199,6 @@ public interface StudioConfiguration {
     String MAIL_SMTP_EHLO = "studio.mail.smtp.ehlo";
     String MAIL_DEBUG = "studio.mail.debug";
 
-    /** Jobs */
-    String JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED =
-            "studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled";
-    String JOB_DEPLOYMENT_MASTER_PUBLISHING_NODE = "studio.job.deployment.masterPublishingNode";
-
     /** Content Types Filter Patterns */
     String CONTENT_TYPES_FILTER_PAGES_INCLUDE_PATTERN = "studio.contentTypes.filter.pages.includePattern";
     String CONTENT_TYPES_FILTER_COMPONENTS_INCLUDE_PATTERN = "studio.contentTypes.filter.components.includePattern";
@@ -230,8 +221,6 @@ public interface StudioConfiguration {
 
     /** Publishing Manager */
     String PUBLISHING_MANAGER_INDEX_FILE = "studio.publishingManager.indexFile";
-    String PUBLISHING_MANAGER_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED =
-            "studio.publishingManager.publishingWithoutDependencies.enabled";
 
     /** Publishing Thread Pool **/
     String PUBLISHING_SITE_LOCK_TTL = "studio.publishing.siteLock.ttl";

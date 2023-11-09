@@ -49,7 +49,6 @@ import static java.util.stream.Collectors.toList;
 import static org.craftercms.studio.api.v1.dal.SiteFeed.STATE_READY;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.*;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED;
 
 public class StudioPublisherTask extends StudioClockTask {
 
@@ -216,10 +215,17 @@ public class StudioPublisherTask extends StudioClockTask {
             PublishingProgressObserver observer = new PublishingProgressObserver(siteId, pkgId, environment,
                     completeDeploymentItemList.size());
             publishingProgressServiceInternal.addObserver(observer);
+            logger.debug("Start repository processing for site '{}' to target '{}'",
+                    siteId, environment);
             deploy(siteId, environment, completeDeploymentItemList, author,
                     sbComment.toString());
+            logger.debug("Done repository processing for site'{}' to target '{}'",
+                    siteId, environment);
+            logger.debug("Generate workflow activity for site '{}' and target '{}'", siteId, environment);
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
+            logger.debug("Generated workflow activity for site '{}' and target '{}'", siteId, environment);
             publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+            logger.debug("Items marked completed for site '{}' and target '{}'", siteId, environment);
             publishingManager.setPublishedState(siteId, environment, itemsToDeploy);
 
             logger.info("Published '{}' items in site '{}' to target '{}'",
@@ -243,8 +249,6 @@ public class StudioPublisherTask extends StudioClockTask {
     private void processPublishingRequest(String siteId, String environment, PublishRequest item,
                                           List<DeploymentItemTO> completeDeploymentItemList, Set<String> processedPaths)
             throws ServiceLayerException, DeploymentException, UserNotFoundException {
-        List<DeploymentItemTO> missingDependencies = new ArrayList<>();
-        Set<String> missingDependenciesPaths = new HashSet<>();
         try {
             List<DeploymentItemTO> deploymentItemList = new ArrayList<>();
 
@@ -254,16 +258,6 @@ public class StudioPublisherTask extends StudioClockTask {
                 deploymentItemList.add(deploymentItem);
             }
             logger.trace("Processing completed for item in site '{}' path '{}'", siteId, item.getPath());
-
-            if (isMandatoryDependenciesCheckEnabled()) {
-                logger.trace("Start mandatory dependency processing for site '{}' path '{}'",
-                        siteId, item.getPath());
-                missingDependencies.addAll(publishingManager
-                        .processMandatoryDependencies(item, processedPaths, missingDependenciesPaths));
-                logger.trace("Mandatory dependency processing for site '{}' path '{}' completed",
-                        siteId, item.getPath());
-            }
-            deploymentItemList.addAll(missingDependencies);
             completeDeploymentItemList.addAll(deploymentItemList);
         } catch (Exception e) {
             logger.error("Failed to publish items from site '{}' to target '{}'", siteId, environment, e);
@@ -312,15 +306,10 @@ public class StudioPublisherTask extends StudioClockTask {
         auditServiceInternal.insertAuditLog(auditLog);
 
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        packageIds.forEach(packageId ->
+        packageIds.parallelStream().forEach(packageId ->
                 activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), operation,
                         DateUtils.getCurrentTime(), null, packageId)
         );
-    }
-
-    private boolean isMandatoryDependenciesCheckEnabled() {
-        return Boolean.parseBoolean(studioConfiguration.getProperty(
-                JOB_DEPLOY_CONTENT_TO_ENVIRONMENT_MANDATORY_DEPENDENCIES_CHECK_ENABLED));
     }
 
     private Set<String> getAllPublishingEnvironments(String site) {
