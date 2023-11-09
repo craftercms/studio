@@ -29,13 +29,6 @@ import org.craftercms.studio.api.v1.to.ResultTO;
 
 public interface WorkflowService {
 
-	ResultTO submitToGoLive(String site, String username, String request);
-
-	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceLayerException;
-
-	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly)
-			;
-
 	/**
 	 * cancel the workflow pending on the given item.
 	 *
@@ -49,38 +42,11 @@ public interface WorkflowService {
 	 */
 	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceLayerException, UserNotFoundException;
 
-    /**
-     * approve workflows and schedule them as specified in the request
-     *
-     * @param site site identifier
-     * @param request request body
-     * @return call result
-     */
-    ResultTO goDelete(String site, String request);
-
-    Map<ZonedDateTime, List<DmDependencyTO>> groupByDate(List<DmDependencyTO> submittedItems, ZonedDateTime now);
-
     void preScheduleDelete(Set<String> uris, ZonedDateTime _date,
                            GoLiveContext context);
 
     List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws
 			ServiceLayerException, UserNotFoundException;
-
-    boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
-
-    /**
-     * approve workflows and schedule them as specified in the request
-     *
-     * @param site site identifier
-     * @param request request body
-     * @return call result
-     * @throws ServiceLayerException general service error
-     */
-    ResultTO goLive(final String site, final String request) throws ServiceLayerException;
-
-    ResultTO reject(final String site, final String request) throws ServiceLayerException;
-
-    void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue);
 
     boolean cleanWorkflow(final String url, final String site) throws
 			ServiceLayerException, UserNotFoundException;

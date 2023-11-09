@@ -43,17 +43,7 @@ public interface PublishingManager {
     void markItemsReady(String site, String liveEnvironment, List<PublishRequest> copyToEnvironmentItems)
         throws DeploymentException;
 
-    void markItemsBlocked(String site, String environment, List<PublishRequest> copyToEnvironmentItems)
-        throws DeploymentException;
-
-    List<DeploymentItemTO> processMandatoryDependencies(PublishRequest item, Set<String> pathsToDeploy,
-                                                        Set<String> missingDependenciesPaths)
-            throws DeploymentException, ServiceLayerException, UserNotFoundException;
-
     boolean isPublishingBlocked(String site);
-
-    @Valid
-    boolean hasPublishingQueuePackagesReady(@ValidateStringParam String site);
 
     String getPublishingStatus(String site);
 
