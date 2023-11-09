@@ -41,10 +41,6 @@
     </parent>
 
     <properties>
-        <!-- Overrides are listed here -->
-        <exec.maven.version>1.5.0</exec.maven.version>
-        <frontend.maven.version>1.7.6</frontend.maven.version>
-
         <studio.ui.path>../studio-ui/</studio.ui.path>
     </properties>
 
