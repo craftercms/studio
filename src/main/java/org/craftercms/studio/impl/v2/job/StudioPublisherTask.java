@@ -216,10 +216,17 @@ public class StudioPublisherTask extends StudioClockTask {
             PublishingProgressObserver observer = new PublishingProgressObserver(siteId, pkgId, environment,
                     completeDeploymentItemList.size());
             publishingProgressServiceInternal.addObserver(observer);
+            logger.debug("Start repository processing for site '{}' to target '{}'",
+                    siteId, environment);
             deploy(siteId, environment, completeDeploymentItemList, author,
                     sbComment.toString());
+            logger.debug("Done repository processing for site'{}' to target '{}'",
+                    siteId, environment);
+            logger.debug("Generate workflow activity for site '{}' and target '{}'", siteId, environment);
             generateWorkflowActivity(siteId, environment, packageIds,  author, OPERATION_PUBLISHED);
+            logger.debug("Generated workflow activity for site '{}' and target '{}'", siteId, environment);
             publishingManager.markItemsCompleted(siteId, environment, itemsToDeploy);
+            logger.debug("Items marked completed for site '{}' and target '{}'", siteId, environment);
             publishingManager.setPublishedState(siteId, environment, itemsToDeploy);
 
             logger.info("Published '{}' items in site '{}' to target '{}'",
@@ -312,7 +319,7 @@ public class StudioPublisherTask extends StudioClockTask {
         auditServiceInternal.insertAuditLog(auditLog);
 
         User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-        packageIds.forEach(packageId ->
+        packageIds.parallelStream().forEach(packageId ->
                 activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), operation,
                         DateUtils.getCurrentTime(), null, packageId)
         );
