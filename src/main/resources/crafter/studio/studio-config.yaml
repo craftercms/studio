@@ -274,13 +274,6 @@ studio.notification.configurationFile: workflow/notification-config.xml
 studio.notification.timezone: UTC
 
 ##########################################################
-##                   Workflow Service                   ##
-##########################################################
-# Turn on/off (value true/false) publishing without dependencies.
-# When turned on workflow service does not perform check if deployment package includes all necessary dependencies for content that is being published.
-studio.workflow.publishingWithoutDependencies.enabled: false
-
-##########################################################
 ##                   Activity Service                   ##
 ##########################################################
 studio.activity.user.name.caseSensitive: false

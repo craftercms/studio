@@ -159,10 +159,6 @@ public interface StudioConfiguration {
     /** Notification Service */
     String NOTIFICATION_CONFIGURATION_FILE = "studio.notification.configurationFile";
     String NOTIFICATION_TIMEZONE = "studio.notification.timezone";
-
-    /** Workflow Service */
-    String WORKFLOW_PUBLISHING_WITHOUT_DEPENDENCIES_ENABLED = "studio.workflow.publishingWithoutDependencies.enabled";
-
     /** Activity Service */
     String ACTIVITY_USERNAME_CASE_SENSITIVE = "studio.activity.user.name.caseSensitive";
 
