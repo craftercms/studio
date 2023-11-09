@@ -440,14 +440,6 @@ studio.mail.smtp.ehlo: true
 # Enable/disable (value true/false) debug mode for email service. Enabling debug mode allows tracking/debugging communication between email service and SMTP server.
 studio.mail.debug: false
 
-#####################################################
-##                   Studio Jobs                   ##
-#####################################################
-# Turn on/off (value true/false) check if mandatory dependencies of deployed content are included in deployment package.
-studio.job.deployContentToEnvironment.mandatoryDependenciesCheckEnabled: false
-# Defines master publishing node in clustered environment. Value false disables publishing (even in non-clustered environment).
-studio.job.deployment.masterPublishingNode: true
-
 ######################################################################
 ##                   Content Type Filter Patterns                   ##
 ######################################################################
@@ -490,9 +482,6 @@ studio.authoring.templateName: authoring
 ############################################################
 # Defines file name for index files (page containers). Default value is index.xml
 studio.publishingManager.indexFile: index.xml
-# Turn on/off (value true/false) publishing without dependencies.
-# When turned on, deployment engine does not check for missing mandatory dependencies of published content.
-studio.publishingManager.publishingWithoutDependencies.enabled: false
 
 ##################################################
 ##                   Database                   ##
