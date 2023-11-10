@@ -39,7 +39,6 @@
         <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
             <result property="targetId" column="target_id"/>
             <result property="targetType" column="target_type" />
-            <result property="targetSubtype" column="target_subtype" />
             <result property="targetValue" column="target_value"/>
         </collection>
     </resultMap>
@@ -63,49 +62,9 @@
         <collection property="parameters" ofType="org.craftercms.studio.api.v2.dal.AuditLogParameter">
             <result property="targetId" column="target_id"/>
             <result property="targetType" column="target_type" />
-            <result property="targetSubtype" column="target_subtype" />
             <result property="targetValue" column="target_value"/>
         </collection>
     </resultMap>
-
-    <select id="getAuditLogForSite" parameterType="java.util.Map" resultMap="AuditLogMap">
-        select *
-        from audit
-        where 1 = 1
-        <if test="siteId != null and siteId !=  '' ">
-        and site_network = #{siteId}
-        </if>
-        <if test="username != null and username != '' ">
-            and post_user_id = #{username}
-        </if>
-        <if test="actions != null">
-            and activity_type in
-            <foreach item="action" index="index" collection="actions"
-                     open="(" separator="," close=")">
-                #{action}
-            </foreach>
-        </if>
-        order by modified_date desc limit #{offset},#{limit}
-    </select>
-
-    <select id="getAuditLogForSiteTotal" parameterType="java.util.Map" resultType="int">
-        select count(1)
-        from audit
-        where 1 = 1
-        <if test="siteId != null and siteId !=  '' ">
-            and site_network = #{siteId}
-        </if>
-        <if test="username != null and username != '' ">
-            and post_user_id = #{username}
-        </if>
-        <if test="actions != null">
-            and activity_type in
-            <foreach item="action" index="index" collection="actions"
-                     open="(" separator="," close=")">
-                #{action}
-            </foreach>
-        </if>
-    </select>
 
     <select id="getAuditLogEntry" parameterType="java.util.Map" resultMap="AuditLogMap">
         SELECT a.*, ap.*, s.site_id as site_name
@@ -229,9 +188,9 @@
     </insert>
 
     <insert id="insertAuditLogParams" parameterType="java.util.Map">
-        INSERT INTO audit_parameters (audit_id, target_id, target_type, target_subtype, target_value) VALUES
+        INSERT INTO audit_parameters (audit_id, target_id, target_type, target_value) VALUES
         <foreach collection="parameters" item="element" index="index" separator="," >
-            (#{auditId}, #{element.targetId}, #{element.targetType}, #{element.targetSubtype}, #{element.targetValue})
+            (#{auditId}, #{element.targetId}, #{element.targetType}, #{element.targetValue})
         </foreach>
     </insert>
 
@@ -311,88 +270,6 @@
         order by act.operation_timestamp desc limit #{offset},#{limit}
     </select>
 
-    <select id="getAuditDashboardTotal" parameterType="java.util.Map" resultType="int">
-        SELECT count(1)
-        FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE s.deleted = 0
-        <if test="siteId != null and siteId !=  '' ">
-            AND s.name = #{siteId}
-        </if>
-        <if test="username != null and username !=  '' ">
-            AND a.actor_id = #{username}
-        </if>
-        <if test="operations != null">
-            and a.operation in
-            <foreach item="operation" index="index" collection="operations"
-                     open="(" separator="," close=")">
-                #{operation}
-            </foreach>
-        </if>
-        <choose>
-            <when test="dateFrom != null and dateTo != null ">
-                AND a.operation_timestamp BETWEEN #{dateFrom} AND #{dateTo}
-            </when>
-            <when test="dateFrom != null and dateTo == null ">
-                AND a.operation_timestamp >= #{dateFrom}
-            </when>
-            <when test="dateFrom == null and dateTo != null ">
-                AND #{dateTo} >= a.operation_timestamp
-            </when>
-        </choose>
-        <if test="target != null and target !=  '' ">
-            AND a.primary_target_value RLIKE #{target}
-        </if>
-    </select>
-
-    <select id="getAuditDashboard" parameterType="java.util.Map" resultMap="AuditLogMap">
-        <bind name="sortBy" value="'a.' + sort"/>
-        SELECT a.*, s.site_id as site_name
-        FROM audit a INNER JOIN site s on a.site_id = s.id
-        WHERE s.deleted = 0
-        <if test="siteId != null and siteId !=  '' ">
-            AND s.name = #{siteId}
-        </if>
-        <if test="username != null and username !=  '' ">
-            AND a.actor_id = #{username}
-        </if>
-        <if test="operations != null">
-            and a.operation in
-            <foreach item="operation" index="index" collection="operations"
-                     open="(" separator="," close=")">
-                #{operation}
-            </foreach>
-        </if>
-        <choose>
-            <when test="dateFrom != null and dateTo != null ">
-                AND a.operation_timestamp BETWEEN #{dateFrom} AND #{dateTo}
-            </when>
-            <when test="dateFrom != null and dateTo == null ">
-                AND a.operation_timestamp >= #{dateFrom}
-            </when>
-            <when test="dateFrom == null and dateTo != null ">
-                AND #{dateTo} >= a.operation_timestamp
-            </when>
-        </choose>
-        <if test="target != null and target !=  '' ">
-            AND a.primary_target_value RLIKE #{target}
-        </if>
-        <choose>
-            <when test="(sort != null and sort !=  '') and (order != null and order != '')">
-                ORDER BY ${sort} ${order}
-            </when>
-            <when test="(sort != null and sort !=  '') and (order == null or order == '')">
-                ORDER BY ${sort}
-            </when>
-            <when test="(sort == null or sort !=  '') and (order != null and order != '')">
-                ORDER BY a.operation_timestamp ${order}
-            </when>
-            <otherwise>
-                ORDER BY a.operation_timestamp DESC
-            </otherwise>
-        </choose>
-        LIMIT #{offset}, #{limit}
-    </select>
-
     <select id="getCommitAuthor" parameterType="java.util.Map"
             resultMap="org.craftercms.studio.api.v2.dal.UserDAO.PersonMap">
         SELECT u.*
@@ -400,6 +277,12 @@
         INNER JOIN user u on u.username = a.actor_id
         WHERE a.commit_id = #{commitId}
         AND origin = 'API'
+    </select>
+
+    <select id="isAudited" parameterType="java.util.Map" resultType="boolean">
+        SELECT count(1)
+        FROM audit a
+        WHERE site_id = #{siteId} AND commit_id = #{commitId}
     </select>
 
     <delete id="deleteAuditLogForSite" parameterType="java.util.Map" flushCache="true">

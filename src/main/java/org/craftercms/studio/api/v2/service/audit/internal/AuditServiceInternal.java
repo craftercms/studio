@@ -16,39 +16,14 @@
 
 package org.craftercms.studio.api.v2.service.audit.internal;
 
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.model.rest.Person;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 
+// TODO: JM: Merge this to AuditService
 public interface AuditServiceInternal {
-
-    /**
-     * Get audit log for site
-     *
-     * @param site site
-     * @param offset offset of the first record
-     * @param limit number of records to return
-     * @param user filter logs by user
-     * @param actions filter logs by actions
-     * @return audit list
-     * @throws SiteNotFoundException thrown if site does not exist
-     */
-    List<AuditLog> getAuditLogForSite(String site, int offset, int limit, String user, List<String> actions)
-            throws SiteNotFoundException;
-
-    /**
-     * Get total number of audit log entries for site
-     *
-     * @param site site
-     * @param user filter logs by user
-     * @param actions filter logs by actions
-     * @return number of audit log entries
-     * @throws SiteNotFoundException thrown if site does not exist
-     */
-    int getAuditLogForSiteTotal(String site, String user, List<String> actions) throws SiteNotFoundException;
 
     /**
      * Get audit log filtered by parameters
@@ -90,39 +65,6 @@ public interface AuditServiceInternal {
     int getAuditLogTotal(String siteId, String user, List<String> operations,
                                     boolean includeParameters, ZonedDateTime dateFrom, ZonedDateTime dateTo,
                                     String target, String origin, String clusterNodeId);
-
-    /**
-     * Get total number of records for audit dashboard filtered by parameters
-     *
-     * @param siteId site identifier
-     * @param user filter logs by user
-     * @param operations filter logs by action
-     * @param dateFrom lower boundary for operation timestamp
-     * @param dateTo upper boundary for operation timestamp
-     * @param target filter logs by target
-     * @return total number of records
-     */
-    int getAuditDashboardTotal(String siteId,String user, List<String> operations, ZonedDateTime dateFrom,
-                               ZonedDateTime dateTo, String target);
-
-    /**
-     * Get audit dashboard content filtered by parameters
-     *
-     * @param siteId site identifier
-     * @param offset offset of the first record
-     * @param limit number of records to return
-     * @param user filter logs by user
-     * @param operations filter logs by actions
-     * @param dateFrom lower boundary for operation timestamp
-     * @param dateTo upper boundary for operation timestamp
-     * @param target filter logs by target
-     * @param sort sort for records
-     * @param order order for records
-     * @return list of records for audit dashboard
-     */
-    List<AuditLog> getAuditDashboard(String siteId, int offset, int limit, String user, List<String> operations,
-                                     ZonedDateTime dateFrom, ZonedDateTime dateTo, String target, String sort,
-                                     String order);
 
     /**
      * Get audit log entry by id
@@ -170,4 +112,12 @@ public interface AuditServiceInternal {
      * @return author of the commit, if found, otherwise null
      */
     Person getAuthor(String commitId);
+
+    /**
+     * Check if a commit has been audited.
+     * @param siteId site id
+     * @param commitId commit id
+     * @return true if there is an audit entry for the given commit id, otherwise false
+     */
+    boolean isAudited(long siteId, String commitId);
 }

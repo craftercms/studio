@@ -18,7 +18,6 @@ package org.craftercms.studio.controller.rest;
 
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
-import org.craftercms.commons.validation.validators.impl.EsapiValidator;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.model.rest.AddGroupMembers;
 import org.craftercms.studio.model.rest.EnableUsers;
@@ -26,7 +25,6 @@ import org.springframework.validation.Validator;
 
 import java.util.*;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**

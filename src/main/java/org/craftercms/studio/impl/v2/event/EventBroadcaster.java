@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.event;
 
+import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent;
 import org.slf4j.Logger;
@@ -40,7 +41,7 @@ public class EventBroadcaster {
     protected SimpMessagingTemplate messagingTemplate;
 
     @Order
-    @EventListener(condition = "!(#event instanceof T(org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent))")
+    @EventListener(classes = BroadcastEvent.class, condition = "!(#event instanceof T(org.craftercms.studio.api.v2.event.site.SiteLifecycleEvent))")
     public void publishSiteEvent(final SiteAwareEvent event) {
         publishEvent(event, DESTINATION_ROOT + "/" + event.getSiteId());
     }

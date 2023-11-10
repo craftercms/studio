@@ -151,6 +151,8 @@ public interface StudioConfiguration {
     String CONFIGURATION_PUBLISHING_BLACKLIST_REGEX = "studio.configuration.publishing.blacklist.regex";
     String CONFIGURATION_DEFAULT_TIME_ZONE = "studio.configuration.defaultTimeZone";
 
+    String CONFIGURATION_PATH_PATTERNS = "studio.configuration.cache.site.patterns";
+
     /** Import Service */
     String IMPORT_ASSIGNEE = "studio.import.assignee";
     String IMPORT_XML_CHAIN_NAME = "studio.import.xmlChainName";
@@ -271,14 +273,8 @@ public interface StudioConfiguration {
             "studio.clockJob.task.syncRepository.executeEveryNCycles";
     String CLOCK_JOB_TASK_PUBLISHER_EXECUTE_EVERY_N_CYCLES =
             "studio.clockJob.task.publisher.executeEveryNCycles";
-    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_EXECUTE_EVERY_N_CYCLES =
-            "studio.clockJob.task.auditLogProcessing.executeEveryNCycles";
     String CLOCK_JOB_TASK_PUBLISHER_MAX_RETRY_COUNT =
             "studio.clockJob.task.publisher.maxRetryCount";
-    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_GITLOG =
-            "studio.clockJob.task.auditLogProcessing.batchSizeGitLog";
-    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED =
-            "studio.clockJob.task.auditLogProcessing.batchSizeAudited";
 
     String PLUGIN_BASE_PATTERN = "studio.configuration.plugin.base.pattern";
 

@@ -254,7 +254,6 @@ public class SandboxItem {
         instance.dateModified = item.getLastModifiedOn();
         instance.submitter = item.getSubmitter();
         instance.dateSubmitted = item.getSubmittedOn();
-        instance.commitId = item.getCommitId();
         instance.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
         instance.childrenCount = item.getChildrenCount();

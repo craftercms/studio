@@ -26,7 +26,6 @@ import org.craftercms.commons.config.profiles.ConfigurationProfileNotFoundExcept
 import org.craftercms.commons.file.stores.S3Utils;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.aws.mediaconvert.MediaConvertProfile;
 import org.craftercms.studio.api.v1.exception.AwsException;

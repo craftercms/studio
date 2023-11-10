@@ -250,32 +250,6 @@ public interface ContentRepository {
     String getRepoFirstCommitId(String site);
 
     /**
-     * Get a list of commits for updates on a content
-     *
-     * @param site         site id
-     * @param path         path
-     * @param commitIdFrom range from commit id (inclusive)
-     * @param commitIdTo   range to commit id (inclusive)
-     * @return list of edit commit ids
-     */
-    List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo);
-
-    /**
-     * Insert Full Git Log
-     *
-     * @param siteId    site
-     * @param processed processed
-     */
-    void insertFullGitLog(String siteId, int processed);
-
-    /**
-     * Delete Git log for site
-     *
-     * @param siteId site identifier
-     */
-    void deleteGitLogForSite(String siteId);
-
-    /**
      * Add remote repository for site content repository
      *
      * @param siteId             site identifier

@@ -27,8 +27,6 @@ import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineFactoryImpl;
 import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineImpl;
 
-import org.springframework.core.io.Resource;
-
 
 /**
  * Extension of {@link org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineFactoryImpl} that creates

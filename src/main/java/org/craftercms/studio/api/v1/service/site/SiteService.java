@@ -18,27 +18,21 @@ package org.craftercms.studio.api.v1.service.site;
 
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.studio.api.v1.dal.SiteFeed;
-import org.craftercms.studio.api.v1.exception.BlueprintNotFoundException;
-import org.craftercms.studio.api.v1.exception.DeployerTargetException;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
-import org.craftercms.studio.api.v1.exception.SiteCreationException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.*;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryCredentialsException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
+import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.exception.MissingPluginParameterException;
+import org.craftercms.studio.model.site.SiteDetails;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
-import org.craftercms.studio.model.site.SiteDetails;
 
 /**
  * Note: consider renaming
@@ -118,61 +112,12 @@ public interface SiteService {
     @Deprecated
     boolean deleteSite(String siteId);
 
-    void updateLastVerifiedGitlogCommitId(String site, String commitId);
-
-    /**
-     * Update last audited gitlog commit id
-     *
-     * @param site     site identifier
-     * @param commitId commit ID
-     */
-    void updateLastSyncedGitlogCommitId(String site, String commitId);
-
-    /**
-     * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
-     * and manipulates the underlying repository directly.
-     *
-     * @param siteId       site to sync
-     * @param fromCommitId commit ID to start at and sync up until current commit
-     * @return true if successful, false otherwise
-     * @throws SiteNotFoundException site not found
-     */
-    boolean syncDatabaseWithRepo(String siteId, String fromCommitId) throws ServiceLayerException;
-
-    /**
-     * Synchronize our internal database with the underlying repository. This is required when a user bypasses the UI
-     * and manipulates the underlying repository directly.
-     *
-     * @param siteId           site to sync
-     * @param fromCommitId     commit ID to start at and sync up until current commit
-     * @param generateAuditLog if true add operations to audit log
-     * @return true if successful, false otherwise
-     * @throws SiteNotFoundException site not found
-     */
-    boolean syncDatabaseWithRepo(String siteId, String fromCommitId, boolean generateAuditLog)
-            throws ServiceLayerException, UserNotFoundException;
-
     /**
      * get a list of available blueprints
      *
      * @return list of blueprints
      */
     SiteBlueprintTO[] getAvailableBlueprints();
-
-    /**
-     * Synchronize Database with repository
-     *
-     * @param site site id
-     * @throws SiteNotFoundException site not found
-     */
-    void syncRepository(String site) throws SiteNotFoundException;
-
-    /**
-     * Rebuild database for site
-     *
-     * @param site site id
-     */
-    void rebuildDatabase(String site);
 
     void updateLastCommitId(String site, String commitId);
 
@@ -344,23 +289,7 @@ public interface SiteService {
      */
     List<SiteFeed> getDeletedSites();
 
-    /**
-     * get last commit id for site
-     *
-     * @param siteId site identifier
-     * @return last commit id for local studio node
-     */
-    String getLastCommitId(String siteId);
-
     String getSiteState(String siteId);
-
-    /**
-     * get last verified git log commit id for site
-     *
-     * @param siteId site identifier
-     * @return last verified git log commit id for local studio node
-     */
-    String getLastVerifiedGitlogCommitId(String siteId);
 
     /**
      * Get list of all sites with state = CREATED
@@ -375,20 +304,4 @@ public interface SiteService {
 
     void setPublishedRepoCreated(String siteId);
 
-    /**
-     * get last audited git log commit id for site
-     *
-     * @param siteId site identifier
-     * @return last audited git log commit id for local studio node
-     */
-    String getLastSyncedGitlogCommitId(String siteId);
-
-    /**
-     * Checks if the currently existent site with the given ID also has the same siteUuid.
-     *
-     * @param siteId   ID of the site to test
-     * @param siteUuid site UUID
-     * @return true if the site UUID file exists and contains the same siteUUID value, false otherwise
-     */
-    boolean checkSiteUuid(String siteId, String siteUuid);
 }

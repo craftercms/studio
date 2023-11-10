@@ -23,10 +23,10 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -48,15 +48,13 @@ public class SitesServiceImpl implements SitesService {
     private final SitesService sitesServiceInternal;
     private final PublishingProgressServiceInternal publishingProgressServiceInternal;
     private final ContentRepository contentRepository;
-    private final SiteService siteService;
 
-    @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository", "siteService"})
+    @ConstructorProperties({"sitesServiceInternal", "publishingProgressServiceInternal", "contentRepository"})
     public SitesServiceImpl(final SitesService sitesServiceInternal, final PublishingProgressServiceInternal publishingProgressServiceInternal,
-                            final ContentRepository contentRepository, final SiteService siteService) {
+                            final ContentRepository contentRepository) {
         this.sitesServiceInternal = sitesServiceInternal;
         this.publishingProgressServiceInternal = publishingProgressServiceInternal;
         this.contentRepository = contentRepository;
-        this.siteService = siteService;
     }
 
     @Override
@@ -87,7 +85,7 @@ public class SitesServiceImpl implements SitesService {
         if (isBlank(name) && isBlank(description)) {
             throw new InvalidParametersException("The request needs to include a name or a description");
         }
-        siteService.checkSiteExists(siteId);
+        checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
     }
 
@@ -107,7 +105,7 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
     public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
+        checkSiteExists(siteId);
         PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
         PublishingProgressObserver publishingProgressObserver =
                 publishingProgressServiceInternal.getPublishingProgress(siteId);
@@ -125,7 +123,7 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
     public void clearPublishingLock(@SiteId String siteId) throws SiteNotFoundException {
-        siteService.checkSiteExists(siteId);
+        checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 
@@ -141,13 +139,36 @@ public class SitesServiceImpl implements SitesService {
     }
 
     @Override
+    public Site getSite(String siteId) throws SiteNotFoundException{
+        if (exists(siteId)) {
+            return sitesServiceInternal.getSite(siteId);
+        }
+        throw new SiteNotFoundException(siteId);
+    }
+
+    @Override
+    public void updateLastCommitId(String siteId, String commitId) {
+        sitesServiceInternal.updateLastCommitId(siteId, commitId);
+    }
+
+    @Override
+    public String getLastCommitId(String siteId) {
+        return sitesServiceInternal.getLastCommitId(siteId);
+    }
+
+    @Override
+    public boolean checkSiteUuid(String siteId, String siteUuid) {
+        return sitesServiceInternal.checkSiteUuid(siteId, siteUuid);
+    }
+
+    @Override
     @RequireSiteReady
     @HasAllPermissions(type = DefaultPermission.class, actions = {PERMISSION_DUPLICATE_SITE, PERMISSION_CONTENT_READ,
             PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
     public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException {
-        siteService.checkSiteExists(sourceSiteId);
-        if (siteService.exists(siteId)) {
+        checkSiteExists(sourceSiteId);
+        if (exists(siteId)) {
             throw new SiteAlreadyExistsException(siteId);
         }
         sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);

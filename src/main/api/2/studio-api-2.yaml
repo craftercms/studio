@@ -2561,44 +2561,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /repository/rebuild_database:
-    post:
-      tags:
-        - repository
-      summary: Rebuild Crafter Studio’s database and object state with the underlying repository
-      description: 'Required permission "rebuild_database"'
-      operationId: rebuildDatabase
-      requestBody:
-        description: rebuild database request body
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                siteId:
-                  type: string
-                  description: Site ID
-              required:
-                - siteId
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  response:
-                    $ref: '#/components/schemas/ApiResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
 
   /repository/remove_remote:
     post:
@@ -8234,9 +8196,6 @@ components:
               targetType:
                 type: string
                 description: Type of the target
-              targetSubtype:
-                type: string
-                description: Subtype of the target
               targetValue:
                 type: string
                 description: Value of the target (e.g. content's path)
@@ -8764,9 +8723,6 @@ components:
           type: string
           format: datetime
           description: timestamp when item was submitted for review (if any)
-        commitId:
-          type: string
-          description: commit id of last modification in the repository for item
         sizeInBytes:
           type: integer
           format: int64
@@ -8956,9 +8912,6 @@ components:
               type: string
               format: datetime
               description: timestamp when item was submitted for review (if any)
-            commitId:
-              type: string
-              description: commit id of last modification in the sandbox repository
             sizeInBytes:
               type: integer
               format: int64

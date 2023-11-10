@@ -30,11 +30,9 @@ import org.craftercms.studio.model.search.SearchParams;
 import org.craftercms.studio.model.search.SearchResult;
 
 import java.beans.ConstructorProperties;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_SEARCH;
 
 /**

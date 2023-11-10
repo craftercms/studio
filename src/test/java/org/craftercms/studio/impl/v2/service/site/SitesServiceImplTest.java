@@ -53,7 +53,7 @@ public class SitesServiceImplTest {
         when(sitesServiceInternal.exists(NON_EXISTING_SITE_ID)).thenReturn(false);
         when(sitesServiceInternal.exists(SITE_ID)).thenReturn(true);
         doThrow(new SiteNotFoundException(NON_EXISTING_SITE_ID)).when(siteServiceV1).checkSiteExists(NON_EXISTING_SITE_ID);
-        when(siteServiceV1.exists(EXISTING_SITE_ID)).thenReturn(true);
+        when(sitesService.exists(EXISTING_SITE_ID)).thenReturn(true);
     }
 
     @AfterEach
@@ -81,13 +81,13 @@ public class SitesServiceImplTest {
     @Test
     public void duplicateIntoAlreadyExistentSiteTest() {
         assertThrows(SiteAlreadyExistsException.class, () ->
-                sitesService.duplicate(SOURCE_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
+                sitesService.duplicate(EXISTING_SITE_ID, EXISTING_SITE_ID, "site_name", "The new site", "main_branch", false));
     }
 
     @Test
     public void duplicateSiteTest() throws ServiceLayerException {
-        sitesService.duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+        sitesService.duplicate(EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
 
-        verify(sitesServiceInternal).duplicate(SOURCE_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
+        verify(sitesServiceInternal).duplicate(EXISTING_SITE_ID, NEW_SITE_ID, "site_name", "The new site", "main_branch", false);
     }
 }

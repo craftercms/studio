@@ -34,12 +34,14 @@ import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
 import org.craftercms.studio.api.v2.core.ContextManager;
-import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.dal.RemoteRepository;
+import org.craftercms.studio.api.v2.dal.RemoteRepositoryDAO;
+import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.repository.RetryingRepositoryOperationFacade;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
@@ -48,14 +50,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.FollowFilter;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -106,7 +105,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     protected ServletContext ctx;
     protected StudioConfiguration studioConfiguration;
     protected ServicesConfig servicesConfig;
-    protected GitLogDAO gitLogDao;
     protected RemoteRepositoryDAO remoteRepositoryDAO;
     protected SecurityService securityService;
     protected SiteFeedMapper siteFeedMapper;
@@ -957,94 +955,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     @Override
-    public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
-        List<String> commitIds = new ArrayList<>();
-        String gitLockKey = helper.getSandboxRepoLockKey(site);
-        generalLockService.lock(gitLockKey);
-        try {
-            // Get the sandbox repo, and then get a reference to the commitId we received and another for head
-            Repository repo = helper.getRepository(site, SANDBOX);
-            if (StringUtils.isEmpty(commitIdFrom)) {
-                commitIdFrom = getRepoFirstCommitId(site);
-            }
-            if (StringUtils.isEmpty(commitIdTo)) {
-                commitIdTo = getRepoLastCommitId(site);
-            }
-            ObjectId objCommitIdFrom = repo.resolve(commitIdFrom);
-            ObjectId objCommitIdTo = repo.resolve(commitIdTo);
-
-            try (Git git = new Git(repo)) {
-
-                // If the commitIdFrom is the same as commitIdTo, there is nothing to calculate, otherwise,
-                // let's do it
-                if (!objCommitIdFrom.equals(objCommitIdTo)) {
-                    // Compare HEAD with commitId we're given
-                    // Get list of commits between commitId and HEAD in chronological order
-
-                    // Get the log of all the commits between commitId and head
-                    LogCommand logCommand = git.log()
-                            .addPath(helper.getGitPath(path))
-                            .addRange(objCommitIdFrom, objCommitIdTo);
-                    Iterable<RevCommit> commits = retryingRepositoryOperationFacade.call(logCommand);
-
-                    // Reverse orders of commits
-                    Iterator<RevCommit> iterator = commits.iterator();
-                    while (iterator.hasNext()) {
-
-                        RevCommit commit = iterator.next();
-                        commitIds.add(0, commit.getId().getName());
-                    }
-                }
-            }
-        } catch (IOException | GitAPIException e) {
-            logger.error("Failed to get operations from site '{}' path '{}' from commit ID '{}' to " +
-                    "commit ID '{}'", site, path, commitIdFrom, commitIdTo, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
-        return commitIds;
-    }
-
-    @Override
-    public void insertFullGitLog(String siteId, int processed) {
-        List<GitLog> gitLogs = new ArrayList<>();
-        String gitLockKey = helper.getSandboxRepoLockKey(siteId);
-        Repository repo = helper.getRepository(siteId, SANDBOX);
-        generalLockService.lock(gitLockKey);
-
-        try (Git git = new Git(repo)) {
-            LogCommand logCommand = git.log();
-            Iterable<RevCommit> logs = retryingRepositoryOperationFacade.call(logCommand);
-            for (RevCommit rev : logs) {
-                GitLog gitLog = new GitLog();
-                gitLog.setCommitId(rev.getId().getName());
-                gitLog.setProcessed(processed);
-                gitLog.setSiteId(siteId);
-                gitLogs.add(gitLog);
-            }
-        } catch (GitAPIException e) {
-            logger.error("Failed to get the full git log from site '{}'", siteId, e);
-        } finally {
-            generalLockService.unlock(gitLockKey);
-        }
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        params.put("gitLogs", gitLogs);
-        params.put("processed", 1);
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.insertGitLogList(params));
-    }
-
-
-    @Override
-    public void deleteGitLogForSite(String siteId) {
-        Map<String, Object> params = new HashMap<>();
-        params.put("siteId", siteId);
-        retryingDatabaseOperationFacade.retry(() -> gitLogDao.deleteGitLogForSite(params));
-    }
-
-    @Override
     public boolean addRemote(String siteId, String remoteName, String remoteUrl,
                              String authenticationType, String remoteUsername, String remotePassword,
                              String remoteToken, String remotePrivateKey)
@@ -1500,14 +1410,6 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
 
     public void setServicesConfig(ServicesConfig servicesConfig) {
         this.servicesConfig = servicesConfig;
-    }
-
-    public GitLogDAO getGitLogDao() {
-        return gitLogDao;
-    }
-
-    public void setGitLogDao(GitLogDAO gitLogDao) {
-        this.gitLogDao = gitLogDao;
     }
 
     public RemoteRepositoryDAO getRemoteRepositoryDAO() {

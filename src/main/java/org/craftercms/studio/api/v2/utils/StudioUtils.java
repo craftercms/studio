@@ -17,9 +17,9 @@
 package org.craftercms.studio.api.v2.utils;
 
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v1.constant.StudioConstants;
 import org.springframework.lang.NonNull;
 
 import javax.activation.MimetypesFileTypeMap;
@@ -28,7 +28,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.craftercms.studio.api.v1.constant.StudioConstants.STUDIO_TEMPORARY_ROOT_DIR;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.REQUEST_PARAM_SITEID;
 
 public abstract class StudioUtils {
@@ -91,5 +91,9 @@ public abstract class StudioUtils {
     public static Path getStudioTemporaryFilesRoot() {
         String tempDir = System.getProperty(TEMP_DIR_SYSTEM_PROPERTY);
         return Paths.get(tempDir, STUDIO_TEMPORARY_ROOT_DIR);
+    }
+
+    public static String getSandboxRepoLockKey(final String site) {
+        return SITE_SANDBOX_REPOSITORY_GIT_LOCK.replaceAll(PATTERN_SITE, site);
     }
 }

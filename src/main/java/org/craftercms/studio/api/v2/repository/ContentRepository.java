@@ -27,7 +27,6 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlExcepti
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
-import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.model.history.ItemVersion;
@@ -60,16 +59,6 @@ public interface ContentRepository {
      * @param commitIdTo   commit ID to end at
      * @return commit ID of current HEAD, updated operationsSinceCommit
      */
-    List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo);
-
-    /**
-     * Get a list of operations since the commit ID provided (compare that commit to HEAD)
-     *
-     * @param site         site to use
-     * @param commitIdFrom commit ID to start at
-     * @param commitIdTo   commit ID to end at
-     * @return commit ID of current HEAD, updated operationsSinceCommit
-     */
     List<RepoOperation> getOperationsFromDelta(String site, String commitIdFrom, String commitIdTo);
 
     /**
@@ -79,50 +68,6 @@ public interface ContentRepository {
      * @return first commit id
      */
     String getRepoFirstCommitId(String site);
-
-    /**
-     * Get git log object from database
-     *
-     * @param siteId   site id
-     * @param commitId commit ID
-     * @return git log object
-     */
-    GitLog getGitLog(String siteId, String commitId);
-
-    /**
-     * Mark Git log as verified
-     *
-     * @param siteId   site identifier
-     * @param commitId commit id
-     */
-    void markGitLogVerifiedProcessed(String siteId, String commitId);
-
-    /**
-     * Mark Git logs as verified
-     *
-     * @param siteId   site identifier
-     * @param commitIds list of commit ids
-     */
-    void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds);
-
-    /**
-     * Insert Git Log
-     *
-     * @param siteId    site
-     * @param commitId  commit ID
-     * @param processed processed
-     */
-    void insertGitLog(String siteId, String commitId, int processed);
-
-    /**
-     * Insert Git Log
-     *
-     * @param siteId    site
-     * @param commitId  commit ID
-     * @param processed processed
-     * @param audited audited
-     */
-    void insertGitLog(String siteId, String commitId, int processed, int audited);
 
     /**
      * Get publishing history
@@ -248,10 +193,19 @@ public interface ContentRepository {
     /**
      * Get last commit id from repository for given site.
      *
-     * @param site site id
+     * @param site site id, or null for global repository
      * @return last commit id (current HEAD)
      */
     String getRepoLastCommitId(String site);
+
+    /**
+     * Get last commit id from global repository
+     *
+     * @return last commit id (current HEAD)
+     */
+    default String getGlobalRepoLastCommitId() {
+        return getRepoLastCommitId(null);
+    }
 
     Item getItem(String siteId, String path, boolean flatten);
 
@@ -278,46 +232,6 @@ public interface ContentRepository {
     Map<String, String> getChangeSetPathsFromDelta(String site, String commitIdFrom, String commitIdTo);
 
     /**
-     * Mark Git log as audited
-     *
-     * @param siteId   site identifier
-     * @param commitId commit id
-     */
-    void markGitLogAudited(String siteId, String commitId);
-
-    /**
-     * Update gitlog table with commit ids from repository
-     * @param siteId site identifier
-     * @param lastProcessedCommitId last processed commit id
-     * @param batchSize size of a batch to update
-     */
-    void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) throws SiteNotFoundException;
-
-    /**
-     * Get unaudited commits from database
-     * @param siteId site identifier
-     * @param batchSize size of a batch to retrieve
-     * @return list of gitlog records
-     */
-    List<GitLog> getUnauditedCommits(String siteId, int batchSize);
-
-    /**
-     * Get unprocessed commits from database
-     * @param siteId site identifier
-     * @param marker id of last verified commit Id
-     * @return list of gitlog records
-     */
-    List<GitLog> getUnprocessedCommits(String siteId, long marker);
-
-    /**
-     * Count unprocessed commits from database
-     * @param siteId site identifier
-     * @param marker id of last verified commit Id
-     * @return number of unprocessed gitlog records
-     */
-    int countUnprocessedCommits(String siteId, long marker);
-
-    /**
      * Get environment properties for item
      * @param siteId site identifier
      * @param repo repository type
@@ -327,14 +241,6 @@ public interface ContentRepository {
      */
     DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo, String environment,
                                                           String path);
-
-    /**
-     * Mark all git logs as processed if they are inserted before marker
-     * @param siteId site identifier
-     * @param marker marker git commit
-     * @param processed value for processed
-     */
-    void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed);
 
     /**
      * Get the previous commit id from repository for given a site id and a commit id
@@ -361,15 +267,6 @@ public interface ContentRepository {
      * @param path path of the item
      */
     void itemUnlock(String site, String path);
-
-    /**
-     * Upsert git logs as processed and audited
-     * @param siteId site identifier
-     * @param commitIds commit ids
-     * @param processed true if already processed
-     * @param audited true if already audited
-     */
-    void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited);
 
     /**
      * return a specific version of the content
@@ -439,15 +336,6 @@ public interface ContentRepository {
     void cancelPublishAll(String siteId, String publishingTarget) throws ServiceLayerException;
 
     /**
-     * Populates the full git log of the sandbox repository into the database
-     *
-     * @param siteId the id of the site
-     * @throws GitAPIException if there is any error reading the git log
-     * @throws IOException if there is any error executing the db script
-     */
-    void populateGitLog(String siteId) throws GitAPIException, IOException;
-
-    /**
      * Checks if a content exists at a given path and throw an exception if it does not.
      * @param site id of the site
      * @param path the content path
@@ -474,6 +362,30 @@ public interface ContentRepository {
     List<ItemVersion> getContentItemHistory(String site, String path) throws IOException, GitAPIException;
 
     /**
+     * Get the commits between two commit ids.
+     * This method must start in the commitTo and go back until it finds commitFrom.
+     * The actual result must be equivalent to <code>git log --first-parent --reverse commitFrom..commitTo</code>
+     *
+     * @param siteId     site id
+     * @param commitFrom the older commit id
+     * @param commitTo   the newer commit id
+     * @return list of commit ids between commitFrom (not included) and commitTo (inclusive)
+     * @throws IOException if there is any error reading the git log
+     */
+    List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException;
+
+    /**
+     * Get the new commits introduced by <code>commitId</code> into <code>baseCommit</code>.<br/>
+     * This method assumes that baseCommit is an ancestor of commitId's first parent.
+     * Result will be equivalent to <code>git log baseCommit..commitId</code>
+     *
+     * @param site       site id
+     * @param baseCommit the commit id to compare against
+     * @param commitId   the commit id to compare
+     */
+    List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException;
+
+    /**
      * Create copies of the source site's repositories.
      * This method will copy sandbox and published (if exists) repositories under a new directory
      * with the new site id.
@@ -486,5 +398,4 @@ public interface ContentRepository {
      * @throws IOException if there is any error while copying the directories
      */
     void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException;
-
 }

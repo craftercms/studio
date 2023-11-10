@@ -20,7 +20,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.XMLConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationProvider;
-import org.craftercms.commons.file.blob.BlobStore;
 import org.craftercms.commons.file.blob.exception.BlobStoreConfigurationMissingException;
 import org.craftercms.commons.file.blob.impl.BlobStoreResolverImpl;
 import org.craftercms.commons.lang.RegexUtils;

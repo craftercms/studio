@@ -17,8 +17,6 @@ package org.craftercms.studio.impl.v2.service.monitor;
 
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
-import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
-import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.monitor.MonitorService;
 
 import java.beans.ConstructorProperties;

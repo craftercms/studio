@@ -28,7 +28,6 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.constant.DmXmlConstants;
-import org.craftercms.studio.api.v1.dal.SiteFeed;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
@@ -38,28 +37,27 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.executor.ProcessContentExecutor;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
+import org.craftercms.studio.api.v1.service.GeneralLockService;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.*;
 import org.craftercms.studio.api.v1.service.dependency.DependencyDiffService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
-import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.*;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.annotation.policy.*;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.Item;
-import org.craftercms.studio.api.v2.dal.User;
-import org.craftercms.studio.api.v2.dal.WorkflowItem;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.event.content.ContentEvent;
 import org.craftercms.studio.api.v2.event.content.DeleteContentEvent;
 import org.craftercms.studio.api.v2.event.content.MoveContentEvent;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.service.audit.internal.ActivityStreamServiceInternal;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
+import org.craftercms.studio.api.v2.service.site.SitesService;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -130,7 +128,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected SecurityService securityService;
     protected DmPageNavigationOrderService dmPageNavigationOrderService;
     protected DmContentLifeCycleService dmContentLifeCycleService;
-    protected SiteService siteService;
+    protected SitesService siteService;
     protected ContentItemIdGenerator contentItemIdGenerator;
     protected StudioConfiguration studioConfiguration;
     protected DependencyDiffService dependencyDiffService;
@@ -144,6 +142,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     protected ActivityStreamServiceInternal activityStreamServiceInternal;
 
     protected org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2;
+    private GeneralLockService generalLockService;
 
     /**
      * file and folder name patterns for copied files and folders
@@ -395,7 +394,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             // TODO: SJ: Content is being written here via the pipeline, this is not the best design and will be
             // TODO: SJ: refactored in 2.7.x
-            processContent(id, input, true, params, getContentChainID(path));
+            processContent(site, id, input, true, params, getContentChainID(path));
 
             if (shouldUpdateChildrenParent) {
                 // Update folder's children parentId, so they become this new page children instead
@@ -581,7 +580,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     + "not yet published.", path, site));
             }
 
-            ResultTO result = processContent(id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+            ResultTO result = processContent(site, id, in, false, params, DmConstants.CONTENT_CHAIN_ASSET);
             ContentAssetInfoTO assetInfoTO = (ContentAssetInfoTO)result.getItem();
 
             if (isSystemAsset) {
@@ -622,13 +621,6 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         String commitId = _contentRepository.writeContent(site, path, content);
 
         result = StringUtils.isNotEmpty(commitId);
-
-        if (result) {
-            itemServiceInternal.updateCommitId(site, path, commitId);
-            contentRepository.insertGitLog(site, commitId, 1, 1);
-            siteService.updateLastCommitId(site, commitId);
-        }
-
         return result;
     }
 
@@ -663,9 +655,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     commitId, parentItem.getId());
 
             String username = securityService.getCurrentUser();
-            SiteFeed siteFeed = siteService.getSite(site);
+            Site siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_CREATE);
+            auditLog.setCommitId(commitId);
             auditLog.setSiteId(siteFeed.getId());
             auditLog.setActorId(username);
             // TODO: SJ: There should be a helper method to consistently create these keys/paths
@@ -673,9 +666,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             auditLog.setPrimaryTargetType(TARGET_TYPE_FOLDER);
             auditLog.setPrimaryTargetValue(folderPath);
             auditServiceInternal.insertAuditLog(auditLog);
-
-            contentRepository.insertGitLog(site, commitId, 1, 1);
-            siteService.updateLastCommitId(site, commitId);
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, folderPath));
             toRet = true;
         }
@@ -728,7 +719,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         if (StringUtils.isNotEmpty(commitId)) {
-            contentRepository.insertGitLog(site, commitId, 1);
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
         }
 
         applicationContext.publishEvent(new DeleteContentEvent(securityService.getAuthentication(), site, path));
@@ -756,7 +747,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Item it = itemServiceInternal.getItem(site, path);
             ContentItemTO item = getContentItem(site, path, 0);
             logger.debug("Post delete activity for site '{}' path '{}' approved by '{}'", site, path, approver);
-            SiteFeed siteFeed = siteService.getSite(site);
+            Site siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_DELETE);
             auditLog.setSiteId(siteFeed.getId());
@@ -899,9 +890,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
                         // processContent will close the input stream
                         if (copyFileName.endsWith(DmConstants.XML_PATTERN)) {
-                            processContent(id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
+                            processContent(site, id, copyContent, true, params, DmConstants.CONTENT_CHAIN_FORM);
                         } else {
-                            processContent(id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
+                            processContent(site, id, fromContent, false, params, DmConstants.CONTENT_CHAIN_ASSET);
                         }
 
                         itemServiceInternal.setSystemProcessing(site, copyPath, false);
@@ -1039,15 +1030,11 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                 Long parentId = newParent != null ? newParent.getId() : null;
                 updateDatabaseOnMove(site, fromPath, movePath, parentId, targetLabel, movePathMap.fileFolder);
                 updateChildrenOnMove(site, fromPath, movePath);
-                for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                    itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-                }
-                commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
                 // This write is performed after processing the commitIds so we don't miss any commit
                 if (movedDocument != null) {
                     writeContent(site, movePath, ContentUtils.convertDocumentToStream(movedDocument, CONTENT_ENCODING));
                 }
-                siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
+                applicationContext.publishEvent(new SyncFromRepoEvent(site));
             } else {
                 logger.error("Failed to move item in site '{}' from '{}' to '{}'", site, sourcePath, targetPath);
                 movePath = fromPath;
@@ -1102,7 +1089,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         // write activity stream
-        SiteFeed siteFeed = siteService.getSite(site);
+        Site siteFeed = siteService.getSite(site);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_MOVE);
         auditLog.setSiteId(siteFeed.getId());
@@ -2126,7 +2113,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
             // This is not required, the current user is already loaded in memory
             User user = userServiceInternal.getUserByIdOrUsername(-1, username);
-            SiteFeed siteFeed = siteService.getSite(site);
+            Site siteFeed = siteService.getSite(site);
             AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
             auditLog.setOperation(OPERATION_REVERT);
             auditLog.setSiteId(siteFeed.getId());
@@ -2140,9 +2127,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             Item item = itemServiceInternal.getItem(site, path);
             activityStreamServiceInternal.insertActivity(siteFeed.getId(), user.getId(), OPERATION_REVERT,
                     DateUtils.getCurrentTime(), item, null);
-
-            contentRepository.insertGitLog(site, commitId, 1, 1);
-            siteService.updateLastCommitId(site, commitId);
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
 
             applicationContext.publishEvent(new ContentEvent(securityService.getAuthentication(), site, path));
 
@@ -2300,11 +2285,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         return false;
     }
 
-    @Override
     @Valid
-    public ResultTO processContent(@ValidateStringParam() String id, InputStream input, boolean isXml,
+    protected ResultTO processContent(String siteId, String id, InputStream input, boolean isXml,
                                    Map<String, String> params,
-                                   @ValidateStringParam() String contentChainForm)
+                                   String contentChainForm)
             throws ServiceLayerException, UserNotFoundException {
         // TODO: SJ: Pipeline Processor is not defined right, we need to refactor in 3.1+
         // TODO: SJ: Pipeline should take input, and give you back output
@@ -2315,8 +2299,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         if (logger.isDebugEnabled()) {
             startTime = System.currentTimeMillis();
         }
-
-        ResultTO to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
+        String gitLockKey = StudioUtils.getSandboxRepoLockKey(siteId);
+        generalLockService.lock(gitLockKey);
+        ResultTO to = null;
+        try {
+            to = contentProcessor.processContent(id, input, isXml, params, contentChainForm);
+        } finally {
+            generalLockService.unlock(gitLockKey);
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug("Write completed for '{}' in '{}' milliseconds.",
@@ -2676,12 +2666,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             if (isFolder) {
                 updateChildrenOnMove(site, path, targetPath);
             }
-
-            for (Map.Entry<String, String> entry : commitIds.entrySet()) {
-                itemServiceInternal.updateCommitId(site, FILE_SEPARATOR + entry.getKey(), entry.getValue());
-            }
-            commitIds.values().stream().distinct().forEach(commit -> contentRepository.insertGitLog(site, commit, 1));
-            siteService.updateLastCommitId(site, _contentRepository.getRepoLastCommitId(site));
+            applicationContext.publishEvent(new SyncFromRepoEvent(site));
 
             applicationContext.publishEvent(new MoveContentEvent(securityService.getAuthentication(), site, path, targetPath));
             toRet = true;
@@ -2701,7 +2686,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         }
 
         boolean toRet = _contentRepository.pushToRemote(siteId, remoteName, remoteBranch);
-        SiteFeed siteFeed = siteService.getSite(siteId);
+        Site siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PUSH_TO_REMOTE);
         auditLog.setSiteId(siteFeed.getId());
@@ -2721,7 +2706,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
             throw new SiteNotFoundException(siteId);
         }
         boolean toRet = _contentRepository.pullFromRemote(siteId, remoteName, remoteBranch);
-        SiteFeed siteFeed = siteService.getSite(siteId);
+        Site siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_PULL_FROM_REMOTE);
         auditLog.setSiteId(siteFeed.getId());
@@ -2767,7 +2752,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         this.dmContentLifeCycleService = dmContentLifeCycleService;
     }
 
-    public void setSiteService(SiteService siteService) {
+    public void setSiteService(final SitesService siteService) {
         this.siteService = siteService;
     }
 
@@ -2817,6 +2802,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     public void setContentServiceV2(org.craftercms.studio.api.v2.service.content.ContentService contentServiceV2) {
         this.contentServiceV2 = contentServiceV2;
+    }
+
+    public void setGeneralLockService(final GeneralLockService generalLockService) {
+        this.generalLockService = generalLockService;
     }
 
     /**

@@ -205,7 +205,6 @@ public class DetailedItem {
         instance.sandbox.dateModified = item.getLastModifiedOn();
         instance.sandbox.submitter = item.getSubmitter();
         instance.sandbox.dateSubmitted = item.getSubmittedOn();
-        instance.sandbox.commitId = item.getCommitId();
         instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
         instance.childrenCount = item.getChildrenCount();
@@ -237,7 +236,6 @@ public class DetailedItem {
         instance.sandbox.dateModified = item.getLastModifiedOn();
         instance.sandbox.submitter = item.getSubmitter();
         instance.sandbox.dateSubmitted = item.getSubmittedOn();
-        instance.sandbox.commitId = item.getCommitId();
         instance.sandbox.sizeInBytes = item.getSize();
         instance.availableActions = item.getAvailableActions();
         instance.childrenCount = item.getChildrenCount();
@@ -300,7 +298,6 @@ public class DetailedItem {
         private ZonedDateTime dateModified;
         private Person submitter;
         private ZonedDateTime dateSubmitted;
-        private String commitId;
         private long sizeInBytes;
 
         public Person getCreator() {
@@ -349,14 +346,6 @@ public class DetailedItem {
 
         public void setDateSubmitted(ZonedDateTime dateSubmitted) {
             this.dateSubmitted = dateSubmitted;
-        }
-
-        public String getCommitId() {
-            return commitId;
-        }
-
-        public void setCommitId(String commitId) {
-            this.commitId = commitId;
         }
 
         public long getSizeInBytes() {

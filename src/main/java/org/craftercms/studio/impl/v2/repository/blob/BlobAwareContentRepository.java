@@ -39,7 +39,6 @@ import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.VersionTO;
-import org.craftercms.studio.api.v2.dal.GitLog;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
 import org.craftercms.studio.api.v2.dal.RepoOperation;
 import org.craftercms.studio.api.v2.exception.RepositoryLockedException;
@@ -469,7 +468,6 @@ public class BlobAwareContentRepository implements ContentRepository,
         DeploymentItemTO pointer = new DeploymentItemTO();
         pointer.setPath(getPointerPath(item.getSite(), item.getPath()));
         pointer.setSite(item.getSite());
-        pointer.setCommitId(item.getCommitId());
         pointer.setMove(item.isMove());
         pointer.setDelete(item.isDelete());
         pointer.setOldPath(isEmpty(item.getOldPath()) ? item.getOldPath() : getPointerPath(item.getSite(), item.getOldPath()));
@@ -485,21 +483,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public String getRepoFirstCommitId(String site) {
         return localRepositoryV1.getRepoFirstCommitId(site);
-    }
-
-    @Override
-    public List<String> getEditCommitIds(String site, String path, String commitIdFrom, String commitIdTo) {
-        return localRepositoryV1.getEditCommitIds(site, path, commitIdFrom, commitIdTo);
-    }
-
-    @Override
-    public void insertFullGitLog(String siteId, int processed) {
-        localRepositoryV1.insertFullGitLog(siteId, processed);
-    }
-
-    @Override
-    public void deleteGitLogForSite(String siteId) {
-        localRepositoryV1.deleteGitLogForSite(siteId);
     }
 
     @Override
@@ -622,39 +605,9 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public GitLog getGitLog(String siteId, String commitId) {
-        return localRepositoryV2.getGitLog(siteId, commitId);
-    }
-
-    @Override
-    public void markGitLogVerifiedProcessed(String siteId, String commitId) {
-        localRepositoryV2.markGitLogVerifiedProcessed(siteId, commitId);
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed) {
-        localRepositoryV2.insertGitLog(siteId, commitId, processed);
-    }
-
-    @Override
-    public void insertGitLog(String siteId, String commitId, int processed, int audited) {
-        localRepositoryV2.insertGitLog(siteId, commitId, processed, audited);
-    }
-
-    @Override
     public List<String> getSubtreeItems(String site, String path) {
         return localRepositoryV2.getSubtreeItems(site, path).stream()
                 .map(this::getOriginalPath)
-                .collect(toList());
-    }
-
-    @Override
-    public List<RepoOperation> getOperations(String site, String commitIdFrom, String commitIdTo) {
-        return localRepositoryV2.getOperations(site, commitIdFrom, commitIdTo).stream()
-                .peek(operation -> {
-                    operation.setPath(getOriginalPath(operation.getPath()));
-                    operation.setMoveToPath(getOriginalPath(operation.getMoveToPath()));
-                })
                 .collect(toList());
     }
 
@@ -700,39 +653,9 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void markGitLogAudited(String siteId, String commitId) {
-        localRepositoryV2.markGitLogAudited(siteId, commitId);
-    }
-
-    @Override
-    public void updateGitlog(String siteId, String lastProcessedCommitId, int batchSize) {
-        localRepositoryV2.updateGitlog(siteId, lastProcessedCommitId, batchSize);
-    }
-
-    @Override
-    public List<GitLog> getUnauditedCommits(String siteId, int batchSize) {
-        return localRepositoryV2.getUnauditedCommits(siteId, batchSize);
-    }
-
-    @Override
-    public List<GitLog> getUnprocessedCommits(String siteId, long marker) {
-        return localRepositoryV2.getUnprocessedCommits(siteId, marker);
-    }
-
-    @Override
     public DetailedItem.Environment getItemEnvironmentProperties(String siteId, GitRepositories repo,
                                                                  String environment, String path) {
         return localRepositoryV2.getItemEnvironmentProperties(siteId, repo, environment, path);
-    }
-
-    @Override
-    public int countUnprocessedCommits(String siteId, long marker) {
-        return localRepositoryV2.countUnprocessedCommits(siteId, marker);
-    }
-
-    @Override
-    public void markGitLogProcessedBeforeMarker(String siteId, long marker, int processed) {
-        localRepositoryV2.markGitLogProcessedBeforeMarker(siteId, marker, processed);
     }
 
     @Override
@@ -743,16 +666,6 @@ public class BlobAwareContentRepository implements ContentRepository,
     @Override
     public void itemUnlock(String site, String path) {
         localRepositoryV2.itemUnlock(site, path);
-    }
-
-    @Override
-    public void markGitLogVerifiedProcessedBulk(String siteId, List<String> commitIds) {
-        localRepositoryV2.markGitLogVerifiedProcessedBulk(siteId, commitIds);
-    }
-
-    @Override
-    public void upsertGitLogList(String siteId, List<String> commitIds, boolean processed, boolean audited) {
-        localRepositoryV2.upsertGitLogList(siteId, commitIds, processed, audited);
     }
 
     @Override
@@ -869,8 +782,12 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public void populateGitLog(String siteId) throws GitAPIException, IOException {
-        localRepositoryV2.populateGitLog(siteId);
+    public List<String> getCommitIdsBetween(String siteId, final String commitFrom, final String commitTo) throws IOException {
+        return localRepositoryV2.getCommitIdsBetween(siteId, commitFrom, commitTo);
     }
 
+    @Override
+    public List<String> getIntroducedCommits(String site, String baseCommit, String commitId) throws IOException, GitAPIException {
+        return localRepositoryV2.getIntroducedCommits(site, baseCommit, commitId);
+    }
 }

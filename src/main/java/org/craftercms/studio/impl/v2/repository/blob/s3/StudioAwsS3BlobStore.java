@@ -547,13 +547,6 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public void populateGitLog(String siteId) {
-        // TODO: segregate these interfaces properly
-        // this method should not be called
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) {
         // TODO: segregate these interfaces properly
         throw new UnsupportedOperationException();

@@ -36,18 +36,19 @@ import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.event.content.ConfigurationEvent;
+import org.craftercms.studio.api.v2.event.site.SyncFromRepoEvent;
 import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v2.exception.configuration.InvalidConfigurationException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.cache.CacheInvalidator;
 import org.craftercms.studio.impl.v2.utils.XsltUtils;
@@ -483,15 +484,17 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         String configPath = Paths.get(configBasePath, path).toString();
         contentService.writeContent(siteId, configPath, content);
         String currentUser = securityService.getCurrentUser();
+        String commitId = contentRepository.getRepoLastCommitId(siteId);
         try {
             itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                    contentRepository.getRepoLastCommitId(siteId), true);
+                    commitId, true);
             contentService.notifyContentEvent(siteId, configPath);
         } catch (XmlFileParseException e) {
             logger.error("Failed to parse updated XML file at site '{}', path '{}'", siteId, configPath, e);
         }
-        generateAuditLog(siteId, configPath, currentUser);
+        generateAuditLog(siteId, configPath, currentUser, commitId);
         dependencyService.upsertDependencies(siteId, configPath);
+        applicationContext.publishEvent(new SyncFromRepoEvent(siteId));
     }
 
     protected InputStream validate(InputStream content, String filename) throws ServiceLayerException {
@@ -571,10 +574,11 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                 String configPath = Paths.get(configBasePath, path).toString();
                 contentService.writeContent(siteId, configPath, content);
                 String currentUser = securityService.getCurrentUser();
+                String commitId = contentRepository.getRepoLastCommitId(siteId);
                 itemServiceInternal.persistItemAfterWrite(siteId, configPath, currentUser,
-                        contentRepository.getRepoLastCommitId(siteId), true);
+                        commitId, true);
                 contentService.notifyContentEvent(siteId, configPath);
-                generateAuditLog(siteId, configPath, currentUser);
+                generateAuditLog(siteId, configPath, currentUser, commitId);
                 dependencyService.upsertDependencies(siteId, configPath);
             } else {
                 writeDefaultConfiguration(siteId, module, path, content);
@@ -584,7 +588,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         }
     }
 
-    private void generateAuditLog(String siteId, String path, String user) throws SiteNotFoundException {
+    private void generateAuditLog(String siteId, String path, String user, String commitId) throws SiteNotFoundException {
         SiteFeed siteFeed = siteService.getSite(siteId);
         AuditLog auditLog = auditServiceInternal.createAuditLogEntry();
         auditLog.setOperation(OPERATION_UPDATE);
@@ -594,6 +598,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         auditLog.setPrimaryTargetType(TARGET_TYPE_CONTENT_ITEM);
         auditLog.setPrimaryTargetValue(path);
         auditLog.setPrimaryTargetSubtype(CONTENT_TYPE_CONFIGURATION);
+        auditLog.setCommitId(commitId);
         auditServiceInternal.insertAuditLog(auditLog);
     }
 
@@ -640,7 +645,8 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         contentService.writeContent(EMPTY, path, validate(content, path));
         contentService.notifyContentEvent(EMPTY, path);
         String currentUser = securityService.getCurrentUser();
-        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser);
+        String commitId = contentRepository.getGlobalRepoLastCommitId();
+        generateAuditLog(studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE), path, currentUser, commitId);
         invalidateCache(path);
     }
 
@@ -661,7 +667,7 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                             config.getList(String.class, CONFIG_KEY_TRANSLATION_LOCALES));
                 }
             } catch (Exception e) {
-                throw new ServiceLayerException(format("Error getting translation config for site '%'" + siteId), e);
+                throw new ServiceLayerException(format("Error getting translation config for site '%s'", siteId), e);
             }
         }
         return translationConfiguration;

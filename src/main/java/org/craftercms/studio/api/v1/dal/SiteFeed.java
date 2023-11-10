@@ -33,16 +33,13 @@ public class SiteFeed {
     protected String description;
     protected int deleted;
     protected String liveUrl;
-    protected String lastCommitId;
     protected int publishingEnabled;
     protected String publishingStatus;
-    protected String lastVerifiedGitlogCommitId;
     protected String sandboxBranch;
     protected int publishedRepoCreated;
     protected String publishingLockOwner;
     protected ZonedDateTime publishingLockHeartbeat;
     protected String state;
-    protected String lastSyncedGitlogCommitId;
 
     public long getId() {
         return id;
@@ -92,14 +89,6 @@ public class SiteFeed {
         this.liveUrl = liveUrl;
     }
 
-    public String getLastCommitId() {
-        return lastCommitId;
-    }
-
-    public void setLastCommitId(String lastCommitId) {
-        this.lastCommitId = lastCommitId;
-    }
-
     public int getPublishingEnabled() {
         return publishingEnabled;
     }
@@ -114,14 +103,6 @@ public class SiteFeed {
 
     public void setPublishingStatus(String publishingStatus) {
         this.publishingStatus = publishingStatus;
-    }
-
-    public String getLastVerifiedGitlogCommitId() {
-        return lastVerifiedGitlogCommitId;
-    }
-
-    public void setLastVerifiedGitlogCommitId(String lastVerifiedGitlogCommitId) {
-        this.lastVerifiedGitlogCommitId = lastVerifiedGitlogCommitId;
     }
 
     public String getSandboxBranch() {
@@ -178,13 +159,5 @@ public class SiteFeed {
 
     public void setState(String state) {
         this.state = state;
-    }
-
-    public String getLastSyncedGitlogCommitId() {
-        return lastSyncedGitlogCommitId;
-    }
-
-    public void setLastSyncedGitlogCommitId(String lastSyncedGitlogCommitId) {
-        this.lastSyncedGitlogCommitId = lastSyncedGitlogCommitId;
     }
 }

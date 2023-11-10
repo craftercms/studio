@@ -70,16 +70,6 @@ class SpringSiteServices {
                     .forLanguageTag(locale))
     }
 
-    def syncRepository(site) {
-        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.syncRepository(site)
-    }
-
-    def rebuildDatabase(site) {
-        def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
-        return springBackedService.rebuildDatabase(site)
-    }
-
     def exists(site) {
         def springBackedService = this.context.applicationContext.get(SITE_SERVICES_BEAN)
         return springBackedService.exists(site)

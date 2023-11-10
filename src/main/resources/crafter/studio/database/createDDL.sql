@@ -36,7 +36,6 @@ END ;
     Duplicates a site and its data from the tables:
      - remote_repository
      - dependency
-     - gitlog
      - item
      - navigation_order_sequence
 
@@ -49,8 +48,8 @@ CREATE PROCEDURE duplicate_site(IN sourceSiteId VARCHAR(50),
                                     IN sandboxBranch VARCHAR(2000),
                                     IN uuid VARCHAR(2000))
 BEGIN
-    INSERT INTO site (id, site_uuid, site_id, name, description, deleted, last_commit_id, system, publishing_enabled, publishing_status, last_verified_gitlog_commit_id, sandbox_branch, published_repo_created, publishing_lock_owner, publishing_lock_heartbeat, state, last_synced_gitlog_commit_id)
-        SELECT null, uuid, siteId, name, description, s.deleted, s.last_commit_id, s.system, 1, 'ready', s.last_verified_gitlog_commit_id, IFNULL(sandboxBranch, 'master'), s.published_repo_created, s.publishing_lock_owner, s.publishing_lock_heartbeat, 'INITIALIZING', s.last_synced_gitlog_commit_id FROM site s WHERE s.site_id = sourceSiteId AND s.deleted = 0;
+    INSERT INTO site (id, site_uuid, site_id, name, description, deleted, last_commit_id, system, publishing_enabled, publishing_status, sandbox_branch, published_repo_created, publishing_lock_owner, publishing_lock_heartbeat, state)
+        SELECT null, uuid, siteId, name, description, s.deleted, s.last_commit_id, s.system, 1, 'ready', IFNULL(sandboxBranch, 'master'), s.published_repo_created, s.publishing_lock_owner, s.publishing_lock_heartbeat, 'INITIALIZING' FROM site s WHERE s.site_id = sourceSiteId AND s.deleted = 0;
 
     INSERT INTO remote_repository (id, site_id, remote_name, remote_url, authentication_type, remote_username, remote_password, remote_token, remote_private_key)
         SELECT null, siteId, r.remote_name, r.remote_url, r.authentication_type, r.remote_username, r.remote_password, r.remote_token, r.remote_private_key FROM remote_repository r WHERE r.site_id = sourceSiteId;
@@ -58,11 +57,8 @@ BEGIN
     INSERT INTO dependency (id, site, source_path, target_path, type)
         SELECT null, siteId, d.source_path, d.target_path, d.type FROM dependency d WHERE d.site = sourceSiteId;
 
-    INSERT INTO gitlog (id, site_id, commit_id, processed, audited)
-        SELECT null, siteId, gl.commit_id, gl.processed, gl.audited FROM gitlog gl WHERE gl.site_id = sourceSiteId;
-
-    INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, commit_id, previous_path, ignored)
-        SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.commit_id, i.previous_path, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
+    INSERT INTO item (id, record_last_updated, site_id, path, preview_url, state, locked_by, created_by, created_on, last_modified_by, last_modified_on, last_published_on, label, content_type_id, system_type, mime_type, locale_code, translation_source_id, size, parent_id, previous_path, ignored)
+        SELECT null, i.record_last_updated, (SELECT id FROM site WHERE site_id = siteId AND deleted = 0), i.path, i.preview_url, i.state, i.locked_by, i.created_by, i.created_on, i.last_modified_by, i.last_modified_on, i.last_published_on, i.label, i.content_type_id, i.system_type, i.mime_type, i.locale_code, i.translation_source_id, i.size, i.parent_id, i.previous_path, i.ignored FROM item i inner join site s ON i.site_id = s.id WHERE s.site_id = sourceSiteId;
 
     /* parent_id points to original item parent */
     SELECT id FROM site WHERE site_id = siteId AND deleted = 0 INTO @siteNumericId;
@@ -196,9 +192,6 @@ BEGIN
         -- sequences
         DELETE FROM navigation_order_sequence WHERE site = siteId;
 
-        -- git log
-        DELETE FROM gitlog WHERE site_id = siteId;
-
         -- remote repositories
         DELETE FROM remote_repository WHERE site_id = siteId;
 
@@ -214,7 +207,7 @@ CREATE TABLE _meta (
   PRIMARY KEY (`version`)
 ) ;
 
-INSERT INTO _meta (version, studio_id) VALUES ('4.2.1', UUID()) ;
+INSERT INTO _meta (version, studio_id) VALUES ('4.2.2', UUID()) ;
 
 CREATE TABLE IF NOT EXISTS `audit` (
   `id`                        BIGINT(20)    NOT NULL AUTO_INCREMENT,
@@ -246,7 +239,6 @@ CREATE TABLE IF NOT EXISTS `audit_parameters` (
     `audit_id`          BIGINT(20) NOT NULL,
     `target_id`         VARCHAR(1024)  NOT NULL,
     `target_type`       VARCHAR(32)   NOT NULL,
-    `target_subtype`    VARCHAR(32)   NULL,
     `target_value`      VARCHAR(1024)  NOT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY `audit_parameters_ix_audit_id` (`audit_id`) REFERENCES `audit` (`id`)
@@ -297,7 +289,6 @@ CREATE TABLE IF NOT EXISTS `publish_request` (
   `contenttypeclass`  VARCHAR(20)  NULL,
   `submission_type`   VARCHAR(32)  NULL,
   `submissioncomment` TEXT         NULL,
-  `commit_id`         VARCHAR(50)  NULL,
   `package_id`         VARCHAR(50)  NULL,
   `label`             VARCHAR(256) NULL,
   `published_on`      TIMESTAMP     NULL,
@@ -323,13 +314,11 @@ CREATE TABLE IF NOT EXISTS `site` (
   `system`                          INT           NOT NULL DEFAULT 0,
   `publishing_enabled`              INT           NOT NULL DEFAULT 1,
   `publishing_status`               VARCHAR(20)   NULL,
-  `last_verified_gitlog_commit_id`  VARCHAR(50)   NULL,
   `sandbox_branch`                  VARCHAR(255)  NOT NULL DEFAULT 'master',
   `published_repo_created`          INT           NOT NULL DEFAULT 0,
   `publishing_lock_owner`           VARCHAR(255)  NULL,
   `publishing_lock_heartbeat`       TIMESTAMP      NULL,
   `state`                           VARCHAR(50)   NOT NULL DEFAULT 'INITIALIZING',
-  `last_synced_gitlog_commit_id`   VARCHAR(50)   NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_unique` (`id` ASC),
   UNIQUE INDEX `site_uuid_site_id_unique` (`site_uuid` ASC, `site_id` ASC),
@@ -517,7 +506,6 @@ CREATE TABLE IF NOT EXISTS `item` (
   `translation_source_id`   BIGINT          NULL,
   `size`                    BIGINT          NULL,
   `parent_id`               BIGINT          NULL,
-  `commit_id`               VARCHAR(128)    NULL,
   `previous_path`           VARCHAR(2048)   NULL,
   `ignored`                 INT             NOT NULL    DEFAULT 0,
   PRIMARY KEY (`id`),
@@ -573,20 +561,6 @@ CREATE TABLE IF NOT EXISTS workflow
     DEFAULT CHARSET = utf8
     ROW_FORMAT = DYNAMIC ;
 
-CREATE TABLE IF NOT EXISTS gitlog
-(
-  `id`          BIGINT(20)    NOT NULL AUTO_INCREMENT,
-  `site_id`     VARCHAR(50)   NOT NULL,
-  `commit_id`   VARCHAR(50)   NOT NULL,
-  `processed`   INT           NOT NULL DEFAULT 0,
-  `audited`     INT           NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  UNIQUE `uq_siteid_commitid` (`site_id`, `commit_id`),
-  INDEX `gitlog_site_idx` (`site_id` ASC)
-)
-  ENGINE = InnoDB
-  DEFAULT CHARSET = utf8
-  ROW_FORMAT = DYNAMIC ;
 
 CREATE TABLE IF NOT EXISTS remote_repository
 (

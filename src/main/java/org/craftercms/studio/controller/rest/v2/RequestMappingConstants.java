@@ -85,7 +85,6 @@ public final class RequestMappingConstants {
     public static final String LIST_REMOTES = "/list_remotes";
     public static final String PULL_FROM_REMOTE = "/pull_from_remote";
     public static final String PUSH_TO_REMOTE = "/push_to_remote";
-    public static final String REBUILD_DATABASE = "/rebuild_database";
     public static final String REMOVE_REMOTE = "/remove_remote";
     public static final String STATUS = "/status";
     public static final String RESOLVE_CONFLICT = "/resolve_conflict";

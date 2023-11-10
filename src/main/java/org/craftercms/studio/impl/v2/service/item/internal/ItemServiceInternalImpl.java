@@ -276,7 +276,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                     .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
                     .withMimeType(StudioUtils.getMimeType(path))
                     .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-                    .withCommitId(commitId)
                     .withSize(contentServiceInternal.getContentSize(siteId, path))
                     .withParentId(parentId)
                     .build();
@@ -315,7 +314,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withContentTypeId(descriptor.queryDescriptorValue(CONTENT_TYPE))
                 .withMimeType(StudioUtils.getMimeType(path))
                 .withLocaleCode(descriptor.queryDescriptorValue(LOCALE_CODE))
-                .withCommitId(commitId)
                 .withSize(contentServiceInternal.getContentSize(siteId, path))
                 .build();
         if (unlock) {
@@ -340,7 +338,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(folderName)
-                .withCommitId(commitId)
                 .withParentId(parentId)
                 .build();
         item.setState(ItemState.savedAndClosed(item.getState()));
@@ -358,7 +355,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
                 .withLastModifiedBy(userObj.getId())
                 .withLastModifiedOn(DateUtils.getCurrentTime())
                 .withLabel(name)
-                .withCommitId(commitId)
                 .build();
         item.setState(ItemState.savedAndClosed(item.getState()));
         item.setSystemType(contentType);
@@ -432,11 +428,6 @@ public class ItemServiceInternalImpl implements ItemServiceInternal {
     @Override
     public boolean previousPathExists(String siteId, String path) {
         return itemDao.countPreviousPaths(siteId, path, NEW_MASK) > 0;
-    }
-
-    @Override
-    public void updateCommitId(String siteId, String path, String commitId) {
-        retryingDatabaseOperationFacade.retry(() -> itemDao.updateCommitId(siteId, path, commitId));
     }
 
     @Override

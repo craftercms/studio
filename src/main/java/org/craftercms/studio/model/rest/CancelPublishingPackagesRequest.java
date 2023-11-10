@@ -1,6 +1,5 @@
 package org.craftercms.studio.model.rest;
 
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotEmpty;
@@ -10,7 +9,6 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class CancelPublishingPackagesRequest {

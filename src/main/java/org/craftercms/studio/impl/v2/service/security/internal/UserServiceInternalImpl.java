@@ -479,7 +479,4 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     public boolean isSystemAdmin(String username) {
         return securityService.isSystemAdmin(username);
     }
-
-
-
 }

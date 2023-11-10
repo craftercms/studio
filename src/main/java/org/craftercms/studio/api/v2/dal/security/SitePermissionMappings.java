@@ -31,7 +31,7 @@ public class SitePermissionMappings {
 
     private String siteId;
     private Map<String, RolePermissionMappings> rolePermissions = new HashMap<>();
-    private Map<String, List<String>> groupToRolesMapping = new HashMap<>();
+    private final Map<String, List<String>> groupToRolesMapping = new HashMap<>();
 
     public long getAvailableActions(String username, List<Group> groups, String path) {
         List<String> rolesList = new ArrayList<>();

@@ -232,17 +232,6 @@ public final class  QueryParameterNames {
 
     public static final String PREFER_CONTENT = "preferContent";
 
-    /** Gitlog */
-    public static final String AUDITED = "audited";
-    // list of commit ids
-    public static final String COMMIT_IDS = "commitIds";
-
-    public static final String MARKER = "marker";
-
-    public static final String PROCESSED = "processed";
-
-    public static final String UNPROCESSED = "unprocessed";
-
     /** Workflow */
     public static final String PUBLISHING_PACKAGE_ID = "publishingPackageId";
 

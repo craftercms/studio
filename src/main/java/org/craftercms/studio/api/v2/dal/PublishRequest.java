@@ -37,7 +37,6 @@ public class PublishRequest implements Serializable {
     private String action;
     private String contentTypeClass;
     private String submissionComment;
-    private String commitId;
     private String packageId;
     private String label;
     private ZonedDateTime publishedOn;
@@ -143,14 +142,6 @@ public class PublishRequest implements Serializable {
 
     public void setSubmissionComment(String submissionComment) {
         this.submissionComment = submissionComment;
-    }
-
-    public String getCommitId() {
-        return commitId;
-    }
-
-    public void setCommitId(String commitId) {
-        this.commitId = commitId;
     }
 
     public String getPackageId() {

@@ -65,6 +65,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.craftercms.studio.api.v1.constant.StudioConstants.SITE_UUID_FILENAME;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.QueryParameterNames.SITE_ID;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
@@ -228,7 +229,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         Site site = siteDao.getSite(siteId);
 
         List<Exception> exceptions = new ArrayList<>();
-        startSiteDelete(site);
+        startSiteDelete(site, exceptions);
 
         logger.debug("Delete deployer targets for site '{}'", siteId);
         deleteDeployerTargets(siteId, exceptions);
@@ -275,11 +276,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
      * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
      */
     private void completeSiteDelete(final Site site, final List<Exception> exceptions) {
+        if (site == null) {
+            return;
+        }
         String siteId = site.getSiteId();
         tryOperation(() -> {
             logger.debug("Mark the site '{}' as DELETED", siteId);
             retryingDatabaseOperationFacade.retry(() -> siteDao.completeSiteDelete(siteId));
-            insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_DELETE);
+            insertDeleteSiteAuditLog(siteId, site.getName(), OPERATION_DELETE);
             logger.info("Site '{}' deleted", siteId);
             applicationContext.publishEvent(new SiteDeletedEvent(siteId, site.getSiteUuid()));
         }, "Failed to complete the site '%s' deletion", siteId, exceptions);
@@ -294,6 +298,34 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         if (!requiredState.equals(site.getState())) {
             throw new InvalidSiteStateException(siteId, format("Site '%s' state ('%s') is not the required value: '%s'",
                     siteId, site.getState(), requiredState));
+        }
+    }
+
+    @Override
+    public Site getSite(String siteId) {
+        return siteDao.getSite(siteId);
+    }
+
+    @Override
+    public void updateLastCommitId(String siteId, String commitId) {
+        retryingDatabaseOperationFacade.retry(() -> siteDao.updateLastCommitId(siteId, commitId));
+    }
+
+    @Override
+    public String getLastCommitId(String siteId) {
+        return siteDao.getLastCommitId(siteId);
+    }
+
+    @Override
+    public boolean checkSiteUuid(final String siteId, final String siteUuid) {
+        try {
+            Path path = Paths.get(studioConfiguration.getProperty(REPO_BASE_PATH),
+                    studioConfiguration.getProperty(SITES_REPOS_PATH), siteId, SITE_UUID_FILENAME);
+            return Files.readAllLines(path).stream()
+                    .anyMatch(siteUuid::equals);
+        } catch (IOException e) {
+            logger.info("Invalid site UUID in site '{}'", siteId);
+            return false;
         }
     }
 
@@ -341,12 +373,21 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     /**
      * Start the site delete process. This marks the site as DELETING and disables publishing and destroys the site preview context.
      *
-     * @param site site to delete
+     * @param site       site to delete
+     * @param exceptions if an exception is thrown, a new {@link ServiceLayerException} wrapping it will be added to this list
      */
-    private void startSiteDelete(final Site site) {
+    private void startSiteDelete(final Site site, List<Exception> exceptions) {
+        if (site == null) {
+            return;
+        }
         String siteId = site.getSiteId();
-        insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
-        retryingDatabaseOperationFacade.retry(() -> siteDao.startSiteDelete(siteId));
+
+        tryOperation(() -> {
+            logger.debug("Mark the site '{}' as DELETING", siteId);
+            insertDeleteSiteAuditLog(site.getSiteId(), site.getName(), OPERATION_START_DELETE);
+            retryingDatabaseOperationFacade.retry(() -> siteDao.startSiteDelete(siteId));
+        }, "Failed to start the site '%s' deletion", siteId, exceptions);
+
         try {
             // Disable publishing
             logger.debug("Disable publishing for site '{}'", siteId);
