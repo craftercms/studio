@@ -20,10 +20,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.craftercms.studio.model.rest.content.DependencyItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
 import org.craftercms.studio.api.v1.service.site.SiteService;
@@ -33,10 +29,15 @@ import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServic
 import org.craftercms.studio.api.v2.service.item.internal.ItemServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
+import org.craftercms.studio.model.rest.content.DependencyItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.studio.api.v1.constant.DmConstants.SLASH_INDEX_FILE;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.api.v2.dal.DependencyDAO.SOURCE_PATH_COLUMN_NAME;
@@ -108,17 +109,6 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<String> getHardDependencies(String site, String path) throws ServiceLayerException {
-        if (!siteService.exists(site)) {
-            throw new SiteNotFoundException(site);
-        }
-        logger.trace("Get hard dependencies for site '{}' path '{}'", site, path);
-        List<String> paths = new ArrayList<>();
-        paths.add(path);
-        return getHardDependencies(site, paths);
-    }
-
-    @Override
     public List<String> getHardDependencies(String site, List<String> paths)
             throws ServiceLayerException {
         siteService.checkSiteExists(site);
@@ -126,12 +116,37 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
         return new ArrayList<>(dependencies.keySet());
     }
 
+    /**
+     * Get the list of mandatory parents for publishing the given paths.
+     * A mandatory parent is any ancestor page that has
+     * never been published (it is either new or moved)
+     *
+     * @param site  site name
+     * @param paths list of paths to publish
+     * @return list of mandatory parents
+     */
+    private List<String> getMandatoryParents(final String site, final List<String> paths) {
+        Set<String> possibleParents = new HashSet<>();
+        for (String path : paths) {
+            StringTokenizer stPath = new StringTokenizer(removeEnd(path, SLASH_INDEX_FILE), FILE_SEPARATOR);
+            StringBuilder candidate = new StringBuilder(FILE_SEPARATOR);
+            stPath.asIterator().forEachRemaining(token -> {
+                candidate.append(token).append(FILE_SEPARATOR);
+                possibleParents.add(candidate + INDEX_FILE);
+            });
+        }
+        List<String> allPaths = new ArrayList<>(paths);
+        allPaths.addAll(possibleParents);
+
+        return itemServiceInternal.getMandatoryParentsForPublishing(site, allPaths);
+    }
+
     private Map<String, String> calculateHardDependencies(String site, List<String> paths) {
         Set<String> toRet = new HashSet<>();
 
         logger.trace("Get all hard dependencies for site '{}' paths '{}'", site, paths);
         Set<String> pathsParams = new HashSet<>(paths);
-        List<String> mandatoryParents = itemServiceInternal.getMandatoryParentsForPublishing(site, paths);
+        List<String> mandatoryParents = getMandatoryParents(site, paths);
         List<String> mpAsList = new ArrayList<>(mandatoryParents);
         Map<String, String> ancestors = new HashMap<>();
         if (CollectionUtils.isNotEmpty(mandatoryParents)) {
