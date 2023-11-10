@@ -36,7 +36,6 @@ END ;
     Duplicates a site and its data from the tables:
      - remote_repository
      - dependency
-     - gitlog
      - item
      - navigation_order_sequence
 
