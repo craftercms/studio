@@ -61,12 +61,9 @@ public class DetailedItem {
     private ZonedDateTime stagingScheduledDate;
     private ZonedDateTime stagingPublishedOn;
     private String stagingUsername;
-    private String stagingCommitId;
-
     private ZonedDateTime liveScheduledDate;
     private ZonedDateTime livePublishedOn;
     private String liveUsername;
-    private String liveCommitId;
 
     public DetailedItem() { }
 
@@ -367,14 +364,6 @@ public class DetailedItem {
         this.stagingUsername = stagingUsername;
     }
 
-    public String getStagingCommitId() {
-        return stagingCommitId;
-    }
-
-    public void setStagingCommitId(String stagingCommitId) {
-        this.stagingCommitId = stagingCommitId;
-    }
-
     public ZonedDateTime getLiveScheduledDate() {
         return liveScheduledDate;
     }
@@ -397,14 +386,6 @@ public class DetailedItem {
 
     public void setLiveUsername(String liveUsername) {
         this.liveUsername = liveUsername;
-    }
-
-    public String getLiveCommitId() {
-        return liveCommitId;
-    }
-
-    public void setLiveCommitId(String liveCommitId) {
-        this.liveCommitId = liveCommitId;
     }
 
     public static DetailedItem getInstance(Item item) {
@@ -481,12 +462,9 @@ public class DetailedItem {
         private ZonedDateTime stagingScheduledDate;
         private ZonedDateTime stagingPublishedOn;
         private String stagingUsername;
-        private String stagingCommitId;
-
         private ZonedDateTime liveScheduledDate;
         private ZonedDateTime livePublishedOn;
         private String liveUsername;
-        private String liveCommitId;
 
         public static Builder buildFromClone(DetailedItem item) {
             Builder clone = new Builder();
@@ -523,11 +501,9 @@ public class DetailedItem {
             clone.stagingScheduledDate = item.stagingScheduledDate;
             clone.stagingPublishedOn = item.stagingPublishedOn;
             clone.stagingUsername = item.stagingUsername;
-            clone.stagingCommitId = item.stagingCommitId;
             clone.liveScheduledDate = item.liveScheduledDate;
             clone.livePublishedOn = item.livePublishedOn;
             clone.liveUsername = item.liveUsername;
-            clone.liveCommitId = item.liveCommitId;
             return clone;
         }
 
@@ -683,11 +659,6 @@ public class DetailedItem {
             return this;
         }
 
-        public Builder withStagingCommitId(String stagingCommitId) {
-            this.stagingCommitId = stagingCommitId;
-            return this;
-        }
-
         public Builder withLiveScheduledDate(ZonedDateTime liveScheduledDate) {
             this.liveScheduledDate = liveScheduledDate;
             return this;
@@ -700,11 +671,6 @@ public class DetailedItem {
 
         public Builder withLiveUsername(String liveUsername) {
             this.liveUsername = liveUsername;
-            return this;
-        }
-
-        public Builder withLiveCommitId(String liveCommitId) {
-            this.liveCommitId = liveCommitId;
             return this;
         }
 
