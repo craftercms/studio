@@ -1332,7 +1332,6 @@ public class GitContentRepository implements ContentRepository {
                         publisher = userServiceInternal.getUserByIdOrUsername(-1, GIT_REPO_USER_USERNAME);
                     }
                     environment.setPublisher(publisher.getUsername());
-                    environment.setCommitId(revCommit.getName());
                 }
             } catch (IOException | GitAPIException | UserNotFoundException | ServiceLayerException e) {
                 logger.error("Failed to get the repository properties for content at site '{}' path '{}'",

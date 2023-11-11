@@ -243,11 +243,9 @@ public class DetailedItem {
         instance.staging.dateScheduled = item.getStagingScheduledDate();
         instance.staging.datePublished = item.getStagingPublishedOn();
         instance.staging.publisher = item.getStagingUsername();
-        instance.staging.commitId = item.getStagingCommitId();
         instance.live.dateScheduled = item.getLiveScheduledDate();
         instance.live.datePublished = item.getLivePublishedOn();
         instance.live.publisher = item.getLiveUsername();
-        instance.live.commitId = item.getLiveCommitId();
 
         return instance;
     }
@@ -256,7 +254,6 @@ public class DetailedItem {
         private ZonedDateTime dateScheduled;
         private ZonedDateTime datePublished;
         private String publisher;
-        private String commitId;
 
         public ZonedDateTime getDateScheduled() {
             return dateScheduled;
@@ -280,14 +277,6 @@ public class DetailedItem {
 
         public void setPublisher(String publisher) {
             this.publisher = publisher;
-        }
-
-        public String getCommitId() {
-            return commitId;
-        }
-
-        public void setCommitId(String commitId) {
-            this.commitId = commitId;
         }
     }
 
