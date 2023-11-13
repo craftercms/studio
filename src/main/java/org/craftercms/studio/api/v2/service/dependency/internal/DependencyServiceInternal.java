@@ -49,23 +49,6 @@ public interface DependencyServiceInternal {
      * * Item-specific dependency that has been modified but not published
      *
      * @param site Site to operate on
-     * @param path Paths to item to retrieve deps for
-     *
-     * @return list of hard dependencies
-     *
-     * @throws SiteNotFoundException Site doesn't exist
-     * @throws ServiceLayerException Internal error, see exception details
-     */
-    List<String> getHardDependencies(String site, String path)
-            throws SiteNotFoundException, ServiceLayerException;
-
-    /**
-     * Get a hard dependencies of a item. A hard
-     * dependency is:
-     * * Never-published item that this item depends on
-     * * Item-specific dependency that has been modified but not published
-     *
-     * @param site Site to operate on
      * @param paths List of paths to items to retrieve deps for
      *
      * @return list of hard dependencies
