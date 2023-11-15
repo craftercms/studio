@@ -54,12 +54,14 @@ public interface AccessTokenServiceInternal {
 
     /**
      * Creates the access &amp; refresh tokens for the given authentication
-     * @param auth the current authentication
+     *
+     * @param auth     the current authentication
+     * @param request the request
      * @param response the response
      * @return the access token
      * @throws ServiceLayerException if there is any error creating the access token
      */
-    AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException;
+    AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException;
 
     /**
      * Deletes the refresh token for the given authentication
@@ -124,4 +126,21 @@ public interface AccessTokenServiceInternal {
      */
     void updateUserActivity(Authentication authentication);
 
+    /**
+     * Refresh the preview site cookie.
+     * This method will either update the cookie (or create it) with the current preview site
+     * if the user has access to it, or remove it if they do not.
+     *
+     * @param authentication the current authentication
+     * @param request        the request
+     * @param response       the response
+     */
+    void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException;
+
+    /**
+     * Deletes the preview cookie
+     *
+     * @param response the response
+     */
+    void deletePreviewCookie(HttpServletResponse response);
 }

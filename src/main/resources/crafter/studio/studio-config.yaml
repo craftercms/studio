@@ -372,6 +372,9 @@ studio.security.token.password.sign: E1oEGMMEaxvUQJTFePPyniOLNxVLHuoPHGaedqMe1tQ
 # Password for encrypting the access tokens
 studio.security.token.password.encrypt: fEo7tQCXX1RYHE2ODOtjtBzmL0zzonSI
 
+##############################################################
+##                   Refresh Token Cookie                   ##
+##############################################################
 # Name of the cookie to store the refresh token
 studio.security.token.cookie.name: refresh_token
 # Time in seconds for the expiration of the refresh token cookie
@@ -384,6 +387,22 @@ studio.security.token.cookie.domain: null
 studio.security.token.cookie.secure: false
 # Indicates if the refresh token cookie should be HTTPOnly
 studio.security.token.cookie.httpOnly: true
+
+##############################################################
+##                      Preview Cookie                      ##
+##############################################################
+# Name of the preview
+studio.security.token.previewCookie.name: crafterPreview
+# Time in seconds for the expiration of the preview cookie
+studio.security.token.previewCookie.maxAge: 600
+# The path used to set the preview cookie
+studio.security.token.previewCookie.path: /
+# The domain used to set the preview cookie (if set to null or empty the domain will be detected from the request)
+studio.security.token.previewCookie.domain: null
+# Indicates if the preview cookie should be secure (should be true for production environments behind HTTPS)
+studio.security.token.previewCookie.secure: false
+# Indicates if the preview cookie should be HTTPOnly
+studio.security.token.previewCookie.httpOnly: true
 
 # Use base domain instead of subdomain for the crafterSite cookie
 studio.cookie.useBaseDomain: false

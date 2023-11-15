@@ -16,12 +16,16 @@
 package org.craftercms.studio.impl.v2.security.listener;
 
 import org.craftercms.commons.http.RequestContext;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v2.service.security.AccessTokenService;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.security.authentication.event.LogoutSuccessEvent;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.beans.ConstructorProperties;
 
 /**
@@ -40,12 +44,16 @@ public class AccessTokenAuthenticationListener {
     }
 
     @EventListener
-    public void generateTokens(AuthenticationSuccessEvent event) {
+    public void refreshAuthCookies(AuthenticationSuccessEvent event) throws ServiceLayerException {
+        Authentication authentication = event.getAuthentication();
         // Don't change any tokens for pre-authenticated events
-        if (event.getAuthentication() instanceof PreAuthenticatedAuthenticationToken) {
+        if (authentication instanceof PreAuthenticatedAuthenticationToken) {
             return;
         }
-        accessTokenService.updateRefreshToken(event.getAuthentication(), RequestContext.getCurrent().getResponse());
+        HttpServletRequest request = RequestContext.getCurrent().getRequest();
+        HttpServletResponse response = RequestContext.getCurrent().getResponse();
+        accessTokenService.updateRefreshToken(authentication, response);
+        accessTokenService.refreshPreviewCookie(authentication, request, response);
     }
 
     @EventListener
@@ -55,6 +63,7 @@ public class AccessTokenAuthenticationListener {
             return;
         }
         accessTokenService.deleteRefreshToken(event.getAuthentication());
+        accessTokenService.deletePreviewCookie(RequestContext.getCurrent().getResponse());
     }
 
 }
