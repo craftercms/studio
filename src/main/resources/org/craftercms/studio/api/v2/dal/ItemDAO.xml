@@ -980,7 +980,7 @@
             locale_code = #{localeCode},
             translation_source_id = #{translationSourceId},
             size = #{size},
-            parent_id = #{parentId},
+            parent_id = #{parentId}
         WHERE id = #{id}
     </update>
 
