@@ -977,6 +977,8 @@ studio.clockJob.task.auditLogProcessing.executeEveryNCycles: 6
 studio.clockJob.task.auditLogProcessing.batchSizeGitLog: 10000
 # Process N unaudited commits with each execution of the audit log processing task
 studio.clockJob.task.auditLogProcessing.batchSizeAudited: 100
+# Disable the db audit log population
+studio.clockJob.task.auditLogProcessing.disableAudit: false
 
 ##################################################
 ##           Studio Groovy Scripts              ##

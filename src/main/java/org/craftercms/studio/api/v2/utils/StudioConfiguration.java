@@ -293,6 +293,8 @@ public interface StudioConfiguration {
     String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_BATCH_SIZE_AUDITED =
             "studio.clockJob.task.auditLogProcessing.batchSizeAudited";
 
+    String CLOCK_JOB_TASK_AUDIT_LOG_PROCESSING_DISABLE_AUDIT = "studio.clockJob.task.auditLogProcessing.disableAudit";
+
     String PLUGIN_BASE_PATTERN = "studio.configuration.plugin.base.pattern";
 
     // Content Service
