@@ -37,7 +37,7 @@ public abstract class BaseRepositoryTestCase extends RepositoryTestCase {
     protected static final String HEAD = "HEAD";
     protected static final String MASTER = "master";
 
-    @Mock(mockMaker = MockMakers.SUBCLASS)
+    @Mock
     protected RetryingRepositoryOperationFacade retryingRepositoryOperationFacade;
 
     @InjectMocks
