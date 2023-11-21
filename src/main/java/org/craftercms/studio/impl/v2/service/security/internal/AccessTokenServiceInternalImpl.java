@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -85,6 +86,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
     private static final Logger logger = LoggerFactory.getLogger(AccessTokenServiceInternalImpl.class);
 
     public static final String ACTIVITY_CACHE_CONFIG_KEY = "studio.security.activity.cache.config";
+    private static final String CRAFTER_SITE_COOKIE_NAME = "crafterSite";
 
     /**
      * The issuer for generation access tokens
@@ -138,6 +140,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
     protected Key jwtEncryptKey;
 
     protected final SecurityDAO securityDao;
+    protected final SecurityService securityService;
     protected final InstanceService instanceService;
     protected final AuditServiceInternal auditService;
     protected final StudioConfiguration studioConfiguration;
@@ -149,14 +152,15 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
     @ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
             "sessionTimeout", "inactivityTimeout", "securityDao", "instanceService", "auditService",
             "studioConfiguration", "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider",
-            "previewTokenEncryptor"})
+            "previewTokenEncryptor", "securityService"})
     public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
                                           String signPassword, String encryptPassword, int sessionTimeout,
                                           int inactivityTimeout, SecurityDAO securityDao,
                                           InstanceService instanceService, AuditServiceInternal auditService,
                                           StudioConfiguration studioConfiguration, SiteService siteService,
                                           RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-                                          SystemStatusProvider systemStatusProvider, TextEncryptor previewTokenEncryptor) {
+                                          SystemStatusProvider systemStatusProvider, TextEncryptor previewTokenEncryptor,
+                                          SecurityService securityService) {
         this.issuer = issuer;
         this.validIssuers = validIssuers;
         this.accessTokenExpiration = accessTokenExpiration;
@@ -172,6 +176,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.systemStatusProvider = systemStatusProvider;
         this.previewTokenEncryptor = previewTokenEncryptor;
+        this.securityService = securityService;
     }
 
     public void setAudience(String audience) {
@@ -216,23 +221,17 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
 
     @Override
     public void refreshPreviewCookie(final Authentication auth, final HttpServletRequest request, final HttpServletResponse response) throws ServiceLayerException {
-        String siteName = getCookieValue("crafterSite", request);
-        if (isNotEmpty(siteName) && hasAccess(auth.getName(), siteName)) {
+        String siteName = getCookieValue(CRAFTER_SITE_COOKIE_NAME, request);
+        if (!isNotEmpty(siteName)) {
+            logger.debug("No site name found in '{}' cookie, removing preview cookie", CRAFTER_SITE_COOKIE_NAME);
+            previewCookieGenerator.removeCookie(response);
+        } else if (!securityService.isSiteMember(auth.getName(), siteName)) {
+            logger.debug("User '{}' is not a member of site '{}', removing preview cookie", auth.getName(), siteName);
+            previewCookieGenerator.removeCookie(response);
+        } else {
             String previewCookie = createPreviewCookie(siteName);
             previewCookieGenerator.addCookie(response, previewCookie);
             logger.info("Refreshed preview cookie for user '{}'", auth.getName());
-        } else {
-            previewCookieGenerator.removeCookie(response);
-        }
-    }
-
-    protected boolean hasAccess(final String username, final String siteName) {
-        try {
-            // TODO: Implement
-            return true;
-        } catch (Exception e) {
-            logger.error("Failed to check user '{}' access to site '{}'", username, siteName, e);
-            return false;
         }
     }
 
@@ -278,17 +277,9 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
     }
 
     @Override
-    public void deleteRefreshToken(Authentication auth) {
-        var userId = getUserId(auth);
+    public void deleteRefreshToken(long userId) {
         userActivity.invalidate(userId);
         retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshToken(userId));
-    }
-
-    @Override
-    public void deleteRefreshToken(User user) {
-        logger.debug("Trigger re-authentication for user '{}'", user.getUsername());
-        userActivity.invalidate(user.getId());
-        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshToken(user.getId()));
     }
 
     @Override

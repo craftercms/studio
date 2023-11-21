@@ -62,11 +62,7 @@ public interface AccessTokenService {
      */
     AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException;
 
-    /**
-     * Deletes the refresh token for the given authentication
-     * @param auth the current authentication
-     */
-    void deleteRefreshToken(Authentication auth);
+    void deleteRefreshToken(long userId);
 
     /**
      * Deletes all expired refresh tokens

@@ -26,16 +26,6 @@ import java.util.concurrent.ExecutionException;
 public interface SecurityService {
 
     /**
-     * Get available actions for given user over content from site and specified path
-     * @param username user to get allowed actions for
-     * @param site site identifier
-     * @param path path of the content/object
-     * @return bitmap representing available actions
-     */
-    long getAvailableActions(String username, String site, String path)
-            throws ServiceLayerException, UserNotFoundException;
-
-    /**
      * Get user permissions for given site
      * @param siteId crafter site Id
      * @param username user
@@ -56,4 +46,23 @@ public interface SecurityService {
      * @return authentication
      */
     Authentication getAuthentication();
+
+    /**
+     * Check if a user is a member of a site
+     * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
+     * role mapping configuration file.
+     *
+     * @param username the username
+     * @param siteName the site name
+     * @return true if user is a member of the site, false otherwise
+     */
+    boolean isSiteMember(String username, String siteName);
+
+    /**
+     * Check if given user has system_admin role
+     *
+     * @param username user
+     * @return true if user is system_admin, false otherwise
+     */
+    boolean isSystemAdmin(String username);
 }

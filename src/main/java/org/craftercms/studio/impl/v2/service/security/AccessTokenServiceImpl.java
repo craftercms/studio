@@ -65,8 +65,8 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
-    public void deleteRefreshToken(Authentication auth) {
-        accessTokenServiceInternal.deleteRefreshToken(auth);
+    public void deleteRefreshToken(long userId) {
+        accessTokenServiceInternal.deleteRefreshToken(userId);
     }
 
     @Override

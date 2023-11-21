@@ -26,14 +26,17 @@ import org.craftercms.studio.api.v1.exception.security.*;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.*;
+import org.craftercms.studio.api.v2.event.user.UserUpdatedEvent;
 import org.craftercms.studio.api.v2.exception.PasswordRequirementsFailedException;
-import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -50,7 +53,7 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.SECURITY_PASSWORD_REQUIREMENTS_MINIMUM_COMPLEXITY;
 import static org.craftercms.studio.impl.v1.repository.git.GitContentRepositoryConstants.GIT_REPO_USER_USERNAME;
 
-public class UserServiceInternalImpl implements UserServiceInternal {
+public class UserServiceInternalImpl implements UserServiceInternal, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(UserServiceInternalImpl.class);
 
@@ -58,17 +61,17 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     private final GroupServiceInternal groupServiceInternal;
     private final StudioConfiguration studioConfiguration;
     private final SiteService siteService;
-    private final AccessTokenServiceInternal accessTokenService;
     private final SecurityService securityService;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final Cache<String, User> userCache;
     private final Zxcvbn zxcvbn;
+    private ApplicationContext applicationContext;
 
     @ConstructorProperties({"userDao", "groupServiceInternal", "studioConfiguration", "siteService", "securityService",
-            "accessTokenService", "retryingDatabaseOperationFacade", "userCache", "zxcvbn"})
+            "retryingDatabaseOperationFacade", "userCache", "zxcvbn"})
     public UserServiceInternalImpl(UserDAO userDao, GroupServiceInternal groupServiceInternal,
                                    StudioConfiguration studioConfiguration, SiteService siteService,
-                                   SecurityService securityService, AccessTokenServiceInternal accessTokenService,
+                                   SecurityService securityService,
                                    RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
                                    Cache<String, User> userCache, Zxcvbn zxcvbn) {
         this.userDao = userDao;
@@ -76,7 +79,6 @@ public class UserServiceInternalImpl implements UserServiceInternal {
         this.studioConfiguration = studioConfiguration;
         this.siteService = siteService;
         this.securityService = securityService;
-        this.accessTokenService= accessTokenService;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.userCache = userCache;
         this.zxcvbn = zxcvbn;
@@ -239,7 +241,7 @@ public class UserServiceInternalImpl implements UserServiceInternal {
             retryingDatabaseOperationFacade.retry(() -> userDao.updateUser(params));
             invalidateCache(oldUser.getUsername());
             // Force a re-authentication if the user is currently logged-in
-            accessTokenService.deleteRefreshToken(oldUser);
+            applicationContext.publishEvent(new UserUpdatedEvent(oldUser.getId()));
         } catch (Exception e) {
             throw new ServiceLayerException("Unknown database error", e);
         }
@@ -478,5 +480,10 @@ public class UserServiceInternalImpl implements UserServiceInternal {
     @Override
     public boolean isSystemAdmin(String username) {
         return securityService.isSystemAdmin(username);
+    }
+
+    @Override
+    public void setApplicationContext(final @NonNull ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }
