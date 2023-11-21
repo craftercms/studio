@@ -5339,6 +5339,28 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /security/preview/switch:
+    post:
+      tags:
+        - security
+      summary: Configures preview to use a different site. Site is expected to be set in `crafterSite` cookie
+      operationId: switchPreviewSite
+      description: Required permission "LOGGED_IN"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /dashboard/activity:
     get:
       tags:
