@@ -63,6 +63,11 @@ public interface AccessTokenServiceInternal {
      */
     AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException;
 
+    /**
+     * Deletes the refresh token for the given user
+     *
+     * @param userId the id of the user
+     */
     void deleteRefreshToken(long userId);
 
     /**

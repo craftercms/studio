@@ -69,6 +69,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.craftercms.commons.http.HttpUtils.getCookieValue;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -222,7 +223,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
     @Override
     public void refreshPreviewCookie(final Authentication auth, final HttpServletRequest request, final HttpServletResponse response) throws ServiceLayerException {
         String siteName = getCookieValue(CRAFTER_SITE_COOKIE_NAME, request);
-        if (!isNotEmpty(siteName)) {
+        if (isEmpty(siteName)) {
             logger.debug("No site name found in '{}' cookie, removing preview cookie", CRAFTER_SITE_COOKIE_NAME);
             previewCookieGenerator.removeCookie(response);
         } else if (!securityService.isSiteMember(auth.getName(), siteName)) {
