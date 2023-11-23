@@ -21,6 +21,7 @@
   <no-template-required/>
   <merge-strategy>inherit-levels</merge-strategy>
   <file-name>index.xml</file-name>
+  <navLabel>Home</navLabel>
   <internal-name>Home</internal-name>
   <orderDefault_f>-1</orderDefault_f>
   <objectGroupId>8d7f</objectGroupId>

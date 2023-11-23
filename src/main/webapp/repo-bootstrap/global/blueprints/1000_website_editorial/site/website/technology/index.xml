@@ -23,6 +23,7 @@
 	<file-name>index.xml</file-name>
 	<folder-name>technology</folder-name>
 	<placeInNav>true</placeInNav>
+	<navLabel>Technology</navLabel>
 	<orderDefault_f>11000</orderDefault_f>
 	<internal-name>Technology</internal-name>
 	<title_t>Technology</title_t>

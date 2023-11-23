@@ -25,6 +25,7 @@
 	<file-name>index.xml</file-name>
 	<folder-name>health</folder-name>
 	<placeInNav>true</placeInNav>
+	<navLabel>Health</navLabel>
 	<orderDefault_f>9000</orderDefault_f>
 	<internal-name>Health</internal-name>
 	<title_t>Health</title_t>
