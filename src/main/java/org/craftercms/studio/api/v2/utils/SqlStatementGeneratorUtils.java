@@ -51,7 +51,7 @@ public final class SqlStatementGeneratorUtils {
                     " state = (state | #{onStatesBitMap}) & ~#{offStatesBitMap}," +
                     " last_modified_by = #{lastModifiedBy}," +
                     " last_modified_on = '#{lastModifiedOn}', label = '#{label}', content_type_id = '#{contentTypeId}'," +
-                    " system_type = '#{systemType}', mime_type = '#{mimeType}', size = #{size}," +
+                    " system_type = '#{systemType}', mime_type = '#{mimeType}', size = #{size}, locked_by = null, " +
                     " commit_id = '#{commitId}', ignored = #{ignoredAsInt} WHERE site_id = #{siteId} " +
                     " and path = '#{path}' ;";
 
@@ -59,7 +59,7 @@ public final class SqlStatementGeneratorUtils {
             "DELETE FROM item WHERE site_id = #{siteId} and path = '#{path}' ;";
 
     public static final String ITEM_MOVE =
-            "UPDATE item SET path = REPLACE(path, '#{oldPath}', '#{newPath}')," +
+            "UPDATE item SET path = REPLACE(path, '#{oldPath}', '#{newPath}'), locked_by = null," +
                     " state = (state | #{onStatesBitMap}) & ~#{offStatesBitMap}" +
                     " WHERE site_id = #{siteId} AND (path = '#{oldPath}' OR path LIKE '#{oldPath}/%') ;";
 
