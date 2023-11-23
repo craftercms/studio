@@ -23,6 +23,7 @@
 	<internal-name>Entertainment</internal-name>
 	<title_t>Entertainment</title_t>
 	<placeInNav>true</placeInNav>
+	<navLabel>Entertainment</navLabel>
 	<orderDefault_f>10000</orderDefault_f>
 	<file-name>index.xml</file-name>
 	<folder-name>entertainment</folder-name>
