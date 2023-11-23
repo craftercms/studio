@@ -129,8 +129,9 @@ public interface AccessTokenServiceInternal {
      * @param authentication the current authentication
      * @param request        the request
      * @param response       the response
+     * @param silent         if false, the method will throw an exception if the user does not have access to the preview site
      */
-    void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException;
+    void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response, boolean silent) throws ServiceLayerException;
 
     /**
      * Deletes the preview cookie

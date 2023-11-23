@@ -221,7 +221,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
     }
 
     @Override
-    public void refreshPreviewCookie(final Authentication auth, final HttpServletRequest request, final HttpServletResponse response) throws ServiceLayerException {
+    public void refreshPreviewCookie(final Authentication auth, final HttpServletRequest request, final HttpServletResponse response, boolean silent) throws ServiceLayerException {
         String siteName = getCookieValue(CRAFTER_SITE_COOKIE_NAME, request);
         if (isEmpty(siteName)) {
             logger.debug("No site name found in '{}' cookie, removing preview cookie", CRAFTER_SITE_COOKIE_NAME);
@@ -229,6 +229,9 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
         } else if (!securityService.isSiteMember(auth.getName(), siteName)) {
             logger.debug("User '{}' is not a member of site '{}', removing preview cookie", auth.getName(), siteName);
             previewCookieGenerator.removeCookie(response);
+            if (!silent) {
+                throw new SiteNotFoundException(siteName);
+            }
         } else {
             String previewCookie = createPreviewCookie(siteName);
             previewCookieGenerator.addCookie(response, previewCookie);
@@ -268,7 +271,7 @@ public class AccessTokenServiceInternalImpl implements AccessTokenServiceInterna
         String token = createToken(issuedAt, expireAt, auth.getName(), null);
 
         updateRefreshToken(auth, response);
-        refreshPreviewCookie(auth, request, response);
+        refreshPreviewCookie(auth, request, response, true);
 
         var accessToken = new AccessToken();
         accessToken.setToken(token);

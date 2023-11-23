@@ -113,8 +113,8 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
-    public void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException {
-        accessTokenServiceInternal.refreshPreviewCookie(authentication, request, response);
+    public void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response, boolean silent) throws ServiceLayerException {
+        accessTokenServiceInternal.refreshPreviewCookie(authentication, request, response, silent);
     }
 
     @Override

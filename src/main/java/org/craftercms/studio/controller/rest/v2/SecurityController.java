@@ -100,7 +100,7 @@ public class SecurityController {
     @PostMapping("/preview/switch")
     public Result switchPreviewSite(Authentication authentication, HttpServletRequest request, HttpServletResponse response)
             throws ServiceLayerException {
-        accessTokenService.refreshPreviewCookie(authentication, request, response);
+        accessTokenService.refreshPreviewCookie(authentication, request, response, false);
         var result = new Result();
         result.setResponse(ApiResponse.OK);
         return result;
