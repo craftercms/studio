@@ -184,4 +184,14 @@ public interface ContentServiceInternal {
      * @throws ServiceLayerException if an error occurs while create the list of {@link ItemVersion}s
      */
     List<ItemVersion> getContentVersionHistory(String siteId, String path) throws ServiceLayerException;
+
+    /**
+     * Create a new folder
+     * @param siteId site identifier
+     * @param path parent path to create new folder into
+     * @param name folder name to create
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
+     */
+    void createFolder(String siteId, String path, String name) throws ServiceLayerException, UserNotFoundException;
 }

@@ -1375,6 +1375,59 @@ public class GitContentRepository implements ContentRepository {
     }
 
     @Override
+    public String createFolder(String siteId, String path, String name) throws UserNotFoundException, ServiceLayerException {
+        Path emptyFilePath = Paths.get(path, name, EMPTY_FILE);
+        String newFolderPath = Paths.get(path, name).toString();
+        String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
+        generalLockService.lock(gitLockKey);
+        try {
+            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+
+            // Create basic file
+            File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());
+
+            // Create parent folders
+            File folder = file.getParentFile();
+            if (folder != null && !folder.exists()) {
+                folder.mkdirs();
+            }
+
+            // Create the file
+            if (!file.createNewFile()) {
+                logger.error("Failed to write file to site '{}' path '{}'", siteId, emptyFilePath);
+                throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            }
+
+            // Add the file to git
+            if (!helper.addFiles(repo, siteId, emptyFilePath.toString())) {
+                throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            }
+
+            String commitId = helper.commitFiles(
+                    repo,
+                    siteId,
+                    helper.getCommitMessage(REPO_CREATE_FOLDER_COMMIT_MESSAGE)
+                            .replaceAll(PATTERN_SITE, siteId)
+                            .replaceAll(PATTERN_PATH, newFolderPath),
+                    helper.getCurrentUserIdent(), emptyFilePath.toString()
+            );
+
+            if (commitId == null) {
+                throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId));
+            }
+
+            return commitId;
+        } catch (ServiceLayerException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Failed to add file to git in site '{}' path '{}'", siteId, newFolderPath, e);
+            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId), e);
+        } finally {
+            generalLockService.unlock(gitLockKey);
+        }
+    }
+
+    @Override
     public void lockItem(String site, String path) {
         String gitLockKey = helper.getSandboxRepoLockKey(site, true);
         Repository repo = helper.getRepository(site, isEmpty(site) ? GLOBAL : SANDBOX);

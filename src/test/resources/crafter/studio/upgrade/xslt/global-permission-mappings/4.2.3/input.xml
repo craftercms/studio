@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -18,7 +18,6 @@
 <!--
     This file contains global permissions configuration for Crafter Studio. Permissions per site are managed
     within Crafter Studio's UI.
-
     The structure of this file is:
     <permissions>
         <site id="###GLOBAL###"> (global management)
@@ -35,7 +34,6 @@
             </role>
         </site>
     </permissions>
-
     This binds a set of permissions to a role globally for the entire application.
 -->
 <permissions>
@@ -45,10 +43,9 @@
                 <permission>content_read</permission>
                 <permission>content_copy</permission>
                 <permission>content_write</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>publish</permission>
                 <permission>create_site</permission>
-                <permission>duplicate_site</permission>
                 <permission>read_groups</permission>
                 <permission>create_groups</permission>
                 <permission>update_groups</permission>

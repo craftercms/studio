@@ -33,6 +33,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
@@ -60,6 +61,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Stream;
@@ -261,22 +263,22 @@ public class BlobAwareContentRepository implements ContentRepository,
         }
     }
 
-    @Override
-    public String createFolder(String site, String path, String name) {
-        logger.debug("Create folder in site '{}' path '{}'", site, path);
+    public String createFolder(String siteId, String path, String name) throws UserNotFoundException, ServiceLayerException {
+        logger.debug("Create folder in site '{}' path '{}'", siteId, path);
         try {
-            StudioBlobStore store = getBlobStore(site, path);
+            StudioBlobStore store = getBlobStore(siteId, path);
             if (store != null) {
-                store.createFolder(site, normalize(path), name);
+                store.createFolder(siteId, normalize(path), name);
             }
-            return localRepositoryV1.createFolder(site, path, name);
+            return localRepositoryV2.createFolder(siteId, path, name);
         } catch (BlobStoreConfigurationMissingException e) {
             logger.debug("No blob store configuration found for site '{}', " +
-                    "will create folder '{}' in the local repository", site, path);
-            return localRepositoryV1.createFolder(site, path, name);
+                    "will create folder '{}' in the local repository", siteId, path);
+            return localRepositoryV2.createFolder(siteId, path, name);
         } catch (Exception e) {
-            logger.error("Failed to create folder in site '{}' path '{}'", site, path, e);
-            return null;
+            logger.error("Failed to create folder in site '{}' path '{}'", siteId, path, e);
+            Path newFolderPath = Paths.get(path, name);
+            throw new ServiceLayerException(format("Error creating new folder at path '{}' site '{}'", newFolderPath, siteId), e);
         }
     }
 

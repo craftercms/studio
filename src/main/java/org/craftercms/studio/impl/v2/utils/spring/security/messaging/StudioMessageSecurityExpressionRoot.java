@@ -18,7 +18,7 @@ package org.craftercms.studio.impl.v2.utils.spring.security.messaging;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v2.dal.Group;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,14 +40,14 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
 
     protected UserServiceInternal userServiceInternal;
 
-    protected GroupServiceInternal groupServiceInternal;
+    protected SecurityService securityService;
 
     public StudioMessageSecurityExpressionRoot(Authentication authentication, Message<?> message,
                                                UserServiceInternal userServiceInternal,
-                                               GroupServiceInternal groupServiceInternal) {
+                                               SecurityService securityService) {
         super(authentication, message);
         this.userServiceInternal = userServiceInternal;
-        this.groupServiceInternal = groupServiceInternal;
+        this.securityService = securityService;
     }
 
     /**
@@ -69,7 +69,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
             }
 
             List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
-            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            List<String> siteGroups = securityService.getSiteGroups(siteId);
             return userGroups.stream()
                     .map(Group::getGroupName)
                     .anyMatch(siteGroups::contains);

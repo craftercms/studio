@@ -147,4 +147,15 @@ public interface UserServiceInternal {
      * @return true if user is system_admin, false otherwise
      */
     boolean isSystemAdmin(String username);
+
+    /**
+     * Get user global roles
+     * @param userId user id
+     * @param username user name
+     * @return  list of user global roles
+     * @throws ServiceLayerException
+     * @throws UserNotFoundException
+     */
+    List<String> getUserGlobalRoles(long userId, String username)
+            throws ServiceLayerException, UserNotFoundException;
 }

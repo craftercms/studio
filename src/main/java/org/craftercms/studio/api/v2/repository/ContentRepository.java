@@ -25,6 +25,7 @@ import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepository
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteRepositoryException;
 import org.craftercms.studio.api.v1.exception.repository.InvalidRemoteUrlException;
 import org.craftercms.studio.api.v1.exception.repository.RemoteRepositoryNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.to.DeploymentItemTO;
 import org.craftercms.studio.api.v2.dal.PublishingHistoryItem;
@@ -398,4 +399,15 @@ public interface ContentRepository {
      * @throws IOException if there is any error while copying the directories
      */
     void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException;
+
+    /**
+     * Create a new folder
+     * @param site site identifier
+     * @param path parent path to create the folder into
+     * @param name folder name
+     * @return commit id of the creation
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found error
+     */
+    String createFolder(String site, String path, String name) throws ServiceLayerException, UserNotFoundException;
 }

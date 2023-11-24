@@ -19,6 +19,7 @@ package org.craftercms.studio.impl.v2.service.content;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -42,6 +43,8 @@ public class ContentServiceImplTest {
     private static final String NON_EXISTENT_PATH = "/path/to/non/existing/item";
     private static final String SITE_NAME = "siteName";
     private static final String NON_EXISTENT_SITE_NAME = "nonExistentSiteName";
+    private static final String CREATE_FOLDER_PARENT_PATH = "/sample/parent-path";
+    private static final String CREATE_FOLDER_NEW_FOLDER_NAME = "new-folder";
 
     @Mock
     ContentRepository contentRepository;
@@ -98,6 +101,13 @@ public class ContentServiceImplTest {
     public void testSiteNotFound() {
         assertThrows(SiteNotFoundException.class, () ->
                 contentService.contentExists(NON_EXISTENT_SITE_NAME, NON_EXISTENT_PATH));
+    }
+
+    @Test
+    public void testCreateFolder() throws ServiceLayerException, UserNotFoundException {
+        contentService.createFolder(SITE_NAME, CREATE_FOLDER_PARENT_PATH, CREATE_FOLDER_NEW_FOLDER_NAME);
+        verify(contentServiceInternal, times(1))
+                .createFolder(SITE_NAME, CREATE_FOLDER_PARENT_PATH, CREATE_FOLDER_NEW_FOLDER_NAME);
     }
 
 }

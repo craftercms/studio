@@ -57,6 +57,4 @@ public interface GroupServiceInternal {
     void removeGroupMembers(long groupId, List<Long> userIds, List<String> usernames) throws GroupNotFoundException,
             UserNotFoundException, ServiceLayerException;
 
-    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
-
 }
