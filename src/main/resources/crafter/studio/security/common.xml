@@ -240,7 +240,7 @@
 
     <bean id="studio.semanticsAvailableActionsResolver"
           class="org.craftercms.studio.impl.v2.security.SemanticsAvailableActionsResolverImpl">
-        <property name="securityService" ref="studio.securityService" />
+        <property name="availableActionsResolver" ref="studio.availableActionsResolver" />
         <property name="contentServiceInternal" ref="contentServiceInternal" />
         <property name="servicesConfig" ref="cstudioServicesConfig" />
         <property name="workflowServiceInternal" ref="studio.workflowServiceInternal" />

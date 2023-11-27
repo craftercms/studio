@@ -27,10 +27,10 @@ import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.dal.WorkflowItem;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStore;
 import org.craftercms.studio.api.v2.repository.blob.StudioBlobStoreResolver;
+import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
 import org.craftercms.studio.api.v2.security.SemanticsAvailableActionsResolver;
 import org.craftercms.studio.api.v2.service.content.internal.ContentServiceInternal;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
-import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
@@ -53,7 +53,8 @@ import static org.craftercms.studio.api.v2.security.ContentItemPossibleActionsCo
 public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailableActionsResolver {
 
     private org.craftercms.studio.api.v1.service.security.SecurityService securityServiceV1;
-    private SecurityService securityService;
+
+    private AvailableActionsResolver availableActionsResolver;
     private ContentServiceInternal contentServiceInternal;
     private ServicesConfig servicesConfig;
     private WorkflowServiceInternal workflowServiceInternal;
@@ -64,7 +65,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, Item item)
             throws ServiceLayerException, UserNotFoundException {
-        long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, item.getPath());
+        long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, item.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(item.getSystemType());
         Person lockOwner = item.getLockOwner();
         String lockOwnerUsername = lockOwner != null ? lockOwner.getUsername() : null;
@@ -81,7 +82,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
     @Override
     public long calculateContentItemAvailableActions(String username, String siteId, DetailedItem detailedItem)
             throws ServiceLayerException, UserNotFoundException {
-        long userPermissionsBitmap = securityService.getAvailableActions(username, siteId, detailedItem.getPath());
+        long userPermissionsBitmap = availableActionsResolver.getContentItemAvailableActions(username, siteId, detailedItem.getPath());
         long systemTypeBitmap = getPossibleActionsForObject(detailedItem.getSystemType());
         Person lockOwner = detailedItem.getLockOwner();
         String lockOwnerUsername = lockOwner != null ? lockOwner.getUsername() : null;
@@ -203,7 +204,7 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
                                           long itemDeleteMask, long depDeleteMask)
             throws UserNotFoundException, ServiceLayerException {
         if (isNotEmpty(dependencyPath)) {
-            long depAvailableActions = securityService.getAvailableActions(username, siteId, dependencyPath);
+            long depAvailableActions = availableActionsResolver.getContentItemAvailableActions(username, siteId, dependencyPath);
             actions = updateForDependency(actions, depAvailableActions, itemEditMask, depEditMask);
             actions = updateForDependency(actions, depAvailableActions, itemDeleteMask, depDeleteMask);
         } else {
@@ -226,8 +227,8 @@ public class SemanticsAvailableActionsResolverImpl implements SemanticsAvailable
         return itemActions;
     }
 
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
+    public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {
+        this.availableActionsResolver = availableActionsResolver;
     }
 
     public void setContentServiceInternal(ContentServiceInternal contentServiceInternal) {

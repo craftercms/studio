@@ -23,49 +23,40 @@ import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.craftercms.studio.api.v2.security.AvailableActionsResolver;
+import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
+import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
+import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SecurityServiceImpl implements SecurityService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityServiceImpl.class);
 
-    private AvailableActionsResolver availableActionsResolver;
     private ConfigurationService configurationService;
     private StudioConfiguration studioConfiguration;
     private Cache<String, Object> configurationCache;
 
-    private static final String CACHE_KEY = "user-permissions";
+    protected UserServiceInternal userServiceInternal;
+    protected GroupServiceInternal groupServiceInternal;
 
-    @Override
-    public long getAvailableActions(String username, String site, String path)
-            throws ServiceLayerException, UserNotFoundException {
-        return availableActionsResolver.getContentItemAvailableActions(username, site, path);
-    }
+    private static final String CACHE_KEY = "user-permissions";
 
     @Override
     @SuppressWarnings("unchecked")
@@ -175,8 +166,27 @@ public class SecurityServiceImpl implements SecurityService {
         return null;
     }
 
-    public void setAvailableActionsResolver(AvailableActionsResolver availableActionsResolver) {
-        this.availableActionsResolver = availableActionsResolver;
+    @Override
+    public boolean isSiteMember(String username, String siteId) {
+        try {
+            if (isSystemAdmin(username)) {
+                return true;
+            }
+
+            List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
+            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            return userGroups.stream()
+                    .map(Group::getGroupName)
+                    .anyMatch(siteGroups::contains);
+        } catch (ServiceLayerException | UserNotFoundException e) {
+            logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isSystemAdmin(String username) {
+        return userServiceInternal.isSystemAdmin(username);
     }
 
     public void setConfigurationService(ConfigurationService configurationService) {
@@ -189,5 +199,13 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setConfigurationCache(Cache<String, Object> configurationCache) {
         this.configurationCache = configurationCache;
+    }
+
+    public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
+        this.userServiceInternal = userServiceInternal;
+    }
+
+    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
+        this.groupServiceInternal = groupServiceInternal;
     }
 }

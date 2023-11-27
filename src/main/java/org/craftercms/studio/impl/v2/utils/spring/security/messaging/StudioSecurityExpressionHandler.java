@@ -15,6 +15,7 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.security.messaging;
 
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.springframework.messaging.Message;
@@ -33,21 +34,17 @@ import org.springframework.security.messaging.access.expression.DefaultMessageSe
  */
 public class StudioSecurityExpressionHandler<T> extends DefaultMessageSecurityExpressionHandler<T> {
 
-    protected UserServiceInternal userServiceInternal;
+    protected final SecurityService securityService;
 
-    protected GroupServiceInternal groupServiceInternal;
-
-    public StudioSecurityExpressionHandler(UserServiceInternal userServiceInternal,
-                                           GroupServiceInternal groupServiceInternal) {
-        this.userServiceInternal = userServiceInternal;
-        this.groupServiceInternal = groupServiceInternal;
+    public StudioSecurityExpressionHandler(SecurityService securityService) {
+        this.securityService = securityService;
     }
 
     @Override
     protected SecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication,
                                                                         Message<T> invocation) {
         StudioMessageSecurityExpressionRoot root = new StudioMessageSecurityExpressionRoot(authentication, invocation,
-                                                        userServiceInternal, groupServiceInternal);
+                                                        securityService);
         root.setPermissionEvaluator(getPermissionEvaluator());
         // A new instance needs to be created because it is private in the super class
         root.setTrustResolver(new AuthenticationTrustResolverImpl());

@@ -23,8 +23,11 @@ import org.craftercms.studio.model.rest.*;
 import org.craftercms.studio.model.rest.security.EncryptRequest;
 import org.craftercms.studio.model.security.PersistentAccessToken;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.beans.ConstructorProperties;
 
@@ -89,6 +92,15 @@ public class SecurityController {
     @DeleteMapping("/tokens/{tokenId}")
     public Result deleteAccessToken(@PathVariable long tokenId) {
         accessTokenService.deleteAccessToken(tokenId);
+        var result = new Result();
+        result.setResponse(ApiResponse.OK);
+        return result;
+    }
+
+    @PostMapping("/preview/switch")
+    public Result switchPreviewSite(Authentication authentication, HttpServletRequest request, HttpServletResponse response)
+            throws ServiceLayerException {
+        accessTokenService.refreshPreviewCookie(authentication, request, response, false);
         var result = new Result();
         result.setResponse(ApiResponse.OK);
         return result;

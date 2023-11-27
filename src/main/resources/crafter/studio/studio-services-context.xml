@@ -208,10 +208,11 @@
     </bean>
 
     <bean id="studio.securityService" class="org.craftercms.studio.impl.v2.service.security.SecurityServiceImpl">
-        <property name="availableActionsResolver" ref="studio.availableActionsResolver" />
-        <property name="configurationService" ref="configurationService" />
-        <property name="studioConfiguration" ref="studioConfiguration" />
-        <property name="configurationCache" ref="configurationCache" />
+        <property name="configurationService" ref="configurationService"/>
+        <property name="studioConfiguration" ref="studioConfiguration"/>
+        <property name="configurationCache" ref="configurationCache"/>
+        <property name="userServiceInternal" ref="userServiceInternal"/>
+        <property name="groupServiceInternal" ref="groupServiceInternal"/>
     </bean>
 
     <bean id="cstudioContentTypeService" class="org.craftercms.studio.impl.v1.service.content.ContentTypeServiceImpl" >
@@ -417,7 +418,6 @@
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="siteService" ref="cstudioSiteServiceSimple"/>
         <constructor-arg name="securityService" ref="cstudioSecurityService"/>
-        <constructor-arg name="accessTokenService" ref="accessTokenServiceInternal"/>
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="userCache" ref="userDetailsCache"/>
         <constructor-arg name="zxcvbn">
@@ -1569,19 +1569,43 @@
         <constructor-arg name="auditServiceInternal" ref="auditServiceInternal"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration"/>
         <constructor-arg name="cstudioSiteServiceSimple" ref="cstudioSiteServiceSimple"/>
-        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
+        <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade"/>
         <constructor-arg name="systemStatusProvider" ref="bootstrapManager"/>
-        <property name="cookieName" value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
-        <property name="cookieMaxAge"
-                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
-        <property name="cookiePath" value="#{studioConfiguration.getProperty('studio.security.token.cookie.path')}"/>
-        <property name="cookieSecure"
-                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.secure')}"/>
-        <property name="cookieHttpOnly"
-                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.httpOnly')}"/>
-        <property name="cookieDomain"
-                  value="#{studioConfiguration.getProperty('studio.security.token.cookie.domain')}"/>
+        <constructor-arg name="previewTokenEncryptor" ref="crafter.textEncryptor"/>
+        <constructor-arg name="securityService" ref="studio.securityService"/>
         <property name="audience" value="#{studioConfiguration.getProperty('studio.security.token.audience')}"/>
+        <property name="refreshTokenCookieGenerator">
+            <bean class="org.springframework.web.util.CookieGenerator">
+                <property name="cookieName"
+                          value="#{studioConfiguration.getProperty('studio.security.token.cookie.name')}"/>
+                <property name="cookieMaxAge"
+                          value="#{studioConfiguration.getProperty('studio.security.token.cookie.maxAge')}"/>
+                <property name="cookiePath"
+                          value="#{studioConfiguration.getProperty('studio.security.token.cookie.path')}"/>
+                <property name="cookieSecure"
+                          value="#{studioConfiguration.getProperty('studio.security.token.cookie.secure')}"/>
+                <property name="cookieHttpOnly"
+                          value="#{studioConfiguration.getProperty('studio.security.token.cookie.httpOnly')}"/>
+                <property name="cookieDomain"
+                          value="#{studioConfiguration.getProperty('studio.security.token.cookie.domain')}"/>
+            </bean>
+        </property>
+        <property name="previewCookieGenerator">
+            <bean class="org.springframework.web.util.CookieGenerator">
+                <property name="cookieName"
+                          value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.name')}"/>
+                <property name="cookieMaxAge"
+                          value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.maxAge')}"/>
+                <property name="cookiePath"
+                          value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.path')}"/>
+                <property name="cookieSecure"
+                          value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.secure')}"/>
+                <property name="cookieHttpOnly"
+                          value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.httpOnly')}"/>
+                <property name="cookieDomain"
+                          value="#{studioConfiguration.getProperty('studio.security.token.previewCookie.domain')}"/>
+            </bean>
+        </property>
     </bean>
 
     <bean id="accessTokenService" class="org.craftercms.studio.impl.v2.service.security.AccessTokenServiceImpl">

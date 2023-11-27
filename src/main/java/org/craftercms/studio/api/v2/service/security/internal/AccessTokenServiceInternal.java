@@ -54,24 +54,21 @@ public interface AccessTokenServiceInternal {
 
     /**
      * Creates the access &amp; refresh tokens for the given authentication
-     * @param auth the current authentication
+     *
+     * @param auth     the current authentication
+     * @param request the request
      * @param response the response
      * @return the access token
      * @throws ServiceLayerException if there is any error creating the access token
      */
-    AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException;
-
-    /**
-     * Deletes the refresh token for the given authentication
-     * @param auth the current authentication
-     */
-    void deleteRefreshToken(Authentication auth);
+    AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException;
 
     /**
      * Deletes the refresh token for the given user
-     * @param user the user
+     *
+     * @param userId the id of the user
      */
-    void deleteRefreshToken(User user);
+    void deleteRefreshToken(long userId);
 
     /**
      * Deletes all expired refresh tokens
@@ -124,4 +121,22 @@ public interface AccessTokenServiceInternal {
      */
     void updateUserActivity(Authentication authentication);
 
+    /**
+     * Refresh the preview site cookie.
+     * This method will either update the cookie (or create it) with the current preview site
+     * if the user has access to it, or remove it if they do not.
+     *
+     * @param authentication the current authentication
+     * @param request        the request
+     * @param response       the response
+     * @param silent         if false, the method will throw an exception if the user does not have access to the preview site
+     */
+    void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response, boolean silent) throws ServiceLayerException;
+
+    /**
+     * Deletes the preview cookie
+     *
+     * @param response the response
+     */
+    void deletePreviewCookie(HttpServletResponse response);
 }

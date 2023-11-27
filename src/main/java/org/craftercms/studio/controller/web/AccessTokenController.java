@@ -59,7 +59,7 @@ public class AccessTokenController {
             return null;
         }
 
-        return accessTokenService.createTokens(authentication, response);
+        return accessTokenService.createTokens(authentication, request, response);
     }
 
     @GetMapping(value = "/authType", produces = APPLICATION_JSON_VALUE)
