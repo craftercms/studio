@@ -1381,7 +1381,7 @@ public class GitContentRepository implements ContentRepository {
         String gitLockKey = helper.getSandboxRepoLockKey(siteId, true);
         generalLockService.lock(gitLockKey);
         try {
-            Repository repo = helper.getRepository(siteId, StringUtils.isEmpty(siteId) ? GLOBAL : SANDBOX);
+            Repository repo = helper.getRepository(siteId, isEmpty(siteId) ? GLOBAL : SANDBOX);
 
             // Create basic file
             File file = new File(repo.getDirectory().getParent(), emptyFilePath.toString());

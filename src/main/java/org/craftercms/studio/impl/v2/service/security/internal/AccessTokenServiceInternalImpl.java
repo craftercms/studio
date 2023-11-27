@@ -17,15 +17,16 @@ package org.craftercms.studio.impl.v2.service.security.internal;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
 import org.craftercms.studio.api.v2.dal.SecurityDAO;
 import org.craftercms.studio.api.v2.dal.User;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
+import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v2.service.security.internal.AccessTokenServiceInternal;
 import org.craftercms.studio.api.v2.service.system.InstanceService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
@@ -45,6 +46,8 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.keys.PbkdfKey;
 import org.jose4j.lang.JoseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,24 +56,23 @@ import org.springframework.web.util.CookieGenerator;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.beans.ConstructorProperties;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.lang.Long.parseLong;
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.Instant.now;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_CREATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_DELETE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_LOGIN_FAILED;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.OPERATION_UPDATE;
-import static org.craftercms.studio.api.v2.dal.AuditLogConstants.TARGET_TYPE_ACCESS_TOKEN;
+import static org.craftercms.commons.http.HttpUtils.getCookieValue;
+import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.springframework.web.util.WebUtils.getCookie;
 
@@ -80,22 +82,22 @@ import static org.springframework.web.util.WebUtils.getCookie;
  * @author joseross
  * @since 4.0
  */
-public class AccessTokenServiceInternalImpl extends CookieGenerator
-        implements AccessTokenServiceInternal, InitializingBean {
+public class AccessTokenServiceInternalImpl implements AccessTokenServiceInternal, InitializingBean {
 
     private static final Logger logger = LoggerFactory.getLogger(AccessTokenServiceInternalImpl.class);
 
     public static final String ACTIVITY_CACHE_CONFIG_KEY = "studio.security.activity.cache.config";
+    private static final String CRAFTER_SITE_COOKIE_NAME = "crafterSite";
 
     /**
      * The issuer for generation access tokens
      */
-    protected String issuer;
+    protected final String issuer;
 
     /**
      * List of accepted issuers for validation of access tokens
      */
-    protected String[] validIssuers;
+    protected final String[] validIssuers;
 
     /**
      * The audience for generation and validation of access tokens
@@ -105,27 +107,30 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     /**
      * The time in minutes for the expiration of the generated access tokens
      */
-    protected int accessTokenExpiration;
+    protected final int accessTokenExpiration;
 
     /**
      * The password for signing the access tokens
      */
-    protected String signPassword;
+    protected final String signPassword;
 
     /**
      * The password for encrypting the access tokens
      */
-    protected String encryptPassword;
+    protected final String encryptPassword;
 
     /**
      * Time in minutes after which active users will be required to login again
      */
-    protected int sessionTimeout;
+    protected final int sessionTimeout;
 
     /**
      * Time in minutes after which inactive users will be required to login again
      */
-    protected int inactivityTimeout;
+    protected final int inactivityTimeout;
+
+    private CookieGenerator refreshTokenCookieGenerator;
+    private CookieGenerator previewCookieGenerator;
 
     /**
      * Cache used to track the activity of the users
@@ -135,24 +140,28 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     protected Key jwtSignKey;
     protected Key jwtEncryptKey;
 
-    protected SecurityDAO securityDao;
-    protected InstanceService instanceService;
-    protected AuditServiceInternal auditService;
-    protected StudioConfiguration studioConfiguration;
-    protected SiteService siteService;
-    protected RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
-    protected SystemStatusProvider systemStatusProvider;
+    protected final SecurityDAO securityDao;
+    protected final SecurityService securityService;
+    protected final InstanceService instanceService;
+    protected final AuditServiceInternal auditService;
+    protected final StudioConfiguration studioConfiguration;
+    protected final SiteService siteService;
+    protected final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
+    protected final SystemStatusProvider systemStatusProvider;
+    protected final TextEncryptor previewTokenEncryptor;
 
     @ConstructorProperties({"issuer", "validIssuers", "accessTokenExpiration", "signPassword", "encryptPassword",
             "sessionTimeout", "inactivityTimeout", "securityDao", "instanceService", "auditService",
-            "studioConfiguration", "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider"})
+            "studioConfiguration", "siteService", "retryingDatabaseOperationFacade", "systemStatusProvider",
+            "previewTokenEncryptor", "securityService"})
     public AccessTokenServiceInternalImpl(String issuer, String[] validIssuers, int accessTokenExpiration,
                                           String signPassword, String encryptPassword, int sessionTimeout,
                                           int inactivityTimeout, SecurityDAO securityDao,
                                           InstanceService instanceService, AuditServiceInternal auditService,
                                           StudioConfiguration studioConfiguration, SiteService siteService,
                                           RetryingDatabaseOperationFacade retryingDatabaseOperationFacade,
-                                          SystemStatusProvider systemStatusProvider) {
+                                          SystemStatusProvider systemStatusProvider, TextEncryptor previewTokenEncryptor,
+                                          SecurityService securityService) {
         this.issuer = issuer;
         this.validIssuers = validIssuers;
         this.accessTokenExpiration = accessTokenExpiration;
@@ -167,6 +176,8 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         this.siteService = siteService;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.systemStatusProvider = systemStatusProvider;
+        this.previewTokenEncryptor = previewTokenEncryptor;
+        this.securityService = securityService;
     }
 
     public void setAudience(String audience) {
@@ -176,15 +187,16 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     @Override
     public void afterPropertiesSet() {
         userActivity = CacheBuilder.from(studioConfiguration.getProperty(ACTIVITY_CACHE_CONFIG_KEY)).build();
-        jwtSignKey = new HmacKey(signPassword.getBytes(StandardCharsets.UTF_8));
+        jwtSignKey = new HmacKey(signPassword.getBytes(UTF_8));
         jwtEncryptKey = new PbkdfKey(encryptPassword);
-        setCookieHttpOnly(true); // Always HTTPOnly to protect the refresh token
+        refreshTokenCookieGenerator.setCookieHttpOnly(true); // Always HTTPOnly to protect the refresh token
+        previewCookieGenerator.setCookieHttpOnly(true);
     }
 
     @Override
     public boolean hasValidRefreshToken(Authentication auth, HttpServletRequest request, HttpServletResponse response) {
-        var cookie = getCookie(request, getCookieName());
-        var refreshToken = cookie != null? cookie.getValue() : null;
+        var cookie = getCookie(request, refreshTokenCookieGenerator.getCookieName());
+        var refreshToken = cookie != null ? cookie.getValue() : null;
         var userId = getUserId(auth);
 
         boolean valid = isNotEmpty(refreshToken) && securityDao.validateRefreshToken(userId, refreshToken);
@@ -193,7 +205,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         if (!valid) {
             SecurityContextHolder.clearContext();
             request.getSession().invalidate();
-            removeCookie(response);
+            refreshTokenCookieGenerator.removeCookie(response);
         }
 
         return valid;
@@ -205,12 +217,53 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         var userId = getUserId(auth);
 
         retryingDatabaseOperationFacade.retry(() -> securityDao.upsertRefreshToken(userId, refreshToken));
-
-        addCookie(response, refreshToken);
+        refreshTokenCookieGenerator.addCookie(response, refreshToken);
     }
 
     @Override
-    public AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException {
+    public void refreshPreviewCookie(final Authentication auth, final HttpServletRequest request, final HttpServletResponse response, boolean silent) throws ServiceLayerException {
+        String siteName = getCookieValue(CRAFTER_SITE_COOKIE_NAME, request);
+        if (isEmpty(siteName)) {
+            logger.debug("No site name found in '{}' cookie, removing preview cookie", CRAFTER_SITE_COOKIE_NAME);
+            previewCookieGenerator.removeCookie(response);
+        } else if (!securityService.isSiteMember(auth.getName(), siteName)) {
+            logger.debug("User '{}' is not a member of site '{}', removing preview cookie", auth.getName(), siteName);
+            previewCookieGenerator.removeCookie(response);
+            if (!silent) {
+                throw new SiteNotFoundException(siteName);
+            }
+        } else {
+            String previewCookie = createPreviewCookie(siteName);
+            previewCookieGenerator.addCookie(response, previewCookie);
+            logger.info("Refreshed preview cookie for user '{}'", auth.getName());
+        }
+    }
+
+    /**
+     * Creates an encrypted preview cookie for the given site name with the same expiration as the access token
+     *
+     * @param siteName the site name
+     * @return the preview cookie
+     * @throws ServiceLayerException if the cookie cannot be encrypted
+     */
+    private String createPreviewCookie(final String siteName) throws ServiceLayerException {
+        long timestamp = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(previewCookieGenerator.getCookieMaxAge());
+
+        String token = format("%s|%s", siteName, timestamp);
+        try {
+            return previewTokenEncryptor.encrypt(token);
+        } catch (CryptoException e) {
+            throw new ServiceLayerException("Failed to encrypt preview cookie", e);
+        }
+    }
+
+    @Override
+    public void deletePreviewCookie(HttpServletResponse response) {
+        previewCookieGenerator.removeCookie(response);
+    }
+
+    @Override
+    public AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException {
         logger.debug("Create tokens for '{}'", auth.getName());
         var issuedAt = now();
         var expireAt = issuedAt.plus(accessTokenExpiration, MINUTES);
@@ -218,6 +271,7 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         String token = createToken(issuedAt, expireAt, auth.getName(), null);
 
         updateRefreshToken(auth, response);
+        refreshPreviewCookie(auth, request, response, true);
 
         var accessToken = new AccessToken();
         accessToken.setToken(token);
@@ -227,17 +281,9 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
     }
 
     @Override
-    public void deleteRefreshToken(Authentication auth) {
-        var userId = getUserId(auth);
+    public void deleteRefreshToken(long userId) {
         userActivity.invalidate(userId);
         retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshToken(userId));
-    }
-
-    @Override
-    public void deleteRefreshToken(User user) {
-        logger.debug("Trigger re-authentication for user '{}'", user.getUsername());
-        userActivity.invalidate(user.getId());
-        retryingDatabaseOperationFacade.retry(() -> securityDao.deleteRefreshToken(user.getId()));
     }
 
     @Override
@@ -425,4 +471,11 @@ public class AccessTokenServiceInternalImpl extends CookieGenerator
         userActivity.put(getUserId(authentication), now());
     }
 
+    public void setRefreshTokenCookieGenerator(final CookieGenerator refreshTokenCookieGenerator) {
+        this.refreshTokenCookieGenerator = refreshTokenCookieGenerator;
+    }
+
+    public void setPreviewCookieGenerator(final CookieGenerator previewCookieGenerator) {
+        this.previewCookieGenerator = previewCookieGenerator;
+    }
 }

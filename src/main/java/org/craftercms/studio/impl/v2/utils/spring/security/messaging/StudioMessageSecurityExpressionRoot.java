@@ -15,18 +15,12 @@
  */
 package org.craftercms.studio.impl.v2.utils.spring.security.messaging;
 
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
-import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.messaging.access.expression.MessageSecurityExpressionRoot;
-
-import java.util.List;
 
 /**
  * Extension of {@link MessageSecurityExpressionRoot} that adds Studio specific security expressions.
@@ -37,16 +31,11 @@ import java.util.List;
 public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressionRoot {
 
     private static final Logger logger = LoggerFactory.getLogger(StudioMessageSecurityExpressionRoot.class);
-
-    protected UserServiceInternal userServiceInternal;
-
-    protected SecurityService securityService;
+    protected final SecurityService securityService;
 
     public StudioMessageSecurityExpressionRoot(Authentication authentication, Message<?> message,
-                                               UserServiceInternal userServiceInternal,
                                                SecurityService securityService) {
         super(authentication, message);
-        this.userServiceInternal = userServiceInternal;
         this.securityService = securityService;
     }
 
@@ -54,7 +43,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
      * Checks if the current user has the {@code system_admin} role
      */
     public boolean isSystemAdmin() {
-        return userServiceInternal.isSystemAdmin(getAuthentication().getName());
+        return securityService.isSystemAdmin(getAuthentication().getName());
     }
 
     /**
@@ -63,20 +52,7 @@ public class StudioMessageSecurityExpressionRoot extends MessageSecurityExpressi
      * @param siteId the id of the site to check
      */
     public boolean isSiteMember(String siteId) {
-        try {
-            if (isSystemAdmin()) {
-                return true;
-            }
-
-            List<Group> userGroups = userServiceInternal.getUserGroups(-1, getAuthentication().getName());
-            List<String> siteGroups = securityService.getSiteGroups(siteId);
-            return userGroups.stream()
-                    .map(Group::getGroupName)
-                    .anyMatch(siteGroups::contains);
-        } catch (ServiceLayerException | UserNotFoundException e) {
-            logger.error("Failed to check the groups for user '{}' in site '{}'", getAuthentication().getName(), siteId, e);
-        }
-        return false;
+        return securityService.isSiteMember(getAuthentication().getName(), siteId);
     }
 
 }

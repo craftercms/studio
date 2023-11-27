@@ -60,13 +60,13 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
-    public AccessToken createTokens(Authentication auth, HttpServletResponse response) throws ServiceLayerException {
-        return accessTokenServiceInternal.createTokens(auth, response);
+    public AccessToken createTokens(Authentication auth, HttpServletRequest request, HttpServletResponse response) throws ServiceLayerException {
+        return accessTokenServiceInternal.createTokens(auth, request, response);
     }
 
     @Override
-    public void deleteRefreshToken(Authentication auth) {
-        accessTokenServiceInternal.deleteRefreshToken(auth);
+    public void deleteRefreshToken(long userId) {
+        accessTokenServiceInternal.deleteRefreshToken(userId);
     }
 
     @Override
@@ -110,6 +110,16 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     @Override
     public void updateUserActivity(Authentication authentication) {
         accessTokenServiceInternal.updateUserActivity(authentication);
+    }
+
+    @Override
+    public void refreshPreviewCookie(Authentication authentication, HttpServletRequest request, HttpServletResponse response, boolean silent) throws ServiceLayerException {
+        accessTokenServiceInternal.refreshPreviewCookie(authentication, request, response, silent);
+    }
+
+    @Override
+    public void deletePreviewCookie(HttpServletResponse response) {
+        accessTokenServiceInternal.deletePreviewCookie(response);
     }
 
 }
