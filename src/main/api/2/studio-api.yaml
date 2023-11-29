@@ -2070,7 +2070,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
  
-  /api/1/services/api/1/site/create:
+  /api/1/services/api/1/site/create.json:
     post:
       tags:
         - sites
@@ -2170,7 +2170,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'  
           
-  /api/1/services/api/1/site/delete-site:
+  /api/1/services/api/1/site/delete-site.json:
     post:
       tags:
         - sites
@@ -2210,7 +2210,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'           
                           
-  /api/1/services/api/1/site/exists: 
+  /api/1/services/api/1/site/exists.json: 
     get:
       tags:
         - sites
@@ -2242,7 +2242,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'            
   
-  /api/1/services/api/1/site/get-canned-message: 
+  /api/1/services/api/1/site/get-canned-message.json: 
     get:
       tags:
         - sites
@@ -2288,7 +2288,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'            
   
-  /api/1/services/api/1/site/get: 
+  /api/1/services/api/1/site/get.json: 
     get:
       tags:
         - sites
@@ -2338,7 +2338,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'            
   
-  /api/1/services/api/1/site/monitor-content: 
+  /api/1/services/api/1/site/monitor-content.json: 
     get:
       tags:
         - sites
@@ -2369,7 +2369,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'                    
 
-  /api/1/services/api/1/repo/sync-from-repo: 
+  /api/1/services/api/1/repo/sync-from-repo.json: 
     post:
       tags:
         - repository
@@ -2410,7 +2410,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'                    
 
-  /api/1/services/api/1/security/get-user-permissions: 
+  /api/1/services/api/1/security/get-user-permissions.json: 
     get:
       tags:
         - security
@@ -2449,7 +2449,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'   
       
-  /api/1/services/api/1/publish/commits: 
+  /api/1/services/api/1/publish/commits.json: 
     post:
       tags:
         - publishing
@@ -2512,7 +2512,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'                    
   
-  /api/1/services/api/1/publish/start: 
+  /api/1/services/api/1/publish/start.json: 
     post:
       tags:
         - publishing
@@ -2553,7 +2553,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
-  /api/1/services/api/1/publish/stop: 
+  /api/1/services/api/1/publish/stop.json: 
     post:
       tags:
         - publishing
@@ -2594,7 +2594,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
   
-  /api/1/services/api/1/publish/publish-items: 
+  /api/1/services/api/1/publish/publish-items.json: 
     post:
       tags:
         - publishing
@@ -2649,7 +2649,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
-  /api/1/services/api/1/publish/reset-staging: 
+  /api/1/services/api/1/publish/reset-staging.json: 
     post:
       tags:
         - publishing
@@ -2688,7 +2688,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
 
-  /api/1/services/api/1/dependency/calculate-dependencies:
+  /api/1/services/api/1/dependency/calculate-dependencies.json:
     post:
       tags:
         - dependency
@@ -2746,7 +2746,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
         
-  /api/1/services/api/1/dependency/get-dependant:
+  /api/1/services/api/1/dependency/get-dependant.json:
     post:
       tags:
         - dependency
@@ -2788,7 +2788,7 @@ paths:
         '500':
           $ref: '#/components/responses/api1InternalServerError'
   
-  /api/1/services/api/1/dependency/get-simple-dependencies:
+  /api/1/services/api/1/dependency/get-simple-dependencies.json:
     post:
       tags:
         - dependency
@@ -3604,7 +3604,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/1/services/api/1/repo/write-content: 
+  /api/1/services/api/1/repo/write-content.json: 
     post:
       tags:
         - content
