@@ -3604,7 +3604,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/1/services/api/1/repo/write-content.json: 
+  /api/1/services/api/1/content/write-content.json: 
     post:
       tags:
         - content
