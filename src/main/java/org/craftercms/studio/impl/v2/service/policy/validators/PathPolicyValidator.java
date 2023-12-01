@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.craftercms.studio.impl.v2.service.policy.PolicyValidator;
 import org.craftercms.studio.model.policy.Action;
 import org.craftercms.studio.model.policy.ValidationResult;
+
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.*;
 
 /**
@@ -58,18 +60,27 @@ public class PathPolicyValidator implements PolicyValidator {
         var sourceRegex = config.getString(CONFIG_KEY_SOURCE_REGEX);
         if (!item.matches(sourceRegex)) {
             String modifiedItem = null;
+            StringBuilder reasonBuilder = new StringBuilder();
             var targetRegex = config.getString(CONFIG_KEY_TARGET_REGEX);
             if (targetRegex != null) {
                 modifiedItem = item.replaceAll(sourceRegex, targetRegex);
-
+                if (!modifiedItem.equalsIgnoreCase(item)) {
+                    addPolicyReason(reasonBuilder, format("Path is replaced from source regex '%s' to target regex '%s'.", sourceRegex, targetRegex));
+                }
                 var caseTransform = config.getString(CONFIG_KEY_CASE_TRANSFORM);
                 if (isNotEmpty(caseTransform)) {
                     switch (caseTransform.toLowerCase()) {
                         case "uppercase":
-                            modifiedItem = modifiedItem.toUpperCase();
+                            if (modifiedItem.chars().anyMatch(c -> Character.isLowerCase(c))) {
+                                addPolicyReason(reasonBuilder, "Path is transformed to uppercase.");
+                                modifiedItem = modifiedItem.toUpperCase();
+                            }
                             break;
                         case "lowercase":
-                            modifiedItem = modifiedItem.toLowerCase();
+                            if (modifiedItem.chars().anyMatch(c -> Character.isUpperCase(c))) {
+                                addPolicyReason(reasonBuilder, "Path is transformed to lowercase.");
+                                modifiedItem = modifiedItem.toLowerCase();
+                            }
                             break;
                         default:
                             logger.warn("Unsupported case transformation '{}' for action '{}'",
@@ -87,6 +98,7 @@ public class PathPolicyValidator implements PolicyValidator {
             if (isNotEmpty(modifiedItem)) {
                 String modifiedValue = removeEnd(target, item) + modifiedItem;
                 result.setModifiedValue(modifiedValue);
+                result.setMessage(reasonBuilder.toString());
             }
             if (!result.isAllowed()) {
                 logger.error("Path '{}' is invalid for action '{}'", action.getTarget(), action);
@@ -99,6 +111,19 @@ public class PathPolicyValidator implements PolicyValidator {
         if (permittedConfig != null) {
             validatePermitted(permittedConfig, action, validationResult);
         }
+    }
+
+    /**
+     * Add a reason to the string builder
+     * @param builder {@code StringBuilder} object
+     * @param message a new reason to add
+     */
+    private void addPolicyReason(StringBuilder builder, String message) {
+        if (!builder.isEmpty()) {
+            builder.append(" ");
+        }
+
+        builder.append(message);
     }
 
 }
