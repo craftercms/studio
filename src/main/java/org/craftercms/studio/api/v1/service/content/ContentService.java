@@ -109,6 +109,7 @@ public interface ContentService {
      * @param encoding file encoding
      * @return document
      */
+    @Deprecated
     String getContentAsString(String site, String path, String encoding);
 
     /**
@@ -355,6 +356,7 @@ public interface ContentService {
 
     GoLiveDeleteCandidates getDeleteCandidates(String site, String uri) throws ServiceLayerException;
 
+    @Deprecated
     void lockContent(String site, String path) throws UserNotFoundException, ServiceLayerException;
 
     List<DmOrderTO> getItemOrders(String site, String path) throws ContentNotFoundException;
