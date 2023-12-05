@@ -2994,6 +2994,42 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /configuration/content-types/{siteId}/all:
+    get:
+        tags:
+            - configuration
+        summary: Get all content types for site
+        description: 'Required permission "read_configuration"'
+        operationId: getAllContentTypes
+        parameters:
+            - name: siteId
+              in: path
+              description: Site ID
+              required: true
+              schema:
+                  type: string
+        responses:
+          '200':
+            description: OK
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      types:
+                        type: object
+                        $ref: '#/components/schemas/ContentTypes'
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalServerError'
+
   /configuration/get_configuration:
     get:
       tags:
@@ -9333,6 +9369,18 @@ components:
           type: boolean
           description: If true, the blob stores will be read-only in the copied site.
           default: true
+
+    ContentTypes:
+      type: array
+      items:
+        $ref: '#/components/schemas/ContentType'
+      example:
+        - ["<content-type name=\"/page/home\"...", "<form><title>Home</title>..."]
+        - ["<content-type name=\"/page/article\"...", "<form><title>Article</title>..."]
+    ContentType:
+      type: array
+      items:
+        type: string
 
   responses:
     NotFound:
