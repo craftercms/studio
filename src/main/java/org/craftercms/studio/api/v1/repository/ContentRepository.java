@@ -63,7 +63,19 @@ public interface ContentRepository {
      *
      * @throws ContentNotFoundException content not found at given path
      */
-    InputStream getContent(String site, String path) throws ContentNotFoundException;
+    default InputStream getContent(String site, String path) throws ContentNotFoundException {
+        return getContent(site, path, false);
+    }
+
+    /**
+     * Get content from the repository
+     * @param site the site id
+     * @param path the path of the content
+     * @param shallow if true, it will load the file from disk directly, instead of retrieving it from git repository
+     * @return InputStream to read the content
+     * @throws ContentNotFoundException if the content is not found
+     */
+    InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException;
 
     /**
      * write content

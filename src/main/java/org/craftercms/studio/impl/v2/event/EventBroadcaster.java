@@ -43,7 +43,10 @@ public class EventBroadcaster {
     @EventListener
     public void publishEvent(BroadcastEvent event) {
         logger.debug("Broadcast event '{}'", event);
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String destination = DESTINATION_ROOT;
         if (event instanceof SiteAwareEvent) {
             destination += "/" + ((SiteAwareEvent) event).getSiteId();

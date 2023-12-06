@@ -170,14 +170,14 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public boolean shallowContentExists(@ValidateStringParam String site,
+    public boolean shallowContentExists(String site,
                                         @ValidateSecurePathParam String path) {
         return this._contentRepository.shallowContentExists(site, path);
     }
 
     @Override
     @Valid
-    public InputStream getContent(@ValidateStringParam String site,
+    public InputStream getContent(String site,
                                   @ValidateSecurePathParam String path)
             throws ContentNotFoundException {
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
@@ -211,14 +211,35 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    public String shallowGetContentAsString(String siteId, String path) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
+        String contentAsStringInternal = getContentAsStringInternal(siteId, path, null, true);
+        if (logger.isTraceEnabled()) {
+            logger.trace("shallowGetContentAsString site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
+        return contentAsStringInternal;
+    }
+
+    @Override
     @Valid
-    public String getContentAsString(@ValidateStringParam String site,
+    public String getContentAsString(String site,
                                      @ValidateSecurePathParam String path,
-                                     @ValidateStringParam String encoding)  {
+                                     String encoding)  {
+        return getContentAsStringInternal(site, path, encoding, false);
+    }
+
+    private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
-        try (InputStream is = _contentRepository.getContent(site, path)) {
+        try (InputStream is = _contentRepository.getContent(site, path, shallow)) {
             if (is != null) {
                 if (isEmpty(encoding)) {
                     content = IOUtils.toString(is, UTF_8);
@@ -226,11 +247,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
                     content = IOUtils.toString(is, encoding);
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             logger.debug("Failed to get content as string from site '{}' path '{}'", site, path, e);
         }
-
+        if (logger.isTraceEnabled()) {
+            logger.debug("getContentAsStringInternal site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
+        }
         return content;
     }
 

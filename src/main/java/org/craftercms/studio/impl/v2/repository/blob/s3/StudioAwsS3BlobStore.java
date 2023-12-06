@@ -138,7 +138,7 @@ public class StudioAwsS3BlobStore extends AwsS3BlobStore implements StudioBlobSt
     }
 
     @Override
-    public InputStream getContent(String site, String path) {
+    public InputStream getContent(String site, String path, boolean shallow) {
         Mapping previewMapping = getMapping(publishingTargetResolver.getPublishingTarget());
         logger.debug("Get content from site '{}' path '{}'", site, getFullKey(previewMapping, path));
         try {
