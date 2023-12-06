@@ -35,22 +35,32 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
+import org.craftercms.studio.model.contentType.ContentTypeConfigFiles;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.lang.String.format;
+import static java.nio.file.Files.walkFileTree;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.io.FilenameUtils.normalize;
 import static org.apache.commons.lang3.RegExUtils.replaceAll;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.craftercms.studio.api.v1.constant.GitRepositories.SANDBOX;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_CREATE;
 
@@ -64,22 +74,29 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     protected final SiteService siteService;
 
     protected final String contentTypeBasePathPattern;
+    protected final String contentTypesRootPath;
     protected final String contentTypeDefinitionFilename;
+    protected final String contentTypeConfigFilename;
     protected final String templateXPath;
     protected final String controllerPattern;
     protected final String controllerFormat;
     protected final String previewImageXPath;
     protected final String defaultPreviewImagePath;
+    private final GitRepositoryHelper gitRepositoryHelper;
 
     @ConstructorProperties({"contentTypeService", "securityService", "configurationService", "itemDao",
-            "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename",
-            "templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath"})
+            "siteService", "contentTypeBasePathPattern", "contentTypeDefinitionFilename", "contentTypeConfigFilename",
+            "contentTypesRootPath",
+            "templateXPath", "controllerPattern", "controllerFormat", "previewImageXPath", "defaultPreviewImagePath",
+            "gitRepositoryHelper"})
     public ContentTypeServiceInternalImpl(ContentTypeService contentTypeService, SecurityService securityService,
                                           ConfigurationService configurationService, ItemDAO itemDao,
                                           SiteService siteService, String contentTypeBasePathPattern,
-                                          String contentTypeDefinitionFilename, String templateXPath,
+                                          String contentTypeDefinitionFilename, String contentTypeConfigFilename,
+                                          String contentTypesRootPath, String templateXPath,
                                           String controllerPattern, String controllerFormat,
-                                          String previewImageXPath, String defaultPreviewImagePath) {
+                                          String previewImageXPath, String defaultPreviewImagePath,
+                                          GitRepositoryHelper gitRepositoryHelper) {
         this.contentTypeService = contentTypeService;
         this.securityService = securityService;
         this.configurationService = configurationService;
@@ -87,11 +104,14 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         this.siteService = siteService;
         this.contentTypeBasePathPattern = contentTypeBasePathPattern;
         this.contentTypeDefinitionFilename = contentTypeDefinitionFilename;
+        this.contentTypeConfigFilename = contentTypeConfigFilename;
+        this.contentTypesRootPath = contentTypesRootPath;
         this.templateXPath = templateXPath;
         this.controllerPattern = controllerPattern;
         this.controllerFormat = controllerFormat;
         this.previewImageXPath = previewImageXPath;
         this.defaultPreviewImagePath = defaultPreviewImagePath;
+        this.gitRepositoryHelper = gitRepositoryHelper;
     }
 
     public void setContentService(ContentService contentService) {
@@ -200,6 +220,40 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
         }
 
         return null;
+    }
+
+    @Override
+    public Collection<ContentTypeConfigFiles> getAllContentTypes(String site) throws ServiceLayerException {
+        siteService.checkSiteExists(site);
+        List<ContentTypeConfigFiles> contentTypes = new LinkedList<>();
+
+        Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, site);
+        Path contentTypesRepoPath = repoRootPath.resolve(gitRepositoryHelper.getGitPath(contentTypesRootPath));
+        try {
+            walkFileTree(contentTypesRepoPath, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    return visitContentTypeFile(file, contentTypes);
+                }
+            });
+        } catch (IOException e) {
+            throw new ServiceLayerException(format("Failed to retrieve content types for site '%s'", site), e);
+        }
+
+        return contentTypes;
+    }
+
+    @NotNull
+    private FileVisitResult visitContentTypeFile(final Path file, final List<ContentTypeConfigFiles> contentTypes) throws IOException {
+        if (!file.getFileName().toString().equals(contentTypeDefinitionFilename)) {
+            return FileVisitResult.CONTINUE;
+        }
+        ContentTypeConfigFiles contentType = new ContentTypeConfigFiles();
+        contentType.setFormDefinition(Files.readString(file));
+        Path configFilePath = file.resolveSibling(contentTypeConfigFilename);
+        contentType.setConfig(Files.readString(configFilePath));
+        contentTypes.add(contentType);
+        return FileVisitResult.SKIP_SIBLINGS;
     }
 
     protected String getContentTypePath(String contentType) {

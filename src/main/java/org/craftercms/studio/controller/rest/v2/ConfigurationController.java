@@ -34,8 +34,11 @@ import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
+import org.craftercms.studio.model.contentType.ContentTypes;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +64,7 @@ public class ConfigurationController {
     private final ConfigurationService configurationService;
     private final StudioConfiguration studioConfiguration;
     private final ContentTypeService contentTypeService;
+    private static final Logger logger = LoggerFactory.getLogger(ConfigurationController.class);
 
     @ConstructorProperties({"configurationService", "studioConfiguration", "contentTypeService"})
     public ConfigurationController(ConfigurationService configurationService, StudioConfiguration studioConfiguration,
@@ -78,6 +82,20 @@ public class ConfigurationController {
         return result;
     }
 
+    @GetMapping("/content-types/{siteId}/all")
+    public ResponseBody getAllContentTypes(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
+        ResponseBody responseBody = new ResponseBody();
+        long startTime = System.currentTimeMillis();
+        ContentTypes result = new ContentTypes(contentTypeService.getAllContentTypes(siteId));
+
+        if (logger.isTraceEnabled()) {
+            logger.trace("Get all content types for site '{}' took '{}' milliseconds", siteId, System.currentTimeMillis() - startTime);
+        }
+        result.setResponse(OK);
+        responseBody.setResult(result);
+        return responseBody;
+    }
+
     @GetMapping("/get_configuration")
     public ResponseBody getConfiguration(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
@@ -85,6 +103,7 @@ public class ConfigurationController {
                                          @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws ContentNotFoundException {
         final String content;
+        long startTime = System.currentTimeMillis();
         if (StringUtils.equals(siteId, studioConfiguration.getProperty(CONFIGURATION_GLOBAL_SYSTEM_SITE))) {
             content = configurationService.getGlobalConfigurationAsString(path);
         } else {
@@ -96,6 +115,9 @@ public class ConfigurationController {
         result.setEntity("content", content);
         result.setResponse(OK);
         responseBody.setResult(result);
+        if (logger.isTraceEnabled()) {
+            logger.trace("getConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
         return responseBody;
     }
 
@@ -120,9 +142,9 @@ public class ConfigurationController {
 
     @GetMapping("/get_configuration_history")
     public ResultOne<ConfigurationHistory> getConfigurationHistory(@ValidSiteId @RequestParam(name = "siteId", required = true) String siteId,
-                                                @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
-                                                @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
-                                                @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
+                                                                   @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "module", required = true) String module,
+                                                                   @ValidConfigurationPath @RequestParam(name = "path", required = true) String path,
+                                                                   @EsapiValidatedParam(type = ALPHANUMERIC) @RequestParam(name = "environment", required = false) String environment)
             throws ServiceLayerException {
         ConfigurationHistory history = configurationService.getConfigurationHistory(siteId, module, path, environment);
 

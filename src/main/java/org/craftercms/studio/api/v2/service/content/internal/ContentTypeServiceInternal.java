@@ -22,9 +22,11 @@ import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
+import org.craftercms.studio.model.contentType.ContentTypeConfigFiles;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ContentTypeServiceInternal {
@@ -86,4 +88,12 @@ public interface ContentTypeServiceInternal {
      */
     String getContentTypeTemplatePath(String siteId, String contentTypeId) throws ServiceLayerException;
 
+    /**
+     * Get all content types for the given site.
+     *
+     * @param site the id of the site
+     * @return a collection of content types including their config files (config.xml, form-definition.xml)
+     * @throws ServiceLayerException if there is any error getting the content types
+     */
+    Collection<ContentTypeConfigFiles> getAllContentTypes(String site) throws ServiceLayerException;
 }

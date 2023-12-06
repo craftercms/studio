@@ -26,13 +26,14 @@ import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
+import org.craftercms.studio.model.contentType.ContentTypeConfigFiles;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Default implementation for {@link ContentTypeService}
@@ -95,6 +96,13 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     public void deleteContentType(@SiteId String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public Collection<ContentTypeConfigFiles> getAllContentTypes(@SiteId final String site) throws ServiceLayerException {
+        return contentTypeServiceInternal.getAllContentTypes(site);
     }
 
 }
