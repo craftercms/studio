@@ -20,7 +20,6 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
-import org.craftercms.studio.model.contentType.ContentTypeConfigFiles;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
@@ -74,5 +73,5 @@ public interface ContentTypeService {
      * @return a collection of content types including their config files (config.xml, form-definition.xml)
      * @throws ServiceLayerException if there is any error getting the content types
      */
-    Collection<ContentTypeConfigFiles> getAllContentTypes(String siteId) throws ServiceLayerException;
+    Collection<String> getAllModelDefinitions(String siteId) throws ServiceLayerException;
 }

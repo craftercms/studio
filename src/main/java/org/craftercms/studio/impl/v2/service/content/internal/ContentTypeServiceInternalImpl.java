@@ -36,7 +36,6 @@ import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.content.ContentService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.api.v2.utils.GitRepositoryHelper;
-import org.craftercms.studio.model.contentType.ContentTypeConfigFiles;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.dom4j.Document;
 import org.dom4j.Node;
@@ -47,7 +46,10 @@ import org.springframework.core.io.Resource;
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -223,9 +225,9 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
     }
 
     @Override
-    public Collection<ContentTypeConfigFiles> getAllContentTypes(String site) throws ServiceLayerException {
+    public Collection<String> getAllModelDefinitions(String site) throws ServiceLayerException {
         siteService.checkSiteExists(site);
-        List<ContentTypeConfigFiles> contentTypes = new LinkedList<>();
+        List<String> modelDefinitions = new LinkedList<>();
 
         Path repoRootPath = gitRepositoryHelper.buildRepoPath(SANDBOX, site);
         Path contentTypesRepoPath = repoRootPath.resolve(gitRepositoryHelper.getGitPath(contentTypesRootPath));
@@ -233,26 +235,22 @@ public class ContentTypeServiceInternalImpl implements ContentTypeServiceInterna
             walkFileTree(contentTypesRepoPath, new SimpleFileVisitor<>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    return visitContentTypeFile(file, contentTypes);
+                    return visitContentTypeFile(file, modelDefinitions);
                 }
             });
         } catch (IOException e) {
             throw new ServiceLayerException(format("Failed to retrieve content types for site '%s'", site), e);
         }
 
-        return contentTypes;
+        return modelDefinitions;
     }
 
     @NotNull
-    private FileVisitResult visitContentTypeFile(final Path file, final List<ContentTypeConfigFiles> contentTypes) throws IOException {
+    private FileVisitResult visitContentTypeFile(final Path file, final List<String> contentTypes) throws IOException {
         if (!file.getFileName().toString().equals(contentTypeDefinitionFilename)) {
             return FileVisitResult.CONTINUE;
         }
-        ContentTypeConfigFiles contentType = new ContentTypeConfigFiles();
-        contentType.setFormDefinition(Files.readString(file));
-        Path configFilePath = file.resolveSibling(contentTypeConfigFilename);
-        contentType.setConfig(Files.readString(configFilePath));
-        contentTypes.add(contentType);
+        contentTypes.add(Files.readString(file));
         return FileVisitResult.SKIP_SIBLINGS;
     }
 

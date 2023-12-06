@@ -34,7 +34,6 @@ import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.api.v2.utils.StudioUtils;
 import org.craftercms.studio.model.config.TranslationConfiguration;
-import org.craftercms.studio.model.contentType.ContentTypes;
 import org.craftercms.studio.model.rest.ResponseBody;
 import org.craftercms.studio.model.rest.*;
 import org.slf4j.Logger;
@@ -80,20 +79,6 @@ public class ConfigurationController {
         var result = new Result();
         result.setResponse(OK);
         return result;
-    }
-
-    @GetMapping("/content-types/{siteId}/all")
-    public ResponseBody getAllContentTypes(@ValidSiteId @PathVariable("siteId") String siteId) throws ServiceLayerException {
-        ResponseBody responseBody = new ResponseBody();
-        long startTime = System.currentTimeMillis();
-        ContentTypes result = new ContentTypes(contentTypeService.getAllContentTypes(siteId));
-
-        if (logger.isTraceEnabled()) {
-            logger.trace("Get all content types for site '{}' took '{}' milliseconds", siteId, System.currentTimeMillis() - startTime);
-        }
-        result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
     }
 
     @GetMapping("/get_configuration")

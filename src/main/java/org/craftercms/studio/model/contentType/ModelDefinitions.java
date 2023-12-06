@@ -20,16 +20,16 @@ import org.craftercms.studio.model.rest.Result;
 import java.util.Collection;
 
 /**
- * Contains a collection of {@link ContentTypeConfigFiles} objects.
+ * Contains a collection of {@link String} representing the model definitions.
  */
-public class ContentTypes extends Result {
-    private final Collection<ContentTypeConfigFiles> types;
+public class ModelDefinitions extends Result {
+    private final Collection<String> types;
 
-    public ContentTypes(Collection<ContentTypeConfigFiles> types) {
+    public ModelDefinitions(Collection<String> types) {
         this.types = types;
     }
 
-    public Collection<ContentTypeConfigFiles> getTypes() {
+    public Collection<String> getTypes() {
         return types;
     }
 
