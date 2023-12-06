@@ -147,7 +147,10 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
     }
 
     protected InputStream shallowGetContent(String site, String path) throws ContentNotFoundException {
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         Path filePath = helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path));
         try {
             FileInputStream fileInputStream = new FileInputStream(filePath.toFile());

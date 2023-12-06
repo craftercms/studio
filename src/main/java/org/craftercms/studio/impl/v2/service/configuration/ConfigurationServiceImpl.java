@@ -206,7 +206,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                            String module,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                            String environment) throws ContentNotFoundException {
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String content = getEnvironmentConfiguration(siteId, module, path, environment);
         if (content == null) {
             throw new ContentNotFoundException(path, siteId,
@@ -348,7 +351,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String configPath;
         if (isNotEmpty(module)) {
             String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
@@ -365,7 +371,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)

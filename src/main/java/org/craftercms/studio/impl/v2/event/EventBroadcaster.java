@@ -53,7 +53,10 @@ public class EventBroadcaster {
 
     private void publishEvent(final Object event, final String destination) {
         logger.debug("Broadcast event '{}'", event);
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         messagingTemplate.convertAndSend(destination, event);
         if (logger.isTraceEnabled()) {
             long total = System.currentTimeMillis() - startTime;

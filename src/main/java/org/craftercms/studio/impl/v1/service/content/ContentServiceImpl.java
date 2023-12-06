@@ -214,7 +214,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     public String shallowGetContentAsString(String siteId, String path) {
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String contentAsStringInternal = getContentAsStringInternal(siteId, path, null, true);
         if (logger.isTraceEnabled()) {
             logger.trace("shallowGetContentAsString site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
@@ -231,7 +234,10 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     private String getContentAsStringInternal(String site, String path, String encoding, boolean shallow) {
-        long startTime = System.currentTimeMillis();
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         // TODO: SJ: Refactor in 4.x as this already exists in Crafter Core (which is part of the new Studio)
         String content = null;
 
