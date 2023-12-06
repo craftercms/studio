@@ -201,16 +201,16 @@ public class BlobAwareContentRepository implements ContentRepository,
     }
 
     @Override
-    public InputStream getContent(String site, String path) {
+    public InputStream getContent(String site, String path, boolean shallow) {
         logger.debug("Get content from site '{}' path '{}'", site, path);
         try {
             if (!isFolder(site, path) && pointersExist(site, path)) {
                 StudioBlobStore store = getBlobStore(site, path);
                 if (store != null) {
-                    return store.getContent(site, normalize(path));
+                    return store.getContent(site, normalize(path), shallow);
                 }
             }
-            return localRepositoryV1.getContent(site, path);
+            return localRepositoryV1.getContent(site, path, shallow);
         } catch (Exception e) {
             logger.error("Failed to get content from site '{}' path '{}'", site, path, e);
             return null;

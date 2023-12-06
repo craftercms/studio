@@ -20,7 +20,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.lang.UrlUtils;
@@ -62,8 +61,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.xml.sax.SAXException;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -209,13 +206,19 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                                            String module,
                                            @ProtectedResourceId(PATH_RESOURCE_ID) String path,
                                            String environment) throws ContentNotFoundException {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String content = getEnvironmentConfiguration(siteId, module, path, environment);
         if (content == null) {
             throw new ContentNotFoundException(path, siteId,
                     format("Configuration not found for site '%s', module '%s', path '%s', environment '%s'",
                             siteId, module, path, environment));
         }
-
+        if (logger.isTraceEnabled()) {
+            logger.trace("getConfigurationAsString site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
         return content;
     }
 
@@ -348,6 +351,10 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
     }
 
     private String getDefaultConfiguration(String siteId, String module, String path) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         String configPath;
         if (isNotEmpty(module)) {
             String configBasePath = studioConfiguration.getProperty(CONFIGURATION_SITE_CONFIG_BASE_PATH_PATTERN)
@@ -356,10 +363,18 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
         } else {
             configPath = path;
         }
-        return contentService.getContentAsString(siteId, configPath);
+        String result = contentService.shallowGetContentAsString(siteId, configPath);
+        if (logger.isTraceEnabled()) {
+            logger.trace("getDefaultConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
+        return result;
     }
 
     private String getEnvironmentConfiguration(String siteId, String module, String path, String environment) {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
         if (!isEmpty(environment)) {
             String configBasePath =
                     studioConfiguration.getProperty(CONFIGURATION_SITE_MUTLI_ENVIRONMENT_CONFIG_BASE_PATH_PATTERN)
@@ -367,11 +382,15 @@ public class ConfigurationServiceImpl implements ConfigurationService, Applicati
                             .replaceAll(PATTERN_ENVIRONMENT, environment);
             String configPath =
                     Paths.get(configBasePath, path).toString();
-            if (contentService.contentExists(siteId, configPath)) {
-                return contentService.getContentAsString(siteId, configPath);
+            if (contentService.shallowContentExists(siteId, configPath)) {
+                return contentService.shallowGetContentAsString(siteId, configPath);
             }
         }
-        return getDefaultConfiguration(siteId, module, path);
+        String defaultConfiguration = getDefaultConfiguration(siteId, module, path);
+        if (logger.isTraceEnabled()) {
+            logger.trace("getEnvironmentConfiguration site '{}' path '{}' took '{}' milliseconds", siteId, path, System.currentTimeMillis() - startTime);
+        }
+        return defaultConfiguration;
     }
 
     @Override

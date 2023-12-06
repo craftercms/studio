@@ -48,14 +48,11 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.api.errors.RefNotFoundException;
-import org.eclipse.jgit.diff.DiffConfig;
 import org.eclipse.jgit.internal.storage.file.LockFile;
 import org.eclipse.jgit.lib.*;
-import org.eclipse.jgit.revwalk.FollowFilter;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.revwalk.filter.RevFilter;
 import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.treewalk.TreeWalk;
 import org.eclipse.jgit.treewalk.filter.PathFilter;
@@ -67,9 +64,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.web.context.ServletContextAware;
 
 import javax.servlet.ServletContext;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
@@ -151,8 +146,32 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
         return Files.exists(helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path)));
     }
 
+    protected InputStream shallowGetContent(String site, String path) throws ContentNotFoundException {
+        long startTime = 0;
+        if (logger.isTraceEnabled()) {
+            startTime = System.currentTimeMillis();
+        }
+        Path filePath = helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path));
+        try {
+            FileInputStream fileInputStream = new FileInputStream(filePath.toFile());
+            if (logger.isTraceEnabled()) {
+                logger.trace("shallowGetContent site '{}' path '{}' took '{}' milliseconds", site, path, System.currentTimeMillis() - startTime);
+            }
+            return fileInputStream;
+        } catch (FileNotFoundException e) {
+            throw new ContentNotFoundException(format("Content not found at site '%s' path '%s'", site, path), e);
+        }
+    }
+
     @Override
-    public InputStream getContent(String site, String path) throws ContentNotFoundException {
+    public InputStream getContent(String site, String path, boolean shallow) throws ContentNotFoundException {
+        if (shallow) {
+            return shallowGetContent(site, path);
+        }
+        return getContentFromGit(site, path);
+    }
+
+    private InputStream getContentFromGit(String site, String path) throws ContentNotFoundException {
         InputStream toReturn = null;
         try {
             Repository repo = helper.getRepository(site, StringUtils.isEmpty(site) ? GLOBAL : SANDBOX);
