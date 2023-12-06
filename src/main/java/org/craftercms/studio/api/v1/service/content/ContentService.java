@@ -111,6 +111,16 @@ public interface ContentService {
      */
     String getContentAsString(String site, String path, String encoding);
 
+
+    /**
+     * Get content from the repository.
+     * This "shallow" version of the method will retrieve the content from disk instead of the git repository.
+     * @param siteId the site id
+     * @param path the path of the content
+     * @return the content as a string
+     */
+    String shallowGetContentAsString(String siteId, String path);
+
     /**
      * get document from wcm content
      *

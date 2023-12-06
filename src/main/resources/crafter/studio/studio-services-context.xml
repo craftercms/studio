@@ -542,8 +542,11 @@
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configPath')}"/>
         <constructor-arg name="contentTypeDefinitionFilename"
                          value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.definitionFileName')}"/>
+        <constructor-arg name="contentTypeConfigFilename"
+                         value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configFileName')}"/>
         <constructor-arg name="templateXPath"
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.template.xpath')}"/>
+        <constructor-arg name="contentTypesRootPath" value="#{studioConfiguration.getProperty('studio.configuration.site.contentTypes.configBasePath')}" />
         <constructor-arg name="controllerPattern"
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.controller.pattern')}"/>
         <constructor-arg name="controllerFormat"
@@ -552,7 +555,7 @@
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.previewImage.xpath')}" />
         <constructor-arg name="defaultPreviewImagePath"
                          value="#{studioConfiguration.getProperty('studio.configuration.contentType.defaultPreviewImagePath')}" />
-
+        <constructor-arg name="gitRepositoryHelper" ref="studio.gitRepositoryHelper" />
         <!-- TODO: Break circular dependency with this bean -->
         <property name="contentService" ref="contentService"/>
      </bean>
