@@ -2989,6 +2989,47 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /model/{siteId}/definitions:
+    post:
+        tags:
+            - model
+        summary: Get all model definitions for site.
+        description: 'Required permission "read_configuration". <br/>In a future release this request will accept a set of arguments which could surpass the max length of the GET request, consequently, this endpoint answers to a POST method.
+.'
+        operationId: getAllModelDefinitions
+        parameters:
+            - name: siteId
+              in: path
+              description: Site ID
+              required: true
+              schema:
+                  type: string
+        responses:
+          '200':
+            description: OK
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      response:
+                        $ref: '#/components/schemas/ApiResponse'
+                      types:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "<form><title>Home</title>..."
+                          - "<form><title>Article</title>..."
+          '400':
+            $ref: '#/components/responses/BadRequest'
+          '401':
+            $ref: '#/components/responses/Unauthorized'
+          '404':
+            $ref: '#/components/responses/NotFound'
+          '500':
+            $ref: '#/components/responses/InternalServerError'
+
   /configuration/get_configuration:
     get:
       tags:
