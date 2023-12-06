@@ -23,16 +23,17 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.AuthenticationException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.service.content.ContentTypeService;
 import org.craftercms.studio.api.v2.service.content.internal.ContentTypeServiceInternal;
 import org.craftercms.studio.model.contentType.ContentTypeUsage;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
+import java.util.Collection;
 
 import static org.craftercms.studio.permissions.PermissionResolverImpl.SITE_ID_RESOURCE_ID;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_WRITE_CONFIGURATION;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
 
 /**
  * Default implementation for {@link ContentTypeService}
@@ -92,6 +93,12 @@ public class ContentTypeServiceImpl implements ContentTypeService {
     public void deleteContentType(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId, String contentType, boolean deleteDependencies)
             throws ServiceLayerException, AuthenticationException, DeploymentException, UserNotFoundException {
         contentTypeServiceInternal.deleteContentType(siteId, contentType, deleteDependencies);
+    }
+
+    @Override
+    @HasPermission(type= DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
+    public Collection<String> getAllModelDefinitions(@SiteId final String site) throws ServiceLayerException {
+        return contentTypeServiceInternal.getAllModelDefinitions(site);
     }
 
 }
