@@ -97,7 +97,7 @@ public class ContentTypeServiceImpl implements ContentTypeService {
 
     @Override
     @HasPermission(type= DefaultPermission.class, action = PERMISSION_READ_CONFIGURATION)
-    public Collection<String> getAllModelDefinitions(@SiteId final String site) throws ServiceLayerException {
+    public Collection<String> getAllModelDefinitions(@SiteId @ProtectedResourceId(SITE_ID_RESOURCE_ID) final String site) throws ServiceLayerException {
         return contentTypeServiceInternal.getAllModelDefinitions(site);
     }
 
