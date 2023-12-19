@@ -15,21 +15,15 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <!-- permission-mappings-config.xml
-
   This files contains the permissions mappings for the roles defined in
   role-mappings-config.xml.
-
   Permissions are defined per:
   site > role > rule
-
   Rules have a regex expression that govern the scope of the permissions assigned.
-
   Absence of permissions means the permission is denied.
-
   View the sample for a good starting point.
 -->
 <permissions>
-    <version>4.2.3</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>

@@ -51,6 +51,7 @@ class ContentServices {
      * @param name - the folder name to create
      * @oaran context - container for passing request, token and other values that may be needed by the implementation
      */
+    @Deprecated
     static createFolder(site, path, name, context){
         def contentServicesImpl = ServiceFactory.getContentServices(context)
         return contentServicesImpl.createFolder(site, path, name)

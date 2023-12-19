@@ -16,8 +16,6 @@
 package org.craftercms.studio.impl.v2.utils.spring.security.messaging;
 
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
-import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.springframework.messaging.Message;
 import org.springframework.security.access.expression.SecurityExpressionOperations;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;

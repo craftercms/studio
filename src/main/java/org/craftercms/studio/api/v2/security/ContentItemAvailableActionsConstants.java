@@ -26,7 +26,7 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_DELETE;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_WRITE;
-import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_FOLDER_CREATE;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CREATE_FOLDER;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_ITEM_UNLOCK;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_PUBLISH;
 
@@ -211,7 +211,7 @@ public final class ContentItemAvailableActionsConstants {
             case PERMISSION_CONTENT_WRITE:
                 result = BITMAP_CONTENT_WRITE;
                 break;
-            case PERMISSION_FOLDER_CREATE:
+            case PERMISSION_CREATE_FOLDER:
                 result = BITMAP_FOLDER_CREATE;
                 break;
             case PERMISSION_CONTENT_DELETE:

@@ -604,6 +604,18 @@ pipelines:
         operations:
           - type: dbScriptUpgrader
             filename: upgrade/4.2.x/4.2.1-to-4.2.2.sql
+      - currentVersion: 4.2.2
+        nextVersion: 4.2.3
+        operations:
+          - type: xsltFileUpgrader
+            path: /configuration/global-permission-mappings-config.xml
+            template: crafter/studio/upgrade/4.2.x/system/global-permission-mappings-config-v4.2.3.xslt
+            commitDetails: Change folder_create permission to create_folder
+          - type: globalRepoUpgrader
+            files:
+              - src: repo-bootstrap/global/configuration/samples/sample-permission-mappings-config.xml
+                dest: /configuration/samples/sample-permission-mappings-config.xml
+                commitDetails: Update sample permission mappings
 
   # Pipeline to upgrade site repositories
   site:
@@ -1044,6 +1056,12 @@ configurations:
             - type: xsltFileUpgrader
               template: crafter/studio/upgrade/4.1.x/permission-mappings/permission-mappings-config-v4.1.2.xslt
               commitDetails: Change 'Change Content Type' permission to 'change_content_type'
+        - currentVersion: 4.1.2
+          nextVersion: 4.2.0.0
+          operations:
+            - type: xsltFileUpgrader
+              template: crafter/studio/upgrade/4.2.x/permission-mappings/permission-mappings-config-v4.2.0.0.xslt
+              commitDetails: Change 'folder_create' permission to 'create_folder'
 
   role-mappings-config:
     module: studio

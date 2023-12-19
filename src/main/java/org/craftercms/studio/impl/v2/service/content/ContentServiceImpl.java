@@ -37,11 +37,15 @@ import org.craftercms.studio.api.v2.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetFilename;
+import org.craftercms.studio.api.v2.annotation.policy.ActionTargetPath;
+import org.craftercms.studio.api.v2.annotation.policy.ValidateAction;
 import org.craftercms.studio.api.v2.dal.AuditLog;
 import org.craftercms.studio.api.v2.dal.AuditLogParameter;
 import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.event.lock.LockContentEvent;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
+import org.craftercms.studio.api.v2.exception.content.ContentExistException;
 import org.craftercms.studio.api.v2.exception.content.ContentLockedByAnotherUserException;
 import org.craftercms.studio.api.v2.service.audit.internal.AuditServiceInternal;
 import org.craftercms.studio.api.v2.service.content.ContentService;
@@ -53,6 +57,7 @@ import org.craftercms.studio.api.v2.service.security.internal.UserServiceInterna
 import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
+import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
@@ -67,6 +72,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
 import javax.validation.Valid;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -363,6 +370,22 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         siteService.checkSiteExists(siteId);
         contentServiceV1.checkContentExists(siteId, path);
         return contentServiceInternal.getContentVersionHistory(siteId, path);
+    }
+
+    @Override
+    @RequireSiteReady
+    @ValidateAction(type = Type.CREATE)
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CREATE_FOLDER)
+    public void createFolder(@SiteId String siteId,
+                             @ProtectedResourceId(PATH_RESOURCE_ID) @ActionTargetPath String path,
+                             @ActionTargetFilename String name) throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
+        Path newFolderPath = Paths.get(path, name);
+        if (contentServiceInternal.contentExists(siteId, newFolderPath.toString())) {
+            throw new ContentExistException(format("Folder exists at path '%s' site '%s'", newFolderPath, siteId));
+        }
+
+        contentServiceInternal.createFolder(siteId, path, name);
     }
 
     @Override

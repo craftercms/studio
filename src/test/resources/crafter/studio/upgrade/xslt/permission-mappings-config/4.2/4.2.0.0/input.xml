@@ -15,28 +15,22 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <!-- permission-mappings-config.xml
-
   This files contains the permissions mappings for the roles defined in
   role-mappings-config.xml.
-
   Permissions are defined per:
   site > role > rule
-
   Rules have a regex expression that govern the scope of the permissions assigned.
-
   Absence of permissions means the permission is denied.
-
   View the sample for a good starting point.
 -->
 <permissions>
-    <version>4.2.3</version>
     <role name="author">
         <rule regex="/site/website/.*">
             <allowed-permissions>
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>get_children</permission>
                 <permission>content_copy</permission>
             </allowed-permissions>
@@ -46,7 +40,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>get_children</permission>
                 <permission>content_copy</permission>
             </allowed-permissions>
@@ -56,7 +50,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>get_children</permission>
                 <permission>content_copy</permission>
             </allowed-permissions>
@@ -83,7 +77,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
@@ -102,7 +96,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
@@ -144,7 +138,7 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>content_create</permission>
                 <permission>change_content_type</permission>
                 <permission>write_configuration</permission>
@@ -222,7 +216,7 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
-                <permission>create_folder</permission>
+                <permission>folder_create</permission>
                 <permission>content_create</permission>
                 <permission>change_content_type</permission>
                 <permission>add_remote</permission>

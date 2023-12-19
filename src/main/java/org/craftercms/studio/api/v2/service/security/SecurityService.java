@@ -48,6 +48,14 @@ public interface SecurityService {
     Authentication getAuthentication();
 
     /**
+     * Get list groups for a site
+     * @param siteId site identifier
+     * @return list of groups
+     * @throws ServiceLayerException
+     */
+    List<String> getSiteGroups(String siteId) throws ServiceLayerException;
+
+    /**
      * Check if a user is a member of a site
      * User is a member of a site if they are member of any site group. A site group is any group mapped in the site's
      * role mapping configuration file.

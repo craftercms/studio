@@ -36,7 +36,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>get_children</permission>
                 <permission>content_copy</permission>
             </allowed-permissions>
@@ -46,7 +46,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>get_children</permission>
                 <permission>content_copy</permission>
             </allowed-permissions>
@@ -56,7 +56,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>get_children</permission>
                 <permission>content_copy</permission>
             </allowed-permissions>
@@ -83,7 +83,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
@@ -102,7 +102,7 @@
                 <permission>content_read</permission>
                 <permission>content_write</permission>
                 <permission>content_create</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
@@ -144,7 +144,7 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>content_create</permission>
                 <permission>change_content_type</permission>
                 <permission>write_configuration</permission>
@@ -222,7 +222,7 @@
                 <permission>publish</permission>
                 <permission>get_publishing_queue</permission>
                 <permission>cancel_publish</permission>
-                <permission>folder_create</permission>
+                <permission>create_folder</permission>
                 <permission>content_create</permission>
                 <permission>change_content_type</permission>
                 <permission>add_remote</permission>

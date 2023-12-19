@@ -27,7 +27,7 @@ public final class StudioPermissionsConstants {
     public static final String PERMISSION_CHANGE_CONTENT_TYPE = "change_content_type";
     public static final String PERMISSION_COMMIT_RESOLUTION = "commit_resolution";
     public static final String PERMISSION_CONTENT_CREATE = "content_create";
-    public static final String PERMISSION_FOLDER_CREATE = "folder_create";
+    public static final String PERMISSION_CREATE_FOLDER = "create_folder";
     public static final String PERMISSION_CREATE_CLUSTER = "create_cluster";
     public static final String PERMISSION_CREATE_GROUPS = "create_groups";
     public static final String PERMISSION_CREATE_USERS = "create_users";

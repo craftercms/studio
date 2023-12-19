@@ -22,11 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.studio.api.v1.constant.StudioXmlConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.api.v2.exception.configuration.ConfigurationException;
 import org.craftercms.studio.api.v1.job.CronJobContext;
 import org.craftercms.studio.api.v2.dal.Group;
 import org.craftercms.studio.api.v2.service.config.ConfigurationService;
 import org.craftercms.studio.api.v2.service.security.SecurityService;
-import org.craftercms.studio.api.v2.service.security.internal.GroupServiceInternal;
 import org.craftercms.studio.api.v2.service.security.internal.UserServiceInternal;
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.dom4j.Document;
@@ -41,9 +41,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.*;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_ENVIRONMENT_ACTIVE;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_CONFIG_BASE_PATH;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_PERMISSION_MAPPINGS_FILE_NAME;
+import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_SITE_PERMISSION_MAPPINGS_FILE_NAME;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.MODULE_STUDIO;
-import static org.craftercms.studio.api.v2.utils.StudioConfiguration.*;
 
 public class SecurityServiceImpl implements SecurityService {
 
@@ -52,10 +55,7 @@ public class SecurityServiceImpl implements SecurityService {
     private ConfigurationService configurationService;
     private StudioConfiguration studioConfiguration;
     private Cache<String, Object> configurationCache;
-
     protected UserServiceInternal userServiceInternal;
-    protected GroupServiceInternal groupServiceInternal;
-
     private static final String CACHE_KEY = "user-permissions";
 
     @Override
@@ -167,6 +167,19 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
+    public List<String> getSiteGroups(String siteId) throws ServiceLayerException {
+        Map<String, List<String>> groupRoleMapping;
+        try {
+            groupRoleMapping = configurationService.getRoleMappings(siteId);
+        } catch (ConfigurationException e) {
+            throw new ServiceLayerException("Unable to get role mappings config for site '" + siteId + "'", e);
+        }
+
+        List<String> groups = new ArrayList<>(groupRoleMapping.keySet());
+
+        return groups;
+    }
+
     public boolean isSiteMember(String username, String siteId) {
         try {
             if (isSystemAdmin(username)) {
@@ -174,7 +187,7 @@ public class SecurityServiceImpl implements SecurityService {
             }
 
             List<Group> userGroups = userServiceInternal.getUserGroups(-1, username);
-            List<String> siteGroups = groupServiceInternal.getSiteGroups(siteId);
+            List<String> siteGroups = getSiteGroups(siteId);
             return userGroups.stream()
                     .map(Group::getGroupName)
                     .anyMatch(siteGroups::contains);
@@ -203,9 +216,5 @@ public class SecurityServiceImpl implements SecurityService {
 
     public void setUserServiceInternal(UserServiceInternal userServiceInternal) {
         this.userServiceInternal = userServiceInternal;
-    }
-
-    public void setGroupServiceInternal(GroupServiceInternal groupServiceInternal) {
-        this.groupServiceInternal = groupServiceInternal;
     }
 }

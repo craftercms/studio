@@ -45,6 +45,7 @@ import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -62,7 +63,7 @@ import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
 import static org.craftercms.studio.controller.rest.v2.RequestConstants.*;
 import static org.craftercms.studio.controller.rest.v2.RequestMappingConstants.*;
 import static org.craftercms.studio.controller.rest.v2.ResultConstants.*;
-import static org.craftercms.studio.model.rest.ApiResponse.OK;
+import static org.craftercms.studio.model.rest.ApiResponse.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Validated
@@ -298,6 +299,16 @@ public class ContentController {
         result.setResponse(OK);
         result.setEntities(RESULT_KEY_ITEMS, contentService.getContentVersionHistory(siteId, path));
 
+        return result;
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(value = PATH_PARAM_SITE + FOLDER, consumes = APPLICATION_JSON_VALUE)
+    public ResultOne createFolder(@ValidSiteId @PathVariable(value = REQUEST_PARAM_SITE) String siteId,
+                                  @Valid @RequestBody CreateFolderRequestBody body) throws UserNotFoundException, ServiceLayerException {
+        contentService.createFolder(siteId, body.getPath(), body.getName());
+        var result = new ResultOne();
+        result.setResponse(CREATED);
         return result;
     }
 }
