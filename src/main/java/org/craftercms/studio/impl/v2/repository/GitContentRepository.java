@@ -360,10 +360,7 @@ public class GitContentRepository implements ContentRepository {
         long startMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
         List<RepoOperation> toReturn = new ArrayList<>();
 
-        int idx = 0;
         for (DiffEntry diffEntry : diffEntries) {
-            ++idx;
-            long startProcessEntryMark = logger.isDebugEnabled() ? System.currentTimeMillis() : 0;
             // Update the paths to have a preceding separator
             String pathNew = FILE_SEPARATOR + diffEntry.getNewPath();
             String pathOld = FILE_SEPARATOR + diffEntry.getOldPath();
