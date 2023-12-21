@@ -74,6 +74,11 @@ public class ContentServiceInternalImpl implements ContentServiceInternal {
     }
 
     @Override
+    public boolean shallowContentExists(String siteId, String path) {
+        return contentRepository.shallowContentExists(siteId, path);
+    }
+
+    @Override
     public List<String> getSubtreeItems(String siteId, String path) {
         return contentRepository.getSubtreeItems(siteId, path);
     }
