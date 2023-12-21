@@ -15,6 +15,7 @@
  */
 
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.commons.security.exception.PermissionException
 import scripts.api.ContentServices;
 
 def result = [:]
@@ -44,9 +45,12 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = ContentServices.createContext(applicationContext, request)
-
-    def item = ContentServices.getContentItem(site, path, context)
-    result.item = item
+    try {
+        result.item = ContentServices.getContentItem(site, path, context)
+    } catch (PermissionException e) {
+        response.setStatus(403)
+        result.message = "Access denied"
+    }
 
 }
 return result
