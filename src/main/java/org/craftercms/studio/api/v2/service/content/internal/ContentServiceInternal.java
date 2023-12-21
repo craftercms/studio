@@ -31,6 +31,14 @@ import java.util.Optional;
 public interface ContentServiceInternal {
 
     /**
+     * Check the existent of a content path
+     * @param siteId site identifier
+     * @param path content path
+     * @return true if the content exists, false otherwise
+     */
+    boolean contentExists(String siteId, String path);
+
+    /**
      * Get subtree items for given path.
      *
      * @param siteId site identifier

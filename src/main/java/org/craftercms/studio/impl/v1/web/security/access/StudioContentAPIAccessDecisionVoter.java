@@ -89,23 +89,14 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
                     }
                 }
                 User currentUser = (User) authentication.getPrincipal();
-                switch (requestUri) {
-                    case WRITE_CONTENT:
-                        if (siteService.exists(siteParam)) {
-                            if (currentUser != null && isSiteMember(siteParam, currentUser) &&
-                                    hasPermission(siteParam, pathParam, currentUser.getUsername(),
-                                            PERMISSION_CONTENT_WRITE)) {
-                                toRet = ACCESS_GRANTED;
-                            } else {
-                                toRet = ACCESS_DENIED;
-                            }
-                        } else {
-                            toRet = ACCESS_ABSTAIN;
-                        }
-                        break;
-                    default:
-                        toRet = ACCESS_ABSTAIN;
-                        break;
+                if (siteService.exists(siteParam)) {
+                    if (currentUser != null && isSiteMember(siteParam, currentUser) &&
+                            hasPermission(siteParam, pathParam, currentUser.getUsername(),
+                                    PERMISSION_CONTENT_WRITE)) {
+                        toRet = ACCESS_GRANTED;
+                    } else {
+                        toRet = ACCESS_DENIED;
+                    }
                 }
             }
         }
