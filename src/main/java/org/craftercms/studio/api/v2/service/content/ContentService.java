@@ -42,7 +42,7 @@ public interface ContentService {
      * @param siteId site identifier
      * @param path content path
      * @return true if the content exists, false otherwise
-     * @throws SiteNotFoundException
+     * @throws SiteNotFoundException if site is not found
      */
     boolean contentExists(String siteId, String path) throws SiteNotFoundException;
 
