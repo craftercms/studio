@@ -38,6 +38,23 @@ import java.util.Optional;
 public interface ContentService {
 
     /**
+     * Check the existent of a content path
+     * @param siteId site identifier
+     * @param path content path
+     * @return true if the content exists, false otherwise
+     */
+    boolean contentExists(String siteId, String path) throws SiteNotFoundException;
+
+    /**
+     * This is a faster, but less accurate, version of contentExists. This prioritizes
+     * performance over checking the actual underlying repository if the content is actually in the store
+     * or we simply hold a reference to the object in the actual store.
+     *
+     * @return true if site has content object at path
+     */
+    boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
+
+    /**
      * Get list of content types marked as quick creatable for given site
      *
      * @param siteId site id to use
