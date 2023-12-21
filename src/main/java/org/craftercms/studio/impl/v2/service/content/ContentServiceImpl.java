@@ -105,6 +105,12 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     }
 
     @Override
+    public boolean shallowContentExists(String site, String path) throws SiteNotFoundException {
+        siteService.checkSiteExists(site);
+        return contentServiceInternal.shallowContentExists(site, path);
+    }
+
+    @Override
     // TODO: JM: Should we have a "is member of site" validation here?
     public List<QuickCreateItem> getQuickCreatableContentTypes(String siteId) throws SiteNotFoundException {
         siteService.checkSiteExists(siteId);

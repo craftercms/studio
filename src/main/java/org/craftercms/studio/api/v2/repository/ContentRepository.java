@@ -481,4 +481,12 @@ public interface ContentRepository {
      */
     void duplicateSite(String sourceSiteId, String siteId, String sandboxBranch) throws IOException;
 
+    /**
+     * This is a faster, but less accurate, version of contentExists. This prioritizes
+     * performance over checking the actual underlying repository if the content is actually in the store
+     * or we simply hold a reference to the object in the actual store.
+     *
+     * @return true if site has content object at path
+     */
+    boolean shallowContentExists(String site, String path);
 }
