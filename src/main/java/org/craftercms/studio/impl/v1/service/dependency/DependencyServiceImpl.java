@@ -615,6 +615,7 @@ public class DependencyServiceImpl implements DependencyService {
     private Set<String> getMandatoryParentsForPublishing(String site, List<String> paths) {
         Set<String> toRet = new HashSet<>();
         Set<String> possibleParents = calculatePossibleParents(paths);
+        possibleParents.addAll(paths);
         if (!possibleParents.isEmpty()) {
             List<String> pp = new ArrayList<>(possibleParents);
             List<String> result = itemDao.getMandatoryParentsForPublishing(site, pp, ItemState.NEW_MASK,
