@@ -3860,6 +3860,86 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
+  /content/children_by_paths:
+    post:
+      tags:
+        - content
+      summary: Get list of children for given item paths
+      description: 'Required permission "get_children" and "site member"'
+      operationId: getChildrenByPaths
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                siteId:
+                  description: Site ID
+                  type: string
+                localeCode:
+                  description: |-
+                    filter children by locale code, or show source items (not translation) if translation to
+                    specified locale code does not exist
+                  type: string
+                paths:
+                  description: item paths to get children for
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ChildrenByPathRequest'
+              required:
+                - siteId
+                - paths
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    $ref: '#/components/schemas/ApiResponse'
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                        levelDescriptor:
+                          $ref: '#/components/schemas/SandboxItem'
+                        children:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/SandboxItem'
+                        total:
+                          type: integer
+                          format: int32
+                          description: Total records in the system
+                        offset:
+                          type: integer
+                          format: int32
+                          description: Offset of first record in this response
+                        limit:
+                          type: integer
+                          format: int32
+                          description: Number of records returned in this response
+                  missingItems:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
   /content/item_by_path:
     get:
       tags:
@@ -8923,6 +9003,44 @@ components:
               modifiedValue:
                 type: string
                 description: The adjusted value if available
+
+    ChildrenByPathRequest:
+      type: object
+      properties:
+        path:
+          description: item path to get children for
+          type: string
+        sortStrategy:
+          description: >-
+            sort strategy (sort order)
+            Possible values:
+              - alphabetical (default)
+              - foldersFirst (order by: folders alphabetical, files alphabetical)
+              - lastUpdated (order by: dateModified)
+          type: string
+        order:
+          description: order for sort strategy ascending or descending (ASC / DESC)
+          type: string
+          format: ASC, DESC
+        offset:
+          description: offset of first child in response - default 0
+          type: integer
+        limit:
+          description: number of children to return
+          type: integer
+        keyword:
+          description: filter children by keyword
+          type: string
+        systemTypes:
+          description: filter children by system type
+          type: array
+          items:
+            type: string
+        excludes:
+          description: exclude items by path
+          type: array
+          items:
+            type: string
 
     PasteItem:
       type: object
