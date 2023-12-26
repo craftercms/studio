@@ -1049,6 +1049,10 @@ public class GitContentRepository implements ContentRepository {
         return helper.deleteSiteGitRepo(siteId);
     }
 
+    @Override
+    public boolean shallowContentExists(String site, String path) {
+        return Files.exists(helper.buildRepoPath(SANDBOX, site).resolve(helper.getGitPath(path)));
+    }
 
     @Override
     public boolean contentExists(String site, String path) {
