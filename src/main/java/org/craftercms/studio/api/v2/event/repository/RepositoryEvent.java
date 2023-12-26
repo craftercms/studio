@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.api.v2.event.repository;
 
-import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 
 /**
  * Event triggered when there is a change in the repository of a site
@@ -26,7 +26,7 @@ import org.craftercms.studio.api.v2.event.SiteAwareEvent;
  * @author joseross
  * @since 4.0.0
  */
-public class RepositoryEvent extends SiteAwareEvent implements BroadcastEvent {
+public class RepositoryEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
     public RepositoryEvent(String siteId) {
         super(siteId);

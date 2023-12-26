@@ -49,7 +49,7 @@ public class WebsocketSecurityConfig extends AbstractSecurityWebSocketMessageBro
             // Require authentication for CONNECT messages
             .nullDestMatcher().authenticated()
             // Only allow users to subscribe if they are system admins
-            .simpSubscribeDestMatchers("/topic/studio").access("isSystemAdmin()")
+            .simpSubscribeDestMatchers("/topic/studio").authenticated()
             // Only allow users to subscribe if they are site members
             .simpSubscribeDestMatchers("/topic/studio/{siteId}").access("isSiteMember(#siteId)")
             // Reject any other incoming message from users

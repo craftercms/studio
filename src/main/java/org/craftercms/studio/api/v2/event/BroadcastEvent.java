@@ -16,10 +16,12 @@
 package org.craftercms.studio.api.v2.event;
 
 /**
- * All events that implement this interface will be automatically sent to the message broker
+ * Base interface for events that should be broadcast to the WS clients
  *
- * @see org.craftercms.studio.impl.v2.event.EventBroadcaster
  * @author joseross
+ * @see org.craftercms.studio.impl.v2.event.EventBroadcaster
+ * @see GlobalBroadcastEvent
+ * @see SiteBroadcastEvent
  * @since 4.0.0
  */
 public interface BroadcastEvent {

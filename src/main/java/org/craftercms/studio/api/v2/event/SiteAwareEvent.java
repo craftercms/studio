@@ -15,7 +15,6 @@
  */
 package org.craftercms.studio.api.v2.event;
 
-import org.craftercms.studio.model.rest.Person;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -30,11 +29,6 @@ public abstract class SiteAwareEvent extends StudioEvent {
 
     public SiteAwareEvent(Authentication authentication, String siteId) {
         super(authentication);
-        this.siteId = siteId;
-    }
-
-    public SiteAwareEvent(Person person, String siteId) {
-        super(person);
         this.siteId = siteId;
     }
 
