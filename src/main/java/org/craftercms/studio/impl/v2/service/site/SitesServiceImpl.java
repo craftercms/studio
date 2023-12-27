@@ -173,4 +173,9 @@ public class SitesServiceImpl implements SitesService {
         }
         sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
     }
+
+    @Override
+    public List<Site> getSitesByState(final String state) {
+        return sitesServiceInternal.getSitesByState(state);
+    }
 }

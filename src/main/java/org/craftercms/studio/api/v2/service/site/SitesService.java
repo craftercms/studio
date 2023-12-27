@@ -178,4 +178,12 @@ public interface SitesService {
      */
     void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException;
+
+    /**
+     * Get the sites matching a given state
+     *
+     * @param state the state to match. See {@link org.craftercms.studio.api.v2.dal.Site.State}
+     * @return the list of sites matching the given state
+     */
+    List<Site> getSitesByState(String state);
 }

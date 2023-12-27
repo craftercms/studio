@@ -63,4 +63,12 @@ public class Site implements Entity {
     public String getState() {
         return state;
     }
+
+    private static class State {
+        public static final String INITIALIZING = "INITIALIZING";
+        public static final String LOCKED = "LOCKED";
+        public static final String READY = "READY";
+        public static final String DELETING = "DELETING";
+        public static final String DELETED = "DELETED";
+    }
 }
