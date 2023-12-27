@@ -18,7 +18,7 @@ package org.craftercms.studio.api.v2.event.site;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
-import org.craftercms.studio.api.v2.event.StudioEvent;
+import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.model.rest.Person;
 
 import java.beans.Transient;
@@ -29,13 +29,12 @@ import java.beans.Transient;
  * @author jmendeza
  * @since 4.1.2
  */
-public abstract class SiteLifecycleEvent extends StudioEvent implements GlobalBroadcastEvent {
+public abstract class SiteLifecycleEvent extends SiteAwareEvent implements GlobalBroadcastEvent {
 
     private final String siteUuid;
-    private final String siteId;
 
     public SiteLifecycleEvent(String siteId, final String siteUuid) {
-        this.siteId = siteId;
+        super(siteId);
         this.siteUuid = siteUuid;
     }
 
