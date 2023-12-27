@@ -3797,10 +3797,11 @@ paths:
 
   /content/children_by_path:
     post:
+      deprecated: true
       tags:
         - content
       summary: Get list of children for given item path
-      description: 'Required permission "get_children" and "site member"'
+      description: 'Required permission "get_children" and "site member".<br/> This operation is deprecated, use /content/{siteId}/children instead.'
       operationId: getChildrenByPath
       requestBody:
         required: true
@@ -3893,7 +3894,7 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /content/children_by_paths:
+  /content/{siteId}/children:
     post:
       tags:
         - content
@@ -3907,14 +3908,6 @@ paths:
             schema:
               type: object
               properties:
-                siteId:
-                  description: Site ID
-                  type: string
-                localeCode:
-                  description: |-
-                    filter children by locale code, or show source items (not translation) if translation to
-                    specified locale code does not exist
-                  type: string
                 paths:
                   description: item paths to get children for
                   type: array
@@ -3940,6 +3933,8 @@ paths:
                       properties:
                         path:
                           type: string
+                        item:
+                          $ref: '#/components/schemas/SandboxItem'
                         levelDescriptor:
                           $ref: '#/components/schemas/SandboxItem'
                         children:
@@ -9275,6 +9270,11 @@ components:
       properties:
         path:
           description: item path to get children for
+          type: string
+        localeCode:
+          description: |-
+            filter children by locale code, or show source items (not translation) if translation to
+            specified locale code does not exist
           type: string
         sortStrategy:
           description: >-
