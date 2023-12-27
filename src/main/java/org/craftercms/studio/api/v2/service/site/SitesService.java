@@ -21,6 +21,7 @@ import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 
@@ -105,4 +106,12 @@ public interface SitesService {
      */
     void duplicate(String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException;
+
+    /**
+     * Get the sites matching a given state
+     *
+     * @param state the state to match. See {@link org.craftercms.studio.api.v2.dal.Site.State}
+     * @return the list of sites matching the given state
+     */
+    List<Site> getSitesByState(String state);
 }
