@@ -14,7 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.commons.security.exception.PermissionException
 import scripts.api.ContentServices
 
 def result = [:]
@@ -44,8 +46,11 @@ if (invalidParams) {
     result.message = "Invalid parameter(s): " + paramsList
 } else {
     def context = ContentServices.createContext(applicationContext, request)
-
-    result.content = ContentServices.doesContentItemExist(site, path, context)
-
+    try {
+        result.content = ContentServices.doesContentItemExist(site, path, context)
+    } catch (PermissionException e) {
+        response.setStatus(403)
+        result.message = "Access denied"
+    }
 }
 return result

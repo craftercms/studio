@@ -24,6 +24,9 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.entitlements.exception.EntitlementException;
 import org.craftercms.commons.entitlements.model.EntitlementType;
 import org.craftercms.commons.entitlements.validator.EntitlementValidator;
+import org.craftercms.commons.security.permissions.DefaultPermission;
+import org.craftercms.commons.security.permissions.annotations.HasPermission;
+import org.craftercms.commons.security.permissions.annotations.ProtectedResourceId;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.studio.api.v1.constant.DmConstants;
@@ -68,6 +71,9 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.impl.v2.utils.spring.ContentResource;
 import org.craftercms.studio.model.policy.Type;
 import org.craftercms.studio.model.rest.Person;
+import org.craftercms.studio.permissions.CompositePermissionResolverImpl;
+import org.craftercms.studio.permissions.PermissionResolverImpl;
+import org.craftercms.studio.permissions.StudioPermissionsConstants;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -106,6 +112,8 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
 import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATION_GLOBAL_SYSTEM_SITE;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTimeIso;
+import static org.craftercms.studio.permissions.PermissionResolverImpl.PATH_RESOURCE_ID;
+import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMISSION_CONTENT_READ;
 
 /**
  * Content Services that other services may use
@@ -159,8 +167,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
     @Deprecated
     @Override
     @Valid
-    public boolean contentExists(@ValidateStringParam String site,
-                                 @ValidateSecurePathParam String path) {
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public boolean contentExists(@SiteId String site,
+                                 @ProtectedResourceId(PATH_RESOURCE_ID) String path) {
         // TODO: SJ: Refactor in 2.7.x as this might already exists in Crafter Core (which is part of the new Studio)
         return this._contentRepository.contentExists(site, path);
     }
@@ -199,7 +208,7 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public String getContentAsString(@ValidateStringParam String site,
+    public String getContentAsString(String site,
                                      @ValidateSecurePathParam String path) {
         return getContentAsString(site, path, null);
     }
@@ -227,8 +236,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public String getContentAsString(String site,
-                                     @ValidateSecurePathParam String path,
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public String getContentAsString(@SiteId String site,
+                                     @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                      String encoding)  {
         return getContentAsStringInternal(site, path, encoding, false);
     }
@@ -1806,8 +1816,9 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
 
     @Override
     @Valid
-    public ContentItemTO getContentItem(@ValidateStringParam String site,
-                                        @ValidateSecurePathParam String path,
+    @HasPermission(type = DefaultPermission.class, action = PERMISSION_CONTENT_READ)
+    public ContentItemTO getContentItem(@SiteId String site,
+                                        @ProtectedResourceId(PATH_RESOURCE_ID) @ValidateSecurePathParam String path,
                                         int depth) {
         ContentItemTO item = null;
         logger.debug("Get content item at site '{}' path '{}' depth '{}'", site, path, depth);

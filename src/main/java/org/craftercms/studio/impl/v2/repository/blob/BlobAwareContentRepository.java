@@ -192,7 +192,7 @@ public class BlobAwareContentRepository implements ContentRepository,
             if (!isFolder(site, path) && pointersExist(site, path)) {
                 return true;
             }
-            return localRepositoryV1.shallowContentExists(site, path);
+            return localRepositoryV2.shallowContentExists(site, path);
         } catch (Exception e) {
             logger.error("Failed to check if content exists in site '{}' path '{}'", site, path, e);
             return false;

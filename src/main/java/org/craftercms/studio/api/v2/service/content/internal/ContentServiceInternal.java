@@ -19,6 +19,7 @@ package org.craftercms.studio.api.v2.service.content.internal;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
@@ -39,6 +40,15 @@ public interface ContentServiceInternal {
      * @return true if the content exists, false otherwise
      */
     boolean contentExists(String siteId, String path);
+
+    /**
+     * This is a faster, but less accurate, version of contentExists. This prioritizes
+     * performance over checking the actual underlying repository if the content is actually in the store
+     * or we simply hold a reference to the object in the actual store.
+     *
+     * @return true if site has content object at path
+     */
+    boolean shallowContentExists(String site, String path) throws SiteNotFoundException;
 
     /**
      * Get subtree items for given path.
