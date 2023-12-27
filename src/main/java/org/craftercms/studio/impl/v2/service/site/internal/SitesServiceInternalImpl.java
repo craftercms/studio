@@ -521,6 +521,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         }
     }
 
+    @Override
+    public List<Site> getSitesByState(String state) {
+        return siteDao.getSitesByState(state);
+    }
+
     /**
      * Creates an audit log entry for the site duplication operation, including the source site as audit params
      *
