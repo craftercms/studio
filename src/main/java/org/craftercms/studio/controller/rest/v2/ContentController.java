@@ -43,6 +43,7 @@ import org.craftercms.studio.model.rest.ResultOne;
 import org.craftercms.studio.model.rest.clipboard.DuplicateRequest;
 import org.craftercms.studio.model.rest.clipboard.PasteRequest;
 import org.craftercms.studio.model.rest.content.*;
+import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -56,6 +57,8 @@ import java.beans.ConstructorProperties;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toMap;
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.ALPHANUMERIC;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.FILE_SEPARATOR;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.INDEX_FILE;
@@ -130,18 +133,30 @@ public class ContentController {
         return responseBody;
     }
 
-    @Valid
-    @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
-    public ResponseBody getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequestBody request)
+    @PostMapping(value = GET_CHILDREN_BY_PATHS, produces = APPLICATION_JSON_VALUE)
+    public Result getChildrenByPaths(@PathVariable @ValidSiteId String siteId, @RequestBody GetChildrenBulkRequest request)
             throws ServiceLayerException, UserNotFoundException {
-        GetChildrenResult result = contentService.getChildrenByPath(
+        Map<String, PathParams> paramsMap = request.getPaths().stream()
+                .collect(toMap(PathParams::getPath, identity()));
+        GetChildrenByPathsBulkResult children = contentService.getChildrenByPaths(siteId,
+                new ArrayList<>(paramsMap.keySet()), paramsMap);
+        Result result = UnwrappedResult.of(children);
+        result.setResponse(OK);
+        return result;
+    }
+
+    @Valid
+    @Deprecated
+    @PostMapping(value = GET_CHILDREN_BY_PATH, produces = APPLICATION_JSON_VALUE)
+    public Result getChildrenByPath(@RequestBody @Valid GetChildrenByPathRequestBody request)
+            throws ServiceLayerException, UserNotFoundException {
+        GetChildrenResult children = contentService.getChildrenByPath(
                 request.getSiteId(), request.getPath(), request.getLocaleCode(), request.getKeyword(),
                 request.getSystemTypes(), request.getExcludes(), request.getSortStrategy(), request.getOrder(),
                 request.getOffset(), request.getLimit());
-        ResponseBody responseBody = new ResponseBody();
+        Result result = UnwrappedResult.of(children);
         result.setResponse(OK);
-        responseBody.setResult(result);
-        return responseBody;
+        return result;
     }
 
     @GetMapping(value = GET_DESCRIPTOR, produces = APPLICATION_JSON_VALUE)

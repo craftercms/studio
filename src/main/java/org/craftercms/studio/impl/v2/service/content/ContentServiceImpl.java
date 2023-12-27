@@ -54,6 +54,8 @@ import org.craftercms.studio.impl.v2.utils.DateUtils;
 import org.craftercms.studio.model.AuthenticatedUser;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.craftercms.studio.permissions.CompositePermission;
@@ -67,10 +69,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.lang.NonNull;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 import static java.lang.String.format;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
@@ -215,6 +214,17 @@ public class ContentServiceImpl implements ContentService, ApplicationContextAwa
         siteService.checkSiteExists(siteId);
         return contentServiceInternal.getChildrenByPath(siteId, path, locale, keyword, systemTypes, excludes,
                                                         sortStrategy, order, offset, limit);
+    }
+
+    @Override
+    @RequireSiteReady
+    @HasPermission(type = CompositePermission.class, action = PERMISSION_GET_CHILDREN)
+    public GetChildrenByPathsBulkResult getChildrenByPaths(@SiteId String siteId,
+                                                           @ProtectedResourceId(PATH_LIST_RESOURCE_ID) List<String> paths,
+                                                           Map<String, PathParams> pathParams)
+            throws ServiceLayerException, UserNotFoundException {
+        siteService.checkSiteExists(siteId);
+        return contentServiceInternal.getChildrenByPaths(siteId, paths, pathParams);
     }
 
     @Override
