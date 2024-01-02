@@ -3865,7 +3865,7 @@ paths:
     post:
       tags:
         - content
-      summary: Get list of children for given item paths
+      summary: Get the list of children for each of the requested parent paths
       description: 'Required permission "get_children" and "site member"'
       operationId: getChildrenByPaths
       requestBody:
