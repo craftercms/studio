@@ -505,6 +505,8 @@ pipelines:
         nextVersion: 4.1.0-t
       - currentVersion: 4.0.1.18
         nextVersion: 4.1.0-t
+      - currentVersion: 4.0.8.0
+        nextVersion: 4.1.0-t
       # Entry point for 4.1.x upgrade
       - currentVersion: 4.1.0-t
         nextVersion: 4.1.0
