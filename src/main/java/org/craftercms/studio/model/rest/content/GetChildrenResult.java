@@ -16,11 +16,9 @@
 
 package org.craftercms.studio.model.rest.content;
 
-import org.craftercms.studio.model.rest.Result;
-
 import java.util.List;
 
-public class GetChildrenResult extends Result {
+public class GetChildrenResult {
 
     protected int total;
     protected int offset;

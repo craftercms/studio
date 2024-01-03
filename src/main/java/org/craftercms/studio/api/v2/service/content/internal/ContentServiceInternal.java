@@ -19,16 +19,19 @@ package org.craftercms.studio.api.v2.service.content.internal;
 import org.craftercms.commons.rest.parameters.SortField;
 import org.craftercms.core.service.Item;
 import org.craftercms.studio.api.v1.exception.ContentNotFoundException;
+import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
-import org.craftercms.studio.api.v1.exception.ServiceLayerException;
-import org.craftercms.studio.api.v1.exception.security.UserNotFoundException;
+import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ContentServiceInternal {
@@ -86,6 +89,22 @@ public interface ContentServiceInternal {
     GetChildrenResult getChildrenByPath(String siteId, String path, String locale, String keyword,
                                         List<String> systemTypes, List<String> excludes, String sortStrategy,
                                         String order, int offset, int limit)
+            throws ServiceLayerException, UserNotFoundException;
+
+    /**
+     * Get children for paths bulk.
+     * This method will return children for a list of paths. Result items will also
+     * include a {@link SandboxItem} object for the item itself.
+     *
+     * @param siteId     the site id
+     * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
+     *                   validate permissions.
+     * @param pathParams Map of extra parameters for each path
+     * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found (when calculating available actions)
+     */
+    GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
             throws ServiceLayerException, UserNotFoundException;
 
     Item getItem(String siteId, String path, boolean flatten);
