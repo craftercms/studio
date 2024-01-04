@@ -464,6 +464,7 @@
         <constructor-arg name="contentRepositoryV2" ref="contentRepository"/>
         <constructor-arg name="studioConfiguration" ref="studioConfiguration" />
         <constructor-arg name="siteFeedMapper" ref="siteFeedMapper" />
+        <constructor-arg name="siteDao" ref="siteDao" />
         <constructor-arg name="retryingDatabaseOperationFacade" ref="studio.retryingDatabaseOperationFacade" />
         <constructor-arg name="siteServiceV1" ref="cstudioSiteServiceSimple" />
         <constructor-arg name="deployer" ref="allDeployers" />

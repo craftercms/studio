@@ -26,6 +26,7 @@ import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
+import org.craftercms.studio.api.v2.dal.Site;
 import org.craftercms.studio.api.v2.exception.InvalidParametersException;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
 import org.craftercms.studio.api.v2.repository.ContentRepository;
@@ -131,5 +132,10 @@ public class SitesServiceImpl implements SitesService {
             throw new SiteAlreadyExistsException(siteId);
         }
         sitesServiceInternal.duplicate(sourceSiteId, siteId, siteName, description, sandboxBranch, readOnlyBlobStores);
+    }
+
+    @Override
+    public List<Site> getSitesByState(final String state) {
+        return sitesServiceInternal.getSitesByState(state);
     }
 }

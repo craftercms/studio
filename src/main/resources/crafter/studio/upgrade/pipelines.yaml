@@ -502,6 +502,13 @@ pipelines:
                 dest: /configuration/samples/sample-studio-config-override.yaml
             commitDetails: Update sample studio override config file to include regex pattern overrides
       - currentVersion: 4.0.1.17
+        nextVersion: 4.1.0-t
+      - currentVersion: 4.0.1.18
+        nextVersion: 4.1.0-t
+      - currentVersion: 4.0.8.0
+        nextVersion: 4.1.0-t
+      # Entry point for 4.1.x upgrade
+      - currentVersion: 4.1.0-t
         nextVersion: 4.1.0
         operations:
           - type: globalRepoUpgrader
@@ -515,6 +522,7 @@ pipelines:
             pattern: "elasticsearch_url:(\\r*\\n*\\s*)"
             replacement: "search_url:$1"
             commitDetails: Update search_url config property name
+      # 4.1 main pipeline
       - currentVersion: 4.1.0
         nextVersion: 4.1.1
         operations:

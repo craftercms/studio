@@ -27,12 +27,15 @@ import org.craftercms.studio.api.v2.dal.QuickCreateItem;
 import org.craftercms.studio.api.v2.exception.content.ContentAlreadyUnlockedException;
 import org.craftercms.studio.model.history.ItemVersion;
 import org.craftercms.studio.model.rest.content.DetailedItem;
+import org.craftercms.studio.model.rest.content.GetChildrenBulkRequest.PathParams;
+import org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult;
 import org.craftercms.studio.model.rest.content.GetChildrenResult;
 import org.craftercms.studio.model.rest.content.SandboxItem;
 import org.dom4j.Document;
 import org.springframework.core.io.Resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ContentService {
@@ -135,6 +138,21 @@ public interface ContentService {
                                         List<String> excludes, String sortStrategy, String order, int offset, int limit)
             throws ServiceLayerException, UserNotFoundException;
 
+    /**
+     * Get children for paths bulk.
+     * This method will return children for a list of paths. Result items will also
+     * include a {@link SandboxItem} object for the item itself.
+     *
+     * @param siteId     the site id
+     * @param paths      paths to get children for. Notice that this parameter is redundant with the pathParams. This list of paths is used to
+     *                   validate permissions.
+     * @param pathParams Map of extra parameters for each path
+     * @return object containing a list of {@link org.craftercms.studio.model.rest.content.GetChildrenByPathsBulkResult.ChildrenByPathResult}
+     * @throws ServiceLayerException general service error
+     * @throws UserNotFoundException user not found (when calculating available actions)
+     */
+    GetChildrenByPathsBulkResult getChildrenByPaths(String siteId, List<String> paths, Map<String, PathParams> pathParams)
+            throws ServiceLayerException, UserNotFoundException;
 
     Item getItem(String siteId, String path, boolean flatten) throws SiteNotFoundException, ContentNotFoundException;
 

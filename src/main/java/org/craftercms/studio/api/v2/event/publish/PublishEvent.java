@@ -15,8 +15,8 @@
  */
 package org.craftercms.studio.api.v2.event.publish;
 
-import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.security.core.Authentication;
  * @author joseross
  * @since 4.0.0
  */
-public class PublishEvent extends SiteAwareEvent implements BroadcastEvent {
+public class PublishEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
     public PublishEvent(String siteId) {
         super(siteId);

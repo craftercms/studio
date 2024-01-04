@@ -16,10 +16,12 @@
 
 package org.craftercms.studio.api.v2.event.site;
 
-import org.craftercms.studio.api.v2.event.BroadcastEvent;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.craftercms.studio.api.v2.event.GlobalBroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
 import org.craftercms.studio.model.rest.Person;
-import org.springframework.security.core.Authentication;
+
+import java.beans.Transient;
 
 /**
  * Base class for site lifecycle events
@@ -27,20 +29,35 @@ import org.springframework.security.core.Authentication;
  * @author jmendeza
  * @since 4.1.2
  */
-public abstract class SiteLifecycleEvent extends SiteAwareEvent implements BroadcastEvent {
+public abstract class SiteLifecycleEvent extends SiteAwareEvent implements GlobalBroadcastEvent {
 
-    public SiteLifecycleEvent(Authentication authentication, String siteId) {
-        super(Person.from(authentication), siteId);
+    private final String siteUuid;
+
+    public SiteLifecycleEvent(String siteId, final String siteUuid) {
+        super(siteId);
+        this.siteUuid = siteUuid;
     }
 
-    public SiteLifecycleEvent(final String siteId) {
-        super(siteId);
+    @JsonIgnore
+    public String getSiteId() {
+        return siteId;
+    }
+
+    @Override
+    @JsonIgnore
+    public Person getUser() {
+        return super.getUser();
+    }
+
+    public String getSiteUuid() {
+        return siteUuid;
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "siteId='" + siteId + '\'' +
+                ", siteUuid='" + siteUuid + '\'' +
                 ", user='" + user + '\'' +
                 ", timestamp=" + timestamp +
                 ", eventType='" + getEventType() + '\'' +

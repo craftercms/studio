@@ -16,8 +16,8 @@
 package org.craftercms.studio.api.v2.event.content;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.craftercms.studio.api.v2.event.BroadcastEvent;
 import org.craftercms.studio.api.v2.event.SiteAwareEvent;
+import org.craftercms.studio.api.v2.event.SiteBroadcastEvent;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -26,7 +26,7 @@ import org.springframework.security.core.Authentication;
  * @author joseross
  * @since 4.0.0
  */
-public class ContentEvent extends SiteAwareEvent implements BroadcastEvent {
+public class ContentEvent extends SiteAwareEvent implements SiteBroadcastEvent {
 
     protected final String targetPath;
 

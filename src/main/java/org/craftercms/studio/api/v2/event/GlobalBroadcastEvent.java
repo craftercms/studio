@@ -13,26 +13,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.studio.api.v2.event.site;
 
-import org.springframework.security.core.Authentication;
+package org.craftercms.studio.api.v2.event;
 
 /**
- * Event triggered when there is a change in a site
- *
- * <p><b>Note:</b>For now this is only triggered when a site creation is complete</p>
- *
- * @author joseross
- * @since 4.0.0
+ * Marker interface for events that should be broadcast to the global
+ * WS topic. Events marked with this interface will be visible to
+ * any logged-in user.
  */
-public class SiteReadyEvent extends SiteLifecycleEvent {
-
-    public SiteReadyEvent(final String siteId, final String siteUuid) {
-        super(siteId, siteUuid);
-    }
-
-    @Override
-    public String getEventType() {
-        return "SITE_READY_EVENT";
-    }
+public interface GlobalBroadcastEvent extends BroadcastEvent {
 }

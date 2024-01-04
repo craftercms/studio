@@ -53,6 +53,7 @@ import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_OFF_MASK;
 import static org.craftercms.studio.api.v2.dal.ItemState.CANCEL_PUBLISHING_PACKAGE_ON_MASK;
 import static org.craftercms.studio.api.v2.dal.PublishStatus.READY_WITH_ERRORS;
+import static org.craftercms.studio.impl.v1.service.deployment.PublishingManagerImpl.LIVE_ENVIRONMENT;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.formatDateIso;
 import static org.craftercms.studio.impl.v2.utils.DateUtils.getCurrentTime;
 import static org.craftercms.studio.permissions.StudioPermissionsConstants.*;
@@ -226,6 +227,10 @@ public class PublishServiceImpl implements PublishService {
     public RepositoryChanges publishAll(@SiteId String siteId, String publishingTarget, String comment)
             throws ServiceLayerException, UserNotFoundException {
         siteService.checkSiteExists(siteId);
+        if (LIVE_ENVIRONMENT.equals(publishingTarget) && servicesConfig.isStagingEnvironmentEnabled(siteId)) {
+            String stagingEnvironment = servicesConfig.getStagingEnvironment(siteId);
+            publishServiceInternal.publishAll(siteId, stagingEnvironment, comment);
+        }
 
         RepositoryChanges changes = publishServiceInternal.publishAll(siteId, publishingTarget, comment);
 

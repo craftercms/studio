@@ -30,10 +30,7 @@ import org.craftercms.studio.api.v1.repository.ContentRepository;
 import org.craftercms.studio.api.v1.repository.RepositoryItem;
 import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
-import org.craftercms.studio.api.v2.dal.AuditLog;
-import org.craftercms.studio.api.v2.dal.AuditLogParameter;
-import org.craftercms.studio.api.v2.dal.PublishStatus;
-import org.craftercms.studio.api.v2.dal.RetryingDatabaseOperationFacade;
+import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
 import org.craftercms.studio.api.v2.event.site.SiteReadyEvent;
 import org.craftercms.studio.api.v2.exception.InvalidSiteStateException;
@@ -76,6 +73,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     private final org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2;
     private final StudioConfiguration studioConfiguration;
     private final SiteFeedMapper siteFeedMapper;
+    private final SiteDAO siteDao;
     private final RetryingDatabaseOperationFacade retryingDatabaseOperationFacade;
     private final SiteService siteServiceV1;
     private final Deployer deployer;
@@ -87,12 +85,14 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
     @ConstructorProperties({"descriptorReader", "contentRepository",
             "contentRepositoryV2",
             "studioConfiguration", "siteFeedMapper",
+            "siteDao",
             "retryingDatabaseOperationFacade", "siteServiceV1",
             "deployer", "configurationService",
             "securityService", "auditServiceInternal"})
     public SitesServiceInternalImpl(PluginDescriptorReader descriptorReader, ContentRepository contentRepository,
                                     org.craftercms.studio.api.v2.repository.ContentRepository contentRepositoryV2,
                                     StudioConfiguration studioConfiguration, SiteFeedMapper siteFeedMapper,
+                                    SiteDAO siteDao,
                                     RetryingDatabaseOperationFacade retryingDatabaseOperationFacade, SiteService siteServiceV1,
                                     Deployer deployer, ConfigurationService configurationService,
                                     SecurityService securityService, AuditServiceInternal auditServiceInternal) {
@@ -101,6 +101,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
         this.contentRepositoryV2 = contentRepositoryV2;
         this.studioConfiguration = studioConfiguration;
         this.siteFeedMapper = siteFeedMapper;
+        this.siteDao = siteDao;
         this.retryingDatabaseOperationFacade = retryingDatabaseOperationFacade;
         this.siteServiceV1 = siteServiceV1;
         this.deployer = deployer;
@@ -275,7 +276,7 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
             // Set site state to READY
             retryingDatabaseOperationFacade.retry(() -> siteFeedMapper.setSiteState(siteId, SiteFeed.STATE_READY));
             siteServiceV1.enablePublishing(siteId, true);
-            applicationContext.publishEvent(new SiteReadyEvent(securityService.getAuthentication(), siteId));
+            applicationContext.publishEvent(new SiteReadyEvent(siteId, siteUuid));
             logger.info("Site duplicate from '{}' to '{}' - COMPLETE", sourceSiteId, siteId);
         } catch (ServiceLayerException ex) {
             siteServiceV1.deleteSite(siteId);
@@ -290,6 +291,11 @@ public class SitesServiceInternalImpl implements SitesService, ApplicationContex
                 siteServiceV1.enablePublishing(sourceSiteId, true);
             }
         }
+    }
+
+    @Override
+    public List<Site> getSitesByState(String state) {
+        return siteDao.getSitesByState(state);
     }
 
     /**
