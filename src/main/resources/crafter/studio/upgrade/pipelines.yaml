@@ -509,6 +509,8 @@ pipelines:
             path: /configuration/global-permission-mappings-config.xml
             template: crafter/studio/upgrade/4.0.x/4.0.1.18/system/global-permission-mappings-config.xslt
             commitDetails: Add new permission duplicate_site
+      - currentVersion: 4.0.1.18
+        nextVersion: 4.0.8.0
 
   # Pipeline to upgrade site repositories
   site:

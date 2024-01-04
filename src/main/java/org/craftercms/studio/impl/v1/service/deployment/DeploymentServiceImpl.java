@@ -16,9 +16,7 @@
 package org.craftercms.studio.impl.v1.service.deployment;
 
 import org.apache.commons.collections.FastArrayList;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.io.FilenameUtils;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.security.permissions.DefaultPermission;
 import org.craftercms.commons.security.permissions.annotations.HasPermission;
@@ -54,6 +52,7 @@ import org.craftercms.studio.api.v2.service.workflow.internal.WorkflowServiceInt
 import org.craftercms.studio.api.v2.utils.StudioConfiguration;
 import org.craftercms.studio.impl.v1.util.ContentUtils;
 import org.craftercms.studio.impl.v2.utils.DateUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -64,8 +63,14 @@ import javax.validation.Valid;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.partitioningBy;
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.apache.tika.io.FilenameUtils.getName;
 import static org.craftercms.studio.api.v1.constant.StudioConstants.*;
 import static org.craftercms.studio.api.v2.dal.AuditLogConstants.*;
 import static org.craftercms.studio.api.v2.dal.ItemState.*;
@@ -82,8 +87,6 @@ import static org.craftercms.studio.permissions.StudioPermissionsConstants.PERMI
 public class DeploymentServiceImpl implements DeploymentService, ApplicationContextAware {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
-
-    private static int CTED_AUTOINCREMENT = 0;
 
     protected ServicesConfig servicesConfig;
     protected ContentService contentService;
@@ -136,35 +139,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             itemServiceInternal.updateStateBitsBulk(site, paths, 0, DESTINATION.value);
         }
 
-        List<String> newPaths = new ArrayList<>();
-        List<String> updatedPaths = new ArrayList<>();
-        List<String> movedPaths = new ArrayList<>();
-
-        Map<String, List<String>> groupedPaths = new HashMap<>();
-
-        for (String p : paths) {
-            Item item = itemServiceInternal.getItem(site, p);
-            if (item == null) {
-                throw new ContentNotFoundException(p, site, "Failed to retrieve content item");
-            }
-            boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
-            if (isFolder) {
-                logger.trace("The content item in site '{}' path '{}' is a folder and will not be added " +
-                        "to the publishing queue", site, p);
-            } else {
-                if (isNew(item.getState())) {
-                    newPaths.add(p);
-                } else if (StringUtils.isNotEmpty(item.getPreviousPath())) {
-                    movedPaths.add(p);
-                } else {
-                    updatedPaths.add(p);
-                }
-            }
-        }
-
-        groupedPaths.put(PublishRequest.Action.NEW, newPaths);
-        groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
-        groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
+        Map<String, List<String>> groupedPaths = groupPathsByAction(site, paths);
 
         List<PublishRequest> items = createItems(site, environment, groupedPaths, scheduledDate, approver,
                 submissionComment);
@@ -185,6 +160,48 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
             logger.error("Failed to update publishing status for site '{}'", site, e);
         }
         applicationContext.publishEvent(new WorkflowEvent(securityService.getAuthentication(), site));
+    }
+
+    /**
+     * Takes a list of paths to be published and groups them by action type (new, updated, moved).
+     *
+     * @param site  The site.
+     * @param paths The list of paths to publish.
+     * @return A map of action type to list of paths.
+     * @throws ContentNotFoundException if a content item is not found.
+     */
+    @NotNull
+    private Map<String, List<String>> groupPathsByAction(String site, List<String> paths) throws ContentNotFoundException {
+        List<String> newPaths = new ArrayList<>();
+        List<String> updatedPaths = new ArrayList<>();
+        List<String> movedPaths = new ArrayList<>();
+
+        Map<String, List<String>> groupedPaths = new HashMap<>();
+
+        for (String p : paths) {
+            Item item = itemServiceInternal.getItem(site, p);
+            if (item == null) {
+                throw new ContentNotFoundException(p, site, "Failed to retrieve content item");
+            }
+            boolean isFolder = StringUtils.equals(item.getSystemType(), CONTENT_TYPE_FOLDER);
+            if (isFolder) {
+                logger.trace("The content item in site '{}' path '{}' is a folder and will not be added " +
+                        "to the publishing queue", site, p);
+            } else {
+                if (isNew(item.getState())) {
+                    newPaths.add(p);
+                } else if (isNotEmpty(item.getPreviousPath())) {
+                    movedPaths.add(p);
+                } else {
+                    updatedPaths.add(p);
+                }
+            }
+        }
+
+        groupedPaths.put(PublishRequest.Action.NEW, newPaths);
+        groupedPaths.put(PublishRequest.Action.MOVE, movedPaths);
+        groupedPaths.put(PublishRequest.Action.UPDATE, updatedPaths);
+        return groupedPaths;
     }
 
     protected void sendContentApprovalEmail(List<PublishRequest> itemList, boolean scheduleDateNow)
@@ -216,91 +233,102 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     }
 
     private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
-                                             ZonedDateTime scheduledDate, String approver, String submissionComment)
+                                             ZonedDateTime scheduledDate, String approver, String submissionComment) throws UserNotFoundException, ServiceLayerException {
+        return createItems(site, environment, paths, scheduledDate, approver, submissionComment, UUID.randomUUID().toString());
+    }
+
+    private List<PublishRequest> createItems(String site, String environment, Map<String, List<String>> paths,
+                                             ZonedDateTime scheduledDate, String approver, String submissionComment,
+                                             String packageId)
             throws ServiceLayerException, UserNotFoundException {
         List<PublishRequest> newItems = new ArrayList<>();
-
-        String packageId = UUID.randomUUID().toString();
 
         Map<String, Object> params = null;
         for (String action : paths.keySet()) {
             for (String path : paths.get(action)) {
-                PublishRequest item = new PublishRequest();
                 Item it = itemServiceInternal.getItem(site, path);
-                if (it != null) {
-                    params = new HashMap<>();
-                    params.put("site_id", site);
-                    params.put("environment", environment);
-                    params.put("state", PublishRequest.State.READY_FOR_LIVE);
-                    params.put("path", path);
-                    params.put("commitId", it.getCommitId());
-                    if (publishRequestMapper.checkItemQueued(params) > 0) {
-                        logger.info("The item in site '{}' path '{}' with commit ID '{}' has already been " +
-                                "queued for publishing to the target '{}'. Will not add again.",
-                                site, path, it.getCommitId(), environment);
-                    } else {
-                        item.setId(++CTED_AUTOINCREMENT);
-                        item.setSite(site);
-                        item.setEnvironment(environment);
-                        item.setPath(path);
-                        item.setScheduledDate(scheduledDate);
-                        item.setState(PublishRequest.State.READY_FOR_LIVE);
-                        item.setAction(action);
-                        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
-                            String oldPath = it.getPreviousPath();
-                            item.setOldPath(oldPath);
-                        }
-                        String commitId = it.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
-                            item.setCommitId(commitId);
-                        } else {
-                            if (StringUtils.isNotEmpty(commitId)) {
-                                logger.warn("The item in site '{}' path '{}' has a null commit ID. Was the git " +
-                                        "repository reset at some point?", site, path);
-                            } else {
-                                logger.warn("The item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
-                                        "site's git repository. Was the git repository reset at some point?",
-                                        site, path, commitId);
-                            }
-                            logger.info("Will publish the item in site '{}' path '{}' from HEAD instead",
-                                    site, path);
-                            item.setCommitId(contentRepository.getRepoLastCommitId(site));
-                        }
-
-                        String contentTypeClass = contentService.getContentTypeClass(site, path);
-                        item.setContentTypeClass(contentTypeClass);
-                        item.setUser(approver);
-                        item.setSubmissionComment(submissionComment);
-                        item.setPackageId(packageId);
-                        newItems.add(item);
-                    }
-
-
-                    User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
-                    Workflow workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
-                    boolean insert = false;
-                    if (Objects.isNull(workflow)) {
-                        workflow = new Workflow();
-                        workflow.setItemId(it.getId());
-                        insert = true;
-                    }
-                    workflow.setState(STATE_APPROVED);
-                    workflow.setTargetEnvironment(environment);
-                    if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
-                        workflow.setSchedule(scheduledDate);
-                    }
-                    workflow.setReviewerComment(submissionComment);
-                    workflow.setReviewerId(reviewer.getId());
-                    workflow.setPublishingPackageId(packageId);
-                    if (insert) {
-                        workflowServiceInternal.insertWorkflow(workflow);
-                    } else {
-                        workflowServiceInternal.updateWorkflow(workflow);
-                    }
+                if (it == null) {
+                    continue;
+                }
+                params = new HashMap<>();
+                params.put("site_id", site);
+                params.put("environment", environment);
+                params.put("state", PublishRequest.State.READY_FOR_LIVE);
+                params.put("path", path);
+                params.put("commitId", it.getCommitId());
+                if (publishRequestMapper.checkItemQueued(params) > 0) {
+                    logger.info("The item in site '{}' path '{}' with commit ID '{}' has already been " +
+                            "queued for publishing to the target '{}'. Will not add again.",
+                            site, path, it.getCommitId(), environment);
+                } else {
+                    PublishRequest item = createItem(site, environment, scheduledDate, approver, submissionComment, action, path, it, packageId);
+                    newItems.add(item);
+                }
+                User reviewer = userServiceInternal.getUserByIdOrUsername(-1, securityService.getCurrentUser());
+                Workflow workflow = workflowServiceInternal.getWorkflowEntryForApproval(it.getId());
+                boolean insert = false;
+                if (Objects.isNull(workflow)) {
+                    workflow = new Workflow();
+                    workflow.setItemId(it.getId());
+                    insert = true;
+                }
+                workflow.setState(STATE_APPROVED);
+                workflow.setTargetEnvironment(environment);
+                if (scheduledDate != null && scheduledDate.isAfter(DateUtils.getCurrentTime())) {
+                    workflow.setSchedule(scheduledDate);
+                }
+                workflow.setReviewerComment(submissionComment);
+                workflow.setReviewerId(reviewer.getId());
+                workflow.setPublishingPackageId(packageId);
+                if (insert) {
+                    // If new, the submitter is the current user as well
+                    workflow.setSubmitterId(reviewer.getId());
+                    workflowServiceInternal.insertWorkflow(workflow);
+                } else {
+                    workflowServiceInternal.updateWorkflow(workflow);
                 }
             }
         }
         return newItems;
+    }
+
+    @NotNull
+    private PublishRequest createItem(String site, String environment, ZonedDateTime scheduledDate, String approver,
+                                      String submissionComment, String action, String path, Item it, String packageId) {
+        PublishRequest item = new PublishRequest();
+        item.setSite(site);
+        item.setEnvironment(environment);
+        item.setPath(path);
+        item.setScheduledDate(scheduledDate);
+        item.setState(PublishRequest.State.READY_FOR_LIVE);
+        item.setAction(action);
+        if (isNotEmpty(it.getPreviousPath())) {
+            String oldPath = it.getPreviousPath();
+            item.setOldPath(oldPath);
+        }
+        String commitId = it.getCommitId();
+        if (isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
+            item.setCommitId(commitId);
+        } else {
+            if (isNotEmpty(commitId)) {
+                logger.warn("The item in site '{}' path '{}' has a null commit ID. Was the git " +
+                        "repository reset at some point?", site, path);
+            } else {
+                logger.warn("The item in site '{}' path '{}' with commit ID '{}' doesn't exist in the " +
+                        "site's git repository. Was the git repository reset at some point?",
+                        site, path, commitId);
+            }
+            logger.info("Will publish the item in site '{}' path '{}' from HEAD instead",
+                    site, path);
+            item.setCommitId(contentRepository.getRepoLastCommitId(site));
+        }
+
+        String contentTypeClass = contentService.getContentTypeClass(site, path);
+        item.setContentTypeClass(contentTypeClass);
+        item.setUser(approver);
+        item.setSubmissionComment(submissionComment);
+        item.setPackageId(packageId);
+        return item;
     }
 
     @Override
@@ -340,7 +368,6 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                 if (!contentItem.isFolder()) {
                     PublishRequest item = new PublishRequest();
                     Item it = itemServiceInternal.getItem(site, path);
-                    item.setId(++CTED_AUTOINCREMENT);
                     item.setSite(site);
                     item.setEnvironment(environment);
                     item.setPath(path);
@@ -348,15 +375,15 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                     item.setState(PublishRequest.State.READY_FOR_LIVE);
                     item.setAction(PublishRequest.Action.DELETE);
                     if (it != null) {
-                        if (StringUtils.isNotEmpty(it.getPreviousPath())) {
+                        if (isNotEmpty(it.getPreviousPath())) {
                             String oldPath = it.getPreviousPath();
                             item.setOldPath(oldPath);
                         }
                         String commitId = it.getCommitId();
-                        if (StringUtils.isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
+                        if (isNotEmpty(commitId) && contentRepositoryV2.commitIdExists(site, commitId)) {
                             item.setCommitId(commitId);
                         } else {
-                            if (StringUtils.isNotEmpty(commitId)) {
+                            if (isNotEmpty(commitId)) {
                                 logger.warn("The item in site '{}' path '{}' has a null commit ID in the database. " +
                                         "Was the git repository reset at some point?", site, path);
                             } else {
@@ -384,7 +411,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
                         }
                     }
                     String lastRepoCommitId = contentRepository.getRepoLastCommitId(site);
-                    if (StringUtils.isNotEmpty(lastRepoCommitId)) {
+                    if (isNotEmpty(lastRepoCommitId)) {
                         item.setCommitId(lastRepoCommitId);
                     }
                 } else {
@@ -675,7 +702,7 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     public void publishCommits(@ValidateStringParam String site,
                                @ValidateStringParam String environment,
                                List<String> commitIds, @ValidateStringParam String comment)
-            throws SiteNotFoundException, EnvironmentNotFoundException, CommitNotFoundException {
+            throws ServiceLayerException, UserNotFoundException {
         if (!siteService.exists(site)) {
             throw new SiteNotFoundException();
         }
@@ -699,82 +726,97 @@ public class DeploymentServiceImpl implements DeploymentService, ApplicationCont
     private boolean checkCommitIds(String site, List<String> commitIds) {
         boolean toRet = true;
         for (String commitId : commitIds) {
-            if (StringUtils.isNotEmpty(commitId)) {
+            if (isNotEmpty(commitId)) {
                 toRet = toRet && contentRepositoryV2.commitIdExists(site, commitId);
             }
         }
         return toRet;
     }
 
+    /**
+     * Create a publish request for each change in the given commit IDs.
+     * It also includes a publish request for the dependencies of each content item
+     * @param site site
+     * @param environment environment
+     * @param commitIds commit IDs
+     * @param scheduledDate scheduled date
+     * @param approver approver
+     * @param comment comment
+     * @return publish requests collection
+     * @throws ServiceLayerException if an error occurs while creating the publish requests
+     */
     private List<PublishRequest> createCommitItems(String site, String environment, List<String> commitIds,
-                                                   ZonedDateTime scheduledDate, String approver, String comment) {
-        List<PublishRequest> newItems = new ArrayList<>(commitIds.size());
-        String packageId = UUID.randomUUID().toString();
+                                                         ZonedDateTime scheduledDate, String approver, String comment) throws ServiceLayerException, UserNotFoundException {
         logger.debug("Create a publish requests for a set of commit IDs in site '{}' target '{}'",
                 site, environment);
-        for (String commitId : commitIds) {
-            logger.debug("Get repository operations for site '{}' commit ID '{}'", site, commitId);
-            List<RepoOperation> operations =
-                    contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId);
 
-            for (RepoOperation op : operations) {
-                if (ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getMoveToPath())) ||
-                        ArrayUtils.contains(IGNORE_FILES, FilenameUtils.getName(op.getPath()))) {
-                    continue;
-                }
-                logger.debug("Create a publish request in site '{}' target '{}' commit ID '{}' operation '{}'",
-                        site, environment, commitId, op.getAction());
-                PublishRequest item = new PublishRequest();
-                item.setId(++CTED_AUTOINCREMENT);
-                item.setSite(site);
-                item.setEnvironment(environment);
-                item.setScheduledDate(scheduledDate);
-                item.setState(PublishRequest.State.READY_FOR_LIVE);
-                item.setCommitId(commitId);
-                item.setUser(approver);
-                item.setPackageId(packageId);
-                item.setSubmissionComment(comment);
+        // Get all the operation paths for the given commit IDs, DELETE and non-DELETE operations separated
+        Map<Boolean, List<String>> repoOperationPaths = commitIds.stream()
+                .map(commitId -> contentRepositoryV2.getOperationsFromDelta(site, commitId + PREVIOUS_COMMIT_SUFFIX, commitId))
+                .flatMap(List::stream)
+                .filter(op -> !contains(IGNORE_FILES, getName(op.getMoveToPath())))
+                .filter(op -> !contains(IGNORE_FILES, getName(op.getPath())))
+                .collect(partitioningBy(op -> op.getAction() == RepoOperation.Action.DELETE,
+                        mapping(op -> {
+                            if (op.getAction() == RepoOperation.Action.MOVE) {
+                                return op.getMoveToPath();
+                            }
+                            return op.getPath();
+                        }, Collectors.toList())));
 
-                switch (op.getAction()) {
-                    case CREATE:
-                    case COPY:
-                        item.setPath(op.getPath());
-                        item.setAction(PublishRequest.Action.NEW);
-                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
-                        break;
+        String packageId = UUID.randomUUID().toString();
 
-                    case UPDATE:
-                        item.setPath(op.getPath());
-                        item.setAction(PublishRequest.Action.UPDATE);
-                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
-                        break;
+        List<PublishRequest> publishRequests = createDeleteItems(site, environment, repoOperationPaths.get(true),
+                scheduledDate, approver, comment, packageId);
 
-                    case DELETE:
-                        item.setPath(op.getPath());
-                        item.setAction(PublishRequest.Action.DELETE);
-                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
-                        break;
-
-                    case MOVE:
-                        item.setPath(op.getMoveToPath());
-                        item.setOldPath(op.getPath());
-                        item.setAction(PublishRequest.Action.MOVE);
-                        item.setContentTypeClass(contentService.getContentTypeClass(site, op.getPath()));
-                        break;
-
-                    default:
-                        logger.error("Unknown repo operation '{}' in site '{}' target '{}' commit ID '{}'",
-                                op.getAction(), site, environment, commitId);
-                        continue;
-                }
-                logger.debug("\tPublish request TO for site '{}' path '{}' commit ID '{}' operation '{}' " +
-                        "target '{}' is ready",
-                        item.getSite(), item.getPath(), item.getCommitId(), item.getAction(), item.getEnvironment());
-                newItems.add(item);
-            }
+        // Calculate dependencies for non-DELETE operations
+        List<String> nonDeleteOperationPaths = repoOperationPaths.get(false);
+        if (!nonDeleteOperationPaths.isEmpty()) {
+            Set<String> dependenciesPaths = dependencyService.calculateDependenciesPaths(site, nonDeleteOperationPaths);
+            Map<String, List<String>> dependenciesByAction = groupPathsByAction(site, new ArrayList<>(dependenciesPaths));
+            publishRequests.addAll(createItems(site, environment, dependenciesByAction, scheduledDate, approver, comment, packageId));
         }
-        logger.debug("Created '{}' publish requests for site '{}' target '{}'", newItems.size(), site, environment);
-        return newItems;
+
+        logger.debug("Created '{}' publish requests for site '{}' target '{}'", publishRequests.size(), site, environment);
+        return publishRequests;
+    }
+
+    /**
+     * Create a DELETE publish request for each path
+     * @param site site
+     * @param environment environment
+     * @param deletePaths the content paths to delete
+     * @param scheduledDate scheduled date
+     * @param approver approver
+     * @param comment comment
+     * @param packageId package ID
+     * @return list of publish requests
+     */
+    private List<PublishRequest> createDeleteItems(String site, String environment, List<String> deletePaths,
+                                                   ZonedDateTime scheduledDate, String approver, String comment, String packageId) {
+        List<PublishRequest> publishRequests = new ArrayList<>(deletePaths.size());
+        String lastCommitId = contentRepository.getRepoLastCommitId(site);
+        deletePaths.forEach(path -> {
+            logger.debug("Create a DELETE publish request in site '{}' target '{}' for path '{}'",
+                    site, environment, path);
+            PublishRequest item = new PublishRequest();
+            item.setSite(site);
+            item.setEnvironment(environment);
+            item.setScheduledDate(scheduledDate);
+            item.setState(PublishRequest.State.READY_FOR_LIVE);
+            item.setCommitId(lastCommitId);
+            item.setUser(approver);
+            item.setPackageId(packageId);
+            item.setSubmissionComment(comment);
+            item.setPath(path);
+            item.setAction(PublishRequest.Action.DELETE);
+            item.setContentTypeClass(contentService.getContentTypeClass(site, path));
+            logger.debug("\tPublish request TO for site '{}' path '{}' commit ID '{}' operation '{}' " +
+                            "target '{}' is ready",
+                    item.getSite(), item.getPath(), item.getCommitId(), item.getAction(), item.getEnvironment());
+            publishRequests.add(item);
+        });
+        return publishRequests;
     }
 
     @Override
