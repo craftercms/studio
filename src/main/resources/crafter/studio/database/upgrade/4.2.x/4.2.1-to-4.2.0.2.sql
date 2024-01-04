@@ -100,5 +100,5 @@ BEGIN
         SELECT UUID(), siteId, nos.path, nos.max_count FROM navigation_order_sequence nos WHERE nos.site = sourceSiteId;
 END ;
 
-UPDATE `_meta` SET `version` = '4.2.2' ;
+UPDATE `_meta` SET `version` = '4.2.0.2' ;
 

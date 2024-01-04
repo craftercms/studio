@@ -16,6 +16,7 @@
 
 package org.craftercms.studio.impl.v1.asset.processing;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.craftercms.studio.api.v1.asset.Asset;
 import org.craftercms.studio.api.v1.asset.processing.ProcessorConfiguration;
@@ -30,6 +32,7 @@ import org.craftercms.studio.api.v1.image.transformation.ImageTransformer;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.craftercms.studio.api.v2.utils.StudioUtils.getStudioTemporaryFilesRoot;
 import static org.testng.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -110,7 +113,11 @@ public class ImageTransformingProcessorTest {
     }
 
     private Path createInputFile() throws IOException {
-        return Files.createTempFile(FilenameUtils.getBaseName(INPUT_REPO_PATH), "." + FilenameUtils.getExtension(INPUT_REPO_PATH));
+        File tmpRoot = getStudioTemporaryFilesRoot().toFile();
+        if (!tmpRoot.exists()) {
+            FileUtils.forceMkdir(tmpRoot);
+        }
+        return Files.createTempFile(getStudioTemporaryFilesRoot(), FilenameUtils.getBaseName(INPUT_REPO_PATH), "." + FilenameUtils.getExtension(INPUT_REPO_PATH));
     }
 
 

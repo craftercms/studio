@@ -16,8 +16,6 @@
 
 package org.craftercms.studio.api.v2.event.site;
 
-import org.springframework.security.core.Authentication;
-
 /**
  * Triggered where a site is deleted
  *
@@ -26,16 +24,8 @@ import org.springframework.security.core.Authentication;
  */
 public class SiteDeletedEvent extends SiteLifecycleEvent {
 
-    private final String siteUuid;
-
-    public SiteDeletedEvent(final Authentication authentication, final String siteId, final String siteUuid) {
-        super(authentication, siteId);
-        this.siteUuid = siteUuid;
-    }
-
     public SiteDeletedEvent(final String siteId, final String siteUuid) {
-        super(siteId);
-        this.siteUuid = siteUuid;
+        super(siteId, siteUuid);
     }
 
     @Override
@@ -46,8 +36,8 @@ public class SiteDeletedEvent extends SiteLifecycleEvent {
     @Override
     public String toString() {
         return "SiteDeleteEvent{" +
-                "siteId='" + siteId + '\'' +
-                ", siteUuid='" + siteUuid + '\'' +
+                "siteId='" + getSiteId() + '\'' +
+                ", siteUuid='" + getSiteUuid() + '\'' +
                 ", timestamp=" + timestamp +
                 ", user=" + user +
                 '}';
