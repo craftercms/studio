@@ -103,15 +103,18 @@ public class StudioContentAPIAccessDecisionVoter extends StudioAbstractAccessDec
             logger.trace("Site '{}' does not exist. The request with URL '{}' has access '{}'", siteParam, requestUri, toRet);
             return toRet;
         }
-        if (currentUser != null && isSiteMember(siteParam, currentUser)) {
-            // Need write_content permission to write operations, otherwise read_content is enough
-            if ((StringUtils.equals(requestUri, WRITE_CONTENT) &&
-                    hasPermission(siteParam, pathParam, currentUser.getUsername(), PERMISSION_CONTENT_WRITE))
-                    || hasPermission(siteParam, pathParam, currentUser.getUsername(), PERMISSION_CONTENT_READ)) {
-                toRet = ACCESS_GRANTED;
-            } else {
-                toRet = ACCESS_DENIED;
-            }
+        if (currentUser == null || !isSiteMember(siteParam, currentUser)) {
+            toRet = ACCESS_DENIED;
+            logger.trace("Current user '{}' has no access to site '{}'. The request with URL '{}' has access '{}'", currentUser, siteParam, requestUri, toRet);
+            return toRet;
+        }
+        // Need write_content permission to write operations, otherwise read_content is enough
+        String requiredPermission = PERMISSION_CONTENT_READ;
+        if (StringUtils.equals(requestUri, WRITE_CONTENT)) {
+            requiredPermission = PERMISSION_CONTENT_WRITE;
+        }
+        if (hasPermission(siteParam, pathParam, currentUser.getUsername(), requiredPermission)) {
+            toRet = ACCESS_GRANTED;
         } else {
             toRet = ACCESS_DENIED;
         }
