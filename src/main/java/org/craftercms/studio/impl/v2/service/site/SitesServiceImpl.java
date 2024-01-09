@@ -23,6 +23,7 @@ import org.craftercms.commons.security.permissions.annotations.ProtectedResource
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.exception.SiteAlreadyExistsException;
 import org.craftercms.studio.api.v1.exception.SiteNotFoundException;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.RequireSiteReady;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.PublishStatus;
@@ -85,14 +86,13 @@ public class SitesServiceImpl implements SitesService {
         if (isBlank(name) && isBlank(description)) {
             throw new InvalidParametersException("The request needs to include a name or a description");
         }
-        checkSiteExists(siteId);
         sitesServiceInternal.updateSite(siteId, name, description);
     }
 
     @Override
+    @RequireSiteExists
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_DELETE_SITE)
-    public void deleteSite(@ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
-        checkSiteExists(siteId);
+    public void deleteSite(@SiteId @ProtectedResourceId(SITE_ID_RESOURCE_ID) String siteId) throws ServiceLayerException {
         sitesServiceInternal.deleteSite(siteId);
     }
 
@@ -105,7 +105,6 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_STATUS)
     public PublishStatus getPublishingStatus(@SiteId String siteId) throws SiteNotFoundException {
-        checkSiteExists(siteId);
         PublishStatus publishStatus = sitesServiceInternal.getPublishingStatus(siteId);
         PublishingProgressObserver publishingProgressObserver =
                 publishingProgressServiceInternal.getPublishingProgress(siteId);
@@ -123,7 +122,6 @@ public class SitesServiceImpl implements SitesService {
     @RequireSiteReady
     @HasPermission(type = DefaultPermission.class, action = PERMISSION_PUBLISH_CLEAR_LOCK)
     public void clearPublishingLock(@SiteId String siteId) throws SiteNotFoundException {
-        checkSiteExists(siteId);
         sitesServiceInternal.clearPublishingLock(siteId);
     }
 
@@ -167,7 +165,6 @@ public class SitesServiceImpl implements SitesService {
             PERMISSION_READ_CONFIGURATION, PERMISSION_CONTENT_SEARCH})
     public void duplicate(@SiteId String sourceSiteId, String siteId, String siteName, String description, String sandboxBranch, boolean readOnlyBlobStores)
             throws ServiceLayerException {
-        checkSiteExists(sourceSiteId);
         if (exists(siteId)) {
             throw new SiteAlreadyExistsException(siteId);
         }

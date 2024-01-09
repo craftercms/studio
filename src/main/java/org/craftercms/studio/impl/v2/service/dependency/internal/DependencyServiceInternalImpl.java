@@ -22,7 +22,8 @@ import org.craftercms.studio.api.v1.constant.DmConstants;
 import org.craftercms.studio.api.v1.exception.ServiceLayerException;
 import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.dependency.DependencyResolver;
-import org.craftercms.studio.api.v1.service.site.SiteService;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
+import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.Dependency;
 import org.craftercms.studio.api.v2.dal.DependencyDAO;
 import org.craftercms.studio.api.v2.service.dependency.internal.DependencyServiceInternal;
@@ -49,8 +50,6 @@ import static org.craftercms.studio.api.v2.utils.StudioConfiguration.CONFIGURATI
 public class DependencyServiceInternalImpl implements DependencyServiceInternal {
 
     private static final Logger logger = LoggerFactory.getLogger(DependencyServiceInternalImpl.class);
-
-    private SiteService siteService;
     private StudioConfiguration studioConfiguration;
     private DependencyDAO dependencyDao;
     private ItemServiceInternal itemServiceInternal;
@@ -91,9 +90,8 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     }
 
     @Override
-    public List<String> getHardDependencies(String site, List<String> paths)
-            throws ServiceLayerException {
-        siteService.checkSiteExists(site);
+    @RequireSiteExists
+    public List<String> getHardDependencies(@SiteId String site, List<String> paths) {
         Map<String, String> dependencies = calculateHardDependencies(site, paths);
         return new ArrayList<>(dependencies.keySet());
     }
@@ -233,10 +231,6 @@ public class DependencyServiceInternalImpl implements DependencyServiceInternal 
     @Override
     public List<Dependency> getDependenciesByType(String siteId, String path, String dependencyType) {
         return dependencyDao.getDependenciesByType(siteId, path, dependencyType);
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
     }
 
     public void setStudioConfiguration(StudioConfiguration studioConfiguration) {

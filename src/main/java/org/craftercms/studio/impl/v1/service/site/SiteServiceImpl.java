@@ -56,6 +56,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.RemoteRepositoryInfoTO;
 import org.craftercms.studio.api.v1.to.SiteBlueprintTO;
+import org.craftercms.studio.api.v2.annotation.RequireSiteExists;
 import org.craftercms.studio.api.v2.annotation.SiteId;
 import org.craftercms.studio.api.v2.dal.*;
 import org.craftercms.studio.api.v2.deployment.Deployer;
@@ -980,8 +981,8 @@ public class SiteServiceImpl implements SiteService, ApplicationContextAware {
     }
 
     @Override
+    @RequireSiteExists
     public SiteDetails getSiteDetails(@SiteId String siteId) throws ServiceLayerException {
-        checkSiteExists(siteId);
         Map<String, Object> params = new HashMap<>();
         params.put("siteId", siteId);
 
