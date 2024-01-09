@@ -184,8 +184,9 @@ public class GitContentRepository implements ContentRepository, ServletContextAw
                 if (tw != null && tw.getObjectId(0) != null) {
                     ObjectId id = tw.getObjectId(0);
                     ObjectLoader objectLoader = repo.open(id);
-                    toReturn = objectLoader.openStream();
-                    tw.close();
+                    if (OBJ_BLOB == objectLoader.getType()) {
+                        toReturn = objectLoader.openStream();
+                    }
                 }
             }
         } catch (IOException e) {
