@@ -18,9 +18,11 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload
 import org.apache.commons.fileupload.util.Streams
 import org.apache.commons.io.FilenameUtils
 import org.apache.commons.lang3.StringUtils
+import org.craftercms.commons.validation.validators.impl.SecurePathValidator
 import org.craftercms.engine.exception.HttpStatusCodeException
 import org.craftercms.studio.api.v1.exception.ServiceLayerException
 import org.craftercms.studio.api.v2.exception.content.ContentExistException
+import org.craftercms.studio.controller.rest.ValidationUtils
 import scripts.api.ContentServices
 
 def result = [:]
@@ -58,6 +60,7 @@ if (!site || site == '') {
     return result
 }
 
+ValidationUtils.validateValue(new SecurePathValidator(), path, 'path');
 if (ServletFileUpload.isMultipartContent(request)) {
     def upload = new ServletFileUpload()
     def iterator = upload.getItemIterator(request)
