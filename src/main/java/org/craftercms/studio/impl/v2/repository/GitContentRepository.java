@@ -1793,7 +1793,10 @@ public class GitContentRepository implements ContentRepository {
                     if (tw != null) {
                         ObjectId id = tw.getObjectId(0);
                         ObjectLoader objectLoader = repo.open(id);
-                        return Optional.of(new GitResource(objectLoader));
+                        if (OBJ_BLOB == objectLoader.getType()) {
+                            return Optional.of(new GitResource(objectLoader));
+                        }
+                        return Optional.empty();
                     }
                 }
             }
